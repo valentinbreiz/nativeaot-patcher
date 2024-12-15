@@ -28,7 +28,7 @@ namespace Liquip.Patcher
 
             Console.WriteLine($"Patching method: {targetMethod.FullName} with plug: {plugMethod.FullName}");
 
-            targetMethod.Body.ReplaceMethodBody(plugMethod.Body.Method);
+            targetMethod.SwapMethods(plugMethod);
 
             Console.WriteLine($"Patched method: {targetMethod.Name} successfully.");
         }

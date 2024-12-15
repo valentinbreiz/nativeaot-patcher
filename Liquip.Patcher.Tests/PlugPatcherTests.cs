@@ -94,27 +94,30 @@ namespace Liquip.Patcher.Tests
             // Act
             patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-            PlugUtils.Save(targetAssembly, "./", "targetAssembly.dll");
-
             var resultAfterPlug = ExecuteMethod(targetAssembly, "TestClass", "Add", 3, 4);
             Assert.Equal(12, resultAfterPlug);
         }
 
         private int ExecuteMethod(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
-            // Save the patched assembly to a temporary location
-            PlugUtils.Save(assemblyDefinition, "targetAssembly.dll");
+            // Crée un flux pour charger l'assembly en mémoire
+            using var memoryStream = new System.IO.MemoryStream();
+            assemblyDefinition.Write(memoryStream);
+            memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
 
-            // Load the assembly into the AppDomain
-            var loadedAssembly = Assembly.LoadFile("targetAssembly.dll");
+            // Charge l'assembly en mémoire
+            var loadedAssembly = Assembly.Load(memoryStream.ToArray());
             var type = loadedAssembly.GetType(typeName);
-            var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+            Assert.NotNull(type);
 
+            var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
-            // Execute the method and return the result
+            // Exécute la méthode et retourne le résultat
             return (int)method.Invoke(null, parameters);
         }
+
+
 
     }
 }
