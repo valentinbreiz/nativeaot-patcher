@@ -102,6 +102,8 @@ namespace Liquip.Patcher
                 PatchType(targetType, plugAssemblies);
             }
 
+            targetAssembly.UpdateFieldsPropertiesAndMethods(true);
+
             Console.WriteLine($"Patched assembly: {targetAssembly.MainModule.Name} successfully.");
         }
     }

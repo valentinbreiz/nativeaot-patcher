@@ -66,6 +66,15 @@ namespace Liquip.Patcher.Tests
             var targetAssembly = CreateMockAssembly<TestClass>();
             var plugAssembly = CreateMockAssembly<TestClassPlug>();
 
+            int count = 0;
+
+            foreach (var plugMethod in plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug)).Methods)
+            {
+                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
+
+                count = plugMethod.Body.Instructions.Count;
+            }
+
             // Act
             patcher.PatchAssembly(targetAssembly, plugAssembly);
 
@@ -84,10 +93,7 @@ namespace Liquip.Patcher.Tests
                 Assert.NotNull(targetMethod);
                 Assert.NotNull(targetMethod.Body);
 
-                if (plugMethod.Body != null)
-                {
-                    Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count);
-                }
+                Assert.Equal(count, targetMethod.Body.Instructions.Count);
             }
         }
 
