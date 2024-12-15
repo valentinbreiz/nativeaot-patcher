@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.NativeLibrary.Tests"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Liquip.NativeLibrary", "Liquip.NativeLibrary\Liquip.NativeLibrary.vcxproj", "{8BB57B06-1852-42A6-8C53-C04ADF8B50A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.NativeWrapper", "Liquip.NativeWrapper\Liquip.NativeWrapper.csproj", "{2DA86403-E320-4B78-A287-63F29D964803}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -157,6 +159,18 @@ Global
 		{8BB57B06-1852-42A6-8C53-C04ADF8B50A1}.Release|x64.Build.0 = Release|x64
 		{8BB57B06-1852-42A6-8C53-C04ADF8B50A1}.Release|x86.ActiveCfg = Release|Win32
 		{8BB57B06-1852-42A6-8C53-C04ADF8B50A1}.Release|x86.Build.0 = Release|Win32
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|x64.Build.0 = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Debug|x86.Build.0 = Debug|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|x64.ActiveCfg = Release|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|x64.Build.0 = Release|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DA86403-E320-4B78-A287-63F29D964803}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,5 +182,6 @@ Global
 		{F168801E-41F3-4007-B5FC-0CD201DE4EF3} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 		{5611344C-B0DF-4A9B-A530-C677F8BD71AC} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 		{8BB57B06-1852-42A6-8C53-C04ADF8B50A1} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
+		{2DA86403-E320-4B78-A287-63F29D964803} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 	EndGlobalSection
 EndGlobal

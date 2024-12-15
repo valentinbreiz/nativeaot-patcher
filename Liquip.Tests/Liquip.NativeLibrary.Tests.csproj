@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Liquip.API\Liquip.API.csproj" />
+		<ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,10 +20,7 @@
 	</ItemGroup>
 
 	<Target Name="CopyNativeLibrary" AfterTargets="Build">
-		<Copy
-		  SourceFiles="..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll"
-		  DestinationFolder="$(OutputPath)"
-		  Condition="Exists('..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll')" />
+		<Copy SourceFiles="..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll" DestinationFolder="$(OutputPath)" Condition="Exists('..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll')" />
 	</Target>
 
 </Project>
