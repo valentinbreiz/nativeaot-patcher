@@ -1,4 +1,4 @@
-﻿using Liquip.NativeLibrary.Tests.PlugSample;
+﻿using NativeWrapper;
 using Xunit;
 
 namespace NativeLibrary.Tests.Tests
@@ -9,8 +9,8 @@ namespace NativeLibrary.Tests.Tests
         public void Add_ShouldReturnCorrectResult()
         {
             // Act
-            var resultNative = NativeWrapper.NativeAdd(2, 3);
-            var resultManaged = NativeWrapper.ManagedAdd(2, 3);
+            var resultNative = TestClass.NativeAdd(2, 3);
+            var resultManaged = TestClass.ManagedAdd(2, 3);
 
             // Assert
             Assert.Equal(5, resultNative);

@@ -4,6 +4,7 @@ using Mono.Cecil;
 using Xunit;
 using Liquip.Patcher;
 using Liquip.API.Attributes;
+using NativeWrapper;
 
 namespace Liquip.Patcher.Tests
 {
@@ -45,6 +46,21 @@ namespace Liquip.Patcher.Tests
 
             // Assert
             Assert.Empty(methods);
+        }
+
+        [Fact]
+        public void LoadPlugMethods_ShouldContainAddMethod_WhenPlugged()
+        {
+            // Arrange
+            var assembly = CreateMockAssembly<TestClassPlug>();
+            var scanner = new PlugScanner();
+            var plugType = assembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug));
+
+            // Act
+            var methods = scanner.LoadPlugMethods(plugType);
+
+            // Assert
+            Assert.Contains(methods, method => method.Name == "Add");
         }
     }
 }
