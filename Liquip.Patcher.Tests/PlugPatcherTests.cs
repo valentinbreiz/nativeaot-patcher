@@ -8,6 +8,7 @@ using Liquip.Patcher.Extensions;
 using Xunit;
 using NativeWrapper;
 using System.Reflection;
+using MonoMod.Utils;
 
 namespace Liquip.Patcher.Tests
 {
@@ -31,6 +32,15 @@ namespace Liquip.Patcher.Tests
 
             var plugAssembly = CreateMockAssembly<TestClassPlug>();
 
+            int count = 0;
+
+            foreach (var plugMethod in plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug)).Methods)
+            {
+                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
+
+                count = plugMethod.Body.Instructions.Count;
+            }
+
             // Act
             patcher.PatchType(targetType, plugAssembly);
 
@@ -42,7 +52,7 @@ namespace Liquip.Patcher.Tests
                 var targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
                 Assert.NotNull(targetMethod);
                 Assert.NotNull(targetMethod.Body);
-                Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count);
+                Assert.Equal(count, targetMethod.Body.Instructions.Count);
             }
         }
 
@@ -100,20 +110,14 @@ namespace Liquip.Patcher.Tests
 
         private int ExecuteMethod(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
-            // Crée un flux pour charger l'assembly en mémoire
-            using var memoryStream = new System.IO.MemoryStream();
-            assemblyDefinition.Write(memoryStream);
-            memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
+            PlugUtils.Save(assemblyDefinition, "./", "targetAssembly.dll");
 
-            // Charge l'assembly en mémoire
-            var loadedAssembly = Assembly.Load(memoryStream.ToArray());
+            var loadedAssembly = Assembly.LoadFile("./targetAssembly.dll");
             var type = loadedAssembly.GetType(typeName);
-            Assert.NotNull(type);
-
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+
             Assert.NotNull(method);
 
-            // Exécute la méthode et retourne le résultat
             return (int)method.Invoke(null, parameters);
         }
 

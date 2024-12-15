@@ -4,6 +4,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Liquip.Patcher.Extensions;
+using MonoMod.Utils;
 
 namespace Liquip.Patcher
 {
