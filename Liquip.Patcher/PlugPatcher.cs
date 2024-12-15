@@ -28,7 +28,7 @@ namespace Liquip.Patcher
 
             Console.WriteLine($"Patching method: {targetMethod.FullName} with plug: {plugMethod.FullName}");
 
-            targetMethod.Body = plugMethod.Body.ReplaceMethodBody(targetMethod);
+            targetMethod.Body.ReplaceMethodBody(plugMethod.Body.Method);
 
             Console.WriteLine($"Patched method: {targetMethod.Name} successfully.");
         }
@@ -47,32 +47,36 @@ namespace Liquip.Patcher
 
             var plugTypes = _scanner.LoadPlugs(plugAssemblies);
 
-            foreach (var plugType in plugTypes)
+            if (plugTypes != null)
             {
-                // Match if the plug is intended for this target type
-                var plugAttribute = plugType.CustomAttributes
-                    .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
-
-                if (plugAttribute == null) continue;
-
-                var targetTypeName = plugAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-
-                if (targetTypeName != targetType.FullName) continue;
-
-                foreach (var plugMethod in plugType.Methods)
+                foreach (var plugType in plugTypes)
                 {
-                    if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
+                    // Match if the plug is intended for this target type
+                    var plugAttribute = plugType.CustomAttributes
+                        .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
-                    var targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name &&
-                                                                             m.Parameters.Count == plugMethod.Parameters.Count);
-                    if (targetMethod != null)
+                    if (plugAttribute == null) continue;
+
+                    var targetTypeName = plugAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
+
+                    if (targetTypeName != targetType.FullName) continue;
+
+                    foreach (var plugMethod in plugType.Methods)
                     {
-                        Console.WriteLine($"Found matching method: {targetMethod.Name}. Patching...");
-                        PatchMethod(targetMethod, plugMethod);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"No matching method found for plug: {plugMethod.Name}");
+                        if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
+
+                        var targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name &&
+                                                                                 m.Parameters.Count == plugMethod.Parameters.Count);
+                        if (targetMethod != null)
+                        {
+                            Console.WriteLine($"Found matching method: {targetMethod.Name}. Patching...");
+                            PatchMethod(targetMethod, plugMethod);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"No matching method found for plug: {plugMethod.Name}");
+                        }
+
                     }
                 }
             }
@@ -94,7 +98,6 @@ namespace Liquip.Patcher
 
             foreach (var targetType in targetAssembly.MainModule.Types)
             {
-                Console.WriteLine($"Processing type: {targetType.FullName}");
                 PatchType(targetType, plugAssemblies);
             }
 
