@@ -116,10 +116,15 @@ namespace Liquip.Patcher.Tests
 
         private int ExecuteMethod(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
-            PlugUtils.Save(assemblyDefinition, "./", "targetAssembly.dll");
+            // Crée un flux pour charger l'assembly en mémoire
+            using var memoryStream = new System.IO.MemoryStream();
+            assemblyDefinition.Write(memoryStream);
+            memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
 
-            var loadedAssembly = Assembly.LoadFile("./targetAssembly.dll");
-            var type = loadedAssembly.GetType(typeName);
+            // Charge l'assembly en mémoire
+            var loadedAssembly = Assembly.Load(memoryStream.ToArray());
+
+            var type = loadedAssembly.GetType("NativeWrapper.TestClass");
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
 
             Assert.NotNull(method);
