@@ -2,22 +2,17 @@
 
 namespace Liquip.NativeWrapper
 {
+    [Plug(typeof(NativeWrapperObject))]
     public class NativeWrapperObjectPlug
     {
-        [Plug(typeof(NativeWrapperObject))]
-        public class AThisObjectPlug
+        public static void Speak(object aThis)
         {
-            public static void Speak(object aThis)
-            {
-                Console.WriteLine("bz bz plugged hello");
-            }
+            Console.WriteLine("bz bz plugged hello");
+        }
 
-            public static int InstanceMethod(object aThis, int value)
-            {
-                var obj = (NativeWrapperObjectPlug)aThis;
-
-                return value * 2;
-            }
+        public static int InstanceMethod(object aThis, int value)
+        {
+            return value * 2;
         }
     }
 }

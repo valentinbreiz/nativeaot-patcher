@@ -35,6 +35,8 @@ namespace Liquip.Patcher.Tests
             // Act: Apply the plug
             patcher.PatchAssembly(targetAssembly, plugAssembly);
 
+            PlugUtils.Save(targetAssembly, "./", "targetObjectAssembly.dll");
+
             var result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", new object[] { 10 });
             Assert.Equal(20, result);
         }

@@ -103,19 +103,21 @@ namespace Liquip.Patcher.Tests
             // Act
             patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-            var resultAfterPlug = ExecuteMethod(targetAssembly, "TestClass", "Add", 3, 4);
-            Assert.Equal(12, resultAfterPlug);
+            PlugUtils.Save(targetAssembly, "./", "targetAssembly.dll");
+
+            var result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
+            Assert.Equal(12, result);
         }
 
-        private int ExecuteMethod(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
+        private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
             using var memoryStream = new System.IO.MemoryStream();
             assemblyDefinition.Write(memoryStream);
             memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
 
             var loadedAssembly = Assembly.Load(memoryStream.ToArray());
-
             var type = loadedAssembly.GetType("Liquip.NativeWrapper.TestClass");
+            Assert.NotNull(type);
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
 
             Assert.NotNull(method);
