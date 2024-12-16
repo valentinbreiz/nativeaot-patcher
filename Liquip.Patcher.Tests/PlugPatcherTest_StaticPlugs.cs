@@ -5,7 +5,7 @@ using MonoMod.Utils;
 
 namespace Liquip.Patcher.Tests
 {
-    public class PlugPatcherTests
+    public class PlugPatcherTest_StaticPlugs
     {
         private AssemblyDefinition CreateMockAssembly<T>()
         {

@@ -65,6 +65,10 @@ namespace Liquip.Patcher
                     {
                         clonedInstruction.Operand = targetMethod.Module.ImportReference(typeRef);
                     }
+                    else if (clonedInstruction.Operand is MemberReference memberRef)
+                    {
+                        clonedInstruction.Operand = targetMethod.Module.ImportReference(memberRef);
+                    }
 
                     processor.Append(clonedInstruction);
                 }
@@ -93,19 +97,14 @@ namespace Liquip.Patcher
             if (targetType == null) throw new ArgumentNullException(nameof(targetType));
             if (plugAssemblies == null || plugAssemblies.Length == 0) throw new ArgumentNullException(nameof(plugAssemblies));
 
+            // Ensure the target type is not a plug type itself
             if (targetType.CustomAttributes.Any(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName))
             {
                 Console.WriteLine($"Skipping patching of plug type: {targetType.FullName}");
-
                 return;
             }
 
             Console.WriteLine($"Scanning and patching type: {targetType.FullName}");
-
-            if (targetType.FullName.Contains("NativeWrapperObject"))
-            {
-                Console.WriteLine("Future debugging!");
-            }
 
             var plugTypes = _scanner.LoadPlugs(plugAssemblies);
 
@@ -124,8 +123,28 @@ namespace Liquip.Patcher
 
                     foreach (var plugMethod in plugType.Methods)
                     {
-                        if (plugMethod.IsConstructor && !plugMethod.Parameters.Any(p => p.Name == "aThis"))
+                        if (plugMethod.Name == "Ctor")
                         {
+                            var isInstanceCtorPlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
+
+                            var targetConstructor = targetType.Methods.FirstOrDefault(m => m.IsConstructor &&
+                                (isInstanceCtorPlug ? m.Parameters.Count + 1 == plugMethod.Parameters.Count : m.Parameters.Count == plugMethod.Parameters.Count));
+
+                            if (targetConstructor != null)
+                            {
+                                Console.WriteLine($"Found matching constructor: {targetConstructor.Name}. Patching...");
+                                PatchMethod(targetConstructor, plugMethod);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"No matching constructor found for plug: {plugMethod.Name}");
+                            }
+
+                            continue;
+                        }
+                        else if (plugMethod.IsConstructor && !plugMethod.Parameters.Any(p => p.Name == "aThis"))
+                        {
+                            Console.WriteLine($"Skipping constructor: {plugMethod.Name}");
                             continue;
                         }
 
@@ -146,6 +165,8 @@ namespace Liquip.Patcher
                     }
                 }
             }
+
+            Console.WriteLine($"Patched type: {targetType.Name} successfully.");
         }
 
         /// <summary>

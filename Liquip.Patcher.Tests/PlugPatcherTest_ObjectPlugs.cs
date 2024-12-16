@@ -57,5 +57,46 @@ namespace Liquip.Patcher.Tests
 
             return method.Invoke(instance, parameters);
         }
+
+        [Fact]
+        public void PatchConstructor_ShouldPlugCtorCorrectly()
+        {
+            // Arrange
+            var plugScanner = new PlugScanner();
+            var patcher = new PlugPatcher(plugScanner);
+
+            var targetAssembly = CreateMockAssembly<NativeWrapperObject>();
+            var plugAssembly = CreateMockAssembly<NativeWrapperObjectPlug>();
+
+            var targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
+            Assert.NotNull(targetType);
+
+            using var stringWriter = new StringWriter();
+            Console.SetOut(stringWriter);
+
+            // Act: Apply the plug
+            patcher.PatchAssembly(targetAssembly, plugAssembly);
+
+            PlugUtils.Save(targetAssembly, "./", "targetCtorAssembly.dll");
+
+            var instance = ExecuteConstructor(targetAssembly, "NativeWrapperObject");
+
+            // Assert: Check the standard output for the constructor plug
+            var output = stringWriter.ToString();
+            Assert.Contains("Plugged ctor", output);
+        }
+
+        private object ExecuteConstructor(AssemblyDefinition assemblyDefinition, string typeName)
+        {
+            using var memoryStream = new MemoryStream();
+            assemblyDefinition.Write(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            var loadedAssembly = Assembly.Load(memoryStream.ToArray());
+            var type = loadedAssembly.GetType("Liquip.NativeWrapper." + typeName);
+            Assert.NotNull(type);
+
+            return Activator.CreateInstance(type);
+        }
     }
 }
