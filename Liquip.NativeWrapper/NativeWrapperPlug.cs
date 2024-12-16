@@ -1,6 +1,6 @@
 using Liquip.API.Attributes;
 
-namespace NativeWrapper
+namespace Liquip.NativeWrapper
 {
 	[Plug(typeof(TestClass))]
 	public class TestClassPlug

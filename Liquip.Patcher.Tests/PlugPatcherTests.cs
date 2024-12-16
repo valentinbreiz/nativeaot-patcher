@@ -1,5 +1,5 @@
 ﻿using Mono.Cecil;
-using NativeWrapper;
+using Liquip.NativeWrapper;
 using System.Reflection;
 using MonoMod.Utils;
 
@@ -115,7 +115,7 @@ namespace Liquip.Patcher.Tests
 
             var loadedAssembly = Assembly.Load(memoryStream.ToArray());
 
-            var type = loadedAssembly.GetType("NativeWrapper.TestClass");
+            var type = loadedAssembly.GetType("Liquip.NativeWrapper.TestClass");
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
 
             Assert.NotNull(method);

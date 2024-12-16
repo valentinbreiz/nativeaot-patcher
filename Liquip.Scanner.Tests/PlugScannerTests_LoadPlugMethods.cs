@@ -4,7 +4,7 @@ using Mono.Cecil;
 using Xunit;
 using Liquip.Patcher;
 using Liquip.API.Attributes;
-using NativeWrapper;
+using Liquip.NativeWrapper;
 
 namespace Liquip.Patcher.Tests
 {

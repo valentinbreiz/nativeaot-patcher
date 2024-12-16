@@ -1,7 +1,7 @@
 ﻿using Liquip.API.Attributes;
 using System.Runtime.InteropServices;
 
-namespace NativeWrapper
+namespace Liquip.NativeWrapper
 {
     public class TestClass
     {

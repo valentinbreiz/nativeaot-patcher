@@ -1,4 +1,4 @@
-﻿using NativeWrapper;
+﻿using Liquip.NativeWrapper;
 using Xunit;
 
 namespace NativeLibrary.Tests.Tests
