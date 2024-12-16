@@ -1,11 +1,4 @@
-﻿using Liquip.API.Attributes;
-using System.Runtime.InteropServices;
-using System;
-using System.Linq;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Liquip.Patcher.Extensions;
-using Xunit;
+﻿using Mono.Cecil;
 using NativeWrapper;
 using System.Reflection;
 using MonoMod.Utils;
@@ -116,12 +109,10 @@ namespace Liquip.Patcher.Tests
 
         private int ExecuteMethod(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
-            // Crée un flux pour charger l'assembly en mémoire
             using var memoryStream = new System.IO.MemoryStream();
             assemblyDefinition.Write(memoryStream);
             memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
 
-            // Charge l'assembly en mémoire
             var loadedAssembly = Assembly.Load(memoryStream.ToArray());
 
             var type = loadedAssembly.GetType("NativeWrapper.TestClass");
@@ -131,8 +122,5 @@ namespace Liquip.Patcher.Tests
 
             return (int)method.Invoke(null, parameters);
         }
-
-
-
     }
 }
