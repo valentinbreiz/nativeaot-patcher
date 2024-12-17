@@ -1,0 +1,42 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build and Test NativeAOT-Patcher
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore Dependencies
+      run: dotnet restore
+
+    - name: Build Projects
+      run: dotnet build --configuration Debug --no-restore
+
+    - name: Run Liquip.Patcher.Tests
+      run: dotnet test ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
+
+    - name: Run Liquip.Scanner.Tests
+      run: dotnet test ./Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: Test-Results
+        path: |
+          **/Liquip.Patcher.Tests.trx
+          **/Liquip.Scanner.Tests.trx
