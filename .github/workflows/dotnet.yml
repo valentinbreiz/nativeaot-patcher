@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET Tests
 
 on:
   push:
@@ -10,33 +7,46 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    name: Build and Test NativeAOT-Patcher
+  build-and-test:
+    name: Run Tests for NativeAOT-Patcher
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+      # Étape 1: Récupération du code source
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Restore Dependencies
-      run: dotnet restore
+      # Étape 2: Configuration de .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Build Projects
-      run: dotnet build --configuration Debug --no-restore
+      # Étape 3: Restauration des dépendances des projets de test uniquement
+      - name: Restore Dependencies for Test Projects
+        run: |
+          dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+          dotnet restore ./Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
 
-    - name: Run Liquip.Patcher.Tests
-      run: dotnet test ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
+      # Étape 4: Compilation des projets de test uniquement
+      - name: Build Test Projects
+        run: |
+          dotnet build ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
+          dotnet build ./Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
 
-    - name: Run Liquip.Scanner.Tests
-      run: dotnet test ./Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
+      # Étape 5: Exécution des tests Liquip.Patcher.Tests
+      - name: Run Liquip.Patcher.Tests
+        run: dotnet test ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
 
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: Test-Results
-        path: |
-          **/Liquip.Patcher.Tests.trx
-          **/Liquip.Scanner.Tests.trx
+      # Étape 6: Exécution des tests Liquip.Scanner.Tests
+      - name: Run Liquip.Scanner.Tests
+        run: dotnet test ./Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
+
+      # Étape 7: Upload des résultats de test
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test-Results
+          path: |
+            **/Liquip.Patcher.Tests.trx
+            **/Liquip.Scanner.Tests.trx
