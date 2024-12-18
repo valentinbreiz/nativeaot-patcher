@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
   <PropertyGroup>
     <LiquipPatcherTasksAssembly 
-            Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFile)..\Liquip.Patcher.Build.dll</LiquipPatcherTasksAssembly>
+            Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Liquip.Patcher.Build.dll</LiquipPatcherTasksAssembly>
   </PropertyGroup>
   
   <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)" />

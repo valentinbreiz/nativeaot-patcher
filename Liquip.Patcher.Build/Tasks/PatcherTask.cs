@@ -1,54 +1,57 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using System.Linq;
 
-namespace Liquip.Patcher.Build.Tasks;
-
-public class PatcherTask : ToolTask
+namespace Liquip.Patcher.Build.Tasks
 {
-    
-    [Required]
-    public string PatcherPath { get; set; } = null!;
-
-    [Required]
-    public string TargetAssembly { get; set; } = null!;
-
-    [Required]
-    public ITaskItem[] References { get; set; } = null!;
-    
-    [Required]
-    public ITaskItem[] PlugsReferences { get; set; } = null!;
-    
-    protected override string GenerateFullPathToTool()
+    public class PatcherTask : ToolTask
     {
-        return PatcherPath;
-    }
+        [Required]
+        public string PatcherPath { get; set; } = null;
 
-    public override bool Execute()
-    {
-        return base.Execute();
-    }
+        [Required]
+        public string TargetAssembly { get; set; } = null;
 
-    protected override string ToolName { get; } = nameof(PatcherTask);
+        [Required]
+        public ITaskItem[] PlugsReferences { get; set; } = null;
 
-    protected override string GenerateResponseFileCommands()
-    {
-        var args = new Dictionary<string, string>
+        protected override string GenerateFullPathToTool()
         {
-            [nameof(TargetAssembly)] = TargetAssembly,
-        }.ToList();
-        
-        args.AddRange(References
-            .Select(reference =>
-                new KeyValuePair<string, string>(nameof(References), reference.ItemSpec)
-            )
-        );
+            // Retourne le chemin complet vers Liquip.Patcher.exe
+            return PatcherPath;
+        }
 
-        args.AddRange(PlugsReferences
-            .Select(plugsReference =>
-                new KeyValuePair<string, string>(nameof(PlugsReferences), plugsReference.ItemSpec)
-            )
-        );
+        protected override string GenerateCommandLineCommands()
+        {
+            var builder = new CommandLineBuilder();
 
-        return string.Join(Environment.NewLine, args.Select(a => $"{a.Key}:{a.Value}"));
+            // Ajoute la commande principale
+            builder.AppendSwitch("patch");
+
+            // Ajoute l'argument --target
+            builder.AppendSwitch("--target");
+            builder.AppendFileNameIfNotNull(TargetAssembly);
+
+            // Ajoute les plugs
+            foreach (var plug in PlugsReferences)
+            {
+                builder.AppendSwitch("--plugs");
+                builder.AppendFileNameIfNotNull(plug.ItemSpec);
+            }
+
+            return builder.ToString();
+        }
+
+        public override bool Execute()
+        {
+            Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
+            Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
+            Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
+            Log.LogMessage(MessageImportance.High, $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
+
+            return base.Execute();
+        }
+
+        protected override string ToolName => "Liquip.Patcher.exe";
     }
 }
