@@ -1,0 +1,37 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<PatcherPath>$(MSBuildProjectDirectory)\..\Liquip.Patcher\bin\Debug\net8.0\Liquip.Patcher.exe</PatcherPath>
+		<PatcherBuildDll>$(MSBuildProjectDirectory)\..\Liquip.Patcher.Build\bin\Debug\netstandard2.0\Liquip.Patcher.Build.dll</PatcherBuildDll>
+
+		<IlcSystemModule>Cosmos</IlcSystemModule>
+		<EntryPointSymbol>__Cosmos_Main</EntryPointSymbol>
+		<LinkerSubsystem>EFI_APPLICATION</LinkerSubsystem>
+
+		<PatchedAssembly>$(OutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
+		<FinalAssembly>$(OutputPath)$(AssemblyName)_final.dll</FinalAssembly>
+	</PropertyGroup>
+
+	<UsingTask TaskName="Liquip.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
+
+	<!-- Step 1 : Patcher -->
+	<Target Name="RunPatcher" AfterTargets="Build">
+		<ItemGroup>
+			<PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
+		</ItemGroup>
+
+		<PatcherTask
+		  PatcherPath="$(PatcherPath)"
+		  TargetAssembly="$(OutputPath)$(AssemblyName).dll"
+		  PlugsReferences="@(PlugRef)" />
+
+		<Message Importance="High" Text="Liquip.Patcher successfully patched: '$(PatchedAssembly)'" />
+	</Target>
+
+	<!-- Step 2 : ILC Compilation -->
+	<Target Name="RunILC" AfterTargets="RunPatcher">
+		<Exec Command="dotnet ilc $(PatchedAssembly) -o $(FinalAssembly) --subsystem:$(LinkerSubsystem) --entrypoint:$(EntryPointSymbol)" />
+		<Message Importance="High" Text="ILC compilation completed: '$(FinalAssembly)'" />
+	</Target>
+
+</Project>
