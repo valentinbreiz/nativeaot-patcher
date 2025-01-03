@@ -5,14 +5,18 @@
 		<PatcherBuildDll>$(MSBuildProjectDirectory)\..\Liquip.Patcher.Build\bin\Debug\netstandard2.0\Liquip.Patcher.Build.dll</PatcherBuildDll>
 
 		<PatchedAssembly>$(OutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
-		<FlattenedOutputPath>$(OutputPath)\Flattened</FlattenedOutputPath>
+		<ILCOutput>$(OutputPath)$(AssemblyName).obj</ILCOutput>
+		<MapFile>$(OutputPath)$(AssemblyName).map</MapFile>
 		<FinalAssembly>$(OutputPath)$(AssemblyName)_final.exe</FinalAssembly>
+
+		<EnablePatching>true</EnablePatching>
+		<EnableAOT>true</EnableAOT>
 	</PropertyGroup>
 
 	<UsingTask TaskName="Liquip.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
 
 	<!-- Step 1: Patcher -->
-	<Target Name="RunPatcher" AfterTargets="Build">
+	<Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
 		<ItemGroup>
 			<PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
 		</ItemGroup>
@@ -25,16 +29,17 @@
 		<Message Importance="High" Text="Liquip.Patcher successfully patched: '$(PatchedAssembly)'" />
 	</Target>
 
-	<!-- Step 2: Flatten with BFlatA -->
-	<Target Name="RunBFlatA" AfterTargets="RunPatcher">
-		<Exec Command="bflata flatten-all $(PatchedAssembly) --os:UEFI --arch:x64 --out:$(FlattenedOutputPath)" />
-		<Message Importance="High" Text="BFlatA flattened output available at: '$(FlattenedOutputPath)'" />
+
+	<!-- Step 3: Compile to native with ILC -->
+	<Target Name="CompileWithILC" AfterTargets="RunPatcher" Condition="'$(EnableAOT)' == 'true'">
+		<Exec Command="ilc .\bin\Debug\net8.0\$(PatchedAssembly) -g -o $(ILCOutput) --systemmodule $(AssemblyName) --map $(MapFile) -O" />
+		<Message Importance="High" Text="ILC compiled to native object file: $(ILCOutput)" />
 	</Target>
 
-	<!-- Step 3: Compilation with BFlat -->
-	<Target Name="RunBFlat" AfterTargets="RunBFlatA">
-		<Exec Command="bflat build $(FlattenedOutputPath)\build.rsp --out $(FinalAssembly)" />
-		<Message Importance="High" Text="Final native binary built: '$(FinalAssembly)'" />
+	<!-- Step 4: Link with Link.exe -->
+	<Target Name="LinkWithLinker" AfterTargets="CompileWithILC" Condition="'$(EnableAOT)' == 'true'">
+		<Exec Command="link /debug /subsystem:console $(ILCOutput) /entry:__managed__Main kernel32.lib /incremental:no /out:$(FinalAssembly)" />
+		<Message Importance="High" Text="Linked to final native binary: $(FinalAssembly)" />
 	</Target>
 
 </Project>
