@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <TargetFramework Condition="$(TargetFramework) != ''">netstandard2.0</TargetFramework>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
 
