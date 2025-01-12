@@ -3,126 +3,141 @@ using Liquip.NativeWrapper;
 using System.Reflection;
 using MonoMod.Utils;
 
-namespace Liquip.Patcher.Tests
+namespace Liquip.Patcher.Tests;
+
+public class PlugPatcherTest_StaticPlugs
 {
-    public class PlugPatcherTest_StaticPlugs
+    private AssemblyDefinition CreateMockAssembly<T>()
     {
-        private AssemblyDefinition CreateMockAssembly<T>()
+        string? assemblyPath = typeof(T).Assembly.Location;
+        return AssemblyDefinition.ReadAssembly(assemblyPath);
+    }
+
+    [Fact]
+    public void PatchType_ShouldReplaceAllMethodsCorrectly()
+    {
+        // Arrange
+        PlugScanner? plugScanner = new();
+        PlugPatcher? patcher = new(plugScanner);
+
+        AssemblyDefinition? assembly = CreateMockAssembly<TestClass>();
+        TypeDefinition? targetType = assembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
+
+        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
+
+        int count = 0;
+
+        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
+                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
         {
-            var assemblyPath = typeof(T).Assembly.Location;
-            return AssemblyDefinition.ReadAssembly(assemblyPath);
-        }
-
-        [Fact]
-        public void PatchType_ShouldReplaceAllMethodsCorrectly()
-        {
-            // Arrange
-            var plugScanner = new PlugScanner();
-            var patcher = new PlugPatcher(plugScanner);
-
-            var assembly = CreateMockAssembly<TestClass>();
-            var targetType = assembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
-
-            var plugAssembly = CreateMockAssembly<TestClassPlug>();
-
-            int count = 0;
-
-            foreach (var plugMethod in plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug)).Methods)
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
             {
-                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
-
-                count = plugMethod.Body.Instructions.Count;
+                continue;
             }
 
-            // Act
-            patcher.PatchType(targetType, plugAssembly);
-
-            // Assert
-            foreach (var plugMethod in plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug)).Methods)
-            {
-                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
-
-                var targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-                Assert.NotNull(targetMethod);
-                Assert.NotNull(targetMethod.Body);
-                Assert.Equal(count, targetMethod.Body.Instructions.Count);
-            }
+            count = plugMethod.Body.Instructions.Count;
         }
 
-        [Fact]
-        public void PatchType_ShouldPlugAssembly()
+        // Act
+        patcher.PatchType(targetType, plugAssembly);
+
+        // Assert
+        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
+                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
         {
-            // Arrange
-            var plugScanner = new PlugScanner();
-            var patcher = new PlugPatcher(plugScanner);
-
-            var targetAssembly = CreateMockAssembly<TestClass>();
-            var plugAssembly = CreateMockAssembly<TestClassPlug>();
-
-            int count = 0;
-
-            foreach (var plugMethod in plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug)).Methods)
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
             {
-                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
-
-                count = plugMethod.Body.Instructions.Count;
+                continue;
             }
 
-            // Act
-            patcher.PatchAssembly(targetAssembly, plugAssembly);
+            MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
+            Assert.NotNull(targetMethod);
+            Assert.NotNull(targetMethod.Body);
+            Assert.Equal(count, targetMethod.Body.Instructions.Count);
+        }
+    }
 
-            // Assert
-            var targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClass));
-            var plugType = plugAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClassPlug));
+    [Fact]
+    public void PatchType_ShouldPlugAssembly()
+    {
+        // Arrange
+        PlugScanner? plugScanner = new();
+        PlugPatcher? patcher = new(plugScanner);
 
-            Assert.NotNull(targetType);
-            Assert.NotNull(plugType);
+        AssemblyDefinition? targetAssembly = CreateMockAssembly<TestClass>();
+        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
 
-            foreach (var plugMethod in plugType.Methods)
+        int count = 0;
+
+        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
+                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
+        {
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
             {
-                if (!plugMethod.IsPublic || !plugMethod.IsStatic) continue;
-
-                var targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-                Assert.NotNull(targetMethod);
-                Assert.NotNull(targetMethod.Body);
-
-                Assert.Equal(count, targetMethod.Body.Instructions.Count);
+                continue;
             }
+
+            count = plugMethod.Body.Instructions.Count;
         }
 
-        [Fact]
-        public void AddMethod_BehaviorBeforeAndAfterPlug()
+        // Act
+        patcher.PatchAssembly(targetAssembly, plugAssembly);
+
+        // Assert
+        TypeDefinition? targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClass));
+        TypeDefinition? plugType = plugAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClassPlug));
+
+        Assert.NotNull(targetType);
+        Assert.NotNull(plugType);
+
+        foreach (MethodDefinition? plugMethod in plugType.Methods)
         {
-            // Arrange
-            var plugScanner = new PlugScanner();
-            var patcher = new PlugPatcher(plugScanner);
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
+            {
+                continue;
+            }
 
-            var targetAssembly = CreateMockAssembly<TestClass>();
-            var plugAssembly = CreateMockAssembly<TestClassPlug>();
+            MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
+            Assert.NotNull(targetMethod);
+            Assert.NotNull(targetMethod.Body);
 
-            // Act
-            patcher.PatchAssembly(targetAssembly, plugAssembly);
-
-            PlugUtils.Save(targetAssembly, "./", "targetAssembly.dll");
-
-            var result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
-            Assert.Equal(12, result);
+            Assert.Equal(count, targetMethod.Body.Instructions.Count);
         }
+    }
 
-        private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
-        {
-            using var memoryStream = new System.IO.MemoryStream();
-            assemblyDefinition.Write(memoryStream);
-            memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
+    [Fact]
+    public void AddMethod_BehaviorBeforeAndAfterPlug()
+    {
+        // Arrange
+        PlugScanner? plugScanner = new();
+        PlugPatcher? patcher = new(plugScanner);
 
-            var loadedAssembly = Assembly.Load(memoryStream.ToArray());
-            var type = loadedAssembly.GetType("Liquip.NativeWrapper.TestClass");
-            Assert.NotNull(type);
-            var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+        AssemblyDefinition? targetAssembly = CreateMockAssembly<TestClass>();
+        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
 
-            Assert.NotNull(method);
+        // Act
+        patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-            return (int)method.Invoke(null, parameters);
-        }
+        PlugUtils.Save(targetAssembly, "./", "targetAssembly.dll");
+
+        object? result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
+        Assert.Equal(12, result);
+    }
+
+    private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName,
+        params object[] parameters)
+    {
+        using MemoryStream? memoryStream = new();
+        assemblyDefinition.Write(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        Assembly? loadedAssembly = Assembly.Load(memoryStream.ToArray());
+        Type? type = loadedAssembly.GetType("Liquip.NativeWrapper.TestClass");
+        Assert.NotNull(type);
+        MethodInfo? method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+
+        Assert.NotNull(method);
+
+        return (int)method.Invoke(null, parameters);
     }
 }

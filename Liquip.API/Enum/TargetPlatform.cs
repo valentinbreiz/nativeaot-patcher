@@ -7,10 +7,12 @@ public enum TargetPlatform
     /// </summary>
     // ReSharper disable once InconsistentNaming
     x86_64,
+
     /// <summary>
     /// arm
     /// </summary>
     Arm,
+
     /// <summary>
     /// any
     /// </summary>

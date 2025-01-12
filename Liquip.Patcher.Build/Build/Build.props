@@ -1,19 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>  
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LiquipPatcherTasksAssembly 
-            Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Liquip.Patcher.Build.dll</LiquipPatcherTasksAssembly>
+    <LiquipPatcherTasksAssembly
+      Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
+    </LiquipPatcherTasksAssembly>
   </PropertyGroup>
-  
-  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)" />
-  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)" />
-  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)" />
+
+  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
+  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
+  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
 
   <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
-      <ReferencePath Remove="@(ReferencePath)" />
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)"/>
+      <ReferencePath Remove="@(ReferencePath)"/>
     </ItemGroup>
   </Target>
 
-</Project>  
+</Project>

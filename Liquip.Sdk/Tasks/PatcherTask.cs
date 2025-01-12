@@ -9,8 +9,7 @@ public class PatcherTask : ToolTask
     [Required]
     public string PatcherPath { get; set; } = null!;
 
-    [Required]
-    public string TargetAssembly { get; set; } = null!;
+    [Required] public string TargetAssembly { get; set; } = null!;
 
     [Required]
     public ITaskItem[] References { get; set; } = null!;
@@ -26,9 +25,9 @@ public class PatcherTask : ToolTask
 
     protected override string GenerateResponseFileCommands()
     {
-        var args = new Dictionary<string, string>
+        List<KeyValuePair<string, string>>? args = new Dictionary<string, string>
         {
-            [nameof(TargetAssembly)] = TargetAssembly,
+            [nameof(TargetAssembly)] = TargetAssembly
         }.ToList();
 
         args.AddRange(References

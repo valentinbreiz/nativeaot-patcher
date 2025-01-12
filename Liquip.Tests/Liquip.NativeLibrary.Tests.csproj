@@ -1,27 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<IsPackable>false</IsPackable>
-	</PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Liquip.API\Liquip.API.csproj" />
-		<ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj" />
-		<ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
+    <ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj"/>
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="coverlet.collector" Version="6.0.2" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-		<PackageReference Include="xunit" Version="2.9.2" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="xunit"/>
+    <PackageReference Include="xunit.runner.visualstudio"/>
+  </ItemGroup>
 
-	<Target Name="CopyNativeLibrary" AfterTargets="Build">
-		<Copy SourceFiles="..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll" DestinationFolder="$(OutputPath)" Condition="Exists('..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll')" />
-	</Target>
+  <Target Name="CopyNativeLibrary" AfterTargets="Build">
+    <Copy SourceFiles="..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll" DestinationFolder="$(OutputPath)" Condition="Exists('..\Liquip.NativeLibrary\x64\Debug\Liquip.NativeLibrary.dll')"/>
+  </Target>
 
 </Project>

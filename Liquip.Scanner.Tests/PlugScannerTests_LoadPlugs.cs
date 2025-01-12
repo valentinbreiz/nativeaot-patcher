@@ -6,74 +6,76 @@ using Liquip.API.Attributes;
 using Xunit;
 using Liquip.Patcher;
 using Liquip.NativeWrapper;
+using Mono.Collections.Generic;
 
-namespace Liquip.Patcher.Tests
+namespace Liquip.Patcher.Tests;
+
+public class PlugScannerTests_LoadPlugs
 {
-    public class PlugScannerTests_LoadPlugs
+    private AssemblyDefinition CreateMockAssembly<T>()
     {
-        private AssemblyDefinition CreateMockAssembly<T>()
-        {
-            var assemblyPath = typeof(T).Assembly.Location;
-            return AssemblyDefinition.ReadAssembly(assemblyPath);
-        }
+        string? assemblyPath = typeof(T).Assembly.Location;
+        return AssemblyDefinition.ReadAssembly(assemblyPath);
+    }
 
-        [Fact]
-        public void LoadPlugs_ShouldFindPluggedClasses()
-        {
-            // Arrange
-            var assembly = CreateMockAssembly<MockPlug>();
-            var scanner = new PlugScanner();
+    [Fact]
+    public void LoadPlugs_ShouldFindPluggedClasses()
+    {
+        // Arrange
+        AssemblyDefinition? assembly = CreateMockAssembly<MockPlug>();
+        PlugScanner? scanner = new();
 
-            // Act
-            var plugs = scanner.LoadPlugs(assembly);
+        // Act
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
 
-            // Assert
-            Assert.Contains(plugs, plug => plug.Name == nameof(MockPlug));
-            var plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
-            Assert.NotNull(plug);
+        // Assert
+        Assert.Contains(plugs, plug => plug.Name == nameof(MockPlug));
+        TypeDefinition? plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
+        Assert.NotNull(plug);
 
-            var customAttributes = plug.CustomAttributes;
-            Assert.Contains(customAttributes, attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
-            var plugAttribute = customAttributes.First(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
+        Collection<CustomAttribute>? customAttributes = plug.CustomAttributes;
+        Assert.Contains(customAttributes, attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
+        CustomAttribute? plugAttribute =
+            customAttributes.First(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
-            var expected = typeof(MockTarget).FullName;
-            var actual = plugAttribute.ConstructorArguments[0].Value?.ToString();
-            Assert.Equal(expected, actual);
-        }
+        string? expected = typeof(MockTarget).FullName;
+        string? actual = plugAttribute.ConstructorArguments[0].Value?.ToString();
+        Assert.Equal(expected, actual);
+    }
 
-        [Fact]
-        public void LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute()
-        {
-            // Arrange
-            var assembly = CreateMockAssembly<NonPlug>();
-            var scanner = new PlugScanner();
+    [Fact]
+    public void LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute()
+    {
+        // Arrange
+        AssemblyDefinition? assembly = CreateMockAssembly<NonPlug>();
+        PlugScanner? scanner = new();
 
-            // Act
-            var plugs = scanner.LoadPlugs(assembly);
+        // Act
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
 
-            // Assert
-            Assert.DoesNotContain(plugs, plug => plug.Name == nameof(NonPlug));
-        }
+        // Assert
+        Assert.DoesNotContain(plugs, plug => plug.Name == nameof(NonPlug));
+    }
 
-        [Fact]
-        public void LoadPlugs_ShouldHandleOptionalPlugs()
-        {
-            // Arrange
-            var assembly = CreateMockAssembly<OptionalPlug>();
-            var scanner = new PlugScanner();
+    [Fact]
+    public void LoadPlugs_ShouldHandleOptionalPlugs()
+    {
+        // Arrange
+        AssemblyDefinition? assembly = CreateMockAssembly<OptionalPlug>();
+        PlugScanner? scanner = new();
 
-            // Act
-            var plugs = scanner.LoadPlugs(assembly);
-            var optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
+        // Act
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        TypeDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
 
-            // Assert
-            Assert.NotNull(optionalPlug);
+        // Assert
+        Assert.NotNull(optionalPlug);
 
-            var customAttributes = optionalPlug.CustomAttributes;
-            Assert.Contains(customAttributes, attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
-            var plugAttribute = customAttributes.First(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
-            Assert.Equal("OptionalTarget", plugAttribute.ConstructorArguments[0].Value);
-            Assert.True((bool)plugAttribute.Properties.FirstOrDefault(p => p.Name == "IsOptional").Argument.Value);
-        }
+        Collection<CustomAttribute>? customAttributes = optionalPlug.CustomAttributes;
+        Assert.Contains(customAttributes, attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
+        CustomAttribute? plugAttribute =
+            customAttributes.First(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
+        Assert.Equal("OptionalTarget", plugAttribute.ConstructorArguments[0].Value);
+        Assert.True((bool)plugAttribute.Properties.FirstOrDefault(p => p.Name == "IsOptional").Argument.Value);
     }
 }

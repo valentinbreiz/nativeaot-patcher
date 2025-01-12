@@ -1,9 +1,9 @@
 ﻿{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "profiles": {
-    "DebugRoslynSourceGenerator": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "../Liquip.XSharp.SourceGenerator.Sample/Liquip.XSharp.SourceGenerator.Sample.csproj"
+    "$schema": "https://json.schemastore.org/launchsettings.json",
+    "profiles": {
+        "DebugRoslynSourceGenerator": {
+            "commandName": "DebugRoslynComponent",
+            "targetProject": "../Liquip.XSharp.SourceGenerator.Sample/Liquip.XSharp.SourceGenerator.Sample.csproj"
+        }
     }
-  }
 }

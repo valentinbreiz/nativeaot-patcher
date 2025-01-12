@@ -1,22 +1,12 @@
-﻿namespace Liquip.NativeWrapper
+﻿namespace Liquip.NativeWrapper;
+
+public class NativeWrapperObject
 {
-    public class NativeWrapperObject
-    {
-        private string _hello = "Hello world!";
+    private string _hello = "Hello world!";
 
-        public NativeWrapperObject()
-        {
-            Console.WriteLine("Base ctor");
-        }
+    public NativeWrapperObject() => Console.WriteLine("Base ctor");
 
-        public void Speak()
-        {
-            Console.WriteLine(_hello);
-        }
+    public void Speak() => Console.WriteLine(_hello);
 
-        public int InstanceMethod(int value)
-        {
-            return value + 1;
-        }
-    }
+    public int InstanceMethod(int value) => value + 1;
 }
