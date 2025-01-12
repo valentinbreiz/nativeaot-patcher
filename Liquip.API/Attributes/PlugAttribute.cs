@@ -20,9 +20,9 @@ public sealed class PlugAttribute : Attribute
     /// </summary>
     /// <param name="target"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public PlugAttribute(System.Type target)
+    public PlugAttribute(Type target)
     {
-        this.Target = target ?? throw new ArgumentNullException(nameof (target));
+        Target = target ?? throw new ArgumentNullException(nameof (target));
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ public sealed class PlugAttribute : Attribute
     /// <exception cref="ArgumentNullException"></exception>
     public PlugAttribute(string targetName)
     {
-        this.TargetName = !string.IsNullOrEmpty(targetName) ? targetName : throw new ArgumentNullException(nameof (targetName));
+        TargetName = !string.IsNullOrEmpty(targetName) ? targetName : throw new ArgumentNullException(nameof (targetName));
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public sealed class PlugAttribute : Attribute
     /// <summary>
     /// the type as a string
     /// </summary>
-    public string? TargetName { get; set; }
+    public string? TargetName { get; set; } = nameof(Target) ?? null;
 
     /// <summary>
     /// if the type cant be found skip 

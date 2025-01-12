@@ -22,49 +22,49 @@ public static class MonoCecilExtensions
         /// <summary>
         /// A collection of CustomAttribute objects that have been updated.
         /// </summary>
-        public readonly Collection<CustomAttribute> updatedAttributes = new();
+        public readonly Collection<CustomAttribute> updatedAttributes = [];
 
         /// <summary>
         /// A collection of InterfaceImplementation objects that have been updated.
         /// </summary>
-        public readonly Collection<InterfaceImplementation> updatedInterfaces = new();
+        public readonly Collection<InterfaceImplementation> updatedInterfaces = [];
 
         /// <summary>
         /// A collection of FieldDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<FieldDefinition> updatedFields = new();
+        public readonly Collection<FieldDefinition> updatedFields = [];
 
         /// <summary>
         /// A collection of PropertyDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<PropertyDefinition> updatedProperties = new();
+        public readonly Collection<PropertyDefinition> updatedProperties = [];
 
         /// <summary>
         /// A collection of MethodDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<MethodDefinition> updatedMethods = new();
+        public readonly Collection<MethodDefinition> updatedMethods = [];
 
         /// <summary>
         /// A collection of source TypeDefinition objects that are being merged.
         /// </summary>
-        public readonly Collection<TypeDefinition> srcTypes = new();
+        public readonly Collection<TypeDefinition> srcTypes = [];
 
         /// <summary>
         /// A collection of destination TypeDefinition objects where source objects are merged into.
         /// </summary>
-        public readonly Collection<TypeDefinition> destTypes = new();
+        public readonly Collection<TypeDefinition> destTypes = [];
     };
 
     /// <summary>
     /// A dictionary mapping from AssemblyDefinition objects to their corresponding UpdateInfo objects.
     /// Used to keep track of the updates made to each assembly.
     /// </summary>
-    public static readonly Dictionary<AssemblyDefinition, UpdateInfo> assemblyUpdateInfo = new();
+    public static readonly Dictionary<AssemblyDefinition, UpdateInfo> assemblyUpdateInfo = [];
 
     /// <summary>
     /// Additional search directories for resolving assembly types.
     /// </summary>
-    public static readonly Collection<string> additionalSearchDirectories = new();
+    public static readonly Collection<string> additionalSearchDirectories = [];
 
     // Basic extension methods for loading assemblies, adding elements to collections, and finding types, fields, and methods in Mono.Cecil objects.
     #region Base
@@ -101,11 +101,8 @@ public static class MonoCecilExtensions
     /// <param name="typeSignature">The full or simple name of the type.</param>
     /// <param name="methodSignature">The full or simple name of the method.</param>
     /// <returns>The MethodDefinition object of the found method. Null if not found.</returns>
-    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature, string methodSignature)
-    {
-        // Find and return the method of the given type in the assembly.
-        return assembly.FindType(typeSignature)?.FindMethod(methodSignature);
-    }
+    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature, string methodSignature) => assembly.FindType(typeSignature)?.FindMethod(methodSignature); // Find and return the method of the given type in the assembly.
+
 
     /// <summary>
     /// This extension method finds a type in an assembly using its full name or simple name.
@@ -125,23 +122,16 @@ public static class MonoCecilExtensions
     /// <param name="assembly">The assembly where the type is located.</param>
     /// <param name="type">The type to locate.</param>
     /// <returns>The TypeDefinition object of the found type. Null if not found.</returns>
-    public static TypeDefinition FindType(this AssemblyDefinition assembly, Type type)
-    {
-        // Return the first type that matches the provided type signature.
-        return assembly.MainModule.Types.FirstOrDefault(_type => _type.FullName == type.FullName || _type.Name == type.Name);
-    }
-
+    public static TypeDefinition FindType(this AssemblyDefinition assembly, Type type) => assembly.MainModule.Types.FirstOrDefault(_type => _type.FullName == type.FullName || _type.Name == type.Name); // Return the first type that matches the provided type signature.
+    
     /// <summary>
     /// This extension method finds a field in a type.
     /// </summary>
     /// <param name="type">The type where the field is located.</param>
     /// <param name="fieldSignature">The full or simple name of the field.</param>
     /// <returns>The FieldDefinition object of the found field. Null if not found.</returns>
-    public static FieldDefinition FindField(this TypeDefinition type, string fieldSignature)
-    {
-        // Return the first field that matches the provided field signature.
-        return type.Fields.FirstOrDefault(m => m.FullName == fieldSignature || m.Name == fieldSignature);
-    }
+    public static FieldDefinition FindField(this TypeDefinition type, string fieldSignature) => type.Fields.FirstOrDefault(m => m.FullName == fieldSignature || m.Name == fieldSignature); // Return the first field that matches the provided field signature.
+    
 
     /// <summary>
     /// This extension method finds a method in a type.

@@ -1,9 +1,6 @@
 ﻿using Spectre.Console.Cli;
 using System.ComponentModel;
 using Mono.Cecil;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace Liquip.Patcher
 {
@@ -17,7 +14,7 @@ namespace Liquip.Patcher
 
             [CommandOption("--plugs <PLUGS>")]
             [Description("Paths to plug assemblies.")]
-            public string[] PlugsReferences { get; set; } = Array.Empty<string>();
+            public string[] PlugsReferences { get; set; } = [];
         }
 
         public override int Execute(CommandContext context, Settings settings)
@@ -31,7 +28,7 @@ namespace Liquip.Patcher
             }
 
             var plugPaths = settings.PlugsReferences.Where(File.Exists).ToArray();
-            if (!plugPaths.Any())
+            if (plugPaths.Length == 0)
             {
                 Console.WriteLine("Error: No valid plug assemblies provided.");
                 return -1;

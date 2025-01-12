@@ -33,9 +33,9 @@ namespace Liquip.Patcher.Build.Tasks
             builder.AppendFileNameIfNotNull(TargetAssembly);
 
             // Ajoute les plugs
+            builder.AppendSwitch("--plugs");
             foreach (var plug in PlugsReferences)
             {
-                builder.AppendSwitch("--plugs");
                 builder.AppendFileNameIfNotNull(plug.ItemSpec);
             }
 
