@@ -1,10 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-
 		<PatcherPath>$(MSBuildProjectDirectory)\..\Liquip.Patcher\bin\Debug\net8.0\Liquip.Patcher.exe</PatcherPath>
 		<PatcherBuildDll>$(MSBuildProjectDirectory)\..\Liquip.Patcher.Build\bin\Debug\netstandard2.0\Liquip.Patcher.Build.dll</PatcherBuildDll>
 	</PropertyGroup>
