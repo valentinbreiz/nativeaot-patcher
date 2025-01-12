@@ -1,4 +1,3 @@
-using System.Reflection;
 using Liquip.API.Attributes;
 using Mono.Cecil;
 using MonoMod.Utils;

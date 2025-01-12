@@ -37,13 +37,13 @@ namespace Liquip.Patcher.Tests
 
             PlugUtils.Save(targetAssembly, "./", "targetObjectAssembly.dll");
 
-            var result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", new object[] { 10 });
+            var result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", [10]);
             Assert.Equal(20, result);
         }
 
         private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName, params object[] parameters)
         {
-            using var memoryStream = new System.IO.MemoryStream();
+            using var memoryStream = new MemoryStream();
             assemblyDefinition.Write(memoryStream);
             memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
 
