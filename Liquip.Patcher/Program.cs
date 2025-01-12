@@ -1,7 +1,7 @@
 ﻿using Liquip.Patcher;
 using Spectre.Console.Cli;
 
-var app = new CommandApp();
+CommandApp? app = new();
 app.Configure(config =>
 {
     config.UseAssemblyInformationalVersion();
