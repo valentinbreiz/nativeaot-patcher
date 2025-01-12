@@ -5,7 +5,6 @@ namespace Liquip.API.Attributes;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class PlugAttribute : Attribute
 {
-    
     public TargetPlatform TargetPlatform;
 
     /// <summary>
@@ -20,20 +19,16 @@ public sealed class PlugAttribute : Attribute
     /// </summary>
     /// <param name="target"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public PlugAttribute(System.Type target)
-    {
-        this.Target = target ?? throw new ArgumentNullException(nameof (target));
-    }
+    public PlugAttribute(Type target) => Target = target ?? throw new ArgumentNullException(nameof(target));
 
     /// <summary>
     /// set base type by string
     /// </summary>
     /// <param name="targetName"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public PlugAttribute(string targetName)
-    {
-        this.TargetName = !string.IsNullOrEmpty(targetName) ? targetName : throw new ArgumentNullException(nameof (targetName));
-    }
+    public PlugAttribute(string targetName) => TargetName = !string.IsNullOrEmpty(targetName)
+        ? targetName
+        : throw new ArgumentNullException(nameof(targetName));
 
     /// <summary>
     /// the type
@@ -49,5 +44,4 @@ public sealed class PlugAttribute : Attribute
     /// if the type cant be found skip 
     /// </summary>
     public bool IsOptional { get; set; }
-
 }

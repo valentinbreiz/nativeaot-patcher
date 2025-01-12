@@ -1,20 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-      <PackageReference Include="MonoMod.Utils" Version="25.0.6" />
-      <PackageReference Include="Spectre.Console.Cli" Version="0.49.1" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil"/>
+    <PackageReference Include="MonoMod.Utils"/>
+    <PackageReference Include="Spectre.Console.Cli"/>
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Liquip.API\Liquip.API.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
+  </ItemGroup>
 
 </Project>
