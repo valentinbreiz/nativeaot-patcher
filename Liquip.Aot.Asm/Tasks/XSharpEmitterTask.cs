@@ -6,12 +6,5 @@ namespace Liquip.XSharp.Tasks;
 
 public class XSharpEmitterTask : Task
 {
-    public override bool Execute()
-    {
-        
-        
-        return true;
-    }
-    
-    
+    public override bool Execute() => true;
 }

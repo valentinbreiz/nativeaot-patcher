@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Liquip.XSharp.SourceGenerator.Tests.Utils;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
@@ -16,10 +17,10 @@ Customer";
     public void GenerateClassesBasedOnDDDRegistry()
     {
         // Create an instance of the source generator.
-        var generator = new SampleSourceGenerator();
+        SampleSourceGenerator? generator = new();
 
         // Source generators should be tested using 'GeneratorDriver'.
-        var driver = CSharpGeneratorDriver.Create(new[] { generator },
+        CSharpGeneratorDriver? driver = CSharpGeneratorDriver.Create(new[] { generator },
             new[]
             {
                 // Add the additional file separately from the compilation.
@@ -27,22 +28,17 @@ Customer";
             });
 
         // To run generators, we can use an empty compilation.
-        var compilation = CSharpCompilation.Create(nameof(SampleSourceGeneratorTests));
+        CSharpCompilation? compilation = CSharpCompilation.Create(nameof(SampleSourceGeneratorTests));
 
         // Run generators. Don't forget to use the new compilation rather than the previous one.
-        driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out _);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation? newCompilation, out _);
 
         // Retrieve all files in the compilation.
-        var generatedFiles = newCompilation.SyntaxTrees
+        string[]? generatedFiles = newCompilation.SyntaxTrees
             .Select(t => Path.GetFileName(t.FilePath))
             .ToArray();
 
         // In this case, it is enough to check the file name.
-        Assert.Equivalent(new[]
-        {
-            "User.g.cs",
-            "Document.g.cs",
-            "Customer.g.cs"
-        }, generatedFiles);
+        Assert.Equivalent(new[] { "User.g.cs", "Document.g.cs", "Customer.g.cs" }, generatedFiles);
     }
 }
