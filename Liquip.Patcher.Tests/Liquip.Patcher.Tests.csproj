@@ -5,19 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="xunit"/>
+    <PackageReference Include="xunit.runner.visualstudio"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj" />
-    <ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj" />
+    <ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
+    <ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <Using Include="Xunit"/>
   </ItemGroup>
 
 </Project>
