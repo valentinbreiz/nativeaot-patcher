@@ -10,9 +10,9 @@ public static class LabelMaker
     /// <summary>
     /// Cache for label names.
     /// </summary>
-    private static Dictionary<MethodBase, string> LabelNamesCache = new Dictionary<MethodBase, string>();
+    private static Dictionary<MethodBase, string> LabelNamesCache = new();
 
-    private static Dictionary<Assembly, int> AssemblyIds = new Dictionary<Assembly, int>();
+    private static Dictionary<Assembly, int> AssemblyIds = new();
 
     // All label naming code should be changed to use this class.
 
@@ -31,12 +31,13 @@ public static class LabelMaker
     // - .0000.00 IL.ASM marker
 
     public static int LabelCount { get; private set; }
+
     // Max length of labels at 256. We use lower here so that we still have room for suffixes for IL positions, etc.
-    const int MaxLengthWithoutSuffix = 200;
+    private const int MaxLengthWithoutSuffix = 200;
 
     public static string Get(MethodBase aMethod)
     {
-        if (LabelNamesCache.TryGetValue(aMethod, out var result))
+        if (LabelNamesCache.TryGetValue(aMethod, out string? result))
         {
             return result;
         }
@@ -47,16 +48,18 @@ public static class LabelMaker
     }
 
     private const string IllegalIdentifierChars = "&.,+$<>{}-`\'/\\ ()[]*!=";
+
     // no array bracket, they need to replace, for unique names for used types in methods
-    private static readonly Regex IllegalCharsReplace = new Regex(@"[&.,+$<>{}\-\`\\'/\\ \(\)\*!=]", RegexOptions.Compiled);
+    private static readonly Regex IllegalCharsReplace = new(@"[&.,+$<>{}\-\`\\'/\\ \(\)\*!=]", RegexOptions.Compiled);
 
     private static string FilterStringForIncorrectChars(string aName)
     {
-        var xTempResult = aName;
-        foreach (var c in IllegalIdentifierChars)
+        string? xTempResult = aName;
+        foreach (char c in IllegalIdentifierChars)
         {
             xTempResult = xTempResult.Replace(c, '_');
         }
+
         return xTempResult;
     }
 
@@ -72,16 +75,17 @@ public static class LabelMaker
 
         if (xName.Length > MaxLengthWithoutSuffix)
         {
-            using (var xHash = MD5.Create())
+            using (MD5? xHash = MD5.Create())
             {
-                var xValue = xHash.ComputeHash(Encoding.GetEncoding(0).GetBytes(xName));
-                var xSb = new StringBuilder(xName);
+                byte[]? xValue = xHash.ComputeHash(Encoding.GetEncoding(0).GetBytes(xName));
+                StringBuilder? xSb = new(xName);
                 // Keep length max same as before.
                 xSb.Length = MaxLengthWithoutSuffix - xValue.Length * 2;
-                foreach (var xByte in xValue)
+                foreach (byte xByte in xValue)
                 {
                     xSb.Append(xByte.ToString("X2"));
                 }
+
                 xName = xSb.ToString();
             }
         }
@@ -98,23 +102,27 @@ public static class LabelMaker
     /// <returns></returns>
     public static string GetFullName(Type? aType, bool aAssemblyIncluded = true)
     {
-        
-        if(aType is null) throw new ArgumentException("type is null", nameof(aType));
-        
+        if (aType is null)
+        {
+            throw new ArgumentException("type is null", nameof(aType));
+        }
+
         if (aType.IsGenericParameter)
         {
             return aType.FullName;
         }
-        var stringBuilder = new StringBuilder(256);
+
+        StringBuilder? stringBuilder = new(256);
 
         if (aAssemblyIncluded)
         {
             // Start the string with the id of the assembly
-            var assembly = aType.Assembly;
+            Assembly? assembly = aType.Assembly;
             if (!AssemblyIds.ContainsKey(assembly))
             {
                 AssemblyIds.Add(assembly, AssemblyIds.Count);
             }
+
             stringBuilder.Append("A" + AssemblyIds[assembly]);
         }
 
@@ -122,30 +130,34 @@ public static class LabelMaker
         {
             stringBuilder.Append(GetFullName(aType.GetElementType(), aAssemblyIncluded));
             stringBuilder.Append("[");
-            var xRank = aType.GetArrayRank();
+            int xRank = aType.GetArrayRank();
             while (xRank > 1)
             {
                 stringBuilder.Append(",");
                 xRank--;
             }
+
             stringBuilder.Append("]");
             return stringBuilder.ToString();
         }
+
         if (aType is { IsByRef: true, HasElementType: true })
         {
             return "&" + GetFullName(aType.GetElementType(), aAssemblyIncluded);
         }
+
         if (aType is { IsGenericType: true, IsGenericTypeDefinition: false })
         {
             stringBuilder.Append(GetFullName(aType.GetGenericTypeDefinition(), aAssemblyIncluded));
 
             stringBuilder.Append("<");
-            var xArgs = aType.GetGenericArguments();
+            Type[]? xArgs = aType.GetGenericArguments();
             for (int i = 0; i < xArgs.Length - 1; i++)
             {
                 stringBuilder.Append(GetFullName(xArgs[i], aAssemblyIncluded));
                 stringBuilder.Append(", ");
             }
+
             stringBuilder.Append(GetFullName(xArgs.Last(), aAssemblyIncluded));
             stringBuilder.Append(">");
         }
@@ -170,16 +182,17 @@ public static class LabelMaker
         {
             throw new ArgumentNullException(nameof(aMethod));
         }
-        var xBuilder = new StringBuilder(256);
-        var xParts = aMethod.ToString().Split(' ');
-        var xMethodInfo = aMethod as MethodInfo;
+
+        StringBuilder? xBuilder = new(256);
+        string[]? xParts = aMethod.ToString().Split(' ');
+        MethodInfo? xMethodInfo = aMethod as MethodInfo;
         if (xMethodInfo != null)
         {
             xBuilder.Append(GetFullName(xMethodInfo.ReturnType, aAssemblyIncluded));
         }
         else
         {
-            var xCtor = aMethod as ConstructorInfo;
+            ConstructorInfo? xCtor = aMethod as ConstructorInfo;
             if (xCtor != null)
             {
                 xBuilder.Append(typeof(void).FullName);
@@ -189,6 +202,7 @@ public static class LabelMaker
                 xBuilder.Append(xParts[0]);
             }
         }
+
         xBuilder.Append("  ");
         if (aMethod.DeclaringType != null)
         {
@@ -198,12 +212,13 @@ public static class LabelMaker
         {
             xBuilder.Append("dynamic_method");
         }
+
         xBuilder.Append(".");
         if (aMethod.IsGenericMethod && !aMethod.IsGenericMethodDefinition)
         {
             xBuilder.Append(xMethodInfo.GetGenericMethodDefinition().Name);
 
-            var xGenArgs = aMethod.GetGenericArguments();
+            Type[]? xGenArgs = aMethod.GetGenericArguments();
             if (xGenArgs.Length > 0)
             {
                 xBuilder.Append("<");
@@ -212,6 +227,7 @@ public static class LabelMaker
                     xBuilder.Append(GetFullName(xGenArgs[i], aAssemblyIncluded));
                     xBuilder.Append(", ");
                 }
+
                 xBuilder.Append(GetFullName(xGenArgs.Last(), aAssemblyIncluded));
                 xBuilder.Append(">");
             }
@@ -220,28 +236,29 @@ public static class LabelMaker
         {
             xBuilder.Append(aMethod.Name);
         }
+
         xBuilder.Append("(");
-        var xParams = aMethod.GetParameters();
-        for (var i = 0; i < xParams.Length; i++)
+        ParameterInfo[]? xParams = aMethod.GetParameters();
+        for (int i = 0; i < xParams.Length; i++)
         {
             if (i == 0 && xParams[i].Name == "aThis")
             {
                 continue;
             }
+
             xBuilder.Append(GetFullName(xParams[i].ParameterType, aAssemblyIncluded));
             if (i < xParams.Length - 1)
             {
                 xBuilder.Append(", ");
             }
         }
+
         xBuilder.Append(")");
         return xBuilder.ToString();
     }
 
-    public static string GetFullName(FieldInfo aField)
-    {
-        return GetFullName(aField.FieldType, false) + " " + GetFullName(aField.DeclaringType, false) + "." + aField.Name;
-    }
+    public static string GetFullName(FieldInfo aField) => GetFullName(aField.FieldType, false) + " " +
+                                                          GetFullName(aField.DeclaringType, false) + "." + aField.Name;
 
     /// <summary>
     /// Gets a label for the given static field
@@ -250,10 +267,7 @@ public static class LabelMaker
     /// <param name="aField"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException">throws if its not static</exception>
-    public static string GetStaticFieldName(Type aType, string aField)
-    {
-        return GetStaticFieldName(aType.GetField(aField));
-    }
+    public static string GetStaticFieldName(Type aType, string aField) => GetStaticFieldName(aType.GetField(aField));
 
     /// <summary>
     /// Gets a label for the given static field
@@ -271,7 +285,6 @@ public static class LabelMaker
         return FilterStringForIncorrectChars(
             "static_field__" + GetFullName(aField.DeclaringType) + "." + aField.Name);
     }
-    
-    public static string GetRandomLabel() => $"random_label__{Guid.NewGuid()}";
 
+    public static string GetRandomLabel() => $"random_label__{Guid.NewGuid()}";
 }

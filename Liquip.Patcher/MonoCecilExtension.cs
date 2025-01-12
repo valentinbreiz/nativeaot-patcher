@@ -67,6 +67,7 @@ public static class MonoCecilExtensions
     public static readonly Collection<string> additionalSearchDirectories = new();
 
     // Basic extension methods for loading assemblies, adding elements to collections, and finding types, fields, and methods in Mono.Cecil objects.
+
     #region Base
 
     /// <summary>
@@ -78,20 +79,20 @@ public static class MonoCecilExtensions
     public static AssemblyDefinition LoadAssembly(this string location, bool readWrite = false)
     {
         // Create a new instance of the DefaultAssemblyResolver.
-        var resolver = new DefaultAssemblyResolver();
+        DefaultAssemblyResolver? resolver = new();
 
         // Add search directories to the resolver.
-        foreach (var directory in additionalSearchDirectories)
+        foreach (string? directory in additionalSearchDirectories)
+        {
             resolver.AddSearchDirectory(directory);
+        }
+
         resolver.AddSearchDirectory(Path.GetDirectoryName(typeof(int).Assembly.Location));
         resolver.AddSearchDirectory(Path.Combine(Path.GetDirectoryName(typeof(int).Assembly.Location), "Facades"));
 
         // Read and return the assembly using the provided location and reader parameters.
-        return AssemblyDefinition.ReadAssembly(location, new ReaderParameters()
-        {
-            AssemblyResolver = resolver,
-            ReadWrite = readWrite,
-        });
+        return AssemblyDefinition.ReadAssembly(location,
+            new ReaderParameters() { AssemblyResolver = resolver, ReadWrite = readWrite });
     }
 
     /// <summary>
@@ -101,11 +102,10 @@ public static class MonoCecilExtensions
     /// <param name="typeSignature">The full or simple name of the type.</param>
     /// <param name="methodSignature">The full or simple name of the method.</param>
     /// <returns>The MethodDefinition object of the found method. Null if not found.</returns>
-    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature, string methodSignature)
-    {
+    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature,
+        string methodSignature) =>
         // Find and return the method of the given type in the assembly.
-        return assembly.FindType(typeSignature)?.FindMethod(methodSignature);
-    }
+        assembly.FindType(typeSignature)?.FindMethod(methodSignature);
 
     /// <summary>
     /// This extension method finds a type in an assembly using its full name or simple name.
@@ -113,11 +113,9 @@ public static class MonoCecilExtensions
     /// <param name="assembly">The assembly where the type is located.</param>
     /// <param name="typeSignature">The full or simple name of the type.</param>
     /// <returns>The TypeDefinition object of the found type. Null if not found.</returns>
-    public static TypeDefinition FindType(this AssemblyDefinition assembly, string typeSignature)
-    {
+    public static TypeDefinition FindType(this AssemblyDefinition assembly, string typeSignature) =>
         // Return the first type that matches the provided type signature.
-        return assembly.MainModule.Types.FirstOrDefault(type => type.FullName == typeSignature || type.Name == typeSignature);
-    }
+        assembly.MainModule.Types.FirstOrDefault(type => type.FullName == typeSignature || type.Name == typeSignature);
 
     /// <summary>
     /// This extension method finds a type in an assembly using its full name or simple name.
@@ -125,11 +123,9 @@ public static class MonoCecilExtensions
     /// <param name="assembly">The assembly where the type is located.</param>
     /// <param name="type">The type to locate.</param>
     /// <returns>The TypeDefinition object of the found type. Null if not found.</returns>
-    public static TypeDefinition FindType(this AssemblyDefinition assembly, Type type)
-    {
+    public static TypeDefinition FindType(this AssemblyDefinition assembly, Type type) =>
         // Return the first type that matches the provided type signature.
-        return assembly.MainModule.Types.FirstOrDefault(_type => _type.FullName == type.FullName || _type.Name == type.Name);
-    }
+        assembly.MainModule.Types.FirstOrDefault(_type => _type.FullName == type.FullName || _type.Name == type.Name);
 
     /// <summary>
     /// This extension method finds a field in a type.
@@ -137,11 +133,9 @@ public static class MonoCecilExtensions
     /// <param name="type">The type where the field is located.</param>
     /// <param name="fieldSignature">The full or simple name of the field.</param>
     /// <returns>The FieldDefinition object of the found field. Null if not found.</returns>
-    public static FieldDefinition FindField(this TypeDefinition type, string fieldSignature)
-    {
+    public static FieldDefinition FindField(this TypeDefinition type, string fieldSignature) =>
         // Return the first field that matches the provided field signature.
-        return type.Fields.FirstOrDefault(m => m.FullName == fieldSignature || m.Name == fieldSignature);
-    }
+        type.Fields.FirstOrDefault(m => m.FullName == fieldSignature || m.Name == fieldSignature);
 
     /// <summary>
     /// This extension method finds a method in a type.
@@ -149,12 +143,10 @@ public static class MonoCecilExtensions
     /// <param name="type">The type where the method is located.</param>
     /// <param name="methodSignature">The full or simple name of the method.</param>
     /// <returns>The MethodDefinition object of the found method. Null if not found.</returns>
-    public static MethodDefinition FindMethod(this TypeDefinition type, string methodSignature)
-    {
+    public static MethodDefinition FindMethod(this TypeDefinition type, string methodSignature) =>
         // The function checks each method in the type's Methods collection,
         // and returns the first method whose full name or simple name matches the provided method signature.
-        return type.Methods.FirstOrDefault(m => m.FullName == methodSignature || m.Name == methodSignature);
-    }
+        type.Methods.FirstOrDefault(m => m.FullName == methodSignature || m.Name == methodSignature);
 
     /// <summary>
     /// This extension method finds all methods in a type that match a given method signature.
@@ -164,18 +156,23 @@ public static class MonoCecilExtensions
     /// <returns>A collection of MethodDefinition objects for the found methods. Empty collection if none found.</returns>
     public static Collection<MethodDefinition> FindMethods(this TypeDefinition type, string methodSignature)
     {
-        var collection = new Collection<MethodDefinition>();
+        Collection<MethodDefinition>? collection = new();
 
         // This function checks each method in the type's Methods collection,
         // and adds those methods to the collection whose full name or simple name matches the provided method signature.
-        foreach (var item in type.Methods.Where(m => m.FullName == methodSignature || m.Name == methodSignature))
+        foreach (MethodDefinition? item in type.Methods.Where(m =>
+                     m.FullName == methodSignature || m.Name == methodSignature))
+        {
             collection.Add(item);
+        }
+
         return collection;
     }
 
     #endregion Base
 
     // Extension method that handles adding types to an assembly.
+
     #region AddType
 
     /// <summary>
@@ -185,21 +182,29 @@ public static class MonoCecilExtensions
     /// <param name="assembly">The assembly to which the type will be added.</param>
     /// <param name="src">The source type that will be added to the assembly.</param>
     /// <param name="avoidSignatureConflicts">Avoid name conflicts by adding a '_' suffix to the copied class name.</param>
-    public static void AddType(this AssemblyDefinition assembly, TypeDefinition src, bool avoidSignatureConflicts = false)
+    public static void AddType(this AssemblyDefinition assembly, TypeDefinition src,
+        bool avoidSignatureConflicts = false)
     {
         // Check for signature conflict avoidance
-        var srcName = src.Name;
-        if (avoidSignatureConflicts) src.Name += "_";
+        string? srcName = src.Name;
+        if (avoidSignatureConflicts)
+        {
+            src.Name += "_";
+        }
 
         // Create a new TypeDefinition with the same properties as the source type
-        var dest = new TypeDefinition(src.Namespace, src.Name, src.Attributes);
+        TypeDefinition? dest = new(src.Namespace, src.Name, src.Attributes);
 
         // If the source type isn't nested, add the new type directly to the assembly's types
         // Otherwise, find the declaring type in the assembly and add the new type as a nested type
         if (!src.IsNested)
+        {
             assembly.MainModule.Types.Add(dest);
+        }
         else
+        {
             assembly.FindType(src.DeclaringType.FullName).NestedTypes.Add(dest);
+        }
 
         // Set the base type of the new type to match the base type of the source type
         dest.BaseType = src.BaseType;
@@ -208,13 +213,17 @@ public static class MonoCecilExtensions
         dest.AddFieldsPropertiesAndMethods(src);
 
         // Restore name
-        if (avoidSignatureConflicts) src.Name = srcName;
+        if (avoidSignatureConflicts)
+        {
+            src.Name = srcName;
+        }
     }
 
     #endregion AddType
 
     // Extension method that handles the addition of fields, properties, and methods from a source type to a destination type.
     // This is a key part of merging two types, ensuring the destination type includes all necessary components from the source type.
+
     #region AddFieldsPropertiesAndMethods
 
     /// <summary>
@@ -225,58 +234,60 @@ public static class MonoCecilExtensions
     public static void AddFieldsPropertiesAndMethods(this TypeDefinition dest, TypeDefinition src)
     {
         // Add nested types to the module
-        foreach (var subtype in src.NestedTypes)
+        foreach (TypeDefinition? subtype in src.NestedTypes)
+        {
             dest.Module.Assembly.AddType(subtype);
+        }
 
         // Clone attributes from the source and add to the destination
-        var clonedAttributes = new Collection<CustomAttribute>();
-        foreach (var attribute in src.CustomAttributes)
+        Collection<CustomAttribute>? clonedAttributes = new();
+        foreach (CustomAttribute? attribute in src.CustomAttributes)
         {
-            var clonedAttribute = attribute.Clone();
+            CustomAttribute? clonedAttribute = attribute.Clone();
             dest.CustomAttributes.Add(clonedAttribute);
             clonedAttributes.Add(clonedAttribute);
         }
 
         // Clone interfaces from the source and add to the destination
-        var clonedInterfaces = new Collection<InterfaceImplementation>();
-        foreach (var @interface in src.Interfaces)
+        Collection<InterfaceImplementation>? clonedInterfaces = new();
+        foreach (InterfaceImplementation? @interface in src.Interfaces)
         {
-            var clonedInterface = @interface.Clone();
+            InterfaceImplementation? clonedInterface = @interface.Clone();
             dest.Interfaces.Add(clonedInterface);
             clonedInterfaces.Add(clonedInterface);
         }
 
         // Clone fields from the source and add to the destination
-        var clonedFields = new Collection<FieldDefinition>();
-        foreach (var field in src.Fields)
+        Collection<FieldDefinition>? clonedFields = new();
+        foreach (FieldDefinition? field in src.Fields)
         {
-            var clonedField = field.Clone();
+            FieldDefinition? clonedField = field.Clone();
             clonedFields.Add(clonedField);
             dest.Fields.Add(clonedField);
         }
 
         // Clone properties from the source and add to the destination
-        var clonedProperties = new Collection<PropertyDefinition>();
-        foreach (var property in src.Properties)
+        Collection<PropertyDefinition>? clonedProperties = new();
+        foreach (PropertyDefinition? property in src.Properties)
         {
-            var clonedProperty = property.Clone();
+            PropertyDefinition? clonedProperty = property.Clone();
             clonedProperties.Add(clonedProperty);
             dest.Properties.Add(clonedProperty);
         }
 
         // Clone methods from the source (don't add to the destination yet)
-        var clonedMethods = new Collection<MethodDefinition>();
-        foreach (var method in src.Methods)
+        Collection<MethodDefinition>? clonedMethods = new();
+        foreach (MethodDefinition? method in src.Methods)
         {
-            var clonedMethod = method.Clone();
+            MethodDefinition? clonedMethod = method.Clone();
             clonedMethods.Add(clonedMethod);
         }
 
         // List for keeping track of methods that need further processing
-        var updatedMethods = new Collection<MethodDefinition>();
+        Collection<MethodDefinition>? updatedMethods = new();
 
         // Process each method
-        foreach (var clonedMethod in clonedMethods.ToList())
+        foreach (MethodDefinition? clonedMethod in clonedMethods.ToList())
         {
             // Special handling for constructors
             if (clonedMethod.Name is ".ctor" or ".cctor" or "Finalize")
@@ -287,7 +298,7 @@ public static class MonoCecilExtensions
 
                 // Find an existing method in the destination type that matches the full name of the cloned method
                 // Note that the full name of a method includes the name of its declaring type
-                var destMethod = dest.FindMethod(clonedMethod.FullName);
+                MethodDefinition? destMethod = dest.FindMethod(clonedMethod.FullName);
 
                 // Reset the declaring type of the cloned method to null
                 // This is done because the cloned method hasn't been added to the destination type yet,
@@ -297,19 +308,21 @@ public static class MonoCecilExtensions
                 // If destination already contains a constructor/destructor, merge the instructions
                 if (destMethod != null)
                 {
-                    var clonedInstructions = clonedMethod.Body.Instructions;
-                    var trimmedClonedInstructions = clonedInstructions.ToList();
+                    Collection<Instruction>? clonedInstructions = clonedMethod.Body.Instructions;
+                    List<Instruction>? trimmedClonedInstructions = clonedInstructions.ToList();
 
                     // For constructors
                     if (clonedMethod.Name is ".ctor")
                     {
                         // Find the constructor call instruction and remove the instructions before it
                         // This is done to prevent calling the base class constructor twice when merging
-                        var callIndex = trimmedClonedInstructions.FindIndex(x => x.OpCode == OpCodes.Call);
+                        int callIndex = trimmedClonedInstructions.FindIndex(x => x.OpCode == OpCodes.Call);
 
                         // Check if callIndex is within valid range
                         if (callIndex < 0 || callIndex >= trimmedClonedInstructions.Count)
+                        {
                             throw new Exception("Invalid Call Instruction Index in cloned method.");
+                        }
 
                         // Remove starting instructions
                         trimmedClonedInstructions.RemoveRange(0, callIndex + 1);
@@ -317,7 +330,7 @@ public static class MonoCecilExtensions
 
                         // Insert the trimmed instructions to the existing constructor, just before the last instruction (ret)
                         int insertIndex = destMethod.Body.Instructions.Count - 1;
-                        foreach (var clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertIndex, clonedInstruction);
                             insertIndex++;
@@ -331,7 +344,7 @@ public static class MonoCecilExtensions
 
                         // Insert the trimmed instructions to the existing static constructor, just before the last instruction (ret)
                         int insertIndex = destMethod.Body.Instructions.Count - 1;
-                        foreach (var clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertIndex, clonedInstruction);
                             insertIndex++;
@@ -342,18 +355,20 @@ public static class MonoCecilExtensions
                     {
                         // Find the leave.s instruction and remove the instructions after it.
                         // This is done to prevent calling the base class destructor twice when merging.
-                        var trimIndex = trimmedClonedInstructions.FindIndex(x => x.OpCode == OpCodes.Leave_S);
+                        int trimIndex = trimmedClonedInstructions.FindIndex(x => x.OpCode == OpCodes.Leave_S);
 
                         // Check if trimIndex is within valid range
                         if (trimIndex < 0 || trimIndex >= trimmedClonedInstructions.Count)
+                        {
                             throw new Exception("Invalid trim index in cloned method.");
+                        }
 
                         // Remove instructions after leave.s (inclusive)
                         trimmedClonedInstructions.RemoveRange(trimIndex, trimmedClonedInstructions.Count - trimIndex);
 
                         // Insert the trimmed instructions to the existing destructor, at the beginning
                         int insertionIndex = 0;
-                        foreach (var clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertionIndex, clonedInstruction);
                             insertionIndex++;
@@ -380,16 +395,41 @@ public static class MonoCecilExtensions
         }
 
         // Add updated methods to the destination type
-        foreach (var method in clonedMethods) dest.Methods.Add(method);
+        foreach (MethodDefinition? method in clonedMethods)
+        {
+            dest.Methods.Add(method);
+        }
 
         // Add updated attributes, interfaces, fields, properties and methods to the update info
-        if (!assemblyUpdateInfo.TryGetValue(dest.Module.Assembly, out var updateInfo))
-            updateInfo = assemblyUpdateInfo[dest.Module.Assembly] = new();
-        foreach (var attribute in clonedAttributes) updateInfo.updatedAttributes.Add(attribute);
-        foreach (var @interface in clonedInterfaces) updateInfo.updatedInterfaces.Add(@interface);
-        foreach (var field in clonedFields) updateInfo.updatedFields.Add(field);
-        foreach (var property in clonedProperties) updateInfo.updatedProperties.Add(property);
-        foreach (var method in updatedMethods) updateInfo.updatedMethods.Add(method);
+        if (!assemblyUpdateInfo.TryGetValue(dest.Module.Assembly, out UpdateInfo? updateInfo))
+        {
+            updateInfo = assemblyUpdateInfo[dest.Module.Assembly] = new UpdateInfo();
+        }
+
+        foreach (CustomAttribute? attribute in clonedAttributes)
+        {
+            updateInfo.updatedAttributes.Add(attribute);
+        }
+
+        foreach (InterfaceImplementation? @interface in clonedInterfaces)
+        {
+            updateInfo.updatedInterfaces.Add(@interface);
+        }
+
+        foreach (FieldDefinition? field in clonedFields)
+        {
+            updateInfo.updatedFields.Add(field);
+        }
+
+        foreach (PropertyDefinition? property in clonedProperties)
+        {
+            updateInfo.updatedProperties.Add(property);
+        }
+
+        foreach (MethodDefinition? method in updatedMethods)
+        {
+            updateInfo.updatedMethods.Add(method);
+        }
 
         // Add source and destination types to the update info
         updateInfo.srcTypes.Add(src);
@@ -400,6 +440,7 @@ public static class MonoCecilExtensions
 
     // Extension methods that handle the updating of fields, properties, and methods within a destination type after they have been cloned from a source type.
     // These methods ensure that the newly added components in the destination type correctly reference the destination type, rather than the original source type.
+
     #region UpdateFieldsPropertiesAndMethods
 
     /// <summary>
@@ -410,44 +451,106 @@ public static class MonoCecilExtensions
     /// </summary>
     /// <param name="assembly">The assembly to be updated. This assembly's types are matched against the source types and replaced with the corresponding destination types, based on previously registered update information.</param>
     /// <param name="avoidSignatureConflicts">Avoid signature conflicts by changing original method parameters to be base object types for duplicate methods</param>
-    public static void UpdateFieldsPropertiesAndMethods(this AssemblyDefinition assembly, bool avoidSignatureConflicts = false)
+    public static void UpdateFieldsPropertiesAndMethods(this AssemblyDefinition assembly,
+        bool avoidSignatureConflicts = false)
     {
         // Check if update information exists for the assembly
-        if (assemblyUpdateInfo.TryGetValue(assembly, out var updateInfo))
+        if (assemblyUpdateInfo.TryGetValue(assembly, out UpdateInfo? updateInfo))
         {
             // Update types in interfaces, fields, properties, and methods
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var @interface in updateInfo.updatedInterfaces) @interface.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (InterfaceImplementation? @interface in updateInfo.updatedInterfaces)
+                {
+                    @interface.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
+
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var field in updateInfo.updatedFields) field.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (FieldDefinition? field in updateInfo.updatedFields)
+                {
+                    field.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
+
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var property in updateInfo.updatedProperties) property.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (PropertyDefinition? property in updateInfo.updatedProperties)
+                {
+                    property.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
+
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var method in updateInfo.updatedMethods) method.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (MethodDefinition? method in updateInfo.updatedMethods)
+                {
+                    method.UpdateTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
 
             // Update getter and setter methods for properties
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var property in updateInfo.updatedProperties) property.UpdateGettersAndSetters(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (PropertyDefinition? property in updateInfo.updatedProperties)
+                {
+                    property.UpdateGettersAndSetters(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
 
             // Update instruction types for methods
             for (int i = 0; i < updateInfo.destTypes.Count; ++i)
-                foreach (var method in updateInfo.updatedMethods) method.UpdateInstructionTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+            {
+                foreach (MethodDefinition? method in updateInfo.updatedMethods)
+                {
+                    method.UpdateInstructionTypes(updateInfo.srcTypes[i], updateInfo.destTypes[i]);
+                }
+            }
 
             // Check for optimization opportunities for methods
-            foreach (var method in updateInfo.updatedMethods) method.OptimizeInstructions();
+            foreach (MethodDefinition? method in updateInfo.updatedMethods)
+            {
+                method.OptimizeInstructions();
+            }
 
             // Import references for attributes, interfaces, fields, properties, and methods
-            foreach (var attribute in updateInfo.updatedAttributes) attribute.ImportReferences(assembly.MainModule);
-            foreach (var @interface in updateInfo.updatedInterfaces) @interface.ImportReferences(assembly.MainModule);
-            foreach (var field in updateInfo.updatedFields) field.ImportReferences(assembly.MainModule);
-            foreach (var property in updateInfo.updatedProperties) property.ImportReferences(assembly.MainModule);
-            foreach (var method in updateInfo.updatedMethods) method.ImportReferences(assembly.MainModule);
+            foreach (CustomAttribute? attribute in updateInfo.updatedAttributes)
+            {
+                attribute.ImportReferences(assembly.MainModule);
+            }
+
+            foreach (InterfaceImplementation? @interface in updateInfo.updatedInterfaces)
+            {
+                @interface.ImportReferences(assembly.MainModule);
+            }
+
+            foreach (FieldDefinition? field in updateInfo.updatedFields)
+            {
+                field.ImportReferences(assembly.MainModule);
+            }
+
+            foreach (PropertyDefinition? property in updateInfo.updatedProperties)
+            {
+                property.ImportReferences(assembly.MainModule);
+            }
+
+            foreach (MethodDefinition? method in updateInfo.updatedMethods)
+            {
+                method.ImportReferences(assembly.MainModule);
+            }
 
             // Import base type of each dest type
-            foreach (var type in updateInfo.destTypes) type.BaseType = assembly.MainModule.ImportReference(type.BaseType);
+            foreach (TypeDefinition? type in updateInfo.destTypes)
+            {
+                type.BaseType = assembly.MainModule.ImportReference(type.BaseType);
+            }
 
             // Swap any duplicate methods in the destination types
-            foreach (var type in updateInfo.destTypes) type.SwapDuplicateMethods(avoidSignatureConflicts);
+            foreach (TypeDefinition? type in updateInfo.destTypes)
+            {
+                type.SwapDuplicateMethods(avoidSignatureConflicts);
+            }
 
             // Remove the assembly from the update information collection
             _ = assemblyUpdateInfo.Remove(assembly);
@@ -457,6 +560,7 @@ public static class MonoCecilExtensions
     #endregion UpdateFieldsPropertiesAndMethods
 
     // Extension methods for cloning various Mono.Cecil objects.
+
     #region Clone
 
     /// <summary>
@@ -467,16 +571,25 @@ public static class MonoCecilExtensions
     public static CustomAttribute Clone(this CustomAttribute attribute)
     {
         // Create a new CustomAttribute with the constructor of the original attribute.
-        var clonedAttribute = new CustomAttribute(attribute.Constructor);
+        CustomAttribute? clonedAttribute = new(attribute.Constructor);
 
         // Add all constructor arguments from the original attribute to the cloned attribute.
-        foreach (var argument in attribute.ConstructorArguments) clonedAttribute.ConstructorArguments.Add(argument);
+        foreach (CustomAttributeArgument argument in attribute.ConstructorArguments)
+        {
+            clonedAttribute.ConstructorArguments.Add(argument);
+        }
 
         // Add all properties from the original attribute to the cloned attribute.
-        foreach (var property in attribute.Properties) clonedAttribute.Properties.Add(property);
+        foreach (CustomAttributeNamedArgument property in attribute.Properties)
+        {
+            clonedAttribute.Properties.Add(property);
+        }
 
         // Add all fields from the original attribute to the cloned attribute.
-        foreach (var field in attribute.Fields) clonedAttribute.Fields.Add(field);
+        foreach (CustomAttributeNamedArgument field in attribute.Fields)
+        {
+            clonedAttribute.Fields.Add(field);
+        }
 
         // Return the cloned attribute.
         return clonedAttribute;
@@ -490,10 +603,13 @@ public static class MonoCecilExtensions
     public static InterfaceImplementation Clone(this InterfaceImplementation @interface)
     {
         // Create a new InterfaceImplementation with the type the original interface.
-        var clonedInterface = new InterfaceImplementation(@interface.InterfaceType);
+        InterfaceImplementation? clonedInterface = new(@interface.InterfaceType);
 
         // Copy all custom attributes from the original interface to the cloned interface.
-        foreach (var attribute in @interface.CustomAttributes) clonedInterface.CustomAttributes.Add(attribute.Clone());
+        foreach (CustomAttribute? attribute in @interface.CustomAttributes)
+        {
+            clonedInterface.CustomAttributes.Add(attribute.Clone());
+        }
 
         // Return the cloned interface.
         return clonedInterface;
@@ -507,10 +623,13 @@ public static class MonoCecilExtensions
     public static FieldDefinition Clone(this FieldDefinition field)
     {
         // Create a new FieldDefinition with the same properties as the original field.
-        var clonedField = new FieldDefinition(field.Name, field.Attributes, field.FieldType);
+        FieldDefinition? clonedField = new(field.Name, field.Attributes, field.FieldType);
 
         // Copy all custom attributes from the original field to the cloned field.
-        foreach (var attribute in field.CustomAttributes) clonedField.CustomAttributes.Add(attribute.Clone());
+        foreach (CustomAttribute? attribute in field.CustomAttributes)
+        {
+            clonedField.CustomAttributes.Add(attribute.Clone());
+        }
 
         // Copy the MarshalInfo if it exists.
         clonedField.MarshalInfo = field.MarshalInfo != null ? new MarshalInfo(field.MarshalInfo.NativeType) : null;
@@ -530,10 +649,13 @@ public static class MonoCecilExtensions
     public static PropertyDefinition Clone(this PropertyDefinition property)
     {
         // Create a new PropertyDefinition with the same properties as the original property.
-        var clonedProperty = new PropertyDefinition(property.Name, property.Attributes, property.PropertyType);
+        PropertyDefinition? clonedProperty = new(property.Name, property.Attributes, property.PropertyType);
 
         // Copy all custom attributes from the original property to the cloned property.
-        foreach (var attribute in property.CustomAttributes) clonedProperty.CustomAttributes.Add(attribute.Clone());
+        foreach (CustomAttribute? attribute in property.CustomAttributes)
+        {
+            clonedProperty.CustomAttributes.Add(attribute.Clone());
+        }
 
         // Clone the get and set methods if they exist.
         clonedProperty.GetMethod = property.GetMethod?.Clone();
@@ -551,10 +673,13 @@ public static class MonoCecilExtensions
     public static ParameterDefinition Clone(this ParameterDefinition parameter)
     {
         // Create a new ParameterDefinition with the same properties as the original parameter.
-        var clonedParameter = new ParameterDefinition(parameter.Name, parameter.Attributes, parameter.ParameterType);
+        ParameterDefinition? clonedParameter = new(parameter.Name, parameter.Attributes, parameter.ParameterType);
 
         // Copy all custom attributes from the original parameter to the cloned parameter.
-        foreach (var attribute in parameter.CustomAttributes) clonedParameter.CustomAttributes.Add(attribute.Clone());
+        foreach (CustomAttribute? attribute in parameter.CustomAttributes)
+        {
+            clonedParameter.CustomAttributes.Add(attribute.Clone());
+        }
 
         // Return the cloned parameter.
         return clonedParameter;
@@ -565,11 +690,9 @@ public static class MonoCecilExtensions
     /// </summary>
     /// <param name="variable">The variable to be cloned.</param>
     /// <returns>A clone of the original variable.</returns>
-    public static VariableDefinition Clone(this VariableDefinition variable)
-    {
+    public static VariableDefinition Clone(this VariableDefinition variable) =>
         // Create and return a new VariableDefinition with the same type as the original variable.
-        return new VariableDefinition(variable.VariableType);
-    }
+        new(variable.VariableType);
 
     /// <summary>
     /// Clones an Instruction.
@@ -579,7 +702,7 @@ public static class MonoCecilExtensions
     public static Instruction Clone(this Instruction instruction)
     {
         // Create a new Instruction with a default opcode.
-        var clonedInstruction = Instruction.Create(OpCodes.Nop);
+        Instruction? clonedInstruction = Instruction.Create(OpCodes.Nop);
 
         // Copy the opcode and operand from the original instruction to the cloned instruction.
         clonedInstruction.OpCode = instruction.OpCode;
@@ -597,11 +720,13 @@ public static class MonoCecilExtensions
     public static Collection<Instruction> Clone(this Collection<Instruction> instructions)
     {
         if (instructions == null)
+        {
             throw new ArgumentNullException(nameof(instructions));
+        }
 
-        var clonedInstructions = new Collection<Instruction>();
+        Collection<Instruction>? clonedInstructions = new();
 
-        foreach (var instruction in instructions)
+        foreach (Instruction? instruction in instructions)
         {
             // Add to the cloned collection
             clonedInstructions.Add(instruction.Clone());
@@ -618,20 +743,28 @@ public static class MonoCecilExtensions
     public static MethodDefinition Clone(this MethodDefinition method)
     {
         // Create a new MethodDefinition with the same properties as the original method.
-        var clonedMethod = new MethodDefinition(method.Name, method.Attributes, method.ReturnType)
+        MethodDefinition? clonedMethod = new(method.Name, method.Attributes, method.ReturnType)
         {
-            ImplAttributes = method.ImplAttributes,
-            SemanticsAttributes = method.SemanticsAttributes
+            ImplAttributes = method.ImplAttributes, SemanticsAttributes = method.SemanticsAttributes
         };
 
         // Add all overides from the original method to the cloned method (references).
-        foreach (var @override in method.Overrides) clonedMethod.Overrides.Add(@override);
+        foreach (MethodReference? @override in method.Overrides)
+        {
+            clonedMethod.Overrides.Add(@override);
+        }
 
         // Copy all custom attributes from the original method to the cloned method.
-        foreach (var attribute in method.CustomAttributes) clonedMethod.CustomAttributes.Add(attribute.Clone());
+        foreach (CustomAttribute? attribute in method.CustomAttributes)
+        {
+            clonedMethod.CustomAttributes.Add(attribute.Clone());
+        }
 
         // Clone all parameters and add them to the cloned method.
-        foreach (var parameter in method.Parameters) clonedMethod.Parameters.Add(parameter.Clone());
+        foreach (ParameterDefinition? parameter in method.Parameters)
+        {
+            clonedMethod.Parameters.Add(parameter.Clone());
+        }
 
         // Create a new method body for the cloned method.
         clonedMethod.Body = new MethodBody(clonedMethod);
@@ -643,21 +776,24 @@ public static class MonoCecilExtensions
             clonedMethod.Body.InitLocals = method.Body.InitLocals;
 
             // Clone all variables and add them to the cloned method's body.
-            foreach (var variable in method.Body.Variables) clonedMethod.Body.Variables.Add(variable.Clone());
+            foreach (VariableDefinition? variable in method.Body.Variables)
+            {
+                clonedMethod.Body.Variables.Add(variable.Clone());
+            }
 
             // Instruction mapping from old to new instructions used to update branch targets which is necessary after cloning
-            var instructionMapping = new Dictionary<Instruction, Instruction>();
+            Dictionary<Instruction, Instruction>? instructionMapping = new();
 
             // Clone all the instructions and create the mapping.
-            foreach (var instruction in method.Body.Instructions)
+            foreach (Instruction? instruction in method.Body.Instructions)
             {
-                var clonedInstruction = instruction.Clone();
+                Instruction? clonedInstruction = instruction.Clone();
                 instructionMapping[instruction] = clonedInstruction;
                 clonedMethod.Body.Instructions.Add(clonedInstruction);
             }
 
             // Now fix up the branch targets.
-            foreach (var instruction in clonedMethod.Body.Instructions)
+            foreach (Instruction? instruction in clonedMethod.Body.Instructions)
             {
                 switch (instruction.OpCode.OperandType)
                 {
@@ -668,10 +804,13 @@ public static class MonoCecilExtensions
                         break;
                     // If the instruction is a switch instruction, fix up its targets.
                     case OperandType.InlineSwitch:
-                        var oldTargets = (Instruction[])instruction.Operand;
-                        var newTargets = new Instruction[oldTargets.Length];
+                        Instruction[]? oldTargets = (Instruction[])instruction.Operand;
+                        Instruction[]? newTargets = new Instruction[oldTargets.Length];
                         for (int i = 0; i < oldTargets.Length; ++i)
+                        {
                             newTargets[i] = instructionMapping[oldTargets[i]];
+                        }
+
                         instruction.Operand = newTargets;
                         break;
                 }
@@ -686,6 +825,7 @@ public static class MonoCecilExtensions
 
     // Extension methods for replacing references to a source type with references to a destination type within Mono.Cecil objects.
     // This is used to ensure that copied fields, properties, and methods reference copied types instead of the originals.
+
     #region UpdateTypes
 
     /// <summary>
@@ -697,7 +837,10 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this InterfaceImplementation @interface, TypeDefinition src, TypeDefinition dest)
     {
         // If the interface's type matches the source type, update it to the destination type
-        if (@interface.InterfaceType == src) @interface.InterfaceType = dest;
+        if (@interface.InterfaceType == src)
+        {
+            @interface.InterfaceType = dest;
+        }
     }
 
     /// <summary>
@@ -709,7 +852,10 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this FieldDefinition field, TypeDefinition src, TypeDefinition dest)
     {
         // If the field's type matches the source type, update it to the destination type
-        if (field.FieldType == src) field.FieldType = dest;
+        if (field.FieldType == src)
+        {
+            field.FieldType = dest;
+        }
     }
 
     /// <summary>
@@ -724,8 +870,15 @@ public static class MonoCecilExtensions
     public static FieldReference UpdateTypes(this FieldReference field, TypeDefinition src, TypeDefinition dest)
     {
         // Check if the field's FieldType or DeclaringType matches the source type, and if so, replace them with the destination type
-        if (field.FieldType == src) field.FieldType = dest;
-        if (field.DeclaringType == src) field.DeclaringType = dest;
+        if (field.FieldType == src)
+        {
+            field.FieldType = dest;
+        }
+
+        if (field.DeclaringType == src)
+        {
+            field.DeclaringType = dest;
+        }
 
         // Attempt to find a field in the destination type that matches the field's full name
         // If a matching definition is found, return a reference to it otherwise return original reference
@@ -741,7 +894,10 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this PropertyDefinition property, TypeDefinition src, TypeDefinition dest)
     {
         // If the property's type matches the source type, update it to the destination type
-        if (property.PropertyType == src) property.PropertyType = dest;
+        if (property.PropertyType == src)
+        {
+            property.PropertyType = dest;
+        }
     }
 
     /// <summary>
@@ -753,7 +909,10 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this ParameterDefinition parameter, TypeDefinition src, TypeDefinition dest)
     {
         // If the parameter's type matches the source type, update it to the destination type
-        if (parameter.ParameterType == src) parameter.ParameterType = dest;
+        if (parameter.ParameterType == src)
+        {
+            parameter.ParameterType = dest;
+        }
     }
 
     /// <summary>
@@ -765,7 +924,10 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this VariableDefinition variable, TypeDefinition src, TypeDefinition dest)
     {
         // If the variable's type matches the source type, update it to the destination type
-        if (variable.VariableType == src) variable.VariableType = dest;
+        if (variable.VariableType == src)
+        {
+            variable.VariableType = dest;
+        }
     }
 
     /// <summary>
@@ -778,14 +940,30 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this MethodDefinition method, TypeDefinition src, TypeDefinition dest)
     {
         // Update method overrides if they match the source type
-        for (int i = 0; i < method.Overrides.Count; i++) method.Overrides[i] = method.Overrides[i].UpdateTypes(src, dest);
+        for (int i = 0; i < method.Overrides.Count; i++)
+        {
+            method.Overrides[i] = method.Overrides[i].UpdateTypes(src, dest);
+        }
 
         // If the method's return type matches the source type, update it to the destination type
-        if (method.ReturnType == src) method.ReturnType = dest;
+        if (method.ReturnType == src)
+        {
+            method.ReturnType = dest;
+        }
 
         // Update method parameters and variables if they match the source type
-        foreach (var parameter in method.Parameters) parameter.UpdateTypes(src, dest);
-        if (method.HasBody) foreach (var variable in method.Body.Variables) variable.UpdateTypes(src, dest);
+        foreach (ParameterDefinition? parameter in method.Parameters)
+        {
+            parameter.UpdateTypes(src, dest);
+        }
+
+        if (method.HasBody)
+        {
+            foreach (VariableDefinition? variable in method.Body.Variables)
+            {
+                variable.UpdateTypes(src, dest);
+            }
+        }
     }
 
     /// <summary>
@@ -801,11 +979,21 @@ public static class MonoCecilExtensions
     public static MethodReference UpdateTypes(this MethodReference method, TypeDefinition src, TypeDefinition dest)
     {
         // Update method parameters to destination type
-        foreach (var parameter in method.Parameters) parameter.UpdateTypes(src, dest);
+        foreach (ParameterDefinition? parameter in method.Parameters)
+        {
+            parameter.UpdateTypes(src, dest);
+        }
 
         // Check if the method's ReturnType or DeclaringType matches the source type, and if so, replace them with the destination type
-        if (method.ReturnType == src) method.ReturnType = dest;
-        if (method.DeclaringType == src) method.DeclaringType = dest;
+        if (method.ReturnType == src)
+        {
+            method.ReturnType = dest;
+        }
+
+        if (method.DeclaringType == src)
+        {
+            method.DeclaringType = dest;
+        }
 
         // Attempt to find a method in the destination type that matches the method's full name
         // If a matching definition is found, return a reference to it otherwise return original reference
@@ -821,16 +1009,23 @@ public static class MonoCecilExtensions
     public static void UpdateTypes(this CallSite callSite, TypeDefinition src, TypeDefinition dest)
     {
         // Update callsite parameters to destination type
-        foreach (var parameter in callSite.Parameters) parameter.UpdateTypes(src, dest);
+        foreach (ParameterDefinition? parameter in callSite.Parameters)
+        {
+            parameter.UpdateTypes(src, dest);
+        }
 
         // If the current return type is the source type, update it to destination type
-        if (callSite.ReturnType == src) callSite.ReturnType = dest;
+        if (callSite.ReturnType == src)
+        {
+            callSite.ReturnType = dest;
+        }
     }
 
     #endregion UpdateTypes
 
     // Extension methods for replacing references to a source type with references to a destination type within Mono.Cecil.Instruction objects.
     // This is crucial for ensuring that the instructions within methods correctly reference the fields, properties, and methods of the destination type after cloning from the source type.
+
     #region UpdateInstructionTypes
 
     /// <summary>
@@ -845,17 +1040,29 @@ public static class MonoCecilExtensions
     {
         // Check operand type and update accordingly
         if (instruction.Operand is ParameterDefinition parameter)
-            parameter.UpdateTypes(src, dest);  // Update types in ParameterDefinition
+        {
+            parameter.UpdateTypes(src, dest); // Update types in ParameterDefinition
+        }
         else if (instruction.Operand is VariableDefinition variable)
-            variable.UpdateTypes(src, dest);  // Update types in VariableDefinition
+        {
+            variable.UpdateTypes(src, dest); // Update types in VariableDefinition
+        }
         else if (instruction.Operand is TypeReference type && type == src)
-            instruction.Operand = dest;  // Update type in TypeReference
+        {
+            instruction.Operand = dest; // Update type in TypeReference
+        }
         else if (instruction.Operand is FieldReference field)
-            instruction.Operand = field.UpdateTypes(src, dest);  // Update types in FieldReference
+        {
+            instruction.Operand = field.UpdateTypes(src, dest); // Update types in FieldReference
+        }
         else if (instruction.Operand is MethodReference method)
-            instruction.Operand = method.UpdateTypes(src, dest);  // Update types in MethodReference
+        {
+            instruction.Operand = method.UpdateTypes(src, dest); // Update types in MethodReference
+        }
         else if (instruction.Operand is CallSite callSite)
-            callSite.UpdateTypes(src, dest);  // Update types in CallSite
+        {
+            callSite.UpdateTypes(src, dest); // Update types in CallSite
+        }
     }
 
     /// <summary>
@@ -868,13 +1075,20 @@ public static class MonoCecilExtensions
     public static void UpdateInstructionTypes(this MethodDefinition method, TypeDefinition src, TypeDefinition dest)
     {
         // Update instructions in the method body to the destination type
-        if (method.HasBody) foreach (var instruction in method.Body.Instructions) UpdateInstructionTypes(instruction, src, dest);
+        if (method.HasBody)
+        {
+            foreach (Instruction? instruction in method.Body.Instructions)
+            {
+                UpdateInstructionTypes(instruction, src, dest);
+            }
+        }
     }
 
     #endregion UpdateInstructionTypes
 
     // Extension methods for replacing references to a source type with references to a destination type within Mono.Cecil.Property getter and setter methods.
     // This ensures that the properties of the destination type reference copied getters and setters instead of the originals.
+
     #region UpdateGettersAndSetters
 
     /// <summary>
@@ -889,7 +1103,8 @@ public static class MonoCecilExtensions
     /// <param name="property">PropertyDefinition whose getter and setter need to be updated.</param>
     /// <param name="src">The original type which is being replaced.</param>
     /// <param name="dest">The new type which is replacing the original type.</param>
-    public static void UpdateGettersAndSetters(this PropertyDefinition property, TypeDefinition src, TypeDefinition dest)
+    public static void UpdateGettersAndSetters(this PropertyDefinition property, TypeDefinition src,
+        TypeDefinition dest)
     {
         // If the declaring type of the property is the destination type
         if (property.DeclaringType == dest)
@@ -898,27 +1113,32 @@ public static class MonoCecilExtensions
             if (property.GetMethod != null)
             {
                 // Clone the getter
-                var clonedGetter = property.GetMethod.Clone();
+                MethodDefinition? clonedGetter = property.GetMethod.Clone();
                 // Update all type references within the getter from src to dest
                 clonedGetter.UpdateTypes(src, dest);
                 // Update the declaring type of the getter to be dest
                 clonedGetter.DeclaringType = dest;
                 // If an equivalent method exists in dest, update the property's getter to reference it
                 if (dest.FindMethod(clonedGetter.FullName) is MethodDefinition getMethod)
+                {
                     property.GetMethod = getMethod;
+                }
             }
+
             // If the property has a setter, clone and update it
             if (property.SetMethod != null)
             {
                 // Clone the setter
-                var clonedSetter = property.SetMethod.Clone();
+                MethodDefinition? clonedSetter = property.SetMethod.Clone();
                 // Update all type references within the setter from src to dest
                 clonedSetter.UpdateTypes(src, dest);
                 // Update the declaring type of the setter to be dest
                 clonedSetter.DeclaringType = dest;
                 // If an equivalent method exists in dest, update the property's setter to reference it
                 if (dest.FindMethod(clonedSetter.FullName) is MethodDefinition setMethod)
+                {
                     property.SetMethod = setMethod;
+                }
             }
         }
     }
@@ -927,6 +1147,7 @@ public static class MonoCecilExtensions
 
     // Extension methods to import references from one module to another.
     // This is important when merging assemblies classes as it allows the destination to access types that may not have been referenced prior.
+
     #region ImportReferences
 
     /// <summary>
@@ -934,11 +1155,9 @@ public static class MonoCecilExtensions
     /// </summary>
     /// <param name="attribute">The custom attribute whose constructor reference needs to be imported.</param>
     /// <param name="module">The module type into whose module the reference should be imported.</param>
-    public static void ImportReferences(this CustomAttribute attribute, ModuleDefinition module)
-    {
+    public static void ImportReferences(this CustomAttribute attribute, ModuleDefinition module) =>
         // Import the constructor reference into the module
         attribute.Constructor = module.ImportReference(attribute.Constructor);
-    }
 
     /// <summary>
     /// Imports the interface type and custom attributes references of an interface into a module.
@@ -948,7 +1167,10 @@ public static class MonoCecilExtensions
     public static void ImportReferences(this InterfaceImplementation @interface, ModuleDefinition module)
     {
         // Import the custom attributes references into the module
-        foreach (var attribute in @interface.CustomAttributes) attribute.ImportReferences(module);
+        foreach (CustomAttribute? attribute in @interface.CustomAttributes)
+        {
+            attribute.ImportReferences(module);
+        }
 
         // Import the interface type reference into the module
         @interface.InterfaceType = module.ImportReference(@interface.InterfaceType);
@@ -962,7 +1184,10 @@ public static class MonoCecilExtensions
     public static void ImportReferences(this FieldDefinition field, ModuleDefinition module)
     {
         // Import the custom attributes references into the module
-        foreach (var attribute in field.CustomAttributes) attribute.ImportReferences(module);
+        foreach (CustomAttribute? attribute in field.CustomAttributes)
+        {
+            attribute.ImportReferences(module);
+        }
 
         // Import the field type reference into the module
         field.FieldType = module.ImportReference(field.FieldType);
@@ -979,7 +1204,10 @@ public static class MonoCecilExtensions
     public static void ImportReferences(this PropertyDefinition property, ModuleDefinition module)
     {
         // Import the custom attributes references into the module
-        foreach (var attribute in property.CustomAttributes) attribute.ImportReferences(module);
+        foreach (CustomAttribute? attribute in property.CustomAttributes)
+        {
+            attribute.ImportReferences(module);
+        }
 
         // Import the property type reference into the module
         property.PropertyType = module.ImportReference(property.PropertyType);
@@ -996,7 +1224,10 @@ public static class MonoCecilExtensions
     public static void ImportReferences(this ParameterDefinition parameter, ModuleDefinition module)
     {
         // Import the custom attributes references into the module
-        foreach (var attribute in parameter.CustomAttributes) attribute.ImportReferences(module);
+        foreach (CustomAttribute? attribute in parameter.CustomAttributes)
+        {
+            attribute.ImportReferences(module);
+        }
 
         // Import the parameter type reference into the module
         parameter.ParameterType = module.ImportReference(parameter.ParameterType);
@@ -1007,11 +1238,9 @@ public static class MonoCecilExtensions
     /// </summary>
     /// <param name="variable">The variable whose type references need to be imported.</param>
     /// <param name="module">The module type into whose module the references should be imported.</param>
-    public static void ImportReferences(this VariableDefinition variable, ModuleDefinition module)
-    {
+    public static void ImportReferences(this VariableDefinition variable, ModuleDefinition module) =>
         // Import the variable type reference into the module
         variable.VariableType = module.ImportReference(variable.VariableType);
-    }
 
     /// <summary>
     /// Imports the method type references and the custom attributes of a method into a module.
@@ -1021,13 +1250,22 @@ public static class MonoCecilExtensions
     public static void ImportReferences(this MethodDefinition method, ModuleDefinition module)
     {
         // Import method overrides into the module
-        for (int i = 0; i < method.Overrides.Count; ++i) method.Overrides[i] = module.ImportReference(method.Overrides[i]);
+        for (int i = 0; i < method.Overrides.Count; ++i)
+        {
+            method.Overrides[i] = module.ImportReference(method.Overrides[i]);
+        }
 
         // Import the custom attributes references into the module
-        foreach (var attribute in method.CustomAttributes) attribute.ImportReferences(module);
+        foreach (CustomAttribute? attribute in method.CustomAttributes)
+        {
+            attribute.ImportReferences(module);
+        }
 
         // Import the parameter type references into the module
-        foreach (var parameter in method.Parameters) parameter.ImportReferences(module);
+        foreach (ParameterDefinition? parameter in method.Parameters)
+        {
+            parameter.ImportReferences(module);
+        }
 
         // Import the return type reference into the module
         method.ReturnType = module.ImportReference(method.ReturnType);
@@ -1039,10 +1277,16 @@ public static class MonoCecilExtensions
         if (method.HasBody)
         {
             // Import the variable type references in the method body into the module
-            foreach (var variable in method.Body.Variables) variable.ImportReferences(module);
+            foreach (VariableDefinition? variable in method.Body.Variables)
+            {
+                variable.ImportReferences(module);
+            }
 
             // Import the instruction type references in the method body into the module
-            foreach (var instruction in method.Body.Instructions) instruction.ImportReferences(module);
+            foreach (Instruction? instruction in method.Body.Instructions)
+            {
+                instruction.ImportReferences(module);
+            }
         }
     }
 
@@ -1051,11 +1295,9 @@ public static class MonoCecilExtensions
     /// </summary>
     /// <param name="callSite">The CallSite whose return type references need to be imported.</param>
     /// <param name="module">The module type into whose module the references should be imported.</param>
-    public static void ImportReferences(this CallSite callSite, ModuleDefinition module)
-    {
+    public static void ImportReferences(this CallSite callSite, ModuleDefinition module) =>
         // Import the return type reference of the callSite into the module
         callSite.ReturnType = module.ImportReference(callSite.ReturnType);
-    }
 
     /// <summary>
     /// Imports the operand type references of an instruction into a module.
@@ -1066,23 +1308,36 @@ public static class MonoCecilExtensions
     {
         // Import the operand references of the instruction into the module
         if (instruction.Operand is ParameterDefinition parameter)
+        {
             parameter.ImportReferences(module);
+        }
         else if (instruction.Operand is VariableDefinition variable)
+        {
             variable.ImportReferences(module);
+        }
         else if (instruction.Operand is TypeReference type)
+        {
             instruction.Operand = module.ImportReference(type);
+        }
         else if (instruction.Operand is FieldReference field)
+        {
             instruction.Operand = module.ImportReference(field);
+        }
         else if (instruction.Operand is MethodReference method)
+        {
             instruction.Operand = module.ImportReference(method);
+        }
         else if (instruction.Operand is CallSite callSite)
+        {
             callSite.ImportReferences(module);
+        }
     }
 
     #endregion ImportReferences
 
     // Extension methods for swapping method implementations between different types.
     // This can be used when wanting to replace method functionality in the destination type with the corresponding functionality from the source type.
+
     #region SwapMethods
 
     /// <summary>
@@ -1091,17 +1346,22 @@ public static class MonoCecilExtensions
     /// <param name="instruction">The instruction to modify.</param>
     /// <param name="leftMethod">The first method to swap.</param>
     /// <param name="rightMethod">The second method to swap.</param>
-    public static void SwapMethodReferences(this Instruction instruction, MethodDefinition leftMethod, MethodDefinition rightMethod)
+    public static void SwapMethodReferences(this Instruction instruction, MethodDefinition leftMethod,
+        MethodDefinition rightMethod)
     {
         // If the instruction's operand is a method reference
         if (instruction.Operand is MethodReference method)
         {
             // If the operand matches the left method, replace it with the right method
             if (method == leftMethod)
+            {
                 instruction.Operand = rightMethod;
+            }
             // If the operand matches the right method, replace it with the left method
             else if (method == rightMethod)
+            {
                 instruction.Operand = leftMethod;
+            }
         }
     }
 
@@ -1111,11 +1371,14 @@ public static class MonoCecilExtensions
     /// <param name="instructions">The collection of instructions to modify.</param>
     /// <param name="leftMethod">The first method to swap.</param>
     /// <param name="rightMethod">The second method to swap.</param>
-    public static void SwapMethodReferences(this Collection<Instruction> instructions, MethodDefinition leftMethod, MethodDefinition rightMethod)
+    public static void SwapMethodReferences(this Collection<Instruction> instructions, MethodDefinition leftMethod,
+        MethodDefinition rightMethod)
     {
         // Swap method references for each instruction in the collection
-        foreach (var instruction in instructions)
+        foreach (Instruction? instruction in instructions)
+        {
             instruction.SwapMethodReferences(leftMethod, rightMethod);
+        }
     }
 
     /// <summary>
@@ -1124,10 +1387,14 @@ public static class MonoCecilExtensions
     /// <param name="method">The method to modify.</param>
     /// <param name="leftMethod">The first method to swap.</param>
     /// <param name="rightMethod">The second method to swap.</param>
-    public static void SwapMethodReferences(this MethodDefinition method, MethodDefinition leftMethod, MethodDefinition rightMethod)
+    public static void SwapMethodReferences(this MethodDefinition method, MethodDefinition leftMethod,
+        MethodDefinition rightMethod)
     {
         // Swap method references for each instruction in the method's body
-        if (method.HasBody) method.Body.Instructions.SwapMethodReferences(leftMethod, rightMethod);
+        if (method.HasBody)
+        {
+            method.Body.Instructions.SwapMethodReferences(leftMethod, rightMethod);
+        }
     }
 
     /// <summary>
@@ -1138,13 +1405,13 @@ public static class MonoCecilExtensions
     public static void SwapMethods(this MethodDefinition leftMethod, MethodDefinition rightMethod)
     {
         // Save the left method's original details
-        var leftBody = leftMethod.Body;
-        var leftAttributes = leftMethod.Attributes;
-        var leftImplAttributes = leftMethod.ImplAttributes;
-        var leftSemanticsAttributes = leftMethod.SemanticsAttributes;
-        var leftParameters = new Collection<ParameterDefinition>(leftMethod.Parameters);
-        var leftCustomAttributes = new Collection<CustomAttribute>(leftMethod.CustomAttributes);
-        var leftGenericParameters = new Collection<GenericParameter>(leftMethod.GenericParameters);
+        MethodBody? leftBody = leftMethod.Body;
+        MethodAttributes leftAttributes = leftMethod.Attributes;
+        MethodImplAttributes leftImplAttributes = leftMethod.ImplAttributes;
+        MethodSemanticsAttributes leftSemanticsAttributes = leftMethod.SemanticsAttributes;
+        Collection<ParameterDefinition>? leftParameters = new(leftMethod.Parameters);
+        Collection<CustomAttribute>? leftCustomAttributes = new(leftMethod.CustomAttributes);
+        Collection<GenericParameter>? leftGenericParameters = new(leftMethod.GenericParameters);
 
         // Swap the details from the right method to the left
         leftMethod.Body = rightMethod.Body;
@@ -1155,9 +1422,20 @@ public static class MonoCecilExtensions
         leftMethod.Parameters.Clear();
         leftMethod.CustomAttributes.Clear();
         leftMethod.GenericParameters.Clear();
-        foreach (var parameter in rightMethod.Parameters) leftMethod.Parameters.Add(parameter);
-        foreach (var attribute in rightMethod.CustomAttributes) leftMethod.CustomAttributes.Add(attribute);
-        foreach (var parameter in rightMethod.GenericParameters) leftMethod.GenericParameters.Add(parameter);
+        foreach (ParameterDefinition? parameter in rightMethod.Parameters)
+        {
+            leftMethod.Parameters.Add(parameter);
+        }
+
+        foreach (CustomAttribute? attribute in rightMethod.CustomAttributes)
+        {
+            leftMethod.CustomAttributes.Add(attribute);
+        }
+
+        foreach (GenericParameter? parameter in rightMethod.GenericParameters)
+        {
+            leftMethod.GenericParameters.Add(parameter);
+        }
 
         // Swap the details from the left method (which were saved) to the right
         rightMethod.Body = leftBody;
@@ -1168,9 +1446,20 @@ public static class MonoCecilExtensions
         rightMethod.Parameters.Clear();
         rightMethod.CustomAttributes.Clear();
         rightMethod.GenericParameters.Clear();
-        foreach (var parameter in leftParameters) rightMethod.Parameters.Add(parameter);
-        foreach (var attribute in leftCustomAttributes) rightMethod.CustomAttributes.Add(attribute);
-        foreach (var parameter in leftGenericParameters) rightMethod.GenericParameters.Add(parameter);
+        foreach (ParameterDefinition? parameter in leftParameters)
+        {
+            rightMethod.Parameters.Add(parameter);
+        }
+
+        foreach (CustomAttribute? attribute in leftCustomAttributes)
+        {
+            rightMethod.CustomAttributes.Add(attribute);
+        }
+
+        foreach (GenericParameter? parameter in leftGenericParameters)
+        {
+            rightMethod.GenericParameters.Add(parameter);
+        }
 
         // Swap method references within each method body
         leftMethod.SwapMethodReferences(leftMethod, rightMethod);
@@ -1185,18 +1474,18 @@ public static class MonoCecilExtensions
     public static void SwapDuplicateMethods(this TypeDefinition type, bool avoidSignatureConflicts = false)
     {
         // This HashSet is used for tracking the methods that have already been swapped.
-        var alreadySwapped = new HashSet<string>();
+        HashSet<string>? alreadySwapped = new();
 
         // Convert the method collection to list for efficient index-based access.
-        var methods = type.Methods.ToList();
+        List<MethodDefinition>? methods = type.Methods.ToList();
 
         // Iterate over each pair of methods in the type
         for (int i = 0; i < methods.Count; i++)
         {
             for (int j = i + 1; j < methods.Count; j++)
             {
-                var methodLeft = methods[i];
-                var methodRight = methods[j];
+                MethodDefinition? methodLeft = methods[i];
+                MethodDefinition? methodRight = methods[j];
 
                 // If two methods have the same full name and haven't been swapped yet
                 if (methodLeft.FullName == methodRight.FullName && !alreadySwapped.Contains(methodLeft.FullName))
@@ -1209,8 +1498,13 @@ public static class MonoCecilExtensions
                     // Change the original method types to be generic to avoid signature conflicts
                     if (avoidSignatureConflicts)
                     {
-                        foreach (var parameter in methodRight.Parameters)
-                            if (!parameter.ParameterType.IsValueType) parameter.ParameterType = type.Module.ImportReference(typeof(object));
+                        foreach (ParameterDefinition? parameter in methodRight.Parameters)
+                        {
+                            if (!parameter.ParameterType.IsValueType)
+                            {
+                                parameter.ParameterType = type.Module.ImportReference(typeof(object));
+                            }
+                        }
                     }
                 }
             }
@@ -1220,6 +1514,7 @@ public static class MonoCecilExtensions
     #endregion SwapMethods
 
     // Methods to do with instruction optimizations
+
     #region InstructionOptimizations
 
 #pragma warning disable RCS1003
@@ -1247,7 +1542,7 @@ public static class MonoCecilExtensions
         if (instruction.OpCode == OpCodes.Isinst || instruction.OpCode == OpCodes.Castclass)
         {
             // Get the type to which the conversion is being made
-            var typeConversionType = instruction.Operand as TypeReference;
+            TypeReference? typeConversionType = instruction.Operand as TypeReference;
             // Initialize stack balance. This will help to determine the net stack effect of the instructions
             int stackBalance = 0;
             // Move to the previous instruction
@@ -1257,8 +1552,8 @@ public static class MonoCecilExtensions
             while (instruction != null)
             {
                 // Determine how the current instruction modifies the stack
-                var pushBehaviour = instruction.OpCode.StackBehaviourPush;
-                var popBehaviour = instruction.OpCode.StackBehaviourPop;
+                StackBehaviour pushBehaviour = instruction.OpCode.StackBehaviourPush;
+                StackBehaviour popBehaviour = instruction.OpCode.StackBehaviourPop;
 
                 // Fullname of any type extracted from the instruction
                 string extractedFullName = null;
@@ -1268,21 +1563,44 @@ public static class MonoCecilExtensions
                 if (instruction.OpCode == OpCodes.Ret || // Return from the current method.
                     instruction.OpCode == OpCodes.Throw || // Throw an exception.
                     instruction.OpCode == OpCodes.Rethrow || // Rethrow the current exception.
-                    instruction.OpCode == OpCodes.Endfilter || // End the filter clause of an exception block and branch to the exception handler.
-                    instruction.OpCode == OpCodes.Endfinally || // Transfer control from the exception block of a try or catch block.
-                    instruction.OpCode == OpCodes.Leave || instruction.OpCode == OpCodes.Leave_S || // Exit a protected region of code.
-                    instruction.OpCode == OpCodes.Jmp || // Jump to the method pointed to by the method pointer loaded on the stack.
+                    instruction.OpCode ==
+                    OpCodes.Endfilter || // End the filter clause of an exception block and branch to the exception handler.
+                    instruction.OpCode ==
+                    OpCodes.Endfinally || // Transfer control from the exception block of a try or catch block.
+                    instruction.OpCode == OpCodes.Leave ||
+                    instruction.OpCode == OpCodes.Leave_S || // Exit a protected region of code.
+                    instruction.OpCode ==
+                    OpCodes.Jmp || // Jump to the method pointed to by the method pointer loaded on the stack.
                     instruction.OpCode == OpCodes.Switch || // Switch control to one of several locations.
-                    instruction.OpCode == OpCodes.Br || instruction.OpCode == OpCodes.Br_S || // Unconditional branch to target.
-                    instruction.OpCode == OpCodes.Brfalse || instruction.OpCode == OpCodes.Brfalse_S || // Branch to target if value is zero (false).
-                    instruction.OpCode == OpCodes.Brtrue || instruction.OpCode == OpCodes.Brtrue_S || // Branch to target if value is non-zero (true).
-                    instruction.OpCode == OpCodes.Beq || instruction.OpCode == OpCodes.Beq_S ||  // Branch to target if two values are equal.
-                    instruction.OpCode == OpCodes.Bne_Un || instruction.OpCode == OpCodes.Bne_Un_S || // Branch to target if two values are not equal.
-                    instruction.OpCode == OpCodes.Bge || instruction.OpCode == OpCodes.Bge_S || instruction.OpCode == OpCodes.Bge_Un || instruction.OpCode == OpCodes.Bge_Un_S || // Branch to target if value1 >= value2 (unsigned or unordered).
-                    instruction.OpCode == OpCodes.Bgt || instruction.OpCode == OpCodes.Bgt_S || instruction.OpCode == OpCodes.Bgt_Un || instruction.OpCode == OpCodes.Bgt_Un_S || // Branch to target if value1 > value2 (unsigned or unordered).
-                    instruction.OpCode == OpCodes.Ble || instruction.OpCode == OpCodes.Ble_S || instruction.OpCode == OpCodes.Ble_Un || instruction.OpCode == OpCodes.Ble_Un_S || // Branch to target if value1 <= value2 (unsigned or unordered).
-                    instruction.OpCode == OpCodes.Blt || instruction.OpCode == OpCodes.Blt_S || instruction.OpCode == OpCodes.Blt_Un || instruction.OpCode == OpCodes.Blt_Un_S) // Branch to target if value1 < value2 (unsigned or unordered).
+                    instruction.OpCode == OpCodes.Br ||
+                    instruction.OpCode == OpCodes.Br_S || // Unconditional branch to target.
+                    instruction.OpCode == OpCodes.Brfalse ||
+                    instruction.OpCode == OpCodes.Brfalse_S || // Branch to target if value is zero (false).
+                    instruction.OpCode == OpCodes.Brtrue ||
+                    instruction.OpCode == OpCodes.Brtrue_S || // Branch to target if value is non-zero (true).
+                    instruction.OpCode == OpCodes.Beq ||
+                    instruction.OpCode == OpCodes.Beq_S || // Branch to target if two values are equal.
+                    instruction.OpCode == OpCodes.Bne_Un ||
+                    instruction.OpCode == OpCodes.Bne_Un_S || // Branch to target if two values are not equal.
+                    instruction.OpCode == OpCodes.Bge || instruction.OpCode == OpCodes.Bge_S ||
+                    instruction.OpCode == OpCodes.Bge_Un ||
+                    instruction.OpCode ==
+                    OpCodes.Bge_Un_S || // Branch to target if value1 >= value2 (unsigned or unordered).
+                    instruction.OpCode == OpCodes.Bgt || instruction.OpCode == OpCodes.Bgt_S ||
+                    instruction.OpCode == OpCodes.Bgt_Un ||
+                    instruction.OpCode ==
+                    OpCodes.Bgt_Un_S || // Branch to target if value1 > value2 (unsigned or unordered).
+                    instruction.OpCode == OpCodes.Ble || instruction.OpCode == OpCodes.Ble_S ||
+                    instruction.OpCode == OpCodes.Ble_Un ||
+                    instruction.OpCode ==
+                    OpCodes.Ble_Un_S || // Branch to target if value1 <= value2 (unsigned or unordered).
+                    instruction.OpCode == OpCodes.Blt || instruction.OpCode == OpCodes.Blt_S ||
+                    instruction.OpCode == OpCodes.Blt_Un ||
+                    instruction.OpCode ==
+                    OpCodes.Blt_Un_S) // Branch to target if value1 < value2 (unsigned or unordered).
+                {
                     return false; // Return from method
+                }
 
                 // Check if instruction is for loading a field onto the stack
                 // In this case, the type of the value is the type of the field.
@@ -1290,100 +1608,166 @@ public static class MonoCecilExtensions
                          instruction.OpCode == OpCodes.Ldflda || // load field address onto stack
                          instruction.OpCode == OpCodes.Ldsfld || // load static field value onto stack
                          instruction.OpCode == OpCodes.Ldsflda) // load static field address onto stack
+                {
                     extractedFullName = ((FieldReference)instruction.Operand).FieldType.FullName;
+                }
 
                 // Check if instruction is for loading an argument onto the stack
                 // In this case, the type of the value is the type of the argument.
                 else if (instruction.OpCode == OpCodes.Ldarg || // load argument onto stack
                          instruction.OpCode == OpCodes.Ldarg_S) // short form for loading argument onto stack
+                {
                     extractedFullName = ((ParameterReference)instruction.Operand).ParameterType.FullName;
+                }
 
                 // Check for loading argument at index 0 onto stack
                 else if (instruction.OpCode == OpCodes.Ldarg_0) // load argument at index 0 onto stack
-                    extractedFullName = (method.IsStatic ? method.Parameters[0].ParameterType : method.DeclaringType).FullName;
+                {
+                    extractedFullName = (method.IsStatic ? method.Parameters[0].ParameterType : method.DeclaringType)
+                        .FullName;
+                }
                 // Check for loading argument at index 1 onto stack
                 else if (instruction.OpCode == OpCodes.Ldarg_1) // load argument at index 1 onto stack
-                    extractedFullName = (method.IsStatic ? method.Parameters[1].ParameterType : method.Parameters[0].ParameterType).FullName;
+                {
+                    extractedFullName =
+                        (method.IsStatic ? method.Parameters[1].ParameterType : method.Parameters[0].ParameterType)
+                        .FullName;
+                }
                 // Check for loading argument at index 2 onto stack
                 else if (instruction.OpCode == OpCodes.Ldarg_2) // load argument at index 2 onto stack
-                    extractedFullName = (method.IsStatic ? method.Parameters[2].ParameterType : method.Parameters[1].ParameterType).FullName;
+                {
+                    extractedFullName =
+                        (method.IsStatic ? method.Parameters[2].ParameterType : method.Parameters[1].ParameterType)
+                        .FullName;
+                }
                 // Check for loading argument at index 3 onto stack
                 else if (instruction.OpCode == OpCodes.Ldarg_3) // load argument at index 3 onto stack
-                    extractedFullName = (method.IsStatic ? method.Parameters[3].ParameterType : method.Parameters[2].ParameterType).FullName;
+                {
+                    extractedFullName =
+                        (method.IsStatic ? method.Parameters[3].ParameterType : method.Parameters[2].ParameterType)
+                        .FullName;
+                }
 
                 // Check for loading local variable onto stack
                 else if (instruction.OpCode == OpCodes.Ldloc || // load local variable onto stack
                          instruction.OpCode == OpCodes.Ldloc_S) // short form for loading local variable onto stack
+                {
                     extractedFullName = ((VariableReference)instruction.Operand).VariableType.FullName;
+                }
                 // Check for loading local variable at index 0 onto stack
                 else if (instruction.OpCode == OpCodes.Ldloc_0) // load local variable at index 0 onto stack
+                {
                     extractedFullName = method.Body.Variables[0].VariableType.FullName;
+                }
                 // Check for loading local variable at index 1 onto stack
-                else if (instruction.OpCode == OpCodes.Ldloc_1)// load local variable at index 1 onto stack
+                else if (instruction.OpCode == OpCodes.Ldloc_1) // load local variable at index 1 onto stack
+                {
                     extractedFullName = method.Body.Variables[1].VariableType.FullName;
+                }
                 // Check for loading local variable at index 2 onto stack
-                else if (instruction.OpCode == OpCodes.Ldloc_2)// load local variable at index 2 onto stack
+                else if (instruction.OpCode == OpCodes.Ldloc_2) // load local variable at index 2 onto stack
+                {
                     extractedFullName = method.Body.Variables[2].VariableType.FullName;
+                }
                 // Check for loading local variable at index 3 onto stack
-                else if (instruction.OpCode == OpCodes.Ldloc_3)// load local variable at index 3 onto stack
+                else if (instruction.OpCode == OpCodes.Ldloc_3) // load local variable at index 3 onto stack
+                {
                     extractedFullName = method.Body.Variables[3].VariableType.FullName;
+                }
 
                 // Check for calling a method and pushing return value onto the stack, loading function pointer onto the stack
-                else if (instruction.OpCode == OpCodes.Callvirt || // call method virtually and push return value onto stack
-                         instruction.OpCode == OpCodes.Call || // call method and push return value onto stack
-                         instruction.OpCode == OpCodes.Ldftn || // load method pointer onto stack
-                         instruction.OpCode == OpCodes.Ldvirtftn) // load virtual method pointer onto stack
+                else if
+                    (instruction.OpCode == OpCodes.Callvirt || // call method virtually and push return value onto stack
+                     instruction.OpCode == OpCodes.Call || // call method and push return value onto stack
+                     instruction.OpCode == OpCodes.Ldftn || // load method pointer onto stack
+                     instruction.OpCode == OpCodes.Ldvirtftn) // load virtual method pointer onto stack
+                {
                     extractedFullName = ((MethodReference)instruction.Operand).ReturnType.FullName;
+                }
 
                 // Check for calling a method indicated on the stack with arguments, pushing return value onto stack
-                else if (instruction.OpCode == OpCodes.Calli) // call method indicated on the stack with arguments, pushing return value onto stack
+                else if
+                    (instruction.OpCode ==
+                     OpCodes.Calli) // call method indicated on the stack with arguments, pushing return value onto stack
+                {
                     extractedFullName = ((CallSite)instruction.Operand).ReturnType.FullName;
+                }
 
                 // Check for creating a new object and pushing object reference onto stack
-                else if (instruction.OpCode == OpCodes.Newobj) // create a new object and push object reference onto stack
+                else if
+                    (instruction.OpCode == OpCodes.Newobj) // create a new object and push object reference onto stack
+                {
                     extractedFullName = ((MethodReference)instruction.Operand).DeclaringType.FullName;
+                }
 
                 // Check for loading an object, array element, or pointer onto stack, creating a new array, or creating a typed reference
                 else if (instruction.OpCode == OpCodes.Ldobj || // load object onto stack
                          instruction.OpCode == OpCodes.Ldelem_Any || // load element of an object array onto stack
                          instruction.OpCode == OpCodes.Newarr || // create a new array and push reference onto stack
                          instruction.OpCode == OpCodes.Mkrefany) // push a typed reference onto stack
+                {
                     extractedFullName = ((TypeReference)instruction.Operand).FullName;
+                }
 
                 // Check for loading a string onto stack
                 else if (instruction.OpCode == OpCodes.Ldstr) // load a string onto stack
+                {
                     extractedFullName = typeof(string).FullName;
+                }
 
                 // If the type of the value currently at the top of the stack matches the type conversion
                 // and the stack is balanced, the conversion is unnecessary
                 if (stackBalance == 0 && extractedFullName == typeConversionType.FullName)
+                {
                     return true;
+                }
 
                 // Dup doesn't change the type of the top of the stack, so adjust stack balance to ignore it
                 if (instruction.OpCode == OpCodes.Dup)
+                {
                     stackBalance--;
+                }
 
                 // Adjust stack balance according to the current instruction's push behavior
                 //if (pushBehaviour == StackBehaviour.Push0)
-                if (pushBehaviour == StackBehaviour.Push1 || pushBehaviour == StackBehaviour.Pushi || pushBehaviour == StackBehaviour.Pushref ||
-                    pushBehaviour == StackBehaviour.Pushi8 || pushBehaviour == StackBehaviour.Pushr4 || pushBehaviour == StackBehaviour.Pushr8 ||
+                if (pushBehaviour == StackBehaviour.Push1 || pushBehaviour == StackBehaviour.Pushi ||
+                    pushBehaviour == StackBehaviour.Pushref ||
+                    pushBehaviour == StackBehaviour.Pushi8 || pushBehaviour == StackBehaviour.Pushr4 ||
+                    pushBehaviour == StackBehaviour.Pushr8 ||
                     pushBehaviour == StackBehaviour.Varpush)
+                {
                     stackBalance++;
+                }
                 else if (pushBehaviour == StackBehaviour.Push1_push1)
+                {
                     stackBalance += 2;
+                }
 
                 // Adjust stack balance according to the current instruction's pop behavior
                 //if (popBehaviour == StackBehaviour.Pop0)
-                if (popBehaviour == StackBehaviour.Pop1 || popBehaviour == StackBehaviour.Popi || popBehaviour == StackBehaviour.Popref ||
-                         popBehaviour == StackBehaviour.Varpop)
+                if (popBehaviour == StackBehaviour.Pop1 || popBehaviour == StackBehaviour.Popi ||
+                    popBehaviour == StackBehaviour.Popref ||
+                    popBehaviour == StackBehaviour.Varpop)
+                {
                     stackBalance--;
-                else if (popBehaviour == StackBehaviour.Pop1_pop1 || popBehaviour == StackBehaviour.Popi_popi || popBehaviour == StackBehaviour.Popi_pop1 ||
-                         popBehaviour == StackBehaviour.Popi_popi8 || popBehaviour == StackBehaviour.Popi_popr4 || popBehaviour == StackBehaviour.Popi_popr8 ||
+                }
+                else if (popBehaviour == StackBehaviour.Pop1_pop1 || popBehaviour == StackBehaviour.Popi_popi ||
+                         popBehaviour == StackBehaviour.Popi_pop1 ||
+                         popBehaviour == StackBehaviour.Popi_popi8 || popBehaviour == StackBehaviour.Popi_popr4 ||
+                         popBehaviour == StackBehaviour.Popi_popr8 ||
                          popBehaviour == StackBehaviour.Popref_pop1 || popBehaviour == StackBehaviour.Popref_popi)
+                {
                     stackBalance -= 2;
-                else if (popBehaviour == StackBehaviour.Popi_popi_popi || popBehaviour == StackBehaviour.Popref_popi_popi || popBehaviour == StackBehaviour.Popref_popi_popi8 ||
-                         popBehaviour == StackBehaviour.Popref_popi_popr4 || popBehaviour == StackBehaviour.Popref_popi_popr8 || popBehaviour == StackBehaviour.Popref_popi_popref)
+                }
+                else if (popBehaviour == StackBehaviour.Popi_popi_popi ||
+                         popBehaviour == StackBehaviour.Popref_popi_popi ||
+                         popBehaviour == StackBehaviour.Popref_popi_popi8 ||
+                         popBehaviour == StackBehaviour.Popref_popi_popr4 ||
+                         popBehaviour == StackBehaviour.Popref_popi_popr8 ||
+                         popBehaviour == StackBehaviour.Popref_popi_popref)
+                {
                     stackBalance -= 3;
+                }
 
                 // Move to previous instruction
                 instruction = instruction.Previous;
@@ -1406,7 +1790,10 @@ public static class MonoCecilExtensions
     public static void OptimizeInstructions(this MethodDefinition method)
     {
         // If the method doesn't have a body (i.e., it's an abstract or external method), then exit
-        if (!method.HasBody) return;
+        if (!method.HasBody)
+        {
+            return;
+        }
 
         // Iterate over each instruction in the method body
         for (int i = 0; i < method.Body.Instructions.Count - 1; ++i)

@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Build.Utilities.Core" />
-    </ItemGroup>
 
-    <ItemGroup>
-      <None Update="Sdk\Sdk.props">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Sdk\Sdk.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
