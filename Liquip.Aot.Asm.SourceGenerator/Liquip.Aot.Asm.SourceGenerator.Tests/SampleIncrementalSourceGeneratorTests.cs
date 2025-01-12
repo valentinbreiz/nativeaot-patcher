@@ -43,10 +43,10 @@ partial class Vector3
         var generator = new SampleIncrementalSourceGenerator();
 
         // Source generators should be tested using 'GeneratorDriver'.
-        var driver = CSharpGeneratorDriver.Create(generator);
+        CSharpGeneratorDriver? driver = CSharpGeneratorDriver.Create(generator);
 
         // We need to create a compilation with the required source code.
-        var compilation = CSharpCompilation.Create(nameof(SampleSourceGeneratorTests),
+        CSharpCompilation? compilation = CSharpCompilation.Create(nameof(SampleSourceGeneratorTests),
             new[] { CSharpSyntaxTree.ParseText(VectorClassText) },
             new[]
             {
@@ -55,10 +55,10 @@ partial class Vector3
             });
 
         // Run generators and retrieve all results.
-        var runResult = driver.RunGenerators(compilation).GetRunResult();
+        GeneratorDriverRunResult? runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("Vector3.g.cs"));
+        SyntaxTree? generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("Vector3.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
