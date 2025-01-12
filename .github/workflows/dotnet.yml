@@ -9,7 +9,11 @@ on:
 jobs:
   patcher-tests:
     name: Run Liquip.Patcher.Tests
-    runs-on: windows-latest
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
 
     steps:
       - name: Checkout Code
@@ -37,7 +41,10 @@ jobs:
 
   scanner-tests:
     name: Run Liquip.Scanner.Tests
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
 
     steps:
       - name: Checkout Code
