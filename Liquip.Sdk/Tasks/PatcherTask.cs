@@ -5,7 +5,6 @@ namespace Liquip.Sdk.Tasks;
 
 public class PatcherTask : ToolTask
 {
-
     [Required]
     public string PatcherPath { get; set; } = null!;
 
@@ -17,7 +16,9 @@ public class PatcherTask : ToolTask
     [Required]
     public ITaskItem[] PlugsReferences { get; set; } = null!;
 
-    protected override string ToolName => nameof(PatcherTask);
+    protected override string GenerateFullPathToTool() => PatcherPath;
+
+    public override bool Execute() => base.Execute();
 
     protected override string GenerateFullPathToTool() => PatcherPath;
 

@@ -70,7 +70,6 @@ public class PlugPatcher
         Console.WriteLine($"Patched method: {targetMethod.Name} successfully.");
     }
 
-
     /// <summary>
     /// Scans for plug methods and patches corresponding target methods in the target type.
     /// </summary>
@@ -79,7 +78,6 @@ public class PlugPatcher
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetType);
-
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
@@ -177,7 +175,6 @@ public class PlugPatcher
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetAssembly);
-        
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
