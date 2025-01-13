@@ -45,8 +45,8 @@ public class PlugPatcher
             {
                 Instruction? clonedInstruction = instruction.Clone();
 
-               clonedInstruction.Operand = clonedInstruction.Operand switch
-               {
+                clonedInstruction.Operand = clonedInstruction.Operand switch
+                {
                     _ when clonedInstruction.Operand is MethodReference methodRef => targetMethod.Module.ImportReference(methodRef),
                     _ when clonedInstruction.Operand is FieldReference fieldRef => targetMethod.Module.ImportReference(fieldRef),
                     _ when clonedInstruction.Operand is TypeReference typeRef => targetMethod.Module.ImportReference(typeRef),
@@ -70,7 +70,6 @@ public class PlugPatcher
         Console.WriteLine($"Patched method: {targetMethod.Name} successfully.");
     }
 
-
     /// <summary>
     /// Scans for plug methods and patches corresponding target methods in the target type.
     /// </summary>
@@ -78,11 +77,7 @@ public class PlugPatcher
     /// <param name="plugAssemblies">The assemblies to search for plug methods.</param>
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
     {
-        if (targetType == null)
-        {
-            throw new ArgumentNullException(nameof(targetType));
-        }
-
+        ArgumentNullException.ThrowIfNull(targetType);
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
@@ -180,7 +175,6 @@ public class PlugPatcher
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetAssembly);
-
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));

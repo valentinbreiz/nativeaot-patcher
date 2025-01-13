@@ -23,7 +23,7 @@ namespace Liquip.Patcher.Build.Tasks
             // Add main command
             builder.AppendSwitch("patch");
 
-            // Add --target argument
+            // Add --target arg
             builder.AppendSwitch("--target");
             builder.AppendFileNameIfNotNull(TargetAssembly);
 

@@ -8,8 +8,7 @@ public class PatcherTask : ToolTask
     [Required]
     public string PatcherPath { get; set; } = null!;
 
-    [Required]
-    public string TargetAssembly { get; set; } = null!;
+    [Required] public string TargetAssembly { get; set; } = null!;
 
     [Required]
     public ITaskItem[] References { get; set; } = null!;
