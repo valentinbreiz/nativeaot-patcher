@@ -13,11 +13,11 @@
     <PackageVersion>1.0.0.0</PackageVersion>
     <PackageLicenseUrl>https://github.com/valentinbreiz/nativeaot-patcher/blob/main/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
+    <!-- <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl> -->
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Liquip.Patcher.Analzyer</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <PackageReleaseNotes>Release</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>Liquip.Patcher.Analzyer, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
