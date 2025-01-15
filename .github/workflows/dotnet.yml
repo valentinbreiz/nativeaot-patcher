@@ -24,9 +24,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Pack Analyzer
-        run: dotnet pack ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Package/Liquip.Patcher.Analzyer.Package.csproj --configuration Debug -o ./packages
-      
       - name: Update NuGet.config
         run: |
           echo '<?xml version="1.0" encoding="utf-8"?>
@@ -36,7 +33,10 @@ jobs:
               <add key="NuGet" value="https://api.nuget.org/v3/index.json" />
             </packageSources>
           </configuration>' > NuGet.config
-      
+
+      - name: Pack Analyzer
+        run: dotnet pack ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Package/Liquip.Patcher.Analzyer.Package.csproj --configuration Debug -o ./packages
+
       - name: Restore Dependencies
         run: dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --source ./packages --source https://api.nuget.org/v3/index.json
 
