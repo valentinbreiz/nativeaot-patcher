@@ -25,9 +25,9 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Pack Analyzer
-        run: dotnet pack ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Package.csproj --configuration Debug -o ./packages
+        run: dotnet pack ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Package/Liquip.Patcher.Analzyer.Package.csproj --configuration Debug -o ./packages
       
-      - name: Update NuGet.config (ou copie d’un NuGet.config préconfiguré)
+      - name: Update NuGet.config
         run: |
           echo '<?xml version="1.0" encoding="utf-8"?>
           <configuration>
