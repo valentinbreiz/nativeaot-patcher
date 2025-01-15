@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Liquip.API/Liquip.API.csproj" />
     <ProjectReference Include="../Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.csproj" OutputItemType ="Analyzer" />
-    <ProjectReference Include="../Liquip.Patcher.Analzyer.CodeFixes/Liquip.Patcher.Analzyer.CodeFixes.csproj" OutputItemType ="Analyzer" />
+    <ProjectReference Include="../Liquip.Patcher.Analzyer.CodeFixes/Liquip.Patcher.Analzyer.CodeFixes.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

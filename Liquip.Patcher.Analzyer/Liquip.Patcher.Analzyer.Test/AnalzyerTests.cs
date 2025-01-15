@@ -1,12 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
-using Liquip.Patcher.Analzyer;
+
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 using Liquip.API.Attributes;
 
-namespace AnalyzerTest;
+namespace Liquip.Patcher.Analzyer.Tests;
 
 public class AnalyzerTestsTest
 {
@@ -27,7 +27,7 @@ namespace ConsoleApplication1
     }
 }";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        Assert.Contains(diagnostics, d => d.Id == "NAOT0001" && d.GetMessage().Contains("System.NonExistent"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.TypeNotFound.Id && d.GetMessage().Contains("System.NonExistent"));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ namespace ConsoleApplication1
     }
 }";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        Assert.Contains(diagnostics, d => d.Id == "NAOT0003" && d.GetMessage().Contains("Test"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.PlugNotStatic.Id && d.GetMessage().Contains("Test"));
     }
 
     [Fact]
@@ -60,30 +60,68 @@ using Liquip.API.Attributes;
 
 namespace ConsoleApplication1;
 
-    public class TestNativeType
+    public static class TestNativeType
     {
         [DllImport(""example.dll"")]
         public static extern void ExternalMethod();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void NativeMethod();
     }
 
     [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
     public static class Test
     {
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void NativeMethod();
+        
     }
 ";
-        Console.WriteLine(code);
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
         foreach (var diagnostic in diagnostics)
         {
             Console.WriteLine(diagnostic.GetMessage());
         }
-        Assert.Contains(diagnostics, d => d.Id == "NAOT0002" && d.GetMessage().Contains("ExternalMethod"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExteralMethod"));
     }
 
 
+    [Fact]
+    public async Task Test_AnalyzeAccessedMember()
+    {
+        string code = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Liquip.API.Attributes;
+
+namespace ConsoleApplication1
+{
+    public static class TestNativeType
+    {
+        [DllImport(""example.dll"")]
+        public static extern void ExternalMethod();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void NativeMethod();
+    }
+
+    public class Test
+    {
+        public void TestMethod()
+        {
+            TestNativeType.ExternalMethod();
+            TestNativeType.NativeMethod();
+        }
+    }
+}
+";
+        ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
+        foreach (var diagnostic in diagnostics)
+        {
+            Console.WriteLine(diagnostic.GetMessage());
+        }
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
+    }
 
     private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
     {
