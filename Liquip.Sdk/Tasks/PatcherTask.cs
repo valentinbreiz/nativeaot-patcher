@@ -16,9 +16,7 @@ public class PatcherTask : ToolTask
     [Required]
     public ITaskItem[] PlugsReferences { get; set; } = null!;
 
-    protected override string GenerateFullPathToTool() => PatcherPath;
-
-    public override bool Execute() => base.Execute();
+    protected override string ToolName =>  Path.GetFileNameWithoutExtension(PatcherPath);
 
     protected override string GenerateFullPathToTool() => PatcherPath;
 
