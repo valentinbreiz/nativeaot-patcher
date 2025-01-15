@@ -24,8 +24,21 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Pack Analyzer
+        run: dotnet pack ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Package.csproj --configuration Debug -o ./packages
+      
+      - name: Update NuGet.config (ou copie d’un NuGet.config préconfiguré)
+        run: |
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <add key="LocalSource" value="./packages" />
+              <add key="NuGet" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+          </configuration>' > NuGet.config
+      
       - name: Restore Dependencies
-        run: dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+        run: dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --source ./packages --source https://api.nuget.org/v3/index.json
 
       - name: Build Liquip.Patcher.Tests
         run: dotnet build ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
