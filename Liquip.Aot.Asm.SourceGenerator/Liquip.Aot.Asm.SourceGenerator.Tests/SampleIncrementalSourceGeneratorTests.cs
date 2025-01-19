@@ -40,7 +40,7 @@ partial class Vector3
     public void GenerateReportMethod()
     {
         // Create an instance of the source generator.
-        var generator = new SampleIncrementalSourceGenerator();
+        var generator = new SampleSourceGenerator();
 
         // Source generators should be tested using 'GeneratorDriver'.
         CSharpGeneratorDriver? driver = CSharpGeneratorDriver.Create(generator);

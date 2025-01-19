@@ -38,8 +38,6 @@ public class PlugPatcherTest_ObjectPlugs
 
         PlugUtils.Save(targetAssembly, "./", "targetObjectAssembly.dll");
 
-        object? result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", [10]));
-
         object? result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", [10]);
 
         Assert.Equal(20, result);
