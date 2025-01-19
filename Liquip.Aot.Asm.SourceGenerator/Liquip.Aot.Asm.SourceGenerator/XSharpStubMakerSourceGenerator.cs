@@ -1,11 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using Liquip.API.Attributes;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,12 +14,19 @@ namespace Liquip.XSharp.SourceGenerator;
 [Generator]
 public class XSharpStubMakerSourceGenerator : IIncrementalGenerator
 {
-    public void Initialize(IncrementalGeneratorInitializationContext context) =>
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
         // Generate the source code.
+        IncrementalValuesProvider<ClassDeclarationSyntax> provider = context.SyntaxProvider
+               .CreateSyntaxProvider(
+                   predicate: (s, _) => s is ClassDeclarationSyntax classDeclaration ,
+                   transform: (ctx, _) => (ClassDeclarationSyntax)ctx.Node)
+               .Where(m => m is not null);
+
         context.RegisterSourceOutput(context.CompilationProvider.Combine(provider.Collect()),
             (ctx, t) => GenerateCode(ctx, t.Left, t.Right));
 
-
+    }
     /// <summary>
     /// Generate code action.
     /// It will be executed on specific nodes (ClassDeclarationSyntax annotated with the [Report] attribute) changed by the user.
@@ -35,6 +37,7 @@ public class XSharpStubMakerSourceGenerator : IIncrementalGenerator
     private void GenerateCode(SourceProductionContext context, Compilation compilation,
         ImmutableArray<ClassDeclarationSyntax> classDeclarations)
     {
+
         // Go through all filtered class declarations.
         foreach (ClassDeclarationSyntax? classDeclarationSyntax in classDeclarations)
         {
@@ -81,7 +84,7 @@ partial class {className}
         }
     }
 
-    private string BuildClass(ClassDeclarationSyntax classDeclaration)
+    private string BuildClass(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
     {
         ImmutableList<SyntaxNode>? methods = classDeclaration
             .ChildNodes()
@@ -90,8 +93,9 @@ partial class {className}
         StringBuilder? stringBuilder = new();
         foreach (SyntaxNode? method in methods)
         {
-            BuildMethod(stringBuilder, method.s as IMethodSymbol);
+            BuildMethod(stringBuilder, semanticModel.GetDeclaredSymbol(method) as IMethodSymbol);
         }
+        return stringBuilder.ToString();
     }
 
     /// <summary>
@@ -119,4 +123,6 @@ partial class {className}
             static extern void UnmanagedTest();
             ");
     }
+
+ 
 }

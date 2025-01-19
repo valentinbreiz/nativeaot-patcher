@@ -1,10 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Collections.Immutable;
+using Liquip.API.Attributes;
 using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
-
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
-using Liquip.API.Attributes;
 
 namespace Liquip.Patcher.Analzyer.Tests;
 
@@ -77,10 +76,6 @@ namespace ConsoleApplication1;
     }
 ";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        foreach (var diagnostic in diagnostics)
-        {
-            Console.WriteLine(diagnostic.GetMessage());
-        }
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExteralMethod"));
     }
 
@@ -115,10 +110,7 @@ namespace ConsoleApplication1
 }
 ";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        foreach (var diagnostic in diagnostics)
-        {
-            Console.WriteLine(diagnostic.GetMessage());
-        }
+
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
     }
