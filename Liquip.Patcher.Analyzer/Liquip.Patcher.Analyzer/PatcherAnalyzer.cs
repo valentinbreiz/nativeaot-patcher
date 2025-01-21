@@ -1,11 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using Liquip.Patcher.Analyzer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Liquip.Patcher.Analyzer.Extensions;
 
 namespace Liquip.Patcher.Analyzer;
 
@@ -115,14 +115,17 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (context.Node is not AttributeSyntax attribute || attribute.Name.ToString() != "Plug")
             return;
 
-        ClassDeclarationSyntax plugClass = attribute.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        ClassDeclarationSyntax plugClass = attribute
+        .Ancestors()
+        .OfType<ClassDeclarationSyntax>()
+        .FirstOrDefault();
+
         if (plugClass == null)
             return;
 
 #if DEBUG
         Console.WriteLine($"[AnalyzePlugAttribute] Found Plug attribute. Attribute: {attribute}");
 #endif
-
         // Get the target name from the attribute
         string? targetName = GetAttributeValue<string>(attribute, 0, context) ??
                              GetAttributeValue<string>(attribute, "TargetName", context) ??
@@ -230,7 +233,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (attributeData.ConstructorArguments.Length == 0)
             return default;
 
-        TypedConstant argument = GetConstructorArgument<T>(attributeData, indexOrString);
+        TypedConstant argument = GetConstructorArgument(attributeData, indexOrString);
 
         if (argument.Value is T value)
             return value;
@@ -267,7 +270,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     }
 
 
-    private static TypedConstant GetConstructorArgument<T>(AttributeData attributeData, object indexOrString)
+    private static TypedConstant GetConstructorArgument(AttributeData attributeData, object indexOrString)
     {
         return indexOrString switch
         {

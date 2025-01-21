@@ -22,9 +22,4 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Liquip.Patcher.Analyzer.Extensions\Liquip.Patcher.Analyzer.Extensions.csproj" OutputItemType="Analyzer" />
-  </ItemGroup>
-
 </Project>
