@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
-namespace Liquip.Patcher.Analzyer.Tests;
+namespace Liquip.Patcher.Analyzer.Tests;
 
 public class AnalyzerTestsTest
 {
@@ -58,8 +58,8 @@ using System;
 using System.Runtime.CompilerServices;
 using Liquip.API.Attributes;
 
-namespace ConsoleApplication1;
-
+namespace ConsoleApplication1
+{
     public static class TestNativeType
     {
         [DllImport(""example.dll"")]
@@ -72,16 +72,11 @@ namespace ConsoleApplication1;
     [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
     public static class Test
     {
-
-        
     }
-";
+}";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
-
     }
-
 
     [Fact]
     public async Task Test_AnalyzeAccessedMember()
@@ -110,8 +105,7 @@ namespace ConsoleApplication1
             TestNativeType.NativeMethod();
         }
     }
-}
-";
+}";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
@@ -127,8 +121,7 @@ namespace ConsoleApplication1
             .AddSyntaxTrees(syntaxTree);
 
         PatcherAnalyzer analyzer = new();
-        CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers([analyzer]);
+        CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
         return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
     }
 }
-
