@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Liquip.Patcher.Analzyer;
+namespace Liquip.Patcher.Analyzer;
 
 public sealed class DiagnosticMessages
 {
