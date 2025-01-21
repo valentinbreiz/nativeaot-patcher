@@ -9,8 +9,4 @@ public class XSharpMethodAttribute : Attribute
     public string? Name { get; set; } = null;
 
     public Task Plug { get; set; }
-
-    public XSharpMethodAttribute()
-    {
-    }
 }

@@ -1,7 +1,6 @@
 ﻿using Mono.Cecil;
 using Liquip.NativeWrapper;
 using System.Reflection;
-using MonoMod.Utils;
 
 namespace Liquip.Patcher.Tests;
 
@@ -118,7 +117,7 @@ public class PlugPatcherTest_StaticPlugs
         // Act
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-        PlugUtils.Save(targetAssembly, "./", "targetAssembly.dll");
+        targetAssembly.Save("./", "targetAssembly.dll");
 
         object? result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
         Assert.Equal(12, result);
