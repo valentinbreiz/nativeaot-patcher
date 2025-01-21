@@ -24,24 +24,8 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Create local feed folder
-        run: mkdir packages
-
-      - name: Update NuGet.config
-        run: |
-          echo '<?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <add key="LocalSource" value="./packages" />
-              <add key="NuGet" value="https://api.nuget.org/v3/index.json" />
-            </packageSources>
-          </configuration>' > NuGet.config
-
-      - name: Pack Analyzer
-        run: dotnet pack ./Liquip.Patcher.Analyzer/Liquip.Patcher.Analyzer.Package/Liquip.Patcher.Analyzer.Package.csproj --configuration Debug -o ./packages
-
       - name: Restore Dependencies
-        run: dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --source ./packages --source https://api.nuget.org/v3/index.json
+        run: dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
 
       - name: Build Liquip.Patcher.Tests
         run: dotnet build ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
@@ -85,3 +69,35 @@ jobs:
         with:
           name: Liquip.Scanner.Tests-Results
           path: ./Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
+
+  analyzer-tests:
+    name: Run Liquip.Patcher.Analzyer.Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore Dependencies
+        run: dotnet restore ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Test/Liquip.Patcher.Analzyer.Test.csproj
+
+      - name: Build Liquip.Patcher.Analzyer.Test
+        run: dotnet build  ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Test/Liquip.Patcher.Analzyer.Test.csproj --configuration Debug --no-restore
+
+      - name: Run Tests
+        run: dotnet test  ./Liquip.Patcher.Analzyer/Liquip.Patcher.Analzyer.Test/Liquip.Patcher.Analzyer.Test.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analzyer.Test.trx"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liquip.Patcher.Analzyer.Test-Results
+          path: ./Liquip.Patcher.Analzyer.Test/TestResults/Liquip.Patcher.Analzyer.Test.trx
+
