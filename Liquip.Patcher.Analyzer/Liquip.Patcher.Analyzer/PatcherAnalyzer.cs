@@ -156,7 +156,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
         else
         {
-            AnalyzePlugClass(plugClass, symbol!.Name, context);
+            AnalyzePlugClass(plugClass, symbol?.Name, context);
             AnalyzePluggedClass(symbol, plugClass, context);
         }
     }
