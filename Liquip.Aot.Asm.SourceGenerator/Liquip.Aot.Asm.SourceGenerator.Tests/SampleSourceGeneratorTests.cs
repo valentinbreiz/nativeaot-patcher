@@ -20,12 +20,11 @@ Customer";
         SampleSourceGenerator? generator = new();
 
         // Source generators should be tested using 'GeneratorDriver'.
-        CSharpGeneratorDriver? driver = CSharpGeneratorDriver.Create(new[] { generator },
-            new[]
-            {
+        var driver = CSharpGeneratorDriver.Create([generator],
+            [
                 // Add the additional file separately from the compilation.
                 new TestAdditionalFile("./DDD.UbiquitousLanguageRegistry.txt", DddRegistryText)
-            });
+            ]);
 
         // To run generators, we can use an empty compilation.
         CSharpCompilation? compilation = CSharpCompilation.Create(nameof(SampleSourceGeneratorTests));
@@ -39,6 +38,6 @@ Customer";
             .ToArray();
 
         // In this case, it is enough to check the file name.
-        Assert.Equivalent(new[] { "User.g.cs", "Document.g.cs", "Customer.g.cs" }, generatedFiles);
+        Assert.Equal(new [] { "User.g.cs", "Document.g.cs", "Customer.g.cs" }, generatedFiles);
     }
 }
