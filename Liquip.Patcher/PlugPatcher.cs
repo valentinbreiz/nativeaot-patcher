@@ -62,7 +62,7 @@ public class PlugPatcher
             targetMethod.SwapMethods(plugMethod);
         }
 
-        if (targetMethod.Body.Instructions.Count != 0 || targetMethod.Body.Instructions.Last().OpCode != OpCodes.Ret)
+        if (targetMethod.Body.Instructions.Count != 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
         {
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
@@ -102,33 +102,25 @@ public class PlugPatcher
                     .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
                 if (plugAttribute == null)
-                {
                     continue;
-                }
+
 
                 string? targetTypeName = plugAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-
                 if (targetTypeName != targetType.FullName)
-                {
                     continue;
-                }
 
                 foreach (MethodDefinition? plugMethod in plugType.Methods)
                 {
-                    if (plugMethod.IsConstructor && !plugMethod.Parameters.Any(p => p.Name == "aThis"))
-                    {
-                        Console.WriteLine($"Skipping constructor: {plugMethod.Name}");
-                        continue;
-                    }
-
-                    if (plugMethod.Name == "Ctor")
+                    if (plugMethod.IsConstructor && (plugMethod.Name == "Ctor" || plugMethod.Name == "Cctor"))
                     {
                         bool isInstanceCtorPlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
 
-                        MethodDefinition? targetConstructor = targetType.Methods.FirstOrDefault(m => m.IsConstructor &&
+                        MethodDefinition? targetConstructor = targetType.Methods.FirstOrDefault(m =>
+                            m.IsConstructor &&
                             (isInstanceCtorPlug
                                 ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
-                                : m.Parameters.Count == plugMethod.Parameters.Count));
+                                : m.Parameters.Count == plugMethod.Parameters.Count) &&
+                            (plugMethod.Name != "Cctor" || m.IsStatic));
 
                         if (targetConstructor != null)
                         {

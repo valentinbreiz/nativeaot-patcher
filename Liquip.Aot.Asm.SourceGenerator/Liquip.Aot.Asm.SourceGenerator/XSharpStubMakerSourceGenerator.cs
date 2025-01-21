@@ -45,7 +45,7 @@ public class XSharpStubMakerSourceGenerator : IIncrementalGenerator
             SemanticModel? semanticModel = compilation.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
 
             // Symbols allow us to get the compile-time information.
-            if (ModelExtensions.GetDeclaredSymbol(semanticModel, classDeclarationSyntax) is not INamedTypeSymbol
+            if (semanticModel.GetDeclaredSymbol(classDeclarationSyntax) is not INamedTypeSymbol
                 classSymbol)
             {
                 continue;

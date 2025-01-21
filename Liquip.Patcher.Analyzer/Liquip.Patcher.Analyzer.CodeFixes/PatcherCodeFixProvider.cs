@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Project = Microsoft.CodeAnalysis.Project;
 
 namespace Liquip.Patcher.Analyzer;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider)), Shared]
@@ -217,7 +216,7 @@ public class PatcherCodeFixProvider : CodeFixProvider
             .ChildNodes()
             .OfType<BaseNamespaceDeclarationSyntax>()
             .FirstOrDefault();
-            
+
             if (namespaceDeclaration == null) return document.Project.Solution;
 #if DEBUG
             Console.WriteLine($"Plugging method '{methodName}' into class '{className}'.");
@@ -297,8 +296,22 @@ public class PatcherCodeFixProvider : CodeFixProvider
             return (plugClass, document);
         }
 
+        IEnumerable<string> plugReferences = CurrentProject.Descendants("ItemGroup").Where(x => x.Name == "PlugsReference").Select(x => x.Attribute("Include").Value);
+        foreach (string reference in plugReferences)
+        {
+            Project? project = document.Project.Solution.Projects.FirstOrDefault(p => p.OutputFilePath == reference);
+            if (project == null) continue;
+
+            Compilation compilation = (await project.GetCompilationAsync())!;
+            ISymbol? symbol = compilation.GetTypeByMetadataName(plugClassName);
+            if (symbol == null) continue;
+            
+            SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault()!;
+            return ((ClassDeclarationSyntax)(await syntaxReference.GetSyntaxAsync()), project.GetDocument(syntaxReference.SyntaxTree)!);
+        }
+
 #if DEBUG
-        Console.WriteLine($"Plug class '{plugClassName}' not found in the document.");
+        Console.WriteLine($"Plug class '{plugClassName}' not found in plug references.");
 #endif
         return null;
     }

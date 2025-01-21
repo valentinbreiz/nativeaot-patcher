@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
-    <ProjectReference Include="..\Liquip.Patcher.Analyzer.Extensions\Liquip.Patcher.Analyzer.Extensions.csproj" />
   </ItemGroup>
 
 </Project>
