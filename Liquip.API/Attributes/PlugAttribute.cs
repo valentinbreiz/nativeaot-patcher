@@ -38,7 +38,7 @@ public sealed class PlugAttribute : Attribute
     /// <summary>
     /// the type as a string
     /// </summary>
-    public string? TargetName { get; set; }
+    public string? TargetName { get; set; } = nameof(Target) ?? null;
 
     /// <summary>
     /// if the type cant be found skip 

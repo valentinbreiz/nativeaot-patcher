@@ -1,9 +1,6 @@
 using Liquip.API.Attributes;
-using System;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Liquip.Patcher.Extensions;
 using MonoMod.Utils;
 
 namespace Liquip.Patcher;
@@ -29,22 +26,12 @@ public class PlugPatcher
     /// <param name="plugMethod">The plug method providing the replacement body.</param>
     public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod)
     {
-        if (targetMethod == null)
-        {
-            throw new ArgumentNullException(nameof(targetMethod));
-        }
-
-        if (plugMethod == null)
-        {
-            throw new ArgumentNullException(nameof(plugMethod));
-        }
+        ArgumentNullException.ThrowIfNull(targetMethod);
+        ArgumentNullException.ThrowIfNull(plugMethod);
 
         Console.WriteLine($"Patching method: {targetMethod.FullName} with plug: {plugMethod.FullName}");
 
-        if (targetMethod.Body == null)
-        {
-            targetMethod.Body = new MethodBody(targetMethod);
-        }
+        targetMethod.Body ??= new MethodBody(targetMethod);
 
         ILProcessor? processor = targetMethod.Body.GetILProcessor();
         targetMethod.Body.Instructions.Clear();
@@ -58,22 +45,14 @@ public class PlugPatcher
             {
                 Instruction? clonedInstruction = instruction.Clone();
 
-                if (clonedInstruction.Operand is MethodReference methodRef)
+                clonedInstruction.Operand = clonedInstruction.Operand switch
                 {
-                    clonedInstruction.Operand = targetMethod.Module.ImportReference(methodRef);
-                }
-                else if (clonedInstruction.Operand is FieldReference fieldRef)
-                {
-                    clonedInstruction.Operand = targetMethod.Module.ImportReference(fieldRef);
-                }
-                else if (clonedInstruction.Operand is TypeReference typeRef)
-                {
-                    clonedInstruction.Operand = targetMethod.Module.ImportReference(typeRef);
-                }
-                else if (clonedInstruction.Operand is MemberReference memberRef)
-                {
-                    clonedInstruction.Operand = targetMethod.Module.ImportReference(memberRef);
-                }
+                    _ when clonedInstruction.Operand is MethodReference methodRef => targetMethod.Module.ImportReference(methodRef),
+                    _ when clonedInstruction.Operand is FieldReference fieldRef => targetMethod.Module.ImportReference(fieldRef),
+                    _ when clonedInstruction.Operand is TypeReference typeRef => targetMethod.Module.ImportReference(typeRef),
+                    _ when clonedInstruction.Operand is MemberReference memberRef => targetMethod.Module.ImportReference(memberRef),
+                    _ => clonedInstruction.Operand
+                };
 
                 processor.Append(clonedInstruction);
             }
@@ -83,14 +62,13 @@ public class PlugPatcher
             targetMethod.SwapMethods(plugMethod);
         }
 
-        if (!targetMethod.Body.Instructions.Any() || targetMethod.Body.Instructions.Last().OpCode != OpCodes.Ret)
+        if (targetMethod.Body.Instructions.Count != 0 || targetMethod.Body.Instructions.Last().OpCode != OpCodes.Ret)
         {
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
         Console.WriteLine($"Patched method: {targetMethod.Name} successfully.");
     }
-
 
     /// <summary>
     /// Scans for plug methods and patches corresponding target methods in the target type.
@@ -99,11 +77,7 @@ public class PlugPatcher
     /// <param name="plugAssemblies">The assemblies to search for plug methods.</param>
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
     {
-        if (targetType == null)
-        {
-            throw new ArgumentNullException(nameof(targetType));
-        }
-
+        ArgumentNullException.ThrowIfNull(targetType);
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
@@ -141,6 +115,12 @@ public class PlugPatcher
 
                 foreach (MethodDefinition? plugMethod in plugType.Methods)
                 {
+                    if (plugMethod.IsConstructor && !plugMethod.Parameters.Any(p => p.Name == "aThis"))
+                    {
+                        Console.WriteLine($"Skipping constructor: {plugMethod.Name}");
+                        continue;
+                    }
+
                     if (plugMethod.Name == "Ctor")
                     {
                         bool isInstanceCtorPlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
@@ -160,11 +140,6 @@ public class PlugPatcher
                             Console.WriteLine($"No matching constructor found for plug: {plugMethod.Name}");
                         }
 
-                        continue;
-                    }
-                    else if (plugMethod.IsConstructor && !plugMethod.Parameters.Any(p => p.Name == "aThis"))
-                    {
-                        Console.WriteLine($"Skipping constructor: {plugMethod.Name}");
                         continue;
                     }
 
@@ -199,11 +174,7 @@ public class PlugPatcher
     /// <param name="plugAssemblies">The assemblies to search for plug methods.</param>
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies)
     {
-        if (targetAssembly == null)
-        {
-            throw new ArgumentNullException(nameof(targetAssembly));
-        }
-
+        ArgumentNullException.ThrowIfNull(targetAssembly);
         if (plugAssemblies == null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));

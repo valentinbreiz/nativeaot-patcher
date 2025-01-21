@@ -13,24 +13,24 @@ namespace Liquip.Patcher.Build.Tasks
         [Required] public ITaskItem[] PlugsReferences { get; set; } = null;
 
         protected override string GenerateFullPathToTool() =>
-            // Retourne le chemin complet vers Liquip.Patcher.exe
+            // Return Liquip.Patcher.exe path
             PatcherPath;
 
         protected override string GenerateCommandLineCommands()
         {
             CommandLineBuilder builder = new CommandLineBuilder();
 
-            // Ajoute la commande principale
+            // Add main command
             builder.AppendSwitch("patch");
 
-            // Ajoute l'argument --target
+            // Add --target arg
             builder.AppendSwitch("--target");
             builder.AppendFileNameIfNotNull(TargetAssembly);
 
-            // Ajoute les plugs
+            // Add plugs
+            builder.AppendSwitch("--plugs");
             foreach (ITaskItem plug in PlugsReferences)
             {
-                builder.AppendSwitch("--plugs");
                 builder.AppendFileNameIfNotNull(plug.ItemSpec);
             }
 

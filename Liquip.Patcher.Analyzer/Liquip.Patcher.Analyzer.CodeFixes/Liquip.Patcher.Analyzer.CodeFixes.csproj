@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
+    <LangVersion>latest</LangVersion>
+     <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
+    <ProjectReference Include="..\Liquip.Patcher.Analyzer.Extensions\Liquip.Patcher.Analyzer.Extensions.csproj" />
+  </ItemGroup>
+
+</Project>

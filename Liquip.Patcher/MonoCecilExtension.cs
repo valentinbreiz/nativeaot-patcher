@@ -22,49 +22,49 @@ public static class MonoCecilExtensions
         /// <summary>
         /// A collection of CustomAttribute objects that have been updated.
         /// </summary>
-        public readonly Collection<CustomAttribute> updatedAttributes = new();
+        public readonly Collection<CustomAttribute> updatedAttributes = [];
 
         /// <summary>
         /// A collection of InterfaceImplementation objects that have been updated.
         /// </summary>
-        public readonly Collection<InterfaceImplementation> updatedInterfaces = new();
+        public readonly Collection<InterfaceImplementation> updatedInterfaces = [];
 
         /// <summary>
         /// A collection of FieldDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<FieldDefinition> updatedFields = new();
+        public readonly Collection<FieldDefinition> updatedFields = [];
 
         /// <summary>
         /// A collection of PropertyDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<PropertyDefinition> updatedProperties = new();
+        public readonly Collection<PropertyDefinition> updatedProperties = [];
 
         /// <summary>
         /// A collection of MethodDefinition objects that have been updated.
         /// </summary>
-        public readonly Collection<MethodDefinition> updatedMethods = new();
+        public readonly Collection<MethodDefinition> updatedMethods = [];
 
         /// <summary>
         /// A collection of source TypeDefinition objects that are being merged.
         /// </summary>
-        public readonly Collection<TypeDefinition> srcTypes = new();
+        public readonly Collection<TypeDefinition> srcTypes = [];
 
         /// <summary>
         /// A collection of destination TypeDefinition objects where source objects are merged into.
         /// </summary>
-        public readonly Collection<TypeDefinition> destTypes = new();
+        public readonly Collection<TypeDefinition> destTypes = [];
     };
 
     /// <summary>
     /// A dictionary mapping from AssemblyDefinition objects to their corresponding UpdateInfo objects.
     /// Used to keep track of the updates made to each assembly.
     /// </summary>
-    public static readonly Dictionary<AssemblyDefinition, UpdateInfo> assemblyUpdateInfo = new();
+    public static readonly Dictionary<AssemblyDefinition, UpdateInfo> assemblyUpdateInfo = [];
 
     /// <summary>
     /// Additional search directories for resolving assembly types.
     /// </summary>
-    public static readonly Collection<string> additionalSearchDirectories = new();
+    public static readonly Collection<string> additionalSearchDirectories = [];
 
     // Basic extension methods for loading assemblies, adding elements to collections, and finding types, fields, and methods in Mono.Cecil objects.
 
