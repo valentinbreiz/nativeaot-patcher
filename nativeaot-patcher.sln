@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -41,8 +41,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Package", "Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.Package\Liquip.Patcher.Analyzer.Package.csproj", "{BBCE7B79-04E4-471E-9106-93912FD53775}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Vsix", "Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.Vsix\Liquip.Patcher.Analyzer.Vsix.csproj", "{DC194121-15CA-487D-9C1F-C6E12C63993E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.TestProject", "Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.TestProject\Liquip.Patcher.Analyzer.TestProject.csproj", "{373AEFE1-44E3-4088-9589-548931195F52}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Test", "Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.Test\Liquip.Patcher.Analyzer.Test.csproj", "{91348BA3-7914-42EF-9067-EBD663046EB5}"
 EndProject
@@ -248,18 +246,6 @@ Global
 		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x64.Build.0 = Release|Any CPU
 		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x86.ActiveCfg = Release|Any CPU
 		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x86.Build.0 = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|x64.Build.0 = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Debug|x86.Build.0 = Debug|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|x64.ActiveCfg = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|x64.Build.0 = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|x86.ActiveCfg = Release|Any CPU
-		{373AEFE1-44E3-4088-9589-548931195F52}.Release|x86.Build.0 = Release|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -290,7 +276,6 @@ Global
 		{6EB082A5-8C69-4B1A-9133-DCB8D1368049} = {929BD247-BEEB-454D-919E-481ACCC9F4F8}
 		{BBCE7B79-04E4-471E-9106-93912FD53775} = {929BD247-BEEB-454D-919E-481ACCC9F4F8}
 		{DC194121-15CA-487D-9C1F-C6E12C63993E} = {929BD247-BEEB-454D-919E-481ACCC9F4F8}
-		{373AEFE1-44E3-4088-9589-548931195F52} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 		{91348BA3-7914-42EF-9067-EBD663046EB5} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 	EndGlobalSection
 EndGlobal
