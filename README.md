@@ -5,6 +5,7 @@
 
  ## Documentation:
  - [Liquip.Patcher](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Liquip.Patcher)
+ - [Testing](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Testing)
 
  ## Credit:
  - [@zarlo](https://github.com/zarlo) for the [original project](https://gitlab.com/liquip/nativeaot-patcher).
