@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
-    <ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj"/>
+    <ProjectReference Include="..\..\source\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
+    <ProjectReference Include="..\..\source\Liquip.Patcher\Liquip.Patcher.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
