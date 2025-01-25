@@ -34,12 +34,34 @@ public class PlugPatcher
         targetMethod.Body ??= new MethodBody(targetMethod);
 
         ILProcessor? processor = targetMethod.Body.GetILProcessor();
-        targetMethod.Body.Instructions.Clear();
+
+        // When patching a constructor, we need to leave the field initialization of the target constructor intact
+        // TODO: Decide if we want to keep this part of the constructor or remove it (maybe with an attribute on the plug)
+        if (targetMethod.IsConstructor)
+        {
+            // Clear everything except field initialization and base class constructor call
+            Instruction? firstNopInstruction = targetMethod.Body.Instructions.FirstOrDefault(instr => instr.OpCode == OpCodes.Nop);
+            if (firstNopInstruction is not null)
+            {
+                int firstNopIndex = targetMethod.Body.Instructions.IndexOf(firstNopInstruction);
+
+                // Remove all instructions after the first Nop instruction
+                for (int i = targetMethod.Body.Instructions.Count - 1; i > firstNopIndex; i--)
+                {
+                    processor.Remove(targetMethod.Body.Instructions[i]);
+                }
+            }
+        }
+        else
+        {
+            targetMethod.Body.Instructions.Clear();
+        }
 
         bool isInstancePlug =
             plugMethod.Parameters.Any(p => p.Name == "aThis" && p.ParameterType.FullName == "System.Object");
 
-        if (isInstancePlug && !targetMethod.IsStatic)
+        // If the plug method is an instance method or constructor, we need to clone/append the instructions, otherwise we can swap the methods
+        if ((isInstancePlug && !targetMethod.IsStatic) || targetMethod.IsConstructor)
         {
             foreach (Instruction? instruction in plugMethod.Body.Instructions)
             {
@@ -47,10 +69,10 @@ public class PlugPatcher
 
                 clonedInstruction.Operand = clonedInstruction.Operand switch
                 {
-                    _ when clonedInstruction.Operand is MethodReference methodRef => targetMethod.Module.ImportReference(methodRef),
-                    _ when clonedInstruction.Operand is FieldReference fieldRef => targetMethod.Module.ImportReference(fieldRef),
-                    _ when clonedInstruction.Operand is TypeReference typeRef => targetMethod.Module.ImportReference(typeRef),
-                    _ when clonedInstruction.Operand is MemberReference memberRef => targetMethod.Module.ImportReference(memberRef),
+                    MethodReference methodRef => targetMethod.Module.ImportReference(methodRef),
+                    FieldReference fieldRef => targetMethod.Module.ImportReference(fieldRef),
+                    TypeReference typeRef => targetMethod.Module.ImportReference(typeRef),
+                    MemberReference memberRef => targetMethod.Module.ImportReference(memberRef),
                     _ => clonedInstruction.Operand
                 };
 
@@ -62,7 +84,7 @@ public class PlugPatcher
             targetMethod.SwapMethods(plugMethod);
         }
 
-        if (targetMethod.Body.Instructions.Count != 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
+        if (targetMethod.Body.Instructions.Count == 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
         {
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
@@ -78,7 +100,7 @@ public class PlugPatcher
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetType);
-        if (plugAssemblies == null || plugAssemblies.Length == 0)
+        if (plugAssemblies is null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
         }
@@ -94,14 +116,14 @@ public class PlugPatcher
 
         List<TypeDefinition>? plugTypes = _scanner.LoadPlugs(plugAssemblies);
 
-        if (plugTypes != null)
+        if (plugTypes is not null)
         {
             foreach (TypeDefinition? plugType in plugTypes)
             {
                 CustomAttribute? plugAttribute = plugType.CustomAttributes
                     .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
-                if (plugAttribute == null)
+                if (plugAttribute is null)
                     continue;
 
 
@@ -109,9 +131,9 @@ public class PlugPatcher
                 if (targetTypeName != targetType.FullName)
                     continue;
 
-                foreach (MethodDefinition? plugMethod in plugType.Methods)
+                foreach (MethodDefinition? plugMethod in plugType.Methods.Where(m => !m.IsConstructor))
                 {
-                    if (plugMethod.IsConstructor && (plugMethod.Name == "Ctor" || plugMethod.Name == "Cctor"))
+                    if (plugMethod.Name == "Ctor" || plugMethod.Name == "Cctor")
                     {
                         bool isInstanceCtorPlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
 
@@ -122,7 +144,7 @@ public class PlugPatcher
                                 : m.Parameters.Count == plugMethod.Parameters.Count) &&
                             (plugMethod.Name != "Cctor" || m.IsStatic));
 
-                        if (targetConstructor != null)
+                        if (targetConstructor is not null)
                         {
                             Console.WriteLine($"Found matching constructor: {targetConstructor.Name}. Patching...");
                             PatchMethod(targetConstructor, plugMethod);
@@ -143,7 +165,7 @@ public class PlugPatcher
                             ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
                             : m.Parameters.Count == plugMethod.Parameters.Count));
 
-                    if (targetMethod != null)
+                    if (targetMethod is not null)
                     {
                         Console.WriteLine($"Found matching method: {targetMethod.Name}. Patching...");
                         PatchMethod(targetMethod, plugMethod);
@@ -167,7 +189,7 @@ public class PlugPatcher
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetAssembly);
-        if (plugAssemblies == null || plugAssemblies.Length == 0)
+        if (plugAssemblies is null || plugAssemblies.Length == 0)
         {
             throw new ArgumentNullException(nameof(plugAssemblies));
         }
