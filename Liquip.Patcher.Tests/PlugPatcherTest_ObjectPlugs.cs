@@ -68,13 +68,13 @@ public class PlugPatcherTest_ObjectPlugs
             targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
         Assert.NotNull(targetType);
 
-        using StringWriter? stringWriter = new();
-        Console.SetOut(stringWriter);
-
         // Act: Apply the plug
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         PlugUtils.Save(targetAssembly, "./", "targetCtorAssembly.dll");
+
+        using StringWriter? stringWriter = new();
+        Console.SetOut(stringWriter);
 
         object? instance = ExecuteConstructor(targetAssembly, "NativeWrapperObject");
 
