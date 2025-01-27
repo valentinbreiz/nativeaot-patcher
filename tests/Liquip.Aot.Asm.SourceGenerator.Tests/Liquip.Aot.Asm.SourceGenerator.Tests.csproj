@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\source\Liquip.Aot.Asm.SourceGenerator\Liquip.Aot.Asm.SourceGenerator.csproj"/>
+    <ProjectReference Include="..\..\src\Liquip.Aot.Asm.SourceGenerator\Liquip.Aot.Asm.SourceGenerator.csproj"/>
   </ItemGroup>
 
 

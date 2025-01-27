@@ -20,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\source\Liquip.API\Liquip.API.csproj" />
-    <ProjectReference Include="..\..\source\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
-    <ProjectReference Include="..\..\source\Liquip.Patcher.Analyzer.CodeFixes\Liquip.Patcher.Analyzer.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj" />
+    <ProjectReference Include="..\..\src\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
+    <ProjectReference Include="..\..\src\Liquip.Patcher.Analyzer.CodeFixes\Liquip.Patcher.Analyzer.CodeFixes.csproj" />
   </ItemGroup>
 
 </Project>
