@@ -13,19 +13,21 @@ public class AnalyzerTestsTest
     [Fact]
     public async Task Test_TypeNotFoundDiagnostic()
     {
-        string code = @"
+        const string code = """
+
 using System;
 using Liquip.API.Attributes;
 
 namespace ConsoleApplication1
 {
-    [Plug(""System.NonExistent"", IsOptional = false)]
+    [Plug("System.NonExistent", IsOptional = false)]
     public static class Test
     {
-        [DllImport(""example.dll"")]
+        [DllImport("example.dll")]
         public static extern void ExternalMethod();
     }
-}";
+}
+""";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.TypeNotFound.Id && d.GetMessage().Contains("System.NonExistent"));
     }
@@ -33,19 +35,21 @@ namespace ConsoleApplication1
     [Fact]
     public async Task Test_PlugNotStaticDiagnostic()
     {
-        string code = @"
+        const string code = """
+
 using System;
 using Liquip.API.Attributes;
 
 namespace ConsoleApplication1
 {
-    [Plug(""System.String"", IsOptional = true)]
+    [Plug("System.String", IsOptional = true)]
     public class Test
     {
-        [DllImport(""example.dll"")]
+        [DllImport("example.dll")]
         public static extern void ExternalMethod();
     }
-}";
+}
+""";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.PlugNotStatic.Id && d.GetMessage().Contains("Test"));
     }
@@ -53,7 +57,8 @@ namespace ConsoleApplication1
     [Fact]
     public async Task Test_MethodNeedsPlugDiagnostic()
     {
-        string code = @"
+        const string code = """
+
 using System;
 using System.Runtime.CompilerServices;
 using Liquip.API.Attributes;
@@ -62,18 +67,19 @@ namespace ConsoleApplication1
 {
     public static class TestNativeType
     {
-        [DllImport(""example.dll"")]
+        [DllImport("example.dll")]
         public static extern void ExternalMethod();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void NativeMethod();
     }
 
-    [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
+    [Plug("ConsoleApplication1.TestNativeType", IsOptional = false)]
     public static class Test
     {
     }
-}";
+}
+""";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
     }
@@ -81,7 +87,8 @@ namespace ConsoleApplication1
     [Fact]
     public async Task Test_AnalyzeAccessedMember()
     {
-        string code = @"
+        const string code = """
+
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Liquip.API.Attributes;
@@ -90,7 +97,7 @@ namespace ConsoleApplication1
 {
     public static class TestNativeType
     {
-        [DllImport(""example.dll"")]
+        [DllImport("example.dll")]
         public static extern void ExternalMethod();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -105,14 +112,47 @@ namespace ConsoleApplication1
             TestNativeType.NativeMethod();
         }
     }
-}";
+}
+""";
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
     }
+    
+    [Fact]
+    public async Task Test_MethodNotImplemented()
+    {
+        const string code = """
 
-    private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Liquip.API.Attributes;
+
+namespace ConsoleApplication1
+{
+    public static class TestNativeType
+    {
+        [DllImport("example.dll")]
+        public static extern void ExternalMethod();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void NativeMethod();
+    }
+
+    [Plug("ConsoleApplication1.TestNativeType", IsOptional = false)]
+    public static class Test
+    {
+    
+        public static void NotImplemented(){}
+    }
+}
+""";
+        ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNotImplemented.Id && d.GetMessage().Contains("NotImplemented"));
+    }
+
+    private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
     {
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
         CSharpCompilation compilation = CSharpCompilation.Create("TestCompilation")

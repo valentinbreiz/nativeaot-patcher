@@ -12,7 +12,7 @@ namespace Liquip.Patcher.Analyzer;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider)), Shared]
 public class PatcherCodeFixProvider : CodeFixProvider
 {
-    public const string AddStaticModifierTitle = "Add static modifier";
+    public const string MakeStaticModifierTitle = "Make class static";
     public const string PlugMethodTitle = "Plug method";
     public const string RenamePlugTitle = "Rename plug";
 
@@ -67,9 +67,9 @@ public class PatcherCodeFixProvider : CodeFixProvider
 #endif
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                            title: AddStaticModifierTitle,
-                            createChangedSolution: c => AddStaticModifier(context.Document, declaration, c),
-                            equivalenceKey: nameof(AddStaticModifierTitle)),
+                            title: MakeStaticModifierTitle,
+                            createChangedSolution: c => MakeClassStatic(context.Document, declaration, c),
+                            equivalenceKey: nameof(MakeStaticModifierTitle)),
                         diagnostic);
                     break;
 
@@ -106,7 +106,7 @@ public class PatcherCodeFixProvider : CodeFixProvider
         }
     }
 
-    private async Task<Solution> AddStaticModifier(Document document, SyntaxNode declaration, CancellationToken c)
+    private async Task<Solution> MakeClassStatic(Document document, SyntaxNode declaration, CancellationToken c)
     {
 #if DEBUG
         Console.WriteLine("Attempting to add static modifier.");
@@ -305,7 +305,7 @@ public class PatcherCodeFixProvider : CodeFixProvider
             Compilation compilation = (await project.GetCompilationAsync())!;
             ISymbol? symbol = compilation.GetTypeByMetadataName(plugClassName);
             if (symbol == null) continue;
-            
+
             SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault()!;
             return ((ClassDeclarationSyntax)(await syntaxReference.GetSyntaxAsync()), project.GetDocument(syntaxReference.SyntaxTree)!);
         }
