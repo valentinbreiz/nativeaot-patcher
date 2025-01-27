@@ -25,19 +25,19 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore ./Tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+        run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
 
       - name: Build Liquip.Patcher.Tests
-        run: dotnet build ./Tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./Tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
+        run: dotnet test ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Liquip.Patcher.Tests-Results
-          path: ./Tests/Liquip.Patcher.Tests/TestResults/Liquip.Patcher.Tests.trx
+          path: ./tests/Liquip.Patcher.Tests/TestResults/Liquip.Patcher.Tests.trx
 
   scanner-tests:
     name: Run Liquip.Scanner.Tests
@@ -56,19 +56,19 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore ./Tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
+        run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
 
       - name: Build Liquip.Scanner.Tests
-        run: dotnet build ./Tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./Tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
+        run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Liquip.Scanner.Tests-Results
-          path: ./Tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
+          path: ./tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
 
   analyzer-tests:
     name: Run Liquip.Patcher.Analyzer.Test
@@ -87,17 +87,17 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore ./Tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj
+        run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj
 
       - name: Build Liquip.Patcher.Analyzer.Test
-        run: dotnet build ./Tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./Tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analyzer.Test.trx"
+        run: dotnet test ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analyzer.Test.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Liquip.Patcher.Analyzer.Test-Results
-          path: ./Tests/Liquip.Patcher.Analyzer.Test/TestResults/Liquip.Patcher.Analyzer.Test.trx
+          path: ./tests/Liquip.Patcher.Analyzer.Test/TestResults/Liquip.Patcher.Analyzer.Test.trx
 
