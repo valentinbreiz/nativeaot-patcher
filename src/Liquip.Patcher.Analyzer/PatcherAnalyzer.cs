@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
@@ -19,15 +19,18 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-#if DEBUG
-        Console.WriteLine("[PatcherAnalyzer] Initializing...");
-#endif
+        DebugLogger.Log("Initializing...");
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        context.RegisterSyntaxNodeAction(AnalyzePlugAttribute, SyntaxKind.Attribute);
-        context.RegisterSyntaxNodeAction(AnalyzeAccessedMember, SyntaxKind.SimpleMemberAccessExpression);
-        context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree); // Check if the plugged class no longer exists in the syntaxTree
+        context.RegisterCompilationStartAction((context) =>
+        {
+            _pluggedClasses.Clear();
+
+            context.RegisterSyntaxNodeAction(AnalyzePlugAttribute, SyntaxKind.Attribute);
+            context.RegisterSyntaxNodeAction(AnalyzeAccessedMember, SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree); // Check if the plugged class no longer exists in the syntaxTree
+        });
     }
 
     private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
@@ -54,9 +57,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (context.Node is not MemberAccessExpressionSyntax elementAccessExpressionSyntax)
             return;
 
-#if DEBUG
-        Console.WriteLine($"[AnalyzeAccessedMember] Identifier is: {elementAccessExpressionSyntax.Expression}");
-#endif
+        DebugLogger.Log($"Identifier is: {elementAccessExpressionSyntax.Expression}");
 
         ISymbol? symbol = context.SemanticModel.GetSymbolInfo(elementAccessExpressionSyntax.Expression).Symbol;
         if (symbol is not INamespaceOrTypeSymbol classSymbol || context.SemanticModel.GetSymbolInfo(elementAccessExpressionSyntax).Symbol is not IMethodSymbol accessedMethod)
@@ -70,25 +71,21 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         if (_pluggedClasses.TryGetValue(classSymbol.Name, out ClassDeclarationSyntax plugClass))
         {
-#if DEBUG
-            Console.WriteLine($"[AnalyzeAccessedMember] Found plugged class: {plugClass.Identifier.Text}.");
-#endif
+            DebugLogger.Log($"Found plugged class: {plugClass.Identifier.Text}.");
             bool methodExists = plugClass.Members
                 .OfType<MethodDeclarationSyntax>()
                 .Any(method => method.Identifier.Text == accessedMethod.Name);
 
             if (!methodExists && CheckIfNeedsPlug(accessedMethod, context, plugClass))
             {
-#if DEBUG
-                Console.WriteLine($"[AnalyzeAccessedMember] Method {accessedMethod.Name} does not exist in the plugged class {plugClass.Identifier.Text}.");
-#endif
+                DebugLogger.Log($"Method {accessedMethod.Name} does not exist in the plugged class {plugClass.Identifier.Text}.");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNeedsPlug,
                     elementAccessExpressionSyntax.Expression.GetLocation(),
-                    ImmutableDictionary.CreateRange([
-                       ..defaultProperties,
+                    ImmutableDictionary.CreateRange(new[]
+                    {
                         new KeyValuePair<string, string?>("PlugClass", plugClass.Identifier.Text)
-                    ]),
+                    }),
                     accessedMethod.Name,
                     classSymbol.Name
                 ));
@@ -123,9 +120,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (plugClass == null)
             return;
 
-#if DEBUG
-        Console.WriteLine($"[AnalyzePlugAttribute] Found Plug attribute. Attribute: {attribute}");
-#endif
+        DebugLogger.Log($"Found Plug attribute. Attribute: {attribute}");
+
         // Get the target name from the attribute
         string? targetName = GetAttributeValue<string>(attribute, 0, context) ??
                              GetAttributeValue<string>(attribute, "TargetName", context) ??
@@ -135,12 +131,12 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (string.IsNullOrWhiteSpace(targetName))
             return;
 
-#if DEBUG
-        Console.WriteLine($"[AnalyzePlugAttribute] Target Name: {targetName}");
-#endif
+        DebugLogger.Log($"Target Name: {targetName}");
 
         string assemblyName = context.Compilation.AssemblyName ?? string.Empty;
         string typeName = targetName!;
+
+        DebugLogger.Log($"Assembly Name: {assemblyName}");
 
         if (targetName.Contains(','))
         {
@@ -174,7 +170,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             if (classDeclarationSyntax.Identifier.Text != expectedName)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.PlugNameDoesNotMatch, classDeclarationSyntax.GetLocation(),
-                    ImmutableDictionary.CreateRange([new KeyValuePair<string, string?>("ExpectedName", expectedName)]),
+                    ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string?>("ExpectedName", expectedName) }),
                     classDeclarationSyntax.Identifier.Text, expectedName));
             }
         }
@@ -186,19 +182,17 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         _pluggedClasses[symbol.Name] = plugClass;
 
-        IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>();
+        IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary);
 
         foreach (IMethodSymbol method in methods)
         {
-            if (method.MethodKind != MethodKind.Ordinary) return;
-
             if (CheckIfNeedsPlug(method, context, plugClass))
             {
                 var diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                 {
-                new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
-                new KeyValuePair<string, string?>("MethodName", method.Name)
-            });
+                    new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
+                    new KeyValuePair<string, string?>("MethodName", method.Name)
+                });
 
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNeedsPlug,
@@ -206,11 +200,36 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                     diagnosticProperties,
                     method.Name,
                     symbol.Name));
-
             }
         }
 
-        if (plugClass.Members.OfType<MethodDeclarationSyntax>().Any(method => !methods.Any(x => x.Name == method.Identifier.Text), out MethodDeclarationSyntax unimplemented))
+        if (plugClass.TryGetMemberByName("CCtor", out MethodDeclarationSyntax cctor))
+        {
+            DebugLogger.Log($"Static Constructor Analysis: Method='{cctor.Identifier}', " +
+                               $"ParameterCount={cctor.ParameterList.Parameters.Count}, " +
+                               $"HasAThis={cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis")}, " +
+                               $"Class='{plugClass.Identifier.Text}'");
+            if (cctor.ParameterList.Parameters.Count > 1 || !cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis"))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                       DiagnosticMessages.StaticConstructorContainsParameters,
+                       cctor.GetLocation(),
+                       cctor.Identifier.Text
+                    ));
+            }
+
+            if (!methods.Any(x => x.IsStatic && x.Name == ".cctor"))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                   DiagnosticMessages.MethodNotImplemented,
+                   cctor.GetLocation(),
+                   ".cctor",
+                   symbol.Name
+                ));
+            }
+        }
+
+        foreach (MethodDeclarationSyntax unimplemented in plugClass.Members.OfType<MethodDeclarationSyntax>().Where(method => !methods.Any(x => x.Name == method.Identifier.Text)))
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticMessages.MethodNotImplemented,
@@ -219,8 +238,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 plugClass.Identifier.Text));
         }
     }
-
-
 
     private static T? GetAttributeValue<T>(object attribute, object indexOrString, SyntaxNodeAnalysisContext context)
     {
@@ -281,7 +298,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         return default;
     }
 
-
     private static TypedConstant GetConstructorArgument(AttributeData attributeData, object indexOrString)
     {
         return indexOrString switch
@@ -306,7 +322,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             _ => default,
         };
     }
-
 
     private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, SyntaxNodeAnalysisContext context, ClassDeclarationSyntax plugClass) => plugClass?.TryGetMemberByName(methodSymbol.Name, out MethodDeclarationSyntax _) != true && methodSymbol.GetAttributes().Any(x => (x.AttributeClass?.Name == "MethodImplAttribute" && GetAttributeValue<MethodImplOptions>(x, 0, context).HasFlag(MethodImplOptions.InternalCall)) || x.AttributeClass?.Name == "DllImportAttribute" || x.AttributeClass?.Name == "LibraryImportAttribute");
 }

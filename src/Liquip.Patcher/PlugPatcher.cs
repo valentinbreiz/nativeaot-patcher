@@ -133,7 +133,7 @@ public class PlugPatcher
 
                 foreach (MethodDefinition? plugMethod in plugType.Methods.Where(m => !m.IsConstructor))
                 {
-                    if (plugMethod.Name == "Ctor" || plugMethod.Name == "Cctor")
+                    if (plugMethod.Name == "Ctor" || plugMethod.Name == "CCtor")
                     {
                         bool isInstanceCtorPlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
 
@@ -142,7 +142,8 @@ public class PlugPatcher
                             (isInstanceCtorPlug
                                 ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
                                 : m.Parameters.Count == plugMethod.Parameters.Count) &&
-                            (plugMethod.Name != "Cctor" || m.IsStatic));
+                            (plugMethod.Name != "CCtor" || m.IsStatic));
+
 
                         if (targetConstructor is not null)
                         {
