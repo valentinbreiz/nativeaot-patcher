@@ -12,7 +12,6 @@ public static class Extensions
                                  (m is FieldDeclarationSyntax field && field.Declaration.Variables.Any(v => v.Identifier.ValueText == name))
             )) != null;
 
-
     public static bool Any<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate, out T value)
     {
         IEnumerator<T> enumerator = enumerable.GetEnumerator();

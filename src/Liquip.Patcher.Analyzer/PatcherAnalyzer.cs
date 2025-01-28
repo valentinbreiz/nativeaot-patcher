@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
@@ -15,7 +15,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     public const string AnalyzerDiagnosticId = "NAOT";
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
-    private readonly ConcurrentDictionary<string, ClassDeclarationSyntax> _pluggedClasses = [];
+    private readonly ConcurrentDictionary<string, ClassDeclarationSyntax> _pluggedClasses = new();
 
     public override void Initialize(AnalysisContext context)
     {
@@ -82,10 +82,10 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNeedsPlug,
                     elementAccessExpressionSyntax.Expression.GetLocation(),
-                    ImmutableDictionary.CreateRange([
-                       ..defaultProperties,
+                    ImmutableDictionary.CreateRange(new[]
+                    {
                         new KeyValuePair<string, string?>("PlugClass", plugClass.Identifier.Text)
-                    ]),
+                    }),
                     accessedMethod.Name,
                     classSymbol.Name
                 ));
@@ -120,8 +120,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (plugClass == null)
             return;
 
-
         DebugLogger.Log($"Found Plug attribute. Attribute: {attribute}");
+
         // Get the target name from the attribute
         string? targetName = GetAttributeValue<string>(attribute, 0, context) ??
                              GetAttributeValue<string>(attribute, "TargetName", context) ??
@@ -170,7 +170,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             if (classDeclarationSyntax.Identifier.Text != expectedName)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.PlugNameDoesNotMatch, classDeclarationSyntax.GetLocation(),
-                    ImmutableDictionary.CreateRange([new KeyValuePair<string, string?>("ExpectedName", expectedName)]),
+                    ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string?>("ExpectedName", expectedName) }),
                     classDeclarationSyntax.Identifier.Text, expectedName));
             }
         }
@@ -178,7 +178,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
     private void AnalyzePluggedClass(INamedTypeSymbol? symbol, ClassDeclarationSyntax? plugClass, SyntaxNodeAnalysisContext context)
     {
-
         if (plugClass == null || symbol == null) return;
 
         _pluggedClasses[symbol.Name] = plugClass;
@@ -191,9 +190,9 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             {
                 var diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                 {
-                new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
-                new KeyValuePair<string, string?>("MethodName", method.Name)
-            });
+                    new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
+                    new KeyValuePair<string, string?>("MethodName", method.Name)
+                });
 
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNeedsPlug,
@@ -202,7 +201,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                     method.Name,
                     symbol.Name));
             }
-
         }
 
         if (plugClass.TryGetMemberByName("CCtor", out MethodDeclarationSyntax cctor))
@@ -240,8 +238,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 plugClass.Identifier.Text));
         }
     }
-
-
 
     private static T? GetAttributeValue<T>(object attribute, object indexOrString, SyntaxNodeAnalysisContext context)
     {
@@ -302,7 +298,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         return default;
     }
 
-
     private static TypedConstant GetConstructorArgument(AttributeData attributeData, object indexOrString)
     {
         return indexOrString switch
@@ -327,7 +322,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             _ => default,
         };
     }
-
 
     private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, SyntaxNodeAnalysisContext context, ClassDeclarationSyntax plugClass) => plugClass?.TryGetMemberByName(methodSymbol.Name, out MethodDeclarationSyntax _) != true && methodSymbol.GetAttributes().Any(x => (x.AttributeClass?.Name == "MethodImplAttribute" && GetAttributeValue<MethodImplOptions>(x, 0, context).HasFlag(MethodImplOptions.InternalCall)) || x.AttributeClass?.Name == "DllImportAttribute" || x.AttributeClass?.Name == "LibraryImportAttribute");
 }
