@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
   </ItemGroup>
 
 
