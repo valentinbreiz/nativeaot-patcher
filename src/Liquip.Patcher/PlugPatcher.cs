@@ -1,3 +1,4 @@
+using Liquip.API.Attributes;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Utils;
