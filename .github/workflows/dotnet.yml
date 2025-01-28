@@ -71,7 +71,7 @@ jobs:
           path: ./tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
 
   analyzer-tests:
-    name: Run Liquip.Patcher.Analyzer.Test
+    name: Run Liquip.Patcher.Analyzer.Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -87,17 +87,17 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj
+        run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj
 
-      - name: Build Liquip.Patcher.Analyzer.Test
-        run: dotnet build ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --configuration Debug --no-restore
+      - name: Build Liquip.Patcher.Analyzer.Tests
+        run: dotnet build ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./tests/Liquip.Patcher.Analyzer.Test/Liquip.Patcher.Analyzer.Test.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analyzer.Test.trx"
+        run: dotnet test ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analyzer.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Liquip.Patcher.Analyzer.Test-Results
-          path: ./tests/Liquip.Patcher.Analyzer.Test/TestResults/Liquip.Patcher.Analyzer.Test.trx
+          name: Liquip.Patcher.Analyzer.Tests-Results
+          path: ./tests/Liquip.Patcher.Analyzer.Tests/TestResults/Liquip.Patcher.Analyzer.Tests.trx
 
