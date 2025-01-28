@@ -57,5 +57,15 @@ public sealed class DiagnosticMessages
         description: "Ensure that the method name is correct and that the method exists."
     );
 
-    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound, MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented);
+    public static readonly DiagnosticDescriptor StaticConstructorContainsParameters = new(
+      id: "NAOT0006",
+      title: "Static Constructor Should Not Have Parameters",
+      messageFormat: "The static constructor {0} can not contain parameters",
+      category: "Usage",
+      defaultSeverity: DiagnosticSeverity.Error,
+      isEnabledByDefault: true,
+      description: "Static constructors cannot have parameters. Ensure the static constructor is parameterless to comply with usage guidelines."
+  );
+
+    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound, MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorContainsParameters);
 }

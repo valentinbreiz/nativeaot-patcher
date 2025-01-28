@@ -5,17 +5,13 @@ namespace Liquip.Patcher.Analyzer.Extensions;
 public static class Extensions
 {
     public static bool TryGetMemberByName<T>(this ClassDeclarationSyntax declaration, string name, out T member)
-   where T : MemberDeclarationSyntax
-    {
-        member = declaration.Members
+   where T : MemberDeclarationSyntax => (member = declaration.Members
             .OfType<T>()
             .FirstOrDefault(m => (m is MethodDeclarationSyntax method && method.Identifier.ValueText == name) ||
                                  (m is PropertyDeclarationSyntax property && property.Identifier.ValueText == name) ||
                                  (m is FieldDeclarationSyntax field && field.Declaration.Variables.Any(v => v.Identifier.ValueText == name))
-            );
+            )) != null;
 
-        return member != null;
-    }
 
     public static bool Any<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate, out T value)
     {
