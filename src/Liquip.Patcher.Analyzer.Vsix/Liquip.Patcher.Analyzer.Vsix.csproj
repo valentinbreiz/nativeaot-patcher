@@ -6,7 +6,6 @@
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>Liquip.Patcher.Analyzer.Vsix</RootNamespace>
     <AssemblyName>Liquip.Patcher.Analyzer.Vsix</AssemblyName>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
