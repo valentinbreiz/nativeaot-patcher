@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -25,7 +25,6 @@ namespace Liquip.Patcher.Analyzer
 
         private string _currentPath = string.Empty;
         private XDocument? CurrentProject { get; set; }
-
 
         private XDocument? LoadCurrentProject()
         {
@@ -154,76 +153,76 @@ namespace Liquip.Patcher.Analyzer
 
             editor.ReplaceNode(namespaceDeclaration, namespaceDeclaration.AddMembers(newPlug));
             return editor.GetChangedDocument().Project.Solution;
-    }
-
-    private static MethodDeclarationSyntax CreatePlugMethod(string name)
-    {
-        return SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), name)
-            .WithBody(SyntaxFactory.Block())
-            .WithParameterList(
-                SyntaxFactory.ParameterList(
-                    SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                        SyntaxFactory.Parameter(SyntaxFactory.ParseToken("instance"))
-                            .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))))
-            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-    }
-
-    private static async Task<(ClassDeclarationSyntax PlugClass, Document Document)?> GetPlugClass(string? plugClassName, Document document, XDocument currentProject)
-    {
-        if (plugClassName == null) return null;
-
-        SyntaxNode? root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-        if (root == null) return null;
-
-        ClassDeclarationSyntax? plugClass = root.DescendantNodes()
-            .OfType<ClassDeclarationSyntax>()
-            .FirstOrDefault(c => c.Identifier.Text == plugClassName);
-
-        if (plugClass != null)
-        {
-            return (plugClass, document);
         }
 
-        IEnumerable<string> plugReferences = currentProject.Descendants("ItemGroup")
-            .Where(x => x.Name == "PlugsReference")
-            .Select(x => x.Attribute("Include")!.Value);
-
-        foreach (string reference in plugReferences)
+        private static MethodDeclarationSyntax CreatePlugMethod(string name)
         {
-            Project? project = document.Project.Solution.Projects.FirstOrDefault(p => p.OutputFilePath == reference);
-            if (project == null) continue;
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), name)
+                .WithBody(SyntaxFactory.Block())
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(SyntaxFactory.ParseToken("instance"))
+                                .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+        }
 
-            Compilation? compilation = await project.GetCompilationAsync().ConfigureAwait(false);
-            INamedTypeSymbol? symbol = compilation?.GetTypeByMetadataName(plugClassName);
-            if (symbol == null) continue;
+        private static async Task<(ClassDeclarationSyntax PlugClass, Document Document)?> GetPlugClass(string? plugClassName, Document document, XDocument currentProject)
+        {
+            if (plugClassName == null) return null;
 
-            SyntaxReference? syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (syntaxReference != null)
+            SyntaxNode? root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+            if (root == null) return null;
+
+            ClassDeclarationSyntax? plugClass = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .FirstOrDefault(c => c.Identifier.Text == plugClassName);
+
+            if (plugClass != null)
             {
-                SyntaxNode syntaxNode = await syntaxReference.GetSyntaxAsync().ConfigureAwait(false);
-                return ((ClassDeclarationSyntax)syntaxNode, project.GetDocument(syntaxReference.SyntaxTree)!);
+                return (plugClass, document);
             }
+
+            IEnumerable<string> plugReferences = currentProject.Descendants("ItemGroup")
+                .Where(x => x.Name == "PlugsReference")
+                .Select(x => x.Attribute("Include")!.Value);
+
+            foreach (string reference in plugReferences)
+            {
+                Project? project = document.Project.Solution.Projects.FirstOrDefault(p => p.OutputFilePath == reference);
+                if (project == null) continue;
+
+                Compilation? compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+                INamedTypeSymbol? symbol = compilation?.GetTypeByMetadataName(plugClassName);
+                if (symbol == null) continue;
+
+                SyntaxReference? syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+                if (syntaxReference != null)
+                {
+                    SyntaxNode syntaxNode = await syntaxReference.GetSyntaxAsync().ConfigureAwait(false);
+                    return ((ClassDeclarationSyntax)syntaxNode, project.GetDocument(syntaxReference.SyntaxTree)!);
+                }
+            }
+
+            return null;
         }
 
-        return null;
+        private static async Task<Solution> PlugMethodOnPlug((ClassDeclarationSyntax PlugClass, Document Document) plugInfo, MethodDeclarationSyntax plugMethod)
+        {
+            DocumentEditor editor = await DocumentEditor.CreateAsync(plugInfo.Document).ConfigureAwait(false);
+            editor.InsertAfter(plugInfo.PlugClass.Members.LastOrDefault()!, plugMethod);
+            return editor.GetChangedDocument().Project.Solution;
+        }
+
+        public static async Task<Solution> MakeClassStatic(Document document, SyntaxNode declaration, CancellationToken c)
+        {
+            if (declaration is not ClassDeclarationSyntax classDeclaration) return document.Project.Solution;
+
+            classDeclaration = classDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
+            editor.ReplaceNode(declaration, classDeclaration);
+
+            return editor.GetChangedDocument().Project.Solution;
+        }
     }
-
-    private static async Task<Solution> PlugMethodOnPlug((ClassDeclarationSyntax PlugClass, Document Document) plugInfo, MethodDeclarationSyntax plugMethod)
-    {
-        DocumentEditor editor = await DocumentEditor.CreateAsync(plugInfo.Document).ConfigureAwait(false);
-        editor.InsertAfter(plugInfo.PlugClass.Members.LastOrDefault()!, plugMethod);
-        return editor.GetChangedDocument().Project.Solution;
-    }
-
-    public static async Task<Solution> MakeClassStatic(Document document, SyntaxNode declaration, CancellationToken c)
-    {
-        if (declaration is not ClassDeclarationSyntax classDeclaration) return document.Project.Solution;
-
-        classDeclaration = classDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-        DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
-        editor.ReplaceNode(declaration, classDeclaration);
-
-        return editor.GetChangedDocument().Project.Solution;
-    }
-}
 }
