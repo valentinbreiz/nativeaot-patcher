@@ -15,7 +15,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     public const string AnalyzerDiagnosticId = "NAOT";
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
-    private readonly ConcurrentDictionary<string, ClassDeclarationSyntax> PluggedClasses = new ConcurrentDictionary<string, ClassDeclarationSyntax>();
+    private readonly ConcurrentDictionary<string, ClassDeclarationSyntax> _pluggedClasses = new();
 
     public override void Initialize(AnalysisContext context)
     {
@@ -34,11 +34,11 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     {
         SyntaxNode syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var key in PluggedClasses.Keys)
+        foreach (string key in _pluggedClasses.Keys)
         {
-            if (!IsClassInSyntaxTree(PluggedClasses[key], syntaxRoot))
+            if (!IsClassInSyntaxTree(_pluggedClasses[key], syntaxRoot))
             {
-                PluggedClasses.TryRemove(key, out _);
+                _pluggedClasses.TryRemove(key, out _);
             }
         }
     }
@@ -68,7 +68,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             new KeyValuePair<string, string?>("ClassName", classSymbol.Name)
         });
 
-        if (PluggedClasses.TryGetValue(classSymbol.Name, out ClassDeclarationSyntax plugClass))
+        if (_pluggedClasses.TryGetValue(classSymbol.Name, out ClassDeclarationSyntax plugClass))
         {
 #if DEBUG
             Console.WriteLine($"[AnalyzeAccessedMember] Found plugged class: {plugClass.Identifier.Text}.");
@@ -96,7 +96,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
         else
         {
-            foreach (var method in classSymbol.GetMembers().OfType<IMethodSymbol>()
+            foreach (IMethodSymbol? method in classSymbol.GetMembers().OfType<IMethodSymbol>()
                 .Where(method => method.MethodKind == MethodKind.Ordinary && CheckIfNeedsPlug(method, context, plugClass)))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -156,20 +156,17 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (!existInAssembly && !GetAttributeValue<bool>(attribute, "IsOptional", context))
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.TypeNotFound, attribute.GetLocation(), targetName));
+            return;
         }
-        else
-        {
-            AnalyzePlugClass(plugClass, symbol?.Name, context);
-            AnalyzePluggedClass(symbol, plugClass, context);
-        }
+
+        AnalyzePlugClass(plugClass, symbol!.Name, context);
+        AnalyzePluggedClass(symbol, plugClass, context);
     }
 
     private void AnalyzePlugClass(ClassDeclarationSyntax classDeclarationSyntax, string pluggedClassName, SyntaxNodeAnalysisContext context)
     {
         if (!classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
-        {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.PlugNotStatic, classDeclarationSyntax.GetLocation(), classDeclarationSyntax.Identifier.Text));
-        }
 
         if (!string.IsNullOrEmpty(pluggedClassName))
         {
@@ -187,24 +184,39 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     {
         if (plugClass == null || symbol == null) return;
 
-        PluggedClasses[symbol.Name] = plugClass;
+        _pluggedClasses[symbol.Name] = plugClass;
 
-        IEnumerable<IMethodSymbol> methodSymbols = symbol.GetMembers().OfType<IMethodSymbol>();
-        foreach (IMethodSymbol method in methodSymbols)
+        IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>();
+
+        foreach (IMethodSymbol method in methods)
         {
+            if (method.MethodKind != MethodKind.Ordinary) return;
+
             if (CheckIfNeedsPlug(method, context, plugClass))
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.MethodNeedsPlug, plugClass.GetLocation(),
-                   ImmutableDictionary.CreateRange([new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text), new KeyValuePair<string, string?>("MethodName", method.Name)]),
-                    method.Name, symbol.Name));
+                var diagnosticProperties = ImmutableDictionary.CreateRange(new[]
+                {
+                new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
+                new KeyValuePair<string, string?>("MethodName", method.Name)
+            });
+
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticMessages.MethodNeedsPlug,
+                    plugClass.GetLocation(),
+                    diagnosticProperties,
+                    method.Name,
+                    symbol.Name));
+
             }
         }
 
-        foreach (MethodDeclarationSyntax unimplemented in plugClass.Members.OfType<MethodDeclarationSyntax>()
-            .Where(x => !methodSymbols.Any(m => m.Name == x.Identifier.Text)))
+        if (plugClass.Members.OfType<MethodDeclarationSyntax>().Any(method => !methods.Any(x => x.Name == method.Identifier.Text), out MethodDeclarationSyntax unimplemented))
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.MethodNotImplemented, unimplemented.GetLocation(),
-                unimplemented.Identifier.Text, symbol.Name));
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticMessages.MethodNotImplemented,
+                plugClass.GetLocation(),
+                unimplemented.Identifier.Text,
+                plugClass.Identifier.Text));
         }
     }
 
@@ -217,7 +229,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         if (attribute is AttributeData attributeData)
         {
-            return GetAttributeDataValue<T>(attributeData, indexOrString, context);
+            return GetAttributeDataValue<T>(attributeData, indexOrString);
         }
 
         if (attribute is AttributeSyntax attributeSyntax)
@@ -228,7 +240,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         return default;
     }
 
-    private static T? GetAttributeDataValue<T>(AttributeData attributeData, object indexOrString, SyntaxNodeAnalysisContext context)
+    private static T? GetAttributeDataValue<T>(AttributeData attributeData, object indexOrString)
     {
         if (attributeData.ConstructorArguments.Length == 0)
             return default;
@@ -296,5 +308,5 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     }
 
 
-    private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, SyntaxNodeAnalysisContext context, ClassDeclarationSyntax plugClass) => plugClass?.TryGetMemberByName(methodSymbol.Name, out MethodDeclarationSyntax _) != true && methodSymbol.GetAttributes().Any(x => (x.AttributeClass?.Name == "MethodImplAttribute" && GetAttributeValue<MethodImplOptions>(x, 0, context).HasFlag(MethodImplOptions.InternalCall)) || (x.AttributeClass?.Name == "DllImportAttribute" || x.AttributeClass?.Name == "LibraryImportAttribute"));
+    private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, SyntaxNodeAnalysisContext context, ClassDeclarationSyntax plugClass) => plugClass?.TryGetMemberByName(methodSymbol.Name, out MethodDeclarationSyntax _) != true && methodSymbol.GetAttributes().Any(x => (x.AttributeClass?.Name == "MethodImplAttribute" && GetAttributeValue<MethodImplOptions>(x, 0, context).HasFlag(MethodImplOptions.InternalCall)) || x.AttributeClass?.Name == "DllImportAttribute" || x.AttributeClass?.Name == "LibraryImportAttribute");
 }

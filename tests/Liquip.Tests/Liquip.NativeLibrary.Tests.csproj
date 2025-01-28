@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
-    <ProjectReference Include="..\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
-    <ProjectReference Include="..\Liquip.Patcher\Liquip.Patcher.csproj"/>
+    <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\..\tests\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj"/>
+    <ProjectReference Include="..\..\src\Liquip.Patcher\Liquip.Patcher.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
