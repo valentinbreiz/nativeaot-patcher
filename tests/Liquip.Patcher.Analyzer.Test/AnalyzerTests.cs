@@ -10,6 +10,13 @@ namespace Liquip.Patcher.Analyzer.Tests;
 
 public class AnalyzerTestsTest
 {
+    private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+    private static readonly MetadataReference LiquipAPIReference = MetadataReference.CreateFromFile(typeof(Plug).Assembly.Location);
+
+    private static readonly PatcherAnalyzer Analyzer = new();
+
+
+
     [Fact]
     public async Task Test_TypeNotFoundDiagnostic()
     {
@@ -119,7 +126,7 @@ namespace ConsoleApplication1
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
         Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
     }
-    
+
     [Fact]
     public async Task Test_MethodNotImplemented()
     {
@@ -154,14 +161,11 @@ namespace ConsoleApplication1
 
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
     {
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("TestCompilation")
-            .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-            .AddReferences(MetadataReference.CreateFromFile(typeof(PlugAttribute).Assembly.Location))
-            .AddSyntaxTrees(syntaxTree);
-
-        PatcherAnalyzer analyzer = new();
-        CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+        var compilation = CSharpCompilation.Create("TestCompilation", [syntaxTree], [CorlibReference, LiquipAPIReference]);
+        var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(Analyzer));
+        var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+        return diagnostics;
     }
+    
 }
