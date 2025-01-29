@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
+
 jobs:
-
   pack-patcher:
-
     name: Pack Liquip Patcher
     runs-on: ${{ matrix.os }}
     strategy:
