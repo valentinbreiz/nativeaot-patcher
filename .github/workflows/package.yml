@@ -24,10 +24,10 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Pack Liquip.Api
-        run: dotnet pack ./src/Liquip.API/Liquip.API.csproj --configuration Release --artifacts-path ./out
+        run: dotnet build ./src/Liquip.API/Liquip.API.csproj --configuration Release --artifacts-path ./out
 
       - name: Pack Liquip.Patcher.Build
-        run: dotnet pack ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj --configuration Release --artifacts-path ./out
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj --configuration Release --artifacts-path ./out
 
       - name: Pack Liquip.Patcher
         run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj --configuration Release --artifacts-path ./out
