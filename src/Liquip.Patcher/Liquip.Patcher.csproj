@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!--pack as nuget-->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--pack as nuget-->
   </PropertyGroup>
 
   <ItemGroup>

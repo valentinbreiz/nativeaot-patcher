@@ -4,8 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
-    <LangVersion>latest</LangVersion>
-     <DebugSymbols>true</DebugSymbols>
+    <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
