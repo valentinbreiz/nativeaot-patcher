@@ -1,0 +1,35 @@
+name: Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pack-patcher:
+    name: Pack Liquip Patcher
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 8.0.x ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Pack
+        run: dotnet pack ./nativeaot-patcher.sln --configuration Release --artifacts-path ./out
+
+      - name: Upload Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liquip.Patcher.Packages
+          path: ./out/package/release
+
+
