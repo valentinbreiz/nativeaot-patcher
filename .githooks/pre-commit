@@ -13,7 +13,7 @@ if [ -z "$C_SHARP_FILES" ]; then
 fi
 
 # Run dotnet format with the --check flag to verify formatting
-dotnet format --include $(echo "$C_SHARP_FILES" | tr '\n' ' ') --check
+dotnet format --include $(echo "$C_SHARP_FILES" | tr '\n' ' ') --verify-no-changes
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
