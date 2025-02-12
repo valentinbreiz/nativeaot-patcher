@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.Editing;
 using System.Xml.Linq;
 
 internal static class CodeActions
-{
-    public static async Task<Solution> RemoveExtraParameters(Document document, SyntaxNode declaration)
+    {
+public static async Task<Solution> RemoveExtraParameters(Document document, SyntaxNode declaration)
     {
         if (declaration is not MethodDeclarationSyntax methodDeclaration) return document.Project.Solution;
 

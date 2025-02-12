@@ -1,20 +1,30 @@
 #!/bin/sh
-if [ "$GIT_COMMITTER_AMEND" = "true" ]; then
+# Pre-commit hook to enforce code formatting using dotnet format on unstaged changes only.
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+UNSTAGED_FILES=$(git diff --name-only --diff-filter=M)
+
+if [ -z "$UNSTAGED_FILES" ]; then
     exit 0
 fi
 
-echo "🔄 Running pre-commit hook: Formatting newly added or modified files..."
+PROJECT_FILE=$(find . -name "*.csproj" -or -name "*.sln" | head -n 1)
 
-git diff --name-only --diff-filter=AM | while read file; do
-    if [[ $file == *.cs ]]; then
-        echo "Formatting changes in $file"
-        
-        dotnet format "$file"
-        git add "$file"
-    fi
-done
+if [ -z "$PROJECT_FILE" ]; then
+    echo "Error: No .csproj or .sln file found. Cannot run dotnet format."
+    exit 1
+fi
 
-GIT_COMMITTER_AMEND=true git commit --amend --no-edit
-git reset
+echo "Running dotnet format check on unstaged files..."
+dotnet format --verify-no-changes $PROJECT_FILE -- $UNSTAGED_FILES
+RESULT=$?
 
-echo "✅ Newly added or modified files formatted and commit amended."
+if [ $RESULT -ne 0 ]; then
+    echo "Error: Code formatting issues detected."
+    echo "Please run 'dotnet format' to format your code before committing."
+    exit 1
+fi
+
+exit 0
