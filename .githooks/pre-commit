@@ -1,9 +1,5 @@
 #!/bin/sh
-if [ "$GIT_COMMITTER_AMEND" = "true" ]; then
-    exit 0
-fi
-
-echo "🔄 Running pre-commit hook: Formatting newly added or modified files..."
+echo "🔄 Running pre-commit hook: Formatting commit files..."
 
 git diff --name-only --diff-filter=AM | while read file; do
     if [[ $file == *.cs ]]; then
@@ -14,7 +10,4 @@ git diff --name-only --diff-filter=AM | while read file; do
     fi
 done
 
-GIT_COMMITTER_AMEND=true git commit --amend --no-edit
-git reset
-
-echo "✅ Newly added or modified files formatted and commit amended."
+echo "✅ Commit files formatted."
