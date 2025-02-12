@@ -14,7 +14,7 @@ public class AnalyzerTests
     private static readonly MetadataReference PlugAttributeReference = MetadataReference.CreateFromFile(typeof(PlugAttribute).Assembly.Location);
 
     private static SyntaxTree ParseCode(string code) => CSharpSyntaxTree.ParseText(code);
-
+    
 
     [Fact]
     public async Task Test_TypeNotFoundDiagnostic()

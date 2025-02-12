@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using Liquip.NativeWrapper;
+﻿using Liquip.NativeWrapper;
 using Mono.Cecil;
+using System.Reflection;
 
 namespace Liquip.Patcher.Tests;
 

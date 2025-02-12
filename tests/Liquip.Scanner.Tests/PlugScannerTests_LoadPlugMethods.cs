@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using Liquip.API.Attributes;
-using Liquip.NativeWrapper;
-using Liquip.Patcher;
 using Mono.Cecil;
 using Xunit;
+using Liquip.Patcher;
+using Liquip.API.Attributes;
+using Liquip.NativeWrapper;
 
 namespace Liquip.Patcher.Tests;
 

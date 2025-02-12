@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using Liquip.Patcher.Analyzer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Liquip.Patcher.Analyzer.Extensions;
 
 namespace Liquip.Patcher.Analyzer;
 
@@ -36,13 +36,20 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         SyntaxNode syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
-        foreach (KeyValuePair<string, ClassDeclarationSyntax> pair in _pluggedClasses)
+
+        foreach (string key in _pluggedClasses.Keys)
         {
-            if (syntaxRoot.TryFindNode(pair.Value.Span, out ClassDeclarationSyntax? node) && node is null)
+            if (!IsClassInSyntaxTree(_pluggedClasses[key], syntaxRoot))
             {
-                _pluggedClasses.TryRemove(pair.Key, out _);
+                _pluggedClasses.TryRemove(key, out _);
             }
         }
+    }
+
+    private bool IsClassInSyntaxTree(ClassDeclarationSyntax classDeclaration, SyntaxNode syntaxRoot)
+    {
+        return syntaxRoot.DescendantNodes().OfType<ClassDeclarationSyntax>()
+            .Any(c => c.Identifier.Text == classDeclaration.Identifier.Text);
     }
 
     private void AnalyzeAccessedMember(SyntaxNodeAnalysisContext context)
@@ -202,7 +209,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                                $"ParameterCount={cctor.ParameterList.Parameters.Count}, " +
                                $"HasAThis={cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis")}, " +
                                $"Class='{plugClass.Identifier.Text}'");
-
             if (cctor.ParameterList.Parameters.Count > 1 || !cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis"))
             {
                 context.ReportDiagnostic(Diagnostic.Create(

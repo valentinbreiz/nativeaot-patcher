@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Liquip.API.Attributes;
-using Liquip.NativeWrapper;
-using Liquip.Patcher;
 using Mono.Cecil;
-using Mono.Collections.Generic;
+using Liquip.API.Attributes;
 using Xunit;
+using Liquip.Patcher;
+using Liquip.NativeWrapper;
+using Mono.Collections.Generic;
 
 namespace Liquip.Patcher.Tests;
 
