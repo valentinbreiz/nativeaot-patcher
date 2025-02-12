@@ -1,30 +1,25 @@
 #!/bin/sh
-# Pre-commit hook to enforce code formatting using dotnet format on unstaged changes only.
+# Pre-commit hook to enforce formatting using dotnet format on unstaged changes only.
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT" || exit 1
 
-UNSTAGED_FILES=$(git diff --name-only --diff-filter=M)
+# Get unstaged C# files (excluding deleted files)
+C_SHARP_FILES=$(git diff HEAD --name-only --diff-filter=AM -- '*.cs')
 
-if [ -z "$UNSTAGED_FILES" ]; then
+if [ -z "$C_SHARP_FILES" ]; then
+    echo "No C# files to format or lint."
     exit 0
 fi
 
-PROJECT_FILE=$(find . -name "*.csproj" -or -name "*.sln" | head -n 1)
-
-if [ -z "$PROJECT_FILE" ]; then
-    echo "Error: No .csproj or .sln file found. Cannot run dotnet format."
-    exit 1
-fi
-
-echo "Running dotnet format on commit files..."
-dotnet format --verify-no-changes $PROJECT_FILE -- $UNSTAGED_FILES
+# Run dotnet format with the --check flag to verify formatting
+dotnet format --include $(echo "$C_SHARP_FILES" | tr '\n' ' ') --check
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
-    echo "Error: Code formatting issues detected."
-    echo "Please run 'dotnet format' to format your code before committing."
+    echo "Code formatting issues detected. Run 'dotnet format' to fix them."
     exit 1
 fi
 
+echo "All files are correctly formatted."
 exit 0

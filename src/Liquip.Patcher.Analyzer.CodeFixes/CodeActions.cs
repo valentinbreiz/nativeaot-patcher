@@ -6,14 +6,14 @@ using System.Xml.Linq;
 
 internal static class CodeActions
     {
-public static async Task<Solution> RemoveExtraParameters(Document document, SyntaxNode declaration)
+ public static async Task<Solution> RemoveExtraParameters(Document document, SyntaxNode declaration)
     {
         if (declaration is not MethodDeclarationSyntax methodDeclaration) return document.Project.Solution;
 
         DocumentEditor editor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
         editor.ReplaceNode(methodDeclaration, methodDeclaration.WithParameterList(
             methodDeclaration.ParameterList.WithParameters(
-                SyntaxFactory.SeparatedList<ParameterSyntax>(methodDeclaration.ParameterList.Parameters.Where(p => p.Identifier.Text != "aThis")))));
+    SyntaxFactory.SeparatedList<ParameterSyntax>(methodDeclaration.ParameterList.Parameters.Where(p => p.Identifier.Text != "aThis")))));
         return editor.GetChangedDocument().Project.Solution;
     }
 
