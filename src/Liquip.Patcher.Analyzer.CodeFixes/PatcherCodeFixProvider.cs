@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Liquip.Patcher.Analyzer
-{
+namespace Liquip.Patcher.Analyzer;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider)), Shared]
     public class PatcherCodeFixProvider : CodeFixProvider
     {
@@ -79,5 +79,3 @@ namespace Liquip.Patcher.Analyzer
                 diagnostic);
         }
     }
-
-}
