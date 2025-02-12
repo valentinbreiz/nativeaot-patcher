@@ -1,8 +1,4 @@
 ﻿#if (UNITY_2017_1_OR_NEWER && UNITY_EDITOR) || !UNITY_2017_1_OR_NEWER
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
@@ -745,7 +741,8 @@ public static class MonoCecilExtensions
         // Create a new MethodDefinition with the same properties as the original method.
         MethodDefinition? clonedMethod = new(method.Name, method.Attributes, method.ReturnType)
         {
-            ImplAttributes = method.ImplAttributes, SemanticsAttributes = method.SemanticsAttributes
+            ImplAttributes = method.ImplAttributes,
+            SemanticsAttributes = method.SemanticsAttributes
         };
 
         // Add all overides from the original method to the cloned method (references).
