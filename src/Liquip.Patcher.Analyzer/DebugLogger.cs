@@ -1,3 +1,4 @@
+#if DEBUG
 using System.Runtime.CompilerServices;
 namespace Liquip.Patcher.Analyzer;
 public static class DebugLogger
@@ -12,3 +13,4 @@ public static class DebugLogger
         }
     }
 }
+#endif

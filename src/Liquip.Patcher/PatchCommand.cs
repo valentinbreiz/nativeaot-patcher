@@ -1,6 +1,6 @@
-﻿using Spectre.Console.Cli;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Mono.Cecil;
+using Spectre.Console.Cli;
 
 namespace Liquip.Patcher;
 
