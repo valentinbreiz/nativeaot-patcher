@@ -17,7 +17,7 @@ if [ -z "$PROJECT_FILE" ]; then
     exit 1
 fi
 
-echo "Running dotnet format check on unstaged files..."
+echo "Running dotnet format on commit files..."
 dotnet format --verify-no-changes $PROJECT_FILE -- $UNSTAGED_FILES
 RESULT=$?
 
