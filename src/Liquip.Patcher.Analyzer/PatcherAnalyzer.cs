@@ -19,7 +19,9 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
+#if DEBUG
         DebugLogger.Log("Initializing...");
+#endif
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
@@ -50,7 +52,9 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (context.Node is not MemberAccessExpressionSyntax elementAccessExpressionSyntax)
             return;
 
+#if DEBUG
         DebugLogger.Log($"Identifier is: {elementAccessExpressionSyntax.Expression}");
+#endif
 
         ISymbol? symbol = context.SemanticModel.GetSymbolInfo(elementAccessExpressionSyntax.Expression).Symbol;
         if (symbol is not INamespaceOrTypeSymbol classSymbol || context.SemanticModel.GetSymbolInfo(elementAccessExpressionSyntax).Symbol is not IMethodSymbol accessedMethod)
@@ -64,14 +68,18 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         if (_pluggedClasses.TryGetValue(classSymbol.Name, out ClassDeclarationSyntax plugClass))
         {
+#if DEBUG
             DebugLogger.Log($"Found plugged class: {plugClass.Identifier.Text}.");
+#endif
             bool methodExists = plugClass.Members
                 .OfType<MethodDeclarationSyntax>()
                 .Any(method => method.Identifier.Text == accessedMethod.Name);
 
             if (!methodExists && CheckIfNeedsPlug(accessedMethod, context, plugClass))
             {
+#if DEBUG
                 DebugLogger.Log($"Method {accessedMethod.Name} does not exist in the plugged class {plugClass.Identifier.Text}.");
+#endif
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNeedsPlug,
                     elementAccessExpressionSyntax.Expression.GetLocation(),
@@ -113,7 +121,9 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (plugClass == null)
             return;
 
+#if DEBUG
         DebugLogger.Log($"Found Plug attribute. Attribute: {attribute}");
+#endif
 
         // Get the target name from the attribute
         string? targetName = GetAttributeValue<string>(attribute, 0, context) ??
@@ -124,13 +134,17 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (string.IsNullOrWhiteSpace(targetName))
             return;
 
+#if DEBUG
         DebugLogger.Log($"Target Name: {targetName}");
 
+#endif
         string assemblyName = context.Compilation.AssemblyName ?? string.Empty;
         string typeName = targetName!;
 
+#if DEBUG
         DebugLogger.Log($"Assembly Name: {assemblyName}");
 
+#endif
         if (targetName.Contains(','))
         {
             string[] statement = targetName!.Split(',');
@@ -198,10 +212,12 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         if (plugClass.TryGetMemberByName("CCtor", out MethodDeclarationSyntax cctor))
         {
+#if DEBUG
             DebugLogger.Log($"Static Constructor Analysis: Method='{cctor.Identifier}', " +
                                $"ParameterCount={cctor.ParameterList.Parameters.Count}, " +
                                $"HasAThis={cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis")}, " +
                                $"Class='{plugClass.Identifier.Text}'");
+#endif
 
             if (cctor.ParameterList.Parameters.Count > 1 || !cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis"))
             {
