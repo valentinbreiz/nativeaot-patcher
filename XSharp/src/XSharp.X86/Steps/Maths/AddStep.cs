@@ -1,3 +1,4 @@
+using XSharp.Base;
 using XSharp.Base.ControlFlow;
 using XSharp.Base.Interfaces;
 using XSharp.X86.Interfaces;
@@ -8,12 +9,14 @@ namespace XSharp.X86.Steps.Maths;
 public static class AddStepEx {
     public static IX86 Add(this IX86 self, X86Register a, X86Register b)
     {
+        RegisterUtils.FitsInThrow(a, b);
         self.Raw($"add {a}, {b}");
         return self;
     }
 
     public static IX86 Add(this IX86 self, X86Register a, X86Pointer b)
     {
+
         self.Raw($"add {a}, {b}");
         return self;
     }

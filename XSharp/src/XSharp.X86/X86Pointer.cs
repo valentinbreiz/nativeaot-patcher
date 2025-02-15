@@ -1,10 +1,15 @@
 using System.Text;
+using XSharp.Base.ControlFlow;
 using XSharp.X86.Registers;
 
 namespace XSharp.X86;
 
 public class X86Pointer
 {
+
+    public LabelObject? BaseLabel;
+
+    public X86Variable? BaseVariable;
 
     public X86Register? BaseRegister;
     public X86Register? OffsetRegister;
@@ -20,6 +25,12 @@ public class X86Pointer
         {
             sb.Append(BaseRegister);
         }
+
+        if (BaseVariable != null)
+        {
+            sb.Append(BaseVariable);
+        }
+
 
         if (OffsetRegister != null)
         {
@@ -40,7 +51,7 @@ public class X86Pointer
 }
 
 
-public enum X86PointerSize
+public enum X86DataSize
 {
     Byte,
     Word,

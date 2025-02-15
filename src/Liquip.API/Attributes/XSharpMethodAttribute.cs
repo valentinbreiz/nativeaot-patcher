@@ -1,4 +1,6 @@
-﻿namespace Liquip.API.Attributes;
+﻿using Liquip.API.Enum;
+
+namespace Liquip.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class XSharpMethodAttribute : Attribute
@@ -8,5 +10,5 @@ public class XSharpMethodAttribute : Attribute
     /// </summary>
     public string? Name { get; set; } = null;
 
-    public Task Plug { get; set; }
+    public TargetPlatform TargetPlatform { get; set; }
 }
