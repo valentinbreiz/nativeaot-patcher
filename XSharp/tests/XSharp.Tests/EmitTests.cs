@@ -15,7 +15,7 @@ public class EmitTests
     }
 
     [Test]
-    public void Test1()
+    public void Test()
     {
         var xSharpString = XSharpEmitter.Emit([typeof(EmitTests)], TargetPlatform.x86_64);
 
@@ -24,7 +24,6 @@ public class EmitTests
             )
         );
 
-        Assert.Pass();
     }
 
     [XSharpMethod(Name = "Add", TargetPlatform = TargetPlatform.x86_64)]

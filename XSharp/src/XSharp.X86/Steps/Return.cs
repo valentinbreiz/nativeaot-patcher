@@ -1,13 +1,13 @@
 using XSharp.Base.ControlFlow;
 using XSharp.X86.Interfaces;
-using XSharp.X86.Registers;
 
-namespace XSharp.X86.ControlFlow;
+namespace XSharp.X86.Steps;
 
 public static class ReturnEx
 {
 
-    public static IX86 Return(this IX86 x86)
+    public static T Return<T>(this T x86)
+        where T : IX86
     {
         return x86.Raw("ret");
     }
