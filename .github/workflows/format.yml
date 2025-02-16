@@ -9,13 +9,11 @@ on:
 jobs:
   format:
     name: Check Code Formatting
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest 
     strategy:
       matrix:
-        os: [ windows-latest ]
         dotnet-version: [ 8.0.x ]
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,5 +27,5 @@ jobs:
         run: dotnet restore
 
       - name: Check Formatting
-        run: | 
-          dotnet format --verify-no-changes || (echo "::warning file=Code Formatting::Some files are not formatted. Run 'dotnet format' locally." && exit 0)
+        run: |
+          dotnet format --verify-no-changes || (echo "::warning file=Code Formatting::Run 'dotnet format'" ; exit 0)
