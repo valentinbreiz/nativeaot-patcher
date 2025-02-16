@@ -193,23 +193,25 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     {
         if (plugClass == null || symbol == null) return;
 
-        _pluggedClasses[symbol.Name] = new PlugInfo(true, plugClass);
+        bool isExternalSymbol = !symbol.ContainingAssembly.Equals(context.Compilation.Assembly);
+        _pluggedClasses[symbol.Name] = new PlugInfo(NeedsValidation: isExternalSymbol, IsExternal: isExternalSymbol, plugClass);
         AnalyzePluggedClassMembers(plugClass, symbol, context);
     }
 
     private void AnalyzePluggedClassMembers(ClassDeclarationSyntax plugClass, INamedTypeSymbol symbol, SyntaxNodeAnalysisContext context)
     {
         IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary);
-        bool anyMethodNeedsPlug = false;
         PlugInfo entry = _pluggedClasses[symbol.Name];
 
-        if (entry.MethodsNeedPlug)
+        bool needsCheck = entry.IsExternal ? entry.NeedsValidation : true;
+        bool anyMethodsNeedPlug = false;
+        if (needsCheck)
         {
             foreach (IMethodSymbol method in methods)
             {
                 if (CheckIfNeedsPlug(method, plugClass))
                 {
-                    anyMethodNeedsPlug = true;
+                    anyMethodsNeedPlug = true;
                     ImmutableDictionary<string, string?> diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                     {
                         new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
@@ -224,20 +226,20 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
-            _pluggedClasses[symbol.Name] = entry with { MethodsNeedPlug = anyMethodNeedsPlug };
+            if (entry.IsExternal)
+                _pluggedClasses[symbol.Name] = entry with { NeedsValidation = anyMethodsNeedPlug }; // Cache external symbols with valid methods
 
         }
 
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
-
-        foreach (MethodDeclarationSyntax unimplemented in plugClass.Members.OfType<MethodDeclarationSyntax>()
-                 .Where(method => !methods.Any(x => x.Name == method.Identifier.Text)))
+        foreach (MemberDeclarationSyntax member in plugClass.Members)
         {
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticMessages.MethodNotImplemented,
-                plugClass.GetLocation(),
-                unimplemented.Identifier.Text,
-                plugClass.Identifier.Text));
+            if (member is MethodDeclarationSyntax unimplemented && !methods.Any(x => x.Name == unimplemented.Identifier.Text))
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticMessages.MethodNotImplemented,
+                        plugClass.GetLocation(),
+                        unimplemented.Identifier.Text,
+                        plugClass.Identifier.Text));
         }
     }
 
