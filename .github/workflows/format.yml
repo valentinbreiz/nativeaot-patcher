@@ -1,8 +1,6 @@
 name: .NET Format
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -28,4 +26,4 @@ jobs:
 
       - name: Check Formatting
         run: |
-          dotnet format --verify-no-changes || (echo "::error file=Code Formatting::Run 'dotnet format'")
+          dotnet format --verify-no-changes || (echo "::error file=Code Formatting::Run 'dotnet format'" && exit 1)

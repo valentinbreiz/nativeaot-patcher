@@ -28,9 +28,6 @@ public static class AttributeExtensions
 
     private static T? GetValueFromExpression<T>(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
     {
-        TypeOfExpressionSyntax t = (TypeOfExpressionSyntax)expression;
-        DebugLogger.Log($"Is Typeof: {t != null}");
-        DebugLogger.Log($"Typeof: {t?.Type.ToString()}");
 
         return expression switch
         {
