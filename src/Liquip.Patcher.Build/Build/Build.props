@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
-
+ 
   <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)"/>

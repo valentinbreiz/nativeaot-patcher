@@ -35,8 +35,6 @@ public sealed class DiagnosticMessages
         description: "Ensure that the plug is static if it only contains static members."
     );
 
-
-
     public static readonly DiagnosticDescriptor PlugNameDoesNotMatch = new(
     id: "NAOT0004",
     title: "Plug Name Does Not Match",

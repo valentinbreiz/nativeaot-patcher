@@ -10,9 +10,9 @@ public static class LabelMaker
     /// <summary>
     /// Cache for label names.
     /// </summary>
-    private static Dictionary<MethodBase, string> LabelNamesCache = new();
+    private static readonly Dictionary<MethodBase, string> LabelNamesCache = [];
 
-    private static Dictionary<Assembly, int> AssemblyIds = new();
+    private static readonly Dictionary<Assembly, int> AssemblyIds = [];
 
     // All label naming code should be changed to use this class.
 

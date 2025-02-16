@@ -14,7 +14,6 @@ git diff --name-only --diff-filter=AM | while read file; do
     fi
 done
 
-GIT_COMMITTER_AMEND=true git commit --amend --no-edit
-git reset
-
+GIT_COMMITTER_AMEND=true 
+exit 1
 echo "✅ Newly added or modified files formatted and commit amended."

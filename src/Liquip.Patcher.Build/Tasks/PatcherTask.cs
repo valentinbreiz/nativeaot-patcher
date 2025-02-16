@@ -18,7 +18,7 @@ namespace Liquip.Patcher.Build.Tasks
 
         protected override string GenerateCommandLineCommands()
         {
-            CommandLineBuilder builder = new CommandLineBuilder();
+            CommandLineBuilder builder = new();
 
             // Add main command
             builder.AppendSwitch("patch");

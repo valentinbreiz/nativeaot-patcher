@@ -1,16 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
     <OutputType>Library</OutputType>
-    <!-- Avoid ID conflicts with the package project. -->
-    <PackageId>$(MSBuildProjectFile)</PackageId>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Remove="AnalyzerReleases.Shipped.md" />
-  </ItemGroup>
+    <!-- Avoid ID conflicts with the package project. -->
+    <PackageId>$(MSBuildProjectFile)</PackageId>  
+    </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>
