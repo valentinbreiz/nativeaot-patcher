@@ -3,7 +3,6 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>$(MSBuildProjectFile)</PackageId>

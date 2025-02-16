@@ -19,7 +19,7 @@ public class XSharpStubMakerSourceGenerator : IIncrementalGenerator
         // Generate the source code.
         IncrementalValuesProvider<ClassDeclarationSyntax> provider = context.SyntaxProvider
                .CreateSyntaxProvider(
-                   predicate: (s, _) => s is ClassDeclarationSyntax classDeclaration ,
+                   predicate: (s, _) => s is ClassDeclarationSyntax classDeclaration,
                    transform: (ctx, _) => (ClassDeclarationSyntax)ctx.Node)
                .Where(m => m is not null);
 
@@ -124,5 +124,5 @@ partial class {className}
             ");
     }
 
- 
+
 }

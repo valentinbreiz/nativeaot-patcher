@@ -1,4 +1,6 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Liquip.Patcher.Analyzer.Extensions;
 
@@ -23,5 +25,19 @@ public static class Extensions
         }
         value = default;
         return false;
+    }
+
+    public static bool TryFindNode<T>(this SyntaxNode node, TextSpan span, out T value) where T : SyntaxNode?
+    {
+        try
+        {
+            value = (T)node.FindNode(span);
+            return true;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
     }
 }

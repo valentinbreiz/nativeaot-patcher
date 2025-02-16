@@ -38,6 +38,6 @@ Customer";
             .ToArray();
 
         // In this case, it is enough to check the file name.
-        Assert.Equal(new [] { "User.g.cs", "Document.g.cs", "Customer.g.cs" }, generatedFiles);
+        Assert.Equal(["User.g.cs", "Document.g.cs", "Customer.g.cs"], generatedFiles);
     }
 }
