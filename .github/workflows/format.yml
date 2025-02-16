@@ -26,4 +26,5 @@ jobs:
 
       - name: Check Formatting
         run: |
-          dotnet format --verify-no-changes
+          dotnet format --verify-no-changes --severity error || echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."
+
