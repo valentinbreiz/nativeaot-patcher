@@ -6,7 +6,7 @@ namespace Liquip.Patcher.Analyzer.Utils;
 
 public static class Extensions
 {
-    public static bool TryGetMemberByName<T>(this ClassDeclarationSyntax declaration, string name, out T member)
+    public static bool TryGetMemberByName<T>(this ClassDeclarationSyntax declaration, string name, out T? member)
         where T : MemberDeclarationSyntax
     {
         foreach (MemberDeclarationSyntax memberDeclarationSyntax in declaration.Members)
@@ -34,9 +34,9 @@ public static class Extensions
         _ => null
     };
 
-    
 
-    public static bool TryFindNode<T>(this SyntaxNode node, TextSpan span, out T value) where T : SyntaxNode?
+
+    public static bool TryFindNode<T>(this SyntaxNode node, TextSpan span, out T? value) where T : SyntaxNode?
     {
         try
         {

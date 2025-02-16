@@ -1,0 +1,33 @@
+name: .NET Format
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  format:
+    name: Check Code Formatting
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 8.0.x ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Check Formatting
+        run: | 
+          dotnet format --verify-no-changes || echo "::warning file=Code Formatting::Some files are not formatted. Run 'dotnet format' locally."
