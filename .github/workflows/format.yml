@@ -28,4 +28,4 @@ jobs:
 
       - name: Check Formatting
         run: |
-          dotnet format --verify-no-changes || (echo "::warning file=Code Formatting::Run 'dotnet format'" ; exit 0)
+          dotnet format --verify-no-changes || (echo "::error file=Code Formatting::Run 'dotnet format'")
