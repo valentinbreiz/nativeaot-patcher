@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.InteropServices.ComTypes;
 using System.Xml.Linq;
 using Liquip.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;

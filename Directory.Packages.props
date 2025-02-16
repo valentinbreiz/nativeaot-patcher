@@ -24,6 +24,10 @@
     <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.5.4072" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="MonoMod.Utils" Version="25.0.6" />
+    <PackageVersion Include="Polyfill" Version="7.16.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
     <PackageVersion Include="Spectre.Console.Cli" Version="0.49.1" />
     <PackageVersion Include="unit" Version="1.0.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
