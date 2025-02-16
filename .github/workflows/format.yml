@@ -30,4 +30,4 @@ jobs:
 
       - name: Check Formatting
         run: | 
-          dotnet format --verify-no-changes || echo "::warning file=Code Formatting::Some files are not formatted. Run 'dotnet format' locally."
+          dotnet format --verify-no-changes || (echo "::warning file=Code Formatting::Some files are not formatted. Run 'dotnet format' locally." && exit 0)
