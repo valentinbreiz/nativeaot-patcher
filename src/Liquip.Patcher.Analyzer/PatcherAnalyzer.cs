@@ -216,6 +216,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                                $"HasAThis={cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis")}, " +
                                $"Class='{plugClass.Identifier.Text}'");
 
+
             if (cctor.ParameterList.Parameters.Count > 1 || !cctor.ParameterList.Parameters.Any(param => param.Identifier.Text == "aThis"))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -250,3 +251,4 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
     private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, ClassDeclarationSyntax plugClass) => plugClass?.TryGetMemberByName(methodSymbol.Name, out MethodDeclarationSyntax _) != true && methodSymbol.GetAttributes().Any(x => (x.AttributeClass?.Name == "MethodImplAttribute" && x.GetAttributeValue<MethodImplOptions>(0).HasFlag(MethodImplOptions.InternalCall)) || x.AttributeClass?.Name == "DllImportAttribute" || x.AttributeClass?.Name == "LibraryImportAttribute");
 }
+

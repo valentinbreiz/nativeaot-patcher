@@ -1,4 +1,3 @@
-
 using System.Runtime.CompilerServices;
 namespace Liquip.Patcher.Analyzer.Utils;
 
