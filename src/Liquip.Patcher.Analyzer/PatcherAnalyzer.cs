@@ -193,14 +193,14 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     {
         if (plugClass == null || symbol == null) return;
 
-        _pluggedClasses[symbol.Name] = new PlugInfo(false, plugClass);
+        _pluggedClasses[symbol.Name] = new PlugInfo(true, plugClass);
         AnalyzePluggedClassMembers(plugClass, symbol, context);
     }
 
     private void AnalyzePluggedClassMembers(ClassDeclarationSyntax plugClass, INamedTypeSymbol symbol, SyntaxNodeAnalysisContext context)
     {
         IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary);
-        int unpluggedMethods = 0;
+        bool anyMethodNeedsPlug = false;
         PlugInfo entry = _pluggedClasses[symbol.Name];
 
         if (entry.MethodsNeedPlug)
@@ -209,7 +209,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             {
                 if (CheckIfNeedsPlug(method, plugClass))
                 {
-                    unpluggedMethods++;
+                    anyMethodNeedsPlug = true;
                     ImmutableDictionary<string, string?> diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                     {
                         new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
@@ -224,9 +224,10 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
+            _pluggedClasses[symbol.Name] = entry with { MethodsNeedPlug = anyMethodNeedsPlug };
+
         }
 
-        _pluggedClasses[symbol.Name] = entry with { MethodsNeedPlug = unpluggedMethods > 0 };
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
 
         foreach (MethodDeclarationSyntax unimplemented in plugClass.Members.OfType<MethodDeclarationSyntax>()
