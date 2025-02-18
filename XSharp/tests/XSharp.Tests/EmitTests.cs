@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Liquip.API.Attributes;
 using Liquip.API.Enum;
 using XSharp.Build.Tasks;
+using XSharp.X86;
 using XSharp.X86.Interfaces;
 using XSharp.X86.Steps.Maths;
 
@@ -29,7 +30,7 @@ public class EmitTests
     [XSharpMethod(Name = "Add", TargetPlatform = TargetPlatform.x86_64)]
     public static void Add(IX86 builder)
     {
-        builder.Add(X86.X86.EAX, 10);
+        builder.Add(X86.X86.EAX, Constant.From(10));
     }
 
     [XSharpMethod(Name = "AddX", TargetPlatform = TargetPlatform.x86_64)]

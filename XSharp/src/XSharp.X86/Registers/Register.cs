@@ -1,10 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using XSharp.Base.Interfaces;
+using XSharp.X86.Interfaces;
 
 namespace XSharp.X86.Registers;
 
-public class X86Register: IRegister<X86Registers, X86RegisterSize>
+public class X86Register: IRegister<X86Registers, X86RegisterSize>, IRegisterArg
 {
 
     public X86Register(X86Registers name, X86RegisterSize size)
@@ -48,6 +49,8 @@ public class X86Register: IRegister<X86Registers, X86RegisterSize>
     }
 
     public override string ToString() => Name.ToString();
+
+    public string Emit() => ToString();
 }
 
 public class X86InnerRegister : IInnerRegister<X86Registers, X86RegisterSize>

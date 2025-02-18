@@ -26,6 +26,11 @@ public class X86Pointer
             sb.Append(BaseRegister);
         }
 
+        if (BaseLabel != null)
+        {
+            sb.Append(BaseLabel);
+        }
+
         if (BaseVariable != null)
         {
             sb.Append(BaseVariable);

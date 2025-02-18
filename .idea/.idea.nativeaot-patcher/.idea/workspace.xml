@@ -13,14 +13,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="core of emitter done">
+    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/ConsoleApp1/ConsoleApp1.csproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/ConsoleApp1/Program.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/ControlFlow/Return.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Return.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Jump.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Jump.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/UnitTest1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/EmitTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.sln" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp.Build.Tasks/XSharpEmiter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp.Build.Tasks/XSharpEmiter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/ControlFlow/Group.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/Interfaces/IXSharp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.Base/Interfaces/IXSharp.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/XSharp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.Base/XSharp.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/ControlFlow/Group.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Registers/Register.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Registers/Register.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Group.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Group.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/If.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/If.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Pointer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Pointer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/EmitTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/EmitTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,9 +44,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/948f2c55be6b49179225f29cad6c1f11b2e000/5f/aa3dcd1f/INumber`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/948f2c55be6b49179225f29cad6c1f11b2e000/b1/aca96aca/NotNullWhenAttribute.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/46a322d26154b982566e1817203e5452c91223f93b0e392d9c5b4806696fdc1/Assert.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/tests/Liquip.Patcher.Analyzer.Test/AnalyzerTests.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/tests/Liquip.Tests/NativeWrapperTests.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -57,20 +62,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.ConsoleApp1.executor": "Debug",
-    "5c6209ce-05fb-4d56-889a-57b2dbbf34da.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "zarlo/XSharp/0",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Project.ConsoleApp1.executor&quot;: &quot;Debug&quot;,
+    &quot;5c6209ce-05fb-4d56-889a-57b2dbbf34da.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;zarlo/XSharp/0&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Project.ConsoleApp1">
     <configuration name="ConsoleApp1" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="$PROJECT_DIR$/XSharp/src/ConsoleApp1/bin/Debug/net8.0/ConsoleApp1" />
@@ -141,7 +146,8 @@
       <workItem from="1738835693494" duration="8234000" />
       <workItem from="1738983773860" duration="94000" />
       <workItem from="1739356954940" duration="2644000" />
-      <workItem from="1739600617802" duration="14083000" />
+      <workItem from="1739600617802" duration="16008000" />
+      <workItem from="1739826526466" duration="4355000" />
     </task>
     <task id="LOCAL-00001" summary="start of base of XSharp 3">
       <option name="closed" value="true" />
@@ -159,7 +165,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739606184242</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="add helpers">
+      <option name="closed" value="true" />
+      <created>1739662568761</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1739662568761</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,7 +184,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="start of base of XSharp 3" />
     <MESSAGE value="core of emitter done" />
-    <option name="LAST_COMMIT_MESSAGE" value="core of emitter done" />
+    <MESSAGE value="add helpers" />
+    <option name="LAST_COMMIT_MESSAGE" value="add helpers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -7,25 +7,13 @@ using XSharp.X86.Registers;
 namespace XSharp.X86.Steps.Maths;
 
 public static class AddStepEx {
-    public static IX86 Add(this IX86 self, X86Register a, X86Register b)
+
+
+    public static IX86 Add(this IX86 self, IAddressable a, IAddressableOrConsonant b)
     {
-        RegisterUtils.FitsInThrow(a, b);
-        self.Raw($"add {a}, {b}");
+        self.Raw($"add {IAddressable.DoEmit(a)}, {IAddressableOrConsonant.DoEmit(b)}");
         return self;
     }
 
-    public static IX86 Add(this IX86 self, X86Register a, X86Pointer b)
-    {
-
-        self.Raw($"add {a}, {b}");
-        return self;
-    }
-
-    public static IX86 Add(this IX86 self, X86Register a, int b)
-    {
-
-        self.Raw($"add {a}, {b}");
-        return self;
-    }
 
 }

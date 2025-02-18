@@ -8,7 +8,7 @@ public static class IfEx
     public static T If<T>(this T x86, JumpCondition condition, Action<IX86> actionTrue, Action<IX86> actionFalse)
         where T : IX86
     {
-        var baseLabel = LabelObject.New();
+        var baseLabel = x86.GetNext();
         var trueLabel = LabelObject.Get($"{baseLabel}__true");
         var falseLabel = LabelObject.Get($"{baseLabel}__false");
         var endLabel = LabelObject.Get($"{baseLabel}__end");
