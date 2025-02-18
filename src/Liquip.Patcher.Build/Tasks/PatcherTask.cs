@@ -6,11 +6,11 @@ namespace Liquip.Patcher.Build.Tasks
 {
     public class PatcherTask : ToolTask
     {
-        [Required] public string PatcherPath { get; set; }
+        [Required] public string? PatcherPath { get; set; }
 
-        [Required] public string TargetAssembly { get; set; }
+        [Required] public string? TargetAssembly { get; set; }
 
-        [Required] public ITaskItem[] PlugsReferences { get; set; }
+        [Required] public ITaskItem[]? PlugsReferences { get; set; }
 
         protected override string GenerateFullPathToTool() =>
             // Return Liquip.Patcher.exe path
@@ -18,7 +18,7 @@ namespace Liquip.Patcher.Build.Tasks
 
         protected override string GenerateCommandLineCommands()
         {
-            CommandLineBuilder builder = new CommandLineBuilder();
+            CommandLineBuilder builder = new();
 
             // Add main command
             builder.AppendSwitch("patch");

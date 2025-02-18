@@ -8,5 +8,5 @@ public class XSharpMethodAttribute : Attribute
     /// </summary>
     public string? Name { get; set; } = null;
 
-    public Task Plug { get; set; }
+    public Task? Plug { get; set; }
 }
