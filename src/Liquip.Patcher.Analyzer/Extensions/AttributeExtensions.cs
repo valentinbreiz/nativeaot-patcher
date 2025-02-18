@@ -44,7 +44,9 @@ public static class AttributeExtensions
     private static string? GetTypeFromTypeOf(TypeOfExpressionSyntax typeOf, SyntaxNodeAnalysisContext context)
     {
         var symbol = context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol as ITypeSymbol;
-        return symbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
+        return symbol is not null
+            ? $"{symbol.ContainingNamespace.Name}.{symbol.Name}, {symbol.ContainingAssembly.Name} "
+            : "Unknown";
     }
 
     private static T? ParseEnum<T>(string name)

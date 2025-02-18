@@ -143,7 +143,7 @@ namespace ConsoleApplication1
     }
 
     [Fact]
-    public async Task Test_StaticConstructorContainsParameters()
+    public async Task Test_StaticConstructorTooManyParameters()
     {
         const string code = """
 
@@ -174,7 +174,7 @@ namespace ConsoleApplication1
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
-        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.StaticConstructorContainsParameters.Id && d.GetMessage().Contains("CCtor"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.StaticConstructorTooManyParams.Id && d.GetMessage().Contains("CCtor"));
     }
 
     [Fact]

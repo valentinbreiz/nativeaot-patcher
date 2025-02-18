@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -48,5 +49,28 @@ public static class Extensions
             value = default;
             return false;
         }
+    }
+
+    public static Location GetFullMethodLocation(this MethodDeclarationSyntax method)
+    {
+        int start = method.Identifier.SpanStart;
+
+        int end;
+        if (method.Body != null)
+            end = method.Body.CloseBraceToken.Span.End;
+        else if (method.ExpressionBody != null)
+            end = method.ExpressionBody.Expression.Span.End;
+        else
+            end = method.ParameterList.Span.End;
+
+
+        TextSpan span = TextSpan.FromBounds(start, end);
+
+        SyntaxTree syntaxTree = method.SyntaxTree;
+        string filePath = syntaxTree.FilePath;
+
+        Location location = Location.Create(filePath, span, syntaxTree.GetLineSpan(span).Span);
+
+        return location;
     }
 }

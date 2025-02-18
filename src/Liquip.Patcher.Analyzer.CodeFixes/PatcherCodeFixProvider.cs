@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using ProjectInfo = Liquip.Patcher.Analyzer.CodeFixes.Models.ProjectInfo;
 
 namespace Liquip.Patcher.Analyzer.CodeFixes
@@ -33,7 +32,6 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
         {
             if (_currentPath != projectPath)
             {
-                DebugLogger.Log($"Project Path: {projectPath}");
                 _currentPath = projectPath;
                 _currentProject = ProjectInfo.From(XDocument.Load(_currentPath));
             }
@@ -51,7 +49,7 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
                 SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
                 switch (diagnostic.Id)
                 {
-                    case var id when id == DiagnosticMessages.StaticConstructorContainsParameters.Id:
+                    case var id when id == DiagnosticMessages.StaticConstructorTooManyParams.Id:
                         RegisterCodeFix(context, RemoveExtraParametersTitle, _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
                         break;
                     case var id when id == DiagnosticMessages.PlugNotStatic.Id:

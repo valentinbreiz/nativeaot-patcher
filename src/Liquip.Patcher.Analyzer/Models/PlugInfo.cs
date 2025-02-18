@@ -1,5 +1,5 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
 
 namespace Liquip.Patcher.Analyzer.Models;
 
-public record PlugInfo(bool NeedsValidation, bool IsExternal, ClassDeclarationSyntax Plug);
+public record PlugInfo(bool IsExternal, INamedTypeSymbol PlugSymbol);
