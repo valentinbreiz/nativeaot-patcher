@@ -1,14 +1,16 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Xml.Linq;
+using Liquip.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using ProjectInfo = Liquip.Patcher.Analyzer.CodeFixes.Models.ProjectInfo;
 
-namespace Liquip.Patcher.Analyzer
+namespace Liquip.Patcher.Analyzer.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider)), Shared]
     public class PatcherCodeFixProvider : CodeFixProvider
@@ -23,47 +25,39 @@ namespace Liquip.Patcher.Analyzer
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private string _currentPath = string.Empty;
-        private XDocument? CurrentProject { get; set; }
+        private string? _currentPath;
+        private ProjectInfo _currentProject;
 
-        private XDocument? LoadCurrentProject()
+        private ProjectInfo? LoadCurrentProject(string projectPath)
         {
-            if (!string.IsNullOrEmpty(_currentPath))
+            if (_currentPath != projectPath)
             {
-                return XDocument.Load(_currentPath);
+                _currentPath = projectPath;
+                _currentProject = ProjectInfo.From(XDocument.Load(_currentPath));
             }
-            return null;
+            return _currentProject;
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             if (root == null)
-            {
                 return;
-            }
-
-            if (_currentPath != context.Document.Project.FilePath)
-            {
-                _currentPath = context.Document.Project.FilePath!;
-                CurrentProject = LoadCurrentProject();
-            }
 
             foreach (Diagnostic diagnostic in context.Diagnostics.Where(d => d.Id.StartsWith(PatcherAnalyzer.AnalyzerDiagnosticId)))
             {
                 SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
-
                 switch (diagnostic.Id)
                 {
-                    case var id when id == DiagnosticMessages.StaticConstructorContainsParameters.Id:
-                        RegisterCodeFix(context, RemoveExtraParametersTitle, c => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
+                    case var id when id == DiagnosticMessages.StaticConstructorTooManyParams.Id:
+                        RegisterCodeFix(context, RemoveExtraParametersTitle, _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
                         break;
                     case var id when id == DiagnosticMessages.PlugNotStatic.Id:
                         RegisterCodeFix(context, MakeStaticModifierTitle, c => CodeActions.MakeClassStatic(context.Document, declaration, c), diagnostic);
                         break;
 
                     case var id when id == DiagnosticMessages.MethodNeedsPlug.Id:
-                        RegisterCodeFix(context, PlugMethodTitle, c => CodeActions.PlugMethod(context.Document, declaration, c, diagnostic, CurrentProject!), diagnostic);
+                        RegisterCodeFix(context, PlugMethodTitle, c => CodeActions.PlugMethod(context.Document, declaration, c, diagnostic, LoadCurrentProject(context.Document.Project.FilePath).Value), diagnostic);
                         break;
 
                     case var id when id == DiagnosticMessages.PlugNameDoesNotMatch.Id:
@@ -73,15 +67,14 @@ namespace Liquip.Patcher.Analyzer
             }
         }
 
-        private static void RegisterCodeFix(CodeFixContext context, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, Diagnostic diagnostic)
-        {
+        private static void RegisterCodeFix(CodeFixContext context, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, Diagnostic diagnostic) =>
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: title,
                     createChangedSolution: createChangedSolution,
                     equivalenceKey: title),
                 diagnostic);
-        }
+
     }
 
     internal static class CodeActions
@@ -93,38 +86,46 @@ namespace Liquip.Patcher.Analyzer
             DocumentEditor editor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             editor.ReplaceNode(methodDeclaration, methodDeclaration.WithParameterList(
                 methodDeclaration.ParameterList.WithParameters(
-                    SyntaxFactory.SeparatedList<ParameterSyntax>(methodDeclaration.ParameterList.Parameters.Where(p => p.Identifier.Text != "aThis")))));
+                    SyntaxFactory.SeparatedList(methodDeclaration.ParameterList.Parameters.Where(p => p.Identifier.Text != "aThis")))));
             return editor.GetChangedDocument().Project.Solution;
         }
 
         public static async Task<Solution> RenamePlug(Document document, SyntaxNode declaration, CancellationToken c, Diagnostic diagnostic)
         {
+
             if (declaration is not ClassDeclarationSyntax classDeclaration) return document.Project.Solution;
 
             if (!diagnostic.Properties.TryGetValue("ExpectedName", out string? expectedName)) return document.Project.Solution;
 
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
 
-            editor.ReplaceNode(classDeclaration, classDeclaration.WithIdentifier(SyntaxFactory.Identifier(expectedName!)));
+            editor.SetName(classDeclaration, expectedName);
             return editor.GetChangedDocument().Project.Solution;
         }
 
-        public static async Task<Solution> PlugMethod(Document document, SyntaxNode declaration, CancellationToken c, Diagnostic diagnostic, XDocument currentProject)
+        public static async Task<Solution> PlugMethod(Document document, SyntaxNode declaration, CancellationToken c, Diagnostic diagnostic, ProjectInfo currentProject)
         {
             SyntaxNode? root = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
             if (root == null || !diagnostic.Properties.TryGetValue("MethodName", out string? methodName) || !diagnostic.Properties.TryGetValue("ClassName", out string? className))
-            {
                 return document.Project.Solution;
-            }
 
-            MethodDeclarationSyntax plugMethod = CreatePlugMethod(methodName!);
+
+            DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
+            SyntaxGenerator syntaxGenerator = editor.Generator;
+
+            SyntaxNode plugMethod = syntaxGenerator.MethodDeclaration(methodName, [syntaxGenerator.ParameterDeclaration("aThis", syntaxGenerator.TypeExpression(SpecialType.System_Object), null)], null, null, Accessibility.Public, DeclarationModifiers.Static);
 
             if (declaration is ClassDeclarationSyntax classDeclaration)
             {
-                return await PlugMethodOnPlug((classDeclaration, document), plugMethod);
+                return await AddMethodToPlug((classDeclaration, document), plugMethod);
+            }
+            else if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
+            {
+                (ClassDeclarationSyntax PlugClass, Document Document)? plugInfo = await GetPlugClass(plugClassName, document, currentProject);
+                if (plugInfo == null) return document.Project.Solution;
+                return await AddMethodToPlug(plugInfo.Value, plugMethod);
             }
 
-            DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
             BaseNamespaceDeclarationSyntax? namespaceDeclaration = root
                     .ChildNodes()
                     .OfType<BaseNamespaceDeclarationSyntax>()
@@ -132,42 +133,13 @@ namespace Liquip.Patcher.Analyzer
 
             if (namespaceDeclaration == null) return document.Project.Solution;
 
-            if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
-            {
-                (ClassDeclarationSyntax PlugClass, Document Document)? plugInfo = await GetPlugClass(plugClassName, document, currentProject);
-                if (plugInfo == null) return document.Project.Solution;
-                return await PlugMethodOnPlug(plugInfo.Value, plugMethod);
-            }
+            SyntaxNode newPlug = syntaxGenerator.ClassDeclaration($"{className}Impl", null, Accessibility.Public, DeclarationModifiers.Static, null, null, [plugMethod]);
 
-            ClassDeclarationSyntax newPlug = SyntaxFactory.ClassDeclaration($"{className}Impl")
-                .AddAttributeLists(SyntaxFactory.AttributeList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Attribute(SyntaxFactory.ParseName("Plug"))
-                            .AddArgumentListArguments(
-                                SyntaxFactory.AttributeArgument(
-                                    SyntaxFactory.LiteralExpression(
-                                        SyntaxKind.StringLiteralExpression,
-                                        SyntaxFactory.Literal($"{namespaceDeclaration.Name}.{className}")))))))
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                .AddMembers(plugMethod);
-
-            editor.ReplaceNode(namespaceDeclaration, namespaceDeclaration.AddMembers(newPlug));
+            editor.AddMember(namespaceDeclaration, newPlug);
             return editor.GetChangedDocument().Project.Solution;
         }
 
-        private static MethodDeclarationSyntax CreatePlugMethod(string name)
-        {
-            return SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), name)
-                .WithBody(SyntaxFactory.Block())
-                .WithParameterList(
-                    SyntaxFactory.ParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(SyntaxFactory.ParseToken("instance"))
-                                .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))))
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-        }
-
-        private static async Task<(ClassDeclarationSyntax PlugClass, Document Document)?> GetPlugClass(string? plugClassName, Document document, XDocument currentProject)
+        private static async Task<(ClassDeclarationSyntax PlugClass, Document Document)?> GetPlugClass(string? plugClassName, Document document, ProjectInfo currentProject)
         {
             if (plugClassName == null) return null;
 
@@ -179,15 +151,9 @@ namespace Liquip.Patcher.Analyzer
                 .FirstOrDefault(c => c.Identifier.Text == plugClassName);
 
             if (plugClass != null)
-            {
                 return (plugClass, document);
-            }
 
-            IEnumerable<string> plugReferences = currentProject.Descendants("ItemGroup")
-                .Where(x => x.Name == "PlugsReference")
-                .Select(x => x.Attribute("Include")!.Value);
-
-            foreach (string reference in plugReferences)
+            foreach (string reference in currentProject.PlugReferences)
             {
                 Project? project = document.Project.Solution.Projects.FirstOrDefault(p => p.OutputFilePath == reference);
                 if (project == null) continue;
@@ -207,10 +173,10 @@ namespace Liquip.Patcher.Analyzer
             return null;
         }
 
-        private static async Task<Solution> PlugMethodOnPlug((ClassDeclarationSyntax PlugClass, Document Document) plugInfo, MethodDeclarationSyntax plugMethod)
+        private static async Task<Solution> AddMethodToPlug((ClassDeclarationSyntax PlugClass, Document Document) plugInfo, SyntaxNode plugMethod)
         {
             DocumentEditor editor = await DocumentEditor.CreateAsync(plugInfo.Document).ConfigureAwait(false);
-            editor.InsertAfter(plugInfo.PlugClass.Members.LastOrDefault()!, plugMethod);
+            editor.AddMember(plugInfo.PlugClass, plugMethod);
             return editor.GetChangedDocument().Project.Solution;
         }
 
@@ -218,9 +184,8 @@ namespace Liquip.Patcher.Analyzer
         {
             if (declaration is not ClassDeclarationSyntax classDeclaration) return document.Project.Solution;
 
-            classDeclaration = classDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
-            editor.ReplaceNode(declaration, classDeclaration);
+            editor.SetModifiers(classDeclaration, DeclarationModifiers.Static);
 
             return editor.GetChangedDocument().Project.Solution;
         }

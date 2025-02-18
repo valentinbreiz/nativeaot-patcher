@@ -1,0 +1,30 @@
+name: .NET Format
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  format:
+    name: Check Code Formatting
+    runs-on: ubuntu-latest 
+    strategy:
+      matrix:
+        dotnet-version: [ 8.0.x ]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Check Formatting
+        run: |
+          dotnet format --verify-no-changes --severity error || echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."
+
