@@ -46,4 +46,3 @@ public interface IFluentInterface
     [EditorBrowsable(EditorBrowsableState.Never)]
     bool Equals(object obj);
 }
-

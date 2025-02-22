@@ -12,15 +12,13 @@ public static class RegisterUtils
     /// <returns></returns>
     public static bool FitsIn<TName, TType>(IRegister<TName, TType> r, IRegister<TName, TType> register)
         where TName : Enum
-        where TType : Enum
-    {
-        return r.Equals(register) ||
-               r.InnerRegisters
-                   .Any(
-                       reg =>
-                           reg.Register.Equals(register)
-                   );
-    }
+        where TType : Enum =>
+        r.Equals(register) ||
+        r.InnerRegisters
+            .Any(
+                reg =>
+                    reg.Register.Equals(register)
+            );
 
     /// <summary>
     /// throws if the register fits in r
@@ -34,8 +32,9 @@ public static class RegisterUtils
         where TName : Enum
         where TType : Enum
     {
-        if(FitsIn(r, register)) throw new ArgumentException("the register cant task up the same space", nameof(register));
+        if (FitsIn(r, register))
+        {
+            throw new ArgumentException("the register cant task up the same space", nameof(register));
+        }
     }
-
 }
-

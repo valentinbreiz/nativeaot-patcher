@@ -1,4 +1,3 @@
-
 namespace XSharp.X86;
 
 /// <summary>
@@ -6,7 +5,6 @@ namespace XSharp.X86;
 /// </summary>
 public class X86Variable
 {
-
     public X86DataSize DataSize { get; init; }
     public string Name { get; init; }
 
@@ -43,17 +41,15 @@ public class X86Variable
         Data8Bit = data;
     }
 
-    public override string ToString()
-    {
-        return DataSize switch
+    public override string ToString() =>
+        DataSize switch
         {
-            X86DataSize.Byte =>  $"{Name} bb {Convert.ToHexString(Data8Bit)}",
-            X86DataSize.Word =>  $"{Name} wb {Convert.ToHexString(ToBytes(Data16Bit))}",
-            X86DataSize.DWord => $"{Name} db {Convert.ToHexString(ToBytes(Data32Bit))}",
-            X86DataSize.QWord => $"{Name} qb {Convert.ToHexString(ToBytes(Data64Bit))}",
+            X86DataSize.Byte => $"{Name} db {Convert.ToHexString(Data8Bit)}",
+            X86DataSize.Word => $"{Name} dw {Convert.ToHexString(ToBytes(Data16Bit))}",
+            X86DataSize.DWord => $"{Name} dw {Convert.ToHexString(ToBytes(Data32Bit))}",
+            X86DataSize.QWord => $"{Name} dw {Convert.ToHexString(ToBytes(Data64Bit))}",
             _ => throw new ArgumentOutOfRangeException()
         };
-    }
 
     private static byte[] ToBytes(ushort[] c)
     {
@@ -75,5 +71,4 @@ public class X86Variable
         Buffer.BlockCopy(c, 0, target, 0, c.Length * 4);
         return target;
     }
-
 }

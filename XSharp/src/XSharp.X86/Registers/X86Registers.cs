@@ -1,15 +1,40 @@
 // ReSharper disable InconsistentNaming
+
 namespace XSharp.X86.Registers;
 
 public enum X86Registers
 {
-    AH,AL,BH,BL,CH,CL,DH,DL,
+    AH,
+    AL,
+    BH,
+    BL,
+    CH,
+    CL,
+    DH,
+    DL,
 
-    AX,BX,CX,DX,
+    AX,
+    BX,
+    CX,
+    DX,
 
-    EAX,EBX,ECX,EDX,ESP,EBP,ESI,EDI,
+    EAX,
+    EBX,
+    ECX,
+    EDX,
+    ESP,
+    EBP,
+    ESI,
+    EDI,
 
-    RAX,RBX,RCX,RDX,RSP,RBP,RSI,RDI
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RSP,
+    RBP,
+    RSI,
+    RDI
 }
 
 public enum X86RegisterSize
@@ -22,4 +47,3 @@ public enum X86RegisterSize
     Bit256 = 256,
     Bit512 = 512
 }
-

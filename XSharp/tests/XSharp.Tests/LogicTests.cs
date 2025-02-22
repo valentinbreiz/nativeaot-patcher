@@ -41,7 +41,7 @@ public class LogicTests
         var xSharpString = xSharpBuilder.Build();
 
         Assert.That(xSharpString, Is.EqualTo(
-                "Add:\nadd EAX, 10\nret\nAddX:\nadd EAX, RBX\nret\n"
+                "je Auto_1__true\nAuto_1__false:\n; this is false\njum Auto_1__end\nAuto_1__true:\n\n; this is true\nAuto_1__end:\n\njc Auto_2__true\nAuto_2__false:\n; this is false\njum test__BreakLabel\njum Auto_2__end\nAuto_2__true:\n\n; this is true\nAuto_2__end:\n\ntest__BreakLabel:\nret\n"
             )
         );
 

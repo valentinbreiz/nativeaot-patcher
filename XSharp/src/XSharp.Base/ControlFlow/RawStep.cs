@@ -6,10 +6,7 @@ public class RawStep : IStep
 {
     private readonly string _label;
 
-    internal RawStep(string label)
-    {
-        _label = label;
-    }
+    internal RawStep(string label) => _label = label;
 
     public string Build() => _label;
 }
@@ -17,10 +14,9 @@ public class RawStep : IStep
 public static class RawStepEx
 {
     public static T Raw<T>(this T xs, string raw)
-    where T : IXSharp
+        where T : IXSharp
     {
         xs.Steps.Add(new RawStep(raw));
         return xs;
     }
-
 }

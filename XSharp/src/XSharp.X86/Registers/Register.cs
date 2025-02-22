@@ -5,9 +5,8 @@ using XSharp.X86.Interfaces;
 
 namespace XSharp.X86.Registers;
 
-public class X86Register: IRegister<X86Registers, X86RegisterSize>, IRegisterArg
+public class X86Register : IRegister<X86Registers, X86RegisterSize>, IRegisterArg
 {
-
     public X86Register(X86Registers name, X86RegisterSize size)
     {
         Name = name;
@@ -24,26 +23,27 @@ public class X86Register: IRegister<X86Registers, X86RegisterSize>, IRegisterArg
 
     public X86Registers Name { get; init; }
     public X86RegisterSize Size { get; init; }
-    public string RegisterSize {
-        get
+
+    public string RegisterSize =>
+        Size switch
         {
-            return Size switch
-            {
-                X86RegisterSize.Bit8 => "byte",
-                X86RegisterSize.Bit16 => "word",
-                X86RegisterSize.Bit32 => "dword",
-                X86RegisterSize.Bit64 => "qword",
-                X86RegisterSize.Bit128 or X86RegisterSize.Bit256 or X86RegisterSize.Bit512 =>
-                    throw new NotSupportedException("Unknown register size"),
-                _ => throw new NotSupportedException("Unknown register size")
-            };
-        }
-    }
+            X86RegisterSize.Bit8 => "byte",
+            X86RegisterSize.Bit16 => "word",
+            X86RegisterSize.Bit32 => "dword",
+            X86RegisterSize.Bit64 => "qword",
+            X86RegisterSize.Bit128 or X86RegisterSize.Bit256 or X86RegisterSize.Bit512 =>
+                throw new NotSupportedException("Unknown register size"),
+            _ => throw new NotSupportedException("Unknown register size")
+        };
+
     public List<IInnerRegister<X86Registers, X86RegisterSize>> InnerRegisters { get; init; }
 
     public override bool Equals(object? obj)
     {
-        if(obj is not X86Register register) return false;
+        if (obj is not X86Register register)
+        {
+            return false;
+        }
 
         return register.Size == Size && register.Name == Name;
     }
@@ -55,7 +55,6 @@ public class X86Register: IRegister<X86Registers, X86RegisterSize>, IRegisterArg
 
 public class X86InnerRegister : IInnerRegister<X86Registers, X86RegisterSize>
 {
-
     public X86InnerRegister(IRegister<X86Registers, X86RegisterSize> register, uint start, uint end)
     {
         Register = register;

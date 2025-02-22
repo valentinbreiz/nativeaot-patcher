@@ -13,19 +13,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="">
+    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="move to using interfaces so i dont need to make as many methods">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp.Build.Tasks/XSharpEmiter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp.Build.Tasks/XSharpEmiter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/ControlFlow/Group.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/Interfaces/IXSharp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.Base/Interfaces/IXSharp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Base/XSharp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.Base/XSharp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/ControlFlow/Group.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Registers/Register.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Registers/Register.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Group.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Group.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/If.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/If.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Pointer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Pointer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/EmitTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/EmitTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Group.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/AddStep.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/Steps/Maths/BaseStep.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Variable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.X86/X86Variable.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/LogicTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/LogicTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +40,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/948f2c55be6b49179225f29cad6c1f11b2e000/5f/aa3dcd1f/INumber`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/948f2c55be6b49179225f29cad6c1f11b2e000/b1/aca96aca/NotNullWhenAttribute.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/46a322d26154b982566e1817203e5452c91223f93b0e392d9c5b4806696fdc1/Assert.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/XSharp/tests/XSharp.Tests/LogicTests.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/tests/Liquip.Patcher.Analyzer.Test/AnalyzerTests.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/tests/Liquip.Tests/NativeWrapperTests.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -147,7 +141,10 @@
       <workItem from="1738983773860" duration="94000" />
       <workItem from="1739356954940" duration="2644000" />
       <workItem from="1739600617802" duration="16008000" />
-      <workItem from="1739826526466" duration="4355000" />
+      <workItem from="1739826526466" duration="7344000" />
+      <workItem from="1739873092245" duration="4462000" />
+      <workItem from="1740039535988" duration="1020000" />
+      <workItem from="1740124174124" duration="2031000" />
     </task>
     <task id="LOCAL-00001" summary="start of base of XSharp 3">
       <option name="closed" value="true" />
@@ -173,7 +170,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739662568761</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="move to using interfaces so i dont need to make as many methods">
+      <option name="closed" value="true" />
+      <created>1739869755555</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1739869755555</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -185,25 +190,7 @@
     <MESSAGE value="start of base of XSharp 3" />
     <MESSAGE value="core of emitter done" />
     <MESSAGE value="add helpers" />
-    <option name="LAST_COMMIT_MESSAGE" value="add helpers" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/XSharp/tests/XSharp.Tests/LogicTests.cs</url>
-          <line>42</line>
-          <properties documentPath="$PROJECT_DIR$/XSharp/tests/XSharp.Tests/LogicTests.cs" containingFunctionPresentation="Method 'Test'">
-            <startOffsets>
-              <option value="981" />
-            </startOffsets>
-            <endOffsets>
-              <option value="1112" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="move to using interfaces so i dont need to make as many methods" />
+    <option name="LAST_COMMIT_MESSAGE" value="move to using interfaces so i dont need to make as many methods" />
   </component>
 </project>

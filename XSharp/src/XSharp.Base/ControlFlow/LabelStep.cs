@@ -6,10 +6,7 @@ public class LabelStep : IStep
 {
     private readonly LabelObject _label;
 
-    internal LabelStep(LabelObject label)
-    {
-        _label = label;
-    }
+    internal LabelStep(LabelObject label) => _label = label;
 
     public string Build() => _label + ":";
 }
@@ -17,7 +14,7 @@ public class LabelStep : IStep
 public static class LabelStepEx
 {
     public static T Label<T>(this T xs, LabelObject label)
-    where T : IXSharp
+        where T : IXSharp
     {
         xs.Steps.Add(new LabelStep(label));
         return xs;
@@ -36,5 +33,4 @@ public static class LabelStepEx
         label = LabelObject.New();
         return xs.Label(label);
     }
-
 }

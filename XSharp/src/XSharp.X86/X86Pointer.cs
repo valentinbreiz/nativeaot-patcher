@@ -6,7 +6,6 @@ namespace XSharp.X86;
 
 public class X86Pointer
 {
-
     public LabelObject? BaseLabel;
 
     public X86Variable? BaseVariable;
@@ -18,7 +17,7 @@ public class X86Pointer
 
     public override string ToString()
     {
-        var sb = new StringBuilder();
+        StringBuilder sb = new();
         sb.Append('[');
 
         if (BaseRegister != null)
@@ -55,11 +54,10 @@ public class X86Pointer
     }
 }
 
-
 public enum X86DataSize
 {
     Byte,
     Word,
     DWord,
-    QWord,
+    QWord
 }

@@ -8,16 +8,15 @@ namespace XSharp.X86.Steps;
 public static class JumpEx
 {
     public static T Jump<T>(this T t, LabelObject label)
-    where T : IX86
+        where T : IX86
     {
         t.Raw($"jum {label}");
         return t;
     }
 
     public static T Jump<T>(this T t, LabelObject label, JumpCondition condition)
-        where T : IX86
-    {
-        return condition switch
+        where T : IX86 =>
+        condition switch
         {
             JumpCondition.Zero => t.Raw($"jz {label}"),
             JumpCondition.Equal => t.Raw($"je {label}"),
@@ -53,5 +52,4 @@ public static class JumpEx
             JumpCondition.NotBelowOrEqual => t.Raw($"jnbe {label}"),
             _ => throw new ArgumentOutOfRangeException(nameof(condition), condition, null)
         };
-    }
 }

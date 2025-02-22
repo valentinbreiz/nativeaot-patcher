@@ -36,6 +36,5 @@ public enum JumpCondition
     Below,
     NotBelow,
     BelowOrEqual,
-    NotBelowOrEqual,
-
+    NotBelowOrEqual
 }
