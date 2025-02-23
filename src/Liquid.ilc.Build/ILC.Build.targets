@@ -46,6 +46,10 @@
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
       <IlcArg Include="--nativelib"/>
+      <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
+      <IlcArg Include="@(RuntimeHostConfigurationOption->'--feature:%(Identity)=%(Value)')" />
+      <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
+
     </ItemGroup>
     
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
