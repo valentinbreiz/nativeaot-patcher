@@ -1,0 +1,33 @@
+<Project>
+  
+  <PropertyGroup>
+    <PatcherPath>$(MSBuildThisFileDirectory)..\Liquip.Patcher\bin\Debug\net8.0\Liquip.Patcher.exe</PatcherPath>
+    <PatcherBuildDll>$(MSBuildThisFileDirectory)..\Liquip.Patcher.Build\bin\Debug\netstandard2.0\Liquip.Patcher.Build.dll</PatcherBuildDll>
+    <PatchedAssembly/>
+    <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
+    <EnableAOT>true</EnableAOT>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Liquip.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
+  
+  <!-- Step 1: Patcher -->
+  <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
+    <PropertyGroup>
+      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)liquid\</PatcherOutputPath>
+      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(PatcherOutputPath)" />
+    <PatcherTask
+      PatcherPath="$(PatcherPath)"
+      TargetAssembly="$(OutputPath)$(AssemblyName).dll"
+      PlugsReferences="@(PlugRef)"
+      OutputPath="$(PatcherOutputPath)"/>
+
+    <Message Importance="High" Text="Liquip.Patcher successfully patched: '$(PatchedAssembly)'" />
+  </Target>
+</Project>
