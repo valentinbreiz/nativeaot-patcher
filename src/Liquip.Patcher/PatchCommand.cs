@@ -12,6 +12,10 @@ public class PatchCommand : Command<PatchCommand.Settings>
         [Description("Path to the target assembly.")]
         public string TargetAssembly { get; set; } = null!;
 
+        [CommandOption("--output <OUTPUT>")]
+        [Description("Output Path.")]
+        public string OutputPath { get; set; } = null!;
+
         [CommandOption("--plugs <PLUGS>")]
         [Description("Paths to plug assemblies.")]
         public string[] PlugsReferences { get; set; } = [];
@@ -52,7 +56,7 @@ public class PatchCommand : Command<PatchCommand.Settings>
             PlugPatcher? plugPatcher = new(new PlugScanner());
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
-            string? outputPath = Path.Combine(Path.GetDirectoryName(settings.TargetAssembly)!,
+            string? outputPath = Path.Combine(Path.GetDirectoryName(settings.OutputPath)!,
                 Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
 
             targetAssembly.Write(outputPath);

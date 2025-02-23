@@ -1,7 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj" />
   </ItemGroup>
 
+  <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets" />
+  <Import Project="..\..\src\Liquid.ilc.Build\ILC.Build.targets" />
 </Project>

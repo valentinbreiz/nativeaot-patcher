@@ -11,6 +11,7 @@ namespace Liquip.Patcher.Build.Tasks
         [Required] public string TargetAssembly { get; set; }
 
         [Required] public ITaskItem[] PlugsReferences { get; set; }
+        [Required] public string OutputPath { get; set; }
 
         protected override string GenerateFullPathToTool() =>
             // Return Liquip.Patcher.exe path
@@ -34,6 +35,10 @@ namespace Liquip.Patcher.Build.Tasks
                 builder.AppendFileNameIfNotNull(plug.ItemSpec);
             }
 
+            // Add --output arg
+            builder.AppendSwitch("--output");
+            builder.AppendFileNameIfNotNull(OutputPath);    
+
             return builder.ToString();
         }
 
@@ -42,6 +47,7 @@ namespace Liquip.Patcher.Build.Tasks
             Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
             Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
             Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
+            Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
             Log.LogMessage(MessageImportance.High,
                 $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
 

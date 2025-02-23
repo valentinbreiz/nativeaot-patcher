@@ -1,0 +1,83 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)\Build\ILC.Build.props"/>
+  <PropertyGroup>
+    <IlcUseNativeAOTRuntimePackLayout>true</IlcUseNativeAOTRuntimePackLayout>
+    <IlcOutputFileExt>.obj</IlcOutputFileExt>
+    <InputPath>$(IntermediateOutputPath)liquid\</InputPath>
+    <IlcIntermediateOutputPath Condition="$(IlcIntermediateOutputPath) == ''">$(InputPath)\native\</IlcIntermediateOutputPath>
+    <CompileWithILCDependsOn>WriteILCRsp</CompileWithILCDependsOn>
+    <FinalAssembly>$(OutputPath)$(AssemblyName)_final.dll</FinalAssembly>
+  </PropertyGroup>
+  
+  <ItemDefinitionGroup>
+      <ManagedBinary> 
+        <RspFile>$(IlcIntermediateOutputPath)%(Filename).ilc.rsp</RspFile>
+        <OutputFile>$(IlcIntermediateOutputPath)%(Filename)$(IlcOutputFileExt)</OutputFile>
+        <MapFile>$(IlcIntermediateOutputPath)%(Filename).map</MapFile>
+        <LinkerRsp>$(IlcIntermediateOutputPath)%(Filename).link.rsp</LinkerRsp>
+      </ManagedBinary>
+  </ItemDefinitionGroup>
+  
+  <Target Name="LiquidILCSetupProperties" AfterTargets="RunPatcher">
+    <PropertyGroup>
+      <InputPath Condition="$(PatcherOutputPath) != ''">$(PatcherOutputPath)</InputPath>
+      <IlcIntermediateOutputPath Condition="$(IlcIntermediateOutputPath) == ''">$(InputPath)native\</IlcIntermediateOutputPath>
+      <IlcSdkPath Condition="'$(IlcSdkPath)' == ''">$(IlcHostPackagePath)\sdk\</IlcSdkPath>
+      <IlcFrameworkPath Condition="'$(IlcFrameworkPath)' == ''">$(IlcHostPackagePath)\framework\</IlcFrameworkPath>
+      <IlcToolsPath Condition="'$(IlcToolsPath)' == ''">$(IlcHostPackagePath)\tools\</IlcToolsPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <IlcCompileInput Include="$(InputPath)*.dll"/>
+      <PatchedAssembly Condition="$(PatchedAssembly) == ''" Include="$(InputPath)$(AssemblyName)_patched.dll"/>
+      <PrivateSdkAssemblies Include="$(IlcSdkPath)*.dll"/>
+      <FrameworkAssemblies Include="$(IlcFrameworkPath)*.dll" Exclude="$(IlcFrameworkPath)*.Native.dll;$(IlcFrameworkPath)msquic.dll" />
+
+      <ManagedBinary Include="$(PatchedAssembly)"/>
+
+    </ItemGroup>
+  </Target>
+
+  <Target Name="WriteILCRsp" AfterTargets="LiquidILCSetupProperties" Outputs="%(ManagedBinary.RspFile)">
+    <ItemGroup>
+      <IlcArg Include="@(IlcCompileInput)" />
+      <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
+      <IlcArg Include="@(PrivateSdkAssemblies->'-r:%(Identity)')" />
+      <IlcArg Include="-g" />
+      <IlcArg Include="-O" />
+      <IlcArg Include="--nativelib"/>
+    </ItemGroup>
+    
+    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
+    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <Target Name="WriteLinkerRsp" AfterTargets="LiquidILCSetupProperties" Outputs="%(ManagedBinary.LinkerRsp)">
+    <ItemGroup>
+      <LinkArg Include="&quot;%(ManagedBinary.OutputFile)&quot;" />
+      <LinkArg Include="/debug" />
+      <LinkArg Include="/subsystem:console" />
+      <LinkArg Include="/incremental:no" />
+      <LinkArg Include="/NOLOGO"/>
+      <LinkArg Include="/DLL" />
+      <LinkArg Include="/MANIFEST:NO" />
+      <LinkArg Include="/out:&quot;$(FinalAssembly)&quot;" />
+    </ItemGroup>
+    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
+    <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+  
+  <Target Name="CompileWithILC" AfterTargets="RunPatcher" Condition="'$(EnableAOT)' == 'true'">
+    <Exec Command="&quot;$(IlcToolsPath)\ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+          EnvironmentVariables="$(_IlcEnvironmentVariables)" />
+    <Message Importance="High" Text="ILC compiled to native object file: %(ManagedBinary.OutputFile)" />
+  </Target>
+
+  
+  <Target Name="LinkWithLinker" AfterTargets="CompileWithILC" Condition="'$(EnableAOT)' == 'true'">
+    <PropertyGroup>
+      <CppLinker>C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\bin\Hostx64\x64\link.exe</CppLinker>
+    </PropertyGroup>
+    <Exec Command="&quot;$(CppLinker)&quot; @&quot;%(ManagedBinary.LinkerRsp)&quot;"/>
+  </Target>
+</Project>
