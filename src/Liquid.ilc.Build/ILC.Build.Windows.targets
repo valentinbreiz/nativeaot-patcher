@@ -1,0 +1,39 @@
+<Project>
+  <PropertyGroup>
+    <LinkerParamsDependsOn>LiquidILCSetupProperties</LinkerParamsDependsOn>
+  </PropertyGroup>
+  <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
+    <!-- Windows Configuration -->
+    <ItemGroup>
+      <!-- Library Directories -->
+      <LinkArg Include="/LIBPATH:&quot;$(IlcSdkPath)&quot;" />
+      <LinkArg Include="/LIBPATH:&quot;$(IlcFrameworkPath)&quot;" />
+      <!-- NativeAOT Components -->
+      <LinkArg Include="bootstrapperdll.obj" />
+      <LinkArg Include="Runtime.WorkstationGC.lib" />
+      <LinkArg Include="eventpipe-disabled.lib" />
+      <LinkArg Include="stdc++compat.lib" />
+      <LinkArg Include="System.Native.lib" />
+      <LinkArg Include="System.Globalization.Native.lib" />
+      <LinkArg Include="System.IO.Compression.Native.lib" />
+      <LinkArg Include="System.Net.Security.Native.lib" />
+      <LinkArg Include="System.Security.Cryptography.Native.lib" />
+      <!-- Linker Flags -->
+      <LinkArg Include="/DEBUG" />
+      <LinkArg Include="/DLL" />
+      <LinkArg Include="/NOLOGO" />
+      <LinkArg Include="/MANIFEST:NO" />
+      <LinkArg Include="/DYNAMICBASE" />
+      <LinkArg Include="/NXCOMPAT" />
+      <!-- System Libraries -->
+      <LinkArg Include="kernel32.lib" />
+      <LinkArg Include="user32.lib" />
+      <LinkArg Include="ole32.lib" />
+      <LinkArg Include="advapi32.lib" />
+      <LinkArg Include="bcrypt.lib" />
+      <LinkArg Include="crypt32.lib" />
+      <!-- Output -->
+      <LinkArg Include="/OUT:&quot;$(FinalAssembly).dll&quot;" />
+    </ItemGroup>
+  </Target>
+</Project>
