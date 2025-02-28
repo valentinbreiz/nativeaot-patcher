@@ -1,6 +1,8 @@
 <Project>
   <PropertyGroup>
     <LinkerParamsDependsOn>LiquidILCSetupProperties</LinkerParamsDependsOn>
+    <ExportsFileExt>.def</ExportsFileExt>
+    <IlcOutputFileExt>.obj</IlcOutputFileExt>
   </PropertyGroup>
   <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
     <!-- Windows Configuration -->
