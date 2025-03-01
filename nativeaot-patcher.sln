@@ -5,7 +5,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher", "src\Liquip.Patcher\Liquip.Patcher.csproj", "{BFE3B3A6-C530-41CC-B5F6-E1EA50B76173}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Aot.Asm", "src\Liquip.Aot.Asm\Liquip.Aot.Asm.csproj", "{D2B9C128-E020-4F6E-959D-EE4A0EB4EF95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build", "src\Liquip.Asm.Build\Liquip.Asm.Build.csproj", "{D2B9C128-E020-4F6E-959D-EE4A0EB4EF95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.API", "src\Liquip.API\Liquip.API.csproj", "{5544B160-9D32-42A8-8EC3-D3DDC72D0FF7}"
 EndProject
@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Tes
 EndProject
 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{4E2E1B0F-900C-4DAC-877E-17541E35D5E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build.Windows", "src\Liquip.Asm.Build.Windows\Liquip.Asm.Build.Windows.csproj", "{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}"
 EndProject
 Global
 				GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -202,6 +204,18 @@ Global
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Release|x64.Build.0 = Release|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Release|x86.ActiveCfg = Release|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Release|x86.Build.0 = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|x64.ActiveCfg = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|x64.Build.0 = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|x86.ActiveCfg = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Debug|x86.Build.0 = Debug|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|Any CPU.Build.0 = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x64.ActiveCfg = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x64.Build.0 = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x86.ActiveCfg = Release|Any CPU
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x86.Build.0 = Release|Any CPU
 				EndGlobalSection
 				GlobalSection(SolutionProperties) = preSolution
 								HideSolutionNode = FALSE
@@ -217,5 +231,6 @@ Global
 		{7B8F6265-C9FE-4E0C-813E-57068922732B} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 		{2DA86403-E320-4B78-A287-63F29D964803} = {7B8F6265-C9FE-4E0C-813E-57068922732B}
 								{D2B9C128-E020-4F6E-959D-EE4A0EB4EF95} = {C42A0E56-F643-4D59-AB26-F580FAC60E01}
+					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F} = {C42A0E56-F643-4D59-AB26-F580FAC60E01}
 				EndGlobalSection
 EndGlobal
