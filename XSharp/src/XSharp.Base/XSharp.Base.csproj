@@ -1,5 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Liquip.API\Liquip.API.csproj"/>
-  </ItemGroup>
-</Project>
