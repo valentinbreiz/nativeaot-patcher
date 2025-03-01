@@ -10,6 +10,8 @@ public class X86 : Base.XSharp, IX86
     // ReSharper disable InconsistentNaming
     // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 
+    public static X86Register SP => new(X86Registers.ESP, X86RegisterSize.Bit8);
+
     public static X86Register AH => new(X86Registers.AH, X86RegisterSize.Bit8);
     public static X86Register AL => new(X86Registers.AL, X86RegisterSize.Bit8);
     public static X86Register AX => new(X86Registers.AX, X86RegisterSize.Bit16, new(AH, 0, 7), new(AL, 8, 15));

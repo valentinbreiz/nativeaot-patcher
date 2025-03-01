@@ -3,6 +3,8 @@ using XSharp.Base.ControlFlow;
 using XSharp.Base.Interfaces;
 using XSharp.X86.Interfaces;
 using XSharp.X86.Registers;
+// ReSharper disable UnusedMethodReturnValue.Global
+// ReSharper disable UnusedMember.Global
 
 namespace XSharp.X86.Steps.Maths;
 

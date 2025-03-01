@@ -10,7 +10,6 @@ public class Constant : IConstant
 
     public string Emit() => _value;
 
-
     public static Constant From(byte v) => new(Convert.ToHexString([v]));
     public static Constant From(short v) => new(v.ToString());
     public static Constant From(int v) => new(v.ToString());

@@ -39,6 +39,7 @@ public enum X86Registers
 
 public enum X86RegisterSize
 {
+    SP = 0,
     Bit8 = 8,
     Bit16 = 16,
     Bit32 = 32,
