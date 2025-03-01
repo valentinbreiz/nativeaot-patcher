@@ -1,8 +1,4 @@
 ﻿#if (UNITY_2017_1_OR_NEWER && UNITY_EDITOR) || !UNITY_2017_1_OR_NEWER
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
@@ -102,7 +98,7 @@ public static class MonoCecilExtensions
     /// <param name="typeSignature">The full or simple name of the type.</param>
     /// <param name="methodSignature">The full or simple name of the method.</param>
     /// <returns>The MethodDefinition object of the found method. Null if not found.</returns>
-    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature,
+    public static MethodDefinition? FindMethodOfType(this AssemblyDefinition assembly, string typeSignature,
         string methodSignature) =>
         // Find and return the method of the given type in the assembly.
         assembly.FindType(typeSignature)?.FindMethod(methodSignature);
@@ -745,7 +741,8 @@ public static class MonoCecilExtensions
         // Create a new MethodDefinition with the same properties as the original method.
         MethodDefinition? clonedMethod = new(method.Name, method.Attributes, method.ReturnType)
         {
-            ImplAttributes = method.ImplAttributes, SemanticsAttributes = method.SemanticsAttributes
+            ImplAttributes = method.ImplAttributes,
+            SemanticsAttributes = method.SemanticsAttributes
         };
 
         // Add all overides from the original method to the cloned method (references).

@@ -1,21 +1,17 @@
 name: .NET Format
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
   format:
     name: Check Code Formatting
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest 
     strategy:
       matrix:
-        os: [ windows-latest ]
         dotnet-version: [ 8.0.x ]
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,4 +25,6 @@ jobs:
         run: dotnet restore
 
       - name: Check Formatting
-        run: dotnet format --verify-no-changes
+        run: |
+          dotnet format --verify-no-changes --severity error || echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."
+

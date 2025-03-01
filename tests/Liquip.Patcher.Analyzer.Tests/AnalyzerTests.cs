@@ -14,7 +14,7 @@ public class AnalyzerTests
     private static readonly MetadataReference PlugAttributeReference = MetadataReference.CreateFromFile(typeof(PlugAttribute).Assembly.Location);
 
     private static SyntaxTree ParseCode(string code) => CSharpSyntaxTree.ParseText(code);
-    
+
 
     [Fact]
     public async Task Test_TypeNotFoundDiagnostic()
@@ -113,7 +113,7 @@ namespace ConsoleApplication1
     [Fact]
     public async Task Test_MethodNotImplemented()
     {
-        const string code = @"
+        const string code = """
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
         using Liquip.API.Attributes;
@@ -122,19 +122,20 @@ namespace ConsoleApplication1
         {
             public static class TestNativeType
             {
-                [DllImport(""example.dll"")]
+                [DllImport("example.dll")]
                 public static extern void ExternalMethod();
 
                 [MethodImpl(MethodImplOptions.InternalCall)]
                 public static extern void NativeMethod();
             }
 
-            [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
+            [Plug("ConsoleApplication1.TestNativeType", IsOptional = false)]
             public static class Test
             {
                 public static void NotImplemented() {}
             }
-        }";
+        }
+""";
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
@@ -142,9 +143,10 @@ namespace ConsoleApplication1
     }
 
     [Fact]
-    public async Task Test_StaticConstructorContainsParameters()
+    public async Task Test_StaticConstructorTooManyParameters()
     {
-        const string code = @"
+        const string code = """
+
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
         using Liquip.API.Attributes;
@@ -153,31 +155,33 @@ namespace ConsoleApplication1
         {
             public static class TestNativeType
             {
-                  [DllImport(""example.dll"")]
+                  [DllImport("example.dll")]
                 public static extern void ExternalMethod();
 
                 [MethodImpl(MethodImplOptions.InternalCall)]
                 public static extern void NativeMethod();
                 
-                static TestNativeType() => Console.WriteLine(""123"");
+                static TestNativeType() => Console.WriteLine("123");
             }
 
-            [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
+            [Plug("ConsoleApplication1.TestNativeType", IsOptional = false)]
             public static class Test
             {
                 public static void CCtor(object aThis, object param) => Console.WriteLine(param);
             }
-        }";
+        }
+""";
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
-        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.StaticConstructorContainsParameters.Id && d.GetMessage().Contains("CCtor"));
+        Assert.Contains(diagnostics, d => d.Id == DiagnosticMessages.StaticConstructorTooManyParams.Id && d.GetMessage().Contains("CCtor"));
     }
 
     [Fact]
     public async Task Test_StaticConstructorNotImplemented()
     {
-        const string code = @"
+        const string code = """
+
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
         using Liquip.API.Attributes;
@@ -186,19 +190,20 @@ namespace ConsoleApplication1
         {
             public static class TestNativeType
             {
-                  [DllImport(""example.dll"")]
+                  [DllImport("example.dll")]
                 public static extern void ExternalMethod();
 
                 [MethodImpl(MethodImplOptions.InternalCall)]
                 public static extern void NativeMethod();
                             }
 
-            [Plug(""ConsoleApplication1.TestNativeType"", IsOptional = false)]
+            [Plug("ConsoleApplication1.TestNativeType", IsOptional = false)]
             public static class Test
             {
                 public static void CCtor(object param, object the) => Console.WriteLine(param);
             }
-        }";
+        }
+""";
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 

@@ -1,20 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
+    <RootNamespace>Liquip.Patcher.Analyzer.CodeFixes</RootNamespace>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Polyfill">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
   </ItemGroup>
-
 </Project>
