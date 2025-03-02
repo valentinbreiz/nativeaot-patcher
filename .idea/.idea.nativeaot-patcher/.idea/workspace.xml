@@ -4,7 +4,6 @@
     <projectFile profileName="DebugRoslynSourceGenerator">Liquip.Aot.Asm.SourceGenerator/Liquip.Aot.Asm.SourceGenerator/Liquip.Aot.Asm.SourceGenerator.csproj</projectFile>
     <projectFile>Liquip.Patcher/Liquip.Patcher.csproj</projectFile>
     <projectFile profileName="DebugRoslynSourceGenerator">src/Liquip.Aot.Asm.SourceGenerator/Liquip.Aot.Asm.SourceGenerator.csproj</projectFile>
-    <projectFile>src/Liquip.Patcher.Analyzer.Vsix/Liquip.Patcher.Analyzer.Vsix.csproj</projectFile>
     <projectFile>src/Liquip.Patcher/Liquip.Patcher.csproj</projectFile>
     <projectFile>tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj</projectFile>
   </component>
@@ -22,7 +21,6 @@
       <change beforePath="$PROJECT_DIR$/src/Liquip.API/Liquip.API.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.API/Liquip.API.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Liquip.Aot.Asm.SourceGenerator/Liquip.Aot.Asm.SourceGenerator.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Aot.Asm.SourceGenerator/Liquip.Aot.Asm.SourceGenerator.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer.CodeFixes/Liquip.Patcher.Analyzer.CodeFixes.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer.CodeFixes/Liquip.Patcher.Analyzer.CodeFixes.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer.Vsix/Liquip.Patcher.Analyzer.Vsix.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer.Vsix/Liquip.Patcher.Analyzer.Vsix.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer/Liquip.Patcher.Analyzer.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Patcher.Analyzer/Liquip.Patcher.Analyzer.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Liquip.Patcher.Build/Build/Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Patcher.Build/Build/Build.props" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj" afterDir="false" />

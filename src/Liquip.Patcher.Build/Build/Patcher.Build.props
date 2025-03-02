@@ -7,7 +7,17 @@
                       GeneratePathProperty="true" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <PackageReference Include="Liquip.Patcher"
+                      Version="$(Version)"
+                      GeneratePathProperty="true" />
+  </ItemGroup>
+
   <PropertyGroup>
+    <LiquipPatcherAssembly
+      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
+    </LiquipPatcherAssembly>
     <LiquipPatcherAssembly
       Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
     </LiquipPatcherAssembly>
@@ -17,7 +27,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
-
+ 
   <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)"/>

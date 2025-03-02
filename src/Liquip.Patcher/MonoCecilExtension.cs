@@ -98,7 +98,7 @@ public static class MonoCecilExtensions
     /// <param name="typeSignature">The full or simple name of the type.</param>
     /// <param name="methodSignature">The full or simple name of the method.</param>
     /// <returns>The MethodDefinition object of the found method. Null if not found.</returns>
-    public static MethodDefinition FindMethodOfType(this AssemblyDefinition assembly, string typeSignature,
+    public static MethodDefinition? FindMethodOfType(this AssemblyDefinition assembly, string typeSignature,
         string methodSignature) =>
         // Find and return the method of the given type in the assembly.
         assembly.FindType(typeSignature)?.FindMethod(methodSignature);

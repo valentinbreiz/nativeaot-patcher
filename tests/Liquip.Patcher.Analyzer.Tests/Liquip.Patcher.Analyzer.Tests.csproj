@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" />
     <PackageReference Include="Microsoft.CodeAnalysis.CodeFix.Testing" />
@@ -14,13 +12,10 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="coverlet.collector" />
-
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj" />
     <ProjectReference Include="..\..\src\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj" />
     <ProjectReference Include="..\..\src\Liquip.Patcher.Analyzer.CodeFixes\Liquip.Patcher.Analyzer.CodeFixes.csproj" />
   </ItemGroup>
-
 </Project>
