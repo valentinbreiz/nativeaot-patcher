@@ -1,10 +1,19 @@
 <Project>
+  <ItemGroup>
+    <IlcArg Include="--directpinvoke:libSystem.Native" />
+    <IlcArg Include="--directpinvoke:libSystem.Globalization.Native" />
+    <IlcArg Include="--directpinvoke:libSystem.IO.Compression.Native" />
+    <IlcArg Include="--directpinvoke:libSystem.Net.Security.Native" />
+    <IlcArg Include="--directpinvoke:libSystem.Security.Cryptography.Native.OpenSsl" />
+  </ItemGroup>
+
   <PropertyGroup>
-    <LinkerParamsDependsOn>LiquidILCSetupProperties</LinkerParamsDependsOn>
+    <LinkerParamsDependsOn>LiquipILCSetupProperties</LinkerParamsDependsOn>
     <ExportsFileExt>.exports</ExportsFileExt>
     <IlcOutputFileExt>.o</IlcOutputFileExt>
+    <CppLinker>/usr/bin/ld</CppLinker>
   </PropertyGroup>
-  
+
   <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
     <!-- Unix Configuration -->
     <ItemGroup>
@@ -15,7 +24,7 @@
       <LinkArg Include="-gz=zlib" />
       <!-- 2. Exports -->
       <LinkArg Include="-Wl,--export-dynamic" />
-      <LinkArg Include="-Wl,--version-script=$(ExportsFile)" />
+      <LinkArg Include="-Wl,--version-script=%(ManagedBinary.ExportsFile)" />
 
       <!-- 3. Linker selection and optimization -->
       <LinkArg Include="-fuse-ld=bfd" />
@@ -51,7 +60,7 @@
       <LinkArg Include="-lz" />
       <LinkArg Include="-lrt" />
       <LinkArg Include="-lm" />
-      
+
       <!-- 11. Security hardening -->
       <LinkArg Include="-Wl,-z,relro" />
       <LinkArg Include="-Wl,-z,now" />

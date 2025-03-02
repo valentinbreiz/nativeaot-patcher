@@ -17,5 +17,5 @@
   </ItemGroup>
 
  <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets" />
-  <Import Project="..\..\src\Liquid.ilc.Build\ILC.Build.targets" />
+  <Import Project="..\..\src\Liquip.ilc.Build\ILC.Build.targets" />
 </Project>
