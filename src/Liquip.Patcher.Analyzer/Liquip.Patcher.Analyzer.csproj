@@ -4,9 +4,11 @@
     <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
     <OutputType>Library</OutputType>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>$(MSBuildProjectFile)</PackageId>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>

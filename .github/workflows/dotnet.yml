@@ -20,7 +20,7 @@ jobs:
         id: dotnet-setup
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       - name: Restore Dependencies
         run: dotnet restore nativeaot-patcher.sln
@@ -37,8 +37,8 @@ jobs:
         with:
           dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
 
-      - name: Build All Dependencies
-        run: dotnet build --configuration Debug --no-restore
+      - name: Build Project
+        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
@@ -61,8 +61,8 @@ jobs:
         with:
           dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
 
-      - name: Build All Dependencies
-        run: dotnet build --configuration Debug --no-restore
+      - name: Build Project
+        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-restore --configuration Debug 
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
