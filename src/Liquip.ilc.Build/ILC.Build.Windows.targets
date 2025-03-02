@@ -45,7 +45,7 @@
       <LinkArg Include="/OUT:&quot;$(FinalAssembly).dll&quot;" />
     </ItemGroup>
     
-    <Exec Command="python &quot;$(MSBuildThisFileDirectory)scripts\find_windows_linker.py&quot;" Outputs="$(CppLinker)" />
+    <Exec Command="python &quot;$(MSBuildThisFileDirectory)scripts/find_windows_linker.py&quot;" Outputs="$(CppLinker)" />
   </Target>
 
 </Project>

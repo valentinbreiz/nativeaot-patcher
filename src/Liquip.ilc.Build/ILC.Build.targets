@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)\Build\ILC.Build.props" />
+  <Import Project="$(MSBuildThisFileDirectory)/Build/ILC.Build.props" />
 
   <PropertyGroup>
     <CompileWithILCDependsOn>WriteILCRsp</CompileWithILCDependsOn>
@@ -8,14 +8,14 @@
 
   <Target Name="LiquipILCSetupProperties" AfterTargets="RunPatcher">
     <PropertyGroup>
-      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquid\native\</NativeOutputPath>
-      <InputPath>$(IntermediateOutputPath)liquid\</InputPath>
-      <IlcIntermediateOutputPath Condition="'$(IlcIntermediateOutputPath)'==''">$(InputPath)native\</IlcIntermediateOutputPath>
+      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquid/native/</NativeOutputPath>
+      <InputPath>$(IntermediateOutputPath)liquid/</InputPath>
+      <IlcIntermediateOutputPath Condition="'$(IlcIntermediateOutputPath)'==''">$(InputPath)native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)_final</FinalAssembly>
 
-      <IlcSdkPath Condition="'$(IlcSdkPath)'==''">$(IlcHostPackagePath)\sdk\</IlcSdkPath>
-      <IlcFrameworkPath Condition="'$(IlcFrameworkPath)'==''">$(IlcHostPackagePath)\framework\</IlcFrameworkPath>
-      <IlcToolsPath Condition="'$(IlcToolsPath)'==''">$(IlcHostPackagePath)\tools\</IlcToolsPath>
+      <IlcSdkPath Condition="'$(IlcSdkPath)'==''">$(IlcHostPackagePath)/sdk/</IlcSdkPath>
+      <IlcFrameworkPath Condition="'$(IlcFrameworkPath)'==''">$(IlcHostPackagePath)/framework/</IlcFrameworkPath>
+      <IlcToolsPath Condition="'$(IlcToolsPath)'==''">$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -52,8 +52,8 @@
   </Target>
 
   <!-- Import platform-specific build targets -->
-  <Import Project="$(MSBuildThisFileDirectory)\ILC.Build.Windows.targets" Condition="'$(OS)'=='Windows_NT'" />
-  <Import Project="$(MSBuildThisFileDirectory)\ILC.Build.Unix.targets" Condition="'$(OS)'!='Windows_NT'" />
+  <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Windows.targets" Condition="'$(OS)'=='Windows_NT'" />
+  <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Unix.targets" Condition="'$(OS)'!='Windows_NT'" />
 
   <Target Name="LogProperties" AfterTargets="LiquipILCSetupProperties">
     <Message Importance="High" Text="OS: $(OS)" />
@@ -101,7 +101,7 @@
 
   <!-- Compile with ILC -->
   <Target Name="CompileWithILC" DependsOnTargets="WriteILCRsp" AfterTargets="RunPatcher" Condition="'$(EnableAOT)'=='true'">
-    <Exec Command="&quot;$(IlcToolsPath)\ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;" EnvironmentVariables="$(_IlcEnvironmentVariables)" />
+    <Exec Command="&quot;$(IlcToolsPath)/ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;" EnvironmentVariables="$(_IlcEnvironmentVariables)" />
     <Message Importance="High" Text="ILC compiled to native object file: %(ManagedBinary.OutputFile)" />
   </Target>
 
