@@ -35,8 +35,6 @@ public sealed class DiagnosticMessages
         description: "Ensure that the plug is static if it only contains static members."
     );
 
-
-
     public static readonly DiagnosticDescriptor PlugNameDoesNotMatch = new(
     id: "NAOT0004",
     title: "Plug Name Does Not Match",
@@ -57,15 +55,17 @@ public sealed class DiagnosticMessages
         description: "Ensure that the method name is correct and that the method exists."
     );
 
-    public static readonly DiagnosticDescriptor StaticConstructorContainsParameters = new(
-      id: "NAOT0006",
-      title: "Static Constructor Should Not Have Parameters",
-      messageFormat: "The static constructor {0} can not contain parameters",
-      category: "Usage",
-      defaultSeverity: DiagnosticSeverity.Error,
-      isEnabledByDefault: true,
-      description: "Static constructors cannot have parameters. Ensure the static constructor is parameterless to comply with usage guidelines."
-  );
 
-    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound, MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorContainsParameters);
+    public static readonly DiagnosticDescriptor StaticConstructorTooManyParams = new(
+        id: "NAOT0006",
+        title: "Static Constructor Has Too Many Parameters",
+        messageFormat: "The static constructor '{0}' contains too many parameters. A static constructor must not have more than one parameter.",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "A static constructor should have at most one parameter."
+    );
+
+
+    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound, MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
 }

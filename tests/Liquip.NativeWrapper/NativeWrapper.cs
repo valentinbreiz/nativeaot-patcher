@@ -10,15 +10,15 @@ public class TestClass
     // public static extern int OutputDebugString(string lpOutputString);
 
     [DllImport("LiquipNativeLibrary.so", EntryPoint = "Add", CallingConvention = CallingConvention.Cdecl)]
-    [return:MarshalAs(UnmanagedType.I4)]
+    [return: MarshalAs(UnmanagedType.I4)]
     public static extern int Add(int a, int b);
-    
-    
+
+
     [UnmanagedCallersOnly(EntryPoint = "Native_Add", CallConvs = [typeof(CallConvCdecl)])]
     public static int NativeAdd(int a, int b)
     {
         // _ = OutputDebugString("NativeAdd method called");
-        return Add(a,b);
+        return Add(a, b);
     }
 
     public static int ManagedAdd(int a, int b)

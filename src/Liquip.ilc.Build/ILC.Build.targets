@@ -60,7 +60,7 @@
     <Message Importance="High" Text="InputPath: $(InputPath)" />
     <Message Importance="High" Text="IlcHostPackagePath: $(IlcHostPackagePath)" />
     <Message Importance="High" Text="IlcCompileInput: @(IlcCompileInput)" />
-    <Message Importance="High" Text="ManagedBinary: @(ManagedBinary.RspFile)" />
+    <Message Importance="High" Text="ManagedBinary: @(ManagedBinary)" />
     <Message Importance="High" Text="RuntimeIdentifier: $(RuntimeIdentifier)" />
     <Message Importance="High" Text="IlcIntermediateOutputPath: $(IlcIntermediateOutputPath)" />
     <Message Importance="High" Text="IlcSdkPath: $(IlcSdkPath)" />
