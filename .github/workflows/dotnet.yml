@@ -9,7 +9,7 @@ on:
 jobs:
   setup:
     name: Setup .NET and Restore Dependencies
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     outputs:
       dotnet-version: ${{ steps.dotnet-setup.outputs.dotnet-version }}
     steps:
@@ -22,11 +22,14 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Clean Solution
+        run: dotnet clean nativeaot-patcher.sln
+
       - name: Restore Dependencies
         run: dotnet restore nativeaot-patcher.sln
   patcher-tests:
     name: Run Liquip.Patcher.Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: setup
     steps:
       - name: Checkout Code
@@ -37,7 +40,7 @@ jobs:
         with:
           dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
 
-      - name: Build Project
+      - name: Build Liquip.Patcher.Tests
         run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
@@ -50,7 +53,7 @@ jobs:
           path: ./tests/Liquip.Patcher.Tests/TestResults/Liquip.Patcher.Tests.trx
   scanner-tests:
     name: Run Liquip.Scanner.Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: setup
     steps:
       - name: Checkout Code
@@ -61,7 +64,7 @@ jobs:
         with:
           dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
 
-      - name: Build Project
+      - name: Build Liquip.Scanner.Tests
         run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-restore --configuration Debug 
 
       - name: Run Tests
@@ -74,7 +77,7 @@ jobs:
           path: ./tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
   analyzer-tests:
     name: Run Liquip.Patcher.Analyzer.Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: setup
     steps:
       - name: Checkout Code
