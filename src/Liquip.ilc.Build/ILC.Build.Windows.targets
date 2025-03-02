@@ -1,15 +1,19 @@
-<Project>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LinkerParamsDependsOn>LiquidILCSetupProperties</LinkerParamsDependsOn>
+    <LinkerParamsDependsOn>LiquipILCSetupProperties</LinkerParamsDependsOn>
     <ExportsFileExt>.def</ExportsFileExt>
     <IlcOutputFileExt>.obj</IlcOutputFileExt>
   </PropertyGroup>
+
+
   <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
     <!-- Windows Configuration -->
     <ItemGroup>
+
       <!-- Library Directories -->
       <LinkArg Include="/LIBPATH:&quot;$(IlcSdkPath)&quot;" />
       <LinkArg Include="/LIBPATH:&quot;$(IlcFrameworkPath)&quot;" />
+
       <!-- NativeAOT Components -->
       <LinkArg Include="bootstrapperdll.obj" />
       <LinkArg Include="Runtime.WorkstationGC.lib" />
@@ -20,6 +24,7 @@
       <LinkArg Include="System.IO.Compression.Native.lib" />
       <LinkArg Include="System.Net.Security.Native.lib" />
       <LinkArg Include="System.Security.Cryptography.Native.lib" />
+
       <!-- Linker Flags -->
       <LinkArg Include="/DEBUG" />
       <LinkArg Include="/DLL" />
@@ -27,6 +32,7 @@
       <LinkArg Include="/MANIFEST:NO" />
       <LinkArg Include="/DYNAMICBASE" />
       <LinkArg Include="/NXCOMPAT" />
+
       <!-- System Libraries -->
       <LinkArg Include="kernel32.lib" />
       <LinkArg Include="user32.lib" />
@@ -34,8 +40,12 @@
       <LinkArg Include="advapi32.lib" />
       <LinkArg Include="bcrypt.lib" />
       <LinkArg Include="crypt32.lib" />
+
       <!-- Output -->
       <LinkArg Include="/OUT:&quot;$(FinalAssembly).dll&quot;" />
     </ItemGroup>
+    
+    <Exec Command="python &quot;$(MSBuildThisFileDirectory)scripts\find_windows_linker.py&quot;" Outputs="$(CppLinker)" />
   </Target>
+
 </Project>

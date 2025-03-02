@@ -38,7 +38,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{4E2E1B0F-900C-4DAC-877E-17541E35D5E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquid.ilc.Build", "src\Liquid.ilc.Build\Liquid.ilc.Build.csproj", "{6C5994EA-A9B6-4417-9F31-407FBA96905A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.ilc.Build", "src\Liquip.ilc.Build\Liquip.ilc.Build.csproj", "{6C5994EA-A9B6-4417-9F31-407FBA96905A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

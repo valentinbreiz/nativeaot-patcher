@@ -7,7 +7,7 @@
 #if defined(_WIN32)
 #define PathToLibrary "../Liquip.NativeWrapper/Liquip.NativeWrapper_final.dll"
 #else
-#define PathToLibrary "../Liquip.NativeWrapper/Liquip.NativeWrapper_final.so"
+#define PathToLibrary "../Liquip.NativeWrapper/bin/Debug/net8.0/native/Liquip.NativeWrapper_final.so"
 #endif
 
 #ifdef _WIN32
