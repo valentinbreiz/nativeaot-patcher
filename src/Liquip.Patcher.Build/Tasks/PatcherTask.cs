@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -10,8 +9,8 @@ namespace Liquip.Patcher.Build.Tasks
 
         [Required] public string? TargetAssembly { get; set; }
 
-        [Required] public required ITaskItem[] PlugsReferences { get; set; }
-        [Required] public required string OutputPath { get; set; }
+        [Required] public ITaskItem[] PlugsReferences { get; set; }
+        [Required] public string OutputPath { get; set; }
 
         protected override string GenerateFullPathToTool() =>
             // Return Liquip.Patcher.exe path

@@ -1,12 +1,10 @@
 <Project>
-
   <PropertyGroup>
     <PatcherBuildPath>$(MSBuildThisFileDirectory)..\Liquip.Patcher\bin\Debug\net8.0\Liquip.Patcher</PatcherBuildPath>
     <PatcherExtension Condition="'$(OS)' == 'Windows_NT'">.exe</PatcherExtension>
     <PatcherPath>$(PatcherBuildPath)$(PatcherExtension)</PatcherPath>
     <PatcherBuildDll>$(MSBuildThisFileDirectory)..\Liquip.Patcher.Build\bin\Debug\netstandard2.0\Liquip.Patcher.Build.dll</PatcherBuildDll>
     <PatchedAssembly/>
-    <ReferenceAssemblies />
     <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
     <EnableAOT>true</EnableAOT>
   </PropertyGroup>
