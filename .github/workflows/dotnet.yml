@@ -7,24 +7,6 @@ on:
     branches: ["main"]
 
 jobs:
-  setup:
-    name: Setup .NET and Restore Dependencies
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Clean Solution
-        run: dotnet clean nativeaot-patcher.sln
-
-      - name: Restore Dependencies
-        run: dotnet restore nativeaot-patcher.sln
-
   patcher-tests:
     name: Run Liquip.Patcher.Tests
     runs-on: windows-latest
