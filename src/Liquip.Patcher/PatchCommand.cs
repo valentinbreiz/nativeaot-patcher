@@ -40,7 +40,7 @@ public class PatchCommand : Command<PatchCommand.Settings>
 
         try
         {
-            AssemblyDefinition? targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
+            using AssemblyDefinition? targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
             Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
 
             AssemblyDefinition[]? plugAssemblies = plugPaths
