@@ -10,7 +10,6 @@ jobs:
   patcher-tests:
     name: Run Liquip.Patcher.Tests
     runs-on: windows-latest
-    needs: setup
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -38,7 +37,6 @@ jobs:
   scanner-tests:
     name: Run Liquip.Scanner.Tests
     runs-on: windows-latest
-    needs: setup
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -66,7 +64,6 @@ jobs:
   analyzer-tests:
     name: Run Liquip.Patcher.Analyzer.Tests
     runs-on: windows-latest
-    needs: setup
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
