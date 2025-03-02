@@ -10,14 +10,11 @@ jobs:
   setup:
     name: Setup .NET and Restore Dependencies
     runs-on: windows-latest
-    outputs:
-      dotnet-version: ${{ steps.dotnet-setup.outputs.dotnet-version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        id: dotnet-setup
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
@@ -27,6 +24,7 @@ jobs:
 
       - name: Restore Dependencies
         run: dotnet restore nativeaot-patcher.sln
+
   patcher-tests:
     name: Run Liquip.Patcher.Tests
     runs-on: windows-latest
@@ -38,7 +36,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
+          dotnet-version: "8.0.x"
+
+      - name: Restore Dependencies
+        run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
 
       - name: Build Liquip.Patcher.Tests
         run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
@@ -51,6 +52,7 @@ jobs:
         with:
           name: Liquip.Patcher.Tests-Results
           path: ./tests/Liquip.Patcher.Tests/TestResults/Liquip.Patcher.Tests.trx
+
   scanner-tests:
     name: Run Liquip.Scanner.Tests
     runs-on: windows-latest
@@ -62,10 +64,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
+          dotnet-version: "8.0.x"
+
+      - name: Restore Dependencies
+        run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
 
       - name: Build Liquip.Scanner.Tests
-        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-restore --configuration Debug 
+        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
@@ -75,6 +80,7 @@ jobs:
         with:
           name: Liquip.Scanner.Tests-Results
           path: ./tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
+
   analyzer-tests:
     name: Run Liquip.Patcher.Analyzer.Tests
     runs-on: windows-latest
@@ -86,7 +92,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ needs.setup.outputs.dotnet-version }}
+          dotnet-version: "8.0.x"
+
+      - name: Restore Dependencies
+        run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj
 
       - name: Build Liquip.Patcher.Analyzer.Tests
         run: dotnet build ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj --configuration Debug --no-restore
