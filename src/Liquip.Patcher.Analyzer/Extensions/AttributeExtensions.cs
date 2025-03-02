@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using Liquip.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -92,6 +90,4 @@ public static class AttributeExtensions
 
     private static T? ConvertEnum<T>(object value)
         => (T?)Enum.ToObject(typeof(T), value);
-
-
 }
