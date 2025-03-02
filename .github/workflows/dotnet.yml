@@ -2,9 +2,9 @@ name: .NET Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   patcher-tests:
@@ -13,8 +13,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        os: [ubuntu-latest]
+        dotnet-version: [8.0.x]
 
     steps:
       - name: Checkout Code
@@ -28,11 +28,8 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
 
-      - name: Clean build
-        run: dotnet clean ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
-
-      - name: Build Liquip.Patcher.Tests
-        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
+      - name: Build All Dependencies
+        run: dotnet build  --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
@@ -48,8 +45,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        os: [ubuntu-latest]
+        dotnet-version: [8.0.x]
 
     steps:
       - name: Checkout Code
@@ -63,11 +60,8 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
 
-      - name: Clean build
-        run: dotnet clean ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
-
-      - name: Build Liquip.Scanner.Tests
-        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
+      - name: Build All Dependencies
+        run: dotnet build  --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
@@ -83,8 +77,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        os: [ubuntu-latest]
+        dotnet-version: [8.0.x]
 
     steps:
       - name: Checkout Code
