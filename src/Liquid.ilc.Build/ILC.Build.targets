@@ -69,12 +69,17 @@
     <PropertyGroup>
       <ExportsFile>$(NativeIntermediateOutputPath)$(AssemblyName)$(ExportsFileExt)</ExportsFile>
     </PropertyGroup>
+
+    <ItemGroup>
+      <IlcReferences Include="@(ReferenceAssemblies)" />
+      <IlcReferences Include="@(PrivateSdkAssemblies)" />
+      <IlcReferences Include="@(FrameworkAssemblies)" />
+    </ItemGroup>
+    
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
-      <IlcArg Include="@(ReferenceAssemblies-> '-r:%(Identity)')" />
-      <IlcArg Include="@(PrivateSdkAssemblies->'-r:%(Identity)')" />
-      <IlcArg Include="@(FrameworkAssemblies->'-r:%(Identity)')" />
+      <IlcArg Include="@(IlcReferences-> '-r:%(Identity)')" />
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
       <IlcArg Include="--nativelib" />

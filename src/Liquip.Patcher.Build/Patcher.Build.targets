@@ -17,8 +17,7 @@
   <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
     <PropertyGroup>
       <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)liquid\</PatcherOutputPath>
-      <PatchedAssembly Condition="$(PatchedAssembly) == ''">
-        $(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
+      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
     </PropertyGroup>
 
     <ItemGroup>
