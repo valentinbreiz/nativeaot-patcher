@@ -5,9 +5,29 @@
     <IlcOutputFileExt>.obj</IlcOutputFileExt>
   </PropertyGroup>
 
-
   <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
     <!-- Windows Configuration -->
+    <PropertyGroup>
+      <!-- Find the ilc package directory from ILCompilerTargetsPath -->
+      <ILCompilerTargetsDirectory>$([System.IO.Path]::GetDirectoryName($(ILCompilerTargetsPath)))</ILCompilerTargetsDirectory>
+      <_targetArchitecture Condition="$(_targetArchitecture) == ''">x64</_targetArchitecture>
+    </PropertyGroup>
+    
+    <Exec Command="&quot;$(ILCompilerTargetsDirectory)\findvcvarsall.bat&quot; $(_targetArchitecture)"
+      IgnoreExitCode="true" ConsoleToMSBuild="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_FindVCVarsallOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_VCVarsAllFound" />
+    </Exec>
+
+    <ItemGroup Condition="'$(_VCVarsAllFound)' == '0'">
+      <AdditionalNativeLibraryDirectories Include="$(_FindVCVarsallOutput.Split(`#`)[1].Split(';'))" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(_VCVarsAllFound)' == '0'">
+      <_CppToolsDirectory>$(_FindVCVarsallOutput.Split(`#`)[0])</_CppToolsDirectory>
+      <CppLinker>$(_CppToolsDirectory)link.exe</CppLinker>
+      <CppLibCreator>$(_CppToolsDirectory)lib.exe</CppLibCreator>
+    </PropertyGroup>
     <ItemGroup>
 
       <!-- Library Directories -->
@@ -44,8 +64,6 @@
       <!-- Output -->
       <LinkArg Include="/OUT:&quot;$(FinalAssembly).dll&quot;" />
     </ItemGroup>
-    
-    <Exec Command="python &quot;$(MSBuildThisFileDirectory)scripts/find_windows_linker.py&quot;" Outputs="$(CppLinker)" />
-  </Target>
+</Target>
 
 </Project>
