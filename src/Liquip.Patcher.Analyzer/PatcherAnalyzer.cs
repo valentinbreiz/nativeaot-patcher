@@ -14,6 +14,7 @@ namespace Liquip.Patcher.Analyzer;
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
     public const string AnalyzerDiagnosticId = "NAOT";
+    
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
     private static readonly HashSet<string> _validExternals = [];
@@ -78,7 +79,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
 
         DebugLog($"[DEBUG] Checking accessed method {accessedMethod.Name} in class {classSymbol.Name}");
-
         if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo plugInfo))
         {
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
@@ -286,6 +286,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
+            
             if (entry.IsExternal && !anyMethodsNeedPlug)
                 _validExternals.Add(symbol.Name);
         }
