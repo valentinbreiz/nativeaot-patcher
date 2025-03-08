@@ -2,11 +2,12 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <LiquipFrameworkPath>$(IntermediateOutputPath)liquip-asm\</LiquipFrameworkPath>
+    <LiquipAsmFrameworkPath>$(IntermediateOutputPath)liquip-asm\</LiquipAsmFrameworkPath>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <YasmPath Condition="'$(YasmPath)' == '' OR !Exists('$(YasmPath)')">/usr/bin/yasm</YasmPath>
+    <LdPath Condition="'$(LdPath)' == '' OR !Exists('$(LdPath)')">/usr/bin/ld</LdPath>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,6 +17,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Liquip.Asm.Build.Tasks.YasmBuildTask" AssemblyFile="$(LiquipAsmTasksAssembly)"/>
+  <UsingTask TaskName="Liquip.Asm.Build.Tasks.LdTask" AssemblyFile="$(LiquipAsmTasksAssembly)"/>
 
 
 </Project>

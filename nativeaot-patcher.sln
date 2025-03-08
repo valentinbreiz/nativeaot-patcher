@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{4E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build.Windows", "src\Liquip.Asm.Build.Windows\Liquip.Asm.Build.Windows.csproj", "{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build.Test", "tests\Liquip.Asm.Build.Test\Liquip.Asm.Build.Test.csproj", "{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}"
+EndProject
 Global
 				GlobalSection(SolutionConfigurationPlatforms) = preSolution
 								Debug|Any CPU = Debug|Any CPU
@@ -216,6 +218,18 @@ Global
 					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x64.Build.0 = Release|Any CPU
 					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x86.ActiveCfg = Release|Any CPU
 					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}.Release|x86.Build.0 = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|x64.ActiveCfg = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|x64.Build.0 = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|x86.ActiveCfg = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Debug|x86.Build.0 = Debug|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|Any CPU.Build.0 = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|x64.ActiveCfg = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|x64.Build.0 = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|x86.ActiveCfg = Release|Any CPU
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}.Release|x86.Build.0 = Release|Any CPU
 				EndGlobalSection
 				GlobalSection(SolutionProperties) = preSolution
 								HideSolutionNode = FALSE
@@ -232,5 +246,6 @@ Global
 		{2DA86403-E320-4B78-A287-63F29D964803} = {7B8F6265-C9FE-4E0C-813E-57068922732B}
 								{D2B9C128-E020-4F6E-959D-EE4A0EB4EF95} = {C42A0E56-F643-4D59-AB26-F580FAC60E01}
 					{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F} = {C42A0E56-F643-4D59-AB26-F580FAC60E01}
+					{EE668E41-F03D-43FA-BE2B-F5E55626E3BA} = {E8477467-2571-4CD8-A4AF-48C89857AB48}
 				EndGlobalSection
 EndGlobal
