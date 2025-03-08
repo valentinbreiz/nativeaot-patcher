@@ -53,15 +53,15 @@ public static class Extensions
 
     public static Location GetFullMethodLocation(this MethodDeclarationSyntax method)
     {
-        int start = method.Identifier.SpanStart;
+        int start = method.GetFirstToken().SpanStart;
 
         int end;
         if (method.Body != null)
-            end = method.Body.CloseBraceToken.Span.End;
+            end = method.Body.CloseBraceToken.FullSpan.End;
         else if (method.ExpressionBody != null)
-            end = method.ExpressionBody.Expression.Span.End;
+            end = method.ExpressionBody.Expression.FullSpan.End;
         else
-            end = method.ParameterList.Span.End;
+            end = method.ParameterList.FullSpan.End;
 
 
         TextSpan span = TextSpan.FromBounds(start, end);

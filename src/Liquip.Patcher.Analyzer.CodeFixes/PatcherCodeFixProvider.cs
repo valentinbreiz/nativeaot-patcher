@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Xml.Linq;
-using Liquip.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,11 +14,6 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider)), Shared]
     public class PatcherCodeFixProvider : CodeFixProvider
     {
-        public const string MakeStaticModifierTitle = "Make class static";
-        public const string PlugMethodTitle = "Plug method";
-        public const string RenamePlugTitle = "Rename plug";
-        public const string RemoveExtraParametersTitle = "Remove extra parameters";
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds =>
             DiagnosticMessages.SupportedDiagnostics.Select(d => d.Id).ToImmutableArray();
 
@@ -50,19 +44,23 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
                 switch (diagnostic.Id)
                 {
                     case var id when id == DiagnosticMessages.StaticConstructorTooManyParams.Id:
-                        RegisterCodeFix(context, RemoveExtraParametersTitle, _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
+                        RegisterCodeFix(context, CodeActions.RemoveExtraParametersTitle, _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
                         break;
                     case var id when id == DiagnosticMessages.PlugNotStatic.Id:
-                        RegisterCodeFix(context, MakeStaticModifierTitle, c => CodeActions.MakeClassStatic(context.Document, declaration, c), diagnostic);
+                        RegisterCodeFix(context, CodeActions.MakeStaticModifierTitle, c => CodeActions.MakeClassStatic(context.Document, declaration, c), diagnostic);
                         break;
 
                     case var id when id == DiagnosticMessages.MethodNeedsPlug.Id:
-                        RegisterCodeFix(context, PlugMethodTitle, c => CodeActions.PlugMethod(context.Document, declaration, c, diagnostic, LoadCurrentProject(context.Document.Project.FilePath).Value), diagnostic);
+                        RegisterCodeFix(context, CodeActions.PlugMethodTitle, c => CodeActions.PlugMethod(context.Document, declaration, c, diagnostic, LoadCurrentProject(context.Document.Project.FilePath).Value), diagnostic);
                         break;
 
                     case var id when id == DiagnosticMessages.PlugNameDoesNotMatch.Id:
-                        RegisterCodeFix(context, RenamePlugTitle, c => CodeActions.RenamePlug(context.Document, declaration, c, diagnostic), diagnostic);
+                        RegisterCodeFix(context, CodeActions.RenamePlugTitle, c => CodeActions.RenamePlug(context.Document, declaration, c, diagnostic), diagnostic);
                         break;
+
+                        // case var id when id == DiagnosticMessages.MethodNotImplemented.Id:
+                        //     RegisterCodeFix(context, CodeActions.RemoveMethodTitle, c => CodeActions.RemoveMethod(context.Document, declaration, c, diagnostic), diagnostic);
+                        //   break;
                 }
             }
         }
@@ -79,6 +77,12 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
 
     internal static class CodeActions
     {
+        public const string MakeStaticModifierTitle = "Make class static";
+        public const string PlugMethodTitle = "Plug method";
+        public const string RenamePlugTitle = "Rename plug";
+        public const string RemoveExtraParametersTitle = "Remove extra parameters";
+        // public const string RemoveMethodTitle = "Remove method";
+
         public static async Task<Solution> RemoveExtraParameters(Document document, SyntaxNode declaration)
         {
             if (declaration is not MethodDeclarationSyntax methodDeclaration) return document.Project.Solution;
@@ -182,8 +186,7 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
 
         public static async Task<Solution> MakeClassStatic(Document document, SyntaxNode declaration, CancellationToken c)
         {
-            if (declaration is not ClassDeclarationSyntax classDeclaration) return document.Project.Solution;
-
+            ClassDeclarationSyntax classDeclaration = (ClassDeclarationSyntax)declaration;
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
             editor.SetModifiers(classDeclaration, DeclarationModifiers.Static);
 
