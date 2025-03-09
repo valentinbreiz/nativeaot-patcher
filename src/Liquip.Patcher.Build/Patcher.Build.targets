@@ -3,8 +3,7 @@
     <PatcherBuildPath>$(MSBuildThisFileDirectory)../Liquip.Patcher/bin/Debug/net8.0/Liquip.Patcher</PatcherBuildPath>
     <PatcherExtension Condition="'$(OS)' == 'Windows_NT'">.exe</PatcherExtension>
     <PatcherPath>$(PatcherBuildPath)$(PatcherExtension)</PatcherPath>
-    <PatcherBuildDll>
-      $(MSBuildThisFileDirectory)../Liquip.Patcher.Build/bin/$(Configuration)/netstandard2.0/Liquip.Patcher.Build.dll</PatcherBuildDll>
+    <PatcherBuildDll>$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Liquip.Patcher.Build.dll</PatcherBuildDll>
     <PatchedAssembly />
     <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
     <EnableAOT>true</EnableAOT>
@@ -12,8 +11,7 @@
 
   <UsingTask TaskName="Liquip.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
 
-
-  <Target Name="LogProperties" BeforeTargets="Build">
+  <Target Name="Log" BeforeTargets="BeforeBuild">
     <Message Importance="High" Text="MSBuildThisFileDirectory: '$(MSBuildThisFileDirectory)'" />
     <Message Importance="High" Text="Configuration: '$(Configuration)'" />
     <Message Importance="High" Text="OutputPath: '$(OutputPath)'" />
@@ -22,6 +20,7 @@
     <Message Importance="High" Text="PatcherPath: '$(PatcherPath)'" />
     <Message Importance="High" Text="PatcherOutputPath: '$(PatcherOutputPath)'" />
     <Message Importance="High" Text="PatchedAssembly: '$(PatchedAssembly)'" />
+    <Message Importance="High" Text="TargetFramework: '$(TargetFramework)'" />
   </Target>
 
 
