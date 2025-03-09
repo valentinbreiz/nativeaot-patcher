@@ -32,7 +32,7 @@ jobs:
         run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
 
       - name: Build Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher/Build.csproj
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
         
       - name: Build Liquip.Patcher.Tests
         run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
@@ -70,7 +70,7 @@ jobs:
         run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
 
       - name: Build Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher/Build.csproj
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
         
 
       - name: Build Liquip.Scanner.Tests
