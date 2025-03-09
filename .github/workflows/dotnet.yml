@@ -2,14 +2,20 @@ name: .NET Tests
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   patcher-tests:
     name: Run Liquip.Patcher.Tests
-    runs-on: windows-latest
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 8.0.x ]
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -17,10 +23,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+
+      - name: Build Liquip.Patcher.Build
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
 
       - name: Build Liquip.Patcher.Tests
         run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
@@ -36,7 +45,12 @@ jobs:
 
   scanner-tests:
     name: Run Liquip.Scanner.Tests
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 8.0.x ]
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -44,10 +58,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
+
+      - name: Build Liquip.Patcher.Build
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
 
       - name: Build Liquip.Scanner.Tests
         run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
@@ -63,7 +80,12 @@ jobs:
 
   analyzer-tests:
     name: Run Liquip.Patcher.Analyzer.Tests
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 8.0.x ]
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -71,7 +93,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj
