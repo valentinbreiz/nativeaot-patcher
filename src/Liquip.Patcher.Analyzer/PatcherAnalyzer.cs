@@ -14,6 +14,7 @@ namespace Liquip.Patcher.Analyzer;
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NAOT";
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
     private static readonly HashSet<string> _validExternals = [];
@@ -288,7 +289,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             }
             if (entry.IsExternal && !anyMethodsNeedPlug)
                 _validExternals.Add(symbol.Name);
-
         }
 
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
@@ -298,7 +298,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 unimplemented.Identifier.Text is not ("Ctor" or "CCtor") &&
                 !methods.Any(x => x.MethodKind == MethodKind.Ordinary && x.Name == unimplemented.Identifier.Text))
             {
-                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}");
+                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}, Location:{unimplemented.GetFullMethodLocation().GetLineSpan()}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),

@@ -31,5 +31,4 @@ public static class SyntaxNodeExtensions
             .FirstOrDefault()?.Identifier.ValueText,
         _ => null
     };
-
 }
