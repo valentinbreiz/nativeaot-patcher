@@ -28,8 +28,14 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
 
+      - name: Build Liquip.Patcher
+        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+
+      - name: Build Liquip.Patcher.Build
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+        
       - name: Build Liquip.Patcher.Tests
-        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug
+        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
@@ -60,8 +66,14 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
 
+      - name: Build Liquip.Patcher
+        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+
+      - name: Build Liquip.Patcher.Build
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+        
       - name: Build Liquip.Scanner.Tests
-        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug
+        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
         run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
