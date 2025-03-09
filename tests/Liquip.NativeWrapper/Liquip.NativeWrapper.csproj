@@ -10,12 +10,6 @@
     <ProjectReference Include="..\..\src\Liquip.API\Liquip.API.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\Liquip.NativeLibrary\output\LiquipNativeLibrary.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
- <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets" />
+  <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets" />
   <Import Project="..\..\src\Liquip.ilc.Build\ILC.Build.targets" />
 </Project>
