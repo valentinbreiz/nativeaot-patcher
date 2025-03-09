@@ -26,6 +26,7 @@ public sealed class PatcherTask : ToolTask
         // Add --target arg
         builder.AppendSwitch("--target");
         builder.AppendFileNameIfNotNull(TargetAssembly);
+        
 
         // Add plugs
         builder.AppendSwitch("--plugs");
