@@ -298,7 +298,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 unimplemented.Identifier.Text is not ("Ctor" or "CCtor") &&
                 !methods.Any(x => x.MethodKind == MethodKind.Ordinary && x.Name == unimplemented.Identifier.Text))
             {
-                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}, Location:{unimplemented.GetFullMethodLocation().GetLineSpan()}");
+                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),
