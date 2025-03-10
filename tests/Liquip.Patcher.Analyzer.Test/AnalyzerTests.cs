@@ -15,8 +15,6 @@ public class AnalyzerTestsTest
 
     private static readonly PatcherAnalyzer Analyzer = new();
 
-
-
     [Fact]
     public async Task Test_TypeNotFoundDiagnostic()
     {

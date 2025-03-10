@@ -1,0 +1,112 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)/Build/ILC.Build.props" />
+
+  <PropertyGroup>
+    <CompileWithILCDependsOn>WriteILCRsp</CompileWithILCDependsOn>
+    <IlcUseNativeAOTRuntimePackLayout>true</IlcUseNativeAOTRuntimePackLayout>
+  </PropertyGroup>
+
+  <Target Name="LiquipILCSetupProperties" AfterTargets="RunPatcher">
+    <PropertyGroup>
+      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquid/native/</NativeOutputPath>
+      <InputPath>$(IntermediateOutputPath)liquid/</InputPath>
+      <IlcIntermediateOutputPath Condition="'$(IlcIntermediateOutputPath)'==''">$(InputPath)native/</IlcIntermediateOutputPath>
+      <FinalAssembly>$(NativeOutputPath)$(AssemblyName)_final</FinalAssembly>
+
+      <IlcSdkPath Condition="'$(IlcSdkPath)'==''">$(IlcHostPackagePath)/sdk/</IlcSdkPath>
+      <IlcFrameworkPath Condition="'$(IlcFrameworkPath)'==''">$(IlcHostPackagePath)/framework/</IlcFrameworkPath>
+      <IlcToolsPath Condition="'$(IlcToolsPath)'==''">$(IlcHostPackagePath)/tools/</IlcToolsPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <IlcCompileInput Include="$(InputPath)*.dll" />
+      <PatchedAssembly Condition="'$(PatchedAssembly)'==''" Include="$(InputPath)$(AssemblyName)_patched.dll" />
+      <PrivateSdkAssemblies Include="$(IlcSdkPath)*.dll" />
+      <FrameworkAssemblies Include="$(IlcFrameworkPath)*.dll" Exclude="$(IlcFrameworkPath)*.Native.dll;$(IlcFrameworkPath)msquic.dll;$(IlcFrameworkPath)*Win32*.dll; $(IlcFrameworkPath)*VisualBasic*.dll;$(IlcFrameworkPath)mscorlib.dll;$(IlcFrameworkPath)*Windows*.dll" />
+      <ManagedBinary Include="$(PatchedAssembly)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ManagedBinary>
+        <RspFile>$(IlcIntermediateOutputPath)%(Filename).ilc.rsp</RspFile>
+        <OutputFile>$(IlcIntermediateOutputPath)%(Filename)$(IlcOutputFileExt)</OutputFile>
+        <MapFile>$(IlcIntermediateOutputPath)%(Filename).map</MapFile>
+        <LinkerRsp>$(IlcIntermediateOutputPath)%(Filename).link.rsp</LinkerRsp>
+        <ExportsFile>$(IlcIntermediateOutputPath)$(AssemblyName)$(ExportsFileExt)</ExportsFile>
+      </ManagedBinary>
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Object file argument -->
+      <LinkArg Include="&quot;%(ManagedBinary.OutputFile)&quot;" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
+    <MakeDir Directories="$(NativeOutputPath)" />
+  </Target>
+
+  <Target Name="GetReferenceAssemblies" AfterTargets="LiquipILCSetupProperties">
+    <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);BuildProjectReferences=false">
+      <Output TaskParameter="TargetOutputs" ItemName="ReferenceAssemblies" />
+    </MSBuild>
+  </Target>
+
+  <!-- Import platform-specific build targets -->
+  <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Windows.targets" Condition="'$(OS)'=='Windows_NT'" />
+  <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Unix.targets" Condition="'$(OS)'!='Windows_NT'" />
+
+  <Target Name="LogProperties" AfterTargets="LiquipILCSetupProperties">
+    <Message Importance="High" Text="OS: $(OS)" />
+    <Message Importance="High" Text="InputPath: $(InputPath)" />
+    <Message Importance="High" Text="IlcHostPackagePath: $(IlcHostPackagePath)" />
+    <Message Importance="High" Text="IlcCompileInput: @(IlcCompileInput)" />
+    <Message Importance="High" Text="ManagedBinary: @(ManagedBinary)" />
+    <Message Importance="High" Text="RuntimeIdentifier: $(RuntimeIdentifier)" />
+    <Message Importance="High" Text="IlcIntermediateOutputPath: $(IlcIntermediateOutputPath)" />
+    <Message Importance="High" Text="IlcSdkPath: $(IlcSdkPath)" />
+    <Message Importance="High" Text="IlcFrameworkPath: $(IlcFrameworkPath)" />
+    <Message Importance="High" Text="IlcToolsPath: $(IlcToolsPath)" />
+    <Message Importance="High" Text="FinalAssembly: $(FinalAssembly)" />
+    <Message Importance="High" Text="References: %(ReferenceAssemblies.Identity)" />
+    <Message Importance="High" Text="Native Output Path: $(NativeOutputPath)" />
+    <Message Importance="High" Text="Native Intermediate Path: $(NativeIntermediateOutputPath)" />
+  </Target>
+
+  <!-- Write ILC response file -->
+  <Target Name="WriteILCRsp" AfterTargets="LiquipILCSetupProperties" Outputs="%(ManagedBinary.RspFile)">
+    <ItemGroup>
+      <IlcArg Include="@(IlcCompileInput)" />
+      <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
+      <IlcArg Include="@(ReferenceAssemblies-> '-r:%(Identity)')" />
+      <IlcArg Include="@(PrivateSdkAssemblies->'-r:%(Identity)')" />
+      <IlcArg Include="@(FrameworkAssemblies->'-r:%(Identity)')" />
+      <IlcArg Include="-g" />
+      <IlcArg Include="-O" />
+      <IlcArg Include="--nativelib" />
+      <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
+      <IlcArg Include="@(RuntimeHostConfigurationOption->'--feature:%(Identity)=%(Value)')" />
+      <IlcArg Include="--exportsfile:%(ManagedBinary.ExportsFile)" />
+      <IlcArg Include="--generateunmanagedentrypoints:System.Private.CoreLib" />
+      <IlcArg Include="--export-dynamic-symbol:DotNetRuntimeDebugHeader" />
+      <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Condition="'$(DebuggerSupport)'!='true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
+    </ItemGroup>
+    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <!-- Write the Linker response file -->
+  <Target Name="WriteLinkerRsp" AfterTargets="LiquipILCSetupProperties" DependsOnTargets="SetLinkerParams" Outputs="%(ManagedBinary.LinkerRsp)">
+    <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" />
+  </Target>
+
+  <!-- Compile with ILC -->
+  <Target Name="CompileWithILC" DependsOnTargets="WriteILCRsp" AfterTargets="RunPatcher" Condition="'$(EnableAOT)'=='true'">
+    <Exec Command="&quot;$(IlcToolsPath)/ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;" EnvironmentVariables="$(_IlcEnvironmentVariables)" />
+    <Message Importance="High" Text="ILC compiled to native object file: %(ManagedBinary.OutputFile)" />
+  </Target>
+
+  <!-- Link with the linker -->
+  <Target Name="LinkWithLinker" AfterTargets="CompileWithILC" Condition="'$(EnableAOT)'=='true'">
+    <Exec Command="&quot;$(CppLinker)&quot; @&quot;%(ManagedBinary.LinkerRsp)&quot;" />
+  </Target>
+</Project>

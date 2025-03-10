@@ -13,8 +13,8 @@ namespace Liquip.Patcher.Analyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
-    public const string AnalyzerDiagnosticId = "NAOT";
-    
+    public const string DiagnosticId = "NAOT";
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
     private static readonly HashSet<string> _validExternals = [];
@@ -45,7 +45,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         SyntaxNode syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
         foreach (KeyValuePair<string, PlugInfo> kvp in pluggedClasses)
         {
-            if (!kvp.Value.PlugSymbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == context.Tree))
+            if (!kvp.Value.PluggedSymbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == context.Tree))
             {
                 pluggedClasses.TryRemove(kvp.Key, out _);
                 DebugLog($"[DEBUG] Removed {kvp.Key} from pluggedClasses due to missing syntax reference");
@@ -79,7 +79,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
 
         DebugLog($"[DEBUG] Checking accessed method {accessedMethod.Name} in class {classSymbol.Name}");
-        if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo plugInfo))
+
+        if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo? plugInfo))
         {
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
 
@@ -90,12 +91,12 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            if (CheckIfNeedsPlug(accessedMethod, plugInfo.PlugSymbol))
+            if (CheckIfNeedsPlug(accessedMethod, plugInfo.PluggedSymbol))
             {
                 DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {accessedMethod.Name}");
                 var properties = ImmutableDictionary.CreateRange(new[]
                 {
-                    new KeyValuePair<string, string?>("PlugClass", plugInfo.PlugSymbol.Name)
+                    new KeyValuePair<string, string?>("PlugClass", plugInfo.PluggedSymbol.Name)
                 });
 
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -172,13 +173,13 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         if (targetName.Contains(','))
         {
             DebugLog("[DEBUG] Splitting targetName with comma");
-            string[] statement = targetName!.Split(',');
+            string[] statement = targetName.Split(',');
             targetName = statement[0].Trim();
             assemblyName = statement.Last().Trim();
         }
 
         DebugLog($"[DEBUG] Looking for type {targetName} in assembly {assemblyName}");
-        INamedTypeSymbol? symbol = context.Compilation.GetTypeByMetadataName(targetName!);
+        INamedTypeSymbol? symbol = context.Compilation.GetTypeByMetadataName(targetName);
         bool existInAssembly = symbol != null ||
                                 context.Compilation.ExternalReferences.Any(x => x.Display != null && x.Display == assemblyName);
 
@@ -286,7 +287,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
-            
             if (entry.IsExternal && !anyMethodsNeedPlug)
                 _validExternals.Add(symbol.Name);
         }
@@ -298,7 +298,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 unimplemented.Identifier.Text is not ("Ctor" or "CCtor") &&
                 !methods.Any(x => x.MethodKind == MethodKind.Ordinary && x.Name == unimplemented.Identifier.Text))
             {
-                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}, Location:{unimplemented.GetFullMethodLocation().GetLineSpan()}");
+                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),
@@ -318,7 +318,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             if (!methods.Any(x => x.MethodKind == MethodKind.StaticConstructor))
             {
                 DebugLog("[DEBUG] Reporting missing static constructor");
-                DebugLog($"[DEBUG] Location:{cctor.GetFullMethodLocation()}, Span:{cctor.Span}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),
