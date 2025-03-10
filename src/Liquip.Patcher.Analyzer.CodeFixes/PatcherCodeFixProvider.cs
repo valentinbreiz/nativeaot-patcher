@@ -39,8 +39,10 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
             if (root == null)
                 return;
 
-            foreach (Diagnostic diagnostic in context.Diagnostics.Where(d => d.Id.StartsWith(PatcherAnalyzer.AnalyzerDiagnosticId)))
+            foreach (Diagnostic diagnostic in context.Diagnostics)
             {
+                if (!diagnostic.Id.StartsWith(PatcherAnalyzer.DiagnosticId)) continue;
+
                 SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
                 switch (diagnostic.Id)
                 {
@@ -168,11 +170,10 @@ namespace Liquip.Patcher.Analyzer.CodeFixes
                 if (symbol == null) continue;
 
                 SyntaxReference? syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (syntaxReference != null)
-                {
-                    SyntaxNode syntaxNode = await syntaxReference.GetSyntaxAsync().ConfigureAwait(false);
-                    return ((ClassDeclarationSyntax)syntaxNode, project.GetDocument(syntaxReference.SyntaxTree)!);
-                }
+                if (syntaxReference == null) continue;
+
+                SyntaxNode syntaxNode = await syntaxReference.GetSyntaxAsync().ConfigureAwait(false);
+                return ((ClassDeclarationSyntax)syntaxNode, project.GetDocument(syntaxReference.SyntaxTree)!);
             }
 
             return null;

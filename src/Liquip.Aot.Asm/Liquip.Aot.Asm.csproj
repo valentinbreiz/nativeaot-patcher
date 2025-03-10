@@ -3,7 +3,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="build\Liquip.Aot.Asm.props">
+    <None Update="build/Liquip.Aot.Asm.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
