@@ -151,7 +151,9 @@ jobs:
       - name: Build Liquip.NativeWrapper
         run: |
             dotnet build ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj --configuration Debug --no-restore
+            ls ./tests/Liquip.NativeWrapper/bin/Debug/net8.0/native
             ls ./tests/Liquip.NativeWrapper/bin/Debug/net8.0
+
 
       - name: Build Liquip.ilc.Tests
         run: make -B -C ./tests/Liquip.ilc.Tests/

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <unistd.h>
 #include "dlfcn.h"
 #include "glob.h"
@@ -26,7 +27,7 @@ int callNativeAdd(char *path, char *funcName, int a, int b);
 
 int main() {
     log_message("Starting the application...");
-
+    printf("Running from %s\n",std::filesystem::current_path().c_str());
     char* pathLibraryDir = "../Liquip.NativeWrapper/bin/Debug/net8.0/native";
     
     if (access(pathLibraryDir, F_OK) != 0) {
