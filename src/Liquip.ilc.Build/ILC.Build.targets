@@ -8,7 +8,7 @@
 
   <Target Name="LiquipILCSetupProperties" AfterTargets="RunPatcher">
     <PropertyGroup>
-      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquid/native/</NativeOutputPath>
+      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquip/native/</NativeOutputPath>
       <InputPath>$(IntermediateOutputPath)liquid/</InputPath>
       <IlcIntermediateOutputPath Condition="'$(IlcIntermediateOutputPath)'==''">$(InputPath)native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)_final</FinalAssembly>
