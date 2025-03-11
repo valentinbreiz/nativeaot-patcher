@@ -18,7 +18,6 @@
 #define F_OK 0
 #endif
 
-// Logging function to standard output
 void log_message(const char *message) { 
     printf("[LOG]: %s\n", message); 
 }
@@ -45,7 +44,6 @@ int main() {
         return EXIT_FAILURE;
     }
     
-    // Use the first matched .so file.
     char* pathToLibrary = glob_result.gl_pathv[0];
     printf("PathLibrary: %s\n", pathToLibrary);
     log_message("Attempting to call the native 'Native_Add' function...");
