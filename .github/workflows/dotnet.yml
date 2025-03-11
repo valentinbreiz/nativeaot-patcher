@@ -115,3 +115,39 @@ jobs:
         with:
           name: Liquip.Patcher.Analyzer.Tests-Results
           path: ./tests/Liquip.Patcher.Analyzer.Tests/TestResults/Liquip.Patcher.Analyzer.Tests.trx
+
+  ilc-tests:
+    name: Run Liquip.ilc.Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        dotnet-version: [ 8.0.x ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore Dependencies
+        run: dotnet restore ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj
+
+      - name: Build Liquip.Patcher
+        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+
+      - name: Build Liquip.Patcher.Build
+        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+
+      - name: Build Liquip.NativeWrapper
+        run: dotnet build ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj --configuration Debug --no-restore
+
+      - name: Build Liquip.ilc.Test
+        run: make ./tests/Liquip.ilc.Tests
+
+      - name: Run Tests
+        run:  ./tests/Liquip.ilc.Tests/output/main
+
