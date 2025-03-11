@@ -13,6 +13,7 @@
 #include "glob.h"
 
 #define symLoad dlsym
+#define PathLibraryDir "../Liquip.NativeWrapper/bin/Debug/net8.0/native/"
 #define CoTaskMemFree free
 
 #ifndef F_OK
@@ -27,15 +28,9 @@ int callNativeAdd(char *path, char *funcName, int a, int b);
 
 int main() {
     log_message("Starting the application...");
-    printf("Running from %s\n",std::filesystem::current_path().c_str());
-    char* pathLibraryDir = "../Liquip.NativeWrapper/bin/Debug/net8.0/native";
-    
-    if (access(pathLibraryDir, F_OK) != 0) {
-        pathLibraryDir = "../Liquip.NativeWrapper/bin/Debug/net8.0/liquip/native";
-    }
     
     char pattern[256];
-    snprintf(pattern, sizeof(pattern), "%s/*.so", pathLibraryDir);
+    snprintf(pattern, sizeof(pattern), "%s/*.so", PathLibraryDir);
     
     glob_t glob_result;
     int ret = glob(pattern, 0, NULL, &glob_result);
