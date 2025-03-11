@@ -152,7 +152,7 @@ jobs:
         run: dotnet build ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj --configuration Debug --no-restore
 
       - name: Build Liquip.ilc.Test
-        run: make -B ./tests/Liquip.ilc.Tests/
+        run: make -B -C ./tests/Liquip.ilc.Tests/
 
       - name: Run Tests
         run: |
