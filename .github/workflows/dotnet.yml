@@ -159,6 +159,7 @@ jobs:
         run: make -B -C ./tests/Liquip.ilc.Tests/
 
       - name: Run Tests
+        working-directory: tests/Liquip.ilc.Tests/
         run: |
-          ./tests/Liquip.ilc.Tests/output/main
+          ./output/main
 
