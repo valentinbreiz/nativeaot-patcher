@@ -9,8 +9,8 @@ public sealed class PatcherTask : ToolTask
 
     [Required] public string? TargetAssembly { get; set; }
 
-    [Required] public ITaskItem[] PlugsReferences { get; set; }
-    [Required] public string OutputPath { get; set; }
+    [Required] public required ITaskItem[] PlugsReferences { get; set; }
+    [Required] public required string OutputPath { get; set; }
 
     protected override string GenerateFullPathToTool() =>
         // Return Liquip.Patcher.exe path
@@ -26,7 +26,7 @@ public sealed class PatcherTask : ToolTask
         // Add --target arg
         builder.AppendSwitch("--target");
         builder.AppendFileNameIfNotNull(TargetAssembly);
-        
+
 
         // Add plugs
         builder.AppendSwitch("--plugs");
