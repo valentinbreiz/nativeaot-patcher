@@ -25,6 +25,5 @@ jobs:
         run: dotnet restore
 
       - name: Check Formatting
-        run: |
-          dotnet format --verify-no-changes --severity error || echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."
+        run: dotnet format --verify-no-changes --severity error || { echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."; exit 1; }
 

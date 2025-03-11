@@ -3,63 +3,59 @@
 
 // On unix make sure to compile using -ldl and -pthread flags.
 
-// Set this value accordingly to your workspace settings
-#if defined(_WIN32)
-#define PathToLibrary "../Liquip.NativeWrapper/Liquip.NativeWrapper_final.dll"
-#else
-#define PathToLibrary "../Liquip.NativeWrapper/bin/Debug/net8.0/native/Liquip.NativeWrapper_final.so"
-#endif
-
-#ifdef _WIN32
-#include "windows.h"
-#define symLoad GetProcAddress
-#pragma comment(lib, "ole32.lib")
-#else
-#include "dlfcn.h"
+#include <cstddef>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
 #include <unistd.h>
-#define symLoad dlsym
-#define CoTaskMemFree free
-#endif
+#include "dlfcn.h"
+#include "glob.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#define symLoad dlsym
+#define PathLibraryDir "../Liquip.NativeWrapper/bin/Debug/net8.0/native/"
+#define CoTaskMemFree free
 
 #ifndef F_OK
 #define F_OK 0
 #endif
 
-// Logging function to standard output
-void log_message(const char *message) {
-    printf("[LOG]: %s\n", message);
+void log_message(const char *message) { 
+    printf("[LOG]: %s\n", message); 
 }
 
 int callNativeAdd(char *path, char *funcName, int a, int b);
 
 int main() {
     log_message("Starting the application...");
-
-    // Check if the library path exists
-    if (access(PathToLibrary, F_OK) == -1) {
-            printf("PathLibrary: %s\n", PathToLibrary);
-
+    
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "%s/*.so", PathLibraryDir);
+    
+    glob_t glob_result;
+    int ret = glob(pattern, 0, NULL, &glob_result);
+    if (ret != 0 || glob_result.gl_pathc == 0) {
         log_message("Couldn't find library at the specified path.");
-        return 0;
+        globfree(&glob_result);
+        return EXIT_FAILURE;
     }
-
-    printf("PathLibrary: %s\n", PathToLibrary);
-
+    
+    char* pathToLibrary = glob_result.gl_pathv[0];
+    printf("PathLibrary: %s\n", pathToLibrary);
     log_message("Attempting to call the native 'Native_Add' function...");
-
-    int sum = callNativeAdd(PathToLibrary, "Native_Add", 2, 3);
+    
+    int sum = callNativeAdd(pathToLibrary, "Native_Add", 2, 3);
     if (sum == -1) {
         log_message("Failed to call the native function.");
-        return -1;
+        globfree(&glob_result);
+        return EXIT_FAILURE;
     }
-
+    
     printf("The sum is: %d\n", sum);
     log_message("Application completed successfully.");
-
-    return 0;
+    
+    globfree(&glob_result);
+    return EXIT_SUCCESS;
 }
 
 int callNativeAdd(char *path, char *funcName, int a, int b) {
@@ -72,22 +68,29 @@ int callNativeAdd(char *path, char *funcName, int a, int b) {
 #endif
 
     if (!handle) {
+#ifdef _WIN32
+        fprintf(stderr, "LoadLibraryA failed.\n");
+#else
         fprintf(stderr, "dlopen failed: %s\n", dlerror());
+#endif
         log_message("Failed to load the shared library.");
         return -1;
     }
-
+    
     log_message("Library loaded successfully.");
-
+    
     typedef int (*myFunc)(int, int);
     myFunc NativeAdd = (myFunc)symLoad(handle, funcName);
     if (!NativeAdd) {
+#ifdef _WIN32
+        fprintf(stderr, "GetProcAddress failed.\n");
+#else
         fprintf(stderr, "dlsym failed: %s\n", dlerror());
+#endif
         log_message("Failed to load the function from the library.");
         return -1;
     }
-
+    
     log_message("Function loaded successfully. Calling the function...");
-
     return NativeAdd(a, b);
 }
