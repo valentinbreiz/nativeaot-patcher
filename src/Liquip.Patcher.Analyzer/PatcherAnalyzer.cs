@@ -13,10 +13,11 @@ namespace Liquip.Patcher.Analyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
-    public const string AnalyzerDiagnosticId = "NAOT";
+    public const string DiagnosticId = "NAOT";
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
-    private static readonly ConcurrentDictionary<string, bool> _validatedExternals = [];
+    private static readonly HashSet<string> _validExternals = [];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -41,10 +42,10 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzeSyntaxTree started for {context.Tree.FilePath}");
-        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
-        foreach (var kvp in pluggedClasses)
+        SyntaxNode syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
+        foreach (KeyValuePair<string, PlugInfo> kvp in pluggedClasses)
         {
-            if (!kvp.Value.PlugSymbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == context.Tree))
+            if (!kvp.Value.PluggedSymbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == context.Tree))
             {
                 pluggedClasses.TryRemove(kvp.Key, out _);
                 DebugLog($"[DEBUG] Removed {kvp.Key} from pluggedClasses due to missing syntax reference");
@@ -64,7 +65,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var symbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol;
+        ISymbol? symbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol;
         if (symbol is not INamedTypeSymbol classSymbol)
         {
             DebugLog("[DEBUG] Symbol is not a named type symbol");
@@ -79,23 +80,23 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         DebugLog($"[DEBUG] Checking accessed method {accessedMethod.Name} in class {classSymbol.Name}");
 
-        if (pluggedClasses.TryGetValue(classSymbol.Name, out var plugInfo))
+        if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo? plugInfo))
         {
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
 
             // Skip validation for external types that have already been checked
-            if (plugInfo.IsExternal && _validatedExternals.ContainsKey(classSymbol.Name))
+            if (plugInfo.IsExternal && _validExternals.Contains(classSymbol.Name))
             {
                 DebugLog($"[DEBUG] Skipping validated external type {classSymbol.Name}");
                 return;
             }
 
-            if (CheckIfNeedsPlug(accessedMethod, plugInfo.PlugSymbol))
+            if (CheckIfNeedsPlug(accessedMethod, plugInfo.PluggedSymbol))
             {
                 DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {accessedMethod.Name}");
                 var properties = ImmutableDictionary.CreateRange(new[]
                 {
-                    new KeyValuePair<string, string?>("PlugClass", plugInfo.PlugSymbol.Name)
+                    new KeyValuePair<string, string?>("PlugClass", plugInfo.PluggedSymbol.Name)
                 });
 
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -110,7 +111,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         else
         {
             DebugLog($"[DEBUG] No plugged class found for {classSymbol.Name}");
-            foreach (var member in classSymbol.GetMembers())
+            foreach (ISymbol member in classSymbol.GetMembers())
             {
                 if (member is IMethodSymbol method &&
                     method.MethodKind == MethodKind.Ordinary &&
@@ -146,8 +147,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
 
         DebugLog($"[DEBUG] Found Plug attribute on class {plugClass.Identifier.Text}");
-        string? targetName = null;
-        bool hasTargetName = attribute.GetAttributeValue("TargetName", context, out targetName) ||
+        bool hasTargetName = attribute.GetAttributeValue("TargetName", context, out string? targetName) ||
                               attribute.GetAttributeValue(0, context, out targetName);
         if (!hasTargetName)
         {
@@ -169,18 +169,17 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
 
         string assemblyName = context.Compilation.AssemblyName ?? string.Empty;
-        string typeName = targetName;
 
         if (targetName.Contains(','))
         {
             DebugLog("[DEBUG] Splitting targetName with comma");
             string[] statement = targetName.Split(',');
-            typeName = statement[0].Trim();
+            targetName = statement[0].Trim();
             assemblyName = statement.Last().Trim();
         }
 
-        DebugLog($"[DEBUG] Looking for type {typeName} in assembly {assemblyName}");
-        INamedTypeSymbol? symbol = context.Compilation.GetTypeByMetadataName(typeName);
+        DebugLog($"[DEBUG] Looking for type {targetName} in assembly {assemblyName}");
+        INamedTypeSymbol? symbol = context.Compilation.GetTypeByMetadataName(targetName);
         bool existInAssembly = symbol != null ||
                                 context.Compilation.ExternalReferences.Any(x => x.Display != null && x.Display == assemblyName);
 
@@ -258,7 +257,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         PlugInfo entry = pluggedClasses[symbol.Name];
         bool anyMethodsNeedPlug = false;
 
-        if (!(entry.IsExternal || _validatedExternals.ContainsKey(symbol.Name)))
+        if (!(entry.IsExternal || _validExternals.Contains(symbol.Name)))
         {
             DebugLog($"[DEBUG] Checking {methods.Count()} methods");
             foreach (IMethodSymbol method in methods)
@@ -288,11 +287,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
-            if (entry.IsExternal)
-            {
-                // DebugLog($"[DEBUG] Updating NeedsValidation for {symbol.Name} to {anyMethodsNeedPlug}");
-                _validatedExternals[symbol.Name] = anyMethodsNeedPlug;
-            }
+            if (entry.IsExternal && !anyMethodsNeedPlug)
+                _validExternals.Add(symbol.Name);
         }
 
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
@@ -322,7 +318,6 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             if (!methods.Any(x => x.MethodKind == MethodKind.StaticConstructor))
             {
                 DebugLog("[DEBUG] Reporting missing static constructor");
-                DebugLog($"[DEBUG] Location:{cctor.GetFullMethodLocation()}, Span:{cctor.Span}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),

@@ -16,13 +16,13 @@
 
   <PropertyGroup>
     <LiquipPatcherAssembly
-      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
+      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
     </LiquipPatcherAssembly>
     <LiquipPatcherAssembly
-      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
+      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
     </LiquipPatcherAssembly>
     <LiquipPatcherTasksAssembly
-      Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Liquip.Patcher.Build.dll
+      Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
     </LiquipPatcherTasksAssembly>
   </PropertyGroup>
 

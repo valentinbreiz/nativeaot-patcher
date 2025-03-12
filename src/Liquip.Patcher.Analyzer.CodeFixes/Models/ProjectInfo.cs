@@ -4,10 +4,12 @@ namespace Liquip.Patcher.Analyzer.CodeFixes.Models;
 
 public readonly record struct ProjectInfo(IEnumerable<string> PlugReferences)
 {
+    public readonly IEnumerable<string> PlugReferences = PlugReferences;
+
     public static ProjectInfo From(XDocument csproj) => new(
         PlugReferences: csproj.Descendants("ItemGroup")
-                .Where(x => x.Name == "PlugsReference")
-                .Select(x => x.Attribute("Include")!.Value)
+        .Elements("PlugsReference")
+        .Select(x => x.Attribute("Include")!.Value)
+        .Where(x => x != null)
         );
-
 }

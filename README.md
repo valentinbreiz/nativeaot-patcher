@@ -9,5 +9,6 @@
 
  ## Credit:
  - [@zarlo](https://github.com/zarlo) for the [original project](https://gitlab.com/liquip/nativeaot-patcher).
- - [@kumja1](https://github.com/kumja1) for the plug analyzer.
- - [@valentinbreiz](https://github.com/valentinbreiz).
+ - [@kumja1](https://github.com/kumja1) for the plug analyzer and ilc compilation.
+ - [@Guillermo-Santos](https://github.com/Guillermo-Santos) for ilc compilation.
+ - [@valentinbreiz](https://github.com/valentinbreiz) for the plug patcher.
