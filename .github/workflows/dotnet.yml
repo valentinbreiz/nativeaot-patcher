@@ -8,7 +8,7 @@ on:
 
 jobs:
   patcher-tests:
-    name: Run Liquip.Patcher.Tests
+    name: Run Cosmos.Patcher.Tests
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -26,28 +26,28 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj
 
-      - name: Build Liquip.Patcher
-        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+      - name: Build Cosmos.Patcher
+        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: Build Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+      - name: Build Cosmos.Patcher.Build
+        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
         
-      - name: Build Liquip.Patcher.Tests
-        run: dotnet build ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
+      - name: Build Cosmos.Patcher.Tests
+        run: dotnet build ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./tests/Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Patcher.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Liquip.Patcher.Tests-Results
-          path: ./tests/Liquip.Patcher.Tests/TestResults/Liquip.Patcher.Tests.trx
+          name: Cosmos.Patcher.Tests-Results
+          path: ./tests/Cosmos.Patcher.Tests/TestResults/Cosmos.Patcher.Tests.trx
 
   scanner-tests:
-    name: Run Liquip.Scanner.Tests
+    name: Run Cosmos.Scanner.Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -64,28 +64,28 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj
 
-      - name: Build Liquip.Patcher
-        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+      - name: Build Cosmos.Patcher
+        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: Build Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+      - name: Build Cosmos.Patcher.Build
+        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
         
-      - name: Build Liquip.Scanner.Tests
-        run: dotnet build ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --configuration Debug --no-restore
+      - name: Build Cosmos.Scanner.Tests
+        run: dotnet build ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./tests/Liquip.Scanner.Tests/Liquip.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Scanner.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Scanner.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Liquip.Scanner.Tests-Results
-          path: ./tests/Liquip.Scanner.Tests/TestResults/Liquip.Scanner.Tests.trx
+          name: Cosmos.Scanner.Tests-Results
+          path: ./tests/Cosmos.Scanner.Tests/TestResults/Cosmos.Scanner.Tests.trx
 
   analyzer-tests:
-    name: Run Liquip.Patcher.Analyzer.Tests
+    name: Run Cosmos.Patcher.Analyzer.Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -102,22 +102,22 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj
 
-      - name: Build Liquip.Patcher.Analyzer.Tests
-        run: dotnet build ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj --configuration Debug --no-restore
+      - name: Build Cosmos.Patcher.Analyzer.Tests
+        run: dotnet build ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj --configuration Debug --no-restore
 
       - name: Run Tests
-        run: dotnet test ./tests/Liquip.Patcher.Analyzer.Tests/Liquip.Patcher.Analyzer.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Liquip.Patcher.Analyzer.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Patcher.Analyzer.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Liquip.Patcher.Analyzer.Tests-Results
-          path: ./tests/Liquip.Patcher.Analyzer.Tests/TestResults/Liquip.Patcher.Analyzer.Tests.trx
+          name: Cosmos.Patcher.Analyzer.Tests-Results
+          path: ./tests/Cosmos.Patcher.Analyzer.Tests/TestResults/Cosmos.Patcher.Analyzer.Tests.trx
 
   ilc-tests:
-    name: Run Liquip.ilc.Tests
+    name: Run Cosmos.ilc.Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -140,23 +140,23 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj
+        run: dotnet restore ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj
 
-      - name: Build Liquip.Patcher
-        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj
+      - name: Build Cosmos.Patcher
+        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: Build Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj
+      - name: Build Cosmos.Patcher.Build
+        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
 
-      - name: Build Liquip.NativeWrapper
-        run: dotnet build ./tests/Liquip.NativeWrapper/Liquip.NativeWrapper.csproj --configuration Debug --no-restore
+      - name: Build Cosmos.NativeWrapper
+        run: dotnet build ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj --configuration Debug --no-restore
 
 
-      - name: Build Liquip.ilc.Tests
-        run: make -B -C ./tests/Liquip.ilc.Tests/
+      - name: Build Cosmos.ilc.Tests
+        run: make -B -C ./tests/Cosmos.ilc.Tests/
 
       - name: Run Tests
-        working-directory: tests/Liquip.ilc.Tests/
+        working-directory: tests/Cosmos.ilc.Tests/
         run: |
           ./output/main
 
