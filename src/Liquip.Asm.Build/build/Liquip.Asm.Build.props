@@ -7,7 +7,6 @@
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <YasmPath Condition="'$(YasmPath)' == '' OR !Exists('$(YasmPath)')">/usr/bin/yasm</YasmPath>
-    <LdPath Condition="'$(LdPath)' == '' OR !Exists('$(LdPath)')">/usr/bin/ld</LdPath>
   </PropertyGroup>
 
   <PropertyGroup>

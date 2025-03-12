@@ -14,14 +14,6 @@
       <Pack>true</Pack>
       <PackagePath>build\yasm-LICENSE.txt</PackagePath>
     </None>
-    <None Update="cygwin\cygwin1.dll">
-      <Pack>true</Pack>
-      <PackagePath>build\cygwin1.dll</PackagePath>
-    </None>
-    <None Update="cygwin\ld.exe">
-      <Pack>true</Pack>
-      <PackagePath>build\ld.exe</PackagePath>
-    </None>
   </ItemGroup>
 
 </Project>

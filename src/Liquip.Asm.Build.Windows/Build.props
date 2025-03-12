@@ -3,7 +3,6 @@
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <YasmPath Condition="'$(YasmPath)' == '' OR !Exists('$(YasmPath)')">$(MSBuildThisFileDirectory)yasm.exe</YasmPath>
-    <LdPath Condition="'$(LdPath)' == '' OR !Exists('$(LdPath)')">$(MSBuildThisFileDirectory)ld.exe</LdPath>
   </PropertyGroup>
 
 </Project>
