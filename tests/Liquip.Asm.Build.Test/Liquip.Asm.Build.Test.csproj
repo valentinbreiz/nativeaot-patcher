@@ -33,4 +33,8 @@
       <ProjectReference Include="..\..\src\Liquip.Asm.Build\Liquip.Asm.Build.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="asm\1\x86_64\" />
+    </ItemGroup>
+
 </Project>

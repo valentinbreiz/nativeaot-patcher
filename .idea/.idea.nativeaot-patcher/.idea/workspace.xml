@@ -15,10 +15,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="start of the asm tasks">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Directory.Packages.props" beforeDir="false" afterPath="$PROJECT_DIR$/Directory.Packages.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.sln" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.sln" afterDir="false" />
+    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="register tasks">
+      <change beforePath="$PROJECT_DIR$/tests/Liquip.Asm.Build.Test/Liquip.Asm.Build.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Liquip.Asm.Build.Test/Liquip.Asm.Build.Test.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -165,6 +163,7 @@
       <workItem from="1740654692000" duration="3394000" />
       <workItem from="1741071580278" duration="10433000" />
       <workItem from="1741363036379" duration="3337000" />
+      <workItem from="1741418697540" duration="3980000" />
     </task>
     <task id="LOCAL-00001" summary="start of base of XSharp 3">
       <option name="closed" value="true" />
@@ -222,7 +221,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740819237281</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="register tasks">
+      <option name="closed" value="true" />
+      <created>1741419890854</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1741419890854</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -239,6 +246,7 @@
     <MESSAGE value="last commit before redo" />
     <MESSAGE value="exe for windows" />
     <MESSAGE value="start of the asm tasks" />
-    <option name="LAST_COMMIT_MESSAGE" value="start of the asm tasks" />
+    <MESSAGE value="register tasks" />
+    <option name="LAST_COMMIT_MESSAGE" value="register tasks" />
   </component>
 </project>
