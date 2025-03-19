@@ -15,7 +15,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="register tasks">
+    <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="format">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -165,6 +165,7 @@
       <workItem from="1741363036379" duration="3337000" />
       <workItem from="1741418697540" duration="3980000" />
       <workItem from="1742102000048" duration="2202000" />
+      <workItem from="1742368334451" duration="749000" />
     </task>
     <task id="LOCAL-00001" summary="start of base of XSharp 3">
       <option name="closed" value="true" />
@@ -230,7 +231,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741419890854</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="format">
+      <option name="closed" value="true" />
+      <created>1742368446229</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1742368446229</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -243,11 +252,11 @@
     <MESSAGE value="core of emitter done" />
     <MESSAGE value="add helpers" />
     <MESSAGE value="move to using interfaces so i dont need to make as many methods" />
-    <MESSAGE value="format" />
     <MESSAGE value="last commit before redo" />
     <MESSAGE value="exe for windows" />
     <MESSAGE value="start of the asm tasks" />
     <MESSAGE value="register tasks" />
-    <option name="LAST_COMMIT_MESSAGE" value="register tasks" />
+    <MESSAGE value="format" />
+    <option name="LAST_COMMIT_MESSAGE" value="format" />
   </component>
 </project>

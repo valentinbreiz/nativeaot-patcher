@@ -14,7 +14,7 @@ public class UnitTest1
     public UnitTest1()
     {
         buildEngine = new Mock<IBuildEngine>();
-        errors = new List<BuildErrorEventArgs>();
+        errors = [];
         buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>()))
             .Callback<BuildErrorEventArgs>(e => errors.Add(e));
     }
@@ -24,9 +24,7 @@ public class UnitTest1
     public void Test1(string path, PlatformID platform)
     {
         if (Environment.OSVersion.Platform != platform)
-        {
-            throw new SkipException("skiping this test");
-        }
+            throw SkipException.ForSkip("skiping this test");
 
         YasmBuildTask yasm = new()
         {
