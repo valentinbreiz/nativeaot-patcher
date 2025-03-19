@@ -29,8 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Cod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Package", "src\Liquip.Patcher.Analyzer.Package\Liquip.Patcher.Analyzer.Package.csproj", "{BBCE7B79-04E4-471E-9106-93912FD53775}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Vsix", "src\Liquip.Patcher.Analyzer.Vsix\Liquip.Patcher.Analyzer.Vsix.csproj", "{DC194121-15CA-487D-9C1F-C6E12C63993E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Tests", "tests\Liquip.Patcher.Analyzer.Tests\Liquip.Patcher.Analyzer.Tests.csproj", "{91348BA3-7914-42EF-9067-EBD663046EB5}"
 EndProject
 
@@ -182,18 +180,6 @@ Global
 		{BBCE7B79-04E4-471E-9106-93912FD53775}.Release|x64.Build.0 = Release|Any CPU
 		{BBCE7B79-04E4-471E-9106-93912FD53775}.Release|x86.ActiveCfg = Release|Any CPU
 		{BBCE7B79-04E4-471E-9106-93912FD53775}.Release|x86.Build.0 = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|x64.Build.0 = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Debug|x86.Build.0 = Debug|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x64.ActiveCfg = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x64.Build.0 = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x86.ActiveCfg = Release|Any CPU
-		{DC194121-15CA-487D-9C1F-C6E12C63993E}.Release|x86.Build.0 = Release|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91348BA3-7914-42EF-9067-EBD663046EB5}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -235,7 +221,6 @@ Global
 								HideSolutionNode = FALSE
 				EndGlobalSection
 				GlobalSection(NestedProjects) = preSolution
-								{DC194121-15CA-487D-9C1F-C6E12C63993E} = {4E2E1B0F-900C-4DAC-877E-17541E35D5E1}
 								{BBCE7B79-04E4-471E-9106-93912FD53775} = {4E2E1B0F-900C-4DAC-877E-17541E35D5E1}
 								{E9E3E2CA-AAA2-4835-9264-8EFD44790A89} = {4E2E1B0F-900C-4DAC-877E-17541E35D5E1}
 								{2F39381E-D1BA-480F-A4BF-B0DF959C9BA5} = {4E2E1B0F-900C-4DAC-877E-17541E35D5E1}
