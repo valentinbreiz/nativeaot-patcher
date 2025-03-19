@@ -10,7 +10,9 @@ public static class SyntaxNodeExtensions
         foreach (MemberDeclarationSyntax memberDeclarationSyntax in declaration.Members)
         {
             if (memberDeclarationSyntax is not T memberDeclaration)
+            {
                 continue;
+            }
 
             if (GetMemberName(memberDeclaration) == name)
             {
@@ -18,6 +20,7 @@ public static class SyntaxNodeExtensions
                 return true;
             }
         }
+
         member = null;
         return false;
     }

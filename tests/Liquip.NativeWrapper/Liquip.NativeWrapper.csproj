@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Liquip.API/Liquip.API.csproj" />
+    <ProjectReference Include="../../src/Liquip.API/Liquip.API.csproj"/>
   </ItemGroup>
 
-  <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets" />
-  <Import Project="..\..\src\Liquip.ilc.Build\ILC.Build.targets" />
+  <Import Project="..\..\src\Liquip.Patcher.Build\Patcher.Build.targets"/>
+  <Import Project="..\..\src\Liquip.ilc.Build\ILC.Build.targets"/>
 </Project>

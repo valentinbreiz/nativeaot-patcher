@@ -8,7 +8,6 @@ namespace Liquip.Asm.Build.Test;
 
 public class UnitTest1
 {
-
     private Mock<IBuildEngine> buildEngine;
     private List<BuildErrorEventArgs> errors;
 
@@ -16,7 +15,8 @@ public class UnitTest1
     {
         buildEngine = new Mock<IBuildEngine>();
         errors = new List<BuildErrorEventArgs>();
-        buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => errors.Add(e));
+        buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>()))
+            .Callback<BuildErrorEventArgs>(e => errors.Add(e));
     }
 
     [Theory]
@@ -28,17 +28,13 @@ public class UnitTest1
             throw new SkipException("skiping this test");
         }
 
-        var yasm = new YasmBuildTask()
+        YasmBuildTask yasm = new()
         {
-            YasmPath = path,
-            SearchPath = [ "./asm/" ],
-            OutputPath = "./output",
-            BuildEngine = buildEngine.Object,
+            YasmPath = path, SearchPath = ["./asm/"], OutputPath = "./output", BuildEngine = buildEngine.Object
         };
 
 
-
-        var success = yasm.Execute();
+        bool success = yasm.Execute();
 
         Assert.True(success);
     }

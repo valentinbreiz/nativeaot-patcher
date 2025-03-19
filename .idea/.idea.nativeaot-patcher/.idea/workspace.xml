@@ -17,11 +17,6 @@
   <component name="ChangeListManager">
     <list default="true" id="53926593-e662-4c56-a418-6614b342ca60" name="Changes" comment="register tasks">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/Build.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/Liquip.Asm.Build.Windows.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/Liquip.Asm.Build.Windows.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/cygwin/cygwin1.dll" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Asm.Build.Windows/cygwin/ld.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Liquip.Asm.Build/build/Liquip.Asm.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Liquip.Asm.Build/build/Liquip.Asm.Build.props" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -169,6 +164,7 @@
       <workItem from="1741071580278" duration="10433000" />
       <workItem from="1741363036379" duration="3337000" />
       <workItem from="1741418697540" duration="3980000" />
+      <workItem from="1742102000048" duration="2202000" />
     </task>
     <task id="LOCAL-00001" summary="start of base of XSharp 3">
       <option name="closed" value="true" />

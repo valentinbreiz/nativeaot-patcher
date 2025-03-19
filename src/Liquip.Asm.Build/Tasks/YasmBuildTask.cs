@@ -24,8 +24,7 @@ public class YasmBuildTask : ToolTask
 
     protected override string GenerateCommandLineCommands()
     {
-
-        var sb = new StringBuilder();
+        StringBuilder sb = new();
 
         sb.Append($" -a amd64 ");
         sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
@@ -38,29 +37,29 @@ public class YasmBuildTask : ToolTask
     {
         Log.LogMessage(MessageImportance.High, "Running Liquip.Asm-Yasm...");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {YasmPath}");
-        var paths = string.Join(",", SearchPath);
+        string paths = string.Join(",", SearchPath);
         Log.LogMessage(MessageImportance.High, $"Search Path: {paths}");
 
-        var files = new List<string>();
+        List<string> files = new();
 
         Matcher matcher = new();
         matcher.AddIncludePatterns(["*.s", "**.s"]);
 
         foreach (string path in SearchPath)
         {
-            var result = matcher.Execute(
+            PatternMatchingResult result = matcher.Execute(
                 new DirectoryInfoWrapper(
                     new DirectoryInfo(path + "x86_64/")));
-            files.AddRange(result.Files.Select(i=>i.Path));
+            files.AddRange(result.Files.Select(i => i.Path));
         }
 
-        using var hasher = SHA1.Create();
+        using SHA1? hasher = SHA1.Create();
 
-        foreach (var file in files)
+        foreach (string? file in files)
         {
             FilePath = file;
-            using var stream = File.OpenRead(FilePath);
-            var fileHash = hasher.ComputeHash(stream);
+            using FileStream stream = File.OpenRead(FilePath);
+            byte[] fileHash = hasher.ComputeHash(stream);
             FileName = $"{Path.GetFileName(file)}-{Convert.ToBase64String(fileHash)}.obj";
             if (!base.Execute())
             {

@@ -40,7 +40,8 @@ public class PlugPatcher
         if (targetMethod.IsConstructor)
         {
             // Clear everything except field initialization and base class constructor call
-            Instruction? firstNopInstruction = targetMethod.Body.Instructions.FirstOrDefault(instr => instr.OpCode == OpCodes.Nop);
+            Instruction? firstNopInstruction =
+                targetMethod.Body.Instructions.FirstOrDefault(instr => instr.OpCode == OpCodes.Nop);
             if (firstNopInstruction is not null)
             {
                 int firstNopIndex = targetMethod.Body.Instructions.IndexOf(firstNopInstruction);
@@ -124,12 +125,16 @@ public class PlugPatcher
                     .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
                 if (plugAttribute is null)
+                {
                     continue;
+                }
 
 
                 string? targetTypeName = plugAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
                 if (targetTypeName != targetType.FullName)
+                {
                     continue;
+                }
 
                 foreach (MethodDefinition? plugMethod in plugType.Methods.Where(m => !m.IsConstructor))
                 {

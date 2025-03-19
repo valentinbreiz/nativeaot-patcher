@@ -20,12 +20,11 @@ public class LdTask : ToolTask
 
     protected override string GenerateCommandLineCommands()
     {
-
-        var sb = new StringBuilder();
+        StringBuilder sb = new();
 
         sb.Append($" -o {OutputFile} ");
 
-        var paths = Directory.EnumerateFiles(ObjectPath, "*.obj", SearchOption.TopDirectoryOnly);
+        IEnumerable<string> paths = Directory.EnumerateFiles(ObjectPath, "*.obj", SearchOption.TopDirectoryOnly);
 
         sb.Append(string.Join(" ", paths));
 
