@@ -7,11 +7,11 @@
     <!--pack as nuget-->
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" />
-    <PackageReference Include="MonoMod.Utils" />
-    <PackageReference Include="Spectre.Console.Cli" />
+    <PackageReference Include="Mono.Cecil"/>
+    <PackageReference Include="MonoMod.Utils"/>
+    <PackageReference Include="Spectre.Console.Cli"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj" />
+    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
   </ItemGroup>
 </Project>

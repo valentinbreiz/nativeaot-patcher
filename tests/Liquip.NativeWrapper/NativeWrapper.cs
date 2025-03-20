@@ -15,18 +15,13 @@ public class TestClass
 
 
     [UnmanagedCallersOnly(EntryPoint = "Native_Add", CallConvs = [typeof(CallConvCdecl)])]
-    public static int NativeAdd(int a, int b)
-    {
+    public static int NativeAdd(int a, int b) =>
         // _ = OutputDebugString("NativeAdd method called");
-        return Add(a, b);
-    }
+        Add(a, b);
 
-    public static int ManagedAdd(int a, int b)
-    {
+    public static int ManagedAdd(int a, int b) =>
         // OutputDebugString("ManagedAdd method called");
-
-        return a + b;
-    }
+        a + b;
 }
 
 public class MockTarget

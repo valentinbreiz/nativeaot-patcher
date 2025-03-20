@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Build.props" Pack="true">
+      <PackagePath>build\Liquip.Asm.Build.Windows.props</PackagePath>
+    </None>
+    <None Update="yasm\yasm.exe">
+      <Pack>true</Pack>
+      <PackagePath>build\yasm.exe</PackagePath>
+    </None>
+    <None Update="yasm\LICENSE.txt">
+      <Pack>true</Pack>
+      <PackagePath>build\yasm-LICENSE.txt</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -4,14 +4,14 @@
   <ItemGroup>
     <PackageReference Include="Liquip.Patcher"
                       Version="$(Version)"
-                      GeneratePathProperty="true" />
+                      GeneratePathProperty="true"/>
   </ItemGroup>
 
 
   <ItemGroup>
     <PackageReference Include="Liquip.Patcher"
                       Version="$(Version)"
-                      GeneratePathProperty="true" />
+                      GeneratePathProperty="true"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
- 
+
   <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)"/>
