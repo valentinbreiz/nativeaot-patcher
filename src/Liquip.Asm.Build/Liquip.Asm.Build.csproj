@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core"/>
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build\Liquip.Asm.Build.props" Pack="true">
+      <PackagePath>build\Liquip.Asm.Build.props</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <ProjectReference Include="..\Liquip.Asm.Build.Windows\Liquip.Asm.Build.Windows.csproj"/>
+  </ItemGroup>
+</Project>

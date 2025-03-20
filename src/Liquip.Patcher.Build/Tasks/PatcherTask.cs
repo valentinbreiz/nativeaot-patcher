@@ -56,4 +56,3 @@ public sealed class PatcherTask : ToolTask
 
     protected override string ToolName => "Liquip.Patcher.exe";
 }
-

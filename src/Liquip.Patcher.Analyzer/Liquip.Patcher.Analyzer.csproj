@@ -4,7 +4,7 @@
     <RootNamespace>Liquip.Patcher.Analyzer</RootNamespace>
     <OutputType>Library</OutputType>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    
+
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>$(MSBuildProjectFile)</PackageId>
   </PropertyGroup>
@@ -14,6 +14,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"/>
   </ItemGroup>
 </Project>
