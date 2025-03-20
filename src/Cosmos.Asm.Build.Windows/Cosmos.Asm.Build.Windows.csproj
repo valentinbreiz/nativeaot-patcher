@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="Build.props" Pack="true">
-      <PackagePath>build\Liquip.Asm.Build.Windows.props</PackagePath>
+      <PackagePath>build\Cosmos.Asm.Build.Windows.props</PackagePath>
     </None>
     <None Update="yasm\yasm.exe">
       <Pack>true</Pack>

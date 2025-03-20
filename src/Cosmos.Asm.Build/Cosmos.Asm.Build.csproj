@@ -8,11 +8,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\Liquip.Asm.Build.props" Pack="true">
-      <PackagePath>build\Liquip.Asm.Build.props</PackagePath>
+    <None Include="build\Cosmos.Asm.Build.props" Pack="true">
+      <PackagePath>build\Cosmos.Asm.Build.props</PackagePath>
     </None>
   </ItemGroup>
   <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <ProjectReference Include="..\Liquip.Asm.Build.Windows\Liquip.Asm.Build.Windows.csproj"/>
+    <ProjectReference Include="..\Cosmos.Asm.Build.Windows\Cosmos.Asm.Build.Windows.csproj"/>
   </ItemGroup>
 </Project>

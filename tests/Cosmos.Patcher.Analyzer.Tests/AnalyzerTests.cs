@@ -23,9 +23,8 @@ public class AnalyzerTests
     public async Task Test_TypeNotFoundDiagnostic()
     {
         const string code = """
-
-using System;
-using Cosmos.API.Attributes;
+                            using System;
+                            using Cosmos.API.Attributes;
 
                             namespace ConsoleApplication1
                             {
@@ -46,9 +45,8 @@ using Cosmos.API.Attributes;
     public async Task Test_PlugNotStaticDiagnostic()
     {
         const string code = """
-
-using System;
-using Cosmos.API.Attributes;
+                            using System;
+                            using Cosmos.API.Attributes;
 
                             namespace ConsoleApplication1
                             {

@@ -13,7 +13,7 @@ namespace Cosmos.Patcher.Analyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
-    public const string AnalyzerDiagnosticId = "NAOT";
+    public const string DiagnosticId = "NAOT";
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
     private static readonly HashSet<string> _validatedExternals = [];
@@ -83,12 +83,12 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         DebugLog($"[DEBUG] Checking accessed method {accessedMethod.Name} in class {classSymbol.Name}");
 
-        if (pluggedClasses.TryGetValue(classSymbol.Name, out var plugInfo))
+        if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo plugInfo))
         {
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
 
             // Skip validation for external types that have already been checked
-            if (plugInfo.IsExternal && _validatedExternals.ContainsKey(classSymbol.Name))
+            if (plugInfo.IsExternal && _validatedExternals.Contains(classSymbol.Name))
             {
                 DebugLog($"[DEBUG] Skipping validated external type {classSymbol.Name}");
                 return;
@@ -271,7 +271,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         PlugInfo entry = pluggedClasses[symbol.Name];
         bool anyMethodsNeedPlug = false;
 
-        if (!(entry.IsExternal || _validatedExternals.ContainsKey(symbol.Name)))
+        if (!(entry.IsExternal || _validatedExternals.Contains(symbol.Name)))
         {
             DebugLog($"[DEBUG] Checking {methods.Count()} methods");
             foreach (IMethodSymbol method in methods)
@@ -291,7 +291,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                     {
                         new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
                         new KeyValuePair<string, string?>("MethodName", method.Name)
-                    });
+                    })!;
 
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticMessages.MethodNeedsPlug,
@@ -304,7 +304,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
             if (entry.IsExternal && !anyMethodsNeedPlug)
             {
-                _validExternals.Add(symbol.Name);
+                _validatedExternals.Add(symbol.Name);
             }
         }
 
