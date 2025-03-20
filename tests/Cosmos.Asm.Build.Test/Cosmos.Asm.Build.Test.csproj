@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Liquip.Asm.Build\Liquip.Asm.Build.csproj"/>
+    <ProjectReference Include="..\..\src\Cosmos.Asm.Build\Cosmos.Asm.Build.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ using Microsoft.Build.Utilities;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
-namespace Liquip.Asm.Build.Tasks;
+namespace Cosmos.Asm.Build.Tasks;
 
 public class LdTask : ToolTask
 {
@@ -33,12 +33,12 @@ public class LdTask : ToolTask
 
     public override bool Execute()
     {
-        Log.LogMessage(MessageImportance.High, "Running Liquip.Asm-ld...");
+        Log.LogMessage(MessageImportance.High, "Running Cosmos.Asm-ld...");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {LdPath}");
         Log.LogMessage(MessageImportance.High, $"Object Path: {ObjectPath}");
 
         return base.Execute();
     }
 
-    protected override string ToolName => "Liquip.Asm-ld";
+    protected override string ToolName => "Cosmos.Asm-ld";
 }

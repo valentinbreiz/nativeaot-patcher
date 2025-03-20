@@ -7,7 +7,7 @@ using Microsoft.Build.Utilities;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
-namespace Liquip.Asm.Build.Tasks;
+namespace Cosmos.Asm.Build.Tasks;
 
 public class YasmBuildTask : ToolTask
 {
@@ -35,7 +35,7 @@ public class YasmBuildTask : ToolTask
 
     public override bool Execute()
     {
-        Log.LogMessage(MessageImportance.High, "Running Liquip.Asm-Yasm...");
+        Log.LogMessage(MessageImportance.High, "Running Cosmos.Asm-Yasm...");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {YasmPath}");
         string paths = string.Join(",", SearchPath);
         Log.LogMessage(MessageImportance.High, $"Search Path: {paths}");
@@ -70,5 +70,5 @@ public class YasmBuildTask : ToolTask
         return true;
     }
 
-    protected override string ToolName => "Liquip.Asm-Yasm";
+    protected override string ToolName => "Cosmos.Asm-Yasm";
 }

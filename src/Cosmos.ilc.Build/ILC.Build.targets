@@ -6,7 +6,7 @@
     <IlcUseNativeAOTRuntimePackLayout>true</IlcUseNativeAOTRuntimePackLayout>
   </PropertyGroup>
 
-  <Target Name="LiquipILCSetupProperties" AfterTargets="RunPatcher">
+  <Target Name="CosmosILCSetupProperties" AfterTargets="RunPatcher">
     <PropertyGroup>
       <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquip/native/</NativeOutputPath>
       <InputPath>$(IntermediateOutputPath)liquid/</InputPath>
@@ -45,7 +45,7 @@
     <MakeDir Directories="$(NativeOutputPath)" />
   </Target>
 
-  <Target Name="GetReferenceAssemblies" AfterTargets="LiquipILCSetupProperties">
+  <Target Name="GetReferenceAssemblies" AfterTargets="CosmosILCSetupProperties">
     <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);BuildProjectReferences=false">
       <Output TaskParameter="TargetOutputs" ItemName="ReferenceAssemblies" />
     </MSBuild>
@@ -55,7 +55,7 @@
   <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Windows.targets" Condition="'$(OS)'=='Windows_NT'" />
   <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Unix.targets" Condition="'$(OS)'!='Windows_NT'" />
 
-  <Target Name="LogProperties" AfterTargets="LiquipILCSetupProperties">
+  <Target Name="LogProperties" AfterTargets="CosmosILCSetupProperties">
     <Message Importance="High" Text="OS: $(OS)" />
     <Message Importance="High" Text="InputPath: $(InputPath)" />
     <Message Importance="High" Text="IlcHostPackagePath: $(IlcHostPackagePath)" />
@@ -73,7 +73,7 @@
   </Target>
 
   <!-- Write ILC response file -->
-  <Target Name="WriteILCRsp" AfterTargets="LiquipILCSetupProperties" Outputs="%(ManagedBinary.RspFile)">
+  <Target Name="WriteILCRsp" AfterTargets="CosmosILCSetupProperties" Outputs="%(ManagedBinary.RspFile)">
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
@@ -95,7 +95,7 @@
   </Target>
 
   <!-- Write the Linker response file -->
-  <Target Name="WriteLinkerRsp" AfterTargets="LiquipILCSetupProperties" DependsOnTargets="SetLinkerParams" Outputs="%(ManagedBinary.LinkerRsp)">
+  <Target Name="WriteLinkerRsp" AfterTargets="CosmosILCSetupProperties" DependsOnTargets="SetLinkerParams" Outputs="%(ManagedBinary.LinkerRsp)">
     <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" />
   </Target>
 
