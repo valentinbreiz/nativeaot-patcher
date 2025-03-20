@@ -2,39 +2,34 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher", "src\Liquip.Patcher\Liquip.Patcher.csproj", "{BFE3B3A6-C530-41CC-B5F6-E1EA50B76173}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher", "src\Cosmos.Patcher\Cosmos.Patcher.csproj", "{BFE3B3A6-C530-41CC-B5F6-E1EA50B76173}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build", "src\Liquip.Asm.Build\Liquip.Asm.Build.csproj", "{D2B9C128-E020-4F6E-959D-EE4A0EB4EF95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.API", "src\Liquip.API\Liquip.API.csproj", "{5544B160-9D32-42A8-8EC3-D3DDC72D0FF7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.API", "src\Cosmos.API\Cosmos.API.csproj", "{5544B160-9D32-42A8-8EC3-D3DDC72D0FF7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aot.Asm", "Aot.Asm", "{C42A0E56-F643-4D59-AB26-F580FAC60E01}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{E8477467-2571-4CD8-A4AF-48C89857AB48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Build", "src\Liquip.Patcher.Build\Liquip.Patcher.Build.csproj", "{BBA11D4D-B79C-46C1-B479-D7482BE4D8E2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Build", "src\Cosmos.Patcher.Build\Cosmos.Patcher.Build.csproj", "{BBA11D4D-B79C-46C1-B479-D7482BE4D8E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.NativeWrapper", "tests\Liquip.NativeWrapper\Liquip.NativeWrapper.csproj", "{2DA86403-E320-4B78-A287-63F29D964803}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Tests", "tests\Cosmos.Patcher.Tests\Cosmos.Patcher.Tests.csproj", "{53BDFA0A-62B9-42BB-8C1C-8D2913110B8D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NativeLibrary", "NativeLibrary", "{7B8F6265-C9FE-4E0C-813E-57068922732B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Scanner.Tests", "tests\Cosmos.Scanner.Tests\Cosmos.Scanner.Tests.csproj", "{336C4576-4738-4BCB-9FE5-3D9DE37DFE7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Tests", "tests\Liquip.Patcher.Tests\Liquip.Patcher.Tests.csproj", "{53BDFA0A-62B9-42BB-8C1C-8D2913110B8D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Analyzer", "src\Cosmos.Patcher.Analyzer\Cosmos.Patcher.Analyzer.csproj", "{2F39381E-D1BA-480F-A4BF-B0DF959C9BA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Scanner.Tests", "tests\Liquip.Scanner.Tests\Liquip.Scanner.Tests.csproj", "{336C4576-4738-4BCB-9FE5-3D9DE37DFE7D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Analyzer.CodeFixes", "src\Cosmos.Patcher.Analyzer.CodeFixes\Cosmos.Patcher.Analyzer.CodeFixes.csproj", "{E9E3E2CA-AAA2-4835-9264-8EFD44790A89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer", "src\Liquip.Patcher.Analyzer\Liquip.Patcher.Analyzer.csproj", "{2F39381E-D1BA-480F-A4BF-B0DF959C9BA5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Analyzer.Package", "src\Cosmos.Patcher.Analyzer.Package\Cosmos.Patcher.Analyzer.Package.csproj", "{BBCE7B79-04E4-471E-9106-93912FD53775}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.CodeFixes", "src\Liquip.Patcher.Analyzer.CodeFixes\Liquip.Patcher.Analyzer.CodeFixes.csproj", "{E9E3E2CA-AAA2-4835-9264-8EFD44790A89}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Package", "src\Liquip.Patcher.Analyzer.Package\Liquip.Patcher.Analyzer.Package.csproj", "{BBCE7B79-04E4-471E-9106-93912FD53775}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Patcher.Analyzer.Tests", "tests\Liquip.Patcher.Analyzer.Tests\Liquip.Patcher.Analyzer.Tests.csproj", "{91348BA3-7914-42EF-9067-EBD663046EB5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Analyzer.Tests", "tests\Cosmos.Patcher.Analyzer.Tests\Cosmos.Patcher.Analyzer.Tests.csproj", "{91348BA3-7914-42EF-9067-EBD663046EB5}"
 EndProject
 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{4E2E1B0F-900C-4DAC-877E-17541E35D5E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build.Windows", "src\Liquip.Asm.Build.Windows\Liquip.Asm.Build.Windows.csproj", "{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Asm.Build.Windows", "src\Cosmos.Asm.Build.Windows\Cosmos.Asm.Build.Windows.csproj", "{8A7BBAF3-3BE6-4CB9-BDFB-1C6560A4119F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liquip.Asm.Build.Test", "tests\Liquip.Asm.Build.Test\Liquip.Asm.Build.Test.csproj", "{EE668E41-F03D-43FA-BE2B-F5E55626E3BA}"
 EndProject
