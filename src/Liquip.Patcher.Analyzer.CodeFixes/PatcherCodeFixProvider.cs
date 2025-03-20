@@ -73,9 +73,9 @@ public class PatcherCodeFixProvider : CodeFixProvider
                         c => CodeActions.RenamePlug(context.Document, declaration, c, diagnostic), diagnostic);
                     break;
 
-                // case var id when id == DiagnosticMessages.MethodNotImplemented.Id:
-                //     RegisterCodeFix(context, CodeActions.RemoveMethodTitle, c => CodeActions.RemoveMethod(context.Document, declaration, c, diagnostic), diagnostic);
-                //   break;
+                    // case var id when id == DiagnosticMessages.MethodNotImplemented.Id:
+                    //     RegisterCodeFix(context, CodeActions.RemoveMethodTitle, c => CodeActions.RemoveMethod(context.Document, declaration, c, diagnostic), diagnostic);
+                    //   break;
             }
         }
     }
