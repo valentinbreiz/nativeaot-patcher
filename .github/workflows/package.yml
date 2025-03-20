@@ -7,7 +7,7 @@ on:
 
 jobs:
   pack-patcher:
-    name: Pack Liquip Patcher
+    name: Pack Cosmos Patcher
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,22 +23,22 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Pack Liquip.Api
-        run: dotnet build ./src/Liquip.API/Liquip.API.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Api
+        run: dotnet build ./src/Cosmos.API/Cosmos.API.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Liquip.Patcher.Build
-        run: dotnet build ./src/Liquip.Patcher.Build/Liquip.Patcher.Build.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Patcher.Build
+        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Liquip.Patcher
-        run: dotnet build ./src/Liquip.Patcher/Liquip.Patcher.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Patcher
+        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Liquip.Patcher.Analyzer.Package
-        run: dotnet build ./src/Liquip.Patcher.Analyzer.Package/Liquip.Patcher.Analyzer.Package.csproj  --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Patcher.Analyzer.Package
+        run: dotnet build ./src/Cosmos.Patcher.Analyzer.Package/Cosmos.Patcher.Analyzer.Package.csproj  --configuration Release --artifacts-path ./out
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         with:
-          name: Liquip.Patcher.Packages
+          name: Cosmos.Patcher.Packages
           path: ./out/package/release
 
 

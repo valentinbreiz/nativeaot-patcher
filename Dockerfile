@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY . ./
 
-RUN dotnet restore ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj
+RUN dotnet restore ./Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj
 
-RUN dotnet build ./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj --configuration Debug --no-restore
+RUN dotnet build ./Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
 
-CMD ["dotnet", "test", "./Liquip.Patcher.Tests/Liquip.Patcher.Tests.csproj", "--no-build", "--configuration", "Debug", "--logger", "trx;LogFileName=Liquip.Patcher.Tests.trx"]
+CMD ["dotnet", "test", "./Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj", "--no-build", "--configuration", "Debug", "--logger", "trx;LogFileName=Cosmos.Patcher.Tests.trx"]
