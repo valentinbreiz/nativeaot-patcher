@@ -28,7 +28,10 @@ public class UnitTest1
 
         YasmBuildTask yasm = new()
         {
-            YasmPath = path, SearchPath = ["./asm/"], OutputPath = "./output", BuildEngine = buildEngine.Object
+            YasmPath = path,
+            SearchPath = ["./asm/"],
+            OutputPath = "./output",
+            BuildEngine = buildEngine.Object
         };
 
 
