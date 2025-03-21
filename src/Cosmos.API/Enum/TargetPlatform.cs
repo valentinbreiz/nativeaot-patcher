@@ -11,7 +11,7 @@ public enum TargetPlatform
     /// <summary>
     /// arm
     /// </summary>
-    Arm,
+    Arm64,
 
     /// <summary>
     /// any

@@ -13,10 +13,10 @@ namespace Cosmos.Patcher.Analyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
-    public const string AnalyzerDiagnosticId = "NAOT";
+    public const string DiagnosticId = "NAOT";
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
-    private static readonly ConcurrentDictionary<string, bool> _validatedExternals = [];
+    private static readonly HashSet<string> _validatedExternals = [];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -30,15 +30,19 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
             ConcurrentDictionary<string, PlugInfo> pluggedClasses = [];
 
-            compilationContext.RegisterSyntaxNodeAction(context => AnalyzePlugAttribute(context, pluggedClasses), SyntaxKind.Attribute);
-            compilationContext.RegisterSyntaxNodeAction(context => AnalyzeAccessedMember(context, pluggedClasses), SyntaxKind.SimpleMemberAccessExpression);
+            compilationContext.RegisterSyntaxNodeAction(context => AnalyzePlugAttribute(context, pluggedClasses),
+                SyntaxKind.Attribute);
+            compilationContext.RegisterSyntaxNodeAction(context => AnalyzeAccessedMember(context, pluggedClasses),
+                SyntaxKind.SimpleMemberAccessExpression);
             compilationContext.RegisterSyntaxTreeAction(context => AnalyzeSyntaxTree(context, pluggedClasses));
 
-            DebugLog($"[DEBUG] Registered syntax node actions for compilation {compilationContext.Compilation.AssemblyName}");
+            DebugLog(
+                $"[DEBUG] Registered syntax node actions for compilation {compilationContext.Compilation.AssemblyName}");
         });
     }
 
-    private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
+    private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context,
+        ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzeSyntaxTree started for {context.Tree.FilePath}");
         var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
@@ -53,8 +57,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     }
 
     private void AnalyzeAccessedMember(
-         SyntaxNodeAnalysisContext context,
-         ConcurrentDictionary<string, PlugInfo> pluggedClasses)
+        SyntaxNodeAnalysisContext context,
+        ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzeAccessedMember started at {context.Node.GetLocation().GetMappedLineSpan()}");
 
@@ -79,12 +83,12 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         DebugLog($"[DEBUG] Checking accessed method {accessedMethod.Name} in class {classSymbol.Name}");
 
-        if (pluggedClasses.TryGetValue(classSymbol.Name, out var plugInfo))
+        if (pluggedClasses.TryGetValue(classSymbol.Name, out PlugInfo plugInfo))
         {
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
 
             // Skip validation for external types that have already been checked
-            if (plugInfo.IsExternal && _validatedExternals.ContainsKey(classSymbol.Name))
+            if (plugInfo.IsExternal && _validatedExternals.Contains(classSymbol.Name))
             {
                 DebugLog($"[DEBUG] Skipping validated external type {classSymbol.Name}");
                 return;
@@ -93,7 +97,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             if (CheckIfNeedsPlug(accessedMethod, plugInfo.PlugSymbol))
             {
                 DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {accessedMethod.Name}");
-                var properties = ImmutableDictionary.CreateRange(new[]
+                ImmutableDictionary<string, string> properties = ImmutableDictionary.CreateRange(new[]
                 {
                     new KeyValuePair<string, string?>("PlugClass", plugInfo.PlugSymbol.Name)
                 });
@@ -129,7 +133,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void AnalyzePlugAttribute(SyntaxNodeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
+    private void AnalyzePlugAttribute(SyntaxNodeAnalysisContext context,
+        ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzePlugAttribute started at {context.Node.GetLocation().GetMappedLineSpan()}");
         if (context.Node is not AttributeSyntax attribute || attribute.Name.ToString() != "Plug")
@@ -146,18 +151,18 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
 
         DebugLog($"[DEBUG] Found Plug attribute on class {plugClass.Identifier.Text}");
-        string? targetName = null;
-        bool hasTargetName = attribute.GetAttributeValue("TargetName", context, out targetName) ||
-                              attribute.GetAttributeValue(0, context, out targetName);
+        bool hasTargetName = attribute.GetAttributeValue("TargetName", context, out string? targetName) ||
+                             attribute.GetAttributeValue(0, context, out targetName);
         if (!hasTargetName)
         {
             DebugLog("[DEBUG] Trying to get Target attribute value");
             if (!(attribute.GetAttributeValue("Target", context, out string? type) ||
-                attribute.GetAttributeValue(0, context, out type)))
+                  attribute.GetAttributeValue(0, context, out type)))
             {
                 DebugLog("[DEBUG] Couldn't get Target value");
                 return;
             }
+
             targetName = type;
         }
 
@@ -182,13 +187,15 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         DebugLog($"[DEBUG] Looking for type {typeName} in assembly {assemblyName}");
         INamedTypeSymbol? symbol = context.Compilation.GetTypeByMetadataName(typeName);
         bool existInAssembly = symbol != null ||
-                                context.Compilation.ExternalReferences.Any(x => x.Display != null && x.Display == assemblyName);
+                               context.Compilation.ExternalReferences.Any(x =>
+                                   x.Display != null && x.Display == assemblyName);
 
         DebugLog($"[DEBUG] Type exists in assembly: {existInAssembly}");
         if (!existInAssembly && !attribute.GetAttributeValue<bool>("IsOptional", context))
         {
             DebugLog($"[DEBUG] Reporting TypeNotFound for {targetName}");
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.TypeNotFound, attribute.GetLocation(), targetName));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticMessages.TypeNotFound, attribute.GetLocation(),
+                targetName));
             return;
         }
 
@@ -203,7 +210,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         AnalyzePluggedClass(symbol, plugClass, context, pluggedClasses);
     }
 
-    private void AnalyzePlugClass(ClassDeclarationSyntax classDeclarationSyntax, string pluggedClassName, SyntaxNodeAnalysisContext context)
+    private void AnalyzePlugClass(ClassDeclarationSyntax classDeclarationSyntax, string pluggedClassName,
+        SyntaxNodeAnalysisContext context)
     {
         DebugLog($"[DEBUG] AnalyzePlugClass for {classDeclarationSyntax.Identifier.Text}");
         if (!classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
@@ -225,7 +233,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.PlugNameDoesNotMatch,
                     classDeclarationSyntax.GetLocation(),
-                    ImmutableDictionary.CreateRange(new[] {
+                    ImmutableDictionary.CreateRange(new[]
+                    {
                         new KeyValuePair<string, string?>("ExpectedName", expectedName)
                     }),
                     classDeclarationSyntax.Identifier.Text,
@@ -234,7 +243,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void AnalyzePluggedClass(INamedTypeSymbol? symbol, ClassDeclarationSyntax? plugClass, SyntaxNodeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
+    private void AnalyzePluggedClass(INamedTypeSymbol? symbol, ClassDeclarationSyntax? plugClass,
+        SyntaxNodeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzePluggedClass for {symbol?.Name ?? "null"}");
         if (plugClass == null || symbol == null)
@@ -243,22 +253,25 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        bool isExternalSymbol = !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, context.Compilation.Assembly);
+        bool isExternalSymbol =
+            !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, context.Compilation.Assembly);
         INamedTypeSymbol plugSymbol = context.SemanticModel.GetDeclaredSymbol(plugClass);
         DebugLog($"[DEBUG] Is external symbol: {isExternalSymbol}");
-        pluggedClasses.TryAdd(symbol.Name, new PlugInfo(IsExternal: isExternalSymbol, plugSymbol));
+        pluggedClasses.TryAdd(symbol.Name, new PlugInfo(isExternalSymbol, plugSymbol));
         DebugLog($"[DEBUG] Added {symbol.Name} to pluggedClasses");
         AnalyzePluggedClassMembers(plugClass, plugSymbol, symbol, context, pluggedClasses);
     }
 
-    private void AnalyzePluggedClassMembers(ClassDeclarationSyntax plugClass, INamedTypeSymbol plugSymbol, INamedTypeSymbol symbol, SyntaxNodeAnalysisContext context, ConcurrentDictionary<string, PlugInfo> pluggedClasses)
+    private void AnalyzePluggedClassMembers(ClassDeclarationSyntax plugClass, INamedTypeSymbol plugSymbol,
+        INamedTypeSymbol symbol, SyntaxNodeAnalysisContext context,
+        ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzePluggedClassMembers for {symbol.Name}");
         IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>();
         PlugInfo entry = pluggedClasses[symbol.Name];
         bool anyMethodsNeedPlug = false;
 
-        if (!(entry.IsExternal || _validatedExternals.ContainsKey(symbol.Name)))
+        if (!(entry.IsExternal || _validatedExternals.Contains(symbol.Name)))
         {
             DebugLog($"[DEBUG] Checking {methods.Count()} methods");
             foreach (IMethodSymbol method in methods)
@@ -274,11 +287,11 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 {
                     anyMethodsNeedPlug = true;
                     DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {method.Name}");
-                    var diagnosticProperties = ImmutableDictionary.CreateRange(new[]
+                    ImmutableDictionary<string, string> diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                     {
                         new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
                         new KeyValuePair<string, string?>("MethodName", method.Name)
-                    });
+                    })!;
 
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticMessages.MethodNeedsPlug,
@@ -288,10 +301,10 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                         symbol.Name));
                 }
             }
-            if (entry.IsExternal)
+
+            if (entry.IsExternal && !anyMethodsNeedPlug)
             {
-                // DebugLog($"[DEBUG] Updating NeedsValidation for {symbol.Name} to {anyMethodsNeedPlug}");
-                _validatedExternals[symbol.Name] = anyMethodsNeedPlug;
+                _validatedExternals.Add(symbol.Name);
             }
         }
 
@@ -342,7 +355,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             }
         }
         else if (plugClass.TryGetMemberByName("Ctor", out ClassDeclarationSyntax? ctor) &&
-                !methods.Any(x => x.Name == ".ctor"))
+                 !methods.Any(x => x.Name == ".ctor"))
         {
             DebugLog("[DEBUG] Reporting missing instance constructor");
             context.ReportDiagnostic(Diagnostic.Create(

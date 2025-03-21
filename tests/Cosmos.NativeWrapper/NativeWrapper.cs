@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.API.Attributes;
 
 namespace Cosmos.NativeWrapper;
@@ -11,19 +12,15 @@ public class TestClass
     [DllImport("Cosmos.NativeLibrary.dll", EntryPoint = "Add", CallingConvention = CallingConvention.Cdecl)]
     public static extern int Add(int a, int b);
 
-    public static int NativeAdd(int a, int b)
-    {
-        OutputDebugString("NativeAdd method called");
 
-        return Add(a, b);
-    }
+    [UnmanagedCallersOnly(EntryPoint = "Native_Add", CallConvs = [typeof(CallConvCdecl)])]
+    public static int NativeAdd(int a, int b) =>
+        // _ = OutputDebugString("NativeAdd method called");
+        Add(a, b);
 
-    public static int ManagedAdd(int a, int b)
-    {
-        OutputDebugString("ManagedAdd method called");
-
-        return a + b;
-    }
+    public static int ManagedAdd(int a, int b) =>
+        // OutputDebugString("ManagedAdd method called");
+        a + b;
 }
 
 public class MockTarget

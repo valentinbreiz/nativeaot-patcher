@@ -8,13 +8,15 @@ namespace Cosmos.Patcher.Analyzer.Extensions;
 
 public static class AttributeExtensions
 {
-    public static T? GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString, SyntaxNodeAnalysisContext context)
+    public static T? GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString,
+        SyntaxNodeAnalysisContext context)
     {
         ExpressionSyntax? expression = GetArgumentExpression(attribute, indexOrString);
         return expression != null ? GetValueFromExpression<T>(expression, context) : default;
     }
 
-    public static bool GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString, SyntaxNodeAnalysisContext context, out T? value)
+    public static bool GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString,
+        SyntaxNodeAnalysisContext context, out T? value)
     {
         value = GetAttributeValue<T>(attribute, indexOrString, context);
         return value != null && (value is not string str || !string.IsNullOrEmpty(str));
@@ -26,10 +28,8 @@ public static class AttributeExtensions
         return argument.Kind == TypedConstantKind.Error ? default : ConvertArgumentValue<T>(argument);
     }
 
-    private static T? GetValueFromExpression<T>(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
-    {
-
-        return expression switch
+    private static T? GetValueFromExpression<T>(ExpressionSyntax expression, SyntaxNodeAnalysisContext context) =>
+        expression switch
         {
             MemberAccessExpressionSyntax { Name: { } name } when typeof(T).IsEnum
                 => ParseEnum<T>(name.ToString()),
@@ -39,11 +39,10 @@ public static class AttributeExtensions
                 => (T?)(object?)GetTypeFromTypeOf(typeOf, context),
             _ => default
         };
-    }
 
     private static string? GetTypeFromTypeOf(TypeOfExpressionSyntax typeOf, SyntaxNodeAnalysisContext context)
     {
-        var symbol = context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol as ITypeSymbol;
+        ITypeSymbol? symbol = context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol as ITypeSymbol;
         return symbol is not null
             ? $"{symbol.ContainingNamespace.Name}.{symbol.Name}, {symbol.ContainingAssembly.Name} "
             : "Unknown";
@@ -55,9 +54,8 @@ public static class AttributeExtensions
         return (value = (T)Enum.Parse(typeof(T), name)) != null ? value : default;
     }
 
-    private static TypedConstant GetConstructorArgument(AttributeData attribute, object indexOrString)
-    {
-        return indexOrString switch
+    private static TypedConstant GetConstructorArgument(AttributeData attribute, object indexOrString) =>
+        indexOrString switch
         {
             int index when index >= 0 && index < attribute.ConstructorArguments.Length
                 => attribute.ConstructorArguments[index],
@@ -66,11 +64,9 @@ public static class AttributeExtensions
                     kvp.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value,
             _ => default
         };
-    }
 
-    private static ExpressionSyntax? GetArgumentExpression(AttributeSyntax attribute, object indexOrString)
-    {
-        return indexOrString switch
+    private static ExpressionSyntax? GetArgumentExpression(AttributeSyntax attribute, object indexOrString) =>
+        indexOrString switch
         {
             int index when attribute.ArgumentList?.Arguments.Count > index
                 => attribute.ArgumentList.Arguments[index].Expression,
@@ -79,11 +75,13 @@ public static class AttributeExtensions
                 .Expression,
             _ => null
         };
-    }
 
     private static T? ConvertArgumentValue<T>(TypedConstant argument)
     {
-        if (argument.Value is T value) return value;
+        if (argument.Value is T value)
+        {
+            return value;
+        }
 
         return typeof(T).IsEnum && argument.Value != null ? ConvertEnum<T>(argument.Value)
             : typeof(T).Name == "Type" && argument.Value is ITypeSymbol type ? (T?)(object)type

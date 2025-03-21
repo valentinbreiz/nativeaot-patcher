@@ -11,7 +11,7 @@ namespace Cosmos.Patcher.Analyzer.Tests;
 public class AnalyzerTestsTest
 {
     private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-    private static readonly MetadataReference LiquipAPIReference = MetadataReference.CreateFromFile(typeof(Plug).Assembly.Location);
+    private static readonly MetadataReference CosmosAPIReference = MetadataReference.CreateFromFile(typeof(Plug).Assembly.Location);
 
     private static readonly PatcherAnalyzer Analyzer = new();
 
@@ -162,7 +162,7 @@ namespace ConsoleApplication1
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var compilation = CSharpCompilation.Create("TestCompilation", [syntaxTree], [CorlibReference, LiquipAPIReference]);
+        var compilation = CSharpCompilation.Create("TestCompilation", [syntaxTree], [CorlibReference, CosmosAPIReference]);
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(Analyzer));
         var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
         return diagnostics;

@@ -6,66 +6,67 @@ namespace Cosmos.Patcher.Analyzer;
 public sealed class DiagnosticMessages
 {
     public static readonly DiagnosticDescriptor TypeNotFound = new(
-        id: "NAOT0001",
-        title: "Type Not Found",
-        messageFormat: "The specified type '{0}' could not be located",
-        category: "Naming",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "Ensure that the type name is correct and that the type is accessible."
+        "NAOT0001",
+        "Type Not Found",
+        "The specified type '{0}' could not be located",
+        "Naming",
+        DiagnosticSeverity.Error,
+        true,
+        "Ensure that the type name is correct and that the type is accessible."
     );
 
     public static readonly DiagnosticDescriptor MethodNeedsPlug = new(
-        id: "NAOT0002",
-        title: "Method Needs Plug",
-        messageFormat: "Method '{0}' in class '{1}' requires a plug",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "Ensure that the method has a corresponding plug. See http://www.gocosmos.org/docs/plugs/missing/ for more information."
+        "NAOT0002",
+        "Method Needs Plug",
+        "Method '{0}' in class '{1}' requires a plug",
+        "Usage",
+        DiagnosticSeverity.Error,
+        true,
+        "Ensure that the method has a corresponding plug. See http://www.gocosmos.org/docs/plugs/missing/ for more information."
     );
 
     public static readonly DiagnosticDescriptor PlugNotStatic = new(
-        id: "NAOT0003",
-        title: "Plug Not Static",
-        messageFormat: "Plug '{0}' should be static",
-        category: "Design",
-        defaultSeverity: DiagnosticSeverity.Info,
-        isEnabledByDefault: true,
-        description: "Ensure that the plug is static if it only contains static members."
+        "NAOT0003",
+        "Plug Not Static",
+        "Plug '{0}' should be static",
+        "Design",
+        DiagnosticSeverity.Info,
+        true,
+        "Ensure that the plug is static if it only contains static members."
     );
 
     public static readonly DiagnosticDescriptor PlugNameDoesNotMatch = new(
-    id: "NAOT0004",
-    title: "Plug Name Does Not Match",
-    messageFormat: "Plug '{0}' should be renamed to '{1}'",
-    category: "Naming",
-    defaultSeverity: DiagnosticSeverity.Info,
-    isEnabledByDefault: true,
-    description: "Ensure that the plug name matches the plugged class name."
-);
+        "NAOT0004",
+        "Plug Name Does Not Match",
+        "Plug '{0}' should be renamed to '{1}'",
+        "Naming",
+        DiagnosticSeverity.Info,
+        true,
+        "Ensure that the plug name matches the plugged class name."
+    );
 
     public static readonly DiagnosticDescriptor MethodNotImplemented = new(
-        id: "NAOT0005",
-        title: "Method Not Implemented",
-        messageFormat: "Method '{0}' does not exist in '{1}'",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Info,
-        isEnabledByDefault: true,
-        description: "Ensure that the method name is correct and that the method exists."
+        "NAOT0005",
+        "Method Not Implemented",
+        "Method '{0}' does not exist in '{1}'",
+        "Usage",
+        DiagnosticSeverity.Info,
+        true,
+        "Ensure that the method name is correct and that the method exists."
     );
 
 
     public static readonly DiagnosticDescriptor StaticConstructorTooManyParams = new(
-        id: "NAOT0006",
-        title: "Static Constructor Has Too Many Parameters",
-        messageFormat: "The static constructor '{0}' contains too many parameters. A static constructor must not have more than one parameter.",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "A static constructor should have at most one parameter."
+        "NAOT0006",
+        "Static Constructor Has Too Many Parameters",
+        "The static constructor '{0}' contains too many parameters. A static constructor must not have more than one parameter.",
+        "Usage",
+        DiagnosticSeverity.Error,
+        true,
+        "A static constructor should have at most one parameter."
     );
 
 
-    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound, MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
+    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound,
+        MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
 }
