@@ -149,7 +149,7 @@ jobs:
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
 
       - name: Build Cosmos.NativeWrapper
-        run: dotnet build ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj --configuration Debug --no-restore --verbosity detailed
 
 
       - name: Build Cosmos.ilc.Tests
