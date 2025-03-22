@@ -46,6 +46,7 @@ public sealed class PatcherTask : ToolTask
     public override bool Execute()
     {
         Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
+        Log.LogMessage(MessageImportance.High, $"Platform: {Environment.OSVersion.Platform}");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
         Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
         Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
@@ -56,5 +57,5 @@ public sealed class PatcherTask : ToolTask
         return base.Execute();
     }
 
-    protected override string ToolName => "Liquip.Patcher.exe";
+    protected override string ToolName =>  "Cosmos.Patcher" + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : string.Empty);
 }

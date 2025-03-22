@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{8bb57b06-1852-42a6-8c53-c04adf8b50a1}</ProjectGuid>
-    <RootNamespace>LiquipNativeLibrary</RootNamespace>
+    <RootNamespace>CosmosNativeLibrary</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

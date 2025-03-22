@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Cosmos.Patcher;
 
-public class PatchCommand : Command<PatchCommand.Settings>
+public sealed class PatchCommand : Command<PatchCommand.Settings>
 {
     public class Settings : CommandSettings
     {
@@ -15,6 +15,10 @@ public class PatchCommand : Command<PatchCommand.Settings>
         [CommandOption("--plugs <PLUGS>")]
         [Description("Paths to plug assemblies.")]
         public string[] PlugsReferences { get; set; } = [];
+
+        [CommandOption("--output <OUTPUT>")]
+        [Description("Output path for the patched dll")]
+        public string OutputPath { get; set; }
     }
 
     public override int Execute(CommandContext context, Settings settings)
@@ -39,9 +43,9 @@ public class PatchCommand : Command<PatchCommand.Settings>
             AssemblyDefinition? targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
             Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
 
-            AssemblyDefinition[]? plugAssemblies = plugPaths
+            AssemblyDefinition[]? plugAssemblies = [..plugPaths
                 .Select(plugPath => AssemblyDefinition.ReadAssembly(plugPath))
-                .ToArray();
+              ];
 
             Console.WriteLine("Loaded plug assemblies:");
             foreach (string? plug in plugPaths)
@@ -52,11 +56,11 @@ public class PatchCommand : Command<PatchCommand.Settings>
             PlugPatcher? plugPatcher = new(new PlugScanner());
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
-            string? outputPath = Path.Combine(Path.GetDirectoryName(settings.TargetAssembly)!,
-                Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
-
-            targetAssembly.Write(outputPath);
-            Console.WriteLine($"Patched assembly saved to: {outputPath}");
+            settings.OutputPath ??= Path.GetDirectoryName(settings.TargetAssembly)!;
+             
+            string finalPath = Path.Combine(settings.OutputPath,Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
+            targetAssembly.Write(finalPath); 
+            Console.WriteLine($"Patched assembly saved to: {settings.OutputPath}");
 
             Console.WriteLine("Patching completed successfully.");
             return 0;

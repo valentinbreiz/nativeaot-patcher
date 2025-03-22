@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <CosmosAsmFrameworkPath>$(IntermediateOutputPath)cosmos-asm\</CosmosAsmFrameworkPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <YasmPath Condition="'$(YasmPath)' == '' OR !Exists('$(YasmPath)')">/usr/bin/yasm</YasmPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CosmosAsmTasksAssembly
+      Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\lib\net8.0\Cosmos.Asm.Build.dll
+    </CosmosAsmTasksAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
+  <UsingTask TaskName="Cosmos.Asm.Build.Tasks.LdTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
+
+
+</Project>

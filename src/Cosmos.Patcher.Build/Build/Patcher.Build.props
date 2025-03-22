@@ -2,31 +2,31 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <ItemGroup>
-    <PackageReference Include="Liquip.Patcher"
+    <PackageReference Include="Cosmos.Patcher"
                       Version="$(Version)"
-                      GeneratePathProperty="true" />
+                      GeneratePathProperty="true"/>
   </ItemGroup>
 
 
   <ItemGroup>
-    <PackageReference Include="Liquip.Patcher"
+    <PackageReference Include="Cosmos.Patcher"
                       Version="$(Version)"
-                      GeneratePathProperty="true" />
+                      GeneratePathProperty="true"/>
   </ItemGroup>
 
   <PropertyGroup>
-    <LiquipPatcherAssembly
-      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
-    </LiquipPatcherAssembly>
-    <LiquipPatcherAssembly
-      Condition="'$(LiquipPatcherAssembly)' == '' OR !Exists('$(LiquipPatcherAssembly)')">$(Liquip_Patcher)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
-    </LiquipPatcherAssembly>
-    <LiquipPatcherTasksAssembly
-      Condition="'$(LiquipPatcherTasksAssembly)' == '' OR !Exists('$(LiquipPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)/bin/Debug/net8.0/Liquip.Patcher.Build.dll
-    </LiquipPatcherTasksAssembly>
+    <CosmosPatcherAssembly
+      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+    </CosmosPatcherAssembly>
+    <CosmosPatcherAssembly
+      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+    </CosmosPatcherAssembly>
+    <CosmosPatcherTasksAssembly
+      Condition="'$(CosmosPatcherTasksAssembly)' == '' OR !Exists('$(CosmosPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+    </CosmosPatcherTasksAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="Liquip.Patcher.Build.PatcherTask" AssemblyFile="$(LiquipPatcherTasksAssembly)"/>
+  <UsingTask TaskName="Cosmos.Patcher.Build.PatcherTask" AssemblyFile="$(CosmosPatcherTasksAssembly)"/>
  
   <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
