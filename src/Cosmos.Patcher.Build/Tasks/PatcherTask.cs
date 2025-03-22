@@ -51,6 +51,7 @@ public sealed class PatcherTask : ToolTask
         Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
         Log.LogMessage(MessageImportance.High,
             $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
+        Log.LogMessage(MessageImportance.High, $"Command: {GenerateCommandLineCommands()}");
 
         return base.Execute();
     }
