@@ -1,5 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.API\Cosmos.API.csproj" />
   </ItemGroup>
+
+  <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
+  <Import Project="../../src/Cosmos.ilc.Build/ILC.Build.targets" />
 </Project>
