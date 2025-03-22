@@ -43,7 +43,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             AssemblyDefinition? targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
             Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
 
-            AssemblyDefinition[]? plugAssemblies = [..plugPaths
+            AssemblyDefinition[]? plugAssemblies = [.. plugPaths
                 .Select(plugPath => AssemblyDefinition.ReadAssembly(plugPath))
               ];
 
@@ -57,9 +57,9 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
             settings.OutputPath ??= Path.GetDirectoryName(settings.TargetAssembly)!;
-             
-            string finalPath = Path.Combine(settings.OutputPath,Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
-            targetAssembly.Write(finalPath); 
+
+            string finalPath = Path.Combine(settings.OutputPath, Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
+            targetAssembly.Write(finalPath);
             Console.WriteLine($"Patched assembly saved to: {settings.OutputPath}");
 
             Console.WriteLine("Patching completed successfully.");

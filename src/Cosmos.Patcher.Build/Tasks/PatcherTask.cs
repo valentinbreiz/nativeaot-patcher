@@ -57,5 +57,5 @@ public sealed class PatcherTask : ToolTask
         return base.Execute();
     }
 
-    protected override string ToolName =>  "Cosmos.Patcher" + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : string.Empty);
+    protected override string ToolName => "Cosmos.Patcher" + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : string.Empty);
 }
