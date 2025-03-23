@@ -22,5 +22,5 @@ public static class PlugUtils
         assembly.Write(Path.Combine(rootPath, $"{fileName}"));
 
     public static List<AssemblyDefinition> LoadAssemblies(params string[] paths) =>
-        paths.Select(AssemblyDefinition.ReadAssembly).ToList();
+        [.. paths.Select(AssemblyDefinition.ReadAssembly)];
 }

@@ -9,17 +9,17 @@ using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace Cosmos.Asm.Build.Tasks;
 
-public class YasmBuildTask : ToolTask
+public sealed class YasmBuildTask : ToolTask
 {
     [Required] public string? YasmPath { get; set; }
-    [Required] public string[] SearchPath { get; set; }
-    [Required] public string OutputPath { get; set; }
+    [Required] public string[]? SearchPath { get; set; }
+    [Required] public string? OutputPath { get; set; }
 
     protected override string GenerateFullPathToTool() =>
         YasmPath;
 
-    private string FilePath { get; set; }
-    private string FileName { get; set; }
+    private string? FilePath { get; set; }
+    private string? FileName { get; set; }
 
 
     protected override string GenerateCommandLineCommands()

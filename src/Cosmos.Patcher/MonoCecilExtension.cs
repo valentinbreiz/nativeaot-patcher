@@ -4,6 +4,8 @@ using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using MethodBody = Mono.Cecil.Cil.MethodBody;
 
+namespace Cosmos.Patcher;
+
 /// <summary>
 /// Provides extension methods for classes from the Mono.Cecil library, a library for reading and writing Intermediate Language (IL) code.
 /// These extensions facilitate manipulation of IL code, providing functionality to clone, merge, and update types in collections, methods, fields, and other components of a .NET assembly.
