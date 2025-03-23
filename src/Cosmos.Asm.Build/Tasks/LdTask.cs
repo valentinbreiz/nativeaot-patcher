@@ -12,8 +12,8 @@ namespace Cosmos.Asm.Build.Tasks;
 public sealed class LdTask : ToolTask
 {
     [Required] public string? LdPath { get; set; }
-    [Required] public string ObjectPath { get; set; }
-    [Required] public string OutputFile { get; set; }
+    [Required] public string? ObjectPath { get; set; }
+    [Required] public string? OutputFile { get; set; }
 
     protected override string GenerateFullPathToTool() =>
         LdPath;

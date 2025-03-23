@@ -18,7 +18,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
         [CommandOption("--output <OUTPUT>")]
         [Description("Output path for the patched dll")]
-        public string OutputPath { get; set; }
+        public string? OutputPath { get; set; }
     }
 
     public override int Execute(CommandContext context, Settings settings)

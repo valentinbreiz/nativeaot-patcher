@@ -1,3 +1,4 @@
+using System;
 using Cosmos.API.Attributes;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -195,10 +196,9 @@ public sealed class PlugPatcher
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies)
     {
         ArgumentNullException.ThrowIfNull(targetAssembly);
+
         if (plugAssemblies is null || plugAssemblies.Length == 0)
-        {
             throw new ArgumentNullException(nameof(plugAssemblies));
-        }
 
         Console.WriteLine($"Scanning and patching assembly: {targetAssembly.MainModule.Name}");
 
