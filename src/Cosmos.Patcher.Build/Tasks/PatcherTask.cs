@@ -1,53 +1,61 @@
-using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Cosmos.Patcher.Build.Tasks
+namespace Cosmos.Patcher.Build.Tasks;
+
+public sealed class PatcherTask : ToolTask
 {
-    public class PatcherTask : ToolTask
+    [Required] public string? PatcherPath { get; set; }
+
+    [Required] public string? TargetAssembly { get; set; }
+
+    [Required] public required ITaskItem[] PlugsReferences { get; set; }
+
+    [Required] public required string OutputPath { get; set; }
+
+    protected override string GenerateFullPathToTool() =>
+        // Return Liquip.Patcher.exe path
+        PatcherPath;
+
+    protected override string GenerateCommandLineCommands()
     {
-        [Required] public string? PatcherPath { get; set; }
+        CommandLineBuilder builder = new();
 
-        [Required] public string? TargetAssembly { get; set; }
+        // Add main command
+        builder.AppendSwitch("patch");
 
-        [Required] public ITaskItem[]? PlugsReferences { get; set; }
+        // Add --target arg
+        builder.AppendSwitch("--target");
+        builder.AppendFileNameIfNotNull(TargetAssembly);
 
-        protected override string GenerateFullPathToTool() =>
-            // Return Cosmos.Patcher.exe path
-            PatcherPath;
 
-        protected override string GenerateCommandLineCommands()
+        // Add plugs
+        builder.AppendSwitch("--plugs");
+        foreach (ITaskItem plug in PlugsReferences)
         {
-            CommandLineBuilder builder = new();
-
-            // Add main command
-            builder.AppendSwitch("patch");
-
-            // Add --target arg
-            builder.AppendSwitch("--target");
-            builder.AppendFileNameIfNotNull(TargetAssembly);
-
-            // Add plugs
-            builder.AppendSwitch("--plugs");
-            foreach (ITaskItem plug in PlugsReferences)
-            {
-                builder.AppendFileNameIfNotNull(plug.ItemSpec);
-            }
-
-            return builder.ToString();
+            builder.AppendFileNameIfNotNull(plug.ItemSpec);
         }
 
-        public override bool Execute()
-        {
-            Log.LogMessage(MessageImportance.High, "Running Cosmos.Patcher...");
-            Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
-            Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
-            Log.LogMessage(MessageImportance.High,
-                $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
+        // Add --output arg
+        builder.AppendSwitch("--output");
+        builder.AppendFileNameIfNotNull(OutputPath);
 
-            return base.Execute();
-        }
-
-        protected override string ToolName => "Cosmos.Patcher.exe";
+        return builder.ToString();
     }
+
+    public override bool Execute()
+    {
+        Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
+        Log.LogMessage(MessageImportance.High, $"Platform: {Environment.OSVersion.Platform}");
+        Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
+        Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
+        Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
+        Log.LogMessage(MessageImportance.High,
+            $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
+        Log.LogMessage(MessageImportance.High, $"Command: {GenerateCommandLineCommands()}");
+
+        return base.Execute();
+    }
+
+    protected override string ToolName => "Cosmos.Patcher" + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : string.Empty);
 }

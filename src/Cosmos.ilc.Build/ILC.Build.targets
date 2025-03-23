@@ -8,8 +8,8 @@
 
   <Target Name="CosmosILCSetupProperties" AfterTargets="RunPatcher">
     <PropertyGroup>
-      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)liquip/native/</NativeOutputPath>
-      <InputPath>$(IntermediateOutputPath)liquid/</InputPath>
+      <NativeOutputPath Condition="'$(NativeOutputPath)'==''">$(OutputPath)cosmos/native/</NativeOutputPath>
+      <InputPath>$(IntermediateOutputPath)cosmos/</InputPath>
       <IlcIntermediateOutputPath Condition="'$(IlcIntermediateOutputPath)'==''">$(InputPath)native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)_final</FinalAssembly>
 

@@ -4,7 +4,7 @@ using MonoMod.Utils;
 
 namespace Cosmos.Patcher;
 
-public class PlugScanner
+public sealed class PlugScanner
 {
     public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies)
     {

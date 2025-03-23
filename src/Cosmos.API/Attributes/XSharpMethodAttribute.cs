@@ -1,7 +1,7 @@
 ﻿namespace Cosmos.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class XSharpMethodAttribute : Attribute
+public sealed class XSharpMethodAttribute : Attribute
 {
     /// <summary>
     /// the name of the label to use

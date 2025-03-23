@@ -12,7 +12,7 @@
 #include "glob.h"
 
 #define symLoad dlsym
-#define PathLibraryDir "../../Cosmos.NativeWrapper/bin/Debug/net8.0/native/"
+#define PathLibraryDir "../Cosmos.NativeWrapper/bin/Debug/net8.0/native/"
 #define CoTaskMemFree free
 
 #ifndef F_OK
