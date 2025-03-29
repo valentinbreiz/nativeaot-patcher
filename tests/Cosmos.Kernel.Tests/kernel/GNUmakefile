@@ -156,7 +156,7 @@ override OBJ := $(addprefix obj-$(ARCH)/,$(CFILES:.c=.c.o) $(ASFILES:.S=.S.o))
 ifeq ($(ARCH),x86_64)
 override OBJ += $(addprefix obj-$(ARCH)/,$(NASMFILES:.asm=.asm.o))
 endif
-override HEADER_DEPS := $(addprefix obj-$(ARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
+override HEADER_DEPS := $(addprefix obj-$(ARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S:.S.d))
 
 # Default target. This must come first, before header dependencies.
 .PHONY: all
