@@ -2,56 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limine.h>
-#include <limine_terminal/term.h>
-
-/* ------------------------
-   Simple bump allocator
-   ------------------------ */
-#define MEMPOOL_SIZE (1024 * 1024)
-static uint8_t mempool[MEMPOOL_SIZE];
-static size_t mempool_offset = 0;
-
-void *term_alloc(size_t size) {
-    if (mempool_offset + size > MEMPOOL_SIZE)
-        return NULL;
-    void *ptr = &mempool[mempool_offset];
-    mempool_offset += size;
-    return ptr;
-}
-
-void *term_realloc(void *oldptr, size_t size) {
-    void *newptr = term_alloc(size);
-    if (!newptr)
-        return NULL;
-    term_memcpy(newptr, oldptr, size);
-    return newptr;
-}
-
-void term_free(void *ptr, size_t size) {
-    (void)ptr;
-    (void)size;
-}
-
-void term_freensz(void *ptr) {
-    (void)ptr;
-}
-
-void *term_memcpy(void *dest, const void *src, size_t size) {
-    uint8_t *d = (uint8_t *)dest;
-    const uint8_t *s = (const uint8_t *)src;
-    for (size_t i = 0; i < size; i++) {
-        d[i] = s[i];
-    }
-    return dest;
-}
-
-void *term_memset(void *dest, int val, size_t count) {
-    uint8_t *d = (uint8_t *)dest;
-    for (size_t i = 0; i < count; i++) {
-        d[i] = (uint8_t)val;
-    }
-    return dest;
-}
+#include <flanterm/backends/fb.h>
 
 // Implémentation de memset
 void *memset(void *dest, int val, size_t count) {
@@ -72,57 +23,44 @@ void *memcpy(void *dest, const void *src, size_t count) {
     return dest;
 }
 
-/* ------------------------
-   Configuration de la console et du background
-   ------------------------ */
-struct image_t *image = NULL; // Désactivez le fond pour l'instant
+// Implémentation de memmove
+void *memmove(void *dest, const void *src, size_t n) {
+    uint8_t *pdest = (uint8_t *)dest;
+    const uint8_t *psrc = (const uint8_t *)src;
 
-struct framebuffer_t frm = {
-    .address = 0,  // Remplir dynamiquement dans kmain
-    .width = 0,
-    .height = 0,
-    .pitch = 0,
-    .red_mask_size = 0,
-    .red_mask_shift = 0,
-    .green_mask_size = 0,
-    .green_mask_shift = 0,
-    .blue_mask_size = 0,
-    .blue_mask_shift = 0
-};
+    if (src > dest) {
+        for (size_t i = 0; i < n; i++) {
+            pdest[i] = psrc[i];
+        }
+    } else if (src < dest) {
+        for (size_t i = n; i > 0; i--) {
+            pdest[i-1] = psrc[i-1];
+        }
+    }
 
-struct font_t font = {
-    .address = 0, // Pas de police bitmap pour l'instant
-    .width = 8,
-    .height = 16,
-    .spacing = TERM_FONT_SPACING,
-    .scale_x = TERM_FONT_SCALE_X,
-    .scale_y = TERM_FONT_SCALE_Y,
-};
+    return dest;
+}
 
-struct style_t style = {
-    .ansi_colours = TERM_ANSI_COLOURS,
-    .ansi_bright_colours = TERM_ANSI_BRIGHT_COLOURS,
-    .background = TERM_BACKGROUND,
-    .foreground = TERM_FOREGROUND_BRIGHT,
-    .background_bright = TERM_BACKGROUND_BRIGHT,
-    .foreground_bright = TERM_FOREGROUND_BRIGHT,
-    .margin = TERM_MARGIN,
-    .margin_gradient = TERM_MARGIN_GRADIENT
-};
+// Implémentation de memcmp
+int memcmp(const void *s1, const void *s2, size_t n) {
+    const uint8_t *p1 = (const uint8_t *)s1;
+    const uint8_t *p2 = (const uint8_t *)s2;
 
-struct background_t back = {
-    .background = NULL, // Désactivez le fond
-    .backdrop = TERM_BACKDROP
-};
+    for (size_t i = 0; i < n; i++) {
+        if (p1[i] != p2[i]) {
+            return p1[i] < p2[i] ? -1 : 1;
+        }
+    }
 
-/* ------------------------
-   Requête de terminal Limine
-   ------------------------ */
+    return 0;
+}
+
 __attribute__((used, section(".limine_requests")))
-static volatile struct limine_terminal_request terminal_request = {
-    .id = LIMINE_TERMINAL_REQUEST,
-    .revision = 1 // Utilisez la révision 1 pour éviter les avertissements
+static volatile struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
 };
+
 
 /* ------------------------
    Fonction d'arrêt (boucle infinie)
@@ -143,14 +81,33 @@ static void hcf(void) {
    Point d'entrée du kernel
    ------------------------ */
 void kmain(void) {
-    // Initialisation du terminal
-    term_t *term = term_init(frm, font, style, back);
-    if (!term) {
+    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
         hcf();
     }
 
+    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+
+    // Initialisation du terminal
+    struct flanterm_context *ft_ctx = flanterm_fb_init(
+        NULL,
+        NULL,
+        framebuffer->address,
+        framebuffer->width, framebuffer->height,
+        framebuffer->pitch,
+        framebuffer->red_mask_size, framebuffer->red_mask_shift,
+        framebuffer->green_mask_size, framebuffer->green_mask_shift,
+        framebuffer->blue_mask_size, framebuffer->blue_mask_shift,
+        NULL,
+        NULL, NULL,
+        NULL, NULL,
+        NULL, NULL,
+        NULL, 0, 0, 1,
+        0, 0,
+        0
+    );
+
     // Exemple d'écriture sur la console
-    term_write(term, "Hello, World!", 13);
+    flanterm_write(ft_ctx, "Hello, World!", 13);
 
     // Boucle infinie
     hcf();
