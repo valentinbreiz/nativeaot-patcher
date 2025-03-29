@@ -3,68 +3,18 @@
 #include <stdbool.h>
 #include <limine.h>
 #include <flanterm/backends/fb.h>
+#include "debug.h"
+#include "utils.h"
+#include "framebuffer.h" // Include the header with the extern declaration
 
-// Implémentation de memset
-void *memset(void *dest, int val, size_t count) {
-    uint8_t *d = (uint8_t *)dest;
-    for (size_t i = 0; i < count; i++) {
-        d[i] = (uint8_t)val;
-    }
-    return dest;
-}
-
-// Implémentation de memcpy
-void *memcpy(void *dest, const void *src, size_t count) {
-    uint8_t *d = (uint8_t *)dest;
-    const uint8_t *s = (const uint8_t *)src;
-    for (size_t i = 0; i < count; i++) {
-        d[i] = s[i];
-    }
-    return dest;
-}
-
-// Implémentation de memmove
-void *memmove(void *dest, const void *src, size_t n) {
-    uint8_t *pdest = (uint8_t *)dest;
-    const uint8_t *psrc = (const uint8_t *)src;
-
-    if (src > dest) {
-        for (size_t i = 0; i < n; i++) {
-            pdest[i] = psrc[i];
-        }
-    } else if (src < dest) {
-        for (size_t i = n; i > 0; i--) {
-            pdest[i-1] = psrc[i-1];
-        }
-    }
-
-    return dest;
-}
-
-// Implémentation de memcmp
-int memcmp(const void *s1, const void *s2, size_t n) {
-    const uint8_t *p1 = (const uint8_t *)s1;
-    const uint8_t *p2 = (const uint8_t *)s2;
-
-    for (size_t i = 0; i < n; i++) {
-        if (p1[i] != p2[i]) {
-            return p1[i] < p2[i] ? -1 : 1;
-        }
-    }
-
-    return 0;
-}
-
+// Limine framebuffer request
 __attribute__((used, section(".limine_requests")))
-static volatile struct limine_framebuffer_request framebuffer_request = {
+volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0
 };
 
-
-/* ------------------------
-   Fonction d'arrêt (boucle infinie)
-   ------------------------ */
+// Halt function (infinite loop)
 static void hcf(void) {
     for (;;) {
 #if defined(__x86_64__)
@@ -78,16 +28,18 @@ static void hcf(void) {
 }
 
 /* ------------------------
-   Point d'entrée du kernel
+   Kernel entry point
    ------------------------ */
 void kmain(void) {
+    // Check if the framebuffer is available
     if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
         hcf();
     }
 
+    // Retrieve the framebuffer
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-    // Initialisation du terminal
+    // Initialize the terminal
     struct flanterm_context *ft_ctx = flanterm_fb_init(
         NULL,
         NULL,
@@ -106,9 +58,16 @@ void kmain(void) {
         0
     );
 
-    // Exemple d'écriture sur la console
-    flanterm_write(ft_ctx, "Hello, World!", 13);
+    // Example of writing to the console with debug_write
+    debug_write(ft_ctx, "CosmosOS Native Entry Point started!");
 
-    // Boucle infinie
+    debug_write(ft_ctx, "Limine info:");
+
+    // Display Limine information
+    display_limine_info(ft_ctx);
+
+    debug_write(ft_ctx, "Jumping to C# Entry Point... (not implemented)");
+
+    // Infinite loop
     hcf();
 }
