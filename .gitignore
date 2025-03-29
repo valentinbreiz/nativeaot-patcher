@@ -410,3 +410,4 @@ main
 /ovmf
 *.iso
 *.hdd
+limine
