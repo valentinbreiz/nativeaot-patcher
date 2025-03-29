@@ -34,7 +34,7 @@ run-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-M q35 \
 		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom $(IMAGE_NAME).iso \
+		-cdrom output/$(IMAGE_NAME).iso \
 		$(QEMUFLAGS)
 
 .PHONY: run-hdd-x86_64
@@ -55,7 +55,7 @@ run-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		-device usb-kbd \
 		-device usb-mouse \
 		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom $(IMAGE_NAME).iso \
+		-cdrom output/$(IMAGE_NAME).iso \
 		$(QEMUFLAGS)
 
 .PHONY: run-hdd-aarch64
@@ -81,7 +81,7 @@ run-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		-device usb-kbd \
 		-device usb-mouse \
 		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom $(IMAGE_NAME).iso \
+		-cdrom output/$(IMAGE_NAME).iso \
 		$(QEMUFLAGS)
 
 .PHONY: run-hdd-riscv64
@@ -107,7 +107,7 @@ run-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		-device usb-kbd \
 		-device usb-mouse \
 		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom $(IMAGE_NAME).iso \
+		-cdrom output/$(IMAGE_NAME).iso \
 		$(QEMUFLAGS)
 
 .PHONY: run-hdd-loongarch64
@@ -128,7 +128,7 @@ run-hdd-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
 run-bios: $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-M q35 \
-		-cdrom $(IMAGE_NAME).iso \
+		-cdrom output/$(IMAGE_NAME).iso \
 		-boot d \
 		$(QEMUFLAGS)
 
@@ -247,7 +247,7 @@ endif
 .PHONY: clean
 clean:
 	$(MAKE) -C kernel clean
-	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
+	rm -rf iso_root output/$(IMAGE_NAME).iso $(IMAGE_NAME).hdd
 
 .PHONY: distclean
 distclean:
