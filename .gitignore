@@ -404,3 +404,9 @@ out/
 *.iso
 *.efi
 main
+
+/kernel-deps
+/limine
+/ovmf
+*.iso
+*.hdd
