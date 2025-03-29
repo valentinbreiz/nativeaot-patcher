@@ -6,7 +6,8 @@
  ## Documentation:
  - [Cosmos.Patcher](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Cosmos.Patcher)
  - [Testing](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Testing)
-
+ - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
+   
  ## Credit:
  - [@zarlo](https://github.com/zarlo) for the [original project](https://gitlab.com/liquip/nativeaot-patcher).
  - [@kumja1](https://github.com/kumja1) for the plug analyzer and ilc compilation.
