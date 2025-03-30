@@ -7,6 +7,8 @@
 #include "utils.h"
 #include "framebuffer.h" // Include the header with the extern declaration
 
+extern void dotnet_main(void);
+
 // Limine framebuffer request
 __attribute__((used, section(".limine_requests")))
 volatile struct limine_framebuffer_request framebuffer_request = {
@@ -66,7 +68,11 @@ void kmain(void) {
     // Display Limine information
     display_limine_info(ft_ctx);
 
-    debug_write(ft_ctx, "Jumping to C# Entry Point... (not implemented)");
+    debug_write(ft_ctx, "Jumping to C# Entry Point...");
+
+    dotnet_main();
+
+    debug_write(ft_ctx, "Returned to Native Entry Point!");
 
     // Infinite loop
     hcf();

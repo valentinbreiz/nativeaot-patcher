@@ -1,12 +1,15 @@
-using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Cosmos.API.Attributes;
 
 namespace Cosmos.Entry
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        [UnmanagedCallersOnly(EntryPoint = "dotnet_main", CallConvs = [typeof(CallConvCdecl)])]
+        public static void Main()
         {
-            Console.WriteLine("Hello, Cosmos!");
+            
         }
     }
 }
