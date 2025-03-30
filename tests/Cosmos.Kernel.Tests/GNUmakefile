@@ -7,7 +7,6 @@ ARCH := x86_64
 
 # Default user QEMU flags. These are appended to the QEMU command calls.
 QEMUFLAGS := -m 2G
-
 override IMAGE_NAME := Kernel-$(ARCH)
 
 # Toolchain for building the 'limine' executable for the host.
@@ -17,137 +16,65 @@ HOST_CPPFLAGS :=
 HOST_LDFLAGS :=
 HOST_LIBS :=
 
-.PHONY: all
-all: $(IMAGE_NAME).iso
+# Integration of Cosmos.Entry
+DOTNET_PROJECT := Cosmos.Entry/Cosmos.Entry.csproj
+DOTNET_OUTPUT_DIR := Cosmos.Entry/bin/Debug/net8.0/native
+DOTNET_OBJ := Cosmos.Entry/bin/Debug/net8.0/cosmos/native/Cosmos.Entry_final.o
+DOTNET_FINAL := $(DOTNET_OUTPUT_DIR)/Cosmos.Entry_final.so
 
-.PHONY: all-hdd
-all-hdd: $(IMAGE_NAME).hdd
+LDFLAGS += -L./Cosmos.Entry/bin/Debug/net8.0/native -lCosmos.Entry
 
-.PHONY: run
-run: run-$(ARCH)
+.PHONY: all dotnet kernel kernel-deps
 
-.PHONY: run-hdd
-run-hdd: run-hdd-$(ARCH)
+all: output/$(IMAGE_NAME).iso
 
-.PHONY: run-x86_64
-run-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(ARCH) \
-		-M q35 \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom output/$(IMAGE_NAME).iso \
-		$(QEMUFLAGS)
+dotnet:
+	@echo "=== Build Cosmos.Entry (NativeAOT) ==="
+	dotnet build $(DOTNET_PROJECT) --configuration Debug --verbosity detailed
 
-.PHONY: run-hdd-x86_64
-run-hdd-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(ARCH) \
-		-M q35 \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-hda $(IMAGE_NAME).hdd \
-		$(QEMUFLAGS)
+$(DOTNET_FINAL): dotnet
+	@echo "Ensuring Cosmos.Entry final shared library exists: $@"
 
-.PHONY: run-aarch64
-run-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu cortex-a72 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom output/$(IMAGE_NAME).iso \
-		$(QEMUFLAGS)
+kernel-deps:
+	@echo "=== Getting kernel dependencies ==="
+	./Cosmos.Native/get-deps
+	touch kernel-deps
 
-.PHONY: run-hdd-aarch64
-run-hdd-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu cortex-a72 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-hda $(IMAGE_NAME).hdd \
-		$(QEMUFLAGS)
+kernel: kernel-deps dotnet
+	@echo "=== Building Kernel ==="
+	$(MAKE) -C Cosmos.Native
 
-.PHONY: run-riscv64
-run-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu rv64 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom output/$(IMAGE_NAME).iso \
-		$(QEMUFLAGS)
-
-.PHONY: run-hdd-riscv64
-run-hdd-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu rv64 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-hda $(IMAGE_NAME).hdd \
-		$(QEMUFLAGS)
-
-.PHONY: run-loongarch64
-run-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu la464 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-cdrom output/$(IMAGE_NAME).iso \
-		$(QEMUFLAGS)
-
-.PHONY: run-hdd-loongarch64
-run-hdd-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(ARCH) \
-		-M virt \
-		-cpu la464 \
-		-device ramfb \
-		-device qemu-xhci \
-		-device usb-kbd \
-		-device usb-mouse \
-		-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
-		-hda $(IMAGE_NAME).hdd \
-		$(QEMUFLAGS)
-
-
-.PHONY: run-bios
-run-bios: $(IMAGE_NAME).iso
-	qemu-system-$(ARCH) \
-		-M q35 \
-		-cdrom output/$(IMAGE_NAME).iso \
-		-boot d \
-		$(QEMUFLAGS)
-
-.PHONY: run-hdd-bios
-run-hdd-bios: $(IMAGE_NAME).hdd
-	qemu-system-$(ARCH) \
-		-M q35 \
-		-hda $(IMAGE_NAME).hdd \
-		$(QEMUFLAGS)
-
-ovmf/ovmf-code-$(ARCH).fd:
-	mkdir -p ovmf
-	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(ARCH).fd
-	case "$(ARCH)" in \
-		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
-		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \
-	esac
+output/$(IMAGE_NAME).iso: limine/limine kernel dotnet $(DOTNET_FINAL)
+	@echo "=== Generating ISO Image ==="
+	rm -rf output/iso_root
+	mkdir -p output/iso_root/boot output/iso_root/boot/limine output/iso_root/EFI/BOOT output
+	cp -v Cosmos.Native/bin-$(ARCH)/kernel output/iso_root/boot/
+	cp -v limine.conf output/iso_root/boot/limine/
+ifeq ($(ARCH),x86_64)
+	cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin output/iso_root/boot/limine/
+	cp -v limine/BOOTX64.EFI output/iso_root/EFI/BOOT/
+	cp -v limine/BOOTIA32.EFI output/iso_root/EFI/BOOT/
+	xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin \
+		-no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus \
+		-apm-block-size 2048 --efi-boot boot/limine/limine-uefi-cd.bin \
+		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		output/iso_root -o output/$(IMAGE_NAME).iso
+	./limine/limine bios-install output/$(IMAGE_NAME).iso
+endif
+ifeq ($(ARCH),aarch64)
+	cp -v limine/limine-uefi-cd.bin output/iso_root/boot/limine/
+	cp -v limine/BOOTAA64.EFI output/iso_root/EFI/BOOT/
+	mkdir -p output
+	xorriso -as mkisofs -R -r -J \
+		-hfsplus -apm-block-size 2048 \
+		--efi-boot boot/limine/limine-uefi-cd.bin \
+		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		output/iso_root -o output/$(IMAGE_NAME).iso
+endif
+	rm -rf output/iso_root
 
 limine/limine:
+	@echo "=== Building Limine ==="
 	rm -rf limine
 	git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1
 	$(MAKE) -C limine \
@@ -157,99 +84,20 @@ limine/limine:
 		LDFLAGS="$(HOST_LDFLAGS)" \
 		LIBS="$(HOST_LIBS)"
 
-kernel-deps:
-	./kernel/get-deps
-	touch kernel-deps
+ovmf/ovmf-code-$(ARCH).fd:
+	@echo "=== Downloading OVMF Firmware ==="
+	mkdir -p ovmf
+	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(ARCH).fd
+	case "$(ARCH)" in \
+		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
+		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \
+	esac
 
-.PHONY: kernel
-kernel: kernel-deps
-	$(MAKE) -C kernel
-
-$(IMAGE_NAME).iso: limine/limine kernel
-	rm -rf iso_root
-	mkdir -p iso_root/boot
-	cp -v kernel/bin-$(ARCH)/kernel iso_root/boot/
-	mkdir -p iso_root/boot/limine
-	cp -v limine.conf iso_root/boot/limine/
-	mkdir -p iso_root/EFI/BOOT
-ifeq ($(ARCH),x86_64)
-	cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
-	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
-	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
-	mkdir -p output
-	xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin \
-		-no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus \
-		-apm-block-size 2048 --efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
-		iso_root -o output/$(IMAGE_NAME).iso
-	./limine/limine bios-install output/$(IMAGE_NAME).iso
-endif
-ifeq ($(ARCH),aarch64)
-	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
-	cp -v limine/BOOTAA64.EFI iso_root/EFI/BOOT/
-	mkdir -p output
-	xorriso -as mkisofs -R -r -J \
-		-hfsplus -apm-block-size 2048 \
-		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
-		iso_root -o output/$(IMAGE_NAME).iso
-endif
-ifeq ($(ARCH),riscv64)
-	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
-	cp -v limine/BOOTRISCV64.EFI iso_root/EFI/BOOT/
-	mkdir -p output
-	xorriso -as mkisofs -R -r -J \
-		-hfsplus -apm-block-size 2048 \
-		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
-		iso_root -o output/$(IMAGE_NAME).iso
-endif
-ifeq ($(ARCH),loongarch64)
-	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
-	cp -v limine/BOOTLOONGARCH64.EFI iso_root/EFI/BOOT/
-	mkdir -p output
-	xorriso -as mkisofs -R -r -J \
-		-hfsplus -apm-block-size 2048 \
-		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
-		iso_root -o output/$(IMAGE_NAME).iso
-endif
-	rm -rf iso_root
-
-$(IMAGE_NAME).hdd: limine/limine kernel
-	rm -f $(IMAGE_NAME).hdd
-	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
-ifeq ($(ARCH),x86_64)
-	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00 -m 1
-	./limine/limine bios-install $(IMAGE_NAME).hdd
-else
-	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
-endif
-	mformat -i $(IMAGE_NAME).hdd@@1M
-	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT ::/boot ::/boot/limine
-	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin-$(ARCH)/kernel ::/boot
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine.conf ::/boot/limine
-ifeq ($(ARCH),x86_64)
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/limine-bios.sys ::/boot/limine
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTIA32.EFI ::/EFI/BOOT
-endif
-ifeq ($(ARCH),aarch64)
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTAA64.EFI ::/EFI/BOOT
-endif
-ifeq ($(ARCH),riscv64)
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTRISCV64.EFI ::/EFI/BOOT
-endif
-ifeq ($(ARCH),loongarch64)
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTLOONGARCH64.EFI ::/EFI/BOOT
-endif
-
-.PHONY: clean
 clean:
-	$(MAKE) -C kernel clean
-	rm -rf iso_root output/$(IMAGE_NAME).iso $(IMAGE_NAME).hdd
+	$(MAKE) -C Cosmos.Native clean
+	dotnet clean $(DOTNET_PROJECT)
+	rm -rf output/iso_root output/$(IMAGE_NAME).iso
 
-.PHONY: distclean
 distclean:
-	$(MAKE) -C kernel distclean
-	rm -rf iso_root *.iso *.hdd kernel-deps limine ovmf
+	$(MAKE) -C Cosmos.Native distclean
+	rm -rf output/iso_root output/*.iso kernel-deps limine ovmf
