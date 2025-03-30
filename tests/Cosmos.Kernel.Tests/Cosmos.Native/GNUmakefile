@@ -2,6 +2,8 @@
 MAKEFLAGS += -rR
 .SUFFIXES:
 
+DOTNET_FINAL := ../Cosmos.Entry/bin/Debug/net8.0/native/Cosmos.Entry_final.o
+
 # This is the name that our final executable will have.
 # Change as needed.
 override OUTPUT := kernel
@@ -136,7 +138,8 @@ ifeq ($(ARCH),loongarch64)
 endif
 
 # Internal linker flags that should not be changed by the user.
-override LDFLAGS += \
+override LDFLAGS := $(DOTNET_FINAL) -Wl,--undefined=dotnet_main \
+    -Wl,-m,elf_x86_64 \
     -Wl,--build-id=none \
     -nostdlib \
     -static \

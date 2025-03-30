@@ -18,11 +18,11 @@ HOST_LIBS :=
 
 # Integration of Cosmos.Entry
 DOTNET_PROJECT := Cosmos.Entry/Cosmos.Entry.csproj
-DOTNET_OUTPUT_DIR := Cosmos.Entry/bin/Debug/net8.0/native
 DOTNET_OBJ := Cosmos.Entry/bin/Debug/net8.0/cosmos/native/Cosmos.Entry_final.o
-DOTNET_FINAL := $(DOTNET_OUTPUT_DIR)/Cosmos.Entry_final.so
+DOTNET_OUTPUT_DIR := Cosmos.Entry/bin/Debug/net8.0/native
+DOTNET_FINAL := $(DOTNET_OUTPUT_DIR)/Cosmos.Entry_final.o
 
-LDFLAGS += -L./Cosmos.Entry/bin/Debug/net8.0/native -lCosmos.Entry
+LDFLAGS += $(DOTNET_FINAL) -Wl,--undefined=dotnet_main
 
 .PHONY: all dotnet kernel kernel-deps
 

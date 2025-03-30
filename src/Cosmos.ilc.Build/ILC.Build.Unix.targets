@@ -19,8 +19,7 @@
     <ItemGroup>
       <!-- 1. Output and primary flags -->
       <LinkArg Include="-o" />
-      <LinkArg Include="$(FinalAssembly).so" />
-      <LinkArg Include="-shared" />
+      <LinkArg Include="$(FinalAssembly).o" />
       <LinkArg Include="-gz=zlib" />
       <!-- 2. Exports -->
       <LinkArg Include="-Wl,--export-dynamic" />
