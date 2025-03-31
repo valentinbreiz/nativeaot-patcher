@@ -1,7 +1,0 @@
-/compile_commands.json
-/.cache
-/freestnd-c-hdrs
-/cc-runtime*
-/src/limine.h
-/bin-*
-/obj-*
