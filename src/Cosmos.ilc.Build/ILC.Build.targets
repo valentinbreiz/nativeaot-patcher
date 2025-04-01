@@ -2,6 +2,17 @@
   <PropertyGroup>
     <CompileWithILCDependsOn>WriteILCRsp</CompileWithILCDependsOn>
     <IlcUseNativeAOTRuntimePackLayout>true</IlcUseNativeAOTRuntimePackLayout>
+    <PublishAot>true</PublishAot>
+    <LangVersion>10</LangVersion>
+    <NativeLib>Static</NativeLib>
+    <OutputType>Library</OutputType>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+
+    <IlcVerboseLogging>true</IlcVerboseLogging>
   </PropertyGroup>
 
   <Target Name="CosmosILCSetupProperties">
@@ -36,9 +47,7 @@
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
-      <IlcArg Include="--exportsfile:%(ManagedBinary.ExportsFile)" />
-      <IlcArg Include="--generateunmanagedentrypoints:System.Private.CoreLib" />
-      <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Include="--export-dynamic-symbol:kmain" />
     </ItemGroup>
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
   </Target>
