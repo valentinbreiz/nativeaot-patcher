@@ -70,6 +70,7 @@
     <Message Importance="High" Text="References: %(ReferenceAssemblies.Identity)" />
     <Message Importance="High" Text="Native Output Path: $(NativeOutputPath)" />
     <Message Importance="High" Text="Native Intermediate Path: $(NativeIntermediateOutputPath)" />
+    <Message Importance="High" Text="System Module: $(OutputPath)$(IlcSystemModule)"/>
   </Target>
 
   <!-- Write ILC response file -->
@@ -89,6 +90,7 @@
       <IlcArg Include="--generateunmanagedentrypoints:System.Private.CoreLib" />
       <IlcArg Include="--export-dynamic-symbol:DotNetRuntimeDebugHeader" />
       <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Condition="$(IlcSystemModule) != ''" Include="--systemmodule:$(OutputPath)$(IlcSystemModule).dll" />
       <IlcArg Condition="'$(DebuggerSupport)'!='true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
     </ItemGroup>
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" WriteOnlyWhenDifferent="true" />
