@@ -59,8 +59,34 @@
   </Target>
 
   <Target Name="LinkTarget" AfterTargets="Publish">
+    <PropertyGroup>
+      <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
+      <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
+    </PropertyGroup>
+
     <Exec Command="ld.lld -T src/linker.ld -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 $(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/native/$(AssemblyName).a -o $(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/publish/$(AssemblyName).elf" />
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
+
+    <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
+    <RemoveDir Directories="$(IsoRoot)" />
+    <MakeDir Directories="$(IsoRoot)/boot/limine" />
+    <MakeDir Directories="$(IsoRoot)/EFI/BOOT" />
+
+    <ItemGroup>
+      <LimineFiles Include="$(MSBuildProjectDirectory)/limine/**" />
+    </ItemGroup>
+
+    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 || true" />
+    <Exec Command="make -C limine" />
+
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/publish/$(AssemblyName).elf" DestinationFolder="$(IsoRoot)/boot/" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
+    <Copy SourceFiles="limine/limine-bios.sys;limine/limine-bios-cd.bin;limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
+    <Copy SourceFiles="limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
+
+    <Exec Command="xorriso -as mkisofs -R -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label $(IsoRoot) -o $(IsoOutput)" />
+    <Exec Command="./limine/limine bios-install $(IsoOutput)" />
+    <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'" />
