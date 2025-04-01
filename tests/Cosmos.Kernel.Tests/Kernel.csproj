@@ -1,34 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <NativeLib>Static</NativeLib>
+    <OutputType>Library</OutputType>
+    <EnableAOT>true</EnableAOT>
 
-        <NoStdLib>true</NoStdLib>
-        <NoConfig>true</NoConfig>
-        <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <!-- Protection anti-SDK qui fait sa life -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <DisableImplicitUsings>true</DisableImplicitUsings>
+    <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
 
-        <IlcSystemModule>Kernel</IlcSystemModule>
-        <IlcVerboseLogging>true</IlcVerboseLogging>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
+  </ItemGroup>
 
-        <PublishAot>true</PublishAot>
-        <!-- Version 11 require System.AttributeUsageAttribute which is additional code -->
-        <LangVersion>10</LangVersion>
-        <NativeLib>Static</NativeLib>
-        <OutputType>Library</OutputType> <!-- We'll anyway need some asm code likely -->
-        <ImplicitUsings>false</ImplicitUsings>
-        <SkipNativeLinking>true</SkipNativeLinking>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
-    </ItemGroup>
-
-    <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
-    <Import Project="../../src/Cosmos.ilc.Build/ILC.Build.targets" />
-
+  <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
+  <Import Project="../../src/Cosmos.ilc.Build/ILC.Build.targets" />
 </Project>
