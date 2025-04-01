@@ -78,6 +78,7 @@
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
+      <IlcArg Include="-r:$(MSBuildThisFileDirectory)$(OutputPath)$(IlcSystemModule).dll" />
       <IlcArg Include="@(ReferenceAssemblies-> '-r:%(Identity)')" />
       <IlcArg Include="@(PrivateSdkAssemblies->'-r:%(Identity)')" />
       <IlcArg Include="@(FrameworkAssemblies->'-r:%(Identity)')" />
@@ -90,7 +91,7 @@
       <IlcArg Include="--generateunmanagedentrypoints:System.Private.CoreLib" />
       <IlcArg Include="--export-dynamic-symbol:DotNetRuntimeDebugHeader" />
       <IlcArg Include="--export-unmanaged-entrypoints" />
-      <IlcArg Condition="$(IlcSystemModule) != ''" Include="--systemmodule:$(OutputPath)$(IlcSystemModule).dll" />
+      <IlcArg Condition="$(IlcSystemModule) != ''" Include="--systemmodule:$(IlcSystemModule).dll" />
       <IlcArg Condition="'$(DebuggerSupport)'!='true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
     </ItemGroup>
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" WriteOnlyWhenDifferent="true" />
