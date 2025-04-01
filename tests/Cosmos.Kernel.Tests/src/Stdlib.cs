@@ -1,7 +1,6 @@
 #region A couple very basic things
 namespace System
 {
-    
     public struct Void { }
 
     // The layout of primitive types is special cased because it would be recursive.
@@ -29,11 +28,18 @@ namespace System
 #pragma warning restore 169
     }
 
+    public class Exception
+    {
+        public Exception() { }
+        protected Exception(string message) { }
+    }
+
+    public abstract class Type { }
     public abstract class ValueType { }
     public abstract class Enum : ValueType { }
 
     public struct Nullable<T> where T : struct { }
-    
+
     public sealed class String { public readonly int Length; }
     public abstract class Array { }
     public abstract class Delegate { }
@@ -46,13 +52,6 @@ namespace System
     public class Attribute { }
 
     public enum AttributeTargets { }
-
-    public sealed class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
 
     public class AppContext
     {
@@ -76,6 +75,12 @@ namespace System
 namespace System.Runtime.InteropServices
 {
     public class UnmanagedType { }
+
+    public class MarshalDirectiveException : Exception
+    {
+        public MarshalDirectiveException() : base() { }
+        public MarshalDirectiveException(string message) : base(message) { }
+    }
 
     sealed class StructLayoutAttribute : Attribute
     {
@@ -106,6 +111,13 @@ namespace System
 {
     namespace Runtime
     {
+        internal enum InternalGCCollectionMode
+        {
+            Default,
+            Forced,
+            Optimized
+        }
+
         internal sealed class RuntimeExportAttribute : Attribute
         {
             public RuntimeExportAttribute(string entry) { }
@@ -139,6 +151,10 @@ namespace Internal.Runtime.CompilerHelpers
 
         [RuntimeExport("RhpFallbackFailFast")]
         static void RhpFallbackFailFast() { while (true) ; }
+
+        [RuntimeExport("InitializeModules")]
+        static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
+
     }
 
     public static class ThrowHelpers
@@ -162,6 +178,39 @@ namespace Internal.Runtime.CompilerHelpers
         {
             while (true) ;
         }
+
+        public static void ThrowTypeLoadException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowTypeLoadExceptionWithArgument()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowInvalidProgramExceptionWithArgument()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowOverflowException()
+        {
+            while (true) ;
+        }
     }
+}
+
+namespace Internal.Runtime
+{
+    internal abstract class ThreadStatics
+    {
+        public static unsafe object GetThreadStaticBaseForType(TypeManagerSlot* pModuleData, int typeTlsIndex)
+        {
+            return null;
+        }
+    }
+
+    internal struct TypeManagerSlot { }
 }
 #endregion

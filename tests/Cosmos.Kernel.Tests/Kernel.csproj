@@ -21,6 +21,7 @@
         <OutputType>Library</OutputType> <!-- We'll anyway need some asm code likely -->
         <ImplicitUsings>false</ImplicitUsings>
         <SkipNativeLinking>true</SkipNativeLinking>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
