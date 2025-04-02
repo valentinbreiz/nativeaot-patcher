@@ -1,9 +1,6 @@
 <Project>
   <PropertyGroup>
-    <CompileWithILCDependsOn>WriteILCRsp</CompileWithILCDependsOn>
-    <IlcUseNativeAOTRuntimePackLayout>true</IlcUseNativeAOTRuntimePackLayout>
-    <PublishAot>true</PublishAot>
-    <LangVersion>10</LangVersion>
+    <LangVersion>latest</LangVersion>
     <NativeLib>Static</NativeLib>
     <OutputType>Library</OutputType>
     <NoStdLib>true</NoStdLib>
@@ -11,34 +8,71 @@
     <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-
-    <IlcVerboseLogging>true</IlcVerboseLogging>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
-  <Target Name="CosmosILCSetupProperties">
+  <UsingTask
+    TaskName="GetPackageDirectory"
+    AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
+  />
+
+  <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
+  <Target Name="ResolveIlcPath" BeforeTargets="Publish">
+    <ItemGroup>
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+    </ItemGroup>
+
+    <GetPackageDirectory
+      Items="@(HostILCompilerPack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
+
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+    </GetPackageDirectory>
+
     <PropertyGroup>
-      <NativeOutputPath>$(OutputPath)cosmos/native/</NativeOutputPath>
-      <IlcIntermediateOutputPath>$(IntermediateOutputPath)cosmos/native/</IlcIntermediateOutputPath>
+      <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
+      <IlcToolsPath>$(IlcHostPackagePath)\tools\</IlcToolsPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Remove all references. This does mean ALL, including .NET, so if we actually want
+    to add proper corelib support in the future (more than likely), we need to modify this.
+  -->
+  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
+      <ReferencePath Remove="@(ReferencePath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Writes the response file for ILC compilation. -->
+  <Target Name="WriteIlcRsp">
+    <PropertyGroup>
+      <FullIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</FullIntermediateOutputPath>
+      <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
+
+      <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)cosmos/native/'))</NativeOutputPath>
+      <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
-      <IlcSdkPath>$(IlcHostPackagePath)/sdk/</IlcSdkPath>
-      <IlcToolsPath>$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
 
+    <!-- TODO: Defining such an item group is pretty redundant. We could convert this into a PropertyGroup. -->
     <ItemGroup>
-      <IlcCompileInput Include="$(OutputPath)$(AssemblyName).dll" />
-      <ManagedBinary Include="$(OutputPath)$(AssemblyName).dll">
-        <RspFile>$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp</RspFile>
-        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName)$(IlcOutputFileExt)</OutputFile>
-        <LinkerRsp>$(IlcIntermediateOutputPath)$(AssemblyName).link.rsp</LinkerRsp>
-        <ExportsFile>$(IlcIntermediateOutputPath)$(AssemblyName)$(ExportsFileExt)</ExportsFile>
+      <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
+      <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
+        <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
+        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName).o</OutputFile>
       </ManagedBinary>
     </ItemGroup>
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
     <MakeDir Directories="$(NativeOutputPath)" />
-  </Target>
 
-  <Target Name="WriteILCRsp" AfterTargets="CosmosILCSetupProperties">
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
@@ -47,24 +81,40 @@
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
-      <IlcArg Include="--export-dynamic-symbol:kmain" />
+      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
+      <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
     </ItemGroup>
+
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
   </Target>
 
-  <Target Name="CompileWithILC" DependsOnTargets="WriteILCRsp">
+  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
     <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
-    <Exec Command="&quot;$(IlcToolsPath)/ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;" />
+    <Exec
+      Command="&quot;$(IlcToolsPath)/ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+      WorkingDirectory="$(FullIntermediateOutputPath)"
+    />
+
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
 
-  <Target Name="LinkTarget" AfterTargets="Publish">
+  <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc" AfterTargets="Publish">
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
     </PropertyGroup>
 
-    <Exec Command="ld.lld -T src/linker.ld -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 $(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/native/$(AssemblyName).a -o $(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/publish/$(AssemblyName).elf" />
+    <ItemGroup>
+      <LinkerArgs Include="-T src/linker.ld" />
+      <LinkerArgs Include="-m elf_x86_64" />
+      <LinkerArgs Include="-nostdlib" />
+      <LinkerArgs Include="-static" />
+      <LinkerArgs Include="-z max-page-size=0x1000" />
+      <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
+      <LinkerArgs Include="-o $(MSBuildProjectDirectory)/bin/$(Configuration)/net8.0/$(RuntimeIdentifier)/publish/$(AssemblyName).elf" />
+    </ItemGroup>
+    <Exec Command="ld.lld @(LinkerArgs, ' ')" />
+
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
 
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
@@ -84,7 +134,22 @@
     <Copy SourceFiles="limine/limine-bios.sys;limine/limine-bios-cd.bin;limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
     <Copy SourceFiles="limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
 
-    <Exec Command="xorriso -as mkisofs -R -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label $(IsoRoot) -o $(IsoOutput)" />
+    <ItemGroup>
+      <XorrisoArgs Include="-as mkisofs" />
+      <XorrisoArgs Include="-R" />
+      <XorrisoArgs Include="-J" />
+      <XorrisoArgs Include="-b boot/limine/limine-bios-cd.bin" />
+      <XorrisoArgs Include="-no-emul-boot" />
+      <XorrisoArgs Include="-boot-load-size 4" />
+      <XorrisoArgs Include="-boot-info-table" />
+      <XorrisoArgs Include="--efi-boot boot/limine/limine-uefi-cd.bin" />
+      <XorrisoArgs Include="-efi-boot-part" />
+      <XorrisoArgs Include="--efi-boot-image" />
+      <XorrisoArgs Include="--protective-msdos-label $(IsoRoot)" />
+      <XorrisoArgs Include="-o $(IsoOutput)" />
+    </ItemGroup>
+    <Exec Command="xorriso @(XorrisoArgs, ' ')" />
+
     <Exec Command="./limine/limine bios-install $(IsoOutput)" />
     <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
