@@ -116,8 +116,8 @@ jobs:
           name: Cosmos.Patcher.Analyzer.Tests-Results
           path: ./tests/Cosmos.Patcher.Analyzer.Tests/TestResults/Cosmos.Patcher.Analyzer.Tests.trx
 
-  ilc-tests:
-    name: Run Cosmos.ilc.Tests
+  iso-tests:
+    name: Run ISO Build Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -132,15 +132,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      
-      - name: Install g++
-        run: sudo apt-get update && sudo apt-get install -y g++
- 
-      - name: Install Build Tools
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+    
+      - name: Install Xorriso
+        run: sudo apt-get update && sudo apt-get install -y xorriso
+
+      - name: Install ilc
+        run: dotnet tool install -g ilc
 
       - name: Restore Dependencies
-        run: dotnet restore ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj
+        run: dotnet restore
 
       - name: Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
@@ -148,16 +148,17 @@ jobs:
       - name: Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
 
-      - name: Build Cosmos.NativeWrapper
-        run: dotnet build ./tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj --configuration Debug --no-restore --verbosity detailed
-
-
-      - name: Build Cosmos.ilc.Tests
-        run: make -B -C ./tests/Cosmos.ilc.Tests/
+      - name: Build Cosmos.Kernel.Tests
+        run: dotnet build ./tests/Cosmos.Kernel.Tests/Kernel.csproj --configuration Debug --no-restore --verbosity detailed
 
       - name: Run Tests
-        working-directory: tests/Cosmos.ilc.Tests/
-        run: |
-          ./output/main
+        run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./tests/Cosmos.Kernel.Tests/Kernel.csproj
+    
+      - name: Verify Output
+        run: | 
+          [ -f ./tests/Cosmos.Kernel.Tests/Kernel/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+      
+  
+    
   
 
