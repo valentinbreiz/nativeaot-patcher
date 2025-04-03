@@ -35,7 +35,7 @@
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath>$(IlcHostPackagePath)\tools\</IlcToolsPath>
+      <IlcToolsPath>$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
   </Target>
 
