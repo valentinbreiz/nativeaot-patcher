@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PublishAot>true</PublishAot>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -10,5 +11,6 @@
   </ItemGroup>
 
   <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
-
+  <Import Project="../../src/Cosmos.ilc.Build/ILC.Build.targets" />
+  
 </Project>
