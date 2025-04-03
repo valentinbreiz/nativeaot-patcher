@@ -406,8 +406,6 @@ out/
 main
 
 /kernel-deps
-/limine
 /ovmf
 *.iso
 *.hdd
-limine
