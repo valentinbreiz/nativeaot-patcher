@@ -12,7 +12,8 @@ unsafe class Program
         var addr = (uint*)fb->Address;
         var pitch = fb->Pitch;
 
-        for (uint i = 0; i < 100; i++) {
+        for (uint i = 0; i < 100; i++)
+        {
             addr[i * (pitch / 4) + i] = 0xffffff;
         }
 
