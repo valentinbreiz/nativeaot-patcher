@@ -13,5 +13,5 @@
  - [@kumja1](https://github.com/kumja1)
  - [@Guillermo-Santos](https://github.com/Guillermo-Santos)
  - [@valentinbreiz](https://github.com/valentinbreiz)
- - [ascpixi](https://github.com/valentinbreiz)
- - [ilobilo](https://github.com/ilobilo)
+ - [@ascpixi](https://github.com/valentinbreiz)
+ - [@ilobilo](https://github.com/ilobilo)
