@@ -194,7 +194,7 @@ jobs:
     
       - name: Verify Output
         run: | 
-          [ -f ./tests/Cosmos.Kernel.Tests/Kernel/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+          [ -f ./tests/Cosmos.Kernel.Tests/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
       
   
     
