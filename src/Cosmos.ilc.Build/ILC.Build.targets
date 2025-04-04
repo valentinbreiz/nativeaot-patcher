@@ -35,7 +35,7 @@
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath>$(IlcHostPackagePath)/tools/</IlcToolsPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
@@ -92,7 +92,7 @@
   <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
     <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
     <Exec
-      Command="&quot;$(IlcToolsPath)/ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+      Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
       WorkingDirectory="$(FullIntermediateOutputPath)"
     />
 
