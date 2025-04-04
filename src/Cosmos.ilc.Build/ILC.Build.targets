@@ -17,7 +17,7 @@
   />
 
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
-  <Target Name="ResolveIlcPath" BeforeTargets="Publish">
+  <Target Name="ResolveIlcPath" AfterTargets="Build">
     <ItemGroup>
       <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
@@ -37,6 +37,7 @@
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
       <IlcToolsPath>$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
+    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
 
   <!--
