@@ -171,8 +171,8 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
     
-      - name: Install Xorriso
-        run: sudo apt-get update && sudo apt-get install -y xorriso
+      - name: Install Linking Tools
+        run: sudo apt-get update && sudo apt-get install -y xorriso lld
 
       - name: Install ilc
         run: dotnet tool install -g ilc
@@ -194,7 +194,7 @@ jobs:
     
       - name: Verify Output
         run: | 
-          [ -f ./tests/Cosmos.Kernel.Tests/Kernel/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+          [ -f ./tests/Cosmos.Kernel.Tests/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
       
   
     
