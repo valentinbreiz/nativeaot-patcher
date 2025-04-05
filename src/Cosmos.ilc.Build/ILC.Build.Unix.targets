@@ -1,72 +1,33 @@
 <Project>
-  <ItemGroup>
-    <IlcArg Include="--directpinvoke:libSystem.Native" />
-    <IlcArg Include="--directpinvoke:libSystem.Globalization.Native" />
-    <IlcArg Include="--directpinvoke:libSystem.IO.Compression.Native" />
-    <IlcArg Include="--directpinvoke:libSystem.Net.Security.Native" />
-    <IlcArg Include="--directpinvoke:libSystem.Security.Cryptography.Native.OpenSsl" />
-  </ItemGroup>
+  <!-- TODO: This currently doesn't do anything. We should remove these platform-dependent targets. -->
 
   <PropertyGroup>
-    <LinkerParamsDependsOn>CosmosILCSetupProperties</LinkerParamsDependsOn>
     <ExportsFileExt>.exports</ExportsFileExt>
     <IlcOutputFileExt>.o</IlcOutputFileExt>
-    <CppLinker>/usr/bin/ld</CppLinker>
+    <CppLinker>ld.lld</CppLinker>
   </PropertyGroup>
 
-  <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
-    <!-- Unix Configuration -->
+  <Target Name="SetLinkerParams">
     <ItemGroup>
-      <!-- 1. Output and primary flags -->
+      <LinkArg Include="-Tsrc/linker.ld" />
+      <LinkArg Include="-m" />
+      <LinkArg Include="elf_x86_64" />
+      <LinkArg Include="-nostdlib" />
+      <LinkArg Include="-static" />
+      <LinkArg Include="-z" />
+      <LinkArg Include="max-page-size=0x1000" />
       <LinkArg Include="-o" />
-      <LinkArg Include="$(FinalAssembly).so" />
-      <LinkArg Include="-shared" />
-      <LinkArg Include="-gz=zlib" />
-      <!-- 2. Exports -->
-      <LinkArg Include="-Wl,--export-dynamic" />
-      <LinkArg Include="-Wl,--version-script=%(ManagedBinary.ExportsFile)" />
-
-      <!-- 3. Linker selection and optimization -->
-      <LinkArg Include="-fuse-ld=bfd" />
-      <!-- 4. NativeAOT bootstrapper -->
-      <LinkArg Include="$(IlcSdkPath)/libbootstrapperdll.o" />
-
-      <!-- 5. Core runtime libraries from SDK -->
-      <LinkArg Include="$(IlcSdkPath)/libRuntime.WorkstationGC.a" />
-      <LinkArg Include="$(IlcSdkPath)/libeventpipe-disabled.a" />
-      <LinkArg Include="$(IlcSdkPath)/libstdc++compat.a" />
-
-      <!-- 6. Framework components -->
-      <LinkArg Include="$(IlcFrameworkPath)/libSystem.Native.a" />
-      <LinkArg Include="$(IlcFrameworkPath)/libSystem.Globalization.Native.a" />
-      <LinkArg Include="$(IlcFrameworkPath)/libSystem.IO.Compression.Native.a" />
-      <LinkArg Include="$(IlcFrameworkPath)/libSystem.Net.Security.Native.a" />
-      <LinkArg Include="$(IlcFrameworkPath)/libSystem.Security.Cryptography.Native.OpenSsl.a" />
-
-      <!-- 7. Debug symbols -->
-      <LinkArg Include="-g" />
-
-      <!-- 8. Runtime paths and build ID -->
-      <LinkArg Include="-Wl,-rpath,'$$ORIGIN'" />
-      <LinkArg Include="-Wl,--build-id=sha1" />
-
-      <!-- 9. Optimization flags -->
-      <LinkArg Include="-Wl,--as-needed" />
-      <LinkArg Include="-Wl,-e0x0" />
-
-      <!-- 10. System libraries -->
-      <LinkArg Include="-pthread" />
-      <LinkArg Include="-ldl" />
-      <LinkArg Include="-lz" />
-      <LinkArg Include="-lrt" />
-      <LinkArg Include="-lm" />
-
-      <!-- 11. Security hardening -->
-      <LinkArg Include="-Wl,-z,relro" />
-      <LinkArg Include="-Wl,-z,now" />
-      <LinkArg Include="-Wl,--eh-frame-hdr" />
-      <LinkArg Include="-Wl,--discard-all" />
-      <LinkArg Include="-Wl,--gc-sections" />
+      <LinkArg Include="$(FinalAssembly).elf" />
     </ItemGroup>
   </Target>
+<!--
+  <Target Name="WriteLinkerRsp" AfterTargets="SetLinkerParams">
+    <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" />
+  </Target> -->
+<!--
+  <Target Name="LinkWithLinker" AfterTargets="CompileWithILC">
+    <Message Importance="High" Text="🔗 [LD] Linking ELF: $(CppLinker) @%(ManagedBinary.LinkerRsp)" />
+    <Exec Command="&quot;$(CppLinker)&quot; @&quot;%(ManagedBinary.LinkerRsp)&quot;" />
+    <Message Importance="High" Text="✅ [LD] Output: $(FinalAssembly).elf" />
+  </Target> -->
 </Project>

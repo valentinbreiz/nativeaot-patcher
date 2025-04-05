@@ -1,0 +1,38 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/dotnet
+{
+    "name": "Cosmos Develeopment Container",
+    // Use a Dockerfile instead of a prebuilt image
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/dotnet:2": {},
+        "ghcr.io/devcontainers/features/powershell:1": {}
+    },
+
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // "forwardPorts": [5000, 5001],
+    // "portsAttributes": {
+    //		"5001": {
+    //			"protocol": "https"
+    //		}
+    // }
+
+    // Use 'postCreateCommand' to run commands after the container is created.
+    "postCreateCommand": "dotnet restore",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit",
+                "GitHub.copilot-chat",
+                "GitHub.copilot",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack"
+            ]
+        }
+    }
+
+    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    // "remoteUser": "root"
+}

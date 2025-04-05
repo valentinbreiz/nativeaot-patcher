@@ -400,3 +400,12 @@ FodyWeavers.xsd
 *.sln.iml
 
 out/
+
+*.iso
+*.efi
+main
+
+/kernel-deps
+/ovmf
+*.iso
+*.hdd
