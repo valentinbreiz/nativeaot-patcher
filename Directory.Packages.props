@@ -30,6 +30,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
+    <PackageVersion Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="10.0.0-preview.2.25163.2" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.49.1" />
     <PackageVersion Include="unit" Version="1.0.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
