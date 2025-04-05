@@ -12,9 +12,8 @@
       <ILCompilerTargetsDirectory>$([System.IO.Path]::GetDirectoryName($(ILCompilerTargetsPath)))</ILCompilerTargetsDirectory>
       <_targetArchitecture Condition="$(_targetArchitecture) == ''">x64</_targetArchitecture>
     </PropertyGroup>
-    
-    <Exec Command="&quot;$(ILCompilerTargetsDirectory)\findvcvarsall.bat&quot; $(_targetArchitecture)"
-      IgnoreExitCode="true" ConsoleToMSBuild="true" StandardOutputImportance="Low">
+
+    <Exec Command="&quot;$(ILCompilerTargetsDirectory)\findvcvarsall.bat&quot; $(_targetArchitecture)" IgnoreExitCode="true" ConsoleToMSBuild="true" StandardOutputImportance="Low">
       <Output TaskParameter="ConsoleOutput" PropertyName="_FindVCVarsallOutput" />
       <Output TaskParameter="ExitCode" PropertyName="_VCVarsAllFound" />
     </Exec>
@@ -28,8 +27,7 @@
       <CppLinker>$(_CppToolsDirectory)link.exe</CppLinker>
       <CppLibCreator>$(_CppToolsDirectory)lib.exe</CppLibCreator>
     </PropertyGroup>
-    <ItemGroup>
-
+    <ItemGroup >
       <!-- Library Directories -->
       <LinkArg Include="/LIBPATH:&quot;$(IlcSdkPath)&quot;" />
       <LinkArg Include="/LIBPATH:&quot;$(IlcFrameworkPath)&quot;" />
@@ -38,12 +36,8 @@
       <LinkArg Include="bootstrapperdll.obj" />
       <LinkArg Include="Runtime.WorkstationGC.lib" />
       <LinkArg Include="eventpipe-disabled.lib" />
-      <LinkArg Include="stdc++compat.lib" />
-      <LinkArg Include="System.Native.lib" />
-      <LinkArg Include="System.Globalization.Native.lib" />
-      <LinkArg Include="System.IO.Compression.Native.lib" />
-      <LinkArg Include="System.Net.Security.Native.lib" />
-      <LinkArg Include="System.Security.Cryptography.Native.lib" />
+      <LinkArg Include="System.Globalization.Native.Aot.lib" />
+      <LinkArg Include="System.IO.Compression.Native.Aot.lib" />
 
       <!-- Linker Flags -->
       <LinkArg Include="/DEBUG" />
@@ -53,17 +47,13 @@
       <LinkArg Include="/DYNAMICBASE" />
       <LinkArg Include="/NXCOMPAT" />
 
-      <!-- System Libraries -->
-      <LinkArg Include="kernel32.lib" />
-      <LinkArg Include="user32.lib" />
-      <LinkArg Include="ole32.lib" />
-      <LinkArg Include="advapi32.lib" />
-      <LinkArg Include="bcrypt.lib" />
-      <LinkArg Include="crypt32.lib" />
-
       <!-- Output -->
-      <LinkArg Include="/OUT:&quot;$(FinalAssembly).dll&quot;" />
+      <LinkArg Include="/OUT:&quot;$(FinalAssembly).elf&quot;" />
     </ItemGroup>
-</Target>
+  </Target>
 
+  <Target Name="CreateELFBinary" BeforeTargets="LinkTargets">
+    <Exec Command="git clone https://github.com/gitGNU/objconv.git --depth=1 || true" />
+    <Exec Command="objconv/objconv-x64.exe -felf64 %(ManagedBinary.OutputFile) %(ManagedBinary.OutputFile)" />
+  </Target>
 </Project>
