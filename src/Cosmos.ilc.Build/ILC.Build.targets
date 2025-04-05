@@ -57,11 +57,12 @@
     </PropertyGroup>
 
     <!-- TODO: Defining such an item group is pretty redundant. We could convert this into a PropertyGroup. -->
+    <!-- We can't due to some of these properties not being available statically -->
     <ItemGroup>
       <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
       <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
-        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName).o</OutputFile>
+        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName)$(IlcOutputFileExt)</OutputFile>
       </ManagedBinary>
     </ItemGroup>
 

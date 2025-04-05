@@ -1,59 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LinkerParamsDependsOn>CosmosILCSetupProperties</LinkerParamsDependsOn>
-    <ExportsFileExt>.def</ExportsFileExt>
     <IlcOutputFileExt>.obj</IlcOutputFileExt>
   </PropertyGroup>
-
-  <Target Name="SetLinkerParams" DependsOnTargets="$(LinkerParamsDependsOn)">
-    <!-- Windows Configuration -->
-    <PropertyGroup>
-      <!-- Find the ilc package directory from ILCompilerTargetsPath -->
-      <ILCompilerTargetsDirectory>$([System.IO.Path]::GetDirectoryName($(ILCompilerTargetsPath)))</ILCompilerTargetsDirectory>
-      <_targetArchitecture Condition="$(_targetArchitecture) == ''">x64</_targetArchitecture>
-    </PropertyGroup>
-
-    <Exec Command="&quot;$(ILCompilerTargetsDirectory)\findvcvarsall.bat&quot; $(_targetArchitecture)" IgnoreExitCode="true" ConsoleToMSBuild="true" StandardOutputImportance="Low">
-      <Output TaskParameter="ConsoleOutput" PropertyName="_FindVCVarsallOutput" />
-      <Output TaskParameter="ExitCode" PropertyName="_VCVarsAllFound" />
-    </Exec>
-
-    <ItemGroup Condition="'$(_VCVarsAllFound)' == '0'">
-      <AdditionalNativeLibraryDirectories Include="$(_FindVCVarsallOutput.Split(`#`)[1].Split(';'))" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="'$(_VCVarsAllFound)' == '0'">
-      <_CppToolsDirectory>$(_FindVCVarsallOutput.Split(`#`)[0])</_CppToolsDirectory>
-      <CppLinker>$(_CppToolsDirectory)link.exe</CppLinker>
-      <CppLibCreator>$(_CppToolsDirectory)lib.exe</CppLibCreator>
-    </PropertyGroup>
-    <ItemGroup >
-      <!-- Library Directories -->
-      <LinkArg Include="/LIBPATH:&quot;$(IlcSdkPath)&quot;" />
-      <LinkArg Include="/LIBPATH:&quot;$(IlcFrameworkPath)&quot;" />
-
-      <!-- NativeAOT Components -->
-      <LinkArg Include="bootstrapperdll.obj" />
-      <LinkArg Include="Runtime.WorkstationGC.lib" />
-      <LinkArg Include="eventpipe-disabled.lib" />
-      <LinkArg Include="System.Globalization.Native.Aot.lib" />
-      <LinkArg Include="System.IO.Compression.Native.Aot.lib" />
-
-      <!-- Linker Flags -->
-      <LinkArg Include="/DEBUG" />
-      <LinkArg Include="/DLL" />
-      <LinkArg Include="/NOLOGO" />
-      <LinkArg Include="/MANIFEST:NO" />
-      <LinkArg Include="/DYNAMICBASE" />
-      <LinkArg Include="/NXCOMPAT" />
-
-      <!-- Output -->
-      <LinkArg Include="/OUT:&quot;$(FinalAssembly).elf&quot;" />
-    </ItemGroup>
-  </Target>
 
   <Target Name="CreateELFBinary" BeforeTargets="LinkTargets">
     <Exec Command="git clone https://github.com/gitGNU/objconv.git --depth=1 || true" />
     <Exec Command="objconv/objconv-x64.exe -felf64 %(ManagedBinary.OutputFile) %(ManagedBinary.OutputFile)" />
   </Target>
+  
 </Project>
