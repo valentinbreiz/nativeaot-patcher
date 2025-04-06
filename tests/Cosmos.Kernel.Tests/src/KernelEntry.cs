@@ -8,9 +8,9 @@ unsafe class Program
     [RuntimeExport("kmain")]
     static void Main()
     {
-        LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
-        uint* addr = (uint*)fb->Address;
-        ulong pitch = fb->Pitch;
+        var fb = Framebuffer.Response->Framebuffers[0];
+        var addr = (uint*)fb->Address;
+        var pitch = fb->Pitch;
 
         for (uint i = 0; i < 100; i++)
         {

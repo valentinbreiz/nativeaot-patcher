@@ -11,7 +11,10 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
-  <UsingTask TaskName="GetPackageDirectory" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
+  <UsingTask
+    TaskName="GetPackageDirectory"
+    AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
+  />
 
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcPath" AfterTargets="Build">
@@ -22,14 +25,17 @@
       </HostILCompilerPack>
     </ItemGroup>
 
-    <GetPackageDirectory Items="@(HostILCompilerPack)" PackageFolders="@(AssetsFilePackageFolder)">
+    <GetPackageDirectory
+      Items="@(HostILCompilerPack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
 
       <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
     </GetPackageDirectory>
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''">$(IlcHostPackagePath)/tools/</IlcToolsPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$(IlcHostPackagePath)/tools/</IlcToolsPath>
     </PropertyGroup>
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
@@ -78,8 +84,7 @@
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
       <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
-      <IlcArg Include="--preinitstatics" />
-      <!-- Implied by -O, but we rely on this for Limine requests. -->
+      <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
     </ItemGroup>
 
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
@@ -87,7 +92,10 @@
 
   <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
     <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
-    <Exec Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;" WorkingDirectory="$(FullIntermediateOutputPath)" />
+    <Exec
+      Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+      WorkingDirectory="$(FullIntermediateOutputPath)"
+    />
 
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
@@ -110,9 +118,7 @@
     <Exec Command="ld.lld @(LinkerArgs, ' ')" />
 
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
-  </Target>
 
-  <Target Name="CreateISO" AfterTargets="LinkTarget">
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
     <RemoveDir Directories="$(IsoRoot)" />
     <MakeDir Directories="$(IsoRoot)/boot/limine" />
