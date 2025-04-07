@@ -1,24 +1,6 @@
 <Project>
   <!-- TODO: This currently doesn't do anything. We should remove these platform-dependent targets. -->
-  <PropertyGroup>
-    <ExportsFileExt>.exports</ExportsFileExt>
-    <IlcOutputFileExt>.o</IlcOutputFileExt>
-    <CppLinker>ld.lld</CppLinker>
-  </PropertyGroup>
 
-  <Target Name="SetLinkerParams">
-    <ItemGroup>
-      <LinkArg Include="-Tsrc/linker.ld" />
-      <LinkArg Include="-m" />
-      <LinkArg Include="elf_x86_64" />
-      <LinkArg Include="-nostdlib" />
-      <LinkArg Include="-static" />
-      <LinkArg Include="-z" />
-      <LinkArg Include="max-page-size=0x1000" />
-      <LinkArg Include="-o" />
-      <LinkArg Include="$(FinalAssembly).elf" />
-    </ItemGroup>
-  </Target>
 <!--
   <Target Name="WriteLinkerRsp" AfterTargets="SetLinkerParams">
     <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" />

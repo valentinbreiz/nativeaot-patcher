@@ -100,5 +100,4 @@
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)/ILC.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'" />
 </Project>
