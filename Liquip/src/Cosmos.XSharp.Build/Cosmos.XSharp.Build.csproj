@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core"/>
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build\Cosmos.XSharp.Build.props" Pack="true">
+      <PackagePath>build\Cosmos.XSharp.Build.props</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
