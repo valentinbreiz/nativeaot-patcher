@@ -16,13 +16,13 @@
 
   <PropertyGroup>
     <CosmosPatcherAssembly
-      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net9.0\Cosmos.Patcher.Build.dll
     </CosmosPatcherAssembly>
     <CosmosPatcherAssembly
-      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+      Condition="'$(CosmosPatcherAssembly)' == '' OR !Exists('$(CosmosPatcherAssembly)')">$(Cosmos_Patcher)\bin\Debug\net9.0\Cosmos.Patcher.Build.dll
     </CosmosPatcherAssembly>
     <CosmosPatcherTasksAssembly
-      Condition="'$(CosmosPatcherTasksAssembly)' == '' OR !Exists('$(CosmosPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net8.0\Cosmos.Patcher.Build.dll
+      Condition="'$(CosmosPatcherTasksAssembly)' == '' OR !Exists('$(CosmosPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\bin\Debug\net9.0\Cosmos.Patcher.Build.dll
     </CosmosPatcherTasksAssembly>
   </PropertyGroup>
 

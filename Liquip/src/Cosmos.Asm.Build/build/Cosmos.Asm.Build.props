@@ -11,7 +11,7 @@
 
   <PropertyGroup>
     <CosmosAsmTasksAssembly
-      Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\lib\net8.0\Cosmos.Asm.Build.dll
+      Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\lib\net9.0\Cosmos.Asm.Build.dll
     </CosmosAsmTasksAssembly>
   </PropertyGroup>
 
