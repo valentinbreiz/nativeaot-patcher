@@ -409,3 +409,5 @@ main
 /ovmf
 *.iso
 *.hdd
+output
+limine
