@@ -68,13 +68,13 @@
       <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
       <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
-        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName)$(IlcOutputFileExt)</OutputFile>
+        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName).o</OutputFile>
       </ManagedBinary>
     </ItemGroup>
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
     <MakeDir Directories="$(NativeOutputPath)" />
-
+        
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />

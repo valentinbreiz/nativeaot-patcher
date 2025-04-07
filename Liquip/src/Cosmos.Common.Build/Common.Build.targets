@@ -1,8 +1,13 @@
 <Project>
+  <PropertyGroup>
+    <XorrisoBinary>xorriso</XorrisoBinary>
+    <LdLinkerPath />
+  </PropertyGroup>
 
-  <Target Name="LinkTarget"
-          DependsOnTargets="CompileWithIlc"
-          AfterTargets="Build">
+  <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
+  <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+
+  <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc; GetLinker" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
@@ -19,13 +24,13 @@
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
       <LinkerArgs Include="-o $(OutputPath)/$(AssemblyName).elf" />
     </ItemGroup>
+    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Please ensure it is installed and available in your system PATH." />
 
-    <Exec Command="ld.lld @(LinkerArgs, ' ')" />
+    <Exec Command="$(LdLinkerPath) @(LinkerArgs, ' ')" />
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
   </Target>
 
-  <Target Name="BuildISO"
-          AfterTargets="LinkTarget">
+  <Target Name="BuildISO" AfterTargets="LinkTarget">
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
 
     <!-- Remove old ISO directory if it exists -->
@@ -41,7 +46,7 @@
     </ItemGroup>
 
     <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 || true" />
+    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 || exit 0" />
     <Exec Command="make -C limine" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
@@ -49,10 +54,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
-    <Copy SourceFiles="limine/limine-bios.sys;limine/limine-bios-cd.bin;limine/limine-uefi-cd.bin"
-          DestinationFolder="$(IsoRoot)/boot/limine/" />
-    <Copy SourceFiles="limine/BOOTX64.EFI"
-          DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
+    <Copy SourceFiles="limine/limine-bios.sys;limine/limine-bios-cd.bin;limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
+    <Copy SourceFiles="limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
