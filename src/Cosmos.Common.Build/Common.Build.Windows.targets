@@ -5,7 +5,7 @@
 
   <Target Name="GetLinker">
     <Exec Command="where ld.lld" IgnoreExitCode="true"> <!-- Ignore error code for now. We will make the build error out later  -->
-      <Output TaskParameter="ConsoleOutput" PropertyName="LdLinker" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
     </Exec>
   </Target>
 
