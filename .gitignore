@@ -409,3 +409,4 @@ main
 /ovmf
 *.iso
 *.hdd
+output
