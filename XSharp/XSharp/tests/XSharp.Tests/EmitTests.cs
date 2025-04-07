@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using Liquip.API.Attributes;
-using Liquip.API.Enum;
+using Cosmos.API.Attributes;
+using Cosmos.API.Enum;
 using XSharp.Build.Tasks;
 using XSharp.X86;
 using XSharp.X86.Interfaces;

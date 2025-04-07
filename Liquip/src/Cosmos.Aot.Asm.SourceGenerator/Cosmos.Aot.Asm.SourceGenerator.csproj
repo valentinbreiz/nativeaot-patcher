@@ -7,8 +7,8 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
 
-    <RootNamespace>Liquip.XSharp.SourceGenerator</RootNamespace>
-    <PackageId>Liquip.XSharp.SourceGenerator</PackageId>
+    <RootNamespace>Cosmos.XSharp.SourceGenerator</RootNamespace>
+    <PackageId>Cosmos.XSharp.SourceGenerator</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\Cosmos.API\Cosmos.API.csproj"/>
   </ItemGroup>
 
 

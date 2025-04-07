@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="build\Liquip.Aot.Asm.props">
+    <None Update="build\Cosmos.Aot.Asm.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

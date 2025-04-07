@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Liquip.XSharp.SourceGenerator;
+namespace Cosmos.XSharp.SourceGenerator;
 
 public static class GeneratorSyntaxContextEx
 {
