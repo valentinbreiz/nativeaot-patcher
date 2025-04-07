@@ -1,14 +1,8 @@
 <Project>
-  <!-- TODO: This currently doesn't do anything. We should remove these platform-dependent targets. -->
-
-<!--
-  <Target Name="WriteLinkerRsp" AfterTargets="SetLinkerParams">
-    <WriteLinesToFile File="%(ManagedBinary.LinkerRsp)" Lines="@(LinkArg)" Overwrite="true" />
-  </Target> -->
-<!--
-  <Target Name="LinkWithLinker" AfterTargets="CompileWithILC">
-    <Message Importance="High" Text="🔗 [LD] Linking ELF: $(CppLinker) @%(ManagedBinary.LinkerRsp)" />
-    <Exec Command="&quot;$(CppLinker)&quot; @&quot;%(ManagedBinary.LinkerRsp)&quot;" />
-    <Message Importance="High" Text="✅ [LD] Output: $(FinalAssembly).elf" />
-  </Target> -->
+    <Target Name="GetLinker">
+        <Exec Command="which ld.lld" IgnoreExitCode="true" ConsoleToMSBuild="true" StandardOutputImportance="Low">            <!-- Ignore error code for now. We will make the build error out later  -->
+            <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
+        </Exec>
+        <Message Importance="High" Text="Linker Path:$(LdLinkerPath)"/>
+    </Target>
 </Project>
