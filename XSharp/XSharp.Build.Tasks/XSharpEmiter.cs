@@ -69,7 +69,7 @@ public class XSharpEmitter
 
                 return x86Builder.Build();
                 break;
-            case TargetPlatform.Arm:
+            case TargetPlatform.Arm64:
             default:
                 throw new ArgumentOutOfRangeException(nameof(platform), platform, null);
         }
