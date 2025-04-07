@@ -12,7 +12,7 @@
   <Target Name="GetXorriso" BeforeTargets="BuildISO">
     <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1" IgnoreExitCode="true"/>
     <PropertyGroup>
-      <XorrisoBinary>xorriso-exe-for-windows/xorriso.exe</XorrisoBinary>
+      <XorrisoBinary>$(MSBuildProjectDirectory)xorriso-exe-for-windows/xorriso.exe</XorrisoBinary>
     </PropertyGroup>
   </Target>
 </Project>
