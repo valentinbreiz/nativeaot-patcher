@@ -12,5 +12,6 @@
 
   <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
   <Import Project="../../src/Cosmos.ilc.Build/ILC.Build.targets" />
-  
+  <Import Project="../../src/Cosmos.Common.Build/Common.Build.targets" />
+
 </Project>
