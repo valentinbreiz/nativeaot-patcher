@@ -100,7 +100,7 @@
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
 
-  <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc" AfterTargets="Publish">
+  <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc" AfterTargets="Build">
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
