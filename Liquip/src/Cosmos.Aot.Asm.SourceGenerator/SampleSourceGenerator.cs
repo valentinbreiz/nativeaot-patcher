@@ -2,7 +2,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Liquip.XSharp.SourceGenerator;
+namespace Cosmos.XSharp.SourceGenerator;
 
 /// <summary>
 /// A sample source generator that creates C# classes based on the text file (in this case, Domain Driven Design ubiquitous language registry).

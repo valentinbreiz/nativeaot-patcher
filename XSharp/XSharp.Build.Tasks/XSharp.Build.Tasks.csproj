@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Liquip.API\Liquip.API.csproj"/>
+    <ProjectReference Include="..\..\Liquip\src\Cosmos.API\Cosmos.API.csproj"/>
     <ProjectReference Include="..\XSharp\src\XSharp.X86\XSharp.X86.csproj"/>
   </ItemGroup>
 

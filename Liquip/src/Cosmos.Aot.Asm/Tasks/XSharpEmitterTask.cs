@@ -2,7 +2,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Task = Microsoft.Build.Utilities.Task;
 
-namespace Liquip.XSharp.Tasks;
+namespace Cosmos.XSharp.Tasks;
 
 public class XSharpEmitterTask : Task
 {

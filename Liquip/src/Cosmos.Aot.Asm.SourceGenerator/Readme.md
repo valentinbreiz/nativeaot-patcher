@@ -5,7 +5,7 @@ generators for your own needs.
 
 ## Content
 
-### Liquip.XSharp.SourceGenerator
+### Cosmos.XSharp.SourceGenerator
 
 A .NET Standard project with implementations of sample source generators.
 **You must build this project to see the result (generated code) in the IDE.**
@@ -16,13 +16,13 @@ A .NET Standard project with implementations of sample source generators.
   report based on class properties. The target class should be annotated with the `Generators.ReportAttribute`
   attribute.
 
-### Liquip.XSharp.SourceGenerator.Sample
+### Cosmos.XSharp.SourceGenerator.Sample
 
 A project that references source generators. Note the parameters of `ProjectReference`
-in [Liquip.XSharp.SourceGenerator.Sample.csproj](../Liquip.XSharp.SourceGenerator.Sample/Liquip.XSharp.SourceGenerator.Sample.csproj),
+in [Cosmos.XSharp.SourceGenerator.Sample.csproj](../Cosmos.XSharp.SourceGenerator.Sample/Cosmos.XSharp.SourceGenerator.Sample.csproj),
 they make sure that the project is referenced as a set of source generators.
 
-### Liquip.XSharp.SourceGenerator.Tests
+### Cosmos.XSharp.SourceGenerator.Tests
 
 Unit tests for source generators. The easiest way to develop language-related features is to start with unit tests.
 

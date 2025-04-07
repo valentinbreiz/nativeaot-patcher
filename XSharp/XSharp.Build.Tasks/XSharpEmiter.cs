@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Reflection;
-using Liquip.API.Attributes;
-using Liquip.API.Enum;
+using Cosmos.API.Attributes;
+using Cosmos.API.Enum;
 using XSharp.Base.ControlFlow;
 using XSharp.X86.Interfaces;
 using XSharp.X86.Steps;
