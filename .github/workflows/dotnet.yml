@@ -177,17 +177,11 @@ jobs:
       - name: Install ilc
         run: dotnet tool install -g ilc
 
-      - name: Restore Dependencies
-        run: dotnet restore
-
       - name: Build Cosmos.Patcher
         run: dotnet build ./Liquip/src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
       - name: Build Cosmos.Patcher.Build
         run: dotnet build ./Liquip/src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-
-      - name: Build Cosmos.Kernel.Tests
-        run: dotnet build ./Cosmos/Kernel.csproj --configuration Debug --no-restore --verbosity detailed
 
       - name: Run Tests
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./Cosmos/Kernel.csproj
