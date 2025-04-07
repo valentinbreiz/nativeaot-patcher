@@ -175,7 +175,7 @@ jobs:
         run: dotnet build ./Liquip/src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
       - name: Run Tests
-        run: dotnet test ./XSharp/tests/XSharp.Tests/XSharp.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=XSharp.Tests.trx"
+        run: dotnet test ./XSharp/tests/XSharp.Tests/XSharp.Tests.csproj --configuration Debug --logger "trx;LogFileName=XSharp.Tests.trx"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
