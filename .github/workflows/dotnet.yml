@@ -154,6 +154,36 @@ jobs:
           name: Cosmos.Asm.Build.Test-Results
           path: ./Liquip/tests/Cosmos.Asm.Build.Test/TestResults/Cosmos.Asm.Build.Test.trx
 
+  xsharp-tests:
+    name: Run XSharp.Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        dotnet-version: [ 9.0.x ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Build Cosmos.Patcher
+        run: dotnet build ./Liquip/src/Cosmos.Patcher/Cosmos.Patcher.csproj
+
+      - name: Run Tests
+        run: dotnet test ./XSharp/tests/XSharp.Tests/XSharp.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=XSharp.Tests.trx"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: XSharp.Tests-Results
+          path: ./XSharp/tests/XSharp.Tests/TestResults/XSharp.Tests.trx
+        
+
   iso-tests:
     name: Run ISO Build Tests
     runs-on: ${{ matrix.os }}
