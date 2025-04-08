@@ -11,8 +11,8 @@
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
-      <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
+      <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,9 +23,9 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="-o $([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))" />
+      <LinkerArgs Include="-o $(ElfBinary)" />
     </ItemGroup>
-    <Error Condition="!Exists('$(LdLinkerPath)')" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
+    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
 
     <Exec Command="&quot;$(LdLinkerPath)&quot; @(LinkerArgs, ' ')" />
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
@@ -48,10 +48,10 @@
 
     <!-- Download and build Limine (only if not already there) -->
     <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 || exit 0" />
-    <Exec Command="make -C limine" />
+    <Exec Command="make -C limine CC=clang" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
-    <Copy SourceFiles="$(OutputPath)/$(AssemblyName).elf" DestinationFolder="$(IsoRoot)/boot/" />
+    <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
