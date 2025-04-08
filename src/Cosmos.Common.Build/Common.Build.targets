@@ -1,6 +1,5 @@
 <Project>
   <PropertyGroup>
-    <XorrisoBinary>xorriso</XorrisoBinary>
     <LdLinkerPath />
   </PropertyGroup>
 
@@ -12,6 +11,7 @@
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
+      <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -69,15 +69,15 @@
       <XorrisoArgs Include="--efi-boot boot/limine/limine-uefi-cd.bin" />
       <XorrisoArgs Include="-efi-boot-part" />
       <XorrisoArgs Include="--efi-boot-image" />
-      <XorrisoArgs Include="--protective-msdos-label $(IsoRoot)" />
+      <XorrisoArgs Include="--protective-msdos-label $(FinalIsoRoot)" />
       <XorrisoArgs Include="-o $(IsoOutput)" />
     </ItemGroup>
 
     <!-- Build the ISO -->
-    <Exec Command="xorriso @(XorrisoArgs, ' ')" />
+    <Exec Command="$(XorrisoBinary) @(XorrisoArgs, ' ')" />
 
     <!-- Install Limine on the new ISO -->
-    <Exec Command="./limine/limine bios-install $(IsoOutput)" />
+    <Exec Command="$(MSBuildProjectDirectory)/limine/limine bios-install $(IsoOutput)" />
     <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
 
