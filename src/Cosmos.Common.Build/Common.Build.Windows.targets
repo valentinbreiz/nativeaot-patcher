@@ -14,7 +14,7 @@
     <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1" IgnoreExitCode="true"/>
     <PropertyGroup>
       <XorrisoBinary>$(MSBuildProjectDirectory)/xorriso-exe-for-windows/xorriso.exe</XorrisoBinary>
-      <FinalIsoRoot>cygdrive/c$(MSBuildProjectDirectoryNoRoot)output/iso_root</FinalIsoRoot>
+      <FinalIsoRoot>$([MSBuild]::NormalizePath('cygdrive/c/$(MSBuildProjectDirectoryNoRoot)/output/iso_root'))</FinalIsoRoot>
     </PropertyGroup>
   </Target>
 
