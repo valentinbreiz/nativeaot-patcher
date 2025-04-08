@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <LdLinkerPath />
+    <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
+    <LdLinkerPath></LdLinkerPath>
   </PropertyGroup>
 
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
@@ -9,8 +10,8 @@
   <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc; GetLinker" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
-      <IsoRoot>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/output/iso_root'))</IsoRoot>
-      <IsoOutput>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/output/$(AssemblyName).iso'))</IsoOutput>
+      <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
+      <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
       <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
 
@@ -22,9 +23,9 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="-o $([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))" />
+      <LinkerArgs Include="-o $(ElfBinary)" />
     </ItemGroup>
-    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Please ensure it is installed and available in your system PATH." />
+    <Error Condition="!Exists('$(LdLinkerPath)')" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
 
     <Exec Command="&quot;$(LdLinkerPath)&quot; @(LinkerArgs, ' ')" />
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
@@ -50,7 +51,7 @@
     <Exec Command="make -C limine" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
-    <Copy SourceFiles="$(OutputPath)/$(AssemblyName).elf" DestinationFolder="$(IsoRoot)/boot/" />
+    <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
