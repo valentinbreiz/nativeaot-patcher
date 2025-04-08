@@ -7,6 +7,5 @@
         <Exec Command="which ld.lld" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="Low">            <!-- Ignore error code for now. We will make the build error out later  -->
             <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
         </Exec>
-        <Message Importance="High" Text="Linker Path:$(LdLinkerPath)"/>
     </Target>
 </Project>
