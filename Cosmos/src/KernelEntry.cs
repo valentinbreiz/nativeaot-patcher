@@ -1,4 +1,6 @@
 using System.Runtime;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Boot.Limine;
 
 using EarlyBird;
@@ -25,6 +27,23 @@ unsafe class Program
 
         Canvas.DrawString("CosmosOS booted.", 0, 0, Color.White);
 
+        Serial.WriteString("Hello from UART\n");
+
         while (true);
+    }
+}
+
+public unsafe static class Serial
+{
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    [RuntimeImport("Kernel.dll", "com_write")]
+    public static extern void ComWrite(byte value);
+
+    public static void WriteString(string str)
+    {
+        fixed (char* ptr = str)
+        {
+            ComWrite((byte)ptr);
+        }   
     }
 }
