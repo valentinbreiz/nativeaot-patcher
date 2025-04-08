@@ -1,5 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -21,12 +25,12 @@ public sealed class YasmBuildTask : ToolTask
     private string? FilePath { get; set; }
     private string? FileName { get; set; }
 
-
     protected override string GenerateCommandLineCommands()
     {
+        Log.LogMessage(MessageImportance.Low, $"[Debug] Generating command-line args for {FilePath} -> {FileName}");
         StringBuilder sb = new();
 
-        sb.Append($" -a amd64 ");
+        sb.Append($" -felf64 ");
         sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
         sb.Append($" {FilePath} ");
 
@@ -37,20 +41,40 @@ public sealed class YasmBuildTask : ToolTask
     {
         Log.LogMessage(MessageImportance.High, "Running Cosmos.Asm-Yasm...");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {YasmPath}");
+
         string paths = string.Join(",", SearchPath);
         Log.LogMessage(MessageImportance.High, $"Search Path: {paths}");
+        Log.LogMessage(MessageImportance.Low, "[Debug] Beginning file matching");
 
         List<string> files = new();
-
         Matcher matcher = new();
-        matcher.AddIncludePatterns(["*.s", "**.s"]);
+        matcher.AddIncludePatterns(new[] { "*.asm", "**/*.asm" });
 
-        foreach (string path in SearchPath)
+        // Search for .asm files in the provided search paths
+        foreach (string asmFolder in SearchPath)
         {
-            PatternMatchingResult result = matcher.Execute(
-                new DirectoryInfoWrapper(
-                    new DirectoryInfo(path + "x86_64/")));
-            files.AddRange(result.Files.Select(i => i.Path));
+            Log.LogMessage(MessageImportance.Low, $"[Debug] Searching in path: {asmFolder}");
+            var directory = new DirectoryInfo(asmFolder);
+            if (!directory.Exists)
+            {
+                Log.LogWarning($"[Debug] Folder does not exist: {asmFolder}");
+                continue;
+            }
+
+            PatternMatchingResult result = matcher.Execute(new DirectoryInfoWrapper(directory));
+            files.AddRange(result.Files.Select(i => Path.Combine(asmFolder, i.Path)));
+        }
+
+        if (files.Count == 0)
+        {
+            Log.LogWarning("[Debug] No .asm files found to compile.");
+            return true;
+        }
+
+        if (!Directory.Exists(OutputPath))
+        {
+            Log.LogMessage(MessageImportance.Low, $"[Debug] Creating output directory: {OutputPath}");
+            Directory.CreateDirectory(OutputPath);
         }
 
         using SHA1? hasher = SHA1.Create();
@@ -60,13 +84,17 @@ public sealed class YasmBuildTask : ToolTask
             FilePath = file;
             using FileStream stream = File.OpenRead(FilePath);
             byte[] fileHash = hasher.ComputeHash(stream);
-            FileName = $"{Path.GetFileName(file)}-{Convert.ToBase64String(fileHash)}.obj";
+            FileName = $"{Path.GetFileNameWithoutExtension(file)}-{BitConverter.ToString(fileHash).Replace("-", "").ToLower()}.obj";
+            Log.LogMessage(MessageImportance.High, $"[Debug] About to run base.Execute() for {FileName}");
+
             if (!base.Execute())
             {
+                Log.LogError($"[Debug] YasmBuildTask failed for {FilePath}");
                 return false;
             }
         }
 
+        Log.LogMessage(MessageImportance.High, "✅ YasmBuildTask completed successfully.");
         return true;
     }
 

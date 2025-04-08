@@ -83,6 +83,22 @@ namespace System
         {
             public const string UnmanagedSignatureCallingConvention = nameof(UnmanagedSignatureCallingConvention);
         }
+
+        public enum MethodImplOptions
+        {
+            Unmanaged = 0x0004,
+            NoInlining = 0x0008,
+            NoOptimization = 0x0040,
+            AggressiveInlining = 0x0100,
+            AggressiveOptimization = 0x200,
+            InternalCall = 0x1000,
+        }
+
+        //Implementing the MethodImpl attribute for RuntimeExport to work
+        public sealed class MethodImplAttribute : Attribute
+        {
+            public MethodImplAttribute(MethodImplOptions opt) { }
+        }
     }
 }
 
@@ -103,6 +119,25 @@ namespace System.Runtime.InteropServices
         }
     }
 
+    public sealed class DllImportAttribute : Attribute
+    {
+        public string EntryPoint;
+        public CharSet CharSet;
+        public bool SetLastError;
+        public bool ExactSpelling;
+        public CallingConvention CallingConvention;
+        public bool BestFitMapping;
+        public bool PreserveSig;
+        public bool ThrowOnUnmappableChar;
+
+        public string Value { get; }
+
+        public DllImportAttribute(string dllName)
+        {
+            Value = dllName;
+        }
+    }
+
     internal enum LayoutKind
     {
         Sequential = 0, // 0x00000008,
@@ -110,12 +145,21 @@ namespace System.Runtime.InteropServices
         Auto = 3, // 0x00000000,
     }
 
-    internal enum CharSet
+    public enum CharSet
     {
         None = 1,       // User didn't specify how to marshal strings.
         Ansi = 2,       // Strings should be marshalled as ANSI 1 byte chars.
         Unicode = 3,    // Strings should be marshalled as Unicode 2 byte chars.
         Auto = 4,       // Marshal Strings in the right way for the target system.
+    }
+
+    public enum CallingConvention
+    {
+        Winapi = 1,
+        Cdecl = 2,
+        StdCall = 3,
+        ThisCall = 4,
+        FastCall = 5,
     }
 }
 #endregion
@@ -135,6 +179,23 @@ namespace System
         internal sealed class RuntimeExportAttribute : Attribute
         {
             public RuntimeExportAttribute(string entry) { }
+        }
+
+        internal sealed class RuntimeImportAttribute : Attribute
+        {
+            public string DllName { get; }
+            public string EntryPoint { get; }
+
+            public RuntimeImportAttribute(string entry)
+            {
+                EntryPoint = entry;
+            }
+
+            public RuntimeImportAttribute(string dllName, string entry)
+            {
+                EntryPoint = entry;
+                DllName = dllName;
+            }
         }
     }
 
