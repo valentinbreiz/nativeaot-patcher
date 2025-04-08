@@ -29,6 +29,8 @@ unsafe class Program
 
         Serial.WriteString("Hello from UART\n");
 
+        Canvas.DrawString("Wrote to UART.", 0, 28, Color.White);
+
         while (true);
     }
 }
@@ -43,7 +45,10 @@ public unsafe static class Serial
     {
         fixed (char* ptr = str)
         {
-            ComWrite((byte)ptr);
+            for (int i = 0; i < str.Length; i++)
+            {
+                ComWrite((byte)ptr[i]);
+            }
         }   
     }
 }
