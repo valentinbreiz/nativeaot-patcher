@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
-    <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
-    <LdLinkerPath></LdLinkerPath>
+    <LdLinkerPath />
   </PropertyGroup>
 
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
@@ -13,6 +12,7 @@
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
       <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
+      <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,7 +23,7 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="-o $(ElfBinary)" />
+      <LinkerArgs Include="-o $([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))" />
     </ItemGroup>
     <Error Condition="!Exists('$(LdLinkerPath)')" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
 
@@ -51,7 +51,7 @@
     <Exec Command="make -C limine" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
-    <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />
+    <Copy SourceFiles="$(OutputPath)/$(AssemblyName).elf" DestinationFolder="$(IsoRoot)/boot/" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
