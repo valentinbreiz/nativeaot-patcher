@@ -23,7 +23,7 @@ unsafe class Program
 
         Canvas.ClearScreen(Color.Black);
 
-        Canvas.DrawString("Mreeow :3", 0, 0, Color.White);
+        Canvas.DrawString("CosmosOS booted.", 0, 0, Color.White);
 
         while (true);
     }
