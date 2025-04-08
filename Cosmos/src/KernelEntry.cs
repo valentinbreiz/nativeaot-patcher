@@ -1,22 +1,30 @@
 using System.Runtime;
 using Cosmos.Boot.Limine;
 
+using EarlyBird;
+using EarlyBird.Conversion;
+using EarlyBird.PSF;
+using static EarlyBird.Graphics;
+
 unsafe class Program
 {
     static readonly LimineFramebufferRequest Framebuffer = new();
+    static readonly LimineHHDMRequest HHDM = new();
 
     [RuntimeExport("kmain")]
     static void Main()
     {
+        MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
         var fb = Framebuffer.Response->Framebuffers[0];
-        var addr = (uint*)fb->Address;
-        var pitch = fb->Pitch;
+        Canvas.Address = (uint*)fb->Address;
+        Canvas.Pitch = (uint)fb->Pitch;
+        Canvas.Width = (uint)fb->Width;
+        Canvas.Height = (uint)fb->Height;
 
-        for (uint i = 0; i < 100; i++)
-        {
-            addr[i * (pitch / 4) + i] = 0xffffff;
-        }
+        Canvas.ClearScreen(Color.Black);
 
-        while (true) ;
+        Canvas.DrawString("Mreeow :3", 0, 0, Color.White);
+
+        while (true);
     }
 }
