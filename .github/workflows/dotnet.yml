@@ -14,7 +14,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -27,16 +26,16 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj
 
-      - name: 🧱 Build Cosmos.Patcher
+      - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
         
-      - name: 🧱 Build Cosmos.Patcher.Tests
+      - name: 🔨 Build Cosmos.Patcher.Tests
         run: dotnet build ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
 
-      - name: 🧪 Run Tests
+      - name: 🚀 Run Tests
         run: dotnet test ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Patcher.Tests.trx"
 
       - name: 📤 Upload Test Results
@@ -52,7 +51,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -65,16 +63,16 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj
 
-      - name: 🧱 Build Cosmos.Patcher
+      - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
         
-      - name: 🧱 Build Cosmos.Scanner.Tests
+      - name: 🔨 Build Cosmos.Scanner.Tests
         run: dotnet build ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --configuration Debug --no-restore
 
-      - name: 🧪 Run Tests
+      - name: 🚀 Run Tests
         run: dotnet test ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Scanner.Tests.trx"
 
       - name: 📤 Upload Test Results
@@ -90,7 +88,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -103,10 +100,10 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Analyzer.Tests
+      - name: 🔨 Build Cosmos.Patcher.Analyzer.Tests
         run: dotnet build ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj --configuration Debug --no-restore
 
-      - name: 🧪 Run Tests
+      - name: 🚀 Run Tests
         run: dotnet test ./tests/Cosmos.Patcher.Analyzer.Tests/Cosmos.Patcher.Analyzer.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Patcher.Analyzer.Tests.trx"
 
       - name: 📤 Upload Test Results
@@ -122,7 +119,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -135,16 +131,16 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj
 
-      - name: 🧱 Build Cosmos.Patcher
+      - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
         
-      - name: 🧱 Build Cosmos.Asm.Build.Test
+      - name: 🔨 Build Cosmos.Asm.Build.Test
         run: dotnet build ./tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj --configuration Debug --no-restore
 
-      - name: 🧪 Run Tests
+      - name: 🚀 Run Tests
         run: dotnet test ./tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Asm.Build.Test.trx"
 
       - name: 📤 Upload Test Results
@@ -160,7 +156,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -179,13 +174,13 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore
 
-      - name: 🧱 Build Cosmos.Patcher
+      - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
 
-      - name: 🧱 Build Cosmos.Kernel.Tests
+      - name: 🔨 Build Cosmos.Kernel.Tests
         run: dotnet build ./tests/Cosmos.Kernel.Tests/Kernel.csproj --configuration Debug --no-restore --verbosity detailed
 
       - name: 🚀 Run Tests
@@ -202,7 +197,6 @@ jobs:
       matrix:
         os: [ windows-latest ]
         dotnet-version: [ 8.0.x ]
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -223,13 +217,13 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore
 
-      - name: 🧱 Build Cosmos.Patcher
+      - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🧱 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
 
-      - name: 🧱 Build Cosmos.Kernel.Tests
+      - name: 🔨 Build Cosmos.Kernel.Tests
         run: dotnet build ./tests/Cosmos.Kernel.Tests/Kernel.csproj --configuration Debug --no-restore --verbosity detailed
 
       - name: 🚀 Run Tests
