@@ -1,11 +1,8 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Cosmos.Boot.Limine;
-
 using EarlyBird;
-using EarlyBird.Conversion;
-using EarlyBird.PSF;
+
 using static EarlyBird.Graphics;
 
 unsafe class Program
@@ -27,9 +24,11 @@ unsafe class Program
 
         Canvas.DrawString("CosmosOS booted.", 0, 0, Color.White);
 
-        Serial.WriteString("Hello from UART\n");
+        Serial.ComInit();
 
-        Canvas.DrawString("Wrote to UART.", 0, 28, Color.White);
+        Canvas.DrawString("UART started.", 0, 28, Color.White);
+
+        Serial.WriteString("Hello from UART\n");
 
         while (true);
     }
@@ -38,8 +37,12 @@ unsafe class Program
 public unsafe static class Serial
 {
     [MethodImpl(MethodImplOptions.InternalCall)]
-    [RuntimeImport("Kernel.dll", "com_write")]
-    public static extern void ComWrite(byte value);
+    [RuntimeImport("*", "com_init")]
+    public static extern void ComInit();
+
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    [RuntimeImport("*", "com_write")]
+    public static extern void ComWrite(char value);
 
     public static void WriteString(string str)
     {
@@ -47,8 +50,8 @@ public unsafe static class Serial
         {
             for (int i = 0; i < str.Length; i++)
             {
-                ComWrite((byte)ptr[i]);
+                ComWrite(ptr[i]);
             }
-        }   
+        }
     }
 }
