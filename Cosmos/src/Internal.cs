@@ -34,7 +34,7 @@ namespace EarlyBird.Internal
         }
     }
 
-    public unsafe static class Serial
+    public static class Serial
     {
         private static readonly ushort COM1 = 0x3F8;
 
@@ -63,7 +63,7 @@ namespace EarlyBird.Internal
             Native.IO.Write8((ushort)(COM1 + 2), 0xC7);
         }
 
-        public static void WriteString(string str)
+        public static unsafe void WriteString(string str)
         {
             fixed (char* ptr = str)
             {
