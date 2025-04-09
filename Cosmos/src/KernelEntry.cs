@@ -50,5 +50,8 @@ public unsafe static class Serial
                 ComWrite((byte)ptr[i]);
             }
         }   
+        Canvas.DrawString("Mreeow :3", 0, 0, Color.White);
+
+        while (true);
     }
 }
