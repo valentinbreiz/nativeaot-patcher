@@ -25,4 +25,13 @@
     <Message Text="✅ Asm files compiled to: $(AsmOutputPath)" Importance="High" />
   </Target>
 
+  <!-- Clean target to remove the asm folder -->
+  <Target Name="CleanYasm" BeforeTargets="Clean">
+    <PropertyGroup>
+      <AsmOutputPath>$(OutputPath)asm/</AsmOutputPath>
+    </PropertyGroup>
+
+    <RemoveDir Directories="$(AsmOutputPath)" />
+  </Target>
+
 </Project>
