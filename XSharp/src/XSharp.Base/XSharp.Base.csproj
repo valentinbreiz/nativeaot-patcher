@@ -1,5 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Liquip\src\Cosmos.API\Cosmos.API.csproj" />
-  </ItemGroup>
-</Project>
