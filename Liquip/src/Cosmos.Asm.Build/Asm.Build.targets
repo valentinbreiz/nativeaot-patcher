@@ -1,0 +1,28 @@
+<Project>
+
+  <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Asm.Build.dll" />
+
+  <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
+  <Target Name="BuildYasm" AfterTargets="Build">
+    <PropertyGroup>
+      <YasmPath>/usr/bin/yasm</YasmPath>
+      <!-- Adjust output path if needed -->
+      <AsmOutputPath>$(OutputPath)asm/</AsmOutputPath>
+    </PropertyGroup>
+
+    <!-- Add any folder(s) where *.s files exist -->
+    <ItemGroup>
+      <AsmSearchPath Include="$(MSBuildProjectDirectory)/src/Asm/" />
+    </ItemGroup>
+
+    <!-- Invoke the custom Yasm task -->
+    <YasmBuildTask
+      YasmPath="$(YasmPath)"
+      OutputPath="$(AsmOutputPath)"
+      SearchPath="@(AsmSearchPath)" />
+
+    <Message Text="✅ Asm files compiled to: $(AsmOutputPath)" Importance="High" />
+  </Target>
+
+</Project>

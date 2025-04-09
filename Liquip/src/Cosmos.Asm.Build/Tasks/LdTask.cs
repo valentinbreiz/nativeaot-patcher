@@ -1,11 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Security.Cryptography;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace Cosmos.Asm.Build.Tasks;
 
