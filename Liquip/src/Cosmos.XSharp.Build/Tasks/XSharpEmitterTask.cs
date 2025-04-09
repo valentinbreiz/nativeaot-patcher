@@ -1,12 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Security.Cryptography;
 using System.Text;
 using Cosmos.API.Enum;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using XSharp.Build.Tasks;
 
 namespace Cosmos.XSharp.Build.Tasks;

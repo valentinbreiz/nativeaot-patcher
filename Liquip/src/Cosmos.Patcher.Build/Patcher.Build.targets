@@ -21,7 +21,7 @@
     <Message Importance="High" Text="PatcherOutputPath: '$(PatcherOutputPath)'" />
     <Message Importance="High" Text="PatchedAssembly: '$(PatchedAssembly)'" />
     <Message Importance="High" Text="TargetFramework: '$(TargetFramework)'" />
-    <Message Importance="High" Text="PatcherExists: $([System.IO.Path]::Exists('$(PatcherPath)'))" />
+    <Message Importance="High" Text="PatcherExists: Exists('$(PatcherPath)')" />
         <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
 
   </Target>

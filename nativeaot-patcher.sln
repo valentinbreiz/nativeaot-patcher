@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aot.Asm", "Aot.Asm", "{C42A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{4E2E1B0F-900C-4DAC-877E-17541E35D5E1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cosmos", "Cosmos", "{F3761CF5-5B13-4500-ABFA-20773A543ABE}"
+Project("{00000000-0000-0000-0000-000000000000}") = "Cosmos", "Cosmos", "{F3761CF5-5B13-4500-ABFA-20773A543ABE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Liquip", "Liquip", "{0A3105A2-DDE4-4E30-9900-E72D06CAA6E9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0A3105A2-DDE4-4E30-9900-E72D06CAA6E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "XSharp", "XSharp", "{CE43855A-474A-4EE0-9AD1-7215E1B03E21}"
 EndProject
@@ -23,7 +23,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher.Analyzer.Pac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.API", "Liquip\src\Cosmos.API\Cosmos.API.csproj", "{A63FA839-937C-4D35-A591-96424B25C889}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.ilc.Build", "Liquip\src\Cosmos.ilc.Build\Cosmos.ilc.Build.csproj", "{82115156-671C-4FDC-831B-2297AB1FAB79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Ilc.Build", "Liquip\src\Cosmos.Ilc.Build\Cosmos.Ilc.Build.csproj", "{82115156-671C-4FDC-831B-2297AB1FAB79}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Patcher", "Liquip\src\Cosmos.Patcher\Cosmos.Patcher.csproj", "{D9940E28-9B2E-4570-97C1-F2CE886CC378}"
 EndProject
@@ -47,7 +47,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Scanner.Tests", "Liq
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{6A615AE3-1D3E-4AF2-9DF6-D13F211F937E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Liquip.Tests", "Liquip.Tests", "{8D6060ED-D188-449A-B819-50485E92D475}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8D6060ED-D188-449A-B819-50485E92D475}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Common.Build", "Liquip\src\Cosmos.Common.Build\Cosmos.Common.Build.csproj", "{82DE5BBB-189D-3264-7A5D-C4B08F70D062}"
 EndProject
