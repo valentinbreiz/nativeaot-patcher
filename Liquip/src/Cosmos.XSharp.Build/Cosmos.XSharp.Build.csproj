@@ -8,6 +8,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Cosmos.API/Cosmos.API.csproj" />
+    <ProjectReference Include="../../../XSharp/src/XSharp.Build.Tasks/XSharp.Build.Tasks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="build\Cosmos.XSharp.Build.props" Pack="true">
       <PackagePath>build\Cosmos.XSharp.Build.props</PackagePath>
     </None>
