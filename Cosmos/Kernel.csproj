@@ -15,8 +15,4 @@
   <Import Project="../Liquip/src/Cosmos.ilc.Build/ILC.Build.targets" />
   <Import Project="../Liquip/src/Cosmos.Common.Build/Common.Build.targets" />
 
-  <ItemGroup>
-    <Folder Include="asm\1\x86_64\"/>
-  </ItemGroup>
-
 </Project>
