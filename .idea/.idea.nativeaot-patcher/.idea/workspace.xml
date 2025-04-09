@@ -9,14 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="110acbc5-d563-4dfd-807e-bf55eeb75852" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher.Build/Patcher.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher.Build/Patcher.Build.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.XSharp.Build/Cosmos.XSharp.Build.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.XSharp.Build/Cosmos.XSharp.Build.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.XSharp.Build/Tasks/XSharpEmitterTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.XSharp.Build/Tasks/XSharpEmitterTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XSharp/src/XSharp.Build.Tasks/XSharp.Build.Tasks.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/XSharp/src/XSharp.Build.Tasks/XSharp.Build.Tasks.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.sln" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.sln" afterDir="false" />
-    </list>
+    <list default="true" id="110acbc5-d563-4dfd-807e-bf55eeb75852" name="Changes" comment="upd: resolve missing references and rename Cosmos.ilc.Build.csproj" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,7 +20,7 @@
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="Toolset" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -47,7 +40,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "SolutionBuilderGeneralOptionsPage",
+    "settings.editor.selected.configurable": "preferences.sourceCode.C#",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -60,8 +53,17 @@
       <option name="presentableId" value="Default" />
       <updated>1744167782468</updated>
       <workItem from="1744167811141" duration="2433000" />
-      <workItem from="1744170314599" duration="282000" />
+      <workItem from="1744170314599" duration="806000" />
     </task>
+    <task id="LOCAL-00001" summary="upd: resolve missing references and rename Cosmos.ilc.Build.csproj">
+      <option name="closed" value="true" />
+      <created>1744170857697</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1744170857697</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -71,6 +73,7 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feature/xsharp" />
-    <option name="LAST_COMMIT_MESSAGE" value="" />
+    <MESSAGE value="upd: resolve missing references and rename Cosmos.ilc.Build.csproj" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: resolve missing references and rename Cosmos.ilc.Build.csproj" />
   </component>
 </project>
