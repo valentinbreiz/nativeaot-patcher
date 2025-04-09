@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
 
       - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-        
+
       - name: 🔨 Build Cosmos.Patcher.Tests
         run: dotnet build ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
 
@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
 
       - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-        
+
       - name: 🔨 Build Cosmos.Scanner.Tests
         run: dotnet build ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --configuration Debug --no-restore
 
@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -136,7 +136,7 @@ jobs:
 
       - name: 🔨 Build Cosmos.Patcher.Build
         run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-        
+
       - name: 🔨 Build Cosmos.Asm.Build.Test
         run: dotnet build ./tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj --configuration Debug --no-restore
 
@@ -155,7 +155,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -164,7 +164,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-    
+
       - name: 🔗 Install Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld
 
@@ -185,9 +185,9 @@ jobs:
 
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./tests/Cosmos.Kernel.Tests/Kernel.csproj
-    
+
       - name: 🕵️‍♂️ Verify Output
-        run: | 
+        run: |
           [ -f ./tests/Cosmos.Kernel.Tests/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
 
   windows-iso-tests:
@@ -196,7 +196,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        dotnet-version: [ 8.0.x ]
+        dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -205,7 +205,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-    
+
       - name: 🔗 Install Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
         with:
@@ -228,7 +228,7 @@ jobs:
 
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r windows-x64 --verbosity detailed ./tests/Cosmos.Kernel.Tests/Kernel.csproj
-    
+
       - name: 🕵️‍♂️ Verify Output
         shell: cmd
         run: |
