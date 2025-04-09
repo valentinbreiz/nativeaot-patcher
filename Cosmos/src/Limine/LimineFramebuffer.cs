@@ -3,6 +3,13 @@ using System.Runtime.InteropServices;
 namespace Cosmos.Boot.Limine;
 
 // Adapted from Azerou.
+[StructLayout(LayoutKind.Sequential)]
+public readonly unsafe struct LimineHHDMRequest()
+{
+    public readonly LimineID ID = new(0x48dcf1cb8ad2b852, 0x63984e959a98244b);
+    public readonly ulong Revision = 0;
+    public readonly ulong Offset;
+}
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly unsafe struct LimineFramebufferRequest()

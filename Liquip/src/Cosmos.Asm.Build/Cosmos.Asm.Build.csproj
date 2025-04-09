@@ -8,8 +8,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\Cosmos.Asm.Build.props" Pack="true">
-      <PackagePath>build\Cosmos.Asm.Build.props</PackagePath>
+    <None Include="Build\Cosmos.Asm.Build.props" Pack="true">
+      <PackagePath>Build\Cosmos.Asm.Build.props</PackagePath>
     </None>
   </ItemGroup>
   <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">

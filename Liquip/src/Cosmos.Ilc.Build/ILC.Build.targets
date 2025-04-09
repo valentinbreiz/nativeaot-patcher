@@ -68,7 +68,7 @@
       <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
       <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
-        <OutputFile>$(IlcIntermediateOutputPath)$(AssemblyName).o</OutputFile>
+        <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
     </ItemGroup>
 
