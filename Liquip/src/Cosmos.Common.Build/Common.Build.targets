@@ -22,7 +22,8 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="$(OutputPath)/asm/com_write-*.obj" />
+      <ObjFiles Include="$(OutputPath)/asm/*.obj" />
+      <LinkerArgs Include="@(ObjFiles ->'%(Identity)')"  />
       <LinkerArgs Include="-o $([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))" />
     </ItemGroup>
     <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Please ensure it is installed and available in your system PATH." />
