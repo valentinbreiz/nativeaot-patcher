@@ -12,7 +12,7 @@
 
   <Import Project="../Liquip/src/Cosmos.Patcher.Build/Patcher.Build.targets" />
   <Import Project="../Liquip/src/Cosmos.Asm.Build/Asm.Build.targets" />
-  <Import Project="../Liquip/src/Cosmos.ilc.Build/ILC.Build.targets" />
+  <Import Project="../Liquip/src/Cosmos.Ilc.Build/ILC.Build.targets" />
   <Import Project="../Liquip/src/Cosmos.Common.Build/Common.Build.targets" />
 
 </Project>
