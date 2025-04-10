@@ -3,26 +3,51 @@
   <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask"
              AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Asm.Build.dll" />
 
+  <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
+    <PropertyGroup>
+      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+    </PropertyGroup>
+    
+    <Message Text="⚙️  [ASM] Searching .asm files on: @(AsmSearchPath)" Importance="High" />
+    
+    <ItemGroup>
+      <NonExistentPaths Include="@(AsmSearchPath)" Condition="!Exists('%(FullPath)')" />
+      <NonExistentFiles Include="@(AsmFiles)" Condition="!Exists('%(FullPath)')" />
+      <AsmSearchPath Remove="@(NonExistentPaths)" />
+      <AsmFiles Remove="@(NonExistentFiles)" />
+    </ItemGroup>
+
+    <Warning Text="Folder does not exists: %(NonExistentPaths.Identity)" Condition="@(NonExistentPaths) != ''" />
+    <Warning Text="File does not exists: %(NonExistentFiles.Identity)" Condition="@(NonExistentFiles) != ''" />
+
+    <ItemGroup>
+      <!-- Use the search pattern to find the .asm files -->
+      <AsmSearch Include="$(AsmSearchPattern)" />
+      <!-- Remove Duplicates -->
+      <AsmSearch Remove="@(AsmFiles)" />
+      <!-- Add Search Result -->
+      <AsmFiles Include="@(AsmSearch)" />
+    </ItemGroup>
+
+    <Message Text="✅ [ASM] Number of Asm files found: @(AsmFiles->Count())" Importance="High" />
+  </Target>
+
   <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
-  <Target Name="BuildYasm" AfterTargets="Build">
+  <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm">
     <PropertyGroup>
       <YasmPath>/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->
       <AsmOutputPath>$(OutputPath)asm/</AsmOutputPath>
     </PropertyGroup>
 
-    <!-- Add any folder(s) where *.s files exist -->
-    <ItemGroup>
-      <AsmSearchPath Include="$(MSBuildProjectDirectory)/src/Asm/" />
-    </ItemGroup>
-
+    
     <!-- Invoke the custom Yasm task -->
     <YasmBuildTask
       YasmPath="$(YasmPath)"
       OutputPath="$(AsmOutputPath)"
-      SearchPath="@(AsmSearchPath)" />
+      SourceFiles="@(AsmFiles)" />
 
-    <Message Text="✅ Asm files compiled to: $(AsmOutputPath)" Importance="High" />
+    <Message Text="✅ [ASM] Asm files compiled to: $(AsmOutputPath)" Importance="High" />
   </Target>
 
   <!-- Clean target to remove the asm folder -->
