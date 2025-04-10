@@ -128,6 +128,9 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
+      - name: 🔗 Install Linking Tools
+        run: sudo apt-get update && sudo apt-get install -y yasm
+
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./Liquip/tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj
 
