@@ -13,6 +13,8 @@ public sealed class YasmBuildTask : ToolTask
     [Required] public string[]? SourceFiles { get; set; }
     [Required] public string? OutputPath { get; set; }
 
+    protected override MessageImportance StandardErrorLoggingImportance => MessageImportance.Normal;
+
     protected override string GenerateFullPathToTool() =>
         YasmPath!;
 
@@ -33,6 +35,7 @@ public sealed class YasmBuildTask : ToolTask
 
     public override bool Execute()
     {
+        LogStandardErrorAsError = true;
         Log.LogMessage(MessageImportance.High, "Running Cosmos.Asm-Yasm...");
         Log.LogMessage(MessageImportance.High, $"Tool Path: {YasmPath}");
 
