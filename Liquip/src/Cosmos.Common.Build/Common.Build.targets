@@ -15,6 +15,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ObjFiles Include="$(IntermediateOutputPath)/cosmos/asm/*.obj" />
+    </ItemGroup>
+
+    <ItemGroup>
       <!-- Arguments for ld.lld -->
       <LinkerArgs Include="-T src/linker.ld" />
       <LinkerArgs Include="-m elf_x86_64" />
@@ -22,7 +26,6 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <ObjFiles Include="$(OutputPath)/asm/*.obj" />
       <LinkerArgs Include="@(ObjFiles ->'%(Identity)')"  />
       <LinkerArgs Include="-o $([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))" />
     </ItemGroup>

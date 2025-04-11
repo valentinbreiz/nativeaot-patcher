@@ -5,6 +5,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  
+    <!-- Add any folder(s) where *.asm files exist -->
+    <ItemGroup>
+      <AsmSearchPath Include="./src/Asm/" />
+      <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
+    </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Liquip/src/Cosmos.API/Cosmos.API.csproj" />
