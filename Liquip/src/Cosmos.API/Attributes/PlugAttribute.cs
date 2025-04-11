@@ -2,10 +2,10 @@ using Cosmos.API.Enum;
 
 namespace Cosmos.API.Attributes;
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class PlugAttribute : Attribute
 {
-    public TargetPlatform TargetPlatform;
+  //  public TargetPlatform TargetPlatform;
 
     /// <summary>
     /// does not have a base type
@@ -23,7 +23,8 @@ public sealed class PlugAttribute : Attribute
 
     /// <summary>
     /// set base type by string
-    /// </summary>
+    //*// </summary>5\
+
     /// <param name="targetName"></param>
     /// <exception cref="ArgumentNullException"></exception>
     public PlugAttribute(string targetName) => TargetName = !string.IsNullOrEmpty(targetName)
@@ -41,7 +42,7 @@ public sealed class PlugAttribute : Attribute
     public string? TargetName { get; set; } = nameof(Target) ?? null;
 
     /// <summary>
-    /// if the type cant be found skip 
+    /// if the type cant be found skip
     /// </summary>
     public bool IsOptional { get; set; }
 }

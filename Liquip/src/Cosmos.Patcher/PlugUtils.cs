@@ -1,3 +1,4 @@
+using Cosmos.API.Attributes;
 using Mono.Cecil;
 
 namespace Cosmos.Patcher;
@@ -5,7 +6,7 @@ namespace Cosmos.Patcher;
 public static class PlugUtils
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="assembly"></param>
     /// <param name="rootPath"></param>
@@ -13,7 +14,7 @@ public static class PlugUtils
         assembly.Write(Path.Combine(rootPath, $"{assembly.Name.Name}.dll"));
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="assembly"></param>
     /// <param name="rootPath"></param>
@@ -24,3 +25,4 @@ public static class PlugUtils
     public static List<AssemblyDefinition> LoadAssemblies(params string[] paths) =>
         [.. paths.Select(AssemblyDefinition.ReadAssembly)];
 }
+

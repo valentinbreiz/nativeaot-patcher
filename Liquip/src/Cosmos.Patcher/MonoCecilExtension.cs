@@ -1810,5 +1810,31 @@ public static class MonoCecilExtensions
     }
 
     #endregion InstructionOptimizations
+
+    #region GetArgument
+
+    public static T GetArgument<T>(this CustomAttribute attribute, params object[] fallbackArgs)
+    {
+        string typeName = typeof(T).FullName;
+        foreach (object indexOrStr in fallbackArgs )
+        {
+            CustomAttributeArgument? argument = indexOrStr switch
+            {
+                int index => index > attribute.ConstructorArguments.Count
+                    ? throw new ArgumentOutOfRangeException(nameof(indexOrStr), indexOrStr, "Index out of range.")
+                    : attribute.ConstructorArguments[index],
+                string name => attribute.Properties.FirstOrDefault(arg => arg.Name == name).Argument,
+                _ => throw new ArgumentOutOfRangeException(nameof(indexOrStr), indexOrStr, null)
+            };
+
+            if (!argument.HasValue || typeName != argument.Value.Type.FullName)
+                continue;
+
+            return (T)argument.Value.Value;
+        }
+
+        return default; // Return default value of the type if unable to cast it
+    }
+    #endregion
 }
 #endif

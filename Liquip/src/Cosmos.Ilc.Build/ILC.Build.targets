@@ -35,7 +35,7 @@
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$(IlcHostPackagePath)/tools/</IlcToolsPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::Normalize($(IlcHostPackagePath)/tools/))</IlcToolsPath>
     </PropertyGroup>
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
@@ -74,7 +74,7 @@
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
     <MakeDir Directories="$(NativeOutputPath)" />
-        
+
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
