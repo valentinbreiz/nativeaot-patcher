@@ -31,6 +31,6 @@ unsafe class Program
 
         Serial.WriteString("Hello from UART\n");
 
-        while (true);
+        while (true) ;
     }
 }
