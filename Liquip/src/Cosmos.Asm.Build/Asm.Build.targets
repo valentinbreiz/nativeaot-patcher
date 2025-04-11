@@ -5,21 +5,32 @@
 
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
-      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+      <TargetArchitecture>$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
     
-    <Message Text="⚙️  [ASM] Searching .asm files on: @(AsmSearchPath)" Importance="High" />
-    
+    <!-- Exclude Folders/Files that doesn't exists -->
     <ItemGroup>
       <NonExistentPaths Include="@(AsmSearchPath)" Condition="!Exists('%(FullPath)')" />
       <NonExistentFiles Include="@(AsmFiles)" Condition="!Exists('%(FullPath)')" />
       <AsmSearchPath Remove="@(NonExistentPaths)" />
       <AsmFiles Remove="@(NonExistentFiles)" />
     </ItemGroup>
-
+    
     <Warning Text="Folder does not exists: %(NonExistentPaths.Identity)" Condition="@(NonExistentPaths) != ''" />
     <Warning Text="File does not exists: %(NonExistentFiles.Identity)" Condition="@(NonExistentFiles) != ''" />
 
+    <!-- Override Folders For Architecture Specific Ones -->
+    <ItemGroup>
+      <AsmSearchPathWithArch Include="@(AsmSearchPath)" Condition="Exists('%(FullPath)/$(TargetArchitecture)/')" />
+      <AsmSearchPath Remove="@(AsmSearchPathWithArch)"/>
+      <AsmSearchPath Include="@(AsmSearchPathWithArch->'%(FullPath)/$(TargetArchitecture)/')"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+    </PropertyGroup>
+
+    <Message Text="⚙️  [ASM] Searching .asm files on: @(AsmSearchPath)" Importance="High" />
     <ItemGroup>
       <!-- Use the search pattern to find the .asm files -->
       <AsmSearch Include="$(AsmSearchPattern)" />
