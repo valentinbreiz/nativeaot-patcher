@@ -45,8 +45,8 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzeSyntaxTree started for {context.Tree.FilePath}");
-        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
-        foreach (var kvp in pluggedClasses)
+        SyntaxNode syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
+        foreach (KeyValuePair<string, PlugInfo> kvp in pluggedClasses)
         {
             if (!kvp.Value.PlugSymbol.DeclaringSyntaxReferences.Any(r => r.SyntaxTree == context.Tree))
             {
@@ -68,7 +68,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var symbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol;
+        ISymbol? symbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol;
         if (symbol is not INamedTypeSymbol classSymbol)
         {
             DebugLog("[DEBUG] Symbol is not a named type symbol");
@@ -114,7 +114,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         else
         {
             DebugLog($"[DEBUG] No plugged class found for {classSymbol.Name}");
-            foreach (var member in classSymbol.GetMembers())
+            foreach (ISymbol member in classSymbol.GetMembers())
             {
                 if (member is IMethodSymbol method &&
                     method.MethodKind == MethodKind.Ordinary &&

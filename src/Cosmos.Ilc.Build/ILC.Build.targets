@@ -35,7 +35,7 @@
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::Normalize($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
     </PropertyGroup>
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
@@ -48,6 +48,7 @@
     <ItemGroup>
       <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
       <ReferencePath Remove="@(ReferencePath)" />
+      
     </ItemGroup>
   </Target>
 

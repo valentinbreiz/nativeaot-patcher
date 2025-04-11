@@ -26,11 +26,11 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.Contains(plugs, plug => plug.Name == nameof(MockPlug));
-        TypeDefinition? plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
+        MethodDefinition? plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
         Assert.NotNull(plug);
 
         Collection<CustomAttribute>? customAttributes = plug.CustomAttributes;
@@ -51,7 +51,7 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.DoesNotContain(plugs, plug => plug.Name == nameof(NonPlug));
@@ -65,8 +65,8 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
-        TypeDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
+        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
+        MethodDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
 
         // Assert
         Assert.NotNull(optionalPlug);

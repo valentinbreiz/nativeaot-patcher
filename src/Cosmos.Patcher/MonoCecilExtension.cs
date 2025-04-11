@@ -1813,28 +1813,53 @@ public static class MonoCecilExtensions
 
     #region GetArgument
 
-    public static T GetArgument<T>(this CustomAttribute attribute, params object[] fallbackArgs)
+    public static T? GetArgument<T>(this CustomAttribute attribute, T defaultValue = default, params object[] fallbackArgs)
     {
-        string typeName = typeof(T).FullName;
-        foreach (object indexOrStr in fallbackArgs )
+        string? typeName = typeof(T).FullName;
+        Console.WriteLine($"[GetArgument] Trying to get argument of type: {typeName}");
+        Console.WriteLine($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
+        Console.WriteLine($"[GetArgument] Total properties: {attribute.Properties.Count}");
+        
+        foreach (object indexOrStr in fallbackArgs)
         {
+            Console.WriteLine($"[GetArgument] Processing fallback: {indexOrStr} ({indexOrStr.GetType().Name})");
+
             CustomAttributeArgument? argument = indexOrStr switch
             {
-                int index => index > attribute.ConstructorArguments.Count
-                    ? throw new ArgumentOutOfRangeException(nameof(indexOrStr), indexOrStr, "Index out of range.")
+                int index => index > attribute.ConstructorArguments.Count - 1 || index < 0
+                    ? null
                     : attribute.ConstructorArguments[index],
-                string name => attribute.Properties.FirstOrDefault(arg => arg.Name == name).Argument,
-                _ => throw new ArgumentOutOfRangeException(nameof(indexOrStr), indexOrStr, null)
+                string name => attribute.Properties.FirstOrDefault(arg => string.Equals(arg.Name, name, StringComparison.InvariantCultureIgnoreCase)).Argument,
+                _ => null
             };
 
-            if (!argument.HasValue || typeName != argument.Value.Type.FullName)
+            if (argument is null)
+            {
+                Console.WriteLine("[GetArgument] Argument was null — skipping.");
                 continue;
+            }
 
-            return (T)argument.Value.Value;
+            string? argTypeName = argument.Value.Type?.FullName;
+            if (string.IsNullOrEmpty(argTypeName))
+            {
+                Console.WriteLine("[GetArgument] Argument type was null — skipping.");
+                continue;
+            }
+            Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
+
+
+            if (argTypeName == typeof(Type).FullName)
+                return (T?)(object?)argument?.Value.ToString();
+
+            return argument?.Value is T matchedValue
+                ? matchedValue
+                : defaultValue;
         }
 
-        return default; // Return default value of the type if unable to cast it
+        Console.WriteLine("[GetArgument] No matching argument found. Returning default.");
+        return defaultValue;
     }
     #endregion
+
 }
 #endif

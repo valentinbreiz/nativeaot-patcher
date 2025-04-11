@@ -14,7 +14,7 @@ unsafe class Program
     static void Main()
     {
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
-        var fb = Framebuffer.Response->Framebuffers[0];
+        LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Canvas.Address = (uint*)fb->Address;
         Canvas.Pitch = (uint)fb->Pitch;
         Canvas.Width = (uint)fb->Width;
