@@ -5,6 +5,6 @@ namespace Cosmos.NativeWrapper;
 [Plug(typeof(TestClass))]
 public class TestClassPlug
 {
-    [PlugMethod]
+    [PlugMember]
     public static int Add(int a, int b) => a * b;
 }

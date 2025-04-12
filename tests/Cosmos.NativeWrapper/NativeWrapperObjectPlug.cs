@@ -1,19 +1,17 @@
 ﻿using Cosmos.API.Attributes;
+using Cosmos.API.Enum;
 
 namespace Cosmos.NativeWrapper;
 
 [Plug(typeof(NativeWrapperObject))]
 public class NativeWrapperObjectPlug
 {
-    [PlugMethod]
+    [PlugMember]
     public static void Ctor(object aThis) => Console.WriteLine("Plugged ctor");
 
-    [PlugMethod]
+    [PlugMember]
     public static void Speak(object aThis) => Console.WriteLine("bz bz plugged hello");
 
-    [PlugMethod]
+    [PlugMember]
     public static int InstanceMethod(object aThis, int value) => value * 2;
-
-    [NativeMethod("_native_")]
-    public static extern void NativeMethod();
 }

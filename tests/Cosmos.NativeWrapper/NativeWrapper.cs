@@ -45,12 +45,12 @@ public class EmptyPlug
 [Plug(typeof(MockTarget))]
 public class MockPlugWithMethods
 {
-    [PlugMethod]
+    [PlugMember]
     public static void StaticMethod()
     {
     }
 
-    [PlugMethod]
+    [PlugMember]
     public void InstanceMethod()
     {
     }

@@ -9,16 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: dotnet version for tests">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.API/Attributes/PlugAttribute.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.API/Attributes/PlugAttribute.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.API/Attributes/XSharpMethodAttribute.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Asm.Build.Windows/Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Asm.Build.Windows/Build.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Asm.Build/Asm.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Asm.Build/Asm.Build.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugScanner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugScanner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Liquip/src/Cosmos.Patcher/PlugUtils.cs" afterDir="false" />
-    </list>
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: dotnet version for tests" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,12 +29,12 @@
     &quot;assignee&quot;: &quot;kumja1&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/valentinbreiz/nativeaot-patcher.git",
-    "accountId": "552a351b-5962-4ddf-89e6-68455ccc9b37"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/valentinbreiz/nativeaot-patcher.git&quot;,
+    &quot;accountId&quot;: &quot;552a351b-5962-4ddf-89e6-68455ccc9b37&quot;
   }
-}]]></component>
+}</component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
@@ -57,7 +48,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "refactor/plug-system",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

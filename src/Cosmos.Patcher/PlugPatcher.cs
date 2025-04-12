@@ -1,4 +1,5 @@
 using Cosmos.API.Attributes;
+using Cosmos.API.Enum;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Utils;
@@ -52,32 +53,36 @@ public sealed class PlugPatcher
         }
 
         Console.WriteLine($"[PatchType] Scanning plug methods in assemblies...");
-        List<MethodDefinition> plugMethods = _scanner.LoadPlugs(plugAssemblies);
+        List<TypeDefinition> plugs = _scanner.LoadPlugs(plugAssemblies);
 
-        Console.WriteLine($"[PatchType] Found {plugMethods.Count} plug methods. Beginning patching...");
-        foreach (MethodDefinition plugMethod in plugMethods)
+        Console.WriteLine($"[PatchType] Found {plugs.Count} plugs. Beginning patching...");
+        foreach (TypeDefinition plugType in plugs)
         {
-            Console.WriteLine($"[PatchType] Processing plug method: {plugMethod.FullName}");
-            CustomAttribute? attr = plugMethod.CustomAttributes
-                .FirstOrDefault(a => a.AttributeType.FullName == typeof(PlugMethodAttribute).FullName ||
-                                     a.AttributeType.FullName == typeof(NativeMethodAttribute).FullName);
+            Console.WriteLine($"[PatchType] Processing plug method: {plugType.FullName}");
+            CustomAttribute? plugAttr = plugType.CustomAttributes
+                .FirstOrDefault(a => a.AttributeType.FullName == typeof(PlugAttribute).FullName);
 
-            if (attr is null)
+
+            if (plugAttr is null)
             {
                 Console.WriteLine("[PatchType] Skipping plug without PlugMethod or NativeMethod attribute.");
                 continue;
             }
 
-            attr.ImportReferences(targetType.Module);
-            if (attr.AttributeType.FullName == typeof(NativeMethodAttribute).FullName)
+            string? targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "Target"]);
+            if (string.IsNullOrEmpty(targetTypeName))
+                targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "TargetName"]);
+
+            if (targetTypeName != targetType.FullName)
+                continue;
+
+            foreach (MethodDefinition? method in plugType.Methods.Where(m => !m.IsConstructor))
             {
-                Console.WriteLine("[PatchType] Detected native method plug.");
-                PatchNativeMethod(plugMethod, attr);
-            }
-            else
-            {
-                Console.WriteLine("[PatchType] Detected regular plug.");
-                PatchPlugType(targetType, plugMethod, attr);
+                CustomAttribute? plugMemberAttr = method.CustomAttributes.FirstOrDefault(attr=>attr.AttributeType.FullName == typeof(PlugMemberAttribute).FullName);
+                if (plugMemberAttr == null)
+                     continue;
+
+                PatchPlugMethod(targetType, method, plugMemberAttr);
             }
         }
 
@@ -85,29 +90,11 @@ public sealed class PlugPatcher
     }
 
 
-    private void PatchPlugType(TypeDefinition targetType, MethodDefinition plugMethod, CustomAttribute attr)
+
+
+    private void PatchPlugMethod(TypeDefinition targetType, MethodDefinition plugMethod, CustomAttribute attr)
     {
         Console.WriteLine($"[PatchPlugType] Patching plug method: {plugMethod.FullName}");
-
-        string? targetTypeName = attr.GetArgument<string>(fallbackArgs: [0, "TargetClass"]);
-        if (string.IsNullOrEmpty(targetTypeName))
-        {
-            CustomAttribute? plugAttr = plugMethod.DeclaringType.CustomAttributes
-                .FirstOrDefault(a => a.AttributeType.FullName == typeof(PlugAttribute).FullName);
-
-            if (plugAttr is not null)
-            {
-                targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "Target"]);
-            }
-        }
-
-        Console.WriteLine($"[PatchPlugType] Resolved targetTypeName: {targetTypeName}");
-
-        if (targetTypeName != targetType.FullName)
-        {
-            Console.WriteLine("[PatchPlugType] Skipping plug - target type does not match.");
-            return;
-        }
 
         if (plugMethod.Name is "Ctor" or "CCtor")
         {
@@ -116,7 +103,9 @@ public sealed class PlugPatcher
 
             MethodDefinition? ctor = targetType.Methods.FirstOrDefault(m =>
                 m.IsConstructor &&
-                (isInstanceCtor ? m.Parameters.Count + 1 == plugMethod.Parameters.Count : m.Parameters.Count == plugMethod.Parameters.Count) &&
+                (isInstanceCtor
+                    ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
+                    : m.Parameters.Count == plugMethod.Parameters.Count) &&
                 (plugMethod.Name != "CCtor" || m.IsStatic));
 
             if (ctor != null)
@@ -134,11 +123,13 @@ public sealed class PlugPatcher
 
         bool isInstancePlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
 
-        string methodName = attr.GetArgument(plugMethod.Name, 0, "TargetMethodName")!;
+        string methodName = attr.GetArgument(plugMethod.Name, 0, "TargetName")!;
         Console.WriteLine($"[PatchPlugType] Looking for target method: {methodName}");
 
         MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == methodName &&
-            (isInstancePlug ? m.Parameters.Count + 1 == plugMethod.Parameters.Count : m.Parameters.Count == plugMethod.Parameters.Count));
+            (isInstancePlug
+                ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
+                : m.Parameters.Count == plugMethod.Parameters.Count));
 
         if (targetMethod is not null)
         {
@@ -209,54 +200,12 @@ public sealed class PlugPatcher
         Console.WriteLine($"[PatchMethod] Successfully patched: {targetMethod.FullName}");
     }
 
-    public void PatchNativeMethod(MethodDefinition plugMethod, CustomAttribute nativeAttr)
+    public void PatchProperty(PropertyDefinition targetProperty, PropertyDefinition plugProperty)
     {
-        Console.WriteLine($"[PatchNativeMethod] Creating native method for: {plugMethod.FullName}");
-        ModuleDefinition module = plugMethod.Module;
 
-        plugMethod.ImplAttributes |= MethodImplAttributes.InternalCall;
+    }
 
-        TypeDefinition? runtimeImportAttr = module.AssemblyResolver
-            .Resolve(new AssemblyNameReference("System.Private.CoreLib", null)) // Change to Cosmos stdlib later
-            ?.MainModule
-            .GetType("System.Runtime", "RuntimeImportAttribute");
-
-        // For tests (Cosmos.Patcher.Tests)
-        if (runtimeImportAttr == null)
-        {
-            runtimeImportAttr = new TypeDefinition(
-                "System.Runtime",
-                "RuntimeImportAttribute",
-                TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
-                module.ImportReference(typeof(Attribute))
-            );
-
-            var ctor = new MethodDefinition(
-                ".ctor",
-                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                module.TypeSystem.Void
-            );
-            ctor.Parameters.Add(new ParameterDefinition(module.TypeSystem.String));
-            ctor.Parameters.Add(new ParameterDefinition(module.TypeSystem.String));
-            runtimeImportAttr.Methods.Add(ctor);
-            
-            runtimeAttr
-            module.Types.Add(runtimeImportAttr);
-        }
-        var importedCtor = runtime
-        var attrInstance = new CustomAttribute(runtimeImportAttr.Methods.First(m =>
-            m.Name == ".ctor" && m.Parameters.Count == 2));
-
-        string? dll = nativeAttr.GetArgument("*", 1, "SymbolDll");
-        string? symbol = nativeAttr.GetArgument<string>(fallbackArgs: [0, "SymbolName"]);
-        Console.WriteLine($"[PatchNativeMethod] SymbolDll: {dll}, SymbolName: {symbol}");
-
-        attrInstance.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, dll));
-        attrInstance.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, symbol));
-
-        plugMethod.CustomAttributes.Add(attrInstance);
-
-        Console.WriteLine($"[PatchNativeMethod] Adding native method attribute: {attrInstance.AttributeType}");
-        Console.WriteLine($"[PatchNativeMethod] Transformed plug method: {plugMethod.FullName}");
+    public void PatchField(FieldDefinition targetField, FieldDefinition plugField)
+    {
     }
 }

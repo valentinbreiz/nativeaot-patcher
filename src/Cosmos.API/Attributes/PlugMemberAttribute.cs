@@ -1,0 +1,13 @@
+// This code is licensed under MIT license (see LICENSE for details)
+using Cosmos.API.Enum;
+
+namespace Cosmos.API.Attributes;
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
+public class PlugMemberAttribute(string targetName) : Attribute
+{
+    public string TargetName { get; set; } = targetName;
+
+    public PlugMemberAttribute() : this(string.Empty) {}
+}
+

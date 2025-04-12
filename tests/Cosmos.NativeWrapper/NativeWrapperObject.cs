@@ -1,4 +1,6 @@
-﻿namespace Cosmos.NativeWrapper;
+﻿using Cosmos.API.Attributes;
+
+namespace Cosmos.NativeWrapper;
 
 public class NativeWrapperObject
 {

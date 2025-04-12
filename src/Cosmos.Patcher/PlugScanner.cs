@@ -6,25 +6,18 @@ namespace Cosmos.Patcher;
 
 public sealed class PlugScanner
 {
-    public List<MethodDefinition> LoadPlugs(params AssemblyDefinition[] assemblies)
+    public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies)
     {
-        List<MethodDefinition> output =
+        List<TypeDefinition> output =
         [
             ..assemblies
                 .SelectMany(assembly => assembly.Modules)
                 .SelectMany(module => module.Types)
-                .SelectMany(type => type.Methods)
-                .Where(method =>
-                    method.HasCustomAttributes &&
-                    method.CustomAttributes.Any(attr =>
-                        attr.AttributeType.FullName == typeof(PlugMethodAttribute).FullName ||
-                        attr.AttributeType.FullName ==
-                        typeof(NativeMethodAttribute).FullName
-                    )
-                )
+                .Where(i=> i.HasCustomAttribute(typeof(PlugAttribute).FullName))
+
         ];
 
-        foreach (MethodDefinition? type in output)
+        foreach (TypeDefinition? type in output)
         {
             Console.WriteLine($"Plug found: {type.Name}");
         }
@@ -33,5 +26,5 @@ public sealed class PlugScanner
     }
 
     public List<MethodDefinition> LoadPlugMethods(TypeDefinition plugType) =>
-        plugType.Methods.Where(i => i.IsPublic && i.IsStatic).ToList();
+        [.. plugType.Methods.Where(i => i.IsPublic && i.IsStatic)];
 }

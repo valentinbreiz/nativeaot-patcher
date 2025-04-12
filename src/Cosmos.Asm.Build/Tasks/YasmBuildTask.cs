@@ -54,7 +54,7 @@ public sealed class YasmBuildTask : ToolTask
         foreach (string asmFolder in SearchPath)
         {
             Log.LogMessage(MessageImportance.Low, $"[Debug] Searching in path: {asmFolder}");
-            var directory = new DirectoryInfo(asmFolder);
+            DirectoryInfo directory = new DirectoryInfo(asmFolder);
             if (!directory.Exists)
             {
                 Log.LogWarning($"[Debug] Folder does not exist: {asmFolder}");

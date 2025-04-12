@@ -1414,7 +1414,6 @@ public static class MonoCecilExtensions
 
         // Swap the details from the right method to the left
         leftMethod.Body = rightMethod.Body;
-        leftMethod.Body = rightMethod.Body;
         leftMethod.Attributes = rightMethod.Attributes;
         leftMethod.ImplAttributes = rightMethod.ImplAttributes;
         leftMethod.SemanticsAttributes = rightMethod.SemanticsAttributes;
@@ -1437,7 +1436,6 @@ public static class MonoCecilExtensions
         }
 
         // Swap the details from the left method (which were saved) to the right
-        rightMethod.Body = leftBody;
         rightMethod.Body = leftBody;
         rightMethod.Attributes = leftAttributes;
         rightMethod.ImplAttributes = leftImplAttributes;
@@ -1464,6 +1462,7 @@ public static class MonoCecilExtensions
         leftMethod.SwapMethodReferences(leftMethod, rightMethod);
         rightMethod.SwapMethodReferences(rightMethod, leftMethod);
     }
+
 
     /// <summary>
     /// Finds and swaps methods with the same full name within the given type.
@@ -1495,14 +1494,16 @@ public static class MonoCecilExtensions
                     methodLeft.SwapMethods(methodRight);
 
                     // Change the original method types to be generic to avoid signature conflicts
-                    if (avoidSignatureConflicts)
+                    if (!avoidSignatureConflicts)
                     {
-                        foreach (ParameterDefinition? parameter in methodRight.Parameters)
+                        continue;
+                    }
+
+                    foreach (ParameterDefinition? parameter in methodRight.Parameters)
+                    {
+                        if (!parameter.ParameterType.IsValueType)
                         {
-                            if (!parameter.ParameterType.IsValueType)
-                            {
-                                parameter.ParameterType = type.Module.ImportReference(typeof(object));
-                            }
+                            parameter.ParameterType = type.Module.ImportReference(typeof(object));
                         }
                     }
                 }
@@ -1813,13 +1814,13 @@ public static class MonoCecilExtensions
 
     #region GetArgument
 
-    public static T? GetArgument<T>(this CustomAttribute attribute, T defaultValue = default, params object[] fallbackArgs)
+    public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, params object[] fallbackArgs)
     {
         string? typeName = typeof(T).FullName;
         Console.WriteLine($"[GetArgument] Trying to get argument of type: {typeName}");
         Console.WriteLine($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
         Console.WriteLine($"[GetArgument] Total properties: {attribute.Properties.Count}");
-        
+
         foreach (object indexOrStr in fallbackArgs)
         {
             Console.WriteLine($"[GetArgument] Processing fallback: {indexOrStr} ({indexOrStr.GetType().Name})");
@@ -1849,9 +1850,15 @@ public static class MonoCecilExtensions
 
 
             if (argTypeName == typeof(Type).FullName)
-                return (T?)(object?)argument?.Value.ToString();
+                return (T?)(object?)argument.Value.Value.ToString();
 
-            return argument?.Value is T matchedValue
+            if (typeof(T).IsEnum && Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
+            {
+                Console.WriteLine($"Type is enum, Value: {enumValue}");
+                return (T)enumValue;
+            }
+
+            return argument.Value.Value is T matchedValue
                 ? matchedValue
                 : defaultValue;
         }

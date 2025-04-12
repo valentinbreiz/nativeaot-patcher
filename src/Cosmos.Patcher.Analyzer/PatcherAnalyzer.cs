@@ -24,7 +24,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        context.RegisterCompilationStartAction((CompilationStartAnalysisContext compilationContext) =>
+        context.RegisterCompilationStartAction(compilationContext =>
         {
             DebugLog($"[DEBUG] Starting compilation analysis for {compilationContext.Compilation.AssemblyName}");
 
