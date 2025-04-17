@@ -14,4 +14,6 @@ public class NativeWrapperObjectPlug
 
     [PlugMember]
     public static int InstanceMethod(object aThis, int value) => value * 2;
+
+    [PlugMember] public string _hello = "Plugged Hello";
 }

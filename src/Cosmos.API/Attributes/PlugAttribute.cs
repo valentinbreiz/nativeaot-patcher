@@ -3,14 +3,14 @@ using Cosmos.API.Enum;
 namespace Cosmos.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class PlugAttribute : Attribute
+public sealed class PlugAttribute(string targetName, bool isOptional = false, bool replaceBase = false) : Attribute
 {
-  //  public TargetPlatform TargetPlatform;
+    //  public TargetPlatform TargetPlatform;
 
     /// <summary>
     /// does not have a base type
     /// </summary>
-    public PlugAttribute()
+    public PlugAttribute() : this(string.Empty)
     {
     }
 
@@ -19,30 +19,28 @@ public sealed class PlugAttribute : Attribute
     /// </summary>
     /// <param name="target"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public PlugAttribute(Type target) => Target = target ?? throw new ArgumentNullException(nameof(target));
+    public PlugAttribute(Type target) : this(target.FullName)
+    {
+    }
 
-    /// <summary>
-    /// set base type by string
-    //*// </summary>5\
+    public PlugAttribute(bool replaceBase) : this(string.Empty, replaceBase: replaceBase)
+    {
+    }
 
-    /// <param name="targetName"></param>
-    /// <exception cref="ArgumentNullException"></exception>
-    public PlugAttribute(string targetName) => TargetName = !string.IsNullOrEmpty(targetName)
-        ? targetName
-        : throw new ArgumentNullException(nameof(targetName));
-
-    /// <summary>
-    /// the type
-    /// </summary>
-    public Type? Target { get; set; }
+    public PlugAttribute(bool isOptional = false, bool replaceBase = false) : this(string.Empty, isOptional,
+        replaceBase)
+    {
+    }
 
     /// <summary>
     /// the type as a string
     /// </summary>
-    public string? TargetName { get; set; } = nameof(Target) ?? null;
+    public string? TargetName { get; set; } = targetName;
 
     /// <summary>
     /// if the type cant be found skip
     /// </summary>
-    public bool IsOptional { get; set; }
+    public bool IsOptional { get; set; } = isOptional;
+
+    public bool ReplaceBase { get; set; } = replaceBase;
 }

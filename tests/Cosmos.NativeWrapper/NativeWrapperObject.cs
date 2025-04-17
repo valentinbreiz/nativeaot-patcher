@@ -4,7 +4,7 @@ namespace Cosmos.NativeWrapper;
 
 public class NativeWrapperObject
 {
-    private string _hello = "Hello world!";
+    public string _hello = "Hello world!";
 
     public NativeWrapperObject() => Console.WriteLine("Base ctor");
 
