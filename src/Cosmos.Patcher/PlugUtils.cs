@@ -1,4 +1,3 @@
-using Cosmos.API.Attributes;
 using Mono.Cecil;
 
 namespace Cosmos.Patcher;

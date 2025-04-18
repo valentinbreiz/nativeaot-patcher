@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using Cosmos.API.Attributes;
-using Cosmos.Patcher.Analyzer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;

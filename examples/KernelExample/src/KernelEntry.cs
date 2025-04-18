@@ -2,7 +2,6 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Boot.Limine;
 using EarlyBird;
-
 using static EarlyBird.Graphics;
 
 unsafe class Program

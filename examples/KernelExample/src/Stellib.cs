@@ -52,9 +52,9 @@ namespace EarlyBird
     public static unsafe class MemoryOp
     {
 
-        private static ulong HeapBase = 0;
-        private static ulong HeapEnd = 0;
-        private static ulong FreeListHead = 0;
+        private static ulong HeapBase;
+        private static ulong HeapEnd;
+        private static ulong FreeListHead;
 
         public static void InitializeHeap(ulong heapBase, ulong heapSize)
         {

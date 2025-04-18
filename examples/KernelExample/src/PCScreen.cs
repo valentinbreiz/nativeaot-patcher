@@ -4,7 +4,7 @@ namespace EarlyBird.PSF
 {
     public static unsafe class PCScreenFont
     {
-        public static unsafe class Default
+        public static class Default
         {
             // array size is 17403
             public static int Size = 17403;
@@ -23,7 +23,7 @@ namespace EarlyBird.PSF
         public static int Scanline;
         public static byte* FontData;
         public static ushort* UnicodeTable = null; // Optional
-        private static bool Initialized = false;
+        private static bool Initialized;
         public static ushort Magic = 0x0436;
         public static uint PSFFontMagic = 0x864ab572;
 
@@ -57,7 +57,7 @@ namespace EarlyBird.PSF
         // Example allocator use
         public static void LoadFont(byte* fontFile, uint Length)
         {
-            FontData = (byte*)MemoryOp.Alloc((uint)Length);
+            FontData = (byte*)MemoryOp.Alloc(Length);
             for (int i = 0; i < Length; i++)
                 FontData[i] = fontFile[i];
         }
@@ -68,7 +68,7 @@ namespace EarlyBird.PSF
             {
                 for (int i = 0; i < str.Length; i++)
                 {
-                    PutChar((ushort)ptr[i], x + (i * 16), y, fg, bg);
+                    PutChar(ptr[i], x + (i * 16), y, fg, bg);
                 }
             }
         }
@@ -80,7 +80,7 @@ namespace EarlyBird.PSF
 
             if (!Initialized)
             {
-                byte* fontData = Base64.Decode(PCScreenFont.Default.GetUnmanagedFontData(), (uint)PCScreenFont.Default.Size);
+                byte* fontData = Base64.Decode(Default.GetUnmanagedFontData(), (uint)Default.Size);
 
                 Init((byte*)Graphics.Canvas.Address, (int)Graphics.Canvas.Pitch, fontData);
 

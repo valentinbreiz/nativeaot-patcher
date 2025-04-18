@@ -130,17 +130,16 @@ public static class MethodBodyEx
                 c.ResumeMethods.AddRange(ao.ResumeMethods);
                 return c;
             }
-            else if (o is StateMachineScopeDebugInformation so)
+
+            if (o is StateMachineScopeDebugInformation so)
             {
                 StateMachineScopeDebugInformation? c = new();
                 c.Scopes.AddRange(so.Scopes.Select(s => new StateMachineScope(ResolveInstrOff(s.Start.Offset),
                     s.End.IsEndOfMethod ? null : ResolveInstrOff(s.End.Offset))));
                 return c;
             }
-            else
-            {
-                return o;
-            }
+
+            return o;
         }));
 
         m.DebugInformation.SequencePoints.AddRange(newBody.Method.DebugInformation.SequencePoints.Select(o =>

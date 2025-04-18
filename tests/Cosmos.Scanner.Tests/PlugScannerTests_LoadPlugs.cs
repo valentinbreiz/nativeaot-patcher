@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cosmos.API.Attributes;
+﻿using Cosmos.API.Attributes;
 using Cosmos.NativeWrapper;
-using Cosmos.Patcher;
 using Mono.Cecil;
 using Mono.Collections.Generic;
-using Xunit;
 
 namespace Cosmos.Patcher.Tests;
 
@@ -26,11 +21,11 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.Contains(plugs, plug => plug.Name == nameof(MockPlug));
-        MethodDefinition? plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
+        TypeDefinition? plug = plugs.FirstOrDefault(p => p.Name == nameof(MockPlug));
         Assert.NotNull(plug);
 
         Collection<CustomAttribute>? customAttributes = plug.CustomAttributes;
@@ -51,7 +46,7 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.DoesNotContain(plugs, plug => plug.Name == nameof(NonPlug));
@@ -65,8 +60,8 @@ public class PlugScannerTests_LoadPlugs
         PlugScanner? scanner = new();
 
         // Act
-        List<MethodDefinition>? plugs = scanner.LoadPlugs(assembly);
-        MethodDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
+        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        TypeDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
 
         // Assert
         Assert.NotNull(optionalPlug);

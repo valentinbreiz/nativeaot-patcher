@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Xml.Linq;
-using Cosmos.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -148,15 +147,15 @@ internal static class CodeActions
 
         SyntaxNode plugMethod = syntaxGenerator.MethodDeclaration(methodName,
         [
-            syntaxGenerator.ParameterDeclaration("aThis", syntaxGenerator.TypeExpression(SpecialType.System_Object),
-                null)
+            syntaxGenerator.ParameterDeclaration("aThis", syntaxGenerator.TypeExpression(SpecialType.System_Object))
         ], null, null, Accessibility.Public, DeclarationModifiers.Static);
 
         if (declaration is ClassDeclarationSyntax classDeclaration)
         {
             return await AddMethodToPlug((classDeclaration, document), plugMethod);
         }
-        else if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
+
+        if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
         {
             (ClassDeclarationSyntax PlugClass, Document Document)? plugInfo =
                 await GetPlugClass(plugClassName, document, currentProject);

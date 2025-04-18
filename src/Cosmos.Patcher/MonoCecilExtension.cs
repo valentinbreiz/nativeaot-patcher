@@ -51,7 +51,7 @@ public static class MonoCecilExtensions
         /// A collection of destination TypeDefinition objects where source objects are merged into.
         /// </summary>
         public readonly Collection<TypeDefinition> destTypes = [];
-    };
+    }
 
     /// <summary>
     /// A dictionary mapping from AssemblyDefinition objects to their corresponding UpdateInfo objects.
@@ -90,7 +90,7 @@ public static class MonoCecilExtensions
 
         // Read and return the assembly using the provided location and reader parameters.
         return AssemblyDefinition.ReadAssembly(location,
-            new ReaderParameters() { AssemblyResolver = resolver, ReadWrite = readWrite });
+            new ReaderParameters { AssemblyResolver = resolver, ReadWrite = readWrite });
     }
 
     /// <summary>
@@ -1604,10 +1604,11 @@ public static class MonoCecilExtensions
 
                 // Check if instruction is for loading a field onto the stack
                 // In this case, the type of the value is the type of the field.
-                else if (instruction.OpCode == OpCodes.Ldfld || // load field value onto stack
-                         instruction.OpCode == OpCodes.Ldflda || // load field address onto stack
-                         instruction.OpCode == OpCodes.Ldsfld || // load static field value onto stack
-                         instruction.OpCode == OpCodes.Ldsflda) // load static field address onto stack
+
+                if (instruction.OpCode == OpCodes.Ldfld || // load field value onto stack
+                    instruction.OpCode == OpCodes.Ldflda || // load field address onto stack
+                    instruction.OpCode == OpCodes.Ldsfld || // load static field value onto stack
+                    instruction.OpCode == OpCodes.Ldsflda) // load static field address onto stack
                 {
                     extractedFullName = ((FieldReference)instruction.Operand).FieldType.FullName;
                 }

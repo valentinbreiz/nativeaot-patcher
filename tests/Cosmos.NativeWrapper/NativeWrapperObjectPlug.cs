@@ -1,5 +1,4 @@
 ﻿using Cosmos.API.Attributes;
-using Cosmos.API.Enum;
 
 namespace Cosmos.NativeWrapper;
 
@@ -15,5 +14,7 @@ public class NativeWrapperObjectPlug
     [PlugMember]
     public static int InstanceMethod(object aThis, int value) => value * 2;
 
-    [PlugMember] public string _hello = "Plugged Hello";
+    [PlugMember] public string InstanceField = "Plugged Hello World";
+
+    [PlugMember] public string InstanceProperty { get; set; } = "Plugged Goodbye World";
 }

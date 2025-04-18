@@ -1,5 +1,3 @@
-using Cosmos.API.Enum;
-
 namespace Cosmos.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]

@@ -1,9 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -30,7 +26,7 @@ public sealed class YasmBuildTask : ToolTask
         Log.LogMessage(MessageImportance.Low, $"[Debug] Generating command-line args for {FilePath} -> {FileName}");
         StringBuilder sb = new();
 
-        sb.Append($" -felf64 ");
+        sb.Append(" -felf64 ");
         sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
         sb.Append($" {FilePath} ");
 

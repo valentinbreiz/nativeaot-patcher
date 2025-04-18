@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Cosmos.API.Attributes;
-using Cosmos.API.Enum;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
+using MonoMod.Cil;
 using MonoMod.Utils;
 
 namespace Cosmos.Patcher;
@@ -141,6 +140,7 @@ public sealed class PlugPatcher
             {
                 plugMemberAttr.ImportReferences(targetType.Module);
                 ResolveAndPatchMethod(targetType, method, plugMemberAttr);
+                DumpIL(method,"PatchMethod");
             }
             catch (Exception ex)
             {
@@ -162,10 +162,10 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string targetPropertyName = plugMemberAttr.GetArgument(property.FullName, 0, "TargetName");
+            string? targetPropertyName = plugMemberAttr.GetArgument(property.Name, 0, "TargetName");
             Console.WriteLine($"[ProcessPlugMembers] Looking for target property: {targetPropertyName}");
             PropertyDefinition? targetProperty =
-                targetType.Properties.FirstOrDefault(p => p.FullName == targetPropertyName);
+                targetType.Properties.FirstOrDefault(p => p.Name == targetPropertyName);
 
             if (targetProperty == null)
             {
@@ -177,6 +177,8 @@ public sealed class PlugPatcher
             {
                 PatchProperty(targetProperty, property);
                 Console.WriteLine($"[ProcessPlugMembers] Successfully patched property: {targetProperty.Name}");
+                DumpIL(targetProperty.SetMethod, "PatchProperty");
+                DumpIL(targetProperty.GetMethod, "PatchProperty");
             }
             catch (Exception ex)
             {
@@ -197,9 +199,13 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetFieldName = plugMemberAttr.GetArgument(field.FullName, 0, "TargetName");
+            string? targetFieldName = plugMemberAttr.GetArgument(field.Name, 0, "TargetName");
             Console.WriteLine($"[ProcessPlugMembers] Looking for target field: {targetFieldName}");
-            FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f => f.FullName == targetFieldName);
+            FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f =>
+            {
+                Console.WriteLine($"[ProcessPlugMembers] Target has field: {f.FullName}");
+                return f.Name == targetFieldName;
+            });
 
             if (targetField == null)
             {
@@ -228,7 +234,7 @@ public sealed class PlugPatcher
             bool isInstanceCtor = plugMethod.Parameters.Any(p => p.Name == "aThis");
             Console.WriteLine($"[ResolveAndPatchMethod] Handling constructor plug (Instance: {isInstanceCtor})");
 
-            MethodDefinition ctor = targetType.Methods.FirstOrDefault(m =>
+            MethodDefinition? ctor = targetType.Methods.FirstOrDefault(m =>
                 m.IsConstructor &&
                 (isInstanceCtor
                     ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
@@ -254,7 +260,7 @@ public sealed class PlugPatcher
         string methodName = attr.GetArgument(plugMethod.Name, 0, "TargetName");
         Console.WriteLine($"[ResolveAndPatchMethod] Resolving method: {methodName} (Instance: {isInstancePlug})");
 
-        MethodDefinition targetMethod = targetType.Methods.FirstOrDefault(m =>
+        MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m =>
             m.Name == methodName &&
             (isInstancePlug
                 ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
@@ -274,7 +280,7 @@ public sealed class PlugPatcher
         }
     }
 
-    public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod)
+    public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool instance = false)
     {
         Console.WriteLine($"[PatchMethod] Starting method patch: {targetMethod.FullName} <- {plugMethod.FullName}");
         Console.WriteLine(
@@ -300,17 +306,17 @@ public sealed class PlugPatcher
             }
             else
             {
-                Console.WriteLine($"[PatchMethod] No NOP found in constructor, clearing all instructions");
+                Console.WriteLine("[PatchMethod] No NOP found in constructor, clearing all instructions");
                 targetMethod.Body.Instructions.Clear();
             }
         }
         else
         {
-            Console.WriteLine($"[PatchMethod] Clearing non-constructor method body");
+            Console.WriteLine("[PatchMethod] Clearing non-constructor method body");
             targetMethod.Body.Instructions.Clear();
         }
 
-        bool isInstance = plugMethod.Parameters.Any(p => p.Name == "aThis");
+        bool isInstance = plugMethod.Parameters.Any(p => p.Name == "aThis") || instance;
         Console.WriteLine($"[PatchMethod] Instance method: {isInstance}, Target static: {targetMethod.IsStatic}");
 
         if ((isInstance && !targetMethod.IsStatic) || targetMethod.IsConstructor)
@@ -340,7 +346,7 @@ public sealed class PlugPatcher
         }
         else
         {
-            Console.WriteLine($"[PatchMethod] Performing full method swap");
+            Console.WriteLine("[PatchMethod] Performing full method swap");
             try
             {
                 targetMethod.SwapMethods(plugMethod);
@@ -354,7 +360,7 @@ public sealed class PlugPatcher
 
         if (targetMethod.Body.Instructions.Count == 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
         {
-            Console.WriteLine($"[PatchMethod] Adding final RET instruction");
+            Console.WriteLine("[PatchMethod] Adding final RET instruction");
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
@@ -366,31 +372,39 @@ public sealed class PlugPatcher
     {
         Console.WriteLine($"[PatchProperty] Patching property: {targetProperty.FullName}");
 
+        if (plugProperty.GetMethod == null || plugProperty.SetMethod == null)
+        {
+            Console.WriteLine(
+                $"[PatchProperty] No {(plugProperty.GetMethod == null ? "get" : "set")} method in plug property");
+            return;
+        }
+
+        (Instruction? Instruction, int Index) targetBackingField = FindField(targetProperty.GetMethod, string.Empty,
+            OpCodes.Stfld, OpCodes.Stsfld, OpCodes.Ldfld, OpCodes.Ldsfld);
+
+        (Instruction? Instruction, int Index) plugBackingField = FindField(plugProperty.GetMethod!, string.Empty,
+            OpCodes.Stfld, OpCodes.Stsfld, OpCodes.Ldfld, OpCodes.Ldsfld);
+
+        if (targetBackingField.Instruction == null || plugBackingField.Instruction == null)
+            return;
+
         if (plugProperty.SetMethod != null)
         {
-            Console.WriteLine($"[PatchProperty] Patching set method");
-            PatchMethod(targetProperty.SetMethod, plugProperty.SetMethod);
-        }
-        else
-        {
-            Console.WriteLine($"[PatchProperty] No set method in plug property");
+            Console.WriteLine("[PatchProperty] Patching set method");
+            PatchMethod(targetProperty.SetMethod, plugProperty.SetMethod, true);
         }
 
         if (plugProperty.GetMethod != null)
         {
-            Console.WriteLine($"[PatchProperty] Patching get method");
-            PatchMethod(targetProperty.GetMethod, plugProperty.GetMethod);
-        }
-        else
-        {
-            Console.WriteLine($"[PatchProperty] No get method in plug property");
+            Console.WriteLine("[PatchProperty] Patching get method");
+            PatchMethod(targetProperty.GetMethod, plugProperty.GetMethod, true);
         }
 
-        Console.WriteLine($"[PatchProperty] Updating property attributes and type");
+        Console.WriteLine("[PatchProperty] Updating property attributes and type");
         targetProperty.Attributes = plugProperty.Attributes;
         targetProperty.PropertyType = targetProperty.Module.ImportReference(plugProperty.PropertyType);
 
-        Console.WriteLine($"[PatchProperty] Updating parameters");
+        Console.WriteLine("[PatchProperty] Updating parameters");
         targetProperty.Parameters.Clear();
         foreach (ParameterDefinition param in plugProperty.Parameters)
         {
@@ -404,6 +418,20 @@ public sealed class PlugPatcher
         targetProperty.Constant = plugProperty.Constant;
         targetProperty.HasConstant = plugProperty.HasConstant;
         targetProperty.Name = plugProperty.Name;
+
+        FieldReference targetBackingFieldRef = (FieldReference)targetBackingField.Instruction.Operand;
+        FieldReference plugBackingFieldRef = (FieldReference)plugBackingField.Instruction.Operand;
+
+        PatchField(targetBackingFieldRef.Resolve(), plugBackingFieldRef.Resolve());
+        if (targetProperty.SetMethod != null)
+        {
+            ReplaceFieldAccess(targetProperty.SetMethod, plugBackingFieldRef, targetBackingFieldRef);
+        }
+        if (targetProperty.GetMethod != null)
+        {
+            ReplaceFieldAccess(targetProperty.GetMethod, plugBackingFieldRef, targetBackingFieldRef, true);
+        }
+
         Console.WriteLine($"[PatchProperty] Completed property patch: {targetProperty.FullName}");
     }
 
@@ -412,15 +440,126 @@ public sealed class PlugPatcher
         Console.WriteLine($"[PatchField] Patching field: {targetField.FullName}");
         ModuleDefinition module = targetField.Module;
 
-        Console.WriteLine(
-            $"[PatchField] Old type: {targetField.FieldType.FullName}, New type: {plugField.FieldType.FullName}");
         targetField.FieldType = module.ImportReference(plugField.FieldType);
+        Console.WriteLine($"[PatchField] Type patched: {plugField.FieldType.FullName}");
 
-        Console.WriteLine($"[PatchField] Setting field attributes: {plugField.Attributes}");
         targetField.Attributes = plugField.Attributes;
+        Console.WriteLine($"[PatchField] Attributes patched: {plugField.Attributes}");
 
-        targetField.Constant = plugField.Constant;
-        targetField.HasConstant = plugField.HasConstant;
+
+        if (plugField.HasConstant)
+        {
+            targetField.Constant = plugField.Constant;
+            targetField.HasConstant = true;
+            Console.WriteLine($"[PatchField] Constant value set: {plugField.Constant}");
+        }
+
+        if (plugField.InitialValue != null)
+        {
+            targetField.InitialValue = [.. plugField.InitialValue];
+            Console.WriteLine("[PatchField] InitialValue set");
+        }
+
+        if (plugField.MarshalInfo != null)
+        {
+            targetField.MarshalInfo = plugField.MarshalInfo;
+            Console.WriteLine("[PatchField] MarshalInfo copied");
+        }
+
+        MethodDefinition? targetCtor = targetField.DeclaringType.Methods.FirstOrDefault(m => m.Name == ".ctor");
+        MethodDefinition? plugCtor = plugField.DeclaringType.Methods.FirstOrDefault(m => m.Name == ".ctor");
+
+        if (targetCtor == null || plugCtor == null)
+            return;
+
+        (Instruction? Instruction, int Index) targetFieldInstr =
+            FindField(targetCtor, targetField, OpCodes.Stfld, OpCodes.Stsfld);
+        (Instruction? Instruction, int Index) plugFieldInstr =
+            FindField(plugCtor, plugField, OpCodes.Stfld, OpCodes.Stsfld);
+
+        if (targetFieldInstr.Instruction == null || plugFieldInstr.Instruction == null)
+        {
+            Console.WriteLine("[PatchField] Field instruction not found in one of the constructors.");
+            return;
+        }
+
+        Instruction plugFieldValue = plugCtor.Body.Instructions[plugFieldInstr.Index - 1];
+        Instruction clone = plugFieldValue.Clone();
+
+        clone.Operand = plugFieldValue.Operand switch
+        {
+            MethodReference m => module.ImportReference(m),
+            FieldReference f => module.ImportReference(f),
+            TypeReference t => module.ImportReference(t),
+            MemberReference mr => module.ImportReference(mr),
+            _ => plugFieldValue.Operand
+        };
+
+        ILProcessor processor = targetCtor.Body.GetILProcessor();
+        processor.RemoveAt(targetFieldInstr.Index - 1); // The previous index points to the IL of the field value
+        processor.InsertBefore(targetFieldInstr.Instruction,
+            clone); // Replace the value of the field with the plugged value
+
         Console.WriteLine($"[PatchField] Completed field patch: {targetField.FullName}");
+    }
+
+    private void ReplaceFieldAccess(MethodDefinition method, FieldReference oldField, FieldReference newField,
+        bool loadField = false)
+    {
+        Console.WriteLine(
+            $"[ReplaceFieldAccess] Processing method: {method.FullName}, Field: {oldField.FullName}, LoadField: {loadField}");
+
+        ILProcessor processor = method.Body.GetILProcessor();
+        Collection<Instruction> instructions = [..processor.Body.Instructions];
+        foreach (Instruction instruction in instructions)
+        {
+            if (instruction.Operand is not FieldReference fieldReference ||
+                fieldReference.Resolve().FullName != oldField.FullName)
+                continue;
+
+            Console.WriteLine(
+                $"[ReplaceFieldAccess] Replacing instruction: {instruction} in method: {method.FullName}");
+
+            OpCode opcode = method.IsStatic
+                ? (loadField ? OpCodes.Ldsfld : OpCodes.Stsfld)
+                : (loadField ? OpCodes.Ldfld : OpCodes.Stfld);
+            Instruction newInstruction = Instruction.Create(opcode, newField);
+            processor.Replace(instruction, newInstruction);
+
+            Console.WriteLine($"[ReplaceFieldAccess] Replacement done with opcode: {opcode}");
+            Console.WriteLine($"[ReplaceFieldAccess] Instruction now is: {newInstruction}");
+        }
+
+        Console.WriteLine($"[ReplaceFieldAccess] Completed processing for method: {method.FullName}");
+    }
+
+
+    private (Instruction? Instruction, int Index) FindField(MethodDefinition method, FieldDefinition fieldDefinition,
+        params OpCode[] opcodes) => FindField(method, fieldDefinition.Name, opcodes);
+
+    private (Instruction? Instruction, int Index) FindField(MethodDefinition method, string? name,
+        params OpCode[] opcodes)
+    {
+        foreach (Instruction instruction in method.Body.Instructions)
+        {
+            if (!opcodes.Contains(instruction.OpCode) ||
+                instruction.Operand is not FieldReference fr)
+                continue;
+
+            if (!string.IsNullOrEmpty(name) && fr.Resolve().Name != name)
+                continue;
+
+            int idx = method.Body.Instructions.IndexOf(instruction);
+            return (instruction, idx);
+        }
+
+        return default;
+    }
+
+    private void DumpIL(MethodDefinition m, string label)
+    {
+        Console.WriteLine($"--- IL {label} for {m.FullName} ---");
+        foreach (Instruction? instr in m.Body.Instructions)
+            Console.WriteLine(instr);
     }
 }

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Linq;
-using Cosmos.API.Attributes;
-using Cosmos.NativeWrapper;
-using Cosmos.Patcher;
+﻿using Cosmos.NativeWrapper;
 using Mono.Cecil;
-using Xunit;
 
 namespace Cosmos.Patcher.Tests;
 

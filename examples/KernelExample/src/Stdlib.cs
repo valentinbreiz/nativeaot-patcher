@@ -1,4 +1,8 @@
 #region A couple very basic things
+
+using System;
+using System.Runtime;
+
 namespace System
 {
     public struct Void { }
@@ -108,7 +112,8 @@ namespace System.Runtime.InteropServices
 
     public class MarshalDirectiveException : Exception
     {
-        public MarshalDirectiveException() : base() { }
+        public MarshalDirectiveException()
+        { }
         public MarshalDirectiveException(string message) : base(message) { }
     }
 
@@ -204,9 +209,6 @@ namespace System
 
 namespace Internal.Runtime.CompilerHelpers
 {
-    using System;
-    using System.Runtime;
-
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.

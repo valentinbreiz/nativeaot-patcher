@@ -1,5 +1,4 @@
 // This code is licensed under MIT license (see LICENSE for details)
-using Cosmos.API.Enum;
 
 namespace Cosmos.API.Attributes;
 

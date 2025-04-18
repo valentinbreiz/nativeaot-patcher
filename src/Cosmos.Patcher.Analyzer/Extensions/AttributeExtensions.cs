@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using Cosmos.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -84,7 +82,7 @@ public static class AttributeExtensions
         }
 
         return typeof(T).IsEnum && argument.Value != null ? ConvertEnum<T>(argument.Value)
-            : typeof(T).Name == "Type" && argument.Value is ITypeSymbol type ? (T?)(object)type
+            : typeof(T).Name == "Type" && argument.Value is ITypeSymbol type ? (T?)type
             : default;
     }
 

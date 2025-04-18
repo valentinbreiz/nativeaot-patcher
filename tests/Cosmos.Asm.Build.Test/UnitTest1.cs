@@ -1,6 +1,5 @@
 using Cosmos.Asm.Build.Tasks;
 using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestPlatform.CoreUtilities.Helpers;
 using Moq;
 using Xunit.Sdk;
 

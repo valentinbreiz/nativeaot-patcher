@@ -29,9 +29,9 @@ public class PlugPatcherTest_ObjectPlugs
         // Act: Apply the plug
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-        PlugUtils.Save(targetAssembly, "./", "targetObjectAssembly.dll");
+        targetAssembly.Save("./", "targetObjectAssembly.dll");
 
-        object? result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", [10]);
+        object? result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", 10);
 
         Assert.Equal(20, result);
     }
@@ -71,7 +71,7 @@ public class PlugPatcherTest_ObjectPlugs
         // Act: Apply the plug
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
-        PlugUtils.Save(targetAssembly, "./", "targetCtorAssembly.dll");
+        targetAssembly.Save("./", "targetCtorAssembly.dll");
 
         using StringWriter? stringWriter = new();
         Console.SetOut(stringWriter);
