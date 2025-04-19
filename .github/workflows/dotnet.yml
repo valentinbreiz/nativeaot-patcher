@@ -194,7 +194,7 @@ jobs:
 
       - name: 🕵️‍♂️ Verify Output
         run: |
-          [ -f ./Cosmos/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+          [ -f ./examples/KernelExample/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
 
   windows-iso-tests:
     name: Run ISO Build Tests - Windows
@@ -238,7 +238,7 @@ jobs:
       - name: 🕵️‍♂️ Verify Output
         shell: cmd
         run: |
-          if exist Cosmos\output\Kernel.iso (
+          if exist ./examples/KernelExample/output/Kernel.iso (
             echo ISO exists
           ) else (
             echo ISO missing
