@@ -9,14 +9,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: fix field patching">
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: fix property patching">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -39,8 +42,18 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugs.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/82208ca649f042538e24b5722592bb47f600/98/f87cfb3e/02000005pdb4High.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/82208ca649f042538e24b5722592bb47f600/98/f87cfb3e/02000005pdb4Low.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4cfbb370972913329ca6807ee237224469f07cd8fe5e3e6d2acda8b8d549c45/TextWriter.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/ad8b2779652854276d03ec153d51377686c7193799d1688e119272770d0cf/EqualityAsserts.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/src/Cosmos.Patcher/PatchCommand.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProjectColorInfo">{
@@ -51,26 +64,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;#82 on refactor/plug-system&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;SolutionBuilderGeneralOptionsPage&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Project.Cosmos.Patcher.executor": "Run",
+    "666d351e-a1ad-4e59-8983-7d69e5c8b79c.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "#82 on refactor/plug-system",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "SolutionBuilderGeneralOptionsPage",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="RunManager">
+}]]></component>
+  <component name="RunManager" selected=".NET Project.Cosmos.Patcher">
     <configuration name="Cosmos.Patcher" type="DotNetProject" factoryName=".NET Project">
-      <option name="EXE_PATH" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="EXE_PATH" value="$PROJECT_DIR$/src/Cosmos.Patcher/bin/Debug/net9.0/Cosmos.Patcher.exe" />
+      <option name="PROGRAM_PARAMETERS" value="patch --target C:\Users\Jesse\RiderProjects\nativeaot-patcher\tests\Cosmos.NativeWrapper\bin\Debug\net9.0\Cosmos.NativeWrapper.dll --plugs C:\Users\Jesse\RiderProjects\nativeaot-patcher\tests\Cosmos.NativeWrapper\bin\Debug\net9.0\Cosmos.NativeWrapper.dll" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/Cosmos.Patcher/bin/Debug/net9.0" />
       <option name="PASS_PARENT_ENVS" value="1" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <option name="ENV_FILE_PATHS" value="" />
@@ -85,11 +100,14 @@
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
       <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
       <option name="PROJECT_KIND" value="DotNetCore" />
-      <option name="PROJECT_TFM" value="" />
+      <option name="PROJECT_TFM" value="net9.0" />
       <method v="2">
         <option name="Build" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue=".NET Project.Cosmos.Patcher" />
+    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -107,6 +125,7 @@
       <workItem from="1744952408522" duration="3916000" />
       <workItem from="1745006808082" duration="1268000" />
       <workItem from="1745008171084" duration="417000" />
+      <workItem from="1745008843874" duration="19426000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -132,7 +151,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744953787077</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="upd: fix property patching">
+      <option name="closed" value="true" />
+      <created>1745028445694</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1745028445694</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -156,7 +183,8 @@
     <MESSAGE value="upd: dotnet version for tests" />
     <MESSAGE value="upd: patch class properties and fields" />
     <MESSAGE value="upd: fix field patching" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: fix field patching" />
+    <MESSAGE value="upd: fix property patching" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: fix property patching" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -175,6 +203,12 @@
         </breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="Type#Mono.Cecil.AssemblyDefinition" memberName="EntryPoint" />
+        <PinnedItemInfo parentTag="Type#Mono.Cecil.AssemblyDefinition" memberName="Modules" />
+      </pinned-members>
+    </pin-to-top-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
