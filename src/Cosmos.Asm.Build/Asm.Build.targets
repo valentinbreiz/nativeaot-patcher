@@ -1,9 +1,9 @@
 <Project>
+  <Import Project="Asm.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
+  <Import Project="Asm.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
 
   <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask"
              AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Asm.Build.dll" />
-
-  <Import Project="../Cosmos.Asm.Build.Windows/Build.props" Condition="'$(OS)' == 'Windows_NT'" />
 
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
@@ -46,7 +46,7 @@
   </Target>
 
   <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
-  <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm">
+  <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm; GetYasm">
     <PropertyGroup>
       <YasmPath Condition="$(YasmPath) == ''">/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->

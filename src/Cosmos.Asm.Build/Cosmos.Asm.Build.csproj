@@ -12,7 +12,4 @@
       <PackagePath>Build\Cosmos.Asm.Build.props</PackagePath>
     </None>
   </ItemGroup>
-  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <ProjectReference Include="..\Cosmos.Asm.Build.Windows\Cosmos.Asm.Build.Windows.csproj"/>
-  </ItemGroup>
 </Project>
