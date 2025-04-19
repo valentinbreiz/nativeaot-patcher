@@ -2,6 +2,8 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Boot.Limine;
 using EarlyBird;
+using EarlyBird.Internal;
+
 using static EarlyBird.Graphics;
 
 unsafe class Program
@@ -13,7 +15,7 @@ unsafe class Program
     static void Main()
     {
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
-        LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
+        var fb = Framebuffer.Response->Framebuffers[0];
         Canvas.Address = (uint*)fb->Address;
         Canvas.Pitch = (uint)fb->Pitch;
         Canvas.Width = (uint)fb->Width;
@@ -29,28 +31,6 @@ unsafe class Program
 
         Serial.WriteString("Hello from UART\n");
 
-        while (true);
-    }
-}
-
-public unsafe static class Serial
-{
-    [MethodImpl(MethodImplOptions.InternalCall)]
-    [RuntimeImport("*", "com_init")]
-    public static extern void ComInit();
-
-    [MethodImpl(MethodImplOptions.InternalCall)]
-    [RuntimeImport("*", "com_write")]
-    public static extern void ComWrite(char value);
-
-    public static void WriteString(string str)
-    {
-        fixed (char* ptr = str)
-        {
-            for (int i = 0; i < str.Length; i++)
-            {
-                ComWrite(ptr[i]);
-            }
-        }
+        while (true) ;
     }
 }
