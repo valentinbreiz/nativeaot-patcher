@@ -1,8 +1,4 @@
 <Project>
-  <PropertyGroup>
-    <LdLinkerPath />
-  </PropertyGroup>
-
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
   <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
 
@@ -11,7 +7,7 @@
     <PropertyGroup>
       <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
       <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
-      <ElfBinary>$(OutputPath)/$(AssemblyName).elf</ElfBinary>
+      <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
       <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
 
@@ -52,8 +48,8 @@
     </ItemGroup>
 
     <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 || exit 0" />
-    <Exec Command="make -C limine" />
+    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1" IgnoreExitCode="true" />
+    <Exec Command="make -C limine CC=clang" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />

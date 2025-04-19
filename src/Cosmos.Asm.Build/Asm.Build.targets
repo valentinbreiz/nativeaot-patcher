@@ -3,11 +3,13 @@
   <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask"
              AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Asm.Build.dll" />
 
+  <Import Project="../Cosmos.Asm.Build.Windows/Build.props" Condition="'$(OS)' == 'Windows_NT'" />
+
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
       <TargetArchitecture>$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
-    
+
     <!-- Exclude Folders/Files that doesn't exists -->
     <ItemGroup>
       <NonExistentPaths Include="@(AsmSearchPath)" Condition="!Exists('%(FullPath)')" />
@@ -15,7 +17,7 @@
       <AsmSearchPath Remove="@(NonExistentPaths)" />
       <AsmFiles Remove="@(NonExistentFiles)" />
     </ItemGroup>
-    
+
     <Warning Text="Folder does not exists: %(NonExistentPaths.Identity)" Condition="@(NonExistentPaths) != ''" />
     <Warning Text="File does not exists: %(NonExistentFiles.Identity)" Condition="@(NonExistentFiles) != ''" />
 
@@ -51,7 +53,7 @@
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>
 
-    
+
     <!-- Invoke the custom Yasm task -->
     <YasmBuildTask
       YasmPath="$(YasmPath)"

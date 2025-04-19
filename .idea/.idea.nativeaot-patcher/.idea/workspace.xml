@@ -9,25 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: fix ReplaceFieldAccess logic">
-      <change beforePath="$PROJECT_DIR$/.devcontainer/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/.devcontainer/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/dotnet.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/dotnet.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/package.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/package.yml" afterDir="false" />
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: dotnet.yml">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cosmos/Kernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Cosmos/Kernel.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Asm/com_write.asm" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Asm/com_write.asm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Asm/io.asm" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Asm/io.asm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Internal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Internal.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/KernelEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/KernelEntry.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/PCScreen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/PCScreen.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Stdlib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Stdlib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Stellib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Stellib.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Asm.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Asm.Build.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/YasmBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/YasmBuildTask.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/Cosmos.Asm.Build.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/UnitTest1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/UnitTest1.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/asm/test.asm" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/asm/test.asm" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +25,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="feature/xsharp" />
+        <entry key="$PROJECT_DIR$" value="feature/windows-iso-tests" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -58,23 +43,10 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/82208ca649f042538e24b5722592bb47f600/98/f87cfb3e/02000005pdb4High.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/82208ca649f042538e24b5722592bb47f600/98/f87cfb3e/02000005pdb4Low.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4cfbb370972913329ca6807ee237224469f07cd8fe5e3e6d2acda8b8d549c45/TextWriter.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/ad8b2779652854276d03ec153d51377686c7193799d1688e119272770d0cf/EqualityAsserts.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/examples/KernelExample/src/PCScreen.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/examples/KernelExample/src/Stdlib.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/examples/KernelExample/src/Stellib.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/src/Cosmos.Patcher/PatchCommand.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Asm.Build.Test/UnitTest1.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Asm.Build.Test/asm/test.asm" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProjectColorInfo">{
@@ -85,24 +57,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.Cosmos.Patcher.executor": "Run",
-    "666d351e-a1ad-4e59-8983-7d69e5c8b79c.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "#82 on Merging refactor/plug-system",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "SolutionBuilderGeneralOptionsPage",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Project.Cosmos.Patcher.executor&quot;: &quot;Run&quot;,
+    &quot;666d351e-a1ad-4e59-8983-7d69e5c8b79c.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;#86 on feature/fix-windows-iso&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;SolutionBuilderGeneralOptionsPage&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager" selected=".NET Project.Cosmos.Patcher">
+}</component>
+  <component name="RunManager">
     <configuration name="Cosmos.Patcher" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="$PROJECT_DIR$/src/Cosmos.Patcher/bin/Debug/net9.0/Cosmos.Patcher.exe" />
       <option name="PROGRAM_PARAMETERS" value="patch --target C:\Users\Jesse\RiderProjects\nativeaot-patcher\tests\Cosmos.NativeWrapper\bin\Debug\net9.0\Cosmos.NativeWrapper.dll --plugs C:\Users\Jesse\RiderProjects\nativeaot-patcher\tests\Cosmos.NativeWrapper\bin\Debug\net9.0\Cosmos.NativeWrapper.dll" />
@@ -126,9 +98,6 @@
         <option name="Build" />
       </method>
     </configuration>
-    <list>
-      <item itemvalue=".NET Project.Cosmos.Patcher" />
-    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -147,6 +116,8 @@
       <workItem from="1745006808082" duration="1268000" />
       <workItem from="1745008171084" duration="417000" />
       <workItem from="1745008843874" duration="20708000" />
+      <workItem from="1745090159612" duration="2184000" />
+      <workItem from="1745094322394" duration="563000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -188,7 +159,55 @@
       <option name="project" value="LOCAL" />
       <updated>1745038760327</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="fix: project paths in test">
+      <option name="closed" value="true" />
+      <created>1745085653288</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1745085653288</updated>
+    </task>
+    <task id="LOCAL-00007" summary="upd: Common.Build.targets">
+      <option name="closed" value="true" />
+      <created>1745086226822</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1745086226822</updated>
+    </task>
+    <task id="LOCAL-00008" summary="upd: dotnet.yml">
+      <option name="closed" value="true" />
+      <created>1745086524147</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1745086524147</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix: unix-iso-tests">
+      <option name="closed" value="true" />
+      <created>1745086725666</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1745086725666</updated>
+    </task>
+    <task id="LOCAL-00010" summary="fix: unix-iso-tests">
+      <option name="closed" value="true" />
+      <created>1745086947590</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1745086947590</updated>
+    </task>
+    <task id="LOCAL-00011" summary="upd: dotnet.yml">
+      <option name="closed" value="true" />
+      <created>1745087398932</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1745087398932</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -214,7 +233,11 @@
     <MESSAGE value="upd: fix field patching" />
     <MESSAGE value="upd: fix property patching" />
     <MESSAGE value="upd: fix ReplaceFieldAccess logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: fix ReplaceFieldAccess logic" />
+    <MESSAGE value="fix: project paths in test" />
+    <MESSAGE value="upd: Common.Build.targets" />
+    <MESSAGE value="fix: unix-iso-tests" />
+    <MESSAGE value="upd: dotnet.yml" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: dotnet.yml" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
