@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <!--pack as nuget-->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--pack as nuget-->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil"/>
+    <PackageReference Include="MonoMod.Utils"/>
+    <PackageReference Include="Spectre.Console.Cli"/>
+    <PackageReference Include="PolySharp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.API\Cosmos.API.csproj" />
+  </ItemGroup>
+</Project>

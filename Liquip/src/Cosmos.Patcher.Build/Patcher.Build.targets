@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup>
+    <PatcherBuildPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../Cosmos.Patcher/bin/Debug/net9.0/Cosmos.Patcher'))</PatcherBuildPath>
+    <PatcherExtension Condition="'$(OS)' == 'Windows_NT'">.exe</PatcherExtension>
+    <PatcherPath>$(PatcherBuildPath)$(PatcherExtension)</PatcherPath>
+    <PatcherBuildDll>$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Patcher.Build.dll</PatcherBuildDll>
+    <PatchedAssembly />
+    <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
+    <EnableAOT>true</EnableAOT>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
+
+  <Target Name="Log" BeforeTargets="BeforeBuild">
+    <Message Importance="High" Text="MSBuildThisFileDirectory: '$(MSBuildThisFileDirectory)'" />
+    <Message Importance="High" Text="Configuration: '$(Configuration)'" />
+    <Message Importance="High" Text="OutputPath: '$(OutputPath)'" />
+    <Message Importance="High" Text="IntermediateOutputPath: '$(IntermediateOutputPath)'" />
+    <Message Importance="High" Text="PatcherBuildDll: '$(PatcherBuildDll)'" />
+    <Message Importance="High" Text="PatcherPath: '$(PatcherPath)'" />
+    <Message Importance="High" Text="PatcherOutputPath: '$(PatcherOutputPath)'" />
+    <Message Importance="High" Text="PatchedAssembly: '$(PatchedAssembly)'" />
+    <Message Importance="High" Text="TargetFramework: '$(TargetFramework)'" />
+    <Message Importance="High" Text="PatcherExists: Exists('$(PatcherPath)')" />
+        <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
+
+  </Target>
+
+
+  <!-- Step 1: Patcher -->
+  <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
+    <PropertyGroup>
+      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)cosmos/</PatcherOutputPath>
+      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(PatcherOutputPath)" />
+    <PatcherTask
+      PatcherPath="$(PatcherPath)"
+      TargetAssembly="$(OutputPath)$(AssemblyName).dll"
+      PlugsReferences="@(PlugRef)"
+      OutputPath="$(PatcherOutputPath)" />
+
+    <Message Importance="High" Text="Cosmos.Patcher successfully patched: '$(PatchedAssembly)'" />
+  </Target>
+</Project>

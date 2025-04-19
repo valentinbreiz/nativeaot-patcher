@@ -4,10 +4,11 @@
 
  Zarlo's NativeAOT patcher. Main goal is to port Cosmos plug system, assembly loading for NativeAOT. See https://github.com/CosmosOS/Cosmos/issues/3088 for details.
 
- ## Documentation:
- - [Cosmos.Patcher](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Cosmos.Patcher)
- - [Testing](https://github.com/valentinbreiz/nativeaot-patcher/wiki/Testing)
- - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
+ ## Documentation
+ - [Wiki](https://github.com/valentinbreiz/nativeaot-patcher/wiki/)
+
+## Priority
+- [Priority Board](https://github.com/users/valentinbreiz/projects/2/views/2) 
    
  ## Credit:
  - [@zarlo](https://github.com/zarlo)
