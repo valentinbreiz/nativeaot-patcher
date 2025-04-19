@@ -23,8 +23,8 @@
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="@(ObjFiles ->'%(Identity)')"  />
-        <LinkerArgs Include="-o $(ElfBinary)" />
+      <LinkerArgs Include="@(ObjFiles->'%(FullPath)')" />
+      <LinkerArgs Include="-o $(ElfBinary)" />
     </ItemGroup>
     <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
 
