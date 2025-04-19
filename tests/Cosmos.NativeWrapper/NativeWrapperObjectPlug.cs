@@ -17,4 +17,13 @@ public class NativeWrapperObjectPlug
     [PlugMember] public string InstanceField = "Plugged Hello World";
 
     [PlugMember] public string InstanceProperty { get; set; } = "Plugged Goodbye World";
+
+    private string _instanceBackingField = "Plugged Backing Field";
+
+    [PlugMember]
+    public string InstanceBackingFieldProperty
+    {
+        get => _instanceBackingField;
+        set => _instanceBackingField = value;
+    }
 }

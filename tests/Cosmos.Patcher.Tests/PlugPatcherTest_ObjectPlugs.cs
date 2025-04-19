@@ -32,7 +32,6 @@ public class PlugPatcherTest_ObjectPlugs
         targetAssembly.Save("./", "targetObjectAssembly.dll");
 
         object? result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", 10);
-
         Assert.Equal(20, result);
     }
 
@@ -52,6 +51,24 @@ public class PlugPatcherTest_ObjectPlugs
         Assert.NotNull(method);
 
         return method.Invoke(instance, parameters);
+    }
+
+    private object ExecutePropertyGet(AssemblyDefinition assemblyDefinition, string typeName, string propertyName)
+    {
+        using MemoryStream? memoryStream = new();
+        assemblyDefinition.Write(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        Assembly? loadedAssembly = Assembly.Load(memoryStream.ToArray());
+        Type? type = loadedAssembly.GetType(typeName);
+        Assert.NotNull(type);
+
+        object? instance = Activator.CreateInstance(type);
+        MethodInfo? method = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance).GetMethod;
+
+        Assert.NotNull(method);
+
+        return method.Invoke(instance, null);
     }
 
     [Fact]
@@ -81,6 +98,43 @@ public class PlugPatcherTest_ObjectPlugs
         // Assert: Check the standard output for the constructor plug
         string? output = stringWriter.ToString();
         Assert.Contains("Plugged ctor", output);
+    }
+
+    [Fact]
+    public void PatchProperty_ShouldPlugProperty()
+    {
+        TextWriter originalOutput = Console.Out; // Store the original output
+        try
+        {
+            using var stringWriter = new StringWriter();
+            Console.SetOut(stringWriter);
+
+            PlugScanner plugScanner = new();
+            PlugPatcher patcher = new(plugScanner);
+
+            AssemblyDefinition targetAssembly = CreateMockAssembly<NativeWrapperObject>();
+            AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectPlug>();
+
+            TypeDefinition targetType =
+                targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
+            Assert.NotNull(targetType);
+
+            patcher.PatchAssembly(targetAssembly, plugAssembly);
+            targetAssembly.Save("./", "targetPropertyAssembly.dll");
+
+            // Test Get
+            object getResult = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, "InstanceProperty");
+            Assert.Equal("Plugged Goodbye World", getResult);
+
+            // Test Get
+            object getResult2 = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, "InstanceBackingFieldProperty");
+            Assert.Equal("Plugged Backing Field", getResult2);
+        }
+        finally
+        {
+            // Restore the original output
+            Console.SetOut(originalOutput);
+        }
     }
 
     private object ExecuteConstructor(AssemblyDefinition assemblyDefinition, string typeName)

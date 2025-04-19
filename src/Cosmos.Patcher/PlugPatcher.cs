@@ -140,7 +140,6 @@ public sealed class PlugPatcher
             {
                 plugMemberAttr.ImportReferences(targetType.Module);
                 ResolveAndPatchMethod(targetType, method, plugMemberAttr);
-                DumpIL(method,"PatchMethod");
             }
             catch (Exception ex)
             {
@@ -177,8 +176,6 @@ public sealed class PlugPatcher
             {
                 PatchProperty(targetProperty, property);
                 Console.WriteLine($"[ProcessPlugMembers] Successfully patched property: {targetProperty.Name}");
-                DumpIL(targetProperty.SetMethod, "PatchProperty");
-                DumpIL(targetProperty.GetMethod, "PatchProperty");
             }
             catch (Exception ex)
             {
@@ -336,6 +333,7 @@ public sealed class PlugPatcher
                         _ => instruction.Operand
                     };
                     processor.Append(clone);
+                    Console.WriteLine($"[PatchMethod] Cloned instruction {instruction} -> {clone}");
                 }
                 catch (Exception ex)
                 {
@@ -427,6 +425,7 @@ public sealed class PlugPatcher
         {
             ReplaceFieldAccess(targetProperty.SetMethod, plugBackingFieldRef, targetBackingFieldRef);
         }
+
         if (targetProperty.GetMethod != null)
         {
             ReplaceFieldAccess(targetProperty.GetMethod, plugBackingFieldRef, targetBackingFieldRef, true);
@@ -510,7 +509,7 @@ public sealed class PlugPatcher
             $"[ReplaceFieldAccess] Processing method: {method.FullName}, Field: {oldField.FullName}, LoadField: {loadField}");
 
         ILProcessor processor = method.Body.GetILProcessor();
-        Collection<Instruction> instructions = [..processor.Body.Instructions];
+        Collection<Instruction> instructions = [..method.Body.Instructions];
         foreach (Instruction instruction in instructions)
         {
             if (instruction.Operand is not FieldReference fieldReference ||
@@ -523,11 +522,11 @@ public sealed class PlugPatcher
             OpCode opcode = method.IsStatic
                 ? (loadField ? OpCodes.Ldsfld : OpCodes.Stsfld)
                 : (loadField ? OpCodes.Ldfld : OpCodes.Stfld);
-            Instruction newInstruction = Instruction.Create(opcode, newField);
+            Instruction newInstruction = Instruction.Create(opcode, method.Module.ImportReference(newField));
             processor.Replace(instruction, newInstruction);
 
-            Console.WriteLine($"[ReplaceFieldAccess] Replacement done with opcode: {opcode}");
-            Console.WriteLine($"[ReplaceFieldAccess] Instruction now is: {newInstruction}");
+            Console.WriteLine($"[ReplaceFieldAccess] Replaced: {instruction} -> {newInstruction}");
+            Console.WriteLine($"[ReplaceFieldAccess] Instruction in body: {method.Body.Instructions.IndexOf(newInstruction)}");
         }
 
         Console.WriteLine($"[ReplaceFieldAccess] Completed processing for method: {method.FullName}");
@@ -554,12 +553,5 @@ public sealed class PlugPatcher
         }
 
         return default;
-    }
-
-    private void DumpIL(MethodDefinition m, string label)
-    {
-        Console.WriteLine($"--- IL {label} for {m.FullName} ---");
-        foreach (Instruction? instr in m.Body.Instructions)
-            Console.WriteLine(instr);
     }
 }

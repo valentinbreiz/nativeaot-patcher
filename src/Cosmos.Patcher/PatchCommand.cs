@@ -44,7 +44,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
 
             AssemblyDefinition[]? plugAssemblies = [.. plugPaths
-                .Select(plugPath => AssemblyDefinition.ReadAssembly(plugPath))
+                .Select(AssemblyDefinition.ReadAssembly)
               ];
 
             Console.WriteLine("Loaded plug assemblies:");

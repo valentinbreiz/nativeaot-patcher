@@ -11,4 +11,11 @@ public class NativeWrapperObject
     public string InstanceField = "Hello World";
 
     public string InstanceProperty { get; set; } = "Goodbye World";
+
+    private string _instanceBackingField = "Backing Field";
+
+    public string InstanceBackingFieldProperty {
+        get => _instanceBackingField;
+        set => _instanceBackingField = value;
+    }
 }

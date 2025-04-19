@@ -9,33 +9,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: patch class properties and fields">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/projectSettingsUpdater.xml" afterDir="false" />
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: fix field patching">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/KernelEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/KernelEntry.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Limine/LimineFramebuffer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Limine/LimineFramebuffer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Limine/LimineID.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Limine/LimineID.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/PCScreen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/PCScreen.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Stdlib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Stdlib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/KernelExample/src/Stellib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/KernelExample/src/Stellib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.API/Attributes/PlugAttribute.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.API/Attributes/PlugAttribute.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.API/Attributes/PlugMemberAttribute.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.API/Attributes/PlugMemberAttribute.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/LdTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/LdTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/YasmBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Tasks/YasmBuildTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer.CodeFixes/PatcherCodeFixProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer.CodeFixes/PatcherCodeFixProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/AttributeExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/AttributeExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/SyntaxNodeExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/SyntaxNodeExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/UnitTest1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Asm.Build.Test/UnitTest1.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObject.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObject.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObjectPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObjectPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Patcher.Tests/PlugPatcherTest_ObjectPlugs.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugMethods.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugMethods.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugs.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,17 +35,12 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/valentinbreiz/nativeaot-patcher.git&quot;,
-    &quot;accountId&quot;: &quot;552a351b-5962-4ddf-89e6-68455ccc9b37&quot;
+    &quot;accountId&quot;: &quot;3ab0c882-3ed5-4c61-93a7-4d15bd06c6f7&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c860bf21b94546e091e167001703022c51c00/f7/ff2681d3/Extensions.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/2ba0af934b75da6f26b3353b183f07fc2b91144c7738a27746544554cd94370/CustomAttribute.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/60a6bf1e1cbf38d9185ff20accbae2c1784d3873a9fd4f5dd118a2fdb63fe/TypeReference.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6b86a292dcdb09e7a9dc25d13f7722b195c29c43264aea71c7bad4350d440/MetadataResolver.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/dff04961602be888b6aaee78be3c4af71efa7947fdf611f6d6fe9b35ea45993b/ILProcessor.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e466d67f482b0e1a84e8b7a513a33ded7b5f9c89109694b34051a07150a3c/ModuleDefinition.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/f8f4bde0a35df4a6efc1f12f7d806e657f6c172176ed79ea7327eb43f98553/TypeDefinition.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Jesse/RiderProjects/nativeaot-patcher/tests/Cosmos.Scanner.Tests/PlugScannerTests_LoadPlugs.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProjectColorInfo">{
@@ -80,21 +51,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "refactor/plug-system",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;#82 on refactor/plug-system&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;SolutionBuilderGeneralOptionsPage&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Cosmos.Patcher" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -133,7 +104,9 @@
       <workItem from="1744859398609" duration="614000" />
       <workItem from="1744934663121" duration="16905000" />
       <workItem from="1744952129283" duration="220000" />
-      <workItem from="1744952408522" duration="1034000" />
+      <workItem from="1744952408522" duration="3916000" />
+      <workItem from="1745006808082" duration="1268000" />
+      <workItem from="1745008171084" duration="417000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -151,7 +124,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744859670934</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="upd: fix field patching">
+      <option name="closed" value="true" />
+      <created>1744953787077</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1744953787077</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -174,7 +155,8 @@
     <MESSAGE value="upd: workspace.xml" />
     <MESSAGE value="upd: dotnet version for tests" />
     <MESSAGE value="upd: patch class properties and fields" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: patch class properties and fields" />
+    <MESSAGE value="upd: fix field patching" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: fix field patching" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -193,5 +175,9 @@
         </breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
