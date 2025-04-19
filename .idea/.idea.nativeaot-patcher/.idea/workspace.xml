@@ -9,16 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: normalize obj file path">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.sln" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build.Windows/Build.props" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build.Windows/Cosmos.Asm.Build.Windows.csproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build.Windows/yasm/LICENSE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build.Windows/yasm/yasm.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Asm.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Asm.Build.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: remove Cosmos.Asm.Build.Windows" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -122,7 +113,7 @@
       <workItem from="1745008171084" duration="417000" />
       <workItem from="1745008843874" duration="20708000" />
       <workItem from="1745090159612" duration="2184000" />
-      <workItem from="1745094322394" duration="4535000" />
+      <workItem from="1745094322394" duration="5677000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -228,7 +219,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745096972594</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="upd: remove Cosmos.Asm.Build.Windows">
+      <option name="closed" value="true" />
+      <created>1745106635988</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1745106635988</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -260,7 +259,8 @@
     <MESSAGE value="upd: dotnet.yml" />
     <MESSAGE value="upd: build targets" />
     <MESSAGE value="upd: normalize obj file path" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: normalize obj file path" />
+    <MESSAGE value="upd: remove Cosmos.Asm.Build.Windows" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: remove Cosmos.Asm.Build.Windows" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

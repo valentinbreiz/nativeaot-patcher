@@ -215,7 +215,7 @@ jobs:
       - name: 🔗 Install Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
         with:
-          args: install -y llvm
+          args: install -y llvm yasm
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
