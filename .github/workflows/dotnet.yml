@@ -232,6 +232,9 @@ jobs:
       - name: 🔨 Build Cosmos.Ilc.Build
         run: dotnet build ./src/Cosmos.Ilc.Build/Cosmos.Ilc.Build.csproj
 
+      - name: 🔨 Build Cosmos.Asm.Build
+        run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj
+
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r windows-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj
 
