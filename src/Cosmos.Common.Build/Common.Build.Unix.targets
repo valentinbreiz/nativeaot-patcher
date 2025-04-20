@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <XorrisoBinary>xorriso</XorrisoBinary>
+    <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
+  </PropertyGroup>
+
+    <Target Name="GetLinker">
+        <Exec Command="which ld.lld" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="Low">            <!-- Ignore error code for now. We will make the build error out later  -->
+            <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
+        </Exec>
+    </Target>
+</Project>
