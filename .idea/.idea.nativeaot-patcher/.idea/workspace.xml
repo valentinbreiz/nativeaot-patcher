@@ -113,7 +113,7 @@
       <workItem from="1745008171084" duration="417000" />
       <workItem from="1745008843874" duration="20708000" />
       <workItem from="1745090159612" duration="2184000" />
-      <workItem from="1745094322394" duration="7322000" />
+      <workItem from="1745094322394" duration="7876000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -251,7 +251,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745108450120</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="upd: build targets">
+      <option name="closed" value="true" />
+      <created>1745109027341</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1745109027341</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

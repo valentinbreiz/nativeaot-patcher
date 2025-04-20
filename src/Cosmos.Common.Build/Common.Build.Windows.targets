@@ -13,7 +13,7 @@
   <Target Name="GetXorriso" BeforeTargets="BuildISO">
     <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1" IgnoreExitCode="true"/>
     <PropertyGroup>
-      <XorrisoBinary>$(MSBuildProjectDirectory)/xorriso-exe-for-windows/xorriso.exe</XorrisoBinary>
+      <XorrisoBinary>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/xorriso-exe-for-windows/xorriso.exe'))</XorrisoBinary>
       <FinalIsoRoot Condition="'$(FinalIsoRoot)' == ''">cygdrive/c/$(MSBuildProjectDirectoryNoRoot)/output/iso_root</FinalIsoRoot>
     </PropertyGroup>
   </Target>
