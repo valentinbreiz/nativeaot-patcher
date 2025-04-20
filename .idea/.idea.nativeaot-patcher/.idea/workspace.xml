@@ -9,12 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: add asm platform targets">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/dotnet.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/dotnet.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.Windows.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.Windows.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Common.Build/Common.Build.targets" afterDir="false" />
-    </list>
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: build targets" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -118,7 +113,7 @@
       <workItem from="1745008171084" duration="417000" />
       <workItem from="1745008843874" duration="20708000" />
       <workItem from="1745090159612" duration="2184000" />
-      <workItem from="1745094322394" duration="6904000" />
+      <workItem from="1745094322394" duration="7322000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -248,7 +243,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745106901794</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="upd: build targets">
+      <option name="closed" value="true" />
+      <created>1745108450120</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1745108450120</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -277,12 +280,12 @@
     <MESSAGE value="fix: project paths in test" />
     <MESSAGE value="upd: Common.Build.targets" />
     <MESSAGE value="fix: unix-iso-tests" />
-    <MESSAGE value="upd: build targets" />
     <MESSAGE value="upd: normalize obj file path" />
     <MESSAGE value="upd: remove Cosmos.Asm.Build.Windows" />
     <MESSAGE value="upd: dotnet.yml" />
     <MESSAGE value="upd: add asm platform targets" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: add asm platform targets" />
+    <MESSAGE value="upd: build targets" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: build targets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

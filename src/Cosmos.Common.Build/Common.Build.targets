@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
-    <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
+    <IsoOutput>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/output/$(AssemblyName).iso'))</IsoOutput>
   </PropertyGroup>
 
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
