@@ -78,7 +78,7 @@
     </ItemGroup>
 
     <!-- Build the ISO -->
-    <Exec Command="&quot;$(XorrisoBinary)&quot; @(XorrisoArgs, ' ')" />
+    <Exec Command="&quot;$(XorrisoBinary)&quot;" />
 
     <!-- Install Limine on the new ISO -->
     <Exec Command="$(MSBuildProjectDirectory)/limine/limine bios-install $(IsoOutput)" />
