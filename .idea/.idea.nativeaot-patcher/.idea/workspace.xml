@@ -9,7 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: build targets" />
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: build targets">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/dotnet.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/dotnet.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -113,7 +116,7 @@
       <workItem from="1745008171084" duration="417000" />
       <workItem from="1745008843874" duration="20708000" />
       <workItem from="1745090159612" duration="2184000" />
-      <workItem from="1745094322394" duration="9144000" />
+      <workItem from="1745094322394" duration="9846000" />
     </task>
     <task id="LOCAL-00001" summary="upd: dotnet version for tests">
       <option name="closed" value="true" />
@@ -275,7 +278,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745110316044</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="upd: build targets">
+      <option name="closed" value="true" />
+      <created>1745110713586</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1745110713592</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
