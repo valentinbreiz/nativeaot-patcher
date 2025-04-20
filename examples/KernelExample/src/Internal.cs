@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace EarlyBird.Internal
 {
-    
+
     public static class Native
     {
         public static class IO
@@ -40,7 +40,7 @@ namespace EarlyBird.Internal
 
         private static void WaitForTransmitBufferEmpty()
         {
-            while ((Native.IO.Read8((ushort)(COM1 + 5)) & 0x20) == 0);
+            while ((Native.IO.Read8((ushort)(COM1 + 5)) & 0x20) == 0) ;
         }
 
         public static void ComWrite(byte value)
@@ -51,8 +51,8 @@ namespace EarlyBird.Internal
             Native.IO.Write8(COM1, value);
         }
 
-        
-        
+
+
         public static void ComInit()
         {
             Native.IO.Write8((ushort)(COM1 + 1), 0x00);
@@ -71,7 +71,7 @@ namespace EarlyBird.Internal
                 {
                     ComWrite((byte)ptr[i]);
                 }
-            }   
+            }
         }
     }
 }

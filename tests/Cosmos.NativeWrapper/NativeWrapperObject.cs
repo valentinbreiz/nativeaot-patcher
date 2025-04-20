@@ -14,7 +14,8 @@ public class NativeWrapperObject
 
     private string _instanceBackingField = "Backing Field";
 
-    public string InstanceBackingFieldProperty {
+    public string InstanceBackingFieldProperty
+    {
         get => _instanceBackingField;
         set => _instanceBackingField = value;
     }

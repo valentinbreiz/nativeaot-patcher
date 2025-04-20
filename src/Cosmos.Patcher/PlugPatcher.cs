@@ -509,7 +509,7 @@ public sealed class PlugPatcher
             $"[ReplaceFieldAccess] Processing method: {method.FullName}, Field: {oldField.FullName}, LoadField: {loadField}");
 
         ILProcessor processor = method.Body.GetILProcessor();
-        Collection<Instruction> instructions = [..method.Body.Instructions];
+        Collection<Instruction> instructions = [.. method.Body.Instructions];
         foreach (Instruction instruction in instructions)
         {
             if (instruction.Operand is not FieldReference fieldRef || fieldRef.FullName != oldField.FullName)

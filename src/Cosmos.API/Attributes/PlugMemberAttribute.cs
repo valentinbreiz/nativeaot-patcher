@@ -7,6 +7,6 @@ public class PlugMemberAttribute(string targetName) : Attribute
 {
     public string TargetName { get; set; } = targetName;
 
-    public PlugMemberAttribute() : this(string.Empty) {}
+    public PlugMemberAttribute() : this(string.Empty) { }
 }
 
