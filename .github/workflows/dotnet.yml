@@ -236,7 +236,7 @@ jobs:
         run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj
 
       - name: 🚀 Run Tests
-        run: dotnet publish -c Debug -r windows-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj /p:FinalIsoRoot=cygdrive/c/nativeaot-patcher/nativeaot-patcher/examples/KernelExample/output/iso_root
+        run: dotnet publish -c Debug -r windows-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj /p:FinalIsoRoot=D:/a/nativeaot-patcher/nativeaot-patcher/examples/KernelExample/output/iso_root
 
       - name: 🕵️‍♂️ Verify Output
         shell: cmd
