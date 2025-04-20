@@ -1,0 +1,102 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <NativeLib>Static</NativeLib>
+    <OutputType>Library</OutputType>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <UsingTask
+    TaskName="GetPackageDirectory"
+    AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
+  />
+
+  <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
+  <Target Name="ResolveIlcPath" AfterTargets="Build">
+    <ItemGroup>
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+    </ItemGroup>
+
+    <GetPackageDirectory
+      Items="@(HostILCompilerPack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
+
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+    </GetPackageDirectory>
+
+    <PropertyGroup>
+      <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+    </PropertyGroup>
+    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
+  </Target>
+
+  <!--
+    Remove all references. This does mean ALL, including .NET, so if we actually want
+    to add proper corelib support in the future (more than likely), we need to modify this.
+  -->
+  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
+      <ReferencePath Remove="@(ReferencePath)" />
+      
+    </ItemGroup>
+  </Target>
+
+  <!-- Writes the response file for ILC compilation. -->
+  <Target Name="WriteIlcRsp">
+    <PropertyGroup>
+      <FullIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</FullIntermediateOutputPath>
+      <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
+
+      <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)cosmos/native/'))</NativeOutputPath>
+      <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)cosmos/native/</IlcIntermediateOutputPath>
+      <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
+      <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
+        <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
+        <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
+      </ManagedBinary>
+    </ItemGroup>
+
+    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
+    <MakeDir Directories="$(NativeOutputPath)" />
+
+    <ItemGroup>
+      <IlcArg Include="@(IlcCompileInput)" />
+      <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
+      <IlcArg Include="--systemmodule:$(AssemblyName)" />
+      <IlcArg Include="--nativelib" />
+      <IlcArg Include="--noinlinetls" />
+      <IlcArg Include="-g" />
+      <IlcArg Include="-O" />
+      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
+      <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
+    </ItemGroup>
+
+    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
+  </Target>
+
+  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
+    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
+    <Exec
+      Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+      WorkingDirectory="$(FullIntermediateOutputPath)"
+    />
+
+    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
+  </Target>
+
+</Project>
