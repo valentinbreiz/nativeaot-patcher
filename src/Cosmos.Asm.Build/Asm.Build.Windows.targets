@@ -1,0 +1,7 @@
+<Project>
+  <Target Name="GetYasm">
+    <Exec Command="where yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">      <!-- Ignore error code for now. We will make the build error out later  -->
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
+    </Exec>
+  </Target>
+</Project>

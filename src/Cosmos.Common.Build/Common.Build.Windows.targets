@@ -1,0 +1,21 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <IlcArg Include="--targetos:linux"/>
+  </ItemGroup>
+
+  <Target Name="GetLinker">
+    <Exec Command="where ld.lld" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">      <!-- Ignore error code for now. We will make the build error out later  -->
+      <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
+    </Exec>
+  </Target>
+
+  <Target Name="GetXorriso" BeforeTargets="BuildISO">
+    <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1" IgnoreExitCode="true"/>
+    <PropertyGroup>
+      <XorrisoBinary>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/xorriso-exe-for-windows/xorriso.exe'))</XorrisoBinary>
+      <FinalIsoRoot Condition="'$(FinalIsoRoot)' == ''">cygdrive/c/$(MSBuildProjectDirectoryNoRoot)/output/iso_root</FinalIsoRoot>
+    </PropertyGroup>
+  </Target>
+
+</Project>
