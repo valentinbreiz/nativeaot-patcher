@@ -13,42 +13,42 @@ namespace Cosmos.Plugs;
 public class FileStream
 {
     /* Plug static fields from System.IO.FileStream */
-    [Plug(Type = StaticField)]
-    public static ulong classStaticField
+    [PlugMember]
+    public static ulong StaticField
     {
          get; set;
     }
 
     /* Plug instance fields from System.IO.FileStream */
-    [Plug(Type = InstanceField)]
+    [PlugMember]
     public static ulong classInstanceField
     {
          get; set;
     }
 
     /* Add private static fields to plugged class */
-    [Expose(Type = StaticField)]
+    [Expose]
     private static ulong _privateStaticField;
 
     /* Add private fields to plugged class */
-    [Expose(Type = InstanceField)]
+    [Expose]
     private static ulong _privateInstanceField;
 
     /* Add private static methods to plugged class */
-    [Expose(Type = Method)]
+    [Expose]
     private static void PrivateStaticMethod()
     {
     }
 
     /* Add private objects methods to plugged class */
-    [Expose(Type = Method)]
+    [Expose]
     private static void PrivateInstanceMethod(FileStream aThis)
     {
         aThis.WriteByte('a');
     }
 
     /* Plug non static method with aThis to access fields */
-    [Plug(Type = Method)]
+    [PlugMember]
     public static long Seek(FileStream aThis, long offset, SeekOrigin origin)
     {
         PrivateMethod();
@@ -60,21 +60,21 @@ public class FileStream
     }
 
     /* Plug static method */
-    [Plug(Type = Method)]
+    [PlugMember]
     public static long StaticMethod()
     {
 
     }
 
     /* Access private fields from plugged class */
-    [Plug(Type = Method)]
-    public static long AccessFieldsMethod(FileStream aThis, [FieldAccess(Name = "classInstanceField2")] ulong classInstanceField2)
+    [PlugMember]
+    public static long AccessFieldsMethod(FileStream aThis, [FieldAccess(Name = "InstanceField2")] ulong InstanceField2)
     {
-        classInstanceField2 = 0;
+        InstanceField2 = 0;
     }
 
     /* Assembly plug for System.IO.FileStream.WriteByte */
-    [Plug(Type = Native, Symbol = "asm_writebyte")]
+    [PlugMember, RuntimeImport("asm_writebyte")]
     public static void WriteByte(FileStream aThis, byte b);
 
 }

@@ -1,0 +1,12 @@
+- name: Plugs
+  href: plugs.md
+- name: Cosmos.Asm.Build
+  href: asm-build.md
+- name: Cosmos.ilc.Build
+  href: ilc-build.md
+- name: Cosmos.Patcher.Build
+  href: patcher-build.md
+- name: Kernel Compilation Steps
+  href: kernel-compilation-steps.md
+- name: Testing
+  href: testing.md
