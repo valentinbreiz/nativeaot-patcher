@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <XorrisoBinary>xorriso</XorrisoBinary>
+    <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
   </PropertyGroup>
 
     <Target Name="GetLinker">

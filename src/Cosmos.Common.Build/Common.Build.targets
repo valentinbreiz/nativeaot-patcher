@@ -1,14 +1,16 @@
 <Project>
+  <PropertyGroup>
+    <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
+    <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
+  </PropertyGroup>
+
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
   <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
 
   <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc; GetLinker" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
-      <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
-      <IsoOutput>$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
-      <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
 
     <ItemGroup>
