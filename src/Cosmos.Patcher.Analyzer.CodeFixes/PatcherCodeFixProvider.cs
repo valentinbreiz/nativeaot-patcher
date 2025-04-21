@@ -56,10 +56,6 @@ public class PatcherCodeFixProvider : CodeFixProvider
                     RegisterCodeFix(context, CodeActions.RemoveExtraParametersTitle,
                         _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
                     break;
-                case var id when id == DiagnosticMessages.PlugNotStatic.Id:
-                    RegisterCodeFix(context, CodeActions.MakeStaticModifierTitle,
-                        c => CodeActions.MakeClassStatic(context.Document, declaration, c), diagnostic);
-                    break;
 
                 case var id when id == DiagnosticMessages.MethodNeedsPlug.Id:
                     RegisterCodeFix(context, CodeActions.PlugMethodTitle,
@@ -137,23 +133,18 @@ internal static class CodeActions
         SyntaxNode? root = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
         if (root == null || !diagnostic.Properties.TryGetValue("MethodName", out string? methodName) ||
             !diagnostic.Properties.TryGetValue("ClassName", out string? className))
-        {
             return document.Project.Solution;
-        }
-
 
         DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
         SyntaxGenerator syntaxGenerator = editor.Generator;
 
-        SyntaxNode plugMethod = syntaxGenerator.MethodDeclaration(methodName,
+        SyntaxNode plugMethod = syntaxGenerator.AddAttributes(syntaxGenerator.MethodDeclaration(methodName,
         [
             syntaxGenerator.ParameterDeclaration("aThis", syntaxGenerator.TypeExpression(SpecialType.System_Object))
-        ], null, null, Accessibility.Public, DeclarationModifiers.Static);
+        ], null, null, Accessibility.Public, DeclarationModifiers.Static), syntaxGenerator.Attribute("PlugMember"));
 
         if (declaration is ClassDeclarationSyntax classDeclaration)
-        {
             return await AddMethodToPlug((classDeclaration, document), plugMethod);
-        }
 
         if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
         {
@@ -173,9 +164,7 @@ internal static class CodeActions
             .FirstOrDefault();
 
         if (namespaceDeclaration == null)
-        {
             return document.Project.Solution;
-        }
 
         SyntaxNode newPlug = syntaxGenerator.ClassDeclaration($"{className}Impl", null, Accessibility.Public,
             DeclarationModifiers.Static, null, null, [plugMethod]);
@@ -217,12 +206,8 @@ internal static class CodeActions
 
             Compilation? compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             INamedTypeSymbol? symbol = compilation?.GetTypeByMetadataName(plugClassName);
-            if (symbol == null)
-            {
-                continue;
-            }
 
-            SyntaxReference? syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+            SyntaxReference? syntaxReference = symbol?.DeclaringSyntaxReferences.FirstOrDefault();
             if (syntaxReference == null)
             {
                 continue;
@@ -240,15 +225,6 @@ internal static class CodeActions
     {
         DocumentEditor editor = await DocumentEditor.CreateAsync(plugInfo.Document).ConfigureAwait(false);
         editor.AddMember(plugInfo.PlugClass, plugMethod);
-        return editor.GetChangedDocument().Project.Solution;
-    }
-
-    public static async Task<Solution> MakeClassStatic(Document document, SyntaxNode declaration, CancellationToken c)
-    {
-        ClassDeclarationSyntax classDeclaration = (ClassDeclarationSyntax)declaration;
-        DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
-        editor.SetModifiers(classDeclaration, DeclarationModifiers.Static);
-
         return editor.GetChangedDocument().Project.Solution;
     }
 }

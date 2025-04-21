@@ -40,29 +40,6 @@ public class AnalyzerTests
             d => d.Id == DiagnosticMessages.TypeNotFound.Id && d.GetMessage().Contains("System.NonExistent"));
     }
 
-    [Fact]
-    public async Task Test_PlugNotStaticDiagnostic()
-    {
-        const string code = """
-                            using System;
-                            using Cosmos.API.Attributes;
-
-                            namespace ConsoleApplication1
-                            {
-                                [Plug("System.String", IsOptional = true)]
-                                public class Test
-                                {
-                                    [DllImport("example.dll")]
-                                    public static extern void ExternalMethod();
-                                }
-                            }
-                            """;
-        ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        Assert.Contains(diagnostics,
-            d => d.Id == DiagnosticMessages.PlugNotStatic.Id && d.GetMessage().Contains("Test"));
-    }
-
-
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
     {
         SyntaxTree syntaxTree = ParseCode(code);
@@ -166,7 +143,7 @@ public class AnalyzerTests
 
                 [MethodImpl(MethodImplOptions.InternalCall)]
                 public static extern void NativeMethod();
-                
+
                 static TestNativeType() => Console.WriteLine("123");
             }
 
