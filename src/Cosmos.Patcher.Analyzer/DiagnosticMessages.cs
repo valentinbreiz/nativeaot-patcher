@@ -25,16 +25,6 @@ public sealed class DiagnosticMessages
         "Ensure that the method has a corresponding plug. See http://www.gocosmos.org/docs/plugs/missing/ for more information."
     );
 
-    public static readonly DiagnosticDescriptor PlugNotStatic = new(
-        "NAOT0003",
-        "Plug Not Static",
-        "Plug '{0}' should be static",
-        "Design",
-        DiagnosticSeverity.Info,
-        true,
-        "Ensure that the plug is static if it only contains static members."
-    );
-
     public static readonly DiagnosticDescriptor PlugNameDoesNotMatch = new(
         "NAOT0004",
         "Plug Name Does Not Match",
@@ -68,5 +58,5 @@ public sealed class DiagnosticMessages
 
 
     public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound,
-        MethodNeedsPlug, PlugNotStatic, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
+        MethodNeedsPlug, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
 }

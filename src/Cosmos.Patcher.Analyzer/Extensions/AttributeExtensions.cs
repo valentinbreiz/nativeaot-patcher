@@ -42,7 +42,7 @@ public static class AttributeExtensions
     {
         ITypeSymbol? symbol = context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol as ITypeSymbol;
         return symbol is not null
-            ? $"{symbol.ContainingNamespace.Name}.{symbol.Name}, {symbol.ContainingAssembly.Name} "
+            ? symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))
             : "Unknown";
     }
 
