@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Cosmos.Patcher.Analyzer.Extensions;
 using Cosmos.Patcher.Analyzer.Models;
-using Cosmos.Patcher.Analyzer.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,9 +13,11 @@ namespace Cosmos.Patcher.Analyzer;
 public class PatcherAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NAOT";
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => DiagnosticMessages.SupportedDiagnostics;
 
-    private static readonly HashSet<string> _validatedExternals = [];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        DiagnosticMessages.SupportedDiagnostics;
+
+    private static readonly HashSet<string> s_externalTypeCache = [];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -30,11 +31,13 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
             ConcurrentDictionary<string, PlugInfo> pluggedClasses = [];
 
-            compilationContext.RegisterSyntaxNodeAction(context => AnalyzePlugAttribute(context, pluggedClasses),
+            compilationContext.RegisterSyntaxNodeAction(
+                nodeContext => AnalyzePlugAttribute(nodeContext, pluggedClasses),
                 SyntaxKind.Attribute);
-            compilationContext.RegisterSyntaxNodeAction(context => AnalyzeAccessedMember(context, pluggedClasses),
+            compilationContext.RegisterSyntaxNodeAction(
+                nodeContext => AnalyzeAccessedMember(nodeContext, pluggedClasses),
                 SyntaxKind.SimpleMemberAccessExpression);
-            compilationContext.RegisterSyntaxTreeAction(context => AnalyzeSyntaxTree(context, pluggedClasses));
+            compilationContext.RegisterSyntaxTreeAction(treeContext => AnalyzeSyntaxTree(treeContext, pluggedClasses));
 
             DebugLog(
                 $"[DEBUG] Registered syntax node actions for compilation {compilationContext.Compilation.AssemblyName}");
@@ -88,47 +91,45 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             DebugLog($"[DEBUG] Found plugged class {classSymbol.Name}");
 
             // Skip validation for external types that have already been checked
-            if (plugInfo.IsExternal && _validatedExternals.Contains(classSymbol.Name))
+            if (plugInfo.IsExternal && s_externalTypeCache.Contains(classSymbol.Name))
             {
                 DebugLog($"[DEBUG] Skipping validated external type {classSymbol.Name}");
                 return;
             }
 
-            if (CheckIfNeedsPlug(accessedMethod, plugInfo.PlugSymbol))
-            {
-                DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {accessedMethod.Name}");
-                ImmutableDictionary<string, string> properties = ImmutableDictionary.CreateRange(new[]
-                {
-                    new KeyValuePair<string, string?>("PlugClass", plugInfo.PlugSymbol.Name)
-                });
+            if (!CheckIfNeedsPlug(accessedMethod, plugInfo.PlugSymbol))
+                return;
 
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticMessages.MethodNeedsPlug,
-                    memberAccess.Expression.GetLocation(),
-                    properties,
-                    accessedMethod.Name,
-                    classSymbol.Name
-                ));
-            }
+            DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {accessedMethod.Name}");
+            ImmutableDictionary<string, string> properties = ImmutableDictionary.CreateRange([
+                new KeyValuePair<string, string>("PlugClass", plugInfo.PlugSymbol.Name)
+            ]);
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticMessages.MethodNeedsPlug,
+                memberAccess.Expression.GetLocation(),
+                properties!,
+                accessedMethod.Name,
+                classSymbol.Name
+            ));
         }
         else
         {
             DebugLog($"[DEBUG] No plugged class found for {classSymbol.Name}");
             foreach (ISymbol member in classSymbol.GetMembers())
             {
-                if (member is IMethodSymbol method &&
-                    method.MethodKind == MethodKind.Ordinary &&
-                    CheckIfNeedsPlug(method, null))
-                {
-                    DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {method.Name}");
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticMessages.MethodNeedsPlug,
-                        memberAccess.Expression.GetLocation(),
-                        properties: null,
-                        method.Name,
-                        classSymbol.Name
-                    ));
-                }
+                if (member is not IMethodSymbol { MethodKind: MethodKind.Ordinary } method ||
+                    !CheckIfNeedsPlug(method, null))
+                    continue;
+
+                DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {method.Name}");
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticMessages.MethodNeedsPlug,
+                    memberAccess.Expression.GetLocation(),
+                    properties: null,
+                    method.Name,
+                    classSymbol.Name
+                ));
             }
         }
     }
@@ -143,7 +144,11 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ClassDeclarationSyntax? plugClass = attribute.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        ClassDeclarationSyntax? plugClass = attribute
+            .Ancestors()
+            .OfType<ClassDeclarationSyntax>()
+            .FirstOrDefault();
+
         if (plugClass == null)
         {
             DebugLog("[DEBUG] No containing class found for Plug attribute");
@@ -214,33 +219,21 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context)
     {
         DebugLog($"[DEBUG] AnalyzePlugClass for {classDeclarationSyntax.Identifier.Text}");
-        if (!classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
-        {
-            DebugLog($"[DEBUG] Reporting PlugNotStatic for {classDeclarationSyntax.Identifier.Text}");
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticMessages.PlugNotStatic,
-                classDeclarationSyntax.GetLocation(),
-                classDeclarationSyntax.Identifier.Text));
-        }
+        if (string.IsNullOrEmpty(pluggedClassName))
+            return;
 
-        if (!string.IsNullOrEmpty(pluggedClassName))
-        {
-            string expectedName = $"{pluggedClassName}Impl";
-            DebugLog($"[DEBUG] Expected plug class name: {expectedName}");
-            if (classDeclarationSyntax.Identifier.Text != expectedName)
-            {
-                DebugLog($"[DEBUG] Reporting PlugNameMismatch for {classDeclarationSyntax.Identifier.Text}");
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticMessages.PlugNameDoesNotMatch,
-                    classDeclarationSyntax.GetLocation(),
-                    ImmutableDictionary.CreateRange(new[]
-                    {
-                        new KeyValuePair<string, string?>("ExpectedName", expectedName)
-                    }),
-                    classDeclarationSyntax.Identifier.Text,
-                    expectedName));
-            }
-        }
+        string expectedName = $"{pluggedClassName}Impl";
+        DebugLog($"[DEBUG] Expected plug class name: {expectedName}");
+        if (classDeclarationSyntax.Identifier.Text == expectedName)
+            return;
+
+        DebugLog($"[DEBUG] Reporting PlugNameMismatch for {classDeclarationSyntax.Identifier.Text}");
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticMessages.PlugNameDoesNotMatch,
+            classDeclarationSyntax.GetLocation(),
+            ImmutableDictionary.CreateRange([new KeyValuePair<string, string?>("ExpectedName", expectedName)]),
+            classDeclarationSyntax.Identifier.Text,
+            expectedName));
     }
 
     private void AnalyzePluggedClass(INamedTypeSymbol? symbol, ClassDeclarationSyntax? plugClass,
@@ -255,7 +248,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
 
         bool isExternalSymbol =
             !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, context.Compilation.Assembly);
-        INamedTypeSymbol plugSymbol = context.SemanticModel.GetDeclaredSymbol(plugClass);
+        INamedTypeSymbol? plugSymbol = context.SemanticModel.GetDeclaredSymbol(plugClass);
         DebugLog($"[DEBUG] Is external symbol: {isExternalSymbol}");
         pluggedClasses.TryAdd(symbol.Name, new PlugInfo(isExternalSymbol, plugSymbol));
         DebugLog($"[DEBUG] Added {symbol.Name} to pluggedClasses");
@@ -267,75 +260,77 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
         ConcurrentDictionary<string, PlugInfo> pluggedClasses)
     {
         DebugLog($"[DEBUG] AnalyzePluggedClassMembers for {symbol.Name}");
-        IEnumerable<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>();
-        PlugInfo entry = pluggedClasses[symbol.Name];
-        bool anyMethodsNeedPlug = false;
 
-        if (!(entry.IsExternal || _validatedExternals.Contains(symbol.Name)))
+        List<ISymbol> symbolMembers = [..symbol.GetMembers()];
+        PlugInfo entry = pluggedClasses[symbol.Name];
+        bool memberNeedsPlug = false;
+
+        if (!(entry.IsExternal || s_externalTypeCache.Contains(symbol.Name)))
         {
-            DebugLog($"[DEBUG] Checking {methods.Count()} methods");
-            foreach (IMethodSymbol method in methods)
+            DebugLog($"[DEBUG] Checking {symbolMembers.Count} methods");
+            foreach (ISymbol member in symbolMembers)
             {
-                DebugLog($"[DEBUG] Checking method {method.Name}");
-                if (method.MethodKind is not MethodKind.Ordinary)
+                DebugLog($"[DEBUG] Checking method {member.Name}");
+                if (member is IMethodSymbol { MethodKind: not MethodKind.Ordinary })
                 {
-                    DebugLog($"[DEBUG] Skipping non-ordinary method {method.Name}");
+                    DebugLog($"[DEBUG] Skipping non-ordinary method {member.Name}");
                     continue;
                 }
 
-                if (CheckIfNeedsPlug(method, plugSymbol))
+                if (!CheckIfNeedsPlug(member, plugSymbol))
+                    continue;
+
+                memberNeedsPlug = true;
+                DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {member.Name}");
+                ImmutableDictionary<string, string> diagnosticProperties = ImmutableDictionary.CreateRange(new[]
                 {
-                    anyMethodsNeedPlug = true;
-                    DebugLog($"[DEBUG] Reporting MethodNeedsPlug for {method.Name}");
-                    ImmutableDictionary<string, string> diagnosticProperties = ImmutableDictionary.CreateRange(new[]
-                    {
-                        new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
-                        new KeyValuePair<string, string?>("MethodName", method.Name)
-                    })!;
+                    new KeyValuePair<string, string?>("ClassName", plugClass.Identifier.Text),
+                    new KeyValuePair<string, string?>("MethodName", member.Name)
+                })!;
 
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticMessages.MethodNeedsPlug,
-                        plugClass.GetLocation(),
-                        diagnosticProperties,
-                        method.Name,
-                        symbol.Name));
-                }
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticMessages.MethodNeedsPlug,
+                    plugClass.GetLocation(),
+                    diagnosticProperties,
+                    member.Name,
+                    symbol.Name));
             }
 
-            if (entry.IsExternal && !anyMethodsNeedPlug)
-            {
-                _validatedExternals.Add(symbol.Name);
-            }
+            if (entry.IsExternal && !memberNeedsPlug)
+                s_externalTypeCache.Add(symbol.Name);
         }
+
+        List<IMethodSymbol> methods = [..symbolMembers.OfType<IMethodSymbol>()];
 
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
         foreach (MemberDeclarationSyntax member in plugClass.Members)
         {
-            if (member is MethodDeclarationSyntax unimplemented &&
-                unimplemented.Identifier.Text is not ("Ctor" or "CCtor") &&
-                !methods.Any(x => x.MethodKind == MethodKind.Ordinary && x.Name == unimplemented.Identifier.Text))
-            {
-                DebugLog($"[DEBUG] Reporting MethodNotImplemented for {unimplemented.Identifier.Text}");
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticMessages.MethodNotImplemented,
-                    plugClass.GetLocation(),
-                    unimplemented.Identifier.Text,
-                    symbol.Name));
-            }
+            string? name = member.GetName();
+            if (name is "Ctor" or "CCtor" ||
+                symbolMembers.Any(x => x is IMethodSymbol method
+                    ? method.MethodKind == MethodKind.Ordinary && method.Name == name
+                    : x.Name == name))
+                continue;
+
+            DebugLog($"[DEBUG] Reporting MethodNotImplemented for {name}");
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticMessages.MethodNotImplemented,
+                plugClass.GetLocation(),
+                name,
+                symbol.Name));
         }
     }
 
     private void AnalyzePluggedClassCtors(ClassDeclarationSyntax plugClass, INamedTypeSymbol symbol,
-        IEnumerable<IMethodSymbol> methods, SyntaxNodeAnalysisContext context)
+        List<IMethodSymbol> methods, SyntaxNodeAnalysisContext context)
     {
         DebugLog($"[DEBUG] AnalyzePluggedClassCtors for {symbol.Name}");
         if (plugClass.TryGetMemberByName("CCtor", out MethodDeclarationSyntax? cctor))
         {
             DebugLog("[DEBUG] Found CCtor method");
-            if (!methods.Any(x => x.MethodKind == MethodKind.StaticConstructor))
+            if (methods.All(x => x.MethodKind != MethodKind.StaticConstructor))
             {
                 DebugLog("[DEBUG] Reporting missing static constructor");
-                DebugLog($"[DEBUG] Location:{cctor.GetFullMethodLocation()}, Span:{cctor.Span}");
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticMessages.MethodNotImplemented,
                     plugClass.GetLocation(),
@@ -344,39 +339,39 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            DebugLog($"[DEBUG] CCtor has {cctor.ParameterList.Parameters.Count} parameters");
-            if (cctor.ParameterList.Parameters.Count > 1 && !methods.Any(param => param.Name == "aThis"))
-            {
-                DebugLog("[DEBUG] Reporting static constructor too many params");
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticMessages.StaticConstructorTooManyParams,
-                    plugClass.GetLocation(),
-                    cctor.Identifier.Text));
-            }
+            DebugLog($"[DEBUG] CCtor has {cctor?.ParameterList.Parameters.Count} parameters");
+            if (cctor?.ParameterList.Parameters.Count <= 1 || methods.Any(param => param.Name == "aThis"))
+                return;
+
+            DebugLog("[DEBUG] Reporting static constructor too many params");
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticMessages.StaticConstructorTooManyParams,
+                plugClass.GetLocation(),
+                cctor?.Identifier.Text));
         }
         else if (plugClass.TryGetMemberByName("Ctor", out ClassDeclarationSyntax? ctor) &&
-                 !methods.Any(x => x.Name == ".ctor"))
+                 methods.All(x => x.Name != ".ctor"))
         {
             DebugLog("[DEBUG] Reporting missing instance constructor");
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticMessages.MethodNotImplemented,
-                ctor.Identifier.GetLocation(),
+                ctor?.Identifier.GetLocation(),
                 ".ctor",
                 symbol.Name));
         }
     }
 
-    private static bool CheckIfNeedsPlug(IMethodSymbol methodSymbol, INamedTypeSymbol? plugSymbol)
+    private static bool CheckIfNeedsPlug(ISymbol symbol, INamedTypeSymbol? plugSymbol)
     {
-        DebugLog($"[DEBUG] CheckIfNeedsPlug for {methodSymbol.Name}");
+        DebugLog($"[DEBUG] CheckIfNeedsPlug for {symbol.Name}");
 
-        bool hasMethod = plugSymbol?.GetMembers(methodSymbol.Name)
-            .OfType<IMethodSymbol>()
-            .Any(m => SymbolEqualityComparer.Default.Equals(m, methodSymbol)) ?? false;
+        bool hasMethod = plugSymbol?.GetMembers(symbol.Name)
+                             .Any(m => m.HasAttribute("PlugMemberAttribute") &&
+                                       m.Name == symbol.Name) ??
+                         false;
 
-        bool hasSpecialAttributes = methodSymbol.GetAttributes().Any(attr =>
-            attr.AttributeClass?.Name is "MethodImplAttribute" or "DllImportAttribute" or "LibraryImportAttribute");
-
+        bool hasSpecialAttributes =
+            symbol.HasAttribute("MethodImplAttribute", "DllImportAttribute", "LibraryImportAttribute");
         DebugLog($"[DEBUG] hasMethodInPlugClass: {hasMethod}, hasSpecialAttributes: {hasSpecialAttributes}");
         return !hasMethod && hasSpecialAttributes;
     }
