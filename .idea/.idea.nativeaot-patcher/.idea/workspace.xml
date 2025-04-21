@@ -14,18 +14,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: build targets">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer.CodeFixes/PatcherCodeFixProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer.CodeFixes/PatcherCodeFixProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/DiagnosticMessages.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/DiagnosticMessages.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/AttributeExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/AttributeExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/SyntaxNodeExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/Extensions/SyntaxNodeExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/PatcherAnalyzer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher.Analyzer/PatcherAnalyzer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/Cosmos.NativeWrapper.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObjectPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperObjectPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.NativeWrapper/NativeWrapperPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Patcher.Analyzer.Tests/AnalyzerTests.cs" afterDir="false" />
-    </list>
+    <list default="true" id="7312ee42-b701-41f5-9dae-6e1a90a6e86e" name="Changes" comment="upd: rename doc files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
