@@ -20,7 +20,7 @@ public class PlugPatcherTest_ObjectPlugs
         PlugPatcher? patcher = new(plugScanner);
 
         AssemblyDefinition? targetAssembly = CreateMockAssembly<NativeWrapperObject>();
-        AssemblyDefinition? plugAssembly = CreateMockAssembly<NativeWrapperObjectPlug>();
+        AssemblyDefinition? plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
         TypeDefinition? targetType =
             targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
@@ -79,7 +79,7 @@ public class PlugPatcherTest_ObjectPlugs
         PlugPatcher? patcher = new(plugScanner);
 
         AssemblyDefinition? targetAssembly = CreateMockAssembly<NativeWrapperObject>();
-        AssemblyDefinition? plugAssembly = CreateMockAssembly<NativeWrapperObjectPlug>();
+        AssemblyDefinition? plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
         TypeDefinition? targetType =
             targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
@@ -113,7 +113,7 @@ public class PlugPatcherTest_ObjectPlugs
             PlugPatcher patcher = new(plugScanner);
 
             AssemblyDefinition targetAssembly = CreateMockAssembly<NativeWrapperObject>();
-            AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectPlug>();
+            AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
             TypeDefinition targetType =
                 targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
