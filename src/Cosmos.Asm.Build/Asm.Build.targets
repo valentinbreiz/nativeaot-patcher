@@ -7,7 +7,7 @@
 
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
-      <TargetArchitecture>$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
 
     <!-- Exclude Folders/Files that doesn't exists -->
@@ -22,7 +22,7 @@
     <Warning Text="File does not exists: %(NonExistentFiles.Identity)" Condition="@(NonExistentFiles) != ''" />
 
     <!-- Override Folders For Architecture Specific Ones -->
-    <ItemGroup>
+    <ItemGroup Condition="'$(TargetArchitecture)' != ''">
       <AsmSearchPathWithArch Include="@(AsmSearchPath)" Condition="Exists('%(FullPath)/$(TargetArchitecture)/')" />
       <AsmSearchPath Remove="@(AsmSearchPathWithArch)"/>
       <AsmSearchPath Include="@(AsmSearchPathWithArch->'%(FullPath)/$(TargetArchitecture)/')"/>
