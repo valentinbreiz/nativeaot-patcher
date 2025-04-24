@@ -4,7 +4,7 @@ namespace Cosmos.NativeWrapper;
 
 [Plug(typeof(NativeWrapperObject))]
 public class NativeWrapperObjectImpl
-{~
+{
     [PlugMember]
     public static void Speakg(object aThis) => Console.WriteLine("bz bz plugged hello");
 
