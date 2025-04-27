@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,6 +11,9 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Ilc.Build" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
@@ -18,7 +21,6 @@
 
   <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
   <Import Project="../../src/Cosmos.Asm.Build/Asm.Build.targets" />
-  <Import Project="../../src/Cosmos.Ilc.Build/ILC.Build.targets" />
   <Import Project="../../src/Cosmos.Common.Build/Common.Build.targets" />
 
 </Project>
