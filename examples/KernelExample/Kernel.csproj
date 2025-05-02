@@ -5,8 +5,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <IlcDependsOn>RunPatcher</IlcDependsOn>
-    <LinkTargetDependsOn>CompileWithIlc</LinkTargetDependsOn>
+    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
+    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
@@ -17,7 +17,11 @@
   
   <ItemGroup>
     <PackageReference Include="Cosmos.Common.Build" />
-    <PackageReference Include="Cosmos.Ilc.Build" PrivateAssests="all" />
+    <PackageReference Include="Cosmos.Ilc.Build" />
+    <PackageReference Include="Cosmos.Asm.Build">
+      <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Cosmos.Patcher.Build">
       <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
