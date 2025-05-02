@@ -16,5 +16,4 @@
     <Content Include="obj\Debug\net9.0\cosmos\Cosmos.NativeWrapper_patched.dll" />
   </ItemGroup>
 
-  <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
 </Project>

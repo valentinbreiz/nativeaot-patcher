@@ -5,7 +5,6 @@ namespace Cosmos.Patcher.Build.Tasks;
 
 public sealed class PatcherTask : ToolTask
 {
-    [Required] public string? PatcherPath { get; set; }
 
     [Required] public string? TargetAssembly { get; set; }
 
@@ -13,9 +12,7 @@ public sealed class PatcherTask : ToolTask
 
     [Required] public required string OutputPath { get; set; }
 
-    protected override string GenerateFullPathToTool() =>
-        // Return Liquip.Patcher.exe path
-        PatcherPath;
+    protected override string GenerateFullPathToTool() => ToolName;
 
     protected override string GenerateCommandLineCommands()
     {
@@ -47,7 +44,6 @@ public sealed class PatcherTask : ToolTask
     {
         Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
         Log.LogMessage(MessageImportance.High, $"Platform: {Environment.OSVersion.Platform}");
-        Log.LogMessage(MessageImportance.High, $"Tool Path: {PatcherPath}");
         Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
         Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
         Log.LogMessage(MessageImportance.High,
@@ -57,5 +53,5 @@ public sealed class PatcherTask : ToolTask
         return base.Execute();
     }
 
-    protected override string ToolName => "Cosmos.Patcher" + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : string.Empty);
+    protected override string ToolName => "Cosmos.Patcher";
 }
