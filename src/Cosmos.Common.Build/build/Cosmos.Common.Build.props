@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <IsoRoot Condition="$(IsoRoot) != ''">$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
+    <IsoOutput Condition="$(IsoOutput) != ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/output/$(AssemblyName).iso'))</IsoOutput>
+    <LinkTargetDependsOn>GetLinker;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+  </PropertyGroup>
+</Project>

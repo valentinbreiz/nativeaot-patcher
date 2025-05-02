@@ -1,13 +1,8 @@
 <Project>
-  <PropertyGroup>
-    <IsoRoot>$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
-    <IsoOutput>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)/output/$(AssemblyName).iso'))</IsoOutput>
-  </PropertyGroup>
-
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
   <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
 
-  <Target Name="LinkTarget" DependsOnTargets="CompileWithIlc; GetLinker" AfterTargets="Build">
+  <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)/$(AssemblyName).elf'))</ElfBinary>
@@ -34,7 +29,7 @@
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
   </Target>
 
-  <Target Name="BuildISO" AfterTargets="LinkTarget">
+  <Target Name="BuildISO" AfterTargets="LinkTarget" DependsOnTargets="">
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
 
     <!-- Remove old ISO directory if it exists -->

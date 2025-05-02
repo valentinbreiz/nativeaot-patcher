@@ -9,6 +9,8 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ImplicitUsings>disable</ImplicitUsings>
+    <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
+    <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
   </PropertyGroup>
 
   <UsingTask
@@ -40,20 +42,8 @@
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
 
-  <!--
-    Remove all references. This does mean ALL, including .NET, so if we actually want
-    to add proper corelib support in the future (more than likely), we need to modify this.
-  -->
-  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
-      <ReferencePath Remove="@(ReferencePath)" />
-      
-    </ItemGroup>
-  </Target>
-
   <!-- Writes the response file for ILC compilation. -->
-  <Target Name="WriteIlcRsp">
+  <Target Name="WriteIlcRsp" DependsOnTargets="$(IlcDependsOn)">
     <PropertyGroup>
       <FullIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</FullIntermediateOutputPath>
       <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>

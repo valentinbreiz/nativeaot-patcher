@@ -2,9 +2,6 @@
   <Import Project="Asm.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
   <Import Project="Asm.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
 
-  <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Asm.Build.dll" />
-
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
