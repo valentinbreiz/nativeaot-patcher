@@ -175,10 +175,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Cosmos.Patcher.Packages
-          path: ./out/package/release
+          path: $GITHUB_WORKSPACE/packages
+
+      - name: 📂 List Directory Contents
+        run: ls -R $GITHUB_WORKSPACE/packages
 
       - name: 🛠️ Setup Nuget Local 
-        run: dotnet nuget add source ./out/package/release
+        run: dotnet nuget add source $GITHUB_WORKSPACE/packages
 
       - name: 🔗 Install Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm
