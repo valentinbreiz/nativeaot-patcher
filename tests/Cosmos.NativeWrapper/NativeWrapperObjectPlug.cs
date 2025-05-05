@@ -6,6 +6,9 @@ namespace Cosmos.NativeWrapper;
 public class NativeWrapperObjectImpl
 {
     [PlugMember]
+    public static void Ctor(object aThis) => Console.WriteLine("Plugged ctor");
+
+    [PlugMember]
     public static void Speakg(object aThis) => Console.WriteLine("bz bz plugged hello");
 
     [PlugMember]
