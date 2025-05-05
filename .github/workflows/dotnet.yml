@@ -175,7 +175,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Cosmos.Patcher.Packages
-          path: $GITHUB_WORKSPACE/packages
+          path: packages
 
       - name: 📂 List Directory Contents
         run: ls -R $GITHUB_WORKSPACE/packages
