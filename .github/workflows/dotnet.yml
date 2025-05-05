@@ -8,7 +8,7 @@ on:
 
 jobs:
   packages:
-    use: ./.github/workflows/package.yml
+    uses: ./.github/workflows/package.yml
   patcher-tests:
     name: Run Cosmos.Patcher.Tests
     runs-on: ${{ matrix.os }}
@@ -172,7 +172,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: 🔄 Download Packages
-        uses: actions/upload-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: Cosmos.Patcher.Packages
           path: ./out/package/release
