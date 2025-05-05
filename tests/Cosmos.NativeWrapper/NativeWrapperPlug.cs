@@ -9,7 +9,7 @@ public class TestClassPlug
     public static int Add(int a, int b) => a * b;
 
     [PlugMember]
-public static void OutputDebugString(object aThis)
+    public static void OutputDebugString(object aThis)
     {
     }
 }
