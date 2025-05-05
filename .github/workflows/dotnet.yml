@@ -171,11 +171,23 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
+      - name: 🔄 Download Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cosmos.Patcher.Packages
+          path: ./out/package/release
+
+      - name: 🛠️ Setup Nuget Local 
+        run: dotnet nuget add source ./out/package/release
+
       - name: 🔗 Install Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
 
       - name: 🔄 Restore Dependencies
         run: dotnet restore
