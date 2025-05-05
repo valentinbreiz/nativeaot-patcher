@@ -195,18 +195,6 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore
 
-      - name: 🔨 Build Cosmos.Patcher
-        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
-
-      - name: 🔨 Build Cosmos.Patcher.Build
-        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-
-      - name: 🔨 Build Cosmos.Ilc.Build
-        run: dotnet build ./src/Cosmos.Ilc.Build/Cosmos.Ilc.Build.csproj
-
-      - name: 🔨 Build Cosmos.Asm.Build
-        run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj
-
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj
 
