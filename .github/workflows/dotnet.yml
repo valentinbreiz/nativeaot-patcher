@@ -7,6 +7,8 @@ on:
     branches: [ "**" ]
 
 jobs:
+  packages:
+    use: ./.github/workflows/package.yml
   patcher-tests:
     name: Run Cosmos.Patcher.Tests
     runs-on: ${{ matrix.os }}
@@ -154,6 +156,7 @@ jobs:
 
   unix-iso-tests:
     name: Run ISO Build Tests - Unix
+    needs: [packages] 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

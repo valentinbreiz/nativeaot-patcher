@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+  workflow_call:
 jobs:
   pack-patcher:
     name: Pack Cosmos Patcher
