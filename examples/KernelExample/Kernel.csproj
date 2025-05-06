@@ -1,9 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
+    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
@@ -11,14 +14,21 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Common.Build" />
+    <PackageReference Include="Cosmos.Ilc.Build" />
+    <PackageReference Include="Cosmos.Asm.Build">
+      <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Cosmos.Patcher.Build">
+      <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
   </ItemGroup>
-
-  <Import Project="../../src/Cosmos.Patcher.Build/Patcher.Build.targets" />
-  <Import Project="../../src/Cosmos.Asm.Build/Asm.Build.targets" />
-  <Import Project="../../src/Cosmos.Ilc.Build/ILC.Build.targets" />
-  <Import Project="../../src/Cosmos.Common.Build/Common.Build.targets" />
-
 </Project>

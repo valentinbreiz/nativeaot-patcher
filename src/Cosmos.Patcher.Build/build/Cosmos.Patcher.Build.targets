@@ -1,16 +1,24 @@
 <Project>
   <PropertyGroup>
-    <PatcherBuildPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../Cosmos.Patcher/bin/Debug/net9.0/Cosmos.Patcher'))</PatcherBuildPath>
-    <PatcherExtension Condition="'$(OS)' == 'Windows_NT'">.exe</PatcherExtension>
-    <PatcherPath>$(PatcherBuildPath)$(PatcherExtension)</PatcherPath>
-    <PatcherBuildDll>$(MSBuildThisFileDirectory)bin/$(Configuration)/netstandard2.0/Cosmos.Patcher.Build.dll</PatcherBuildDll>
     <PatchedAssembly />
     <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
     <EnableAOT>true</EnableAOT>
   </PropertyGroup>
 
-  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(PatcherBuildDll)" />
+  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(CosmosPatcherTasksAssembly)" />
 
+  <!--
+    Remove all references. This does mean ALL, including .NET, so if we actually want
+    to add proper corelib support in the future (more than likely), we need to modify this.
+  -->
+  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
+      <ReferencePath Remove="@(ReferencePathWithRefAssemblies)" />
+
+    </ItemGroup>
+  </Target>
+  
   <Target Name="Log" BeforeTargets="BeforeBuild">
     <Message Importance="High" Text="MSBuildThisFileDirectory: '$(MSBuildThisFileDirectory)'" />
     <Message Importance="High" Text="Configuration: '$(Configuration)'" />
@@ -22,15 +30,14 @@
     <Message Importance="High" Text="PatchedAssembly: '$(PatchedAssembly)'" />
     <Message Importance="High" Text="TargetFramework: '$(TargetFramework)'" />
     <Message Importance="High" Text="PatcherExists: Exists('$(PatcherPath)')" />
-        <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
-
+    <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
   </Target>
 
 
   <!-- Step 1: Patcher -->
   <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
     <PropertyGroup>
-      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)cosmos/</PatcherOutputPath>
+      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)cosmos\ref</PatcherOutputPath>
       <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
     </PropertyGroup>
 
@@ -39,11 +46,8 @@
     </ItemGroup>
 
     <MakeDir Directories="$(PatcherOutputPath)" />
-    <PatcherTask
-      PatcherPath="$(PatcherPath)"
-      TargetAssembly="$(OutputPath)$(AssemblyName).dll"
-      PlugsReferences="@(PlugRef)"
-      OutputPath="$(PatcherOutputPath)" />
+
+    <Exec Command="cosmos.patcher patch --target $(OutputPath)$(AssemblyName).dll --output $(PatcherOutputPath) --plugs @(PlugRef ->'%(Identity)')"/>
 
     <Message Importance="High" Text="Cosmos.Patcher successfully patched: '$(PatchedAssembly)'" />
   </Target>

@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+  workflow_call:
 jobs:
   pack-patcher:
     name: Pack Cosmos Patcher
@@ -31,6 +31,15 @@ jobs:
 
       - name: Pack Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj --configuration Release --artifacts-path ./out
+        
+      - name: Pack Cosmos.Common.Build
+        run: dotnet build ./src/Cosmos.Common.Build/Cosmos.Common.Build.csproj --configuration Release --artifacts-path ./out
+
+      - name: Pack Cosmos.Ilc.Build
+        run: dotnet build ./src/Cosmos.Ilc.Build/Cosmos.Ilc.Build.csproj --configuration Release --artifacts-path ./out
+
+      - name: Pack Cosmos.Asm.Build
+        run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj --configuration Release --artifacts-path ./out
 
       - name: Pack Cosmos.Patcher.Analyzer.Package
         run: dotnet build ./src/Cosmos.Patcher.Analyzer.Package/Cosmos.Patcher.Analyzer.Package.csproj  --configuration Release --artifacts-path ./out

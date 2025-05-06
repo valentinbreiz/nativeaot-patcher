@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <IsoRoot Condition="$(IsoRoot) == ''">$(MSBuildProjectDirectory)/output/iso_root</IsoRoot>
+    <LinkTargetDependsOn>GetLinker;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+  </PropertyGroup>
+</Project>

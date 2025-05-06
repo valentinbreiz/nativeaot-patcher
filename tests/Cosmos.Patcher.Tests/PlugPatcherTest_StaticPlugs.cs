@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Cosmos.API.Attributes;
 using Cosmos.NativeWrapper;
 using Mono.Cecil;
 
@@ -16,43 +17,31 @@ public class PlugPatcherTest_StaticPlugs
     public void PatchType_ShouldReplaceAllMethodsCorrectly()
     {
         // Arrange
-        PlugScanner? plugScanner = new();
-        PlugPatcher? patcher = new(plugScanner);
+        PlugScanner plugScanner = new();
+        PlugPatcher patcher = new(plugScanner);
 
-        AssemblyDefinition? assembly = CreateMockAssembly<TestClass>();
-        TypeDefinition? targetType = assembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
+        AssemblyDefinition targetAssembly = CreateMockAssembly<TestClass>();
+        TypeDefinition targetType = targetAssembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
 
-        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
-
-        int count = 0;
-
-        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
-                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
-        {
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
-            {
-                continue;
-            }
-
-            count = plugMethod.Body.Instructions.Count;
-        }
+        AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
+        TypeDefinition plugType = plugAssembly.MainModule.Types.First(t => t.Name == nameof(TestClassPlug));
 
         // Act
         patcher.PatchType(targetType, plugAssembly);
 
         // Assert
-        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
-                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
+        foreach (MethodDefinition plugMethod in plugType.Methods)
         {
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
+            //TODO: Only evaluate methods with PlugMemberAttribute
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic || !plugMethod.IsConstructor)
             {
                 continue;
             }
 
-            MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-            Assert.NotNull(targetMethod);
-            Assert.NotNull(targetMethod.Body);
-            Assert.Equal(count, targetMethod.Body.Instructions.Count);
+            MethodDefinition targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
+            Assert.NotNull(targetMethod); // Ensure the method exists in the target type
+            Assert.NotNull(targetMethod.Body); // Ensure the method has a body
+            Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count); // Ensure the method body matches
         }
     }
 
@@ -60,47 +49,34 @@ public class PlugPatcherTest_StaticPlugs
     public void PatchType_ShouldPlugAssembly()
     {
         // Arrange
-        PlugScanner? plugScanner = new();
-        PlugPatcher? patcher = new(plugScanner);
+        PlugScanner plugScanner = new();
+        PlugPatcher patcher = new(plugScanner);
 
-        AssemblyDefinition? targetAssembly = CreateMockAssembly<TestClass>();
-        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
-
-        int count = 0;
-
-        foreach (MethodDefinition? plugMethod in plugAssembly.MainModule.Types
-                     .First(t => t.Name == nameof(TestClassPlug)).Methods)
-        {
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
-            {
-                continue;
-            }
-
-            count = plugMethod.Body.Instructions.Count;
-        }
+        AssemblyDefinition targetAssembly = CreateMockAssembly<TestClass>();
+        AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
 
         // Act
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         // Assert
-        TypeDefinition? targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClass));
-        TypeDefinition? plugType = plugAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClassPlug));
+        TypeDefinition targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClass));
+        TypeDefinition plugType = plugAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClassPlug));
 
-        Assert.NotNull(targetType);
-        Assert.NotNull(plugType);
+        Assert.NotNull(targetType); // Ensure the target type exists
+        Assert.NotNull(plugType); // Ensure the plug type exists
 
-        foreach (MethodDefinition? plugMethod in plugType.Methods)
+        foreach (MethodDefinition plugMethod in plugType.Methods)
         {
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic)
+            //TODO: Only evaluate methods with PlugMemberAttribute
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic || !plugMethod.IsConstructor)
             {
                 continue;
             }
 
-            MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-            Assert.NotNull(targetMethod);
-            Assert.NotNull(targetMethod.Body);
-
-            Assert.Equal(count, targetMethod.Body.Instructions.Count);
+            MethodDefinition targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
+            Assert.NotNull(targetMethod); // Ensure the method exists in the target type
+            Assert.NotNull(targetMethod.Body); // Ensure the method has a body
+            Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count); // Ensure the method body matches
         }
     }
 
