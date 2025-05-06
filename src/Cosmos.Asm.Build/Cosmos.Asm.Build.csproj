@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core"/>
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing"/>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Build\Cosmos.Asm.Build.props" Pack="true">
-      <PackagePath>Build\Cosmos.Asm.Build.props</PackagePath>
-    </None>
+    <Content Include="build\Cosmos.Asm.Build.props" PackagePath="build\" />
+    <Content Include="build\*.targets" PackagePath="build\" />
   </ItemGroup>
 </Project>

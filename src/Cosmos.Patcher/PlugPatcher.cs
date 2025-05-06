@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using Cosmos.API.Attributes;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -290,20 +291,28 @@ public sealed class PlugPatcher
 
         if (targetMethod.IsConstructor)
         {
-            Instruction nop = targetMethod.Body.Instructions.FirstOrDefault(i => i.OpCode == OpCodes.Nop);
-            if (nop != null)
+            Instruction? call = targetMethod.Body.Instructions
+                .Where(i => i.OpCode == OpCodes.Call
+                    && i.Operand is MethodReference method
+                    && method.Name == ".ctor"
+                    && (method.DeclaringType == targetMethod.DeclaringType
+                        || method.DeclaringType == targetMethod.DeclaringType.BaseType)
+                ).FirstOrDefault();
+
+            if (call is not null)
             {
-                int index = targetMethod.Body.Instructions.IndexOf(nop);
+                int index = targetMethod.Body.Instructions.IndexOf(call);
+                int instructionsToKeep = index + 1;
                 Console.WriteLine(
-                    $"[PatchMethod] Constructor NOP found at index {index}, preserving {index + 1} instructions");
-                while (targetMethod.Body.Instructions.Count > index + 1)
+                    $"[PatchMethod] Base Constructor Call found at index {index}, preserving {instructionsToKeep} instructions");
+                while (targetMethod.Body.Instructions.Count > instructionsToKeep)
                 {
-                    processor.Remove(targetMethod.Body.Instructions[index + 1]);
+                    processor.RemoveAt(instructionsToKeep);
                 }
             }
             else
             {
-                Console.WriteLine("[PatchMethod] No NOP found in constructor, clearing all instructions");
+                Console.WriteLine("[PatchMethod] No Base Constructor Call found in constructor, clearing all instructions");
                 targetMethod.Body.Instructions.Clear();
             }
         }
@@ -465,39 +474,39 @@ public sealed class PlugPatcher
             Console.WriteLine("[PatchField] MarshalInfo copied");
         }
 
-        MethodDefinition? targetCtor = targetField.DeclaringType.Methods.FirstOrDefault(m => m.Name == ".ctor");
-        MethodDefinition? plugCtor = plugField.DeclaringType.Methods.FirstOrDefault(m => m.Name == ".ctor");
-
-        if (targetCtor == null || plugCtor == null)
-            return;
-
-        (Instruction? Instruction, int Index) targetFieldInstr =
-            FindField(targetCtor, targetField, OpCodes.Stfld, OpCodes.Stsfld);
-        (Instruction? Instruction, int Index) plugFieldInstr =
-            FindField(plugCtor, plugField, OpCodes.Stfld, OpCodes.Stsfld);
-
-        if (targetFieldInstr.Instruction == null || plugFieldInstr.Instruction == null)
+        foreach (var targetCtor in targetField.DeclaringType.GetConstructors())
         {
-            Console.WriteLine("[PatchField] Field instruction not found in one of the constructors.");
-            return;
+            foreach (var plugCtor in plugField.DeclaringType.GetConstructors())
+            {
+                (Instruction? Instruction, int Index) targetFieldInstr =
+                    FindField(targetCtor, targetField, OpCodes.Stfld, OpCodes.Stsfld);
+                (Instruction? Instruction, int Index) plugFieldInstr =
+                    FindField(plugCtor, plugField, OpCodes.Stfld, OpCodes.Stsfld);
+
+                if (targetFieldInstr.Instruction is null || plugFieldInstr.Instruction is null)
+                {
+                    //Console.WriteLine("[PatchField] Field instruction not found in one of the constructors.");
+                    continue;
+                }
+
+                Instruction plugFieldValue = plugCtor.Body.Instructions[plugFieldInstr.Index - 1];
+                Instruction clone = plugFieldValue.Clone();
+
+                clone.Operand = plugFieldValue.Operand switch
+                {
+                    MethodReference m => module.ImportReference(m),
+                    FieldReference f => module.ImportReference(f),
+                    TypeReference t => module.ImportReference(t),
+                    MemberReference mr => module.ImportReference(mr),
+                    _ => plugFieldValue.Operand
+                };
+
+                ILProcessor processor = targetCtor.Body.GetILProcessor();
+                processor.RemoveAt(targetFieldInstr.Index - 1); // The previous index points to the IL of the field value
+                processor.InsertBefore(targetFieldInstr.Instruction,
+                    clone); // Replace the value of the field with the plugged value
+            }
         }
-
-        Instruction plugFieldValue = plugCtor.Body.Instructions[plugFieldInstr.Index - 1];
-        Instruction clone = plugFieldValue.Clone();
-
-        clone.Operand = plugFieldValue.Operand switch
-        {
-            MethodReference m => module.ImportReference(m),
-            FieldReference f => module.ImportReference(f),
-            TypeReference t => module.ImportReference(t),
-            MemberReference mr => module.ImportReference(mr),
-            _ => plugFieldValue.Operand
-        };
-
-        ILProcessor processor = targetCtor.Body.GetILProcessor();
-        processor.RemoveAt(targetFieldInstr.Index - 1); // The previous index points to the IL of the field value
-        processor.InsertBefore(targetFieldInstr.Instruction,
-            clone); // Replace the value of the field with the plugged value
 
         Console.WriteLine($"[PatchField] Completed field patch: {targetField.FullName}");
     }

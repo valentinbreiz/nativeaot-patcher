@@ -4,6 +4,10 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Cosmos.Asm.Build" Version="3.0.0" />
+    <PackageVersion Include="Cosmos.Common.Build" Version="3.0.0" />
+    <PackageVersion Include="Cosmos.Ilc.Build" Version="1.0.0" />
+    <PackageVersion Include="Cosmos.Patcher.Build" Version="3.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="log4net" Version="3.0.3" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />

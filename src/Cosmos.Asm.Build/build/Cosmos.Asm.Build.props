@@ -11,12 +11,9 @@
 
   <PropertyGroup>
     <CosmosAsmTasksAssembly
-      Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\lib\net9.0\Cosmos.Asm.Build.dll
-    </CosmosAsmTasksAssembly>
+      Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\..\lib\netstandard2.0\Cosmos.Asm.Build.dll</CosmosAsmTasksAssembly>
   </PropertyGroup>
 
   <UsingTask TaskName="Cosmos.Asm.Build.Tasks.YasmBuildTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
   <UsingTask TaskName="Cosmos.Asm.Build.Tasks.LdTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
-
-
 </Project>

@@ -261,7 +261,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
     {
         DebugLog($"[DEBUG] AnalyzePluggedClassMembers for {symbol.Name}");
 
-        List<ISymbol> symbolMembers = [..symbol.GetMembers()];
+        List<ISymbol> symbolMembers = [.. symbol.GetMembers()];
         PlugInfo entry = pluggedClasses[symbol.Name];
         bool memberNeedsPlug = false;
 
@@ -300,7 +300,7 @@ public class PatcherAnalyzer : DiagnosticAnalyzer
                 s_externalTypeCache.Add(symbol.Name);
         }
 
-        List<IMethodSymbol> methods = [..symbolMembers.OfType<IMethodSymbol>()];
+        List<IMethodSymbol> methods = [.. symbolMembers.OfType<IMethodSymbol>()];
 
         AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
         foreach (MemberDeclarationSyntax member in plugClass.Members)

@@ -7,6 +7,8 @@ on:
     branches: [ "**" ]
 
 jobs:
+  packages:
+    uses: ./.github/workflows/package.yml
   patcher-tests:
     name: Run Cosmos.Patcher.Tests
     runs-on: ${{ matrix.os }}
@@ -154,6 +156,7 @@ jobs:
 
   unix-iso-tests:
     name: Run ISO Build Tests - Unix
+    needs: [packages] 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -168,26 +171,29 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
+      - name: 🔄 Download Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: Cosmos.Patcher.Packages
+          path: packages
+
+      - name: 📂 List Directory Contents
+        run: ls -R $GITHUB_WORKSPACE/packages
+
+      - name: 🛠️ Setup Nuget Local 
+        run: dotnet nuget add source $GITHUB_WORKSPACE/packages
+
       - name: 🔗 Install Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
 
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
+
       - name: 🔄 Restore Dependencies
         run: dotnet restore
-
-      - name: 🔨 Build Cosmos.Patcher
-        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
-
-      - name: 🔨 Build Cosmos.Patcher.Build
-        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
-
-      - name: 🔨 Build Cosmos.Ilc.Build
-        run: dotnet build ./src/Cosmos.Ilc.Build/Cosmos.Ilc.Build.csproj
-
-      - name: 🔨 Build Cosmos.Asm.Build
-        run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj
 
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj
