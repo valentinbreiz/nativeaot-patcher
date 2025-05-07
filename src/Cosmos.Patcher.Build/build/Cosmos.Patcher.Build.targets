@@ -37,17 +37,17 @@
   <!-- Step 1: Patcher -->
   <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
     <PropertyGroup>
-      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)cosmos\ref</PatcherOutputPath>
-      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)$(AssemblyName)_patched.dll</PatchedAssembly>
+      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/ref</PatcherOutputPath>
+      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)/$(AssemblyName)_patched.dll</PatchedAssembly>
     </PropertyGroup>
 
     <ItemGroup>
-      <PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
+      <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
     </ItemGroup>
 
     <MakeDir Directories="$(PatcherOutputPath)" />
 
-    <Exec Command="cosmos.patcher patch --target $(OutputPath)$(AssemblyName).dll --output $(PatcherOutputPath) --plugs @(PlugRef ->'%(Identity)')"/>
+    <Exec Command="cosmos.patcher patch --target $(OutputPath)/$(AssemblyName).dll --output $(PatcherOutputPath) --plugs @(PlugRef ->'%(Identity)')"/>
 
     <Message Importance="High" Text="Cosmos.Patcher successfully patched: '$(PatchedAssembly)'" />
   </Target>

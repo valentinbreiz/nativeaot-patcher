@@ -48,21 +48,20 @@
       <FullIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</FullIntermediateOutputPath>
       <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
 
-      <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)cosmos/native/'))</NativeOutputPath>
-      <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)cosmos/native/</IlcIntermediateOutputPath>
+      <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)/cosmos/native/'))</NativeOutputPath>
+      <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
     </PropertyGroup>
 
     <ItemGroup>
-      <IlcCompileInput Include="$(FullOutputPath)$(AssemblyName).dll" />
-      <ManagedBinary Include="$(FullOutputPath)$(AssemblyName).dll">
+      <IlcCompileInput Include="$(FullOutputPath)/$(AssemblyName).dll" />
+      <ManagedBinary Include="$(FullOutputPath)/$(AssemblyName).dll">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
     </ItemGroup>
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
-    <MakeDir Directories="$(NativeOutputPath)" />
 
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
