@@ -1,11 +1,14 @@
 <Project>
-  <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
-  <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
-  
   <PropertyGroup>
-    <IsoOutput Condition="$(IsoOutput) == ''">$(MSBuildProjectDirectory)/output/$(AssemblyName).iso</IsoOutput>
+    <CosmosOutputPath Condition="$(CosmosOutputPath) == ''">$(OutputPath)/cosmos</CosmosOutputPath>
+    <CosmosIntermediateOutputPath Condition="$(CosmosIntermediateOutputPath) == ''">$(IntermediateOutputPath)/cosmos</CosmosIntermediateOutputPath>
+    <IsoRoot Condition="$(IsoRoot) == ''">$(CosmosIntermediateOutputPath)/iso_root</IsoRoot>
+    <IsoOutput Condition="$(IsoOutput) == ''">$(CosmosOutputPath)/$(AssemblyName).iso</IsoOutput>
   </PropertyGroup>
 
+  <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
+  <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+    
   <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
@@ -45,20 +48,20 @@
 
     <ItemGroup>
       <!-- Includes any files under 'limine' folder -->
-      <LimineFiles Include="$(MSBuildProjectDirectory)/limine/**" />
+      <LimineFiles Include="$(CosmosIntermediateOutputPath)/limine/**" />
     </ItemGroup>
 
     <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1" IgnoreExitCode="true" />
-    <Exec Command="make -C limine CC=clang" />
+    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 $(CosmosIntermediateOutputPath)/limine" IgnoreExitCode="true" />
+    <Exec Command="make -C $(CosmosIntermediateOutputPath)/limine CC=clang" />
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
-    <Copy SourceFiles="limine/limine-bios.sys;limine/limine-bios-cd.bin;limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
-    <Copy SourceFiles="limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/limine-bios.sys;$(CosmosIntermediateOutputPath)/limine/limine-bios-cd.bin;$(CosmosIntermediateOutputPath)/limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
@@ -80,7 +83,7 @@
     <Exec Command="&quot;$(XorrisoBinary)&quot; @(XorrisoArgs, ' ')" />
 
     <!-- Install Limine on the new ISO -->
-    <Exec Command="$(MSBuildProjectDirectory)/limine/limine bios-install $(IsoOutput)" />
+    <Exec Command="$(CosmosIntermediateOutputPath)/limine/limine bios-install $(IsoOutput)" />
     <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
 
