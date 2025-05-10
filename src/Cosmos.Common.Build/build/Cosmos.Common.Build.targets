@@ -36,7 +36,7 @@
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
   </Target>
 
-  <Target Name="BuildISO" AfterTargets="LinkTarget" DependsOnTargets="">
+  <Target Name="BuildISO" AfterTargets="LinkTarget">
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
 
     <!-- Remove old ISO directory if it exists -->
@@ -78,6 +78,9 @@
       <XorrisoArgs Include="--protective-msdos-label $(FinalIsoRoot)" />
       <XorrisoArgs Include="-o $(IsoOutput)" />
     </ItemGroup>
+    
+    <!-- Create Output Dir -->
+    <MakeDir Directories="$(CosmosOutputPath)" />
 
     <!-- Build the ISO -->
     <Exec Command="&quot;$(XorrisoBinary)&quot; @(XorrisoArgs, ' ')" />
@@ -86,5 +89,11 @@
     <Exec Command="$(CosmosIntermediateOutputPath)/limine/limine bios-install $(IsoOutput)" />
     <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
+  
+  <Target Name="PublishISO" AfterTargets="Publish">
+    <!-- Copy the ISO File to the Publish -->
+    <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)" />
 
+    <Message Text="✅ ISO Copied to Publish Foder: $(PublishDir)" Importance="High" />
+  </Target>
 </Project>
