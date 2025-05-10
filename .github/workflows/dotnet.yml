@@ -196,8 +196,8 @@ jobs:
         run: dotnet restore
 
       - name: 🚀 Run Tests
-        run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj
+        run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj -o ./output
 
       - name: 🕵️‍♂️ Verify Output
         run: |
-          [ -f ./examples/KernelExample/output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+          [ -f ./output/Kernel.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
