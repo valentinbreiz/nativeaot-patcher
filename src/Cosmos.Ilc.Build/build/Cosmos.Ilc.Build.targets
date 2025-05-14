@@ -16,13 +16,6 @@
     <IlcSystemModule>Test.CoreLib</IlcSystemModule>
   </PropertyGroup>
 
-  <ItemGroup>
-    <IlcReferences Include="$([System.IO.Path]::GetFullPath('../Test.CoreLib.dll'))" />
-    <Reference Include="Test.CoreLib">
-      <HintPath>../Test.CoreLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <UsingTask
     TaskName="GetPackageDirectory"
     AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
