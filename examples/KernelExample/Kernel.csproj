@@ -4,17 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ImplicitUsings>disable</ImplicitUsings>
-    
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-
-    <IlcSystemModule>Test.CoreLib</IlcSystemModule>
-    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
-    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);MyCustomizeReferences</CoreCompileDependsOn>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
@@ -39,28 +28,5 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-  <IlcReferences Include="$([System.IO.Path]::GetFullPath('../Test.CoreLib.dll'))" />
-    <Reference Include="Test.CoreLib">
-      <HintPath>../Test.CoreLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   
-
-  <!-- The project file pretends this is .NET, but it's not .NET. Remove all assembly references the .NET SDK added. -->
-  <Target Name="MyCustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="%(Filename) != 'Test.CoreLib' and %(Filename) != 'Cosmos.API'" />
-      <ReferencePath Remove="@(ReferencePath)" />
-    </ItemGroup>
-  </Target>
-
-
-  <!-- The AOT compiler would want to mirror these as AppContext switches. Prevent that. -->
-  <Target Name="RemoveHostConfigurationOptions" BeforeTargets="WriteIlcRspFileForCompilation" DependsOnTargets="PrepareForILLink">
-    <ItemGroup>
-      <RuntimeHostConfigurationOption Remove="@(RuntimeHostConfigurationOption)" />
-    </ItemGroup>
-  </Target>
 </Project>
