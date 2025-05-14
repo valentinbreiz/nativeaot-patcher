@@ -51,6 +51,7 @@
       <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)/cosmos/native/'))</NativeOutputPath>
       <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
+      <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
 
     <ItemGroup>
@@ -66,7 +67,8 @@
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
-      <IlcArg Include="--systemmodule:$(AssemblyName)" />
+      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
+      <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
       <IlcArg Include="--nativelib" />
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
