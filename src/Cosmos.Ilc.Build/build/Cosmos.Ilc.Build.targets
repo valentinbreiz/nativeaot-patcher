@@ -13,7 +13,6 @@
     <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);MyCustomizeReferences</CoreCompileDependsOn>
-    <IlcSystemModule>Test.CoreLib</IlcSystemModule>
   </PropertyGroup>
 
   <UsingTask
