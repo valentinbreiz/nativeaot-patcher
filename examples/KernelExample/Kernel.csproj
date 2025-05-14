@@ -28,5 +28,12 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <IlcReferences Include="$([System.IO.Path]::GetFullPath('../Test.CoreLib.dll'))" />
+    <Reference Include="Test.CoreLib">
+      <HintPath>../Test.CoreLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   
 </Project>
