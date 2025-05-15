@@ -195,9 +195,6 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore
 
-      - name: 📄 Copy Test.CoreLib.dll
-        run: cp ./examples/KernelExample/Test.CoreLib.dll ./Test.CoreLib.dll
-
       - name: 🚀 Run Tests
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/Kernel.csproj -o ./output
 
