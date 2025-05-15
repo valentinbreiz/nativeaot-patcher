@@ -2,8 +2,6 @@
 
 set -e
 
-ls -la
-
 # Pack all projects
 dotnet build ./src/Cosmos.API/Cosmos.API.csproj --configuration Release
 dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj --configuration Release
@@ -20,3 +18,6 @@ dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 dotnet nuget locals all --clear
 
 dotnet restore
+
+dotnet tool install -g ilc
+dotnet tool install -g Cosmos.Patcher
