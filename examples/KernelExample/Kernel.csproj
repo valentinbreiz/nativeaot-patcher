@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -31,9 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <IlcReferences Include="$([System.IO.Path]::GetFullPath('../Test.CoreLib.dll'))" />
+    <IlcReferences Include="Test.CoreLib.dll" />
     <Reference Include="Test.CoreLib">
-      <HintPath>../Test.CoreLib.dll</HintPath>
+      <HintPath>Test.CoreLib.dll</HintPath>
     </Reference>
   </ItemGroup>
   
