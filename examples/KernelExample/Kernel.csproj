@@ -5,6 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>Test.CoreLib</IlcSystemModule>
+    <UseAppHost>false</UseAppHost>
     <DisableImplicitFrameworkReferences>True</DisableImplicitFrameworkReferences>
   </PropertyGroup>
 
