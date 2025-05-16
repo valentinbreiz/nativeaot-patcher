@@ -31,10 +31,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <IlcReferences Include="Test.CoreLib.dll" />
+    <None Update="Test.CoreLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <IlcReferences Include="$(OutputPath)Test.CoreLib.dll" />
     <Reference Include="Test.CoreLib">
-      <HintPath>Test.CoreLib.dll</HintPath>
+      <HintPath>$(OutputPath)Test.CoreLib.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
+
 </Project>
