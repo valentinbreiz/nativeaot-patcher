@@ -1,3 +1,6 @@
+using System;
+using System.Runtime.InteropServices;
+
 namespace EarlyBird.Conversion
 {
     public static unsafe class Base64

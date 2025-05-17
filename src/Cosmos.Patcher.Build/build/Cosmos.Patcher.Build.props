@@ -7,12 +7,4 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(CosmosPatcherTasksAssembly)"/>
- 
-  <Target Name="RebuildReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)"/>
-      <ReferencePath Remove="@(ReferencePath)"/>
-    </ItemGroup>
-  </Target>
-
 </Project>

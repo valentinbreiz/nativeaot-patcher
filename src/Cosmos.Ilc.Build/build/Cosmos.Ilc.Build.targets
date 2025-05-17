@@ -10,7 +10,9 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ImplicitUsings>disable</ImplicitUsings>
     <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
-    <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
+    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
+    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);MyCustomizeReferences</CoreCompileDependsOn>
   </PropertyGroup>
 
   <UsingTask
@@ -51,6 +53,7 @@
       <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)/cosmos/native/'))</NativeOutputPath>
       <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
+      <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
 
     <ItemGroup>
@@ -66,7 +69,8 @@
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
-      <IlcArg Include="--systemmodule:$(AssemblyName)" />
+      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
+      <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
       <IlcArg Include="--nativelib" />
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
@@ -86,6 +90,21 @@
     />
 
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
+  </Target>
+
+  <!-- The project file pretends this is .NET, but it's not .NET. Remove all assembly references the .NET SDK added. -->
+  <Target Name="MyCustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="%(Filename) != 'Test.CoreLib' and %(Filename) != 'Cosmos.API'" />
+      <ReferencePath Remove="@(ReferencePath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- The AOT compiler would want to mirror these as AppContext switches. Prevent that. -->
+  <Target Name="RemoveHostConfigurationOptions" BeforeTargets="WriteIlcRspFileForCompilation" DependsOnTargets="PrepareForILLink">
+    <ItemGroup>
+      <RuntimeHostConfigurationOption Remove="@(RuntimeHostConfigurationOption)" />
+    </ItemGroup>
   </Target>
 
 </Project>

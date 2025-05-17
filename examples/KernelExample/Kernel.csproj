@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
-    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+    <IlcSystemModule>Test.CoreLib</IlcSystemModule>
+    <UseAppHost>false</UseAppHost>
+    <DisableImplicitFrameworkReferences>True</DisableImplicitFrameworkReferences>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
@@ -31,4 +31,18 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Test.CoreLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <IlcReferences Include="$(OutputPath)Test.CoreLib.dll" />
+    <Reference Include="Test.CoreLib">
+      <HintPath>$(OutputPath)Test.CoreLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

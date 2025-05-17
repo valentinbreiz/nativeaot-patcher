@@ -6,18 +6,6 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(CosmosPatcherTasksAssembly)" />
-
-  <!--
-    Remove all references. This does mean ALL, including .NET, so if we actually want
-    to add proper corelib support in the future (more than likely), we need to modify this.
-  -->
-  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
-      <ReferencePath Remove="@(ReferencePathWithRefAssemblies)" />
-
-    </ItemGroup>
-  </Target>
   
   <Target Name="Log" BeforeTargets="BeforeBuild">
     <Message Importance="High" Text="MSBuildThisFileDirectory: '$(MSBuildThisFileDirectory)'" />
