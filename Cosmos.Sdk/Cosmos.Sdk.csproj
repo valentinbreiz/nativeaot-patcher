@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Sdk\Sdk.props" PackagePath="Sdk\" />
+    <Content Include="Sdk\Sdk.targets" PackagePath="Sdk\" />
+  </ItemGroup>
+</Project>
