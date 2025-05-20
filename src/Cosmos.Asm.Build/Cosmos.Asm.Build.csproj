@@ -1,15 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" />
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="build\Cosmos.Asm.Build.props" PackagePath="build\" />
     <Content Include="build\*.targets" PackagePath="build\" />
   </ItemGroup>
+
+  <!-- This target adds the generated deps.json file to our package output -->
+  <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
+          BeforeTargets="BuiltProjectOutputGroup"
+          Condition=" '$(GenerateDependencyFile)' == 'true'">
+
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput
+          Include="$(ProjectDepsFilePath)"
+          TargetPath="$(ProjectDepsFileName)"
+          FinalOutputPath="$(ProjectDepsFilePath)" />
+    </ItemGroup>
+  </Target>
 </Project>
