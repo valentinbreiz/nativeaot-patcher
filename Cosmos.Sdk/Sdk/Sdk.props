@@ -1,9 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <UsingCosmosSdk>true</UsingCosmosSdk>
-    <!-- Ilc  -->
-    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
-    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);CustomizeReferences</CoreCompileDependsOn>
-  </PropertyGroup>
-</Project>
