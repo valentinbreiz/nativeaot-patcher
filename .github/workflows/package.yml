@@ -44,6 +44,9 @@ jobs:
       - name: Pack Cosmos.Patcher.Analyzer.Package
         run: dotnet build ./src/Cosmos.Patcher.Analyzer.Package/Cosmos.Patcher.Analyzer.Package.csproj  --configuration Release --artifacts-path ./out
 
+      - name: Pack Cosmos.Sdk
+        run: dotnet build ./src/Cosmos.Sdk/Cosmos.Sdk.csproj  --configuration Release --artifacts-path ./out
+
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         with:
