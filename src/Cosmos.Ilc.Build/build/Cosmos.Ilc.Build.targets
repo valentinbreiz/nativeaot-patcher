@@ -1,18 +1,7 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <NativeLib>Static</NativeLib>
-    <OutputType>Library</OutputType>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-    <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <ImplicitUsings>disable</ImplicitUsings>
     <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
-    <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
-    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);MyCustomizeReferences</CoreCompileDependsOn>
+    <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
   </PropertyGroup>
 
   <UsingTask
@@ -91,20 +80,4 @@
 
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
-
-  <!-- The project file pretends this is .NET, but it's not .NET. Remove all assembly references the .NET SDK added. -->
-  <Target Name="MyCustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="%(Filename) != 'Test.CoreLib' and %(Filename) != 'Cosmos.API'" />
-      <ReferencePath Remove="@(ReferencePath)" />
-    </ItemGroup>
-  </Target>
-
-  <!-- The AOT compiler would want to mirror these as AppContext switches. Prevent that. -->
-  <Target Name="RemoveHostConfigurationOptions" BeforeTargets="WriteIlcRspFileForCompilation" DependsOnTargets="PrepareForILLink">
-    <ItemGroup>
-      <RuntimeHostConfigurationOption Remove="@(RuntimeHostConfigurationOption)" />
-    </ItemGroup>
-  </Target>
-
 </Project>
