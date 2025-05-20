@@ -49,7 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{02
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kernel", "examples\KernelExample\Kernel.csproj", "{28008C31-501A-8187-427A-683A2593ABAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Sdk", "Cosmos.Sdk\Cosmos.Sdk.csproj", "{73739ACB-AAE8-4149-843F-316479D54632}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Sdk", "src\Cosmos.Sdk\Cosmos.Sdk.csproj", "{73739ACB-AAE8-4149-843F-316479D54632}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
