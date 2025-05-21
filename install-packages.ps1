@@ -31,3 +31,13 @@ dotnet nuget locals all --clear
 
 # Restore project dependencies
 dotnet restore
+
+# Uninstall old global Cosmos.Patcher tool if it exists
+if (dotnet tool list -g | Select-String '^Cosmos\.Patcher') {
+    Write-Host "➖ Uninstalling existing global Cosmos.Patcher tool"
+    dotnet tool uninstall -g Cosmos.Patcher
+}
+
+# Install the latest global Cosmos.Patcher tool
+Write-Host "➕ Installing global Cosmos.Patcher tool"
+dotnet tool install -g Cosmos.Patcher --version 1.0.0

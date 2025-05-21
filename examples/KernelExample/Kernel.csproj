@@ -26,11 +26,7 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../src/Cosmos.API/Cosmos.API.csproj" />
-  </ItemGroup>
-
+ 
   <ItemGroup>
     <None Update="Test.CoreLib.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
