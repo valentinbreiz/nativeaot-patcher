@@ -8,15 +8,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Cosmos.Common.Build" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Ilc.Build" Version="1.0.0"  />
-    <PackageReference Include="Cosmos.Asm.Build" Version="3.0.0" >
-      <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Cosmos.Patcher.Build" Version="3.0.0" >
-      <IncludeAssets>runtime; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Cosmos.Common.Build" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Ilc.Build" Version="1.0.0"/>
+    <PackageReference Include="Cosmos.Asm.Build" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Patcher.Build" Version="3.0.0"/>
   </ItemGroup>
 </Project>
