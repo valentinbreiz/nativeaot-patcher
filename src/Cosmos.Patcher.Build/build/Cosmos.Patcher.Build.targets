@@ -1,21 +1,22 @@
 <Project>
 
-    <PropertyGroup>
+  <PropertyGroup>
     <!--
-      If not overridden, assume the global Cosmos.Patcher tool
-      is installed at %USERPROFILE%\.dotnet\tools\cosmos.patcher.exe
+      Windows only: if not overridden, assume the global Cosmos.Patcher
+      tool is installed at %USERPROFILE%\.dotnet\tools\cosmos.patcher.exe
     -->
-    <CosmosPatcherExe Condition="'$(CosmosPatcherExe)' == ''">$(USERPROFILE)\.dotnet\tools\cosmos.patcher.exe</CosmosPatcherExe>
+    <CosmosPatcherExe Condition="'$(OS)'=='Windows_NT' and '$(CosmosPatcherExe)' == ''">$(USERPROFILE)\.dotnet\tools\cosmos.patcher.exe</CosmosPatcherExe>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <PatchedAssembly />
-    <EnablePatching Condition="'$(EnablePatching)' != 'false'">true</EnablePatching>
+    <EnablePatching Condition="'$(EnablePatching)'!='false'">true</EnablePatching>
     <EnableAOT>true</EnableAOT>
   </PropertyGroup>
 
-  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask" AssemblyFile="$(CosmosPatcherTasksAssembly)" />
-  
+  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask"
+             AssemblyFile="$(CosmosPatcherTasksAssembly)" />
+
   <Target Name="Log" BeforeTargets="BeforeBuild">
     <Message Importance="High" Text="MSBuildThisFileDirectory: '$(MSBuildThisFileDirectory)'" />
     <Message Importance="High" Text="Configuration: '$(Configuration)'" />
@@ -53,11 +54,31 @@
     <MakeDir Directories="$(PatcherOutputPath)" />
   </Target>
 
-  <!-- Step 1: Patcher -->
+  <!-- Linux/macOS -->
   <Target Name="RunPatcher"
         AfterTargets="Build"
         DependsOnTargets="SetupPatcher"
-        Condition="'$(EnablePatching)' == 'true'"
+        Condition="'$(OS)'!='Windows_NT' and '$(EnablePatching)' == 'true'"
+        Inputs="@(AssembliesToPatch->'%(Identity)')"
+        Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
+    <Message Importance="High" Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
+
+    <Exec Command="cosmos.patcher patch --target &quot;@(AssembliesToPatch)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs @(PlugRef ->'%(Identity)')"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="PatcherConsoleOutput" />
+    </Exec>
+
+    <Error Condition="'$(PatcherExitCode)' != '0'" Text="Cosmos.Patcher failed for &quot;%(AssembliesToPatch.Identity)&quot; with code $(PatcherExitCode): $(PatcherConsoleOutput)" />
+
+    <Message Importance="High" Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'" Condition="'$(PatcherExitCode)' == '0'" />
+  </Target>
+
+  <!-- Windows -->
+  <Target Name="RunPatcher"
+        AfterTargets="Build"
+        DependsOnTargets="SetupPatcher"
+        Condition="'$(OS)'=='Windows_NT' and '$(EnablePatching)' == 'true'"
         Inputs="@(AssembliesToPatch->'%(Identity)')"
         Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
     <Message Importance="High" Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
@@ -75,4 +96,5 @@
              Text="✅ Cosmos.Patcher successfully patched: %(AssembliesToPatch.PatcherOutputPath)"
              Condition="'$(PatcherExitCode)' == '0'" />
   </Target>
+
 </Project>
