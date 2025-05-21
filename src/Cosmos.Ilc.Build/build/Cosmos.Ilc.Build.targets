@@ -46,11 +46,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <IlcCompileInput Include="$(FullOutputPath)/$(AssemblyName).dll" />
-      <ManagedBinary Include="$(FullOutputPath)/$(AssemblyName).dll">
+      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
+      <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
+      
+      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
     </ItemGroup>
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />

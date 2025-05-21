@@ -38,7 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <IlcReferences Include="$(OutputPath)Test.CoreLib.dll" />
     <Reference Include="Test.CoreLib">
       <HintPath>$(OutputPath)Test.CoreLib.dll</HintPath>
     </Reference>
