@@ -56,10 +56,9 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             PlugPatcher? plugPatcher = new(new PlugScanner());
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
-            settings.OutputPath ??= Path.GetDirectoryName(settings.TargetAssembly)!;
-
-            string finalPath = Path.Combine(settings.OutputPath, Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
+            string finalPath = settings.OutputPath ?? Path.Combine(Path.GetDirectoryName(settings.TargetAssembly)!, Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
             targetAssembly.Write(finalPath);
+
             Console.WriteLine($"Patched assembly saved to: {settings.OutputPath}");
 
             Console.WriteLine("Patching completed successfully.");

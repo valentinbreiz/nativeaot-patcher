@@ -21,22 +21,46 @@
     <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
   </Target>
 
-
-  <!-- Step 1: Patcher -->
-  <Target Name="RunPatcher" AfterTargets="Build" Condition="'$(EnablePatching)' == 'true'">
+  <Target Name="SetupPatcher" AfterTargets="Build">
     <PropertyGroup>
-      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/ref</PatcherOutputPath>
-      <PatchedAssembly Condition="$(PatchedAssembly) == ''">$(PatcherOutputPath)/$(AssemblyName)_patched.dll</PatchedAssembly>
+      <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/ref/</PatcherOutputPath>
+      <!-- The Main Assembly is patched to the root folder of Cosmos to make it easy to be found by other build tools -->
+      <PatchedAssembly Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatchedAssembly>
     </PropertyGroup>
 
     <ItemGroup>
+      <AssembliesToPatch Include="$(OutputPath)$(AssemblyName).dll">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatcherOutputPath>
+      </AssembliesToPatch>
+      <AssembliesToPatch Include="@(ReferencePathWithRefAssemblies)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </AssembliesToPatch>
+    </ItemGroup>
+    
+    <ItemGroup>
       <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
     </ItemGroup>
-
+    
     <MakeDir Directories="$(PatcherOutputPath)" />
+  </Target>
 
-    <Exec Command="cosmos.patcher patch --target $(OutputPath)/$(AssemblyName).dll --output $(PatcherOutputPath) --plugs @(PlugRef ->'%(Identity)')"/>
+  <!-- Step 1: Patcher -->
+  <Target Name="RunPatcher"
+        AfterTargets="Build"
+        DependsOnTargets="SetupPatcher"
+        Condition="'$(EnablePatching)' == 'true'"
+        Inputs="@(AssembliesToPatch->'%(Identity)')"
+        Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
+    <Message Importance="High" Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
 
-    <Message Importance="High" Text="Cosmos.Patcher successfully patched: '$(PatchedAssembly)'" />
+    <Exec Command="cosmos.patcher patch --target &quot;@(AssembliesToPatch)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs @(PlugRef ->'%(Identity)')"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="PatcherConsoleOutput" />
+    </Exec>
+
+    <Error Condition="'$(PatcherExitCode)' != '0'" Text="Cosmos.Patcher failed for &quot;%(AssembliesToPatch.Identity)&quot; with code $(PatcherExitCode): $(PatcherConsoleOutput)" />
+
+    <Message Importance="High" Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'" Condition="'$(PatcherExitCode)' == '0'" />
   </Target>
 </Project>
