@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <!--
       Windows only: if not overridden, assume the global Cosmos.Patcher

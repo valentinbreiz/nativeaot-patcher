@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -16,7 +15,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    
+
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
@@ -26,7 +25,7 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
- 
+
   <ItemGroup>
     <None Update="Test.CoreLib.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -38,5 +37,10 @@
       <HintPath>$(OutputPath)Test.CoreLib.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Import Project="../../src/Cosmos.Patcher.Build/build/Cosmos.Patcher.Build.targets"/>
+  <Import Project="../../src/Cosmos.Asm.Build/build/Cosmos.Asm.Build.targets"/>
+  <Import Project="../../src/Cosmos.Ilc.Build/build/Cosmos.Ilc.Build.targets"/>
+  <Import Project="../../src/Cosmos.Common.Build/build/Cosmos.Common.Build.targets"/>
 
 </Project>
