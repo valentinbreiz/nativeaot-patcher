@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel.Native.x86</PackageId>
+    <Title>Cosmos Kernel x86 Native Assembly</Title>
+    <Description>x86 native assembly routines for Cosmos kernel development including port I/O operations.</Description>
+    <PackageTags>cosmos;kernel;x86;assembly;native;asm;port;io;in;out</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!-- Add any folder(s) where *.asm files exist -->
+  <ItemGroup>
+    <AsmSearchPath Include="./IO/" />
+    <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
+  </ItemGroup>
+</Project>
