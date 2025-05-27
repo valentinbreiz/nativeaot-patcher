@@ -1,8 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <!-- Example input path (normally this would be passed in from somewhere else) -->
-    <IsoRoot>C:\Users\alexm\nativeaot-patcher\artifacts\obj\Kernel\debug\cosmos\iso_root</IsoRoot>
+    <!-- Input path passed as a parameter -->
+    <IsoRoot Condition="'$(IsoRoot)' == ''">$(DefaultIsoRoot)</IsoRoot>
 
     <!-- Replace ':' with '' (remove colon after drive letter) -->
     <IsoRootNoColon>$([System.String]::Copy('$(IsoRoot)').Replace(':', ''))</IsoRootNoColon>
