@@ -10,7 +10,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Content Include="build\Cosmos.Ilc.Build.props" PackagePath="build\" />
-    <Content Include="build\Cosmos.Ilc.Build.targets" PackagePath="build\" />
+    <Content Include="build\Cosmos.Build.Ilc.props" PackagePath="build\" />
+    <Content Include="build\Cosmos.Build.Ilc.targets" PackagePath="build\" />
   </ItemGroup>
 </Project>
