@@ -1,12 +1,26 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <!-- Example input path (normally this would be passed in from somewhere else) -->
+    <IsoRoot>C:\Users\alexm\nativeaot-patcher\artifacts\obj\Kernel\debug\cosmos\iso_root</IsoRoot>
+
+    <!-- Replace ':' with '' (remove colon after drive letter) -->
+    <IsoRootNoColon>$([System.String]::Copy('$(IsoRoot)').Replace(':', ''))</IsoRootNoColon>
+
+    <!-- Replace backslashes with slashes -->
+    <IsoRootSlashes>$([System.String]::Copy('$(IsoRootNoColon)').Replace('\', '/'))</IsoRootSlashes>
+
+    <!-- Add cygdrive prefix -->
+    <FinalIsoRoot>/cygdrive/$(IsoRootSlashes)</FinalIsoRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <IlcArg Include="--targetos:linux"/>
   </ItemGroup>
 
   <Target Name="GetLinker">
     <Exec Command="where ld.lld" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true"
-          Condition="$(LdLinkerPath) ==''">      <!-- Ignore error code for now. We will make the build error out later  -->
+          Condition="$(LdLinkerPath) ==''">
       <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath" />
     </Exec>
   </Target>
@@ -15,7 +29,6 @@
     <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 $(CosmosIntermediateOutputPath)/xorriso" IgnoreExitCode="true"/>
     <PropertyGroup>
       <XorrisoBinary>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)/xorriso/xorriso.exe'))</XorrisoBinary>
-      <FinalIsoRoot Condition="'$(FinalIsoRoot)' == ''">cygdrive/c/$(IsoRoot)</FinalIsoRoot>
     </PropertyGroup>
   </Target>
 
