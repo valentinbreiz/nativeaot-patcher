@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <!-- Input path passed as a parameter -->
+    <!-- Input path passed as a parameter (Correct version [oops])-->
     <IsoRoot Condition="'$(IsoRoot)' == ''">$(DefaultIsoRoot)</IsoRoot>
 
     <!-- Replace ':' with '' (remove colon after drive letter) -->
