@@ -1,14 +1,5 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <NativeLib>Static</NativeLib>
-    <OutputType>Library</OutputType>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-    <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <ImplicitUsings>disable</ImplicitUsings>
     <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
     <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
   </PropertyGroup>
@@ -51,14 +42,17 @@
       <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)/cosmos/native/'))</NativeOutputPath>
       <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
+      <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
 
     <ItemGroup>
-      <IlcCompileInput Include="$(FullOutputPath)/$(AssemblyName).dll" />
-      <ManagedBinary Include="$(FullOutputPath)/$(AssemblyName).dll">
+      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
+      <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
+      
+      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
     </ItemGroup>
 
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
@@ -66,7 +60,8 @@
     <ItemGroup>
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
-      <IlcArg Include="--systemmodule:$(AssemblyName)" />
+      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
+      <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
       <IlcArg Include="--nativelib" />
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
@@ -87,5 +82,4 @@
 
     <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
   </Target>
-
 </Project>
