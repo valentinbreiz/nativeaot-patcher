@@ -7,8 +7,6 @@ on:
     branches: [ "**" ]
 
 jobs:
-  packages:
-    uses: ./.github/workflows/package.yml
   patcher-tests:
     name: Run Cosmos.Patcher.Tests
     runs-on: ${{ matrix.os }}
@@ -156,7 +154,6 @@ jobs:
 
   unix-iso-tests:
     name: Run ISO Build Tests - Unix
-    needs: [packages] 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -171,17 +168,8 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🔄 Download Packages
-        uses: actions/download-artifact@v4
-        with:
-          name: Cosmos.Patcher.Packages
-          path: packages
-
-      - name: 📂 List Directory Contents
-        run: ls -R $GITHUB_WORKSPACE/packages
-
-      - name: 🛠️ Setup Nuget Local 
-        run: dotnet nuget add source $GITHUB_WORKSPACE/packages
+      - name: 🔄 Compile Packages
+        run: ./.devcontainer/postCreateCommand.sh
 
       - name: 🔗 Install Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm
