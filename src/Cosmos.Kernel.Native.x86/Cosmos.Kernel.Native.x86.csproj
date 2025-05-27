@@ -15,9 +15,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <!-- Add any folder(s) where *.asm files exist -->
   <ItemGroup>
-    <AsmSearchPath Include="./IO/" />
-    <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
+    <Content Include="build\Cosmos.Kernel.Native.x86.props" PackagePath="build\" />
+    <Content Include="IO\*.asm" PackagePath="build\IO" />
   </ItemGroup>
 </Project>
