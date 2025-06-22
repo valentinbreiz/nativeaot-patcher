@@ -4,7 +4,6 @@ namespace Cosmos.Memory.Heap;
 
 public static unsafe class LargeHeap
 {
-
     public static uint PrefixBytes => (uint)sizeof(LargeHeapHeader);
 
     public static uint MinSize => MediumHeap.MaxSize + 1;
@@ -27,7 +26,7 @@ public static unsafe class LargeHeap
         else
         {
             byte* newPtr = Alloc(newSize);
-            var span = new Span<byte>(ptr, (int)header->Size);
+            Span<byte> span = new(ptr, (int)header->Size);
             span.CopyTo(new Span<byte>(newPtr, (int)newSize));
             Free(ptr);
             return newPtr;
@@ -36,10 +35,7 @@ public static unsafe class LargeHeap
         return ptr;
     }
 
-    public static LargeHeapHeader* GetHeader(byte* ptr)
-    {
-        return (LargeHeapHeader*)(ptr - PrefixBytes);
-    }
+    public static LargeHeapHeader* GetHeader(byte* ptr) => (LargeHeapHeader*)(ptr - PrefixBytes);
 
     /// <summary>
     /// Alloc memory block, of a given size.
@@ -51,7 +47,7 @@ public static unsafe class LargeHeap
         uint pages = (aSize + PrefixBytes) / PageAllocator.PageSize + 1;
         void* ptr = PageAllocator.AllocPages(PageType.HeapLarge, pages, true);
         LargeHeapHeader* header = (LargeHeapHeader*)ptr;
-        header->Used = (pages * PageAllocator.PageSize) - PrefixBytes;
+        header->Used = pages * PageAllocator.PageSize - PrefixBytes;
         header->Size = (uint)aSize;
         return (byte*)ptr + PrefixBytes;
     }
@@ -78,8 +74,5 @@ public static unsafe class LargeHeap
     /// Collects all unreferenced objects after identifying them first
     /// </summary>
     /// <returns>Number of objects freed</returns>
-    public static int Collect()
-    {
-        return 0;
-    }
+    public static int Collect() => 0;
 }

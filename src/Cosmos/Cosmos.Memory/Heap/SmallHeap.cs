@@ -11,6 +11,7 @@ public unsafe struct SMTPage
     /// Pointer to the next page
     /// </summary>
     public SMTPage* Next;
+
     /// <summary>
     /// Pointer to the root of the smallest block stored on this page
     /// </summary>
@@ -24,15 +25,18 @@ public unsafe struct RootSMTBlock
     /// Does not include the prefix bytes
     /// </summary>
     public uint Size;
+
     /// <summary>
     /// Pointer to the first block for this size
     /// </summary>
     public SMTBlock* First;
+
     /// <summary>
     /// Next larger size root block
     /// </summary>
     public RootSMTBlock* LargerSize;
 }
+
 // Changing the ordering will break SMTBlock* NextFreeBlock(SMTPage* aPage)
 public unsafe struct SMTBlock
 {
@@ -40,10 +44,12 @@ public unsafe struct SMTBlock
     /// Pointer to the actual page, where the elements are stored
     /// </summary>
     public byte* PagePtr;
+
     /// <summary>
     /// How much space is left on the page, makes it easier to skip full pages
     /// </summary>
     public uint SpacesLeft;
+
     /// <summary>
     /// Pointer to the next block for this size
     /// </summary>
@@ -52,8 +58,7 @@ public unsafe struct SMTBlock
 
 public static unsafe class SmallHeap
 {
-
-    public static uint MaxSize => (PageAllocator.PageSize / 2) - 1;
+    public static uint MaxSize => PageAllocator.PageSize / 2 - 1;
 
     /// <summary>
     /// Number of prefix bytes for each item.
@@ -79,7 +84,8 @@ public static unsafe class SmallHeap
     /// <returns>Pointer to the start of block in the SMT. null if all SMT pages are full</returns>
     private static SMTBlock* NextFreeBlock(SMTPage* aPage)
     {
-        SMTBlock* ptr = (SMTBlock*)aPage->First; // since both RootSMTBlock and SMTBlock have the same size (20) it doesnt matter if cast is wrong
+        SMTBlock*
+            ptr = (SMTBlock*)aPage->First; // since both RootSMTBlock and SMTBlock have the same size (20) it doesnt matter if cast is wrong
         while (ptr->PagePtr != null) // this would check Size if its actually a RootSMTBlock, which is always non-zero
         {
             ptr += 1;
@@ -88,14 +94,11 @@ public static unsafe class SmallHeap
                 return null;
             }
         }
+
         return ptr;
-
     }
 
-    public static SmallHeapHeader* GetHeader(byte* ptr)
-    {
-        return (SmallHeapHeader*)(ptr - PrefixBytes);
-    }
+    public static SmallHeapHeader* GetHeader(byte* ptr) => (SmallHeapHeader*)(ptr - PrefixBytes);
 
     /// <summary>
     /// Gets the root block in the SMT for objects of this size
@@ -114,8 +117,10 @@ public static unsafe class SmallHeap
             {
                 return null;
             }
+
             curSize = ptr->Size;
         }
+
         return ptr;
     }
 
@@ -137,6 +142,7 @@ public static unsafe class SmallHeap
         {
             ptr = ptr->NextBlock;
         }
+
         return ptr;
     }
 
@@ -154,6 +160,7 @@ public static unsafe class SmallHeap
             block = GetFirstWithSpace(page, aSize);
             page = page->Next;
         } while (block == null && page != null);
+
         return block;
     }
 
@@ -162,10 +169,8 @@ public static unsafe class SmallHeap
     /// </summary>
     /// <param name="aSize"></param>
     /// <returns>Null if no more space on this page</returns>
-    private static SMTBlock* GetFirstWithSpace(SMTPage* aPage, uint aSize)
-    {
-        return GetFirstWithSpace(GetFirstBlock(aPage, aSize), aSize);
-    }
+    private static SMTBlock* GetFirstWithSpace(SMTPage* aPage, uint aSize) =>
+        GetFirstWithSpace(GetFirstBlock(aPage, aSize), aSize);
 
     /// <summary>
     /// Get the first block for this size in this SMT block chain, which has space left to allocate to
@@ -180,6 +185,7 @@ public static unsafe class SmallHeap
         {
             return null;
         }
+
         while (ptr->SpacesLeft == 0)
         {
             ptr = ptr->NextBlock;
@@ -188,6 +194,7 @@ public static unsafe class SmallHeap
                 return null;
             }
         }
+
         return ptr;
     }
 
@@ -209,7 +216,9 @@ public static unsafe class SmallHeap
             // Debugger.DoSendNumber(aSize);
             // Debugger.DoSendNumber(ptr->Size);
             // Debugger.SendKernelPanic(0x83);
-            while (true) { }
+            while (true)
+            {
+            }
         }
 
         if (ptr->Size == 0) // This is the first block to be allocated on the page
@@ -218,11 +227,12 @@ public static unsafe class SmallHeap
         }
         else
         {
-            RootSMTBlock* block = (RootSMTBlock*)NextFreeBlock(aPage);    // we should actually check that this is not null
-                                                                //but we should also only call this code right at the beginning so it should be fine
+            RootSMTBlock* block = (RootSMTBlock*)NextFreeBlock(aPage); // we should actually check that this is not null
+            //but we should also only call this code right at the beginning so it should be fine
             block->Size = aSize;
             ptr->LargerSize = block;
         }
+
         CreatePage(aPage, aSize);
     }
 
@@ -232,11 +242,12 @@ public static unsafe class SmallHeap
     /// <returns></returns>
     private static SMTPage* GetSMTLastPage()
     {
-        var page = SMT;
+        SMTPage* page = SMT;
         while (page->Next != null)
         {
             page = page->Next;
         }
+
         return page;
     }
 
@@ -244,10 +255,7 @@ public static unsafe class SmallHeap
     /// Return the size a certain element will be allocated as
     /// </summary>
     /// <returns></returns>
-    public static uint GetRoundedSize(uint aSize)
-    {
-        return GetFirstBlock(SMT, aSize)->Size;
-    }
+    public static uint GetRoundedSize(uint aSize) => GetFirstBlock(SMT, aSize)->Size;
 
     #endregion
 
@@ -302,7 +310,7 @@ public static unsafe class SmallHeap
     /// <item>The item size is bigger then a small heap size.</item>
     /// </list>
     /// </exception>
-    static void CreatePage(SMTPage* aPage, uint aItemSize)
+    private static void CreatePage(SMTPage* aPage, uint aItemSize)
     {
         byte* xPtr = (byte*)PageAllocator.AllocPages(PageType.HeapSmall, 1);
         if (xPtr == null)
@@ -335,10 +343,11 @@ public static unsafe class SmallHeap
             while (currentSMTPage != null)
             {
                 smtBlock = NextFreeBlock(currentSMTPage);
-                if(smtBlock != null)
+                if (smtBlock != null)
                 {
                     break;
                 }
+
                 currentSMTPage = currentSMTPage->Next;
             }
 
@@ -354,7 +363,11 @@ public static unsafe class SmallHeap
                 if (smtBlock == null)
                 {
                     // Debugger.SendKernelPanic(0x93);
-                    while (true) { };
+                    while (true)
+                    {
+                    }
+
+                    ;
                 }
             }
             else
@@ -391,7 +404,9 @@ public static unsafe class SmallHeap
         SMTBlock* pageBlock = GetFirstWithSpace(aSize);
         if (pageBlock == null) // This happens when the page is full and we need to allocate a new page for this size
         {
-            CreatePage(SMT, GetRoundedSize(aSize)); // CreatePage will try add this page to any page of the SMT until it finds one with space
+            CreatePage(SMT,
+                GetRoundedSize(
+                    aSize)); // CreatePage will try add this page to any page of the SMT until it finds one with space
             pageBlock = GetFirstWithSpace(aSize);
             if (pageBlock == null)
             {
@@ -419,7 +434,6 @@ public static unsafe class SmallHeap
                 heapObject[1] = 0; // gc status starts as 0
 
                 return (byte*)&heapObject[2];
-
             }
         }
 
@@ -427,7 +441,9 @@ public static unsafe class SmallHeap
         // Debugger.DoSendNumber((uint)pageBlock);
         // Debugger.DoSendNumber(aSize);
         // Debugger.SendKernelPanic(0x122);
-        while (true) { }
+        while (true)
+        {
+        }
     }
 
     /// <summary>
@@ -454,11 +470,13 @@ public static unsafe class SmallHeap
         {
             size = 4;
         }
+
         int bytes = size / 4;
         if (size % 4 != 0)
         {
             bytes += 1;
         }
+
         for (int i = 0; i < bytes; i++)
         {
             allocated[i] = 0;
@@ -474,13 +492,15 @@ public static unsafe class SmallHeap
             blockPtr = GetFirstBlock(smtPage, size)->First;
             while (blockPtr != null)
             {
-                if(blockPtr->PagePtr == allocatedOnPage)
+                if (blockPtr->PagePtr == allocatedOnPage)
                 {
                     blockPtr->SpacesLeft++;
                     return;
                 }
+
                 blockPtr = blockPtr->NextBlock;
             }
+
             smtPage = smtPage->Next;
         }
 
@@ -488,7 +508,9 @@ public static unsafe class SmallHeap
         // Debugger.DoSendNumber((uint)aPtr);
         // Debugger.DoSendNumber((uint)SMT);
         // Debugger.SendKernelPanic(0x98);
-        while (true) { }
+        while (true)
+        {
+        }
     }
 
     #region Statistics
@@ -498,13 +520,14 @@ public static unsafe class SmallHeap
     /// </summary>
     public static int GetAllocatedObjectCount()
     {
-        var ptr = SMT;
+        SMTPage* ptr = SMT;
         int count = 0;
         do
         {
             count += GetAllocatedObjectCount(ptr);
             ptr = ptr->Next;
         } while (ptr != null);
+
         return count;
     }
 
@@ -515,13 +538,14 @@ public static unsafe class SmallHeap
     /// <returns></returns>
     private static int GetAllocatedObjectCount(SMTPage* aPage)
     {
-        var ptr = aPage->First;
+        RootSMTBlock* ptr = aPage->First;
         int count = 0;
         while (ptr != null)
         {
             count += GetAllocatedObjectCount(aPage, ptr->Size);
             ptr = ptr->LargerSize;
         }
+
         return count;
     }
 
@@ -564,6 +588,7 @@ public static unsafe class SmallHeap
             freed += PruneSMT(page);
             page = page->Next;
         }
+
         return freed;
     }
 
@@ -575,12 +600,14 @@ public static unsafe class SmallHeap
     private static int PruneSMT(SMTPage* aPage)
     {
         int freed = 0;
-        RootSMTBlock* ptr = (RootSMTBlock*)aPage->First; // since both RootSMTBlock and SMTBlock have the same size (20) it doesnt matter if cast is wrong
-        while(ptr != null)
+        RootSMTBlock*
+            ptr = (RootSMTBlock*)aPage->First; // since both RootSMTBlock and SMTBlock have the same size (20) it doesnt matter if cast is wrong
+        while (ptr != null)
         {
             freed += PruneSMT(ptr, ptr->Size);
             ptr = ptr->LargerSize;
         }
+
         return freed;
     }
 
@@ -597,7 +624,7 @@ public static unsafe class SmallHeap
         int maxElements = (int)(PageAllocator.PageSize / (aSize + PrefixBytes));
         SMTBlock* prev = aBlock->First;
         SMTBlock* block = prev->NextBlock;
-        while(block != null)
+        while (block != null)
         {
             if (block->SpacesLeft == maxElements)
             {
@@ -605,7 +632,7 @@ public static unsafe class SmallHeap
                 prev->NextBlock = block->NextBlock;
                 PageAllocator.Free(block->PagePtr);
 
-                uint* toCleanUp = (uint*) block;
+                uint* toCleanUp = (uint*)block;
                 block = prev->NextBlock;
 
                 toCleanUp[0] = 0;
@@ -620,9 +647,9 @@ public static unsafe class SmallHeap
                 block = block->NextBlock;
             }
         }
+
         return freed;
     }
 
     #endregion
-
 }

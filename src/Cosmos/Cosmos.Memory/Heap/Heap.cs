@@ -4,7 +4,6 @@ namespace Cosmos.Memory.Heap;
 
 public static unsafe class Heap
 {
-
     /// <summary>
     /// Re-allocates or "re-sizes" data asigned to a pointer.
     /// The pointer specified must be the start of an allocated block in the heap.
@@ -15,7 +14,7 @@ public static unsafe class Heap
     /// <returns>New pointer with specified size while maintaining old data.</returns>
     public static byte* Realloc(byte* aPtr, uint newSize)
     {
-        var currentType = PageAllocator.GetPageType(aPtr);
+        PageType currentType = PageAllocator.GetPageType(aPtr);
         if (newSize > MediumHeap.MinSize && newSize <= MediumHeap.MaxSize)
         {
             if (currentType == PageType.HeapMedium)
@@ -26,20 +25,21 @@ public static unsafe class Heap
             int oldSize = 0;
             if (currentType == PageType.HeapLarge)
             {
-                var header = LargeHeap.GetHeader(aPtr);
+                LargeHeapHeader* header = LargeHeap.GetHeader(aPtr);
                 oldSize = (int)header->Size;
             }
             else if (currentType == PageType.HeapSmall)
             {
-                var header = SmallHeap.GetHeader(aPtr);
+                SmallHeapHeader* header = SmallHeap.GetHeader(aPtr);
                 oldSize = (int)header->Size;
             }
             else
             {
                 throw new Exception();
             }
-            var newPtr = MediumHeap.Alloc(newSize);
-            var span = new Span<byte>(aPtr, oldSize);
+
+            byte* newPtr = MediumHeap.Alloc(newSize);
+            Span<byte> span = new(aPtr, oldSize);
             span.CopyTo(new Span<byte>(newPtr, (int)newSize));
             return newPtr;
         }
@@ -59,7 +59,6 @@ public static unsafe class Heap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
-
         if (aSize > MediumHeap.MinSize && aSize <= MediumHeap.MaxSize)
         {
             return MediumHeap.Alloc(aSize);
@@ -87,7 +86,7 @@ public static unsafe class Heap
     /// </exception>
     public static void Free(void* aPtr)
     {
-        var currentType = PageAllocator.GetPageType(aPtr);
+        PageType currentType = PageAllocator.GetPageType(aPtr);
         switch (currentType)
         {
             case PageType.HeapLarge:
@@ -106,8 +105,5 @@ public static unsafe class Heap
     /// Collects all unreferenced objects after identifying them first
     /// </summary>
     /// <returns>Number of objects freed</returns>
-    public static int Collect()
-    {
-        return SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
-    }
+    public static int Collect() => SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
 }

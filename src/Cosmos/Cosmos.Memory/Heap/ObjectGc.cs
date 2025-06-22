@@ -7,10 +7,7 @@ namespace Cosmos.Memory.Heap;
 [StructLayout(LayoutKind.Explicit)]
 public struct ObjectGc
 {
-    [FieldOffset(0)]
-    public ObjectGcStatus Status;
-    [FieldOffset(1)]
-    public byte Padding;
-    [FieldOffset(2)]
-    public ushort Count;
+    [FieldOffset(0)] public ObjectGcStatus Status;
+    [FieldOffset(1)] public byte Padding;
+    [FieldOffset(2)] public ushort Count;
 }

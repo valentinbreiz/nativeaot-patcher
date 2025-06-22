@@ -18,14 +18,17 @@ public enum PageType : byte
     /// Indicates that the page contains objects managed by the GC
     /// </summary>
     GCManaged = 1,
+
     /// <summary>
     /// Small heap page.
     /// </summary>
     HeapSmall = 3,
+
     /// <summary>
     /// Medium heap page.
     /// </summary>
     HeapMedium = 5,
+
     /// <summary>
     /// Large heap page.
     /// </summary>
@@ -35,13 +38,15 @@ public enum PageType : byte
     /// PageAllocator type page.
     /// </summary>
     PageAllocator = 32,
+
     /// <summary>
     /// Page which is part of the SMT
     /// </summary>
     SMT = 64,
+
     // Extension of previous page.
     /// <summary>
     /// Extension of pre-existing page.
     /// </summary>
-    Extension = 128,
+    Extension = 128
 }
