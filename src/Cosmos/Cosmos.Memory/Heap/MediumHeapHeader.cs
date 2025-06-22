@@ -7,8 +7,6 @@ namespace Cosmos.Memory.Heap;
 [StructLayout(LayoutKind.Explicit)]
 public struct MediumHeapHeader
 {
-    [FieldOffset(0)]
-    public ushort Size;
-    [FieldOffset(2)]
-    public ObjectGc Gc;
+    [FieldOffset(0)] public ushort Size;
+    [FieldOffset(2)] public ObjectGc Gc;
 }

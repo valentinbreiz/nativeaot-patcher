@@ -4,7 +4,6 @@ namespace Cosmos.Memory.Heap;
 
 public static unsafe class MediumHeap
 {
-
     public static uint PrefixBytes => (uint)sizeof(MediumHeapHeader);
 
     public static uint MaxSize => PageAllocator.PageSize - PrefixBytes;
@@ -28,7 +27,7 @@ public static unsafe class MediumHeap
         else
         {
             byte* newPtr = Alloc(newSize);
-            var span = new Span<byte>(ptr, (int)header->Size);
+            Span<byte> span = new(ptr, (int)header->Size);
             span.CopyTo(new Span<byte>(newPtr, (int)newSize));
             Free(ptr);
             return newPtr;
@@ -37,10 +36,7 @@ public static unsafe class MediumHeap
         return ptr;
     }
 
-    public static MediumHeapHeader* GetHeader(byte* ptr)
-    {
-        return (MediumHeapHeader*)(ptr - PrefixBytes);
-    }
+    public static MediumHeapHeader* GetHeader(byte* ptr) => (MediumHeapHeader*)(ptr - PrefixBytes);
 
     /// <summary>
     /// Alloc memory block, of a given size.
@@ -78,8 +74,5 @@ public static unsafe class MediumHeap
     /// Collects all unreferenced objects after identifying them first
     /// </summary>
     /// <returns>Number of objects freed</returns>
-    public static int Collect()
-    {
-        return 0;
-    }
+    public static int Collect() => 0;
 }

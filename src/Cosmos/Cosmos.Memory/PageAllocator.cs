@@ -42,6 +42,7 @@ public static unsafe class PageAllocator
     /// Pointer to end of the heap
     /// </summary>
     public static byte* HeapEnd;
+
     /// <summary>
     /// Size of heap.
     /// </summary>
@@ -84,7 +85,7 @@ public static unsafe class PageAllocator
 
         if (mRAT > HeapEnd)
         {
-            throw new Exception("mRAT is greater than heap. rattotalsize is "+xRatTotalSize);
+            throw new Exception("mRAT is greater than heap. rattotalsize is " + xRatTotalSize);
         }
 
         // Mark empty pages as such in the RAT Table
@@ -92,16 +93,17 @@ public static unsafe class PageAllocator
         {
             *p = (byte)PageType.Empty;
         }
+
         // Mark the PageAllocator pages as such
         for (byte* p = mRAT + TotalPageCount - xRatPageCount; p < mRAT + xRatTotalSize; p++)
         {
             *p = (byte)PageType.PageAllocator;
         }
+
         // Remove pages needed for RAT table from count
         FreePageCount -= xRatPageCount;
 
         SmallHeap.Init();
-
     }
 
     /// <summary>
@@ -113,7 +115,6 @@ public static unsafe class PageAllocator
     /// <returns>A pointer to the first page on success, null on failure.</returns>
     public static void* AllocPages(PageType aType, uint aPageCount = 1, bool zero = false)
     {
-
         byte* startPage = null;
 
         // Could combine with an external method or delegate, but will slow things down
@@ -165,7 +166,7 @@ public static unsafe class PageAllocator
 
             if (zero)
             {
-                var span = new Span<byte>(pageAddress, (int)(PageSize * aPageCount));
+                Span<byte> span = new(pageAddress, (int)(PageSize * aPageCount));
                 span.Fill(0x00);
             }
 
@@ -174,8 +175,8 @@ public static unsafe class PageAllocator
 
             return pageAddress;
         }
-        return null;
 
+        return null;
     }
 
     /// <summary>
@@ -186,7 +187,7 @@ public static unsafe class PageAllocator
     /// <exception cref="Exception">Thrown if page type is not found.</exception>
     public static uint GetFirstPageAllocatorIndex(void* aPtr)
     {
-        var xPos = (uint)((byte*)aPtr - RamStart) / PageSize;
+        uint xPos = (uint)((byte*)aPtr - RamStart) / PageSize;
         // See note about when mRAT = 0 in Alloc.
         for (byte* p = mRAT + xPos; p >= mRAT; p--)
         {
@@ -195,6 +196,7 @@ public static unsafe class PageAllocator
                 return (uint)(p - mRAT);
             }
         }
+
         throw new Exception("Page type not found. Likely RAT is rotten.");
     }
 
@@ -203,10 +205,7 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     /// <returns></returns>
-    public static byte* GetPagePtr(void* aPtr)
-    {
-        return (byte*)aPtr - ((byte*)aPtr - RamStart) % PageSize;
-    }
+    public static byte* GetPagePtr(void* aPtr) => (byte*)aPtr - ((byte*)aPtr - RamStart) % PageSize;
 
     /// <summary>
     /// Get the page type pointed by a pointer to the RAT entry.
@@ -216,10 +215,11 @@ public static unsafe class PageAllocator
     /// <exception cref="Exception">Thrown if page type is not found.</exception>
     public static PageType GetPageType(void* aPtr)
     {
-        if(aPtr < RamStart || aPtr > HeapEnd)
+        if (aPtr < RamStart || aPtr > HeapEnd)
         {
             return PageType.Empty;
         }
+
         return (PageType)mRAT[GetFirstPageAllocatorIndex(aPtr)];
     }
 
@@ -238,6 +238,7 @@ public static unsafe class PageAllocator
             {
                 break;
             }
+
             *p = (byte)PageType.Empty;
             FreePageCount++;
         }
@@ -247,9 +248,5 @@ public static unsafe class PageAllocator
     /// Free the page this pointer points to
     /// </summary>
     /// <param name="aPtr"></param>
-    public static void Free(void* aPtr)
-    {
-        Free(GetFirstPageAllocatorIndex(aPtr));
-    }
-
+    public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
 }

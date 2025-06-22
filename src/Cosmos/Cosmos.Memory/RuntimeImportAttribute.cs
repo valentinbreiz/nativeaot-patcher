@@ -1,5 +1,6 @@
 // move this
 // ReSharper disable CheckNamespace
+
 namespace System
 {
     namespace Runtime
@@ -13,7 +14,9 @@ namespace System
 
         internal sealed class RuntimeExportAttribute : Attribute
         {
-            public RuntimeExportAttribute(string entry) { }
+            public RuntimeExportAttribute(string entry)
+            {
+            }
         }
 
         internal sealed class RuntimeImportAttribute : Attribute
@@ -21,10 +24,7 @@ namespace System
             public string DllName { get; }
             public string EntryPoint { get; }
 
-            public RuntimeImportAttribute(string entry)
-            {
-                EntryPoint = entry;
-            }
+            public RuntimeImportAttribute(string entry) => EntryPoint = entry;
 
             public RuntimeImportAttribute(string dllName, string entry)
             {
