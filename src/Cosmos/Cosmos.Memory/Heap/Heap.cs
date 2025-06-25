@@ -2,6 +2,9 @@
 
 namespace Cosmos.Memory.Heap;
 
+/// <summary>
+/// a basic Heap that uses PageAllocator
+/// </summary>
 public static unsafe class Heap
 {
     /// <summary>

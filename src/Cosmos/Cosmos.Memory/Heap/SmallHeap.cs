@@ -552,6 +552,7 @@ public static unsafe class SmallHeap
     /// <summary>
     /// Counts how many elements are currently allocated in this category on a certain page
     /// </summary>
+    /// <param name="aPage"></param>
     /// <param name="aSize"></param>
     /// <returns></returns>
     private static int GetAllocatedObjectCount(SMTPage* aPage, uint aSize)

@@ -4,6 +4,9 @@ using Cosmos.Memory.Heap;
 
 namespace Cosmos.Memory;
 
+/// <summary>
+/// a basic page allocator
+/// </summary>
 public static unsafe class PageAllocator
 {
     /// <summary>
@@ -29,19 +32,22 @@ public static unsafe class PageAllocator
     /// <summary>
     /// Number of pages which are currently not in use
     /// </summary>
-    public static uint FreePageCount;
+    public static uint FreePageCount { get; private set; }
 
     /// <summary>
     /// Pointer to the RAT.
     /// </summary>
-    /// <remarks>Covers Data area only.</remarks>
+    /// <remarks>
+    /// Covers Data area only.
+    /// stored at the end of RAM
+    /// </remarks>
     // We need a pointer as the RAT can move around in future with dynamic RAM etc.
-    public static byte* mRAT;
+    private static byte* mRAT;
 
     /// <summary>
     /// Pointer to end of the heap
     /// </summary>
-    public static byte* HeapEnd;
+    private static byte* HeapEnd;
 
     /// <summary>
     /// Size of heap.
@@ -89,16 +95,20 @@ public static unsafe class PageAllocator
         }
 
         // Mark empty pages as such in the RAT Table
-        for (byte* p = mRAT; p < mRAT + TotalPageCount - xRatPageCount; p++)
-        {
-            *p = (byte)PageType.Empty;
-        }
+        new Span<byte>(mRAT, (int)xRatPageCount)
+            .Fill((byte)PageType.Empty);
+        // for (byte* p = mRAT; p < mRAT + TotalPageCount - xRatPageCount; p++)
+        // {
+        //     *p = (byte)PageType.Empty;
+        // }
 
         // Mark the PageAllocator pages as such
-        for (byte* p = mRAT + TotalPageCount - xRatPageCount; p < mRAT + xRatTotalSize; p++)
-        {
-            *p = (byte)PageType.PageAllocator;
-        }
+        new Span<byte>(mRAT + TotalPageCount - xRatPageCount, (int)xRatTotalSize)
+            .Fill((byte)PageType.PageAllocator);
+        // for (byte* p = mRAT + TotalPageCount - xRatPageCount; p < mRAT + xRatTotalSize; p++)
+        // {
+        //     *p = (byte)PageType.PageAllocator;
+        // }
 
         // Remove pages needed for RAT table from count
         FreePageCount -= xRatPageCount;
@@ -227,7 +237,8 @@ public static unsafe class PageAllocator
     /// Free page.
     /// </summary>
     /// <param name="aPageIdx">A index to the page to be freed.</param>
-    public static void Free(uint aPageIdx)
+    /// <param name="zero"></param>
+    public static void Free(uint aPageIdx, bool zero = false)
     {
         byte* p = mRAT + aPageIdx;
         *p = (byte)PageType.Empty;
@@ -248,5 +259,5 @@ public static unsafe class PageAllocator
     /// Free the page this pointer points to
     /// </summary>
     /// <param name="aPtr"></param>
-    public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
+    public static void Free(void* aPtr, bool zero = false) => Free(GetFirstPageAllocatorIndex(aPtr));
 }

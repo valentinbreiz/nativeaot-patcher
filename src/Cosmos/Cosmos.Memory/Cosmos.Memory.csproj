@@ -1,11 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>latestmajor</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--pack as nuget-->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--pack as nuget-->
   </PropertyGroup>
-
+  <ItemGroup>
+    <Compile Include="$(AotCommonPath)Internal\Runtime\TypeManagerHandle.cs">
+      <Link>Dotnet\Internal\Runtime\TypeManagerHandle.cs</Link>
+    </Compile>
+    <Compile Include="$(CompilerCommonPath)Internal\Runtime\MethodTable.Constants.cs">
+      <Link>Dotnet\Internal\Runtime\MethodTable.Constants.cs</Link>
+    </Compile>
+    <Compile Include="$(CompilerCommonPath)Internal\NativeFormat\**">
+      <Link>Dotnet\Internal\NativeFormat\**</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Asm\io.asm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

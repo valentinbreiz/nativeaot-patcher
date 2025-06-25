@@ -4,6 +4,7 @@ namespace Cosmos.Memory;
 
 /// <summary>
 /// PageType enum. Used to define the type of the page.
+/// Data Types from 1, special meanings from 255 down.
 /// </summary>
 public enum PageType : byte
 {
@@ -13,7 +14,6 @@ public enum PageType : byte
     /// </summary>
     Empty = 0,
 
-    // Data Types from 1, special meanings from 255 down.
     /// <summary>
     /// Indicates that the page contains objects managed by the GC
     /// </summary>
@@ -33,6 +33,16 @@ public enum PageType : byte
     /// Large heap page.
     /// </summary>
     HeapLarge = 7,
+
+    /// <summary>
+    /// User Managed page
+    /// </summary>
+    Unmanaged = 9,
+
+    /// <summary>
+    /// Page Directory page
+    /// </summary>
+    PageDirectory = 11,
 
     /// <summary>
     /// PageAllocator type page.
