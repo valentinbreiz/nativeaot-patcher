@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Cosmos.Asm.Build" Version="3.0.0" />
+    <PackageVersion Include="Cosmos.Memory" Version="3.0.0" />
     <PackageVersion Include="Cosmos.Common.Build" Version="3.0.0" />
     <PackageVersion Include="Cosmos.Ilc.Build" Version="1.0.0" />
     <PackageVersion Include="Cosmos.Patcher.Build" Version="3.0.0" />
