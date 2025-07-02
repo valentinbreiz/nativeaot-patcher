@@ -6,11 +6,11 @@
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);CustomizeReferences</CoreCompileDependsOn>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Cosmos.Common.Build" Version="3.0.0"/>
-    <PackageReference Include="Cosmos.Ilc.Build" Version="1.0.0"/>
-    <PackageReference Include="Cosmos.Asm.Build" Version="3.0.0"/>
-    <PackageReference Include="Cosmos.Patcher.Build" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Build.Ilc" Version="1.0.0"/>
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.0"/>
   </ItemGroup>
 </Project>
