@@ -29,8 +29,8 @@ jobs:
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🔨 Build Cosmos.Patcher.Build
-        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj
+      - name: 🔨 Build Cosmos.Build.Patcher
+        run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj
 
       - name: 🔨 Build Cosmos.Patcher.Tests
         run: dotnet build ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
@@ -66,7 +66,7 @@ jobs:
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
 
-      - name: 🔨 Build Cosmos.Patcher.Build
+      - name: 🔨 Build Cosmos.Build.Patcher
         run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj
 
       - name: 🔨 Build Cosmos.Scanner.Tests
