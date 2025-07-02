@@ -1,4 +1,4 @@
-namespace Cosmos.API.Attributes;
+namespace Cosmos.Build.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class PlugAttribute(string targetName, bool isOptional = false, bool replaceBase = false) : Attribute

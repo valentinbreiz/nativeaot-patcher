@@ -11,8 +11,8 @@
     <PackageReference Include="coverlet.collector"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Cosmos.API\Cosmos.API.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Patcher.Analyzer\Cosmos.Patcher.Analyzer.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Patcher.Analyzer.CodeFixes\Cosmos.Patcher.Analyzer.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Build.Analyzer.Patcher.CodeFixes\Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" />
   </ItemGroup>
 </Project>

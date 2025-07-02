@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
     <!-- Package Metadata -->
-    <PackageId>Cosmos.Kernel.Core</PackageId>
+    <PackageId>Cosmos.Kernel.System.Core</PackageId>
     <Title>Cosmos Kernel Core</Title>
     <Description>Core kernel functionality for Cosmos including memory management and fundamental kernel services.</Description>
     <PackageTags>cosmos;kernel;core;memory;heap;allocation;kernel-services</PackageTags>

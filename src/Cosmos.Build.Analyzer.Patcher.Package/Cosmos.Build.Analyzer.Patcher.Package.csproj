@@ -22,16 +22,16 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.Patcher.Analyzer.CodeFixes\Cosmos.Patcher.Analyzer.CodeFixes.csproj" />
-    <ProjectReference Include="..\Cosmos.Patcher.Analyzer\Cosmos.Patcher.Analyzer.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher.CodeFixes\Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath=""/>
   </ItemGroup>
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Patcher.Analyzer.dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Patcher.Analyzer.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Build.Analyzer.Patcher.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Build.Analyzer.Patcher.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
 </Project>
