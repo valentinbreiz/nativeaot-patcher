@@ -1,3 +1,6 @@
+using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.Conversion;
+
 namespace Cosmos.Kernel.System.Graphics.Fonts;
 
     public static unsafe class PCScreenFont

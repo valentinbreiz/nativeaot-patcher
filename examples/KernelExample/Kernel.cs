@@ -1,10 +1,8 @@
 using System.Runtime;
-using System.Runtime.CompilerServices;
-using Cosmos.Boot.Limine;
-using EarlyBird;
-using EarlyBird.Internal;
-
-using static EarlyBird.Graphics;
+using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.IO;
 
 unsafe class Program
 {
