@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.System.Core.Memory;
+namespace Cosmos.Kernel.Core.Memory;
 
 public static unsafe class MemoryOp
 {
