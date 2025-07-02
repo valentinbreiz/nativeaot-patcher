@@ -4,7 +4,7 @@ using Cosmos.Patcher;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 
-namespace Cosmos.Build.Patcher.Tests;
+namespace Cosmos.Scanner.Tests;
 
 public class PlugScannerTests_LoadPlugs
 {
