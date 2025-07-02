@@ -2,7 +2,7 @@
   <!-- The project file pretends this is .NET, but it's not .NET. Remove all assembly references the .NET SDK added. -->
   <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="%(Filename) != $(IlcSystemModule) and %(Filename) != 'Cosmos.API'" />
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="%(Filename) != $(IlcSystemModule) and %(Filename) != 'Cosmos.Build.API'" />
       <ReferencePath Remove="@(ReferencePath)" />
     </ItemGroup>
   </Target>
