@@ -1,7 +1,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Cosmos.Patcher.Build.Tasks;
+namespace Cosmos.Build.Patcher.Tasks;
 
 public sealed class PatcherTask : ToolTask
 {
