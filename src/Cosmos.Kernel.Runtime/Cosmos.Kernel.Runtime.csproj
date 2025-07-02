@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
