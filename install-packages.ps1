@@ -6,7 +6,7 @@ $projects = @(
     'src\Cosmos.Build.Common\Cosmos.Build.Common.csproj',
     'src\Cosmos.Build.Ilc\Cosmos.Build.Ilc.csproj',
     'src\Cosmos.Build.Asm\Cosmos.Build.Asm.csproj',
-    'src\Cosmos.Analyzer.Patcher.Package\Cosmos.Analyzer.Patcher.Package.csproj'
+    'src\Cosmos.Build.Analyzer.Patcher.Package\Cosmos.Build.Analyzer.Patcher.Package.csproj'
     'src\Cosmos.Sdk\Cosmos.Sdk.csproj'
 )
 foreach ($proj in $projects) {
