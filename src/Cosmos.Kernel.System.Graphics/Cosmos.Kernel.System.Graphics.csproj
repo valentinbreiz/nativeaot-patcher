@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel.Graphics</PackageId>
+    <Title>Cosmos Kernel Graphics System</Title>
+    <Description>Graphics system for Cosmos kernel development including Canvas rendering, Colors, and Font support.</Description>
+    <PackageTags>cosmos;kernel;graphics;canvas;rendering;fonts;psf;colors;2d</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.System.Core\Cosmos.Kernel.System.Core.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
+  </ItemGroup>
+</Project>
