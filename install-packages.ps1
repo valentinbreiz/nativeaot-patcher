@@ -1,12 +1,12 @@
 # Build all projects in Release configuration
 $projects = @(
-    'src\Cosmos.API\Cosmos.API.csproj',
-    'src\Cosmos.Patcher.Build\Cosmos.Patcher.Build.csproj',
+    'src\Cosmos.Build.API\Cosmos.Build.API.csproj',
+    'src\Cosmos.Build.Patcher\Cosmos.Build.Patcher.csproj',
     'src\Cosmos.Patcher\Cosmos.Patcher.csproj',
-    'src\Cosmos.Common.Build\Cosmos.Common.Build.csproj',
-    'src\Cosmos.Ilc.Build\Cosmos.Ilc.Build.csproj',
-    'src\Cosmos.Asm.Build\Cosmos.Asm.Build.csproj',
-    'src\Cosmos.Patcher.Analyzer.Package\Cosmos.Patcher.Analyzer.Package.csproj'
+    'src\Cosmos.Build.Common\Cosmos.Build.Common.csproj',
+    'src\Cosmos.Build.Ilc\Cosmos.Build.Ilc.csproj',
+    'src\Cosmos.Build.Asm\Cosmos.Build.Asm.csproj',
+    'src\Cosmos.Analyzer.Patcher.Package\Cosmos.Analyzer.Patcher.Package.csproj'
     'src\Cosmos.Sdk\Cosmos.Sdk.csproj'
 )
 foreach ($proj in $projects) {

@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -13,7 +14,7 @@
     <!-- Suppress NuGet warning NU5128. -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime"/>
   </ItemGroup>
@@ -32,7 +33,7 @@
           TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
     </ItemGroup>
   </Target>
-  
+
   <!-- This target adds the generated deps.json file to our package output -->
   <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
           BeforeTargets="BuiltProjectOutputGroup"

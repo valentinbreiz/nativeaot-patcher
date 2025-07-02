@@ -1,4 +1,4 @@
-namespace Cosmos.API.Enum;
+namespace Cosmos.Build.API.Enum;
 
 public enum TargetPlatform
 {

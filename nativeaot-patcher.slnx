@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples\KernelExample\KernelExample.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Cosmos.Build.Analyzer.Patcher.CodeFixes/Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Analyzer.Patcher/Cosmos.Build.Analyzer.Patcher.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.API/Cosmos.Build.API.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Common/Cosmos.Build.Common.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.Native.x86/Cosmos.Kernel.Native.x86.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" Type="Classic C#" />
+    <Project Path="src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\Cosmos.Build.Asm.Tests\Cosmos.Build.Asm.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Build.Patcher.Analyzer.Tests\Cosmos.Build.Patcher.Analyzer.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.NativeWrapper\Cosmos.NativeWrapper.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Patcher.Tests\Cosmos.Patcher.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Scanner.Tests\Cosmos.Scanner.Tests.csproj" Type="Classic C#" />
+  </Folder>
+</Solution>

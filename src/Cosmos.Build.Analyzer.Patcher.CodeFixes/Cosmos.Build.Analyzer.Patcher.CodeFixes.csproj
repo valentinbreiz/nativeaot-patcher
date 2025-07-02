@@ -13,6 +13,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.Patcher.Analyzer\Cosmos.Patcher.Analyzer.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 using System.Xml.Linq;
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -98,8 +98,8 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: new object[] { 0, "Target" })
-                                    ?? plugAttr.GetArgument<string>(fallbackArgs: new object[] { 0, "TargetName" });
+            string? targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "Target" ])
+                                    ?? plugAttr.GetArgument<string>(fallbackArgs: [0, "TargetName"]);
 
             if (string.IsNullOrEmpty(targetTypeName))
             {
