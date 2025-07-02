@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
-namespace Cosmos.Build.Patcher.Analyzer.Tests;
+namespace Cosmos.Build.Analyzer.Patcher.Tests;
 
 public class AnalyzerTests
 {
