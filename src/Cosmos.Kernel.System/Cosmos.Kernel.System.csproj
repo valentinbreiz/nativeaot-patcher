@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
   </ItemGroup>
 </Project>

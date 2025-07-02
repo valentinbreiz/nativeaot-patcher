@@ -80,6 +80,7 @@ public static unsafe class MemoryOp
             dest[i] = value;
         }
     }
+
     public static void MemSet(uint* dest, uint value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -105,6 +106,8 @@ public static unsafe class MemoryOp
                 return false;
             }
         }
+
         return true;
     }
+}
 
