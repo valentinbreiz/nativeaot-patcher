@@ -1,11 +1,12 @@
 using System.Collections.Immutable;
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
+using Cosmos.Patcher.Analyzer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
-namespace Cosmos.Patcher.Analyzer.Tests;
+namespace Cosmos.Build.Patcher.Analyzer.Tests;
 
 public class AnalyzerTests
 {
@@ -23,7 +24,7 @@ public class AnalyzerTests
     {
         const string code = """
                             using System;
-                            using Cosmos.API.Attributes;
+                            using Cosmos.Build.API.Attributes;
 
                             namespace ConsoleApplication1
                             {
@@ -58,31 +59,33 @@ public class AnalyzerTests
     [Fact]
     public async Task Test_AnalyzeAccessedMember()
     {
-        const string code = @"
-        using System.Runtime.CompilerServices;
-        using System.Runtime.InteropServices;
-        using Cosmos.API.Attributes;
+        const string code = """
 
-        namespace ConsoleApplication1
-        {
-            public static class TestNativeType
-            {
-                [DllImport(""example.dll"")]
-                public static extern void ExternalMethod();
+                                    using System.Runtime.CompilerServices;
+                                    using System.Runtime.InteropServices;
+                                    using Cosmos.Build.API.Attributes;
 
-                [MethodImpl(MethodImplOptions.InternalCall)]
-                public static extern void NativeMethod();
-            }
+                                    namespace ConsoleApplication1
+                                    {
+                                        public static class TestNativeType
+                                        {
+                                            [DllImport("example.dll")]
+                                            public static extern void ExternalMethod();
 
-            public class Test
-            {
-                public void TestMethod()
-                {
-                    TestNativeType.ExternalMethod();
-                    TestNativeType.NativeMethod();
-                }
-            }
-        }";
+                                            [MethodImpl(MethodImplOptions.InternalCall)]
+                                            public static extern void NativeMethod();
+                                        }
+
+                                        public class Test
+                                        {
+                                            public void TestMethod()
+                                            {
+                                                TestNativeType.ExternalMethod();
+                                                TestNativeType.NativeMethod();
+                                            }
+                                        }
+                                    }
+                            """;
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
@@ -98,7 +101,7 @@ public class AnalyzerTests
         const string code = """
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
-        using Cosmos.API.Attributes;
+        using Cosmos.Build.API.Attributes;
 
         namespace ConsoleApplication1
         {
@@ -132,7 +135,7 @@ public class AnalyzerTests
 
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
-        using Cosmos.API.Attributes;
+        using Cosmos.Build.API.Attributes;
 
         namespace ConsoleApplication1
         {
@@ -168,7 +171,7 @@ public class AnalyzerTests
 
         using System.Runtime.CompilerServices;
         using System.Runtime.InteropServices;
-        using Cosmos.API.Attributes;
+        using Cosmos.Build.API.Attributes;
 
         namespace ConsoleApplication1
         {

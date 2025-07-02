@@ -1,7 +1,8 @@
 ﻿using Cosmos.NativeWrapper;
+using Cosmos.Patcher;
 using Mono.Cecil;
 
-namespace Cosmos.Patcher.Tests;
+namespace Cosmos.Build.Patcher.Tests;
 
 public class PlugScannerTests_LoadPlugMethods
 {

@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Cosmos.Asm.Build.Tasks;
+namespace Cosmos.Build.Asm.Tasks;
 
 public sealed class YasmBuildTask : ToolTask
 {

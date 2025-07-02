@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Cosmos.Asm.Build\Cosmos.Asm.Build.csproj"/>
+    <ProjectReference Include="..\..\src\Cosmos.Build.Asm\Cosmos.Build.Asm.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

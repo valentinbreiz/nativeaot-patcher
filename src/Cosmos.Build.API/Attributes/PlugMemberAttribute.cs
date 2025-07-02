@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.API.Attributes;
+namespace Cosmos.Build.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
 public class PlugMemberAttribute(string targetName) : Attribute

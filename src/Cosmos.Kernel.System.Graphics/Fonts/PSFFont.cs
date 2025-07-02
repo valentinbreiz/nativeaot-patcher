@@ -1,5 +1,5 @@
-namespace Cosmos.Kernel.System.Graphics.Fonts
-{
+namespace Cosmos.Kernel.System.Graphics.Fonts;
+
     public static unsafe class PCScreenFont
     {
         public static class Default
@@ -131,4 +131,4 @@ namespace Cosmos.Kernel.System.Graphics.Fonts
             }
         }
     }
-}
+

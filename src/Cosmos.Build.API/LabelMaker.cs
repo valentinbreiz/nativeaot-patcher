@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Cosmos.API;
+namespace Cosmos.Build.API;
 
 public static class LabelMaker
 {

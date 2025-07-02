@@ -1,9 +1,9 @@
-using Cosmos.Asm.Build.Tasks;
+using Cosmos.Build.Asm.Tasks;
 using Microsoft.Build.Framework;
 using Moq;
 using Xunit.Sdk;
 
-namespace Cosmos.Asm.Build.Test;
+namespace Cosmos.Build.Asm.Tests;
 
 public class UnitTest1
 {
