@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
 
 namespace Cosmos.NativeWrapper;
 

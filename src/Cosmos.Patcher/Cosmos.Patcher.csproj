@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <OutputType>Exe</OutputType>
+    <RootNamespace>Cosmos.Patcher</RootNamespace>
     <!--pack as nuget-->
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -17,6 +18,6 @@
     <PackageReference Include="PolySharp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.API\Cosmos.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using Cosmos.API.Attributes;
 using Cosmos.NativeWrapper;
 using Mono.Cecil;
 

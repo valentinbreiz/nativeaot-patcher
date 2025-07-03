@@ -1,9 +1,10 @@
-﻿using Cosmos.API.Attributes;
+﻿using Cosmos.Build.API.Attributes;
 using Cosmos.NativeWrapper;
+using Cosmos.Patcher;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 
-namespace Cosmos.Patcher.Tests;
+namespace Cosmos.Scanner.Tests;
 
 public class PlugScannerTests_LoadPlugs
 {

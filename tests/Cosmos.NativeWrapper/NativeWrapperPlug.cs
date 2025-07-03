@@ -1,4 +1,4 @@
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
 
 namespace Cosmos.NativeWrapper;
 
