@@ -44,15 +44,14 @@
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
       <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
-    
+    <!--
     <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
-      <UnmanagedEntryPointsAssembly Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
       <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
       <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
     </ItemGroup>
-
+    -->
     <ItemGroup>
       <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
       <ManagedBinary Include="@(IlcCompileInput)">
@@ -69,7 +68,9 @@
       <IlcArg Include="@(IlcCompileInput)" />
       <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
       <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
-      <IlcArg Include="@(RuntimeHostConfigurationOption->'--feature:%(Identity)=%(Value)')" />
+      <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')" />
+      <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
+      <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
       <IlcArg Include="--export-unmanaged-entrypoints" />
       <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
       <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
@@ -80,6 +81,9 @@
       <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
       <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
+      
+      <!-- The managed debugging support in libraries is unused - trim it -->
+      <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
     </ItemGroup>
 
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
