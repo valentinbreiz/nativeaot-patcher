@@ -21,9 +21,10 @@
     <Content Include="Bootloader\**\*" PackagePath="content\Bootloader\" />
   </ItemGroup>
 
-  <!-- MSBuild targets for copying templates -->
+  <!-- MSBuild targets for copying templates
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Templates.props" PackagePath="build\" />
     <Content Include="build\Cosmos.Build.Templates.targets" PackagePath="build\" />
   </ItemGroup>
+   -->
 </Project>

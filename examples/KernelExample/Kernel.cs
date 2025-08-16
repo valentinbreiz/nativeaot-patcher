@@ -1,4 +1,6 @@
+using System;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.Graphics;
@@ -9,7 +11,8 @@ unsafe class Program
     static readonly LimineFramebufferRequest Framebuffer = new();
     static readonly LimineHHDMRequest HHDM = new();
 
-    [RuntimeExport("kmain")]
+    [UnmanagedCallersOnly(EntryPoint = "kmain")]
+    static void KernelMain() => Main();
     static void Main()
     {
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);

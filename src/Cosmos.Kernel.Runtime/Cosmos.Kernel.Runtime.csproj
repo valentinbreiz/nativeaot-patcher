@@ -6,24 +6,15 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--pack as nuget-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-    <!-- TODO: The next properties are a requirement to allow build with Test.CoreLib
-        , decide if they should be on the Sdk Package or set by the user -->
-    <UseAppHost>false</UseAppHost>
-    <DisableImplicitFrameworkReferences>True</DisableImplicitFrameworkReferences>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-
-    <!-- Cosmos.Sdk is not compatible with Global Package managment -->
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
   <ItemGroup>
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Stdllib.cs.txt" />
   </ItemGroup>
 
 </Project>
