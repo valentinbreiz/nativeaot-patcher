@@ -42,7 +42,13 @@
       <AssembliesToPatch Include="$(OutputPath)$(AssemblyName).dll">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatcherOutputPath>
       </AssembliesToPatch>
-      <AssembliesToPatch Include="@(ReferencePathWithRefAssemblies)">
+      <AssembliesToPatch Include="@(ReferencePath)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </AssembliesToPatch>
+      <AssembliesToPatch Include="@(PrivateSdkAssemblies)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </AssembliesToPatch>
+      <AssembliesToPatch Include="@(FrameworkAssemblies)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </AssembliesToPatch>
     </ItemGroup>
@@ -51,7 +57,20 @@
       <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
     </ItemGroup>
     
+    <!-- Clean Output Path -->
+    <RemoveDir Directories="$(PatcherOutputPath)" />
+
+    <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(PatcherOutputPath)" />
+  </Target>
+  
+  <!-- Clean target to remove the asm folder -->
+  <Target Name="CleanPatcher" BeforeTargets="Clean">
+    <PropertyGroup>
+      <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/asm/</PatcherOutputPath>
+    </PropertyGroup>
+
+    <RemoveDir Directories="$(PatcherOutputPath)" />
   </Target>
 
   <Import Project="Patcher.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>

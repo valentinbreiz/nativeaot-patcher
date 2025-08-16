@@ -21,7 +21,7 @@
 
     <ItemGroup>
       <!-- Arguments for ld.lld -->
-      <LinkerArgs Include="-T src/linker.ld" />
+      <LinkerArgs Include="-T Linker/linker.ld" />
       <LinkerArgs Include="-m elf_x86_64" />
       <LinkerArgs Include="-nostdlib" />
       <LinkerArgs Include="-static" />
@@ -57,7 +57,7 @@
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRoot)/boot/" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)/src/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/Bootloader/limine.conf" DestinationFolder="$(IsoRoot)/boot/limine/" />
 
     <!-- Copy Limine files -->
     <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/limine-bios.sys;$(CosmosIntermediateOutputPath)/limine/limine-bios-cd.bin;$(CosmosIntermediateOutputPath)/limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
