@@ -13,8 +13,5 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Stdllib.cs.txt" />
-  </ItemGroup>
 
 </Project>
