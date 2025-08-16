@@ -4,7 +4,6 @@
     <!-- Ilc  -->
     <IlcDependsOn>RunPatcher;$(IlcDependsOn)</IlcDependsOn>
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;$(LinkTargetDependsOn)</LinkTargetDependsOn>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);CustomizeReferences</CoreCompileDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
