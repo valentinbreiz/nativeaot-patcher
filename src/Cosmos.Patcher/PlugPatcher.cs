@@ -98,7 +98,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "Target" ])
+            string? targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: [0, "Target"])
                                     ?? plugAttr.GetArgument<string>(fallbackArgs: [0, "TargetName"]);
 
             if (string.IsNullOrEmpty(targetTypeName))
