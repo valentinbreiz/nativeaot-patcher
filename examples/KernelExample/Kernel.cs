@@ -35,3 +35,74 @@ unsafe class Program
         while (true) ;
     }
 }
+
+namespace Internal.Runtime.CompilerHelpers
+{
+    // A class that the compiler looks for that has helpers to initialize the
+    // process. The compiler can gracefully handle the helpers not being present,
+    // but the class itself being absent is unhandled. Let's add an empty class.
+    class StartupCodeHelpers
+    {
+        // A couple symbols the generated code will need we park them in this class
+        // for no particular reason. These aid in transitioning to/from managed code.
+        // Since we don't have a GC, the transition is a no-op.
+        [RuntimeExport("RhpReversePInvoke")]
+        static void RhpReversePInvoke(IntPtr frame) { }
+        [RuntimeExport("RhpReversePInvokeReturn")]
+        static void RhpReversePInvokeReturn(IntPtr frame) { }
+        [RuntimeExport("RhpPInvoke")]
+        static void RhpPInvoke(IntPtr frame) { }
+        [RuntimeExport("RhpPInvokeReturn")]
+        static void RhpPInvokeReturn(IntPtr frame) { }
+
+        [RuntimeExport("RhpFallbackFailFast")]
+        static void RhpFallbackFailFast() { while (true) ; }
+
+        //[RuntimeExport("InitializeModules")]
+        //static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
+
+    }
+
+    public static class ThrowHelpers
+    {
+        public static void ThrowNotImplementedException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowNullReferenceException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowIndexOutOfRangeException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowInvalidProgramException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowTypeLoadException()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowTypeLoadExceptionWithArgument()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowInvalidProgramExceptionWithArgument()
+        {
+            while (true) ;
+        }
+
+        public static void ThrowOverflowException()
+        {
+            while (true) ;
+        }
+    }
+}

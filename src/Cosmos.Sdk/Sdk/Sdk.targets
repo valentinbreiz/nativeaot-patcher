@@ -1,2 +1,35 @@
 <Project>
+  <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
+  <Target Name="ResolveIlcPath" BeforeTargets="CustomizeReferences">
+    <ItemGroup>
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+    </ItemGroup>
+
+    <GetPackageDirectory
+      Items="@(HostILCompilerPack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
+
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+    </GetPackageDirectory>
+
+    <PropertyGroup>
+      <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
+      <IlcSdkPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/sdk/))</IlcSdkPath>
+      <IlcFrameworkPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/framework/))</IlcFrameworkPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+    </PropertyGroup>
+    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
+  </Target>
+
+  <Target Name="CustomizeReferences" BeforeTargets="SetupPatcher">
+    <ItemGroup>
+      <PrivateSdkAssemblies Include="$(IlcSdkPath)*.dll"/>
+      <FrameworkAssemblies Include="$(IlcFrameworkPath)**/*.dll"/>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceOutputAssembly)' != 'true'" />
+    </ItemGroup>
+  </Target>
 </Project>
