@@ -12,11 +12,13 @@
     <NoConfig>true</NoConfig>
      TODO: The next properties are a requirement to allow build with Test.CoreLib
         , decide if they should be on the Sdk Package or set by the user -->
-    <UseAppHost>false</UseAppHost>
-    <ImplicitUsings>disable</ImplicitUsings>
 
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.asm files exist -->
@@ -24,6 +26,7 @@
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
+
 <!--
   <ItemGroup>
     <None Update="Test.CoreLib.dll">
@@ -38,8 +41,18 @@
   </ItemGroup>-->
 
   <ItemGroup>
+    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
   </ItemGroup>
+
+  <Target Name="CustomIlcArgs" BeforeTargets="WriteIlcRsp" DependsOnTargets="PrepareForILLink">
+    <ItemGroup>
+      <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
+    </ItemGroup>
+  </Target>
 </Project>
