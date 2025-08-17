@@ -12,6 +12,7 @@ dotnet build ./src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj --configuration Rele
 dotnet build ./src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj --configuration Release
 dotnet build ./src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj --configuration Release
 dotnet build ./src/Cosmos.Kernel.Native.x86/Cosmos.Kernel.Native.x86.csproj --configuration Release
+dotnet build ./src/Cosmos.Sdk/Cosmos.Sdk.csproj --configuration Release
 
 # Add output folder as a local NuGet source if it doesn't already exist
 if ! dotnet nuget list source | grep -q "local-packages"; then
