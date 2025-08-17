@@ -29,7 +29,7 @@
       <!-- Default compiler flags for generating position-independent code suitable for kernel -->
       <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -fno-builtin</GCCCompilerFlags>
       <!-- Add architecture-specific flags based on target -->
-      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -ffreestanding</GCCCompilerFlags>
+      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
     </PropertyGroup>
     
     <!-- Create / clean output directory -->
