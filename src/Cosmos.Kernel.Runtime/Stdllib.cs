@@ -106,7 +106,7 @@ namespace System
             public RuntimeExportAttribute(string entry) { }
         }
 
-        internal sealed class RuntimeImportAttribute : Attribute
+        public sealed class RuntimeImportAttribute : Attribute
         {
             public string DllName { get; }
             public string EntryPoint { get; }

@@ -17,6 +17,9 @@
 
     <ItemGroup>
       <ObjFiles Include="$(IntermediateOutputPath)/cosmos/asm/*.obj" />
+      <!-- GCC produced object files -->
+      <ObjFiles Include="$(IntermediateOutputPath)/cosmos/cobj/*.obj" />
+      <ObjFiles Include="$(IntermediateOutputPath)/cosmos/cobj/*.o" />
     </ItemGroup>
 
     <ItemGroup>

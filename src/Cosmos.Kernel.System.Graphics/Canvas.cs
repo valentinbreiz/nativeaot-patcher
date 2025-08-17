@@ -90,4 +90,9 @@ public unsafe class Canvas
     {
         PCScreenFont.PutString(text, x, y, color, Color.Transparent);
     }
+
+    public static unsafe void DrawString(char* text, int x, int y, uint color)
+    {
+        PCScreenFont.PutString(text, x, y, color, Color.Transparent);
+    }
 }
