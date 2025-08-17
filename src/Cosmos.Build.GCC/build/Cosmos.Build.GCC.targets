@@ -1,0 +1,67 @@
+<Project>
+  <Import Project="GCC.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
+  <Import Project="GCC.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+
+  <Target Name="FindCSourceFilesForGCC" BeforeTargets="BuildGCC">
+    <PropertyGroup>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+    </PropertyGroup>
+
+    <!-- Exclude Folders/Files that doesn't exists -->
+    <ItemGroup>
+      <NonExistentPaths Include="@(GCCProject)" Condition="!Exists('%(FullPath)')" />
+      <GCCProject Remove="@(NonExistentPaths)" />
+    </ItemGroup>
+
+    <Warning Text="Folder does not exists: %(NonExistentPaths.Identity)" Condition="@(NonExistentPaths) != ''" />
+
+    <!-- Override Folders For Architecture Specific Ones -->
+    <ItemGroup Condition="'$(TargetArchitecture)' != ''">
+      <GCCProjectWithArch Include="@(GCCProject)" Condition="Exists('%(FullPath)/$(TargetArchitecture)/')" />
+      <GCCProject Remove="@(GCCProjectWithArch)"/>
+      <GCCProject Include="@(GCCProjectWithArch->'%(FullPath)/$(TargetArchitecture)/')"/>
+    </ItemGroup>
+
+    <Message Text="⚙️  [GCC] Found C project directories: @(GCCProject)" Importance="High" />
+  </Target>  <!-- Target to compile C files with GCC -->  <Target Name="BuildGCC" AfterTargets="BuildYasm" DependsOnTargets="FindCSourceFilesForGCC;GetGCC">
+    <PropertyGroup>
+      <GCCOutputPath>$(IntermediateOutputPath)cosmos/cobj/</GCCOutputPath>
+      <!-- Default compiler flags for generating position-independent code suitable for kernel -->
+      <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -fno-builtin</GCCCompilerFlags>
+      <!-- Add architecture-specific flags based on target -->
+      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
+    </PropertyGroup>
+    
+    <!-- Create / clean output directory -->
+    <MakeDir Directories="$(GCCOutputPath)" Condition="!Exists('$(GCCOutputPath)')" />
+    <!-- Always remove all previous GCC-produced object files to avoid linking stale objects -->
+    <ItemGroup>
+      <OldGccObjs Include="$(GCCOutputPath)*.obj" />
+      <OldGccObjs Include="$(GCCOutputPath)*.o" />
+    </ItemGroup>
+    <Delete Files="@(OldGccObjs)" Condition="@(OldGccObjs) != ''" />
+    
+    <!-- Process each GCC project directory separately -->
+    <Message 
+      Text="⚙️  [GCC] Processing C project: %(GCCProject.Identity)" 
+      Importance="High" />
+    
+    <!-- Compile each project to multiple object files -->
+    <GCCBuildTask
+      GCCPath="$(GCCPath)"
+      SourceFiles="%(GCCProject.Identity)"
+      OutputPath="$(GCCOutputPath)"
+      OutputFile="dummy.o"
+      CompilerFlags="$(GCCCompilerFlags)" />
+    
+    <Message Text="✅ [GCC] C files compiled to object files in: $(GCCOutputPath)" Importance="High" />
+  </Target>
+  <!-- Clean target to remove the gcc object files folder -->
+  <Target Name="CleanGCC" BeforeTargets="Clean">
+    <PropertyGroup>
+      <GCCOutputPath>$(IntermediateOutputPath)cosmos/cobj/</GCCOutputPath>
+    </PropertyGroup>
+
+    <RemoveDir Directories="$(GCCOutputPath)" />
+  </Target>
+</Project>

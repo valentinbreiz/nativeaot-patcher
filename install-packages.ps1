@@ -6,8 +6,10 @@ $projects = @(
     'src\Cosmos.Build.Common\Cosmos.Build.Common.csproj',
     'src\Cosmos.Build.Ilc\Cosmos.Build.Ilc.csproj',
     'src\Cosmos.Build.Asm\Cosmos.Build.Asm.csproj',
-    'src\Cosmos.Build.Analyzer.Patcher.Package\Cosmos.Build.Analyzer.Patcher.Package.csproj'
-    'src\Cosmos.Sdk\Cosmos.Sdk.csproj'
+    'src\Cosmos.Build.Analyzer.Patcher.Package\Cosmos.Build.Analyzer.Patcher.Package.csproj',
+    'src\Cosmos.Build.GCC\Cosmos.Build.GCC.csproj',
+    'src\Cosmos.Sdk\Cosmos.Sdk.csproj',
+    'src\Cosmos.Kernel.Native.x86\Cosmos.Kernel.Native.x86.csproj'
 )
 foreach ($proj in $projects) {
     dotnet build "$PSScriptRoot\$proj" -c Release

@@ -1,0 +1,10 @@
+<Project>  
+  <Target Name="GetGCC" Condition="'$(OS)' == 'Windows_NT'">
+    <!-- Always use x86_64-elf-gcc as the tool path -->
+    <PropertyGroup>
+      <GCCPath>x86_64-elf-gcc</GCCPath>
+    </PropertyGroup>
+
+    <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
+  </Target>
+</Project>
