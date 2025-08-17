@@ -1,5 +1,6 @@
 using System;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
@@ -10,6 +11,10 @@ unsafe class Program
 {
     static readonly LimineFramebufferRequest Framebuffer = new();
     static readonly LimineHHDMRequest HHDM = new();
+
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    [RuntimeImport("testGCC")]
+    extern static char* testGCC();
 
     [UnmanagedCallersOnly(EntryPoint = "kmain")]
     static void KernelMain() => Main();
@@ -31,6 +36,10 @@ unsafe class Program
         Canvas.DrawString("UART started.", 0, 28, Color.White);
 
         Serial.WriteString("Hello from UART\n");
+
+
+        char* gccString = testGCC();
+        Canvas.DrawString(gccString, 0, 56, Color.White);
 
         while (true) ;
     }

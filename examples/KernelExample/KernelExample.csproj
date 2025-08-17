@@ -18,6 +18,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
@@ -25,6 +26,10 @@
   <ItemGroup>
     <AsmSearchPath Include="./src/Asm/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <GCCProject Include="./src/C/" />
   </ItemGroup>
 
 <!--
