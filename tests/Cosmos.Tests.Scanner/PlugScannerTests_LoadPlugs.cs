@@ -1,16 +1,16 @@
 ﻿using Cosmos.Build.API.Attributes;
-using Cosmos.NativeWrapper;
+using Cosmos.Tests.NativeWrapper;
 using Cosmos.Patcher;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 
-namespace Cosmos.Scanner.Tests;
+namespace Cosmos.Tests.Scanner;
 
 public class PlugScannerTests_LoadPlugs
 {
     private AssemblyDefinition CreateMockAssembly<T>()
     {
-        string? assemblyPath = typeof(T).Assembly.Location;
+        string assemblyPath = typeof(T).Assembly.Location;
         return AssemblyDefinition.ReadAssembly(assemblyPath);
     }
 
@@ -18,11 +18,11 @@ public class PlugScannerTests_LoadPlugs
     public void LoadPlugs_ShouldFindPluggedClasses()
     {
         // Arrange
-        AssemblyDefinition? assembly = CreateMockAssembly<MockPlug>();
-        PlugScanner? scanner = new();
+        AssemblyDefinition assembly = CreateMockAssembly<MockPlug>();
+        PlugScanner scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<TypeDefinition> plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.Contains(plugs, plug => plug.Name == nameof(MockPlug));
@@ -43,11 +43,11 @@ public class PlugScannerTests_LoadPlugs
     public void LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute()
     {
         // Arrange
-        AssemblyDefinition? assembly = CreateMockAssembly<NonPlug>();
-        PlugScanner? scanner = new();
+        AssemblyDefinition assembly = CreateMockAssembly<NonPlug>();
+        PlugScanner scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<TypeDefinition> plugs = scanner.LoadPlugs(assembly);
 
         // Assert
         Assert.DoesNotContain(plugs, plug => plug.Name == nameof(NonPlug));
@@ -57,11 +57,11 @@ public class PlugScannerTests_LoadPlugs
     public void LoadPlugs_ShouldHandleOptionalPlugs()
     {
         // Arrange
-        AssemblyDefinition? assembly = CreateMockAssembly<OptionalPlug>();
-        PlugScanner? scanner = new();
+        AssemblyDefinition assembly = CreateMockAssembly<OptionalPlug>();
+        PlugScanner scanner = new();
 
         // Act
-        List<TypeDefinition>? plugs = scanner.LoadPlugs(assembly);
+        List<TypeDefinition> plugs = scanner.LoadPlugs(assembly);
         TypeDefinition? optionalPlug = plugs.FirstOrDefault(p => p.Name == nameof(OptionalPlug));
 
         // Assert

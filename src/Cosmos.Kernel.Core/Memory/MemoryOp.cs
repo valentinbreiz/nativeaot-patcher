@@ -39,7 +39,7 @@ public static unsafe class MemoryOp
                 }
                 else // Use entire block
                 {
-                    size = (uint)(blockSize) - 16;
+                    size = (uint)blockSize - 16;
                     *((ulong*)current + 1) = next;
                 }
 

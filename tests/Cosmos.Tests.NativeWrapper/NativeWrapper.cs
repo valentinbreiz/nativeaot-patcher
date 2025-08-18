@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Cosmos.Build.API.Attributes;
 
-namespace Cosmos.NativeWrapper;
+namespace Cosmos.Tests.NativeWrapper;
 
 public class TestClass
 {

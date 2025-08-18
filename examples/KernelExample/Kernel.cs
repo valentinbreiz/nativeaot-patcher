@@ -7,21 +7,22 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.IO;
 
-unsafe class Program
+internal unsafe class Program
 {
-    static readonly LimineFramebufferRequest Framebuffer = new();
-    static readonly LimineHHDMRequest HHDM = new();
+    private static readonly LimineFramebufferRequest Framebuffer = new();
+    private static readonly LimineHHDMRequest HHDM = new();
 
     [MethodImpl(MethodImplOptions.InternalCall)]
     [RuntimeImport("testGCC")]
-    extern static char* testGCC();
+    private static extern char* testGCC();
 
     [UnmanagedCallersOnly(EntryPoint = "kmain")]
-    static void KernelMain() => Main();
-    static void Main()
+    private static void KernelMain() => Main();
+
+    private static void Main()
     {
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
-        var fb = Framebuffer.Response->Framebuffers[0];
+        LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Canvas.Address = (uint*)fb->Address;
         Canvas.Pitch = (uint)fb->Pitch;
         Canvas.Width = (uint)fb->Width;

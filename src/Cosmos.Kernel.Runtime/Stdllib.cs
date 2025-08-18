@@ -37,7 +37,7 @@ namespace System.Runtime.InteropServices
         public MarshalDirectiveException(string message) : base(message) { }
     }
 
-    sealed class StructLayoutAttribute : Attribute
+    internal sealed class StructLayoutAttribute : Attribute
     {
         public StructLayoutAttribute(LayoutKind layoutKind)
         {
@@ -130,33 +130,33 @@ namespace Internal.Runtime.CompilerHelpers
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    class StartupCodeHelpers
+    internal class StartupCodeHelpers
     {
         [RuntimeExport("RhpReversePInvoke")]
-        static void RhpReversePInvoke(IntPtr frame) { }
+        private static void RhpReversePInvoke(IntPtr frame) { }
         [RuntimeExport("RhpReversePInvokeReturn")]
-        static void RhpReversePInvokeReturn(IntPtr frame) { }
+        private static void RhpReversePInvokeReturn(IntPtr frame) { }
         [RuntimeExport("RhpPInvoke")]
-        static void RhpPInvoke(IntPtr frame) { }
+        private static void RhpPInvoke(IntPtr frame) { }
         [RuntimeExport("RhpPInvokeReturn")]
-        static void RhpPInvokeReturn(IntPtr frame) { }
+        private static void RhpPInvokeReturn(IntPtr frame) { }
 
         [RuntimeExport("RhpFallbackFailFast")]
-        static void RhpFallbackFailFast() { while (true) ; }
+        private static void RhpFallbackFailFast() { while (true) ; }
 
         [RuntimeExport("InitializeModules")]
-        static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
+        private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
         [RuntimeExport("RhpThrowEx")]
-        static void RhpThrowEx(object ex) { while (true) ; }
+        private static void RhpThrowEx(object ex) { while (true) ; }
 
         [RuntimeExport("RhpNewArray")]
-        static unsafe object RhpNewArray(int elementTypeHandle, int length) { throw null; }
+        private static unsafe object RhpNewArray(int elementTypeHandle, int length) { throw null; }
 
         [RuntimeExport("RhpAssignRef")]
-        static unsafe void RhpAssignRef(object* location, object value) { }
+        private static unsafe void RhpAssignRef(object* location, object value) { }
         [RuntimeExport("RhpNewFast")]
-        static unsafe object RhpNewFast(int typeHandle) { throw null; }
+        private static unsafe object RhpNewFast(int typeHandle) { throw null; }
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }

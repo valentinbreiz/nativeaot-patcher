@@ -1,4 +1,4 @@
-﻿namespace Cosmos.NativeWrapper;
+﻿namespace Cosmos.Tests.NativeWrapper;
 
 public class NativeWrapperObject
 {

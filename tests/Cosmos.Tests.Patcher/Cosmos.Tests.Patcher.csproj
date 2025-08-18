@@ -2,6 +2,7 @@
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Cosmos.Tests.Patcher</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +12,7 @@
     <PackageReference Include="xunit.runner.visualstudio"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.NativeWrapper\Cosmos.NativeWrapper.csproj" />
+    <ProjectReference Include="..\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Patcher\Cosmos.Patcher.csproj" />
   </ItemGroup>
   <ItemGroup>
