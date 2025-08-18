@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using Cosmos.Tests.NativeWrapper;
 using Cosmos.Patcher;
+using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
 
 namespace Cosmos.Tests.Patcher;

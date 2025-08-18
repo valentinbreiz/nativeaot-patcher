@@ -1,6 +1,6 @@
 ﻿using Cosmos.Build.API.Attributes;
-using Cosmos.Tests.NativeWrapper;
 using Cosmos.Patcher;
+using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 
