@@ -69,7 +69,7 @@ public static unsafe class PCScreenFont
         {
             for (int i = 0; i < str.Length; i++)
             {
-                PutChar(ptr[i], x + (i * 16), y, fg, bg);
+                PutChar(ptr[i], x + i * 16, y, fg, bg);
             }
         }
     }
@@ -78,7 +78,7 @@ public static unsafe class PCScreenFont
     {
         for (int i = 0; str[i] != 0; i++)
         {
-            PutChar(str[i], x + (i * 16), y, fg, bg);
+            PutChar(str[i], x + i * 16, y, fg, bg);
         }
     }
 
@@ -104,10 +104,10 @@ public static unsafe class PCScreenFont
 
         byte* glyph = FontData
             + font->HeaderSize
-            + ((c < font->NumGlyph ? c : 0) * font->BytesPerGlyph);
+            + (c < font->NumGlyph ? c : 0) * font->BytesPerGlyph;
 
-        int offs = (int)((cy * font->Height * Scanline) +
-                   (cx * (int)font->Width * sizeof(uint)));
+        int offs = (int)(cy * font->Height * Scanline +
+                   cx * (int)font->Width * sizeof(uint));
 
         for (int y = 0; y < font->Height; y++)
         {

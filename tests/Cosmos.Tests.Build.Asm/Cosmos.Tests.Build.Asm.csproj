@@ -3,6 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RootNamespace>Cosmos.Tests.Build.Asm</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

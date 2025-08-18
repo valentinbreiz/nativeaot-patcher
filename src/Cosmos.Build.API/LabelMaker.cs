@@ -54,7 +54,7 @@ public static class LabelMaker
 
     private static string FilterStringForIncorrectChars(string aName)
     {
-        string? xTempResult = aName;
+        string xTempResult = aName;
         foreach (char c in IllegalIdentifierChars)
         {
             xTempResult = xTempResult.Replace(c, '_');
@@ -75,10 +75,10 @@ public static class LabelMaker
 
         if (xName.Length > MaxLengthWithoutSuffix)
         {
-            using (MD5? xHash = MD5.Create())
+            using (MD5 xHash = MD5.Create())
             {
-                byte[]? xValue = xHash.ComputeHash(Encoding.GetEncoding(0).GetBytes(xName));
-                StringBuilder? xSb = new(xName);
+                byte[] xValue = xHash.ComputeHash(Encoding.GetEncoding(0).GetBytes(xName));
+                StringBuilder xSb = new(xName);
                 // Keep length max same as before.
                 xSb.Length = MaxLengthWithoutSuffix - xValue.Length * 2;
                 foreach (byte xByte in xValue)
@@ -112,12 +112,12 @@ public static class LabelMaker
             return aType.FullName;
         }
 
-        StringBuilder? stringBuilder = new(256);
+        StringBuilder stringBuilder = new(256);
 
         if (aAssemblyIncluded)
         {
             // Start the string with the id of the assembly
-            Assembly? assembly = aType.Assembly;
+            Assembly assembly = aType.Assembly;
             if (!AssemblyIds.ContainsKey(assembly))
             {
                 AssemblyIds.Add(assembly, AssemblyIds.Count);
@@ -151,7 +151,7 @@ public static class LabelMaker
             stringBuilder.Append(GetFullName(aType.GetGenericTypeDefinition(), aAssemblyIncluded));
 
             stringBuilder.Append("<");
-            Type[]? xArgs = aType.GetGenericArguments();
+            Type[] xArgs = aType.GetGenericArguments();
             for (int i = 0; i < xArgs.Length - 1; i++)
             {
                 stringBuilder.Append(GetFullName(xArgs[i], aAssemblyIncluded));
@@ -183,8 +183,8 @@ public static class LabelMaker
             throw new ArgumentNullException(nameof(aMethod));
         }
 
-        StringBuilder? xBuilder = new(256);
-        string[]? xParts = aMethod.ToString().Split(' ');
+        StringBuilder xBuilder = new(256);
+        string[] xParts = aMethod.ToString().Split(' ');
         MethodInfo? xMethodInfo = aMethod as MethodInfo;
         if (xMethodInfo != null)
         {
@@ -218,7 +218,7 @@ public static class LabelMaker
         {
             xBuilder.Append(xMethodInfo.GetGenericMethodDefinition().Name);
 
-            Type[]? xGenArgs = aMethod.GetGenericArguments();
+            Type[] xGenArgs = aMethod.GetGenericArguments();
             if (xGenArgs.Length > 0)
             {
                 xBuilder.Append("<");
@@ -238,7 +238,7 @@ public static class LabelMaker
         }
 
         xBuilder.Append("(");
-        ParameterInfo[]? xParams = aMethod.GetParameters();
+        ParameterInfo[] xParams = aMethod.GetParameters();
         for (int i = 0; i < xParams.Length; i++)
         {
             if (i == 0 && xParams[i].Name == "aThis")

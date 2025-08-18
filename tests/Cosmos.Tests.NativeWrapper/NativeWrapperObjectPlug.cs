@@ -1,6 +1,6 @@
 ﻿using Cosmos.Build.API.Attributes;
 
-namespace Cosmos.NativeWrapper;
+namespace Cosmos.Tests.NativeWrapper;
 
 [Plug(typeof(NativeWrapperObject))]
 public class NativeWrapperObjectImpl

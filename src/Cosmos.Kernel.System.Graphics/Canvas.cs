@@ -24,8 +24,8 @@ public unsafe class Canvas
         int dy = y2 - y1;
         int absDx = Math.Abs(dx);
         int absDy = Math.Abs(dy);
-        int sx = (dx > 0) ? 1 : -1;
-        int sy = (dy > 0) ? 1 : -1;
+        int sx = dx > 0 ? 1 : -1;
+        int sy = dy > 0 ? 1 : -1;
         int err = absDx - absDy;
 
         while (true)
@@ -78,7 +78,7 @@ public unsafe class Canvas
 
     public static void ClearScreen(uint color)
     {
-        MemoryOp.MemSet(Address, color, (int)((Pitch / 4) * Height));
+        MemoryOp.MemSet(Address, color, (int)(Pitch / 4 * Height));
     }
 
     public static void DrawChar(char c, int x, int y, uint color)

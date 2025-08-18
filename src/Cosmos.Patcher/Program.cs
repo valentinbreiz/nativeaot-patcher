@@ -1,7 +1,7 @@
 ﻿using Cosmos.Patcher;
 using Spectre.Console.Cli;
 
-CommandApp? app = new();
+CommandApp app = new();
 app.Configure(config =>
 {
     config.UseAssemblyInformationalVersion();

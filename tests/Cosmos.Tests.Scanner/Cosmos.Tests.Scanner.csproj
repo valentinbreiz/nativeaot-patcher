@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Cosmos.Tests.Scanner</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector"/>
@@ -10,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.Build.API\Cosmos.Build.API.csproj" />
-    <ProjectReference Include="..\..\tests\Cosmos.NativeWrapper\Cosmos.NativeWrapper.csproj" />
+    <ProjectReference Include="..\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Patcher\Cosmos.Patcher.csproj" />
   </ItemGroup>
   <ItemGroup>

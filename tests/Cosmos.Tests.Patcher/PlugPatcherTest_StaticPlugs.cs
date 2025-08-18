@@ -1,14 +1,15 @@
 ﻿using System.Reflection;
-using Cosmos.NativeWrapper;
+using Cosmos.Patcher;
+using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
 
-namespace Cosmos.Patcher.Tests;
+namespace Cosmos.Tests.Patcher;
 
 public class PlugPatcherTest_StaticPlugs
 {
     private AssemblyDefinition CreateMockAssembly<T>()
     {
-        string? assemblyPath = typeof(T).Assembly.Location;
+        string assemblyPath = typeof(T).Assembly.Location;
         return AssemblyDefinition.ReadAssembly(assemblyPath);
     }
 
@@ -83,30 +84,30 @@ public class PlugPatcherTest_StaticPlugs
     public void AddMethod_BehaviorBeforeAndAfterPlug()
     {
         // Arrange
-        PlugScanner? plugScanner = new();
-        PlugPatcher? patcher = new(plugScanner);
+        PlugScanner plugScanner = new();
+        PlugPatcher patcher = new(plugScanner);
 
-        AssemblyDefinition? targetAssembly = CreateMockAssembly<TestClass>();
-        AssemblyDefinition? plugAssembly = CreateMockAssembly<TestClassPlug>();
+        AssemblyDefinition targetAssembly = CreateMockAssembly<TestClass>();
+        AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
 
         // Act
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         targetAssembly.Save("./", "targetAssembly.dll");
 
-        object? result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
+        object result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
         Assert.Equal(12, result);
     }
 
     private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName,
         params object[] parameters)
     {
-        using MemoryStream? memoryStream = new();
+        using MemoryStream memoryStream = new();
         assemblyDefinition.Write(memoryStream);
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        Assembly? loadedAssembly = Assembly.Load(memoryStream.ToArray());
-        Type? type = loadedAssembly.GetType("Cosmos.NativeWrapper.TestClass");
+        Assembly loadedAssembly = Assembly.Load(memoryStream.ToArray());
+        Type? type = loadedAssembly.GetType("Cosmos.Tests.NativeWrapper.TestClass");
         Assert.NotNull(type);
         MethodInfo? method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
 

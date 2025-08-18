@@ -20,12 +20,12 @@ public static unsafe class Base64
         }
 
         // Calculate the length of the decoded data
-        int DecodedLength = (int)((Length * 3) / 4 - Padding);
+        int DecodedLength = (int)(Length * 3 / 4 - Padding);
         byte* Decoded = (byte*)MemoryOp.Alloc((uint)DecodedLength);
 
         // Base64 decoding table for A-Z, a-z, 0-9, +, /
         byte* Base64Table = (byte*)MemoryOp.Alloc(128);
-        for (int i = 0; i < 26; i++) Base64Table['A' + i] = (byte)(i); // A-Z -> 0-25
+        for (int i = 0; i < 26; i++) Base64Table['A' + i] = (byte)i; // A-Z -> 0-25
         for (int i = 0; i < 26; i++) Base64Table['a' + i] = (byte)(26 + i); // a-z -> 26-51
         for (int i = 0; i < 10; i++) Base64Table['0' + i] = (byte)(52 + i); // 0-9 -> 52-61
         Base64Table['+'] = 62; // '+' -> 62

@@ -22,10 +22,10 @@
     <Project Path="src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests\Cosmos.Build.Analyzer.Patcher.Tests\Cosmos.Build.Analyzer.Patcher.Tests.csproj" Type="Classic C#" />
-    <Project Path="tests\Cosmos.Build.Asm.Tests\Cosmos.Build.Asm.Tests.csproj" Type="Classic C#" />
-    <Project Path="tests\Cosmos.NativeWrapper\Cosmos.NativeWrapper.csproj" Type="Classic C#" />
-    <Project Path="tests\Cosmos.Patcher.Tests\Cosmos.Patcher.Tests.csproj" Type="Classic C#" />
-    <Project Path="tests\Cosmos.Scanner.Tests\Cosmos.Scanner.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Tests.Build.Analyzer.Patcher\Cosmos.Tests.Build.Analyzer.Patcher.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Tests.Build.Asm\Cosmos.Tests.Build.Asm.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj" Type="Classic C#" />
+    <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
