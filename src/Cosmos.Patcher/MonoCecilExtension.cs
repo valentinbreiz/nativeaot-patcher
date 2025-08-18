@@ -1815,7 +1815,7 @@ public static class MonoCecilExtensions
 
     #region GetArgument
 
-    public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, string named ="", int positional = 0)
+    public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, string named = "", int positional = 0)
     {
         string? typeName = typeof(T).FullName;
         Console.WriteLine($"[GetArgument] Trying to get argument of type: {typeName}");
@@ -1830,32 +1830,32 @@ public static class MonoCecilExtensions
                 .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase))
                 .Argument;
 
-            if (argument is null)
-            {
-                Console.WriteLine("[GetArgument] Argument was null — skipping.");
-                return defaultValue;
-            }
+        if (argument is null)
+        {
+            Console.WriteLine("[GetArgument] Argument was null — skipping.");
+            return defaultValue;
+        }
 
-            string? argTypeName = argument.Value.Type?.FullName;
-            if (string.IsNullOrEmpty(argTypeName))
-            {
-                Console.WriteLine("[GetArgument] Argument type was null — returning default.");
-                return defaultValue;
-            }
+        string? argTypeName = argument.Value.Type?.FullName;
+        if (string.IsNullOrEmpty(argTypeName))
+        {
+            Console.WriteLine("[GetArgument] Argument type was null — returning default.");
+            return defaultValue;
+        }
 
-            Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
-            if (argTypeName == typeof(Type).FullName)
-                return (T?)(object?)argument.Value.Value.ToString();
+        Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
+        if (argTypeName == typeof(Type).FullName)
+            return (T?)(object?)argument.Value.Value.ToString();
 
-            if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
-            {
-                return argument.Value.Value is T matchedValue
-                    ? matchedValue
-                    : defaultValue;
-            }
+        if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
+        {
+            return argument.Value.Value is T matchedValue
+                ? matchedValue
+                : defaultValue;
+        }
 
-            Console.WriteLine($"Type is enum, Value: {enumValue}");
-            return (T)enumValue;
+        Console.WriteLine($"Type is enum, Value: {enumValue}");
+        return (T)enumValue;
     }
     #endregion
 

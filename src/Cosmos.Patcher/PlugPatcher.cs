@@ -162,7 +162,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetFieldName = plugMemberAttr.GetArgument(named:"TargetName", defaultValue:field.Name);
+            string? targetFieldName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: field.Name);
             Console.WriteLine($"[ProcessPlugMembers] Looking for target field: {targetFieldName}");
             FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f =>
             {
@@ -220,7 +220,7 @@ public sealed class PlugPatcher
         }
 
         bool isInstancePlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
-        string? methodName = attr.GetArgument(named:"TargetName", defaultValue:plugMethod.Name);
+        string? methodName = attr.GetArgument(named: "TargetName", defaultValue: plugMethod.Name);
         Console.WriteLine($"[ResolveAndPatchMethod] Resolving method: {methodName} (Instance: {isInstancePlug})");
 
         MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m =>
