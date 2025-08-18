@@ -8,7 +8,7 @@ on:
 
 jobs:
   patcher-tests:
-    name: Run Cosmos.Patcher.Tests
+    name: Run Cosmos.Tests.Patcher
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: 🔄 Restore Dependencies
-        run: dotnet restore ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj
 
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
@@ -32,20 +32,20 @@ jobs:
       - name: 🔨 Build Cosmos.Build.Patcher
         run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj
 
-      - name: 🔨 Build Cosmos.Patcher.Tests
-        run: dotnet build ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --configuration Debug --no-restore
+      - name: 🔨 Build Cosmos.Tests.Patcher
+        run: dotnet build ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Patcher.Tests/Cosmos.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Patcher.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Patcher.trx"
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Patcher.Tests-Results
-          path: ./tests/Cosmos.Patcher.Tests/TestResults/Cosmos.Patcher.Tests.trx
+          name: Cosmos.Tests.Patcher-Results
+          path: ./tests/Cosmos.Tests.Patcher/TestResults/Cosmos.Tests.Patcher.trx
 
   scanner-tests:
-    name: Run Cosmos.Scanner.Tests
+    name: Run Cosmos.Tests.Scanner
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -61,7 +61,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: 🔄 Restore Dependencies
-        run: dotnet restore ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj
 
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
@@ -69,20 +69,20 @@ jobs:
       - name: 🔨 Build Cosmos.Build.Patcher
         run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj
 
-      - name: 🔨 Build Cosmos.Scanner.Tests
-        run: dotnet build ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --configuration Debug --no-restore
+      - name: 🔨 Build Cosmos.Tests.Scanner
+        run: dotnet build ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Scanner.Tests/Cosmos.Scanner.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Scanner.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Scanner.trx"
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Scanner.Tests-Results
-          path: ./tests/Cosmos.Scanner.Tests/TestResults/Cosmos.Scanner.Tests.trx
+          name: Cosmos.Tests.Scanner-Results
+          path: ./tests/Cosmos.Tests.Scanner/TestResults/Cosmos.Tests.Scanner.trx
 
   analyzer-tests:
-    name: Run Cosmos.Build.Analyzer.Patcher.Tests
+    name: Run Cosmos.Tests.Build.Analyzer.Patcher
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -98,19 +98,19 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: 🔄 Restore Dependencies
-        run: dotnet restore ./tests/Cosmos.Build.Analyzer.Patcher.Tests/Cosmos.Build.Analyzer.Patcher.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj
 
       - name: 🔨 Build Cosmos.Patcher.Analyzer.Tests
-        run: dotnet build ./tests/Cosmos.Build.Analyzer.Patcher.Tests/Cosmos.Build.Analyzer.Patcher.Tests.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Build.Analyzer.Patcher.Tests/Cosmos.Build.Analyzer.Patcher.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Build.Analyzer.Patcher.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Build.Analyzer.Patcher.trx"
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Build.Analyzer.Patcher.Tests-Results
-          path: ./tests/Cosmos.Build.Analyzer.Patcher.Tests/TestResults/Cosmos.Build.Analyzer.Patcher.Tests.trx
+          name: Cosmos.Tests.Build.Analyzer.Patcher-Results
+          path: ./tests/Cosmos.Tests.Build.Analyzer.Patcher/TestResults/Cosmos.Tests.Build.Analyzer.Patcher.trx
 
   asm-tests:
     name: Run Cosmos.Build.Asm.Test
@@ -132,7 +132,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y yasm
 
       - name: 🔄 Restore Dependencies
-        run: dotnet restore ./tests/Cosmos.Build.Asm.Tests/Cosmos.Build.Asm.Tests.csproj
+        run: dotnet restore ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj
 
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
@@ -141,16 +141,16 @@ jobs:
         run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj
 
       - name: 🔨 Build Cosmos.Build.Asm.Test
-        run: dotnet build ./tests/Cosmos.Build.Asm.Tests/Cosmos.Build.Asm.Tests.csproj --configuration Debug --no-restore
+        run: dotnet build ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Build.Asm.Tests/Cosmos.Build.Asm.Tests.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Build.Asm.Tests.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Build.Asm.trx"
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Build.Asm.Test-Results
-          path: ./tests/Cosmos.Build.Asm.Tests/TestResults/Cosmos.Build.Asm.Tests.trx
+          path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
   unix-iso-tests:
     name: Run ISO Build Tests - Unix
