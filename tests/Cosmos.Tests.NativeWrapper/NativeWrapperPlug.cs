@@ -12,4 +12,6 @@ public class TestClassPlug
     public static void OutputDebugString(object aThis)
     {
     }
+
+    public static int ManagedAdd(int a, int b) => a * b;
 }

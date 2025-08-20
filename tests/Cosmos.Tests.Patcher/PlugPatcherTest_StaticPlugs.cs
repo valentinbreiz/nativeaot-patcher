@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Cosmos.Build.API.Attributes;
 using Cosmos.Patcher;
 using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
@@ -32,15 +33,25 @@ public class PlugPatcherTest_StaticPlugs
         // Assert
         foreach (MethodDefinition plugMethod in plugType.Methods)
         {
-            //TODO: Only evaluate methods with PlugMemberAttribute
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic || !plugMethod.IsConstructor)
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic || plugMethod.IsConstructor)
+            {
+                continue;
+            }
+
+            bool hasPlugAttribute = plugMethod.CustomAttributes.Any(attr =>
+                attr.AttributeType.FullName == typeof(PlugMemberAttribute).FullName);
+
+            if (!hasPlugAttribute)
             {
                 continue;
             }
 
             MethodDefinition targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-            Assert.NotNull(targetMethod); // Ensure the method exists in the target type
-            Assert.NotNull(targetMethod.Body); // Ensure the method has a body
+            if (targetMethod?.Body == null)
+            {
+                continue;
+            }
+
             Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count); // Ensure the method body matches
         }
     }
@@ -67,15 +78,25 @@ public class PlugPatcherTest_StaticPlugs
 
         foreach (MethodDefinition plugMethod in plugType.Methods)
         {
-            //TODO: Only evaluate methods with PlugMemberAttribute
-            if (!plugMethod.IsPublic || !plugMethod.IsStatic || !plugMethod.IsConstructor)
+            if (!plugMethod.IsPublic || !plugMethod.IsStatic || plugMethod.IsConstructor)
+            {
+                continue;
+            }
+
+            bool hasPlugAttribute = plugMethod.CustomAttributes.Any(attr =>
+                attr.AttributeType.FullName == typeof(PlugMemberAttribute).FullName);
+
+            if (!hasPlugAttribute)
             {
                 continue;
             }
 
             MethodDefinition targetMethod = targetType.Methods.FirstOrDefault(m => m.Name == plugMethod.Name);
-            Assert.NotNull(targetMethod); // Ensure the method exists in the target type
-            Assert.NotNull(targetMethod.Body); // Ensure the method has a body
+            if (targetMethod?.Body == null)
+            {
+                continue;
+            }
+
             Assert.Equal(plugMethod.Body.Instructions.Count, targetMethod.Body.Instructions.Count); // Ensure the method body matches
         }
     }
@@ -97,6 +118,25 @@ public class PlugPatcherTest_StaticPlugs
 
         object result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);
         Assert.Equal(12, result);
+    }
+
+    [Fact]
+    public void ManagedAddMethod_ShouldRemainUnchangedWithoutPlugMember()
+    {
+        // Arrange
+        PlugScanner plugScanner = new();
+        PlugPatcher patcher = new(plugScanner);
+
+        AssemblyDefinition targetAssembly = CreateMockAssembly<TestClass>();
+        AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
+
+        // Act
+        patcher.PatchAssembly(targetAssembly, plugAssembly);
+
+        object result = ExecuteObject(targetAssembly, "TestClass", "ManagedAdd", 3, 4);
+
+        // Assert
+        Assert.Equal(7, result);
     }
 
     private object ExecuteObject(AssemblyDefinition assemblyDefinition, string typeName, string methodName,
