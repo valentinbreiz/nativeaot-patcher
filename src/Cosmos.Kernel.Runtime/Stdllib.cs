@@ -199,6 +199,59 @@ namespace Internal.Runtime.CompilerHelpers
         {
             return (System.Runtime.MethodTable**)MemoryOp.Alloc(size);
         }
+
+        private static unsafe System.Runtime.MethodTable* GetMethodTable(object obj)
+        {
+            TypedReference tr = __makeref(obj);
+            return (System.Runtime.MethodTable*)(*(IntPtr*)&tr);
+        }
+
+        [RuntimeExport("memmove")]
+        private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
+        {
+            uint n = (uint)len;
+            if (dest == src || n == 0)
+                return;
+
+            if (dest < src)
+            {
+                for (uint i = 0; i < n; i++)
+                    dest[i] = src[i];
+            }
+            else
+            {
+                for (uint i = n; i > 0; i--)
+                    dest[i - 1] = src[i - 1];
+            }
+        }
+
+        [RuntimeExport("memset")]
+        private static unsafe void memset(byte* dest, int value, UIntPtr len)
+        {
+            for (uint i = 0; i < (uint)len; i++)
+                dest[i] = (byte)value;
+        }
+
+        [RuntimeExport("RhNewString")]
+        private static unsafe string RhNewString(char* data, int length)
+        {
+            if (length < 0)
+                return null;
+
+            System.Runtime.MethodTable* mt = GetMethodTable(string.Empty);
+            uint size = (uint)(mt->_uBaseSize + ((uint)length + 1) * 2);
+            System.Runtime.MethodTable** result = AllocObject(size);
+            *result = mt;
+            *(int*)((byte*)result + sizeof(IntPtr)) = length;
+
+            char* dest = (char*)((byte*)result + System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData);
+            if (data != null)
+                memmove((byte*)dest, (byte*)data, (UIntPtr)(length * sizeof(char)));
+            dest[length] = '\0';
+
+            IntPtr obj = (IntPtr)result;
+            return *(string*)&obj;
+        }
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
@@ -224,10 +277,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static int RhGetRuntimeVersion() { return 0; }
                 [RuntimeExport("RhGetKnobValues")]
                 static unsafe void RhGetKnobValues(int* pKnobValues) { }
-                [RuntimeExport("memmove")]
-                static unsafe void memmove(byte* dest, byte* src, UIntPtr len) { }
-                [RuntimeExport("memset")]
-                static unsafe void memset(byte* dest, int value, UIntPtr len) { }
                 [RuntimeExport("RhBulkMoveWithWriteBarrier")]
                 static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
                 [RuntimeExport("RhHandleFree")]
@@ -270,10 +319,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static double tan(double x) { throw null; }
                 [RuntimeExport("pow")]
                 static double pow(double x, double y) { throw null; }
-                [RuntimeExport("RhNewArray")]
-                static unsafe object RhNewArray(int typeHandle, int length) { throw null; }
-                [RuntimeExport("RhNewString")]
-                static unsafe string RhNewString(char* data, int length) { throw null; }
                 [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]
