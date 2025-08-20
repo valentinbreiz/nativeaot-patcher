@@ -183,9 +183,15 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore
 
-      - name: 🚀 Run Tests
+      - name: 🚀 Build ISO
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output
 
       - name: 🕵️‍♂️ Verify Output
         run: |
           [ -f ./output/KernelExample.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+
+      - name: 📤 Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernelExample-ISO
+          path: ./output/KernelExample.iso
