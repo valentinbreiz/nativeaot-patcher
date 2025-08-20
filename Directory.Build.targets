@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <AotCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\nativeaot\Common\src\</AotCommonPath>
+    <CompilerCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\tools\Common\</CompilerCommonPath>
+  </PropertyGroup>
+</Project>
