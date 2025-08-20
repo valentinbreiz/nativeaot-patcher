@@ -163,13 +163,13 @@ namespace Internal.Runtime.CompilerHelpers
         private static void RhpThrowEx(object ex) { while (true) ; }
 
         [RuntimeExport("RhpNewArray")]
-        private static unsafe void* RhpNewArray(System.Runtime.MethodTable* pMT, int length)
+        private static unsafe void* RhpNewArray(MethodTable* pMT, int length)
         {
             if (length < 0)
                 return null;
 
-            uint size = (uint)(pMT->_uBaseSize + (uint)length * pMT->_usComponentSize);
-            System.Runtime.MethodTable** result = AllocObject(size);
+            uint size = pMT->_uBaseSize + (uint)length * pMT->_usComponentSize;
+            MethodTable** result = AllocObject(size);
             *result = pMT;
             *(int*)(result + 1) = length;
             return result;
@@ -188,22 +188,22 @@ namespace Internal.Runtime.CompilerHelpers
         }
 
         [RuntimeExport("RhpNewFast")]
-        private static unsafe void* RhpNewFast(System.Runtime.MethodTable* pMT)
+        private static unsafe void* RhpNewFast(MethodTable* pMT)
         {
-            System.Runtime.MethodTable** result = AllocObject(pMT->_uBaseSize);
+            MethodTable** result = AllocObject(pMT->_uBaseSize);
             *result = pMT;
             return result;
         }
 
-        private static unsafe System.Runtime.MethodTable** AllocObject(uint size)
+        private static unsafe MethodTable** AllocObject(uint size)
         {
-            return (System.Runtime.MethodTable**)MemoryOp.Alloc(size);
+            return (MethodTable**)MemoryOp.Alloc(size);
         }
 
-        private static unsafe System.Runtime.MethodTable* GetMethodTable(object obj)
+        private static unsafe MethodTable* GetMethodTable(object obj)
         {
             TypedReference tr = __makeref(obj);
-            return (System.Runtime.MethodTable*)(*(IntPtr*)&tr);
+            return (MethodTable*)*(IntPtr*)&tr;
         }
 
         [RuntimeExport("memmove")]
@@ -219,25 +219,11 @@ namespace Internal.Runtime.CompilerHelpers
         }
 
         [RuntimeExport("RhNewString")]
-        private static unsafe string RhNewString(char* data, int length)
+        private static unsafe void* RhNewString(MethodTable* pEEType, int length)
         {
-            if (length < 0)
-                return null;
-
-            System.Runtime.MethodTable* mt = GetMethodTable(string.Empty);
-            uint size = (uint)(mt->_uBaseSize + ((uint)length + 1) * 2);
-            System.Runtime.MethodTable** result = AllocObject(size);
-            *result = mt;
-            *(int*)((byte*)result + sizeof(IntPtr)) = length;
-
-            char* dest = (char*)((byte*)result + System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData);
-            if (data != null)
-                memmove((byte*)dest, (byte*)data, (UIntPtr)(length * sizeof(char)));
-            dest[length] = '\0';
-
-            IntPtr obj = (IntPtr)result;
-            return *(string*)&obj;
+            return RhpNewArray(pEEType, length);
         }
+        
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
