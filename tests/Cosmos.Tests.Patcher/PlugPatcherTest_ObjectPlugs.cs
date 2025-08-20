@@ -24,7 +24,7 @@ public class PlugPatcherTest_ObjectPlugs
         AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
         TypeDefinition? targetType =
-            targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
+            targetAssembly.MainModule.Types.FirstOrDefault(t => t.FullName == typeof(NativeWrapperObject).FullName);
         Assert.NotNull(targetType);
 
         // Act: Apply the plug
@@ -32,7 +32,7 @@ public class PlugPatcherTest_ObjectPlugs
 
         targetAssembly.Save("./", "targetObjectAssembly.dll");
 
-        object result = ExecuteObject(targetAssembly, "NativeWrapperObject", "InstanceMethod", 10);
+        object result = ExecuteObject(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceMethod), 10);
         Assert.Equal(20, result);
     }
 
@@ -44,7 +44,7 @@ public class PlugPatcherTest_ObjectPlugs
         memoryStream.Seek(0, SeekOrigin.Begin);
 
         Assembly loadedAssembly = Assembly.Load(memoryStream.ToArray());
-        Type? type = loadedAssembly.GetType("Cosmos.Tests.NativeWrapper.NativeWrapperObject");
+        Type? type = loadedAssembly.GetType(typeof(NativeWrapperObject).FullName);
         Assert.NotNull(type);
 
         object? instance = Activator.CreateInstance(type);
@@ -83,7 +83,7 @@ public class PlugPatcherTest_ObjectPlugs
         AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
         TypeDefinition? targetType =
-            targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
+            targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == "NativeWrapperObject");
         Assert.NotNull(targetType);
 
         // Act: Apply the plug
@@ -91,10 +91,12 @@ public class PlugPatcherTest_ObjectPlugs
 
         targetAssembly.Save("./", "targetCtorAssembly.dll");
 
+        var @out = Console.Out; // Store the original output
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
 
-        object instance = ExecuteConstructor(targetAssembly, "NativeWrapperObject");
+        object instance = ExecuteConstructor(targetAssembly, typeof(NativeWrapperObject).FullName);
+        Console.SetOut(@out); // Restore the original output
 
         // Assert: Check the standard output for the constructor plug
         string output = stringWriter.ToString();
@@ -107,29 +109,34 @@ public class PlugPatcherTest_ObjectPlugs
         TextWriter originalOutput = Console.Out; // Store the original output
         try
         {
-            using var stringWriter = new StringWriter();
-            Console.SetOut(stringWriter);
+            var output = Console.Out;
+            // TODO: Use a more robust way to capture console output in tests(patcher should have a logger)
+            using (var stringWriter = new StringWriter())
+            {
 
-            PlugScanner plugScanner = new();
-            PlugPatcher patcher = new(plugScanner);
+                Console.SetOut(stringWriter);
 
-            AssemblyDefinition targetAssembly = CreateMockAssembly<NativeWrapperObject>();
-            AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
+                PlugScanner plugScanner = new();
+                PlugPatcher patcher = new(plugScanner);
 
-            TypeDefinition targetType =
-                targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
-            Assert.NotNull(targetType);
+                AssemblyDefinition targetAssembly = CreateMockAssembly<NativeWrapperObject>();
+                AssemblyDefinition plugAssembly = CreateMockAssembly<NativeWrapperObjectImpl>();
 
-            patcher.PatchAssembly(targetAssembly, plugAssembly);
-            targetAssembly.Save("./", "targetPropertyAssembly.dll");
+                TypeDefinition targetType =
+                    targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
+                Assert.NotNull(targetType);
 
-            // Test Get
-            object getResult = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, "InstanceProperty");
-            Assert.Equal("Plugged Goodbye World", getResult);
-
-            // Test Get
-            object getResult2 = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, "InstanceBackingFieldProperty");
-            Assert.Equal("Plugged Backing Field", getResult2);
+                patcher.PatchAssembly(targetAssembly, plugAssembly);
+                targetAssembly.Save("./", "targetPropertyAssembly.dll");
+                Console.SetOut(output);
+                // Test Get
+                object getResult = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceProperty));
+                Assert.Equal("Plugged Goodbye World", getResult);
+    
+                // Test Get
+                object getResult2 = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceBackingFieldProperty));
+                Assert.Equal("Plugged Backing Field", getResult2);
+            }
         }
         finally
         {
@@ -145,7 +152,7 @@ public class PlugPatcherTest_ObjectPlugs
         memoryStream.Seek(0, SeekOrigin.Begin);
 
         Assembly loadedAssembly = Assembly.Load(memoryStream.ToArray());
-        Type? type = loadedAssembly.GetType("Cosmos.Tests.NativeWrapper." + typeName);
+        Type? type = loadedAssembly.GetType(typeName);
         Assert.NotNull(type);
 
         return Activator.CreateInstance(type);
