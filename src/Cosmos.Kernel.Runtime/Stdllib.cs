@@ -209,27 +209,13 @@ namespace Internal.Runtime.CompilerHelpers
         [RuntimeExport("memmove")]
         private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
         {
-            uint n = (uint)len;
-            if (dest == src || n == 0)
-                return;
-
-            if (dest < src)
-            {
-                for (uint i = 0; i < n; i++)
-                    dest[i] = src[i];
-            }
-            else
-            {
-                for (uint i = n; i > 0; i--)
-                    dest[i - 1] = src[i - 1];
-            }
+            MemoryOp.MemMove(dest, src, (int)len);
         }
 
         [RuntimeExport("memset")]
         private static unsafe void memset(byte* dest, int value, UIntPtr len)
         {
-            for (uint i = 0; i < (uint)len; i++)
-                dest[i] = (byte)value;
+            MemoryOp.MemSet(dest, (byte)value, (int)len);
         }
 
         [RuntimeExport("RhNewString")]
