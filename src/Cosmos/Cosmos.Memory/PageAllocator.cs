@@ -237,8 +237,7 @@ public static unsafe class PageAllocator
     /// Free page.
     /// </summary>
     /// <param name="aPageIdx">A index to the page to be freed.</param>
-    /// <param name="zero"></param>
-    public static void Free(uint aPageIdx, bool zero = false)
+    public static void Free(uint aPageIdx)
     {
         byte* p = mRAT + aPageIdx;
         *p = (byte)PageType.Empty;
@@ -259,5 +258,5 @@ public static unsafe class PageAllocator
     /// Free the page this pointer points to
     /// </summary>
     /// <param name="aPtr"></param>
-    public static void Free(void* aPtr, bool zero = false) => Free(GetFirstPageAllocatorIndex(aPtr));
+    public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
 }

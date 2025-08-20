@@ -410,3 +410,5 @@ main
 *.iso
 *.hdd
 output
+
+/dotnet/runtime

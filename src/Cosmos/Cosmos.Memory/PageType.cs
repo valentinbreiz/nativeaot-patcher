@@ -15,11 +15,6 @@ public enum PageType : byte
     Empty = 0,
 
     /// <summary>
-    /// Indicates that the page contains objects managed by the GC
-    /// </summary>
-    GCManaged = 1,
-
-    /// <summary>
     /// Small heap page.
     /// </summary>
     HeapSmall = 3,

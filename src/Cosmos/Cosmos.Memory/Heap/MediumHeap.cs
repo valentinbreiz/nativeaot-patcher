@@ -2,6 +2,9 @@
 
 namespace Cosmos.Memory.Heap;
 
+/// <summary>
+/// will mostly fill a whole page
+/// </summary>
 public static unsafe class MediumHeap
 {
     public static uint PrefixBytes => (uint)sizeof(MediumHeapHeader);

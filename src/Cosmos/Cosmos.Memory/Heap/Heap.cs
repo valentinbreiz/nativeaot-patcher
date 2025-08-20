@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Debug.Kernel;
+
 namespace Cosmos.Memory.Heap;
 
 /// <summary>
@@ -18,6 +20,17 @@ public static unsafe class Heap
     public static byte* Realloc(byte* aPtr, uint newSize)
     {
         PageType currentType = PageAllocator.GetPageType(aPtr);
+
+#if COSMOSDEBUG
+        if (currentType != PageType.HeapSmall && currentType != PageType.HeapMedium &&
+            currentType != PageType.HeapLarge)
+        {
+            Debugger.DoSendNumber(newSize);
+            Debugger.DoSendNumber((uint)aPtr);
+            Debugger.SendKernelPanic(Panics.NonManagedPage);
+        }
+#endif
+
         if (newSize > MediumHeap.MinSize && newSize <= MediumHeap.MaxSize)
         {
             if (currentType == PageType.HeapMedium)
@@ -52,7 +65,7 @@ public static unsafe class Heap
             return LargeHeap.Alloc(newSize);
         }
 
-        throw new NotSupportedException();
+        return (byte*)0;
     }
 
     /// <summary>
@@ -101,6 +114,9 @@ public static unsafe class Heap
             case PageType.HeapSmall:
                 SmallHeap.Free(aPtr);
                 break;
+            default:
+                Debugger.SendKernelPanic(Panics.NonManagedPage);
+                throw new NotSupportedException("This is not a managed page");
         }
     }
 

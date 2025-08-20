@@ -2,6 +2,9 @@
 
 namespace Cosmos.Memory.Heap;
 
+/// <summary>
+/// will use more then 1 page
+/// </summary>
 public static unsafe class LargeHeap
 {
     public static uint PrefixBytes => (uint)sizeof(LargeHeapHeader);

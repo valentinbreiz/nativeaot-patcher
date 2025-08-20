@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Debug.Kernel;
+
 namespace Cosmos.Memory.Heap;
 
 /// <summary>
@@ -213,12 +215,9 @@ public static unsafe class SmallHeap
         if (aSize < ptr->Size)
         {
             // we cant later add a block with a size smaller than an earlier block. That would break the algorithm
-            // Debugger.DoSendNumber(aSize);
-            // Debugger.DoSendNumber(ptr->Size);
-            // Debugger.SendKernelPanic(0x83);
-            while (true)
-            {
-            }
+            Debugger.DoSendNumber(aSize);
+            Debugger.DoSendNumber(ptr->Size);
+            Debugger.SendKernelPanic(Panics.SmallHeap.AddRootSmtBlockOrder);
         }
 
         if (ptr->Size == 0) // This is the first block to be allocated on the page
@@ -362,12 +361,7 @@ public static unsafe class SmallHeap
 
                 if (smtBlock == null)
                 {
-                    // Debugger.SendKernelPanic(0x93);
-                    while (true)
-                    {
-                    }
-
-                    ;
+                    Debugger.SendKernelPanic(Panics.SmallHeap.AddPage);
                 }
             }
             else
@@ -411,7 +405,7 @@ public static unsafe class SmallHeap
             if (pageBlock == null)
             {
                 //this means that we cant allocate another page
-                // Debugger.SendKernelPanic(0x121);
+                Debugger.SendKernelPanic(Panics.SmallHeap.AddPage);
             }
         }
 
@@ -438,9 +432,9 @@ public static unsafe class SmallHeap
         }
 
         // if we get here, RAM is corrupted, since we know we had a space but it turns out we didnt
-        // Debugger.DoSendNumber((uint)pageBlock);
-        // Debugger.DoSendNumber(aSize);
-        // Debugger.SendKernelPanic(0x122);
+        Debugger.DoSendNumber((uint)pageBlock);
+        Debugger.DoSendNumber(aSize);
+        Debugger.SendKernelPanic(Panics.SmallHeap.RamCorrupted);
         while (true)
         {
         }
@@ -457,9 +451,9 @@ public static unsafe class SmallHeap
         if (size == 0)
         {
             // double free, this object has already been freed
-            // Debugger.DoBochsBreak();
-            // Debugger.DoSendNumber((uint)heapObject);
-            // Debugger.SendKernelPanic(0x99);
+            Debugger.DoBochsBreak();
+            Debugger.DoSendNumber((uint)heapObject);
+            Debugger.SendKernelPanic(Panics.SmallHeap.DoubleFree);
         }
 
         uint* allocated = (uint*)aPtr;
@@ -505,12 +499,9 @@ public static unsafe class SmallHeap
         }
 
         // this shouldnt happen
-        // Debugger.DoSendNumber((uint)aPtr);
-        // Debugger.DoSendNumber((uint)SMT);
-        // Debugger.SendKernelPanic(0x98);
-        while (true)
-        {
-        }
+        Debugger.DoSendNumber((uint)aPtr);
+        Debugger.DoSendNumber((uint)SMT);
+        Debugger.SendKernelPanic(Panics.SmallHeap.FailedFree);
     }
 
     #region Statistics

@@ -8,5 +8,5 @@ namespace Cosmos.Memory.Heap;
 public struct SmallHeapHeader
 {
     [FieldOffset(0)] public ushort Size;
-    [FieldOffset(2)] public ObjectGcStatus Gc;
+    [FieldOffset(2)] public ObjectGc Gc;
 }

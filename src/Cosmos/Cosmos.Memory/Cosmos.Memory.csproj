@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
     <!--pack as nuget-->
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -14,6 +15,9 @@
     <Compile Include="$(CompilerCommonPath)Internal\Runtime\MethodTable.Constants.cs">
       <Link>Dotnet\Internal\Runtime\MethodTable.Constants.cs</Link>
     </Compile>
+    <Compile Include="$(AotCommonPath)Internal\Runtime\MethodTable.cs">
+      <Link>Dotnet\Internal\Runtime\MethodTable.cs</Link>
+    </Compile>
     <Compile Include="$(CompilerCommonPath)Internal\NativeFormat\**">
       <Link>Dotnet\Internal\NativeFormat\**</Link>
     </Compile>
@@ -22,5 +26,8 @@
     <None Update="Asm\io.asm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Debug.Kernel\Cosmos.Debug.Kernel.csproj" />
   </ItemGroup>
 </Project>
