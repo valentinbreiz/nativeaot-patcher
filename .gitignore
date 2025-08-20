@@ -412,3 +412,6 @@ main
 output
 
 /dotnet/runtime
+
+# rider
+.idea/
