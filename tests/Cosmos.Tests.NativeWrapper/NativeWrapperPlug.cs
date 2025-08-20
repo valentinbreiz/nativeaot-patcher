@@ -13,5 +13,5 @@ public class TestClassPlug
     {
     }
 
-    public static int ManagedAdd(int a, int b) => a * b;
+    public static int ManagedAdd(int a, int b) => a + b;
 }
