@@ -78,7 +78,7 @@ public unsafe class Canvas
 
     public static void ClearScreen(uint color)
     {
-        MemoryOp.MemSet(Address, color, (int)(Pitch / 4 * Height));
+        new Span<uint>(Address, (int)(Pitch / 4 * Height)).Fill(color);
     }
 
     public static void DrawChar(char c, int x, int y, uint color)

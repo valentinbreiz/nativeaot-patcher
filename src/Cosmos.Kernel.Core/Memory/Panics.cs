@@ -1,11 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Memory;
+namespace Cosmos.Kernel.Core.Memory;
 
 /// <summary>
 /// panics used be the Memory sub system
 /// </summary>
-public class Panics
+public static class Panics
 {
 
     /// <summary>

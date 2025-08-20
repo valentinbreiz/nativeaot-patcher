@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Memory.Heap;
+using Cosmos.Kernel.Core.Memory.Heap;
 
-namespace Cosmos.Memory;
+namespace Cosmos.Kernel.Core.Memory;
 
 /// <summary>
 /// a basic page allocator
@@ -16,7 +16,7 @@ public static unsafe class PageAllocator
     /// <item>x86 Page Size: 4k, 2m (PAE only), 4m.</item>
     /// <item>x64 Page Size: 4k, 2m</item>
     /// </list></remarks>
-    public const uint PageSize = 4096;
+    public const ulong PageSize = 4096;
 
     /// <summary>
     /// Start of area usable for heap, and also start of heap.
@@ -27,12 +27,12 @@ public static unsafe class PageAllocator
     /// Number of pages in the heap.
     /// </summary>
     /// <remarks>Calculated from mSize.</remarks>
-    public static uint TotalPageCount;
+    public static ulong TotalPageCount;
 
     /// <summary>
     /// Number of pages which are currently not in use
     /// </summary>
-    public static uint FreePageCount { get; private set; }
+    public static ulong FreePageCount { get; private set; }
 
     /// <summary>
     /// Pointer to the RAT.
@@ -52,7 +52,7 @@ public static unsafe class PageAllocator
     /// <summary>
     /// Size of heap.
     /// </summary>
-    public static uint RamSize;
+    public static ulong RamSize;
 
     /// <summary>
     /// Init RAT.
@@ -64,7 +64,7 @@ public static unsafe class PageAllocator
     /// <item>RAM start or size is not page aligned.</item>
     /// </list>
     /// </exception>
-    public static void Init(byte* aStartPtr, uint aSize)
+    public static void InitializeHeap(byte* aStartPtr, ulong aSize)
     {
         if ((uint)aStartPtr % PageSize != 0)
         {
@@ -85,8 +85,8 @@ public static unsafe class PageAllocator
         // We need one status byte for each block.
         // Intel blocks are 4k (10 bits). So for 4GB, this means
         // 32 - 12 = 20 bits, 1 MB for a RAT for 4GB. 0.025%
-        uint xRatPageCount = (TotalPageCount - 1) / PageSize + 1;
-        uint xRatTotalSize = xRatPageCount * PageSize;
+        ulong xRatPageCount = (TotalPageCount - 1) / PageSize + 1;
+        ulong xRatTotalSize = xRatPageCount * PageSize;
         mRAT = RamStart + RamSize - xRatTotalSize;
 
         if (mRAT > HeapEnd)
@@ -123,7 +123,7 @@ public static unsafe class PageAllocator
     /// <param name="aPageCount">Number of pages to alloc. (default = 1)</param>
     /// <param name="zero"></param>
     /// <returns>A pointer to the first page on success, null on failure.</returns>
-    public static void* AllocPages(PageType aType, uint aPageCount = 1, bool zero = false)
+    public static void* AllocPages(PageType aType, ulong aPageCount = 1, bool zero = false)
     {
         byte* startPage = null;
 
@@ -167,7 +167,7 @@ public static unsafe class PageAllocator
         if (startPage != null)
         {
             long offset = startPage - mRAT;
-            byte* pageAddress = RamStart + offset * PageSize;
+            byte* pageAddress = RamStart + (ulong)offset * PageSize;
             *startPage = (byte)aType;
             for (byte* p = startPage + 1; p < startPage + xCount; p++)
             {
@@ -197,7 +197,7 @@ public static unsafe class PageAllocator
     /// <exception cref="Exception">Thrown if page type is not found.</exception>
     public static uint GetFirstPageAllocatorIndex(void* aPtr)
     {
-        uint xPos = (uint)((byte*)aPtr - RamStart) / PageSize;
+        ulong xPos = (ulong)((byte*)aPtr - RamStart) / PageSize;
         // See note about when mRAT = 0 in Alloc.
         for (byte* p = mRAT + xPos; p >= mRAT; p--)
         {
@@ -215,7 +215,7 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     /// <returns></returns>
-    public static byte* GetPagePtr(void* aPtr) => (byte*)aPtr - ((byte*)aPtr - RamStart) % PageSize;
+    public static byte* GetPagePtr(void* aPtr) => (byte*)aPtr - (ulong)((byte*)aPtr - RamStart) % PageSize;
 
     /// <summary>
     /// Get the page type pointed by a pointer to the RAT entry.

@@ -1,6 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
-
-namespace Cosmos.Memory.Heap;
+namespace Cosmos.Kernel.Core.Memory.Heap;
 
 /// <summary>
 /// Flags to track an object status

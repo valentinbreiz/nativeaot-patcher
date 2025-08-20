@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Debug.Kernel;
+using Cosmos.Kernel.Debug;
 
-namespace Cosmos.Memory.Heap;
+namespace Cosmos.Kernel.Core.Memory.Heap;
 
 /// <summary>
 /// Page containing Size Map Table
@@ -50,7 +50,7 @@ public unsafe struct SMTBlock
     /// <summary>
     /// How much space is left on the page, makes it easier to skip full pages
     /// </summary>
-    public uint SpacesLeft;
+    public ulong SpacesLeft;
 
     /// <summary>
     /// Pointer to the next block for this size
@@ -60,18 +60,18 @@ public unsafe struct SMTBlock
 
 public static unsafe class SmallHeap
 {
-    public static uint MaxSize => PageAllocator.PageSize / 2 - 1;
+    public static ulong MaxSize => PageAllocator.PageSize / 2 - 1;
 
     /// <summary>
     /// Number of prefix bytes for each item.
     /// We technically only need 2 but to keep it aligned we have two padding
     /// </summary>
-    public const uint PrefixBytes = 2 * sizeof(ushort);
+    public const ulong PrefixBytes = 2 * sizeof(ushort);
 
     /// <summary>
     /// Max item size in the heap.
     /// </summary>
-    public static uint mMaxItemSize;
+    public static ulong mMaxItemSize;
 
     /// <summary>
     /// Size map table
@@ -266,7 +266,7 @@ public static unsafe class SmallHeap
     {
         //TODO Adjust for new page and header sizes
         // 4 slots, ~1k ea
-        uint xMaxItemSize = PageAllocator.PageSize / 4 - PrefixBytes;
+        ulong xMaxItemSize = PageAllocator.PageSize / 4 - PrefixBytes;
         // Word align it
         mMaxItemSize = xMaxItemSize / sizeof(uint) * sizeof(uint);
 
@@ -292,7 +292,6 @@ public static unsafe class SmallHeap
         AddRootSMTBlock(page, 128);
         AddRootSMTBlock(page, 256);
         AddRootSMTBlock(page, 512);
-        AddRootSMTBlock(page, mMaxItemSize);
         return page;
     }
 
@@ -317,8 +316,8 @@ public static unsafe class SmallHeap
             return; // we failed to create the page, Alloc should still handle this case
         }
 
-        uint xSlotSize = aItemSize + PrefixBytes;
-        uint xItemCount = PageAllocator.PageSize / xSlotSize;
+        ulong xSlotSize = aItemSize + PrefixBytes;
+        ulong xItemCount = PageAllocator.PageSize / xSlotSize;
         for (uint i = 0; i < xItemCount; i++)
         {
             byte* xSlotPtr = xPtr + i * xSlotSize;
@@ -411,9 +410,9 @@ public static unsafe class SmallHeap
 
         //now find position in the block
         ushort* page = (ushort*)pageBlock->PagePtr;
-        uint elementSize = GetRoundedSize(aSize) + PrefixBytes;
-        uint positions = PageAllocator.PageSize / elementSize;
-        for (int i = 0; i < positions; i++)
+        ulong elementSize = GetRoundedSize(aSize) + PrefixBytes;
+        ulong positions = PageAllocator.PageSize / elementSize;
+        for (ulong i = 0; i < positions; i++)
         {
             if (page[i * elementSize / 2] == 0)
             {
@@ -613,7 +612,7 @@ public static unsafe class SmallHeap
     private static int PruneSMT(RootSMTBlock* aBlock, uint aSize)
     {
         int freed = 0;
-        int maxElements = (int)(PageAllocator.PageSize / (aSize + PrefixBytes));
+        ulong maxElements = (PageAllocator.PageSize / (aSize + PrefixBytes));
         SMTBlock* prev = aBlock->First;
         SMTBlock* block = prev->NextBlock;
         while (block != null)

@@ -1,15 +1,15 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Memory.Heap;
+namespace Cosmos.Kernel.Core.Memory.Heap;
 
 /// <summary>
 /// will use more then 1 page
 /// </summary>
 public static unsafe class LargeHeap
 {
-    public static uint PrefixBytes => (uint)sizeof(LargeHeapHeader);
+    public static ulong PrefixBytes => (ulong)sizeof(LargeHeapHeader);
 
-    public static uint MinSize => MediumHeap.MaxSize + 1;
+    public static ulong MinSize => MediumHeap.MaxSize + 1;
 
     /// <summary>
     /// Re-allocates or "re-sizes" data asigned to a pointer.
@@ -47,7 +47,7 @@ public static unsafe class LargeHeap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
-        uint pages = (aSize + PrefixBytes) / PageAllocator.PageSize + 1;
+        ulong pages = (aSize + PrefixBytes) / PageAllocator.PageSize + 1;
         void* ptr = PageAllocator.AllocPages(PageType.HeapLarge, pages, true);
         LargeHeapHeader* header = (LargeHeapHeader*)ptr;
         header->Used = pages * PageAllocator.PageSize - PrefixBytes;

@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -16,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
   </ItemGroup>
 </Project>

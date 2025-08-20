@@ -2,10 +2,10 @@
 
 using System.Runtime.InteropServices;
 
-namespace Cosmos.Memory.Heap;
+namespace Cosmos.Kernel.Core.Memory.Heap;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct SmallHeapHeader
+public struct MediumHeapHeader
 {
     [FieldOffset(0)] public ushort Size;
     [FieldOffset(2)] public ObjectGc Gc;

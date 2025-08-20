@@ -1,8 +1,6 @@
-// This code is licensed under MIT license (see LICENSE for details)
+using Cosmos.Kernel.Debug;
 
-using Cosmos.Debug.Kernel;
-
-namespace Cosmos.Memory.Heap;
+namespace Cosmos.Kernel.Core.Memory.Heap;
 
 /// <summary>
 /// a basic Heap that uses PageAllocator

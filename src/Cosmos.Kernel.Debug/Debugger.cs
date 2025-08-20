@@ -1,9 +1,8 @@
-﻿// This code is licensed under MIT license (see LICENSE for details)
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Cosmos.Debug.Kernel;
+namespace Cosmos.Kernel.Debug;
 
 public static class Debugger
 {

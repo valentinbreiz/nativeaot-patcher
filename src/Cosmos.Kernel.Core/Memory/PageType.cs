@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Memory;
+namespace Cosmos.Kernel.Core.Memory;
 
 /// <summary>
 /// PageType enum. Used to define the type of the page.
