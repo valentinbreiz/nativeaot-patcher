@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime;
+using Cosmos.Kernel.Core.Memory;
 
 namespace System
 {
@@ -122,6 +123,17 @@ namespace System
                 DllName = dllName;
             }
         }
+
+        internal unsafe struct MethodTable
+        {
+            internal ushort _usComponentSize;
+            private ushort _usFlags;
+            internal uint _uBaseSize;
+            internal MethodTable* _relatedType;
+            private ushort _usNumVtableSlots;
+            private ushort _usNumInterfaces;
+            private uint _uHashCode;
+        }
     }
 }
 
@@ -130,7 +142,7 @@ namespace Internal.Runtime.CompilerHelpers
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    internal class StartupCodeHelpers
+    internal static unsafe class StartupCodeHelpers
     {
         [RuntimeExport("RhpReversePInvoke")]
         private static void RhpReversePInvoke(IntPtr frame) { }
@@ -151,12 +163,67 @@ namespace Internal.Runtime.CompilerHelpers
         private static void RhpThrowEx(object ex) { while (true) ; }
 
         [RuntimeExport("RhpNewArray")]
-        private static unsafe object RhpNewArray(int elementTypeHandle, int length) { throw null; }
+        private static unsafe void* RhpNewArray(MethodTable* pMT, int length)
+        {
+            if (length < 0)
+                return null;
+
+            uint size = pMT->_uBaseSize + (uint)length * pMT->_usComponentSize;
+            MethodTable** result = AllocObject(size);
+            *result = pMT;
+            *(int*)(result + 1) = length;
+            return result;
+        }
 
         [RuntimeExport("RhpAssignRef")]
-        private static unsafe void RhpAssignRef(object* location, object value) { }
+        private static unsafe void RhpAssignRef(void** location, void* value)
+        {
+            *location = value;
+        }
+
+        [RuntimeExport("RhpCheckedAssignRef")]
+        private static unsafe void RhpCheckedAssignRef(void** location, void* value)
+        {
+            *location = value;
+        }
+
         [RuntimeExport("RhpNewFast")]
-        private static unsafe object RhpNewFast(int typeHandle) { throw null; }
+        private static unsafe void* RhpNewFast(MethodTable* pMT)
+        {
+            MethodTable** result = AllocObject(pMT->_uBaseSize);
+            *result = pMT;
+            return result;
+        }
+
+        private static unsafe MethodTable** AllocObject(uint size)
+        {
+            return (MethodTable**)MemoryOp.Alloc(size);
+        }
+
+        private static unsafe MethodTable* GetMethodTable(object obj)
+        {
+            TypedReference tr = __makeref(obj);
+            return (MethodTable*)*(IntPtr*)&tr;
+        }
+
+        [RuntimeExport("memmove")]
+        private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
+        {
+            MemoryOp.MemMove(dest, src, (int)len);
+        }
+
+        [RuntimeExport("memset")]
+        private static unsafe void memset(byte* dest, int value, UIntPtr len)
+        {
+            MemoryOp.MemSet(dest, (byte)value, (int)len);
+        }
+
+        [RuntimeExport("RhNewString")]
+        private static unsafe void* RhNewString(MethodTable* pEEType, int length)
+        {
+            return RhpNewArray(pEEType, length);
+        }
+
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
@@ -182,10 +249,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static int RhGetRuntimeVersion() { return 0; }
                 [RuntimeExport("RhGetKnobValues")]
                 static unsafe void RhGetKnobValues(int* pKnobValues) { }
-                [RuntimeExport("memmove")]
-                static unsafe void memmove(byte* dest, byte* src, UIntPtr len) { }
-                [RuntimeExport("memset")]
-                static unsafe void memset(byte* dest, int value, UIntPtr len) { }
                 [RuntimeExport("RhBulkMoveWithWriteBarrier")]
                 static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
                 [RuntimeExport("RhHandleFree")]
@@ -228,10 +291,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static double tan(double x) { throw null; }
                 [RuntimeExport("pow")]
                 static double pow(double x, double y) { throw null; }
-                [RuntimeExport("RhNewArray")]
-                static unsafe object RhNewArray(int typeHandle, int length) { throw null; }
-                [RuntimeExport("RhNewString")]
-                static unsafe string RhNewString(char* data, int length) { throw null; }
                 [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]

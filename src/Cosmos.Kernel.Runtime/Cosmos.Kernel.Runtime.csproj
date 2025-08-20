@@ -14,4 +14,8 @@
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\\Cosmos.Kernel.Core\\Cosmos.Kernel.Core.csproj" />
+  </ItemGroup>
+
 </Project>
