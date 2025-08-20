@@ -9,7 +9,7 @@ public class TestClass
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern int OutputDebugString(string lpOutputString);
 
-    [DllImport("Cosmos.NativeLibrary.dll", EntryPoint = "Add", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Cosmos.Test.NativeLibrary.dll", EntryPoint = "Add", CallingConvention = CallingConvention.Cdecl)]
     public static extern int Add(int a, int b);
 
 
