@@ -17,7 +17,7 @@ public static class MethodBodyEx
             return null;
         }
 
-        MethodBody? bc = new(m);
+        MethodBody bc = new(m);
 
         if (!bo.HasParameters)
         {
@@ -49,7 +49,7 @@ public static class MethodBodyEx
             return null;
         }
 
-        MethodBody? bc = new(m);
+        MethodBody bc = new(m);
         bc.MaxStackSize = newBody.MaxStackSize;
         bc.InitLocals = newBody.InitLocals;
         bc.LocalVarToken = newBody.LocalVarToken;
@@ -79,7 +79,7 @@ public static class MethodBodyEx
 
         bc.ExceptionHandlers.AddRange(newBody.ExceptionHandlers.Select(o =>
         {
-            ExceptionHandler? c = new(o.HandlerType);
+            ExceptionHandler c = new(o.HandlerType);
             c.TryStart = o.TryStart == null ? null : bc.Instructions[newBody.Instructions.IndexOf(o.TryStart)];
             c.TryEnd = o.TryEnd == null ? null : bc.Instructions[newBody.Instructions.IndexOf(o.TryEnd)];
             c.FilterStart = o.FilterStart == null ? null : bc.Instructions[newBody.Instructions.IndexOf(o.FilterStart)];
@@ -93,7 +93,7 @@ public static class MethodBodyEx
 
         bc.Variables.AddRange(newBody.Variables.Select(o =>
         {
-            VariableDefinition? c = new(o.VariableType);
+            VariableDefinition c = new(o.VariableType);
             return c;
         }));
 
@@ -115,7 +115,7 @@ public static class MethodBodyEx
         {
             if (o is AsyncMethodBodyDebugInformation ao)
             {
-                AsyncMethodBodyDebugInformation? c = new();
+                AsyncMethodBodyDebugInformation c = new();
                 if (ao.CatchHandler.Offset >= 0)
                 {
                     c.CatchHandler = ao.CatchHandler.IsEndOfMethod
@@ -133,7 +133,7 @@ public static class MethodBodyEx
 
             if (o is StateMachineScopeDebugInformation so)
             {
-                StateMachineScopeDebugInformation? c = new();
+                StateMachineScopeDebugInformation c = new();
                 c.Scopes.AddRange(so.Scopes.Select(s => new StateMachineScope(ResolveInstrOff(s.Start.Offset),
                     s.End.IsEndOfMethod ? null : ResolveInstrOff(s.End.Offset))));
                 return c;
@@ -144,7 +144,7 @@ public static class MethodBodyEx
 
         m.DebugInformation.SequencePoints.AddRange(newBody.Method.DebugInformation.SequencePoints.Select(o =>
         {
-            SequencePoint? c = new(ResolveInstrOff(o.Offset), o.Document);
+            SequencePoint c = new(ResolveInstrOff(o.Offset), o.Document);
             c.StartLine = o.StartLine;
             c.StartColumn = o.StartColumn;
             c.EndLine = o.EndLine;

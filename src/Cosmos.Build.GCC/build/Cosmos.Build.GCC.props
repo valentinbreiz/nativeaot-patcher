@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <CosmosGCCFrameworkPath>$(IntermediateOutputPath)cosmos-gcc\</CosmosGCCFrameworkPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <GCCPath Condition="'$(GCCPath)' == '' OR !Exists('$(GCCPath)')">/usr/bin/gcc</GCCPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <!-- Default Windows GCC path - can be overridden in project file -->
+    <GCCPath Condition="'$(GCCPath)' == '' OR !Exists('$(GCCPath)')">gcc</GCCPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Corrected task assembly file name (was Cosmos.GCC.Build.dll) -->
+    <CosmosGCCTasksAssembly
+      Condition="'$(CosmosGCCTasksAssembly)' == '' OR !Exists('$(CosmosGCCTasksAssembly)')">$(MSBuildThisFileDirectory)\..\tasks\netstandard2.0\Cosmos.Build.GCC.dll</CosmosGCCTasksAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Cosmos.Build.GCC.Tasks.GCCBuildTask" AssemblyFile="$(CosmosGCCTasksAssembly)"/>
+</Project>

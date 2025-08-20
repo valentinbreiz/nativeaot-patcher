@@ -1,5 +1,5 @@
 using System.Xml.Linq;
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -60,10 +60,10 @@ public sealed class PlugPatcher
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
     {
         Console.WriteLine($"[PatchType] Starting patch process for type: {targetType.FullName}");
-        if (plugAssemblies == null || plugAssemblies.Length == 0)
+        if (plugAssemblies.Length == 0)
         {
             Console.WriteLine("[PatchType] ERROR: No plug assemblies provided");
-            throw new ArgumentNullException(nameof(plugAssemblies));
+            return;
         }
 
         if (targetType.CustomAttributes.Any(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName))
@@ -73,48 +73,13 @@ public sealed class PlugPatcher
         }
 
         Console.WriteLine("[PatchType] Loading plugs from provided assemblies...");
-        List<TypeDefinition> plugs = _scanner.LoadPlugs(plugAssemblies);
+        List<TypeDefinition> plugs = _scanner.LoadPlugs(targetType, plugAssemblies);
         Console.WriteLine($"[PatchType] Found {plugs.Count} plug types to process");
+        if (plugs.Count == 0)
+            return;
 
         foreach (TypeDefinition plugType in plugs)
         {
-            Console.WriteLine($"[PatchType] Processing plug type: {plugType.FullName}");
-            CustomAttribute plugAttr = plugType.CustomAttributes
-                .FirstOrDefault(a => a.AttributeType.FullName == typeof(PlugAttribute).FullName);
-
-            if (plugAttr == null)
-            {
-                Console.WriteLine($"[PatchType] Skipping plug type without PlugAttribute: {plugType.FullName}");
-                continue;
-            }
-
-            try
-            {
-                plugAttr.ImportReferences(targetType.Module);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PatchType] ERROR importing references for {plugType.FullName}: {ex}");
-                continue;
-            }
-
-            string targetTypeName = plugAttr.GetArgument<string>(fallbackArgs: new object[] { 0, "Target" })
-                                    ?? plugAttr.GetArgument<string>(fallbackArgs: new object[] { 0, "TargetName" });
-
-            if (string.IsNullOrEmpty(targetTypeName))
-            {
-                Console.WriteLine(
-                    $"[PatchType] WARNING: Plug {plugType.FullName} has invalid/missing target type specification");
-                continue;
-            }
-
-            if (targetTypeName != targetType.FullName)
-            {
-                Console.WriteLine(
-                    $"[PatchType] Plug target {targetTypeName} does not match current type {targetType.FullName}, skipping");
-                continue;
-            }
-
             Console.WriteLine($"[PatchType] Processing members for plug type: {plugType.FullName}");
             ProcessPlugMembers(targetType, plugType);
         }
@@ -152,7 +117,7 @@ public sealed class PlugPatcher
         foreach (PropertyDefinition property in plugType.Properties)
         {
             Console.WriteLine($"[ProcessPlugMembers] Processing property: {property.FullName}");
-            CustomAttribute plugMemberAttr = property.CustomAttributes.FirstOrDefault(attr =>
+            CustomAttribute? plugMemberAttr = property.CustomAttributes.FirstOrDefault(attr =>
                 attr.AttributeType.FullName == typeof(PlugMemberAttribute).FullName);
 
             if (plugMemberAttr == null)
@@ -162,7 +127,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetPropertyName = plugMemberAttr.GetArgument(property.Name, 0, "TargetName");
+            string? targetPropertyName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: property.Name);
             Console.WriteLine($"[ProcessPlugMembers] Looking for target property: {targetPropertyName}");
             PropertyDefinition? targetProperty =
                 targetType.Properties.FirstOrDefault(p => p.Name == targetPropertyName);
@@ -197,7 +162,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetFieldName = plugMemberAttr.GetArgument(field.Name, 0, "TargetName");
+            string? targetFieldName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: field.Name);
             Console.WriteLine($"[ProcessPlugMembers] Looking for target field: {targetFieldName}");
             FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f =>
             {
@@ -255,7 +220,7 @@ public sealed class PlugPatcher
         }
 
         bool isInstancePlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
-        string methodName = attr.GetArgument(plugMethod.Name, 0, "TargetName");
+        string? methodName = attr.GetArgument(named: "TargetName", defaultValue: plugMethod.Name);
         Console.WriteLine($"[ResolveAndPatchMethod] Resolving method: {methodName} (Instance: {isInstancePlug})");
 
         MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m =>
@@ -291,13 +256,10 @@ public sealed class PlugPatcher
 
         if (targetMethod.IsConstructor)
         {
-            Instruction? call = targetMethod.Body.Instructions
-                .Where(i => i.OpCode == OpCodes.Call
-                    && i.Operand is MethodReference method
-                    && method.Name == ".ctor"
-                    && (method.DeclaringType == targetMethod.DeclaringType
-                        || method.DeclaringType == targetMethod.DeclaringType.BaseType)
-                ).FirstOrDefault();
+            Instruction? call = targetMethod.Body.Instructions.FirstOrDefault(i => i.OpCode == OpCodes.Call
+                && i.Operand is MethodReference { Name: ".ctor" } method
+                && (method.DeclaringType == targetMethod.DeclaringType
+                    || method.DeclaringType == targetMethod.DeclaringType.BaseType));
 
             if (call is not null)
             {
@@ -312,7 +274,8 @@ public sealed class PlugPatcher
             }
             else
             {
-                Console.WriteLine("[PatchMethod] No Base Constructor Call found in constructor, clearing all instructions");
+                Console.WriteLine(
+                    "[PatchMethod] No Base Constructor Call found in constructor, clearing all instructions");
                 targetMethod.Body.Instructions.Clear();
             }
         }
@@ -474,9 +437,9 @@ public sealed class PlugPatcher
             Console.WriteLine("[PatchField] MarshalInfo copied");
         }
 
-        foreach (var targetCtor in targetField.DeclaringType.GetConstructors())
+        foreach (MethodDefinition? targetCtor in targetField.DeclaringType.GetConstructors())
         {
-            foreach (var plugCtor in plugField.DeclaringType.GetConstructors())
+            foreach (MethodDefinition? plugCtor in plugField.DeclaringType.GetConstructors())
             {
                 (Instruction? Instruction, int Index) targetFieldInstr =
                     FindField(targetCtor, targetField, OpCodes.Stfld, OpCodes.Stsfld);
@@ -502,7 +465,8 @@ public sealed class PlugPatcher
                 };
 
                 ILProcessor processor = targetCtor.Body.GetILProcessor();
-                processor.RemoveAt(targetFieldInstr.Index - 1); // The previous index points to the IL of the field value
+                processor.RemoveAt(targetFieldInstr.Index -
+                                   1); // The previous index points to the IL of the field value
                 processor.InsertBefore(targetFieldInstr.Instruction,
                     clone); // Replace the value of the field with the plugged value
             }
@@ -528,13 +492,14 @@ public sealed class PlugPatcher
                 $"[ReplaceFieldAccess] Replacing instruction: {instruction} in method: {method.FullName}");
 
             OpCode opcode = method.IsStatic
-                ? (loadField ? OpCodes.Ldsfld : OpCodes.Stsfld)
-                : (loadField ? OpCodes.Ldfld : OpCodes.Stfld);
+                ? loadField ? OpCodes.Ldsfld : OpCodes.Stsfld
+                : loadField ? OpCodes.Ldfld : OpCodes.Stfld;
             Instruction newInstruction = Instruction.Create(opcode, method.Module.ImportReference(newField));
             processor.Replace(instruction, newInstruction);
 
             Console.WriteLine($"[ReplaceFieldAccess] Replaced: {instruction} -> {newInstruction}");
-            Console.WriteLine($"[ReplaceFieldAccess] Instruction in body: {method.Body.Instructions.IndexOf(newInstruction)}");
+            Console.WriteLine(
+                $"[ReplaceFieldAccess] Instruction in body: {method.Body.Instructions.IndexOf(newInstruction)}");
         }
 
         Console.WriteLine($"[ReplaceFieldAccess] Completed processing for method: {method.FullName}");

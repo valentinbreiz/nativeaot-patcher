@@ -77,7 +77,7 @@ public static class MonoCecilExtensions
     public static AssemblyDefinition LoadAssembly(this string location, bool readWrite = false)
     {
         // Create a new instance of the DefaultAssemblyResolver.
-        DefaultAssemblyResolver? resolver = new();
+        DefaultAssemblyResolver resolver = new();
 
         // Add search directories to the resolver.
         foreach (string? directory in additionalSearchDirectories)
@@ -154,7 +154,7 @@ public static class MonoCecilExtensions
     /// <returns>A collection of MethodDefinition objects for the found methods. Empty collection if none found.</returns>
     public static Collection<MethodDefinition> FindMethods(this TypeDefinition type, string methodSignature)
     {
-        Collection<MethodDefinition>? collection = new();
+        Collection<MethodDefinition> collection = new();
 
         // This function checks each method in the type's Methods collection,
         // and adds those methods to the collection whose full name or simple name matches the provided method signature.
@@ -191,7 +191,7 @@ public static class MonoCecilExtensions
         }
 
         // Create a new TypeDefinition with the same properties as the source type
-        TypeDefinition? dest = new(src.Namespace, src.Name, src.Attributes);
+        TypeDefinition dest = new(src.Namespace, src.Name, src.Attributes);
 
         // If the source type isn't nested, add the new type directly to the assembly's types
         // Otherwise, find the declaring type in the assembly and add the new type as a nested type
@@ -238,51 +238,51 @@ public static class MonoCecilExtensions
         }
 
         // Clone attributes from the source and add to the destination
-        Collection<CustomAttribute>? clonedAttributes = new();
+        Collection<CustomAttribute> clonedAttributes = new();
         foreach (CustomAttribute? attribute in src.CustomAttributes)
         {
-            CustomAttribute? clonedAttribute = attribute.Clone();
+            CustomAttribute clonedAttribute = attribute.Clone();
             dest.CustomAttributes.Add(clonedAttribute);
             clonedAttributes.Add(clonedAttribute);
         }
 
         // Clone interfaces from the source and add to the destination
-        Collection<InterfaceImplementation>? clonedInterfaces = new();
+        Collection<InterfaceImplementation> clonedInterfaces = new();
         foreach (InterfaceImplementation? @interface in src.Interfaces)
         {
-            InterfaceImplementation? clonedInterface = @interface.Clone();
+            InterfaceImplementation clonedInterface = @interface.Clone();
             dest.Interfaces.Add(clonedInterface);
             clonedInterfaces.Add(clonedInterface);
         }
 
         // Clone fields from the source and add to the destination
-        Collection<FieldDefinition>? clonedFields = new();
+        Collection<FieldDefinition> clonedFields = new();
         foreach (FieldDefinition? field in src.Fields)
         {
-            FieldDefinition? clonedField = field.Clone();
+            FieldDefinition clonedField = field.Clone();
             clonedFields.Add(clonedField);
             dest.Fields.Add(clonedField);
         }
 
         // Clone properties from the source and add to the destination
-        Collection<PropertyDefinition>? clonedProperties = new();
+        Collection<PropertyDefinition> clonedProperties = new();
         foreach (PropertyDefinition? property in src.Properties)
         {
-            PropertyDefinition? clonedProperty = property.Clone();
+            PropertyDefinition clonedProperty = property.Clone();
             clonedProperties.Add(clonedProperty);
             dest.Properties.Add(clonedProperty);
         }
 
         // Clone methods from the source (don't add to the destination yet)
-        Collection<MethodDefinition>? clonedMethods = new();
+        Collection<MethodDefinition> clonedMethods = new();
         foreach (MethodDefinition? method in src.Methods)
         {
-            MethodDefinition? clonedMethod = method.Clone();
+            MethodDefinition clonedMethod = method.Clone();
             clonedMethods.Add(clonedMethod);
         }
 
         // List for keeping track of methods that need further processing
-        Collection<MethodDefinition>? updatedMethods = new();
+        Collection<MethodDefinition> updatedMethods = new();
 
         // Process each method
         foreach (MethodDefinition? clonedMethod in clonedMethods.ToList())
@@ -307,7 +307,7 @@ public static class MonoCecilExtensions
                 if (destMethod != null)
                 {
                     Collection<Instruction>? clonedInstructions = clonedMethod.Body.Instructions;
-                    List<Instruction>? trimmedClonedInstructions = clonedInstructions.ToList();
+                    List<Instruction> trimmedClonedInstructions = clonedInstructions.ToList();
 
                     // For constructors
                     if (clonedMethod.Name is ".ctor")
@@ -328,7 +328,7 @@ public static class MonoCecilExtensions
 
                         // Insert the trimmed instructions to the existing constructor, just before the last instruction (ret)
                         int insertIndex = destMethod.Body.Instructions.Count - 1;
-                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertIndex, clonedInstruction);
                             insertIndex++;
@@ -342,7 +342,7 @@ public static class MonoCecilExtensions
 
                         // Insert the trimmed instructions to the existing static constructor, just before the last instruction (ret)
                         int insertIndex = destMethod.Body.Instructions.Count - 1;
-                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertIndex, clonedInstruction);
                             insertIndex++;
@@ -366,7 +366,7 @@ public static class MonoCecilExtensions
 
                         // Insert the trimmed instructions to the existing destructor, at the beginning
                         int insertionIndex = 0;
-                        foreach (Instruction? clonedInstruction in trimmedClonedInstructions)
+                        foreach (Instruction clonedInstruction in trimmedClonedInstructions)
                         {
                             destMethod.Body.Instructions.Insert(insertionIndex, clonedInstruction);
                             insertionIndex++;
@@ -569,7 +569,7 @@ public static class MonoCecilExtensions
     public static CustomAttribute Clone(this CustomAttribute attribute)
     {
         // Create a new CustomAttribute with the constructor of the original attribute.
-        CustomAttribute? clonedAttribute = new(attribute.Constructor);
+        CustomAttribute clonedAttribute = new(attribute.Constructor);
 
         // Add all constructor arguments from the original attribute to the cloned attribute.
         foreach (CustomAttributeArgument argument in attribute.ConstructorArguments)
@@ -601,7 +601,7 @@ public static class MonoCecilExtensions
     public static InterfaceImplementation Clone(this InterfaceImplementation @interface)
     {
         // Create a new InterfaceImplementation with the type the original interface.
-        InterfaceImplementation? clonedInterface = new(@interface.InterfaceType);
+        InterfaceImplementation clonedInterface = new(@interface.InterfaceType);
 
         // Copy all custom attributes from the original interface to the cloned interface.
         foreach (CustomAttribute? attribute in @interface.CustomAttributes)
@@ -621,7 +621,7 @@ public static class MonoCecilExtensions
     public static FieldDefinition Clone(this FieldDefinition field)
     {
         // Create a new FieldDefinition with the same properties as the original field.
-        FieldDefinition? clonedField = new(field.Name, field.Attributes, field.FieldType);
+        FieldDefinition clonedField = new(field.Name, field.Attributes, field.FieldType);
 
         // Copy all custom attributes from the original field to the cloned field.
         foreach (CustomAttribute? attribute in field.CustomAttributes)
@@ -647,7 +647,7 @@ public static class MonoCecilExtensions
     public static PropertyDefinition Clone(this PropertyDefinition property)
     {
         // Create a new PropertyDefinition with the same properties as the original property.
-        PropertyDefinition? clonedProperty = new(property.Name, property.Attributes, property.PropertyType);
+        PropertyDefinition clonedProperty = new(property.Name, property.Attributes, property.PropertyType);
 
         // Copy all custom attributes from the original property to the cloned property.
         foreach (CustomAttribute? attribute in property.CustomAttributes)
@@ -671,7 +671,7 @@ public static class MonoCecilExtensions
     public static ParameterDefinition Clone(this ParameterDefinition parameter)
     {
         // Create a new ParameterDefinition with the same properties as the original parameter.
-        ParameterDefinition? clonedParameter = new(parameter.Name, parameter.Attributes, parameter.ParameterType);
+        ParameterDefinition clonedParameter = new(parameter.Name, parameter.Attributes, parameter.ParameterType);
 
         // Copy all custom attributes from the original parameter to the cloned parameter.
         foreach (CustomAttribute? attribute in parameter.CustomAttributes)
@@ -722,7 +722,7 @@ public static class MonoCecilExtensions
             throw new ArgumentNullException(nameof(instructions));
         }
 
-        Collection<Instruction>? clonedInstructions = new();
+        Collection<Instruction> clonedInstructions = new();
 
         foreach (Instruction? instruction in instructions)
         {
@@ -741,7 +741,7 @@ public static class MonoCecilExtensions
     public static MethodDefinition Clone(this MethodDefinition method)
     {
         // Create a new MethodDefinition with the same properties as the original method.
-        MethodDefinition? clonedMethod = new(method.Name, method.Attributes, method.ReturnType)
+        MethodDefinition clonedMethod = new(method.Name, method.Attributes, method.ReturnType)
         {
             ImplAttributes = method.ImplAttributes,
             SemanticsAttributes = method.SemanticsAttributes
@@ -781,12 +781,12 @@ public static class MonoCecilExtensions
             }
 
             // Instruction mapping from old to new instructions used to update branch targets which is necessary after cloning
-            Dictionary<Instruction, Instruction>? instructionMapping = new();
+            Dictionary<Instruction, Instruction> instructionMapping = new();
 
             // Clone all the instructions and create the mapping.
             foreach (Instruction? instruction in method.Body.Instructions)
             {
-                Instruction? clonedInstruction = instruction.Clone();
+                Instruction clonedInstruction = instruction.Clone();
                 instructionMapping[instruction] = clonedInstruction;
                 clonedMethod.Body.Instructions.Add(clonedInstruction);
             }
@@ -804,7 +804,7 @@ public static class MonoCecilExtensions
                     // If the instruction is a switch instruction, fix up its targets.
                     case OperandType.InlineSwitch:
                         Instruction[]? oldTargets = (Instruction[])instruction.Operand;
-                        Instruction[]? newTargets = new Instruction[oldTargets.Length];
+                        Instruction[] newTargets = new Instruction[oldTargets.Length];
                         for (int i = 0; i < oldTargets.Length; ++i)
                         {
                             newTargets[i] = instructionMapping[oldTargets[i]];
@@ -1112,7 +1112,7 @@ public static class MonoCecilExtensions
             if (property.GetMethod != null)
             {
                 // Clone the getter
-                MethodDefinition? clonedGetter = property.GetMethod.Clone();
+                MethodDefinition clonedGetter = property.GetMethod.Clone();
                 // Update all type references within the getter from src to dest
                 clonedGetter.UpdateTypes(src, dest);
                 // Update the declaring type of the getter to be dest
@@ -1128,7 +1128,7 @@ public static class MonoCecilExtensions
             if (property.SetMethod != null)
             {
                 // Clone the setter
-                MethodDefinition? clonedSetter = property.SetMethod.Clone();
+                MethodDefinition clonedSetter = property.SetMethod.Clone();
                 // Update all type references within the setter from src to dest
                 clonedSetter.UpdateTypes(src, dest);
                 // Update the declaring type of the setter to be dest
@@ -1408,9 +1408,9 @@ public static class MonoCecilExtensions
         MethodAttributes leftAttributes = leftMethod.Attributes;
         MethodImplAttributes leftImplAttributes = leftMethod.ImplAttributes;
         MethodSemanticsAttributes leftSemanticsAttributes = leftMethod.SemanticsAttributes;
-        Collection<ParameterDefinition>? leftParameters = new(leftMethod.Parameters);
-        Collection<CustomAttribute>? leftCustomAttributes = new(leftMethod.CustomAttributes);
-        Collection<GenericParameter>? leftGenericParameters = new(leftMethod.GenericParameters);
+        Collection<ParameterDefinition> leftParameters = new(leftMethod.Parameters);
+        Collection<CustomAttribute> leftCustomAttributes = new(leftMethod.CustomAttributes);
+        Collection<GenericParameter> leftGenericParameters = new(leftMethod.GenericParameters);
 
         // Swap the details from the right method to the left
         leftMethod.Body = rightMethod.Body;
@@ -1472,18 +1472,18 @@ public static class MonoCecilExtensions
     public static void SwapDuplicateMethods(this TypeDefinition type, bool avoidSignatureConflicts = false)
     {
         // This HashSet is used for tracking the methods that have already been swapped.
-        HashSet<string>? alreadySwapped = new();
+        HashSet<string> alreadySwapped = new();
 
         // Convert the method collection to list for efficient index-based access.
-        List<MethodDefinition>? methods = type.Methods.ToList();
+        List<MethodDefinition> methods = type.Methods.ToList();
 
         // Iterate over each pair of methods in the type
         for (int i = 0; i < methods.Count; i++)
         {
             for (int j = i + 1; j < methods.Count; j++)
             {
-                MethodDefinition? methodLeft = methods[i];
-                MethodDefinition? methodRight = methods[j];
+                MethodDefinition methodLeft = methods[i];
+                MethodDefinition methodRight = methods[j];
 
                 // If two methods have the same full name and haven't been swapped yet
                 if (methodLeft.FullName == methodRight.FullName && !alreadySwapped.Contains(methodLeft.FullName))
@@ -1815,57 +1815,47 @@ public static class MonoCecilExtensions
 
     #region GetArgument
 
-    public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, params object[] fallbackArgs)
+    public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, string named = "", int positional = 0)
     {
         string? typeName = typeof(T).FullName;
         Console.WriteLine($"[GetArgument] Trying to get argument of type: {typeName}");
         Console.WriteLine($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
         Console.WriteLine($"[GetArgument] Total properties: {attribute.Properties.Count}");
 
-        foreach (object indexOrStr in fallbackArgs)
+        CustomAttributeArgument? argument = string.IsNullOrEmpty(named)
+            ? positional > attribute.ConstructorArguments.Count - 1 || positional < 0
+                ? null
+                : attribute.ConstructorArguments[positional]
+            : attribute.Properties
+                .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase))
+                .Argument;
+
+        if (argument is null)
         {
-            Console.WriteLine($"[GetArgument] Processing fallback: {indexOrStr} ({indexOrStr.GetType().Name})");
+            Console.WriteLine("[GetArgument] Argument was null — skipping.");
+            return defaultValue;
+        }
 
-            CustomAttributeArgument? argument = indexOrStr switch
-            {
-                int index => index > attribute.ConstructorArguments.Count - 1 || index < 0
-                    ? null
-                    : attribute.ConstructorArguments[index],
-                string name => attribute.Properties.FirstOrDefault(arg => string.Equals(arg.Name, name, StringComparison.InvariantCultureIgnoreCase)).Argument,
-                _ => null
-            };
+        string? argTypeName = argument.Value.Type?.FullName;
+        if (string.IsNullOrEmpty(argTypeName))
+        {
+            Console.WriteLine("[GetArgument] Argument type was null — returning default.");
+            return defaultValue;
+        }
 
-            if (argument is null)
-            {
-                Console.WriteLine("[GetArgument] Argument was null — skipping.");
-                continue;
-            }
+        Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
+        if (argTypeName == typeof(Type).FullName)
+            return (T?)(object?)argument.Value.Value.ToString();
 
-            string? argTypeName = argument.Value.Type?.FullName;
-            if (string.IsNullOrEmpty(argTypeName))
-            {
-                Console.WriteLine("[GetArgument] Argument type was null — skipping.");
-                continue;
-            }
-            Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
-
-
-            if (argTypeName == typeof(Type).FullName)
-                return (T?)(object?)argument.Value.Value.ToString();
-
-            if (typeof(T).IsEnum && Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
-            {
-                Console.WriteLine($"Type is enum, Value: {enumValue}");
-                return (T)enumValue;
-            }
-
+        if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
+        {
             return argument.Value.Value is T matchedValue
                 ? matchedValue
                 : defaultValue;
         }
 
-        Console.WriteLine("[GetArgument] No matching argument found. Returning default.");
-        return defaultValue;
+        Console.WriteLine($"Type is enum, Value: {enumValue}");
+        return (T)enumValue;
     }
     #endregion
 

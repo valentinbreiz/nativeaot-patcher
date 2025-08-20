@@ -31,7 +31,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             return -1;
         }
 
-        string[]? plugPaths = settings.PlugsReferences.Where(File.Exists).ToArray();
+        string[] plugPaths = settings.PlugsReferences.Where(File.Exists).ToArray();
         if (plugPaths.Length == 0)
         {
             Console.WriteLine("Error: No valid plug assemblies provided.");
@@ -43,23 +43,22 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             AssemblyDefinition? targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
             Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
 
-            AssemblyDefinition[]? plugAssemblies = [.. plugPaths
+            AssemblyDefinition[] plugAssemblies = [.. plugPaths
                 .Select(AssemblyDefinition.ReadAssembly)
               ];
 
             Console.WriteLine("Loaded plug assemblies:");
-            foreach (string? plug in plugPaths)
+            foreach (string plug in plugPaths)
             {
                 Console.WriteLine($" - {plug}");
             }
 
-            PlugPatcher? plugPatcher = new(new PlugScanner());
+            PlugPatcher plugPatcher = new(new PlugScanner());
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
-            settings.OutputPath ??= Path.GetDirectoryName(settings.TargetAssembly)!;
-
-            string finalPath = Path.Combine(settings.OutputPath, Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
+            string finalPath = settings.OutputPath ?? Path.Combine(Path.GetDirectoryName(settings.TargetAssembly)!, Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
             targetAssembly.Write(finalPath);
+
             Console.WriteLine($"Patched assembly saved to: {settings.OutputPath}");
 
             Console.WriteLine("Patching completed successfully.");

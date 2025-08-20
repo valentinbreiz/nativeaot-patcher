@@ -1,0 +1,101 @@
+<Project>
+  <PropertyGroup>
+    <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
+    <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
+  </PropertyGroup>
+
+  <UsingTask
+    TaskName="GetPackageDirectory"
+    AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
+  />
+
+  <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
+  <Target Name="ResolveIlcPath" AfterTargets="Build">
+    <ItemGroup>
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+    </ItemGroup>
+
+    <GetPackageDirectory
+      Items="@(HostILCompilerPack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
+
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+    </GetPackageDirectory>
+
+    <PropertyGroup>
+      <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+    </PropertyGroup>
+    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
+  </Target>
+
+  <!-- Writes the response file for ILC compilation. -->
+  <Target Name="WriteIlcRsp" DependsOnTargets="$(IlcDependsOn)">
+    <PropertyGroup>
+      <FullIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</FullIntermediateOutputPath>
+      <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
+
+      <NativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)/cosmos/native/'))</NativeOutputPath>
+      <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
+      <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
+      <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
+    </PropertyGroup>
+    <!--
+    <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
+      <AutoInitializedAssemblies Include="System.Private.CoreLib" />
+      <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
+      <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
+      <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
+    </ItemGroup>
+    -->
+    <ItemGroup>
+      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
+      <ManagedBinary Include="@(IlcCompileInput)">
+        <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
+        <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
+      </ManagedBinary>
+      
+      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
+    </ItemGroup>
+
+    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
+
+    <ItemGroup>
+      <IlcArg Include="@(IlcCompileInput)" />
+      <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
+      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
+      <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')" />
+      <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
+      <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
+      <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
+      <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
+      <IlcArg Include="--nativelib" />
+      <IlcArg Include="--noinlinetls" />
+      <IlcArg Include="-g" />
+      <IlcArg Include="-O" />
+      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
+      <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
+      <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
+      
+      <!-- The managed debugging support in libraries is unused - trim it -->
+      <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
+  </Target>
+
+  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
+    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
+    <Exec
+      Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
+      WorkingDirectory="$(FullIntermediateOutputPath)"
+    />
+
+    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
+  </Target>
+</Project>
