@@ -4,7 +4,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System.Core</PackageId>
     <Title>Cosmos Kernel Core</Title>
@@ -15,7 +15,4 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
-  </ItemGroup>
 </Project>

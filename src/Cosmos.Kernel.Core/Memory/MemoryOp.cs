@@ -97,6 +97,29 @@ public static unsafe class MemoryOp
         }
     }
 
+    public static void MemMove(byte* dest, byte* src, int count)
+    {
+        if (dest == src || count == 0)
+        {
+            return;
+        }
+
+        if (dest < src)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                dest[i] = src[i];
+            }
+        }
+        else
+        {
+            for (int i = count - 1; i >= 0; i--)
+            {
+                dest[i] = src[i];
+            }
+        }
+    }
+
     public static bool MemCmp(uint* dest, uint* src, int count)
     {
         for (int i = 0; i < count; i++)
