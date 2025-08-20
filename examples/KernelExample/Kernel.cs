@@ -38,13 +38,11 @@ internal unsafe class Program
 
         Serial.WriteString("Hello from UART\n");
 
-
         char* gccString = testGCC();
         Canvas.DrawString(gccString, 0, 56, Color.White);
 
         char[] testChars = new char[] { 'R', 'h', 'p' };
         string testString = new string(testChars);
-        testString += " string test";
         Canvas.DrawString(testString, 0, 84, Color.White);
         Serial.WriteString(testString + "\n");
 
