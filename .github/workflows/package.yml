@@ -24,25 +24,25 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Pack Cosmos.Api
-        run: dotnet build ./src/Cosmos.API/Cosmos.API.csproj --configuration Release --artifacts-path ./out
+        run: dotnet build ./src/Cosmos.Build.API/Cosmos.Build.API.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Cosmos.Patcher.Build
-        run: dotnet build ./src/Cosmos.Patcher.Build/Cosmos.Patcher.Build.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Build.Patcher
+        run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj --configuration Release --artifacts-path ./out
 
       - name: Pack Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj --configuration Release --artifacts-path ./out
         
-      - name: Pack Cosmos.Common.Build
-        run: dotnet build ./src/Cosmos.Common.Build/Cosmos.Common.Build.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Build.Common
+        run: dotnet build ./src/Cosmos.Build.Common/Cosmos.Build.Common.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Cosmos.Ilc.Build
-        run: dotnet build ./src/Cosmos.Ilc.Build/Cosmos.Ilc.Build.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Build.Ilc
+        run: dotnet build ./src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Cosmos.Asm.Build
-        run: dotnet build ./src/Cosmos.Asm.Build/Cosmos.Asm.Build.csproj --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Build.Asm
+        run: dotnet build ./src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj --configuration Release --artifacts-path ./out
 
-      - name: Pack Cosmos.Patcher.Analyzer.Package
-        run: dotnet build ./src/Cosmos.Patcher.Analyzer.Package/Cosmos.Patcher.Analyzer.Package.csproj  --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos.Build.Analyzer.Patcher.Package
+        run: dotnet build ./src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj  --configuration Release --artifacts-path ./out
 
       - name: Pack Cosmos.Kernel.Native.x86
         run: dotnet build ./src/Cosmos.Kernel.Native.x86/Cosmos.Kernel.Native.x86.csproj --configuration Release --artifacts-path ./out
