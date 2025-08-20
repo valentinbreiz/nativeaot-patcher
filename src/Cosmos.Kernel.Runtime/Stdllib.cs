@@ -224,55 +224,75 @@ namespace Internal.Runtime.CompilerHelpers
             return RhpNewArray(pEEType, length);
         }
 
+        [RuntimeExport("__security_cookie")]
+        static void __security_cookie() { }
+
+        [RuntimeExport("RhpGcPoll")]
+        static void RhpGcPoll() { }
+
+        [RuntimeExport("RhpTrapThreads")]
+        static void RhpTrapThreads() { }
+
+        [RuntimeExport("RhGetProcessCpuCount")]
+        static int RhGetProcessCpuCount() { throw null; }
+
+        [RuntimeExport("RhSuppressFinalize")]
+        static void RhSuppressFinalize(object obj) { }
+
+        [RuntimeExport("RhReRegisterForFinalize")]
+        static void RhReRegisterForFinalize(object obj) { }
+
+        [RuntimeExport("RhGetMemoryInfo")]
+        static void RhGetMemoryInfo(IntPtr pMemInfo) { }
+
+        [RuntimeExport("RhHandleSet")]
+        static IntPtr RhHandleSet(object obj) { throw null; }
+
+        [RuntimeExport("RhHandleFree")]
+        static void RhHandleFree(IntPtr handle) { }
+
+        [RuntimeExport("RhBulkMoveWithWriteBarrier")]
+        static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
+
+        [RuntimeExport("RhpCheckedLockCmpXchg")]
+        static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle) { throw null; }
+
+        [RuntimeExport("RhGetKnobValues")]
+        static unsafe void RhGetKnobValues(int* pKnobValues) { }
+
+        [RuntimeExport("RhTypeCast_CheckCastClass")]
+        static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle) { throw null; }
+
+        [RuntimeExport("RhBoxAny")]
+        static unsafe object RhBoxAny(int typeHandle, void* data) { throw null; }
+
+        [RuntimeExport("RhTypeCast_AreTypesAssignable")]
+        static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest) { throw null; }
+
+        [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
+        static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
+
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
                 [RuntimeExport("RhUnbox2")]
                 static unsafe object RhUnbox2(object obj) { throw null; }
-                [RuntimeExport("RhpCheckedAssignRef")]
-                static unsafe void RhpCheckedAssignRef(object* location, object value, int typeHandle) { }
-                [RuntimeExport("RhTypeCast_CheckCastClass")]
-                static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle) { throw null; }
-                [RuntimeExport("RhpTrapThreads")]
-                static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
                 static void RhpGcPoll() { }
-                [RuntimeExport("__security_cookie")]
-                static void __security_cookie() { }
                 [RuntimeExport("RhSpanHelpers_MemZero")]
                 static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { }
-                [RuntimeExport("RhBoxAny")]
-                static unsafe object RhBoxAny(int typeHandle, void* data) { throw null; }
                 [RuntimeExport("RhGetOSModuleFromPointer")]
                 static IntPtr RhGetOSModuleFromPointer(IntPtr ptr) { throw null; }
                 [RuntimeExport("RhGetRuntimeVersion")]
                 static int RhGetRuntimeVersion() { return 0; }
-                [RuntimeExport("RhGetKnobValues")]
-                static unsafe void RhGetKnobValues(int* pKnobValues) { }
-                [RuntimeExport("RhBulkMoveWithWriteBarrier")]
-                static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
-                [RuntimeExport("RhHandleFree")]
-                static void RhHandleFree(IntPtr handle) { }
-                [RuntimeExport("RhHandleSet")]
-                static IntPtr RhHandleSet(object obj) { throw null; }
                 [RuntimeExport("RhpNewFinalizable")]
                 static unsafe object RhpNewFinalizable(int typeHandle) { throw null; }
-                [RuntimeExport("RhTypeCast_AreTypesAssignable")]
-                static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest) { throw null; }
                 [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
                 static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle) { throw null; }
                 [RuntimeExport("RhNewObject")]
                 static unsafe object RhNewObject(int typeHandle) { throw null; }
                 [RuntimeExport("RhBox")]
                 static unsafe object RhBox(int typeHandle, void* data) { throw null; }
-                [RuntimeExport("RhpCheckedLockCmpXchg")]
-                static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle) { throw null; }
-                [RuntimeExport("RhGetProcessCpuCount")]
-                static int RhGetProcessCpuCount() { throw null; }
-                [RuntimeExport("RhSuppressFinalize")]
-                static void RhSuppressFinalize(object obj) { }
-                [RuntimeExport("RhReRegisterForFinalize")]
-                static void RhReRegisterForFinalize(object obj) { }
                 [RuntimeExport("RhGetGcCollectionCount")]
                 static int RhGetGcCollectionCount(int generation) { throw null; }
                 [RuntimeExport("RhGetGcTotalMemory")]
@@ -281,8 +301,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static void RhCollect(int generation, InternalGCCollectionMode mode) { }
                 [RuntimeExport("RhWaitForPendingFinalizers")]
                 static void RhWaitForPendingFinalizers() { }
-                [RuntimeExport("RhGetMemoryInfo")]
-                static void RhGetMemoryInfo(IntPtr pMemInfo) { }
                 [RuntimeExport("cos")]
                 static double cos(double x) { throw null; }
                 [RuntimeExport("sin")]
@@ -291,8 +309,6 @@ namespace Internal.Runtime.CompilerHelpers
                 static double tan(double x) { throw null; }
                 [RuntimeExport("pow")]
                 static double pow(double x, double y) { throw null; }
-                [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
-                static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]
                 static unsafe void* RhUnbox(object obj) { throw null; }
                 [RuntimeExport("RhpStelemRef")]
