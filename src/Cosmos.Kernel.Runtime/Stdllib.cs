@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime;
+using Cosmos.Kernel.Core.Memory;
 
 namespace System
 {
@@ -122,6 +123,17 @@ namespace System
                 DllName = dllName;
             }
         }
+
+        internal unsafe struct MethodTable
+        {
+            internal ushort _usComponentSize;
+            private ushort _usFlags;
+            internal uint _uBaseSize;
+            internal MethodTable* _relatedType;
+            private ushort _usNumVtableSlots;
+            private ushort _usNumInterfaces;
+            private uint _uHashCode;
+        }
     }
 }
 
@@ -130,7 +142,7 @@ namespace Internal.Runtime.CompilerHelpers
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    internal class StartupCodeHelpers
+    internal static unsafe class StartupCodeHelpers
     {
         [RuntimeExport("RhpReversePInvoke")]
         private static void RhpReversePInvoke(IntPtr frame) { }
@@ -151,12 +163,42 @@ namespace Internal.Runtime.CompilerHelpers
         private static void RhpThrowEx(object ex) { while (true) ; }
 
         [RuntimeExport("RhpNewArray")]
-        private static unsafe object RhpNewArray(int elementTypeHandle, int length) { throw null; }
+        private static unsafe void* RhpNewArray(System.Runtime.MethodTable* pMT, int length)
+        {
+            if (length < 0)
+                return null;
+
+            uint size = (uint)(pMT->_uBaseSize + (uint)length * pMT->_usComponentSize);
+            System.Runtime.MethodTable** result = AllocObject(size);
+            *result = pMT;
+            *(int*)(result + 1) = length;
+            return result;
+        }
 
         [RuntimeExport("RhpAssignRef")]
-        private static unsafe void RhpAssignRef(object* location, object value) { }
+        private static unsafe void RhpAssignRef(void** location, void* value)
+        {
+            *location = value;
+        }
+
+        [RuntimeExport("RhpCheckedAssignRef")]
+        private static unsafe void RhpCheckedAssignRef(void** location, void* value)
+        {
+            *location = value;
+        }
+
         [RuntimeExport("RhpNewFast")]
-        private static unsafe object RhpNewFast(int typeHandle) { throw null; }
+        private static unsafe void* RhpNewFast(System.Runtime.MethodTable* pMT)
+        {
+            System.Runtime.MethodTable** result = AllocObject(pMT->_uBaseSize);
+            *result = pMT;
+            return result;
+        }
+
+        private static unsafe System.Runtime.MethodTable** AllocObject(uint size)
+        {
+            return (System.Runtime.MethodTable**)MemoryOp.Alloc(size);
+        }
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
