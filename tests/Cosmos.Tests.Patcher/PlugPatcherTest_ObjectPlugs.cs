@@ -132,7 +132,7 @@ public class PlugPatcherTest_ObjectPlugs
                 // Test Get
                 object getResult = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceProperty));
                 Assert.Equal("Plugged Goodbye World", getResult);
-    
+
                 // Test Get
                 object getResult2 = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceBackingFieldProperty));
                 Assert.Equal("Plugged Backing Field", getResult2);
