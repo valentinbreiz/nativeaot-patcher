@@ -223,7 +223,7 @@ namespace Internal.Runtime.CompilerHelpers
         {
             return RhpNewArray(pEEType, length);
         }
-        
+
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
