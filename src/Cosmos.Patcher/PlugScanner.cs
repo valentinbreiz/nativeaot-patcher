@@ -23,7 +23,10 @@ public sealed class PlugScanner
                     if (targetType == null)
                         return true;
 
-                    string? targetTypeName = plugAttr.GetArgument<string>(named: "Target")
+
+                    string? targetTypeName = plugAttr.ConstructorArguments.Count == 1 && plugAttr.Properties.Count == 0
+                        ? plugAttr.GetArgument<string>()
+                        : plugAttr.GetArgument<string>(named: "Target")
                                              ?? plugAttr.GetArgument<string>(named: "TargetName");
 
                     return targetType.FullName == targetTypeName;
