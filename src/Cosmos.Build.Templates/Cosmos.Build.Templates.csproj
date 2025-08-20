@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Build.Templates</PackageId>
+    <Title>Cosmos Build Templates</Title>
+    <Description>Build templates and configuration files for Cosmos kernel development including linker scripts and bootloader configurations.</Description>
+    <PackageTags>cosmos;build;templates;linker;bootloader;limine;x86;x64;elf</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!-- Include template files in the package -->
+  <ItemGroup>
+    <Content Include="Linker\**\*" PackagePath="content\Linker\" />
+    <Content Include="Bootloader\**\*" PackagePath="content\Bootloader\" />
+  </ItemGroup>
+
+  <!-- MSBuild targets for copying templates
+  <ItemGroup>
+    <Content Include="build\Cosmos.Build.Templates.props" PackagePath="build\" />
+    <Content Include="build\Cosmos.Build.Templates.targets" PackagePath="build\" />
+  </ItemGroup>
+   -->
+</Project>

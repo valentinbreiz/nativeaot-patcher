@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <UsingCosmosSdk>true</UsingCosmosSdk>
+    <!-- Ilc  -->
+    <IlcDependsOn>RunPatcher;$(IlcDependsOn);PrepareForILLink</IlcDependsOn>
+    <LinkTargetDependsOn>CompileWithIlc;BuildYasm;BuildGCC;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Runtime" />
+      <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Build.Ilc" Version="1.0.0"/>
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.0"/>
+  <PackageReference Include="Cosmos.Build.GCC" Version="3.0.2"/>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+<Project>  <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
+    <!-- Always use gcc as the tool path -->
+    <PropertyGroup>
+      <GCCPath>gcc</GCCPath>
+    </PropertyGroup>
+    
+    <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
+  </Target>
+</Project>

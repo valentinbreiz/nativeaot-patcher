@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Cosmos.Tests.Build.Analyzer.Patcher</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.CodeFix.Testing"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit"/>
+    <PackageReference Include="xunit"/>
+    <PackageReference Include="xunit.runner.visualstudio"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="coverlet.collector"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Build.Analyzer.Patcher.CodeFixes\Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" />
+  </ItemGroup>
+</Project>

@@ -20,6 +20,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Compile Packages
+        run: ./.devcontainer/postCreateCommand.sh
 
       - name: Restore Dependencies
         run: dotnet restore

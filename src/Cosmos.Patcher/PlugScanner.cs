@@ -1,4 +1,4 @@
-using Cosmos.API.Attributes;
+using Cosmos.Build.API.Attributes;
 using Mono.Cecil;
 using MonoMod.Utils;
 
@@ -6,18 +6,34 @@ namespace Cosmos.Patcher;
 
 public sealed class PlugScanner
 {
-    public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies)
+    public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies) => LoadPlugs(null, assemblies);
+    public List<TypeDefinition> LoadPlugs(TypeDefinition? targetType = null, params AssemblyDefinition[] assemblies)
     {
         List<TypeDefinition> output =
         [
             ..assemblies
                 .SelectMany(assembly => assembly.Modules)
                 .SelectMany(module => module.Types)
-                .Where(i=> i.HasCustomAttribute(typeof(PlugAttribute).FullName))
+                .Where(i =>
+                {
+                    CustomAttribute? plugAttr = i.GetCustomAttribute(typeof(PlugAttribute).FullName);
+                    if (plugAttr == null)
+                        return false;
 
+                    if (targetType == null)
+                        return true;
+
+
+                    string? targetTypeName = plugAttr.ConstructorArguments.Count == 1 && plugAttr.Properties.Count == 0
+                        ? plugAttr.GetArgument<string>()
+                        : plugAttr.GetArgument<string>(named: "Target")
+                                             ?? plugAttr.GetArgument<string>(named: "TargetName");
+
+                    return targetType.FullName == targetTypeName;
+                })
         ];
 
-        foreach (TypeDefinition? type in output)
+        foreach (TypeDefinition type in output)
         {
             Console.WriteLine($"Plug found: {type.Name}");
         }
