@@ -55,7 +55,14 @@
     
     <ItemGroup>
       <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
-      <PlugRef Include="@(ReferenceCopyLocalPaths)" />
+      <!-- Include direct dll references as plugs -->
+      <PlugRef Include="@(PlugReference->'%(FullPath)')" Condition="'%(PlugReference.Extension)' == '.dll'" />
+    </ItemGroup>
+
+    <!-- Build project plug references and capture their outputs -->
+    <ItemGroup>
+      <ProjectReference Include="@(PlugReference)" Condition="'%(PlugReference.Extension)' == '.csproj'"
+                        OutputItemType="PlugRef" ReferenceOutputAssembly="false" />
     </ItemGroup>
     
     <!-- Clean Output Path -->
@@ -63,6 +70,12 @@
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(PatcherOutputPath)" />
+
+    <Message Importance="High" Text="PlugReference Items:" />
+    <Message Importance="High" Text="  %(PlugReference.FullPath) - Ext: %(PlugReference.Extension)" />
+    
+    <Message Importance="High" Text="Final PlugRef Items:" />
+    <Message Importance="High" Text="  %(PlugRef.Identity)" />
   </Target>
   
   <!-- Clean target to remove the asm folder -->
