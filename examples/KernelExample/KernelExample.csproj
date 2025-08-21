@@ -56,6 +56,10 @@
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PlugReference Include="/home/valentinbreiz/Documents/Github/nativeaot-patcher/artifacts/bin/Cosmos.Kernel.Plugs/debug/Cosmos.Kernel.Plugs.dll" />
+  </ItemGroup>
+
   <Target Name="CustomIlcArgs" BeforeTargets="WriteIlcRsp" DependsOnTargets="PrepareForILLink">
     <ItemGroup>
       <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
