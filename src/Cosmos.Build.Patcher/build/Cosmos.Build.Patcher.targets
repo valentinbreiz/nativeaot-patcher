@@ -55,7 +55,7 @@
     
     <ItemGroup>
       <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
-      <PlugRef Include="@(ReferencePath)" />
+      <PlugRef Include="@(ReferenceCopyLocalPaths)" />
     </ItemGroup>
     
     <!-- Clean Output Path -->
