@@ -9,15 +9,41 @@ public static unsafe class MemoryOp
 
     public static void Free(void* ptr) => Heap.Heap.Free(ptr);
 
-    [Obsolete("Use new Span<byte>(dest, count).Fill(value) instead")]
-    public static void MemSet(byte* dest, byte value, int count) => new Span<byte>(dest, count).Fill(value);
+    public static void MemSet(byte* dest, byte value, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dest[i] = value;
+        }
+        //new Span<byte>(dest, count).Fill(value);
+    }
 
-    [Obsolete("Use new Span<byte>(dest, count).Fill(value) instead")]
-    public static void MemSet(uint* dest, uint value, int count) => new Span<uint>(dest, count).Fill(value);
+    public static void MemSet(uint* dest, uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dest[i] = value;
+        }
+        //new Span<uint>(dest, count).Fill(value);
+    }
 
-    [Obsolete("Use new Span<uint>(src, count).CopyTo(new Span<uint>(dest, count)) instead")]
-    public static void MemCopy(uint* dest, uint* src, int count) =>
-        new Span<uint>(src, count).CopyTo(new Span<uint>(dest, count));
+    public static void MemCopy(byte* dest, byte* src, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dest[i] = src[i];
+        }
+        //new Span<uint>(src, count).CopyTo(new Span<uint>(dest, count));
+    }
+
+    public static void MemCopy(uint* dest, uint* src, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dest[i] = src[i];
+        }
+        //new Span<uint>(src, count).CopyTo(new Span<uint>(dest, count));
+    }
 
     public static void MemMove(byte* dest, byte* src, int count)
     {

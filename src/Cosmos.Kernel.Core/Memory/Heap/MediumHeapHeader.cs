@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.Core.Memory.Heap;
 
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Sequential)]
 public struct MediumHeapHeader
 {
-    [FieldOffset(0)] public ushort Size;
-    [FieldOffset(2)] public ObjectGc Gc;
+    public ushort Size;
+    public ObjectGc Gc;
 }

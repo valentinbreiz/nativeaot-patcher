@@ -42,7 +42,10 @@ echo "clearing cache"
 dotnet nuget locals all --clear
 
 # Restore project dependencies
-#dotnet restore
+for proj in "${projects[@]}"; do
+  echo "----- $SCRIPT_DIR/$proj -----"
+  dotnet restore "$SCRIPT_DIR/$proj"
+done
 
 # Uninstall old global Cosmos.Patcher tool if it exists
 if dotnet tool list -g | grep -q "^Cosmos\.Patcher"; then
