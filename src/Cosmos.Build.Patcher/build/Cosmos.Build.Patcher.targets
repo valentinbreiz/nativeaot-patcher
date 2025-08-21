@@ -55,6 +55,7 @@
     
     <ItemGroup>
       <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
+      <PlugRef Include="@(ReferencePath)" />
     </ItemGroup>
     
     <!-- Clean Output Path -->
