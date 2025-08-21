@@ -53,8 +53,10 @@ public static unsafe class Heap
             }
 
             byte* newPtr = MediumHeap.Alloc(newSize);
-            Span<byte> span = new(aPtr, oldSize);
-            span.CopyTo(new Span<byte>(newPtr, (int)newSize));
+            MemoryOp.MemCopy(newPtr, aPtr, (int)newSize);
+            // {!} Span
+            // Span<byte> span = new(aPtr, oldSize);
+            // span.CopyTo(new Span<byte>(newPtr, (int)newSize));
             return newPtr;
         }
 

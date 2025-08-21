@@ -29,8 +29,10 @@ public static unsafe class LargeHeap
         else
         {
             byte* newPtr = Alloc(newSize);
-            Span<byte> span = new(ptr, (int)header->Size);
-            span.CopyTo(new Span<byte>(newPtr, (int)newSize));
+            MemoryOp.MemCopy(newPtr, ptr, (int)header->Used);
+            // {!} Span
+            // Span<byte> span = new(ptr, (int)header->Size);
+            // span.CopyTo(new Span<byte>(newPtr, (int)newSize));
             Free(ptr);
             return newPtr;
         }

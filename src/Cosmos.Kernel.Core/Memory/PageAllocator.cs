@@ -93,20 +93,20 @@ public static unsafe class PageAllocator
         }
 
         // Mark empty pages as such in the RAT Table
-        new Span<byte>(mRAT, (int)xRatPageCount)
-            .Fill((byte)PageType.Empty);
-        // for (byte* p = mRAT; p < mRAT + TotalPageCount - xRatPageCount; p++)
-        // {
-        //     *p = (byte)PageType.Empty;
-        // }
+        //new Span<byte>(mRAT, (int)xRatPageCount)
+        //    .Fill((byte)PageType.Empty);
+        for (byte* p = mRAT; p < mRAT + TotalPageCount - xRatPageCount; p++)
+        {
+            *p = (byte)PageType.Empty;
+        }
 
         // Mark the PageAllocator pages as such
-        new Span<byte>(mRAT + TotalPageCount - xRatPageCount, (int)xRatTotalSize)
-            .Fill((byte)PageType.PageAllocator);
-        // for (byte* p = mRAT + TotalPageCount - xRatPageCount; p < mRAT + xRatTotalSize; p++)
-        // {
-        //     *p = (byte)PageType.PageAllocator;
-        // }
+        //new Span<byte>(mRAT + TotalPageCount - xRatPageCount, (int)xRatTotalSize)
+        //    .Fill((byte)PageType.PageAllocator);
+        for (byte* p = mRAT + TotalPageCount - xRatPageCount; p < mRAT + xRatTotalSize; p++)
+        {
+            *p = (byte)PageType.PageAllocator;
+        }
 
         // Remove pages needed for RAT table from count
         FreePageCount -= xRatPageCount;
