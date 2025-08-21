@@ -8,7 +8,7 @@
         Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
     <Message Importance="High" Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
 
-    <Exec Command="cosmos.patcher patch --target &quot;@(AssembliesToPatch)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs @(PlugRef ->'%(Identity)')"
+    <Exec Command="cosmos.patcher patch --target &quot;@(AssembliesToPatch)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs @(PlugRef->'&quot;%(Identity)&quot;',' ')"
           IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="PatcherConsoleOutput" />
