@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <!--pack as nuget-->
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -16,6 +15,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\\Cosmos.Kernel.Core\\Cosmos.Kernel.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="$(AotCommonPath)Internal\Runtime\TypeManagerHandle.cs">
+    <Link>Internal\Runtime\TypeManagerHandle.cs</Link>
+  </Compile>
+    <Compile Include="$(ToolCommonPath)Internal\Runtime\ModuleHeaders.cs">
+      <Link>Internal\Runtime\ModuleHeaders.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

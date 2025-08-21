@@ -162,18 +162,7 @@ namespace Internal.Runtime.CompilerHelpers
         [RuntimeExport("RhpThrowEx")]
         private static void RhpThrowEx(object ex) { while (true) ; }
 
-        [RuntimeExport("RhpNewArray")]
-        private static unsafe void* RhpNewArray(MethodTable* pMT, int length)
-        {
-            if (length < 0)
-                return null;
 
-            uint size = pMT->_uBaseSize + (uint)length * pMT->_usComponentSize;
-            MethodTable** result = AllocObject(size);
-            *result = pMT;
-            *(int*)(result + 1) = length;
-            return result;
-        }
 
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
@@ -187,50 +176,13 @@ namespace Internal.Runtime.CompilerHelpers
             *location = value;
         }
 
-        [RuntimeExport("RhpNewFast")]
-        private static unsafe void* RhpNewFast(MethodTable* pMT)
-        {
-            MethodTable** result = AllocObject(pMT->_uBaseSize);
-            *result = pMT;
-            return result;
-        }
 
-        private static unsafe MethodTable** AllocObject(uint size)
-        {
-            return (MethodTable**)MemoryOp.Alloc(size);
-        }
 
-        private static unsafe MethodTable* GetMethodTable(object obj)
-        {
-            TypedReference tr = __makeref(obj);
-            return (MethodTable*)*(IntPtr*)&tr;
-        }
 
-        [RuntimeExport("memmove")]
-        private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
-        {
-            MemoryOp.MemMove(dest, src, (int)len);
-        }
-
-        [RuntimeExport("memset")]
-        private static unsafe void memset(byte* dest, int value, UIntPtr len)
-        {
-            MemoryOp.MemSet(dest, (byte)value, (int)len);
-        }
-
-        [RuntimeExport("RhNewString")]
-        private static unsafe void* RhNewString(MethodTable* pEEType, int length)
-        {
-            return RhpNewArray(pEEType, length);
-        }
-
-        /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
                 [RuntimeExport("RhUnbox2")]
                 static unsafe object RhUnbox2(object obj) { throw null; }
-                [RuntimeExport("RhpCheckedAssignRef")]
-                static unsafe void RhpCheckedAssignRef(object* location, object value, int typeHandle) { }
                 [RuntimeExport("RhTypeCast_CheckCastClass")]
                 static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle) { throw null; }
                 [RuntimeExport("RhpTrapThreads")]
@@ -366,7 +318,7 @@ namespace Internal.Runtime.CompilerHelpers
                 [RuntimeExport("RhGetTotalAllocatedBytes")]
                 static long RhGetTotalAllocatedBytes() { throw null; }
                 [RuntimeExport("RhGetLastGCPercentTimeInGC")]
-                static int RhGetLastGCPercentTimeInGC(int generation) { throw null; }*/
+                static int RhGetLastGCPercentTimeInGC(int generation) { throw null; }
     }
 
     public static class ThrowHelpers
