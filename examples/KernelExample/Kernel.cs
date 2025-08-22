@@ -25,14 +25,14 @@ internal unsafe class Program
         LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Screen.Init(fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
 
-        Console.WriteLine("CosmosOS booted.");
+        Console.WriteLine("CosmosOS gen3 booted.");
 
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
 
-        char* gccString = testGCC();
-        Console.WriteLine(new string(gccString));
+        //char* gccString = testGCC();
+        //Console.WriteLine(new string(gccString));
 
         char[] testChars = new char[] { 'R', 'h', 'p' };
         string testString = new string(testChars);
