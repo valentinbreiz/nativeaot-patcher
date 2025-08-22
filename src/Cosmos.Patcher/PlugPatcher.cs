@@ -240,27 +240,57 @@ public sealed class PlugPatcher
         Console.WriteLine($"[ResolveAndPatchMethod] Resolving method: {methodName} (Instance: {isInstancePlug})");
         Console.WriteLine($"[ResolveAndPatchMethod] Plug prototype: {FmtMethod(plugMethod)}");
 
-        MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m =>
-            m.Name == methodName &&
-            (isInstancePlug
-                ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
-                : m.Parameters.Count == plugMethod.Parameters.Count));
+        // Find method with matching name, parameter count, AND parameter types
+        MethodDefinition? targetMethod = null;
+        
+        foreach (var m in targetType.Methods.Where(m => m.Name == methodName))
+        {
+            // Check parameter count
+            int expectedParamCount = isInstancePlug ? plugMethod.Parameters.Count - 1 : plugMethod.Parameters.Count;
+            if (m.Parameters.Count != expectedParamCount)
+                continue;
+                
+            // Check parameter types match
+            bool typesMatch = true;
+            int plugStartIndex = isInstancePlug ? 1 : 0; // Skip 'aThis' parameter if instance plug
+            
+            for (int i = 0; i < m.Parameters.Count; i++)
+            {
+                var targetParam = m.Parameters[i];
+                var plugParam = plugMethod.Parameters[i + plugStartIndex];
+                
+                // Compare type names (you might need more sophisticated type comparison)
+                if (targetParam.ParameterType.FullName != plugParam.ParameterType.FullName)
+                {
+                    typesMatch = false;
+                    break;
+                }
+            }
+            
+            if (typesMatch)
+            {
+                targetMethod = m;
+                break;
+            }
+        }
 
         if (targetMethod != null)
         {
-            Console.WriteLine($"[ResolveAndPatchMethod] Found target method: {targetMethod.FullName}");
-            Console.WriteLine($"[ResolveAndPatchMethod] Parameters: {targetMethod.Parameters.Count}");
-            Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(targetMethod)}");
-            PatchMethod(targetMethod, plugMethod);
-        }
-        else
-        {
-            Console.WriteLine($"[ResolveAndPatchMethod] Target method not found: {methodName}");
-            Console.WriteLine(
-                $"[ResolveAndPatchMethod] Expected parameters: {plugMethod.Parameters.Count - (isInstancePlug ? 1 : 0)}");
-            DumpOverloads(targetType, methodName, plugMethod);
-        }
+        Console.WriteLine($"[ResolveAndPatchMethod] Found target method: {targetMethod.FullName}");
+        Console.WriteLine($"[ResolveAndPatchMethod] Parameters: {targetMethod.Parameters.Count}");
+        Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(targetMethod)}");
+        PatchMethod(targetMethod, plugMethod);
     }
+    else
+    {
+        Console.WriteLine($"[ResolveAndPatchMethod] Target method not found: {methodName}");
+        Console.WriteLine(
+            $"[ResolveAndPatchMethod] Expected parameters: {plugMethod.Parameters.Count - (isInstancePlug ? 1 : 0)}");
+        Console.WriteLine(
+            $"[ResolveAndPatchMethod] Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstancePlug ? 1 : 0).Select(p => p.ParameterType.FullName))}");
+        DumpOverloads(targetType, methodName, plugMethod);
+    }
+}
 
     public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool instance = false)
     {
