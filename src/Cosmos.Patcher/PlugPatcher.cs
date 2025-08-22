@@ -365,10 +365,80 @@ public sealed class PlugPatcher
         }
         else
         {
-            Console.WriteLine("[PatchMethod] Performing full method swap");
+            Console.WriteLine("[PatchMethod] Performing full method swap with proper imports");
             try
             {
-                targetMethod.SwapMethods(plugMethod);
+                // Clear existing body completely
+                targetMethod.Body.Variables.Clear();
+                targetMethod.Body.ExceptionHandlers.Clear();
+                
+                // Copy variables with imported types
+                foreach (var variable in plugMethod.Body.Variables)
+                {
+                    targetMethod.Body.Variables.Add(
+                        new VariableDefinition(targetMethod.Module.ImportReference(variable.VariableType))
+                    );
+                }
+                
+                // Clone and import all instructions
+                foreach (Instruction instruction in plugMethod.Body.Instructions)
+                {
+                    Instruction clone = instruction.Clone();
+                    
+                    // Import all member references - this is the critical part
+                    clone.Operand = instruction.Operand switch
+                    {
+                        MethodReference m => targetMethod.Module.ImportReference(m),
+                        FieldReference f => targetMethod.Module.ImportReference(f),
+                        TypeReference t => targetMethod.Module.ImportReference(t),
+                        MemberReference mr => targetMethod.Module.ImportReference(mr),
+                        _ => instruction.Operand
+                    };
+                    
+                    processor.Append(clone);
+                    Console.WriteLine($"[PatchMethod] Cloned instruction {instruction} -> {clone}");
+                }
+                
+                // Copy exception handlers if any
+                if (plugMethod.Body.HasExceptionHandlers)
+                {
+                    foreach (var handler in plugMethod.Body.ExceptionHandlers)
+                    {
+                        var newHandler = new ExceptionHandler(handler.HandlerType);
+                        
+                        // Find corresponding instructions in the new body
+                        int tryStartIndex = plugMethod.Body.Instructions.IndexOf(handler.TryStart);
+                        int tryEndIndex = plugMethod.Body.Instructions.IndexOf(handler.TryEnd);
+                        int handlerStartIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerStart);
+                        
+                        newHandler.TryStart = targetMethod.Body.Instructions[tryStartIndex];
+                        newHandler.TryEnd = targetMethod.Body.Instructions[tryEndIndex];
+                        newHandler.HandlerStart = targetMethod.Body.Instructions[handlerStartIndex];
+                        
+                        if (handler.HandlerEnd != null)
+                        {
+                            int handlerEndIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerEnd);
+                            newHandler.HandlerEnd = targetMethod.Body.Instructions[handlerEndIndex];
+                        }
+                        
+                        if (handler.CatchType != null)
+                        {
+                            newHandler.CatchType = targetMethod.Module.ImportReference(handler.CatchType);
+                        }
+                        
+                        if (handler.FilterStart != null)
+                        {
+                            int filterStartIndex = plugMethod.Body.Instructions.IndexOf(handler.FilterStart);
+                            newHandler.FilterStart = targetMethod.Body.Instructions[filterStartIndex];
+                        }
+                        
+                        targetMethod.Body.ExceptionHandlers.Add(newHandler);
+                    }
+                }
+                
+                // Copy other method body properties
+                targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
+                targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
             }
             catch (Exception ex)
             {
