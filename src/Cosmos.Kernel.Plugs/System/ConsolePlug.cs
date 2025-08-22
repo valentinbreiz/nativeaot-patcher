@@ -5,7 +5,7 @@ using Cosmos.Kernel.System.Graphics;
 namespace Cosmos.Kernel.Plugs.System;
 
 [Plug(typeof(Console))]
-public static class ConsolePlug
+public class ConsolePlug
 {
     [PlugMember]
     public static void Write(string value) => KernelConsole.Write(value);
