@@ -1,11 +1,15 @@
+using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.Graphics.Fonts;
+
 namespace Cosmos.Kernel.System.Graphics;
 
 public static class KernelConsole
 {
     private static int _cursorX;
     private static int _cursorY;
-    private const int CharWidth = 16;
-    private const int CharHeight = 16;
+    private static int CharWidth => PCScreenFont.CharWidth;
+    private static int CharHeight => PCScreenFont.CharHeight;
+    private const int LineSpacing = 0;
 
     public static void Write(string text)
     {
@@ -51,11 +55,20 @@ public static class KernelConsole
     private static void NewLine()
     {
         _cursorX = 0;
-        _cursorY += CharHeight;
+        _cursorY += CharHeight + LineSpacing;
         if (_cursorY + CharHeight > Canvas.Height)
         {
-            Canvas.ClearScreen(Color.Black);
-            _cursorY = 0;
+            Scroll();
         }
+    }
+
+    private static unsafe void Scroll()
+    {
+        int lineHeight = CharHeight + LineSpacing;
+        int lineSize = lineHeight * (int)Canvas.Pitch;
+        int screenSize = (int)(Canvas.Pitch * Canvas.Height);
+        MemoryOp.MemMove((byte*)Canvas.Address, (byte*)Canvas.Address + lineSize, screenSize - lineSize);
+        MemoryOp.MemSet((uint*)((byte*)Canvas.Address + screenSize - lineSize), Color.Black, (int)((Canvas.Pitch / 4) * lineHeight));
+        _cursorY = (int)Canvas.Height - CharHeight - LineSpacing;
     }
 }
