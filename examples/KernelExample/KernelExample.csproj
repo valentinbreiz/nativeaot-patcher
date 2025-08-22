@@ -57,7 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PlugReference Include="..\..\artifacts\bin\Cosmos.Kernel.Plugs\debug\Cosmos.Kernel.Plugs.dll" />
+    <PlugReference Include="Cosmos.Kernel.Plugs" />
   </ItemGroup>
 
   <Target Name="CustomIlcArgs" BeforeTargets="WriteIlcRsp" DependsOnTargets="PrepareForILLink">
