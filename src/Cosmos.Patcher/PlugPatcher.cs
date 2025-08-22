@@ -242,23 +242,23 @@ public sealed class PlugPatcher
 
         // Find method with matching name, parameter count, AND parameter types
         MethodDefinition? targetMethod = null;
-        
+
         foreach (var m in targetType.Methods.Where(m => m.Name == methodName))
         {
             // Check parameter count
             int expectedParamCount = isInstancePlug ? plugMethod.Parameters.Count - 1 : plugMethod.Parameters.Count;
             if (m.Parameters.Count != expectedParamCount)
                 continue;
-                
+
             // Check parameter types match
             bool typesMatch = true;
             int plugStartIndex = isInstancePlug ? 1 : 0; // Skip 'aThis' parameter if instance plug
-            
+
             for (int i = 0; i < m.Parameters.Count; i++)
             {
                 var targetParam = m.Parameters[i];
                 var plugParam = plugMethod.Parameters[i + plugStartIndex];
-                
+
                 // Compare type names (you might need more sophisticated type comparison)
                 if (targetParam.ParameterType.FullName != plugParam.ParameterType.FullName)
                 {
@@ -266,7 +266,7 @@ public sealed class PlugPatcher
                     break;
                 }
             }
-            
+
             if (typesMatch)
             {
                 targetMethod = m;
@@ -276,21 +276,21 @@ public sealed class PlugPatcher
 
         if (targetMethod != null)
         {
-        Console.WriteLine($"[ResolveAndPatchMethod] Found target method: {targetMethod.FullName}");
-        Console.WriteLine($"[ResolveAndPatchMethod] Parameters: {targetMethod.Parameters.Count}");
-        Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(targetMethod)}");
-        PatchMethod(targetMethod, plugMethod);
+            Console.WriteLine($"[ResolveAndPatchMethod] Found target method: {targetMethod.FullName}");
+            Console.WriteLine($"[ResolveAndPatchMethod] Parameters: {targetMethod.Parameters.Count}");
+            Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(targetMethod)}");
+            PatchMethod(targetMethod, plugMethod);
+        }
+        else
+        {
+            Console.WriteLine($"[ResolveAndPatchMethod] Target method not found: {methodName}");
+            Console.WriteLine(
+                $"[ResolveAndPatchMethod] Expected parameters: {plugMethod.Parameters.Count - (isInstancePlug ? 1 : 0)}");
+            Console.WriteLine(
+                $"[ResolveAndPatchMethod] Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstancePlug ? 1 : 0).Select(p => p.ParameterType.FullName))}");
+            DumpOverloads(targetType, methodName, plugMethod);
+        }
     }
-    else
-    {
-        Console.WriteLine($"[ResolveAndPatchMethod] Target method not found: {methodName}");
-        Console.WriteLine(
-            $"[ResolveAndPatchMethod] Expected parameters: {plugMethod.Parameters.Count - (isInstancePlug ? 1 : 0)}");
-        Console.WriteLine(
-            $"[ResolveAndPatchMethod] Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstancePlug ? 1 : 0).Select(p => p.ParameterType.FullName))}");
-        DumpOverloads(targetType, methodName, plugMethod);
-    }
-}
 
     public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool instance = false)
     {
@@ -371,7 +371,7 @@ public sealed class PlugPatcher
                 // Clear existing body completely
                 targetMethod.Body.Variables.Clear();
                 targetMethod.Body.ExceptionHandlers.Clear();
-                
+
                 // Copy variables with imported types
                 foreach (var variable in plugMethod.Body.Variables)
                 {
@@ -379,12 +379,12 @@ public sealed class PlugPatcher
                         new VariableDefinition(targetMethod.Module.ImportReference(variable.VariableType))
                     );
                 }
-                
+
                 // Clone and import all instructions
                 foreach (Instruction instruction in plugMethod.Body.Instructions)
                 {
                     Instruction clone = instruction.Clone();
-                    
+
                     // Import all member references - this is the critical part
                     clone.Operand = instruction.Operand switch
                     {
@@ -394,48 +394,48 @@ public sealed class PlugPatcher
                         MemberReference mr => targetMethod.Module.ImportReference(mr),
                         _ => instruction.Operand
                     };
-                    
+
                     processor.Append(clone);
                     Console.WriteLine($"[PatchMethod] Cloned instruction {instruction} -> {clone}");
                 }
-                
+
                 // Copy exception handlers if any
                 if (plugMethod.Body.HasExceptionHandlers)
                 {
                     foreach (var handler in plugMethod.Body.ExceptionHandlers)
                     {
                         var newHandler = new ExceptionHandler(handler.HandlerType);
-                        
+
                         // Find corresponding instructions in the new body
                         int tryStartIndex = plugMethod.Body.Instructions.IndexOf(handler.TryStart);
                         int tryEndIndex = plugMethod.Body.Instructions.IndexOf(handler.TryEnd);
                         int handlerStartIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerStart);
-                        
+
                         newHandler.TryStart = targetMethod.Body.Instructions[tryStartIndex];
                         newHandler.TryEnd = targetMethod.Body.Instructions[tryEndIndex];
                         newHandler.HandlerStart = targetMethod.Body.Instructions[handlerStartIndex];
-                        
+
                         if (handler.HandlerEnd != null)
                         {
                             int handlerEndIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerEnd);
                             newHandler.HandlerEnd = targetMethod.Body.Instructions[handlerEndIndex];
                         }
-                        
+
                         if (handler.CatchType != null)
                         {
                             newHandler.CatchType = targetMethod.Module.ImportReference(handler.CatchType);
                         }
-                        
+
                         if (handler.FilterStart != null)
                         {
                             int filterStartIndex = plugMethod.Body.Instructions.IndexOf(handler.FilterStart);
                             newHandler.FilterStart = targetMethod.Body.Instructions[filterStartIndex];
                         }
-                        
+
                         targetMethod.Body.ExceptionHandlers.Add(newHandler);
                     }
                 }
-                
+
                 // Copy other method body properties
                 targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
                 targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
