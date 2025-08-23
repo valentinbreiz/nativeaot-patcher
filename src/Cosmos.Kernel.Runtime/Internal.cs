@@ -31,4 +31,15 @@ public static class Native
         [RuntimeImport("*", "_native_io_read_dword")]
         public static extern uint Read32(ushort Port);
     }
+
+    public static class Cpu
+    {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport("*", "_native_lidt")]
+        public static extern unsafe void Lidt(void* baseAddress, ushort size);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport("*", "_native_sti")]
+        public static extern void Sti();
+    }
 }

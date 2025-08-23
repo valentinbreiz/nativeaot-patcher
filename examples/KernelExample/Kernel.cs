@@ -6,6 +6,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.System.Interrupts;
 
 internal unsafe class Program
 {
@@ -38,6 +39,10 @@ internal unsafe class Program
         string testString = new string(testChars);
         Console.WriteLine(testString);
         Serial.WriteString(testString + "\n");
+        InterruptManager.Initialize();
+        Console.WriteLine("Keyboard ready. Type a line:");
+        string line = Console.ReadLine();
+        Console.WriteLine("You typed: " + line);
 
         while (true) ;
     }

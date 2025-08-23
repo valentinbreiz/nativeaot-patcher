@@ -4,7 +4,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.Native.x86</PackageId>
     <Title>Cosmos Kernel x86 Native Assembly</Title>
@@ -18,5 +18,6 @@
   <ItemGroup>
     <Content Include="build\Cosmos.Kernel.Native.x86.props" PackagePath="build\" />
     <Content Include="IO\*.asm" PackagePath="build\IO" />
+    <Content Include="Cpu\*.asm" PackagePath="build\Cpu" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,8 @@
 using System;
+using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Input;
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -21,4 +23,31 @@ public class ConsolePlug
 
     [PlugMember]
     public static void WriteLine() => KernelConsole.WriteLine();
+
+    [PlugMember]
+    public static ConsoleKeyInfo ReadKey()
+    {
+        char c = KernelKeyboard.ReadChar();
+        return new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false);
+    }
+
+    [PlugMember]
+    public static string ReadLine()
+    {
+        var buffer = new StringBuilder();
+        while (true)
+        {
+            char c = KernelKeyboard.ReadChar();
+            if (c == '\n' || c == '\r')
+            {
+                KernelConsole.WriteLine();
+                break;
+            }
+
+            buffer.Append(c);
+            KernelConsole.Write(c);
+        }
+
+        return buffer.ToString();
+    }
 }
