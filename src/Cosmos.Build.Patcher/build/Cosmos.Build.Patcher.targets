@@ -53,8 +53,28 @@
       </AssembliesToPatch>
     </ItemGroup>
     
+    <!-- Filter references to find plug assemblies based on PlugReference assembly names -->
     <ItemGroup>
-      <PlugRef Include="$(OutputPath)/$(AssemblyName).dll" />
+      <!-- Always include the main assembly as a plug -->
+      <PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
+      
+      <!-- Filter ReferencePath items that match PlugReference assembly names -->
+      <PlugRef Include="@(ReferencePath)" 
+               Condition="'%(ReferencePath.Filename)' != '' and '@(PlugReference)' != '' and $([System.String]::new('@(PlugReference, ';')').Contains('%(ReferencePath.Filename)'))" />
+      
+      <!-- Also check for references in the output directory that match PlugReference names -->
+      <PlugRef Include="$(OutputPath)%(PlugReference.Identity).dll" 
+               Condition="Exists('$(OutputPath)%(PlugReference.Identity).dll')" />
+    </ItemGroup>
+
+    <!-- Remove duplicates from PlugRef -->
+    <RemoveDuplicates Inputs="@(PlugRef)">
+      <Output TaskParameter="Filtered" ItemName="UniquePlugRef"/>
+    </RemoveDuplicates>
+    
+    <ItemGroup>
+      <PlugRef Remove="@(PlugRef)" />
+      <PlugRef Include="@(UniquePlugRef)" />
     </ItemGroup>
     
     <!-- Clean Output Path -->
@@ -62,6 +82,12 @@
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(PatcherOutputPath)" />
+
+    <Message Importance="High" Text="PlugReference Assembly Names:" />
+    <Message Importance="High" Text="  %(PlugReference.Identity)" />
+    
+    <Message Importance="High" Text="Resolved PlugRef DLL Paths:" />
+    <Message Importance="High" Text="  %(PlugRef.Identity)" />
   </Target>
   
   <!-- Clean target to remove the asm folder -->

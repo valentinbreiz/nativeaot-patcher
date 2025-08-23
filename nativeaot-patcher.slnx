@@ -20,6 +20,8 @@
     <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" Type="Classic C#" />
     <Project Path="src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests\Cosmos.Tests.Build.Analyzer.Patcher\Cosmos.Tests.Build.Analyzer.Patcher.csproj" Type="Classic C#" />
