@@ -12,10 +12,6 @@ internal unsafe class Program
     private static readonly LimineFramebufferRequest Framebuffer = new();
     private static readonly LimineHHDMRequest HHDM = new();
 
-    [MethodImpl(MethodImplOptions.InternalCall)]
-    [RuntimeImport("testGCC")]
-    private static extern char* testGCC();
-
     [UnmanagedCallersOnly(EntryPoint = "kmain")]
     private static void KernelMain() => Main();
 
@@ -30,9 +26,6 @@ internal unsafe class Program
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
-
-        //char* gccString = testGCC();
-        //Console.WriteLine(new string(gccString));
 
         char[] testChars = new char[] { 'R', 'h', 'p' };
         string testString = new string(testChars);
