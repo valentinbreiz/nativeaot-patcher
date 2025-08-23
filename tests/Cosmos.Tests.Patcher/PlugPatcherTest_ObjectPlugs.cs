@@ -28,11 +28,12 @@ public class PlugPatcherTest_ObjectPlugs
         Assert.NotNull(targetType);
 
         // Act: Apply the plug
-        patcher.PatchAssembly(targetAssembly, plugAssembly);
+        bool patched = patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         targetAssembly.Save("./", "targetObjectAssembly.dll");
 
         object result = ExecuteObject(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceMethod), 10);
+        Assert.True(patched);
         Assert.Equal(20, result);
     }
 
@@ -87,7 +88,7 @@ public class PlugPatcherTest_ObjectPlugs
         Assert.NotNull(targetType);
 
         // Act: Apply the plug
-        patcher.PatchAssembly(targetAssembly, plugAssembly);
+        bool patched = patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         targetAssembly.Save("./", "targetCtorAssembly.dll");
 
@@ -100,6 +101,7 @@ public class PlugPatcherTest_ObjectPlugs
 
         // Assert: Check the standard output for the constructor plug
         string output = stringWriter.ToString();
+        Assert.True(patched);
         Assert.Contains("Plugged ctor", output);
     }
 
@@ -126,9 +128,10 @@ public class PlugPatcherTest_ObjectPlugs
                     targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(NativeWrapperObject));
                 Assert.NotNull(targetType);
 
-                patcher.PatchAssembly(targetAssembly, plugAssembly);
+                bool patched = patcher.PatchAssembly(targetAssembly, plugAssembly);
                 targetAssembly.Save("./", "targetPropertyAssembly.dll");
                 Console.SetOut(output);
+                Assert.True(patched);
                 // Test Get
                 object getResult = ExecutePropertyGet(targetAssembly, typeof(NativeWrapperObject).FullName, nameof(NativeWrapperObject.InstanceProperty));
                 Assert.Equal("Plugged Goodbye World", getResult);

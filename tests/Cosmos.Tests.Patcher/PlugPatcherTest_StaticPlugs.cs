@@ -56,7 +56,7 @@ public class PlugPatcherTest_StaticPlugs
         AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
 
         // Act
-        patcher.PatchAssembly(targetAssembly, plugAssembly);
+        bool patched = patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         // Assert
         TypeDefinition targetType = targetAssembly.MainModule.Types.FirstOrDefault(t => t.Name == nameof(TestClass));
@@ -64,6 +64,7 @@ public class PlugPatcherTest_StaticPlugs
 
         Assert.NotNull(targetType); // Ensure the target type exists
         Assert.NotNull(plugType); // Ensure the plug type exists
+        Assert.True(patched);
 
         foreach (MethodDefinition plugMethod in plugType.Methods)
         {
@@ -91,12 +92,14 @@ public class PlugPatcherTest_StaticPlugs
         AssemblyDefinition plugAssembly = CreateMockAssembly<TestClassPlug>();
 
         // Act
-        patcher.PatchAssembly(targetAssembly, plugAssembly);
+        bool patched2 = patcher.PatchAssembly(targetAssembly, plugAssembly);
 
         TypeDefinition targetType = targetAssembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
         MethodDefinition targetMethod = targetType.Methods.First(m => m.Name == "Add");
         Assert.False(targetMethod.IsPInvokeImpl);
         Assert.Null(targetMethod.PInvokeInfo);
+
+        Assert.True(patched2);
 
         targetAssembly.Save("./", "targetAssembly.dll");
 

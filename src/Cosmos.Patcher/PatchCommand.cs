@@ -64,7 +64,13 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
                 Console.WriteLine($" - {plug}");
 
             PlugPatcher plugPatcher = new(new PlugScanner());
-            plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
+            bool patched = plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
+
+            if (!patched)
+            {
+                Console.WriteLine("No applicable plugs found. Skipping write.");
+                return 0;
+            }
 
             string finalPath = settings.OutputPath ??
                                Path.Combine(

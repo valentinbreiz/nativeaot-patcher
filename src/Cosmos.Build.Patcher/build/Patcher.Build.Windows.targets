@@ -30,7 +30,10 @@
 
     <Message Importance="High"
              Text="✅ Cosmos.Patcher successfully patched: %(AssembliesToPatch.PatcherOutputPath)"
-             Condition="'$(PatcherExitCode)' == '0'" />
+             Condition="'$(PatcherExitCode)' == '0' and Exists('%(AssembliesToPatch.PatcherOutputPath)')" />
+    <Message Importance="High"
+             Text="Cosmos.Patcher skipped (no plugs): %(AssembliesToPatch.Identity)"
+             Condition="'$(PatcherExitCode)' == '0' and !Exists('%(AssembliesToPatch.PatcherOutputPath)')" />
   </Target>
 
 </Project>
