@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using Cosmos.Build.API.Attributes;
 using Mono.Cecil;
@@ -30,17 +32,59 @@ public sealed class PlugPatcher
 
         try
         {
-            foreach (TypeDefinition type in targetAssembly.MainModule.Types)
+            List<TypeDefinition> allPlugs = _scanner.LoadPlugs(plugAssemblies);
+            Dictionary<string, List<TypeDefinition>> plugsByTarget = new();
+
+            foreach (TypeDefinition plug in allPlugs)
             {
-                Console.WriteLine($"[PatchAssembly] Processing type: {type.FullName}");
-                try
+                string? targetName = GetPlugTargetName(plug);
+                if (string.IsNullOrWhiteSpace(targetName))
+                    continue;
+
+                if (!plugsByTarget.TryGetValue(targetName, out List<TypeDefinition>? list))
                 {
-                    PatchType(type, plugAssemblies);
-                    Console.WriteLine($"[PatchAssembly] Successfully processed type: {type.FullName}");
+                    list = [];
+                    plugsByTarget[targetName] = list;
                 }
-                catch (Exception ex)
+                list.Add(plug);
+            }
+
+            if (plugsByTarget.Count == 0)
+            {
+                Console.WriteLine("[PatchAssembly] No plugs found for this assembly. Skipping patching.");
+                return;
+            }
+
+            foreach ((string targetName, List<TypeDefinition> plugTypes) in plugsByTarget)
+            {
+                TypeDefinition? targetType = targetAssembly.MainModule.GetType(targetName)
+                    ?? targetAssembly.MainModule.Types.FirstOrDefault(t => t.FullName == targetName);
+
+                if (targetType == null)
                 {
-                    Console.WriteLine($"[PatchAssembly] ERROR processing type {type.FullName}: {ex}");
+                    Console.WriteLine($"[PatchAssembly] Target type not found: {targetName}");
+                    continue;
+                }
+
+                if (targetType.CustomAttributes.Any(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName))
+                {
+                    Console.WriteLine($"[PatchAssembly] Skipping type marked with PlugAttribute: {targetType.FullName}");
+                    continue;
+                }
+
+                Console.WriteLine($"[PatchAssembly] Processing type: {targetType.FullName}");
+
+                foreach (TypeDefinition plugType in plugTypes)
+                {
+                    try
+                    {
+                        ProcessPlugMembers(targetType, plugType);
+                        Console.WriteLine($"[PatchAssembly] Successfully processed plug {plugType.FullName} for type {targetType.FullName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[PatchAssembly] ERROR processing type {targetType.FullName} with plug {plugType.FullName}: {ex}");
+                    }
                 }
             }
 
@@ -55,6 +99,18 @@ public sealed class PlugPatcher
         }
 
         Console.WriteLine($"[PatchAssembly] Completed patching assembly: {targetAssembly.FullName}");
+    }
+
+    private static string? GetPlugTargetName(TypeDefinition plugType)
+    {
+        CustomAttribute? plugAttr = plugType.CustomAttributes
+            .FirstOrDefault(attr => attr.AttributeType.FullName == typeof(PlugAttribute).FullName);
+        if (plugAttr == null)
+            return null;
+
+        return plugAttr.ConstructorArguments.Count == 1 && plugAttr.Properties.Count == 0
+            ? plugAttr.GetArgument<string>()
+            : plugAttr.GetArgument<string>(named: "Target") ?? plugAttr.GetArgument<string>(named: "TargetName");
     }
 
     public void PatchType(TypeDefinition targetType, params AssemblyDefinition[] plugAssemblies)
