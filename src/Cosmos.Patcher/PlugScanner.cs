@@ -35,7 +35,7 @@ public sealed class PlugScanner
 
         foreach (TypeDefinition type in output)
         {
-            Console.WriteLine($"Plug found: {type.Name}");
+            Console.WriteLine($"[Scanner] Plug found: {type.Name}");
         }
 
         return output;

@@ -1,22 +1,30 @@
 <Project>
 
   <Target Name="RunPatcher"
-        AfterTargets="Build"
-        DependsOnTargets="SetupPatcher"
-        Condition="'$(EnablePatching)' == 'true'"
-        Inputs="@(AssembliesToPatch->'%(Identity)')"
-        Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
-    <Message Importance="High" Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
+          AfterTargets="Build"
+          DependsOnTargets="SetupPatcher"
+          Condition="'$(EnablePatching)' == 'true'"
+          Inputs="@(AssembliesToPatch->'%(Identity)')"
+          Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
 
-    <Exec Command="cosmos.patcher patch --target &quot;@(AssembliesToPatch)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs @(PlugRef ->'%(Identity)')"
-          IgnoreExitCode="true">
+    <Message Importance="High"
+             Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
+
+    <Exec
+      Command="cosmos.patcher patch --target &quot;%(AssembliesToPatch.Identity)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot;"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="PatcherConsoleOutput" />
     </Exec>
 
-    <Error Condition="'$(PatcherExitCode)' != '0'" Text="Cosmos.Patcher failed for &quot;%(AssembliesToPatch.Identity)&quot; with code $(PatcherExitCode): $(PatcherConsoleOutput)" />
+    <Error Condition="'$(PatcherExitCode)' != '0'"
+           Text="Cosmos.Patcher failed for &quot;%(AssembliesToPatch.Identity)&quot; with code $(PatcherExitCode): $(PatcherConsoleOutput)" />
 
-    <Message Importance="High" Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'" Condition="'$(PatcherExitCode)' == '0'" />
+    <Message Importance="High"
+             Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'"
+             Condition="'$(PatcherExitCode)' == '0'" />
+
   </Target>
 
 </Project>

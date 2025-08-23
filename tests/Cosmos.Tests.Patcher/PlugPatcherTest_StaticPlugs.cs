@@ -93,6 +93,11 @@ public class PlugPatcherTest_StaticPlugs
         // Act
         patcher.PatchAssembly(targetAssembly, plugAssembly);
 
+        TypeDefinition targetType = targetAssembly.MainModule.Types.First(t => t.Name == nameof(TestClass));
+        MethodDefinition targetMethod = targetType.Methods.First(m => m.Name == "Add");
+        Assert.False(targetMethod.IsPInvokeImpl);
+        Assert.Null(targetMethod.PInvokeInfo);
+
         targetAssembly.Save("./", "targetAssembly.dll");
 
         object result = ExecuteObject(targetAssembly, "TestClass", "Add", 3, 4);

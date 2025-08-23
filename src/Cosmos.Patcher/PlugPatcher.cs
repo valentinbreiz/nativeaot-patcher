@@ -110,6 +110,20 @@ public sealed class PlugPatcher
             catch (Exception ex)
             {
                 Console.WriteLine($"[ProcessPlugMembers] ERROR processing method {method.FullName}: {ex}");
+                // --- DEBUG DUMP ---
+                Console.WriteLine("[ProcessPlugMembers] --- DEBUG DUMP BEGIN ---");
+                Console.WriteLine($"[Plug]   {FmtMethod(method)}");
+                try
+                {
+                    string targetName = TryGetNamedString(plugMemberAttr, "TargetName") ?? method.Name;
+                    Console.WriteLine($"[Attr]   PlugMember.TargetName = {targetName}");
+                    DumpOverloads(targetType, targetName, method);
+                }
+                catch (Exception e2)
+                {
+                    Console.WriteLine($"[ProcessPlugMembers] WARN while dumping overloads: {e2}");
+                }
+                Console.WriteLine("[ProcessPlugMembers] --- DEBUG DUMP END ---");
             }
         }
 
@@ -127,7 +141,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetPropertyName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: property.Name);
+            string targetPropertyName = TryGetNamedString(plugMemberAttr, "TargetName") ?? property.Name;
             Console.WriteLine($"[ProcessPlugMembers] Looking for target property: {targetPropertyName}");
             PropertyDefinition? targetProperty =
                 targetType.Properties.FirstOrDefault(p => p.Name == targetPropertyName);
@@ -162,7 +176,7 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetFieldName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: field.Name);
+            string targetFieldName = TryGetNamedString(plugMemberAttr, "TargetName") ?? field.Name;
             Console.WriteLine($"[ProcessPlugMembers] Looking for target field: {targetFieldName}");
             FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f =>
             {
@@ -207,32 +221,64 @@ public sealed class PlugPatcher
             if (ctor != null)
             {
                 Console.WriteLine($"[ResolveAndPatchMethod] Found target constructor: {ctor.FullName}");
+                Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(ctor)}");
+                Console.WriteLine($"[ResolveAndPatchMethod] Plug   prototype: {FmtMethod(plugMethod)}");
                 PatchMethod(ctor, plugMethod);
             }
             else
             {
                 Console.WriteLine($"[ResolveAndPatchMethod] No matching constructor found for {plugMethod.FullName}");
                 Console.WriteLine(
-                    $"[ResolveAndPatchMethod] Parameters: {string.Join(", ", plugMethod.Parameters.Select(p => p.ParameterType + " " + p.Name))}");
+                    $"[ResolveAndPatchMethod] Plug parameters: {string.Join(", ", plugMethod.Parameters.Select(p => p.ParameterType + " " + p.Name))}");
             }
 
             return;
         }
 
         bool isInstancePlug = plugMethod.Parameters.Any(p => p.Name == "aThis");
-        string? methodName = attr.GetArgument(named: "TargetName", defaultValue: plugMethod.Name);
+        string methodName = TryGetNamedString(attr, "TargetName") ?? plugMethod.Name;
         Console.WriteLine($"[ResolveAndPatchMethod] Resolving method: {methodName} (Instance: {isInstancePlug})");
+        Console.WriteLine($"[ResolveAndPatchMethod] Plug prototype: {FmtMethod(plugMethod)}");
 
-        MethodDefinition? targetMethod = targetType.Methods.FirstOrDefault(m =>
-            m.Name == methodName &&
-            (isInstancePlug
-                ? m.Parameters.Count + 1 == plugMethod.Parameters.Count
-                : m.Parameters.Count == plugMethod.Parameters.Count));
+        // Find method with matching name, parameter count, AND parameter types
+        MethodDefinition? targetMethod = null;
+
+        foreach (var m in targetType.Methods.Where(m => m.Name == methodName))
+        {
+            // Check parameter count
+            int expectedParamCount = isInstancePlug ? plugMethod.Parameters.Count - 1 : plugMethod.Parameters.Count;
+            if (m.Parameters.Count != expectedParamCount)
+                continue;
+
+            // Check parameter types match
+            bool typesMatch = true;
+            int plugStartIndex = isInstancePlug ? 1 : 0; // Skip 'aThis' parameter if instance plug
+
+            for (int i = 0; i < m.Parameters.Count; i++)
+            {
+                var targetParam = m.Parameters[i];
+                var plugParam = plugMethod.Parameters[i + plugStartIndex];
+
+                // Compare type names (you might need more sophisticated type comparison)
+                if (targetParam.ParameterType.FullName != plugParam.ParameterType.FullName)
+                {
+                    typesMatch = false;
+                    break;
+                }
+            }
+
+            if (typesMatch)
+            {
+                targetMethod = m;
+                break;
+            }
+        }
 
         if (targetMethod != null)
         {
             Console.WriteLine($"[ResolveAndPatchMethod] Found target method: {targetMethod.FullName}");
             Console.WriteLine($"[ResolveAndPatchMethod] Parameters: {targetMethod.Parameters.Count}");
+            Console.WriteLine($"[ResolveAndPatchMethod] Target prototype: {FmtMethod(targetMethod)}");
             PatchMethod(targetMethod, plugMethod);
         }
         else
@@ -240,6 +286,9 @@ public sealed class PlugPatcher
             Console.WriteLine($"[ResolveAndPatchMethod] Target method not found: {methodName}");
             Console.WriteLine(
                 $"[ResolveAndPatchMethod] Expected parameters: {plugMethod.Parameters.Count - (isInstancePlug ? 1 : 0)}");
+            Console.WriteLine(
+                $"[ResolveAndPatchMethod] Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstancePlug ? 1 : 0).Select(p => p.ParameterType.FullName))}");
+            DumpOverloads(targetType, methodName, plugMethod);
         }
     }
 
@@ -316,16 +365,99 @@ public sealed class PlugPatcher
         }
         else
         {
-            Console.WriteLine("[PatchMethod] Performing full method swap");
+            Console.WriteLine("[PatchMethod] Performing full method swap with proper imports");
             try
             {
-                targetMethod.SwapMethods(plugMethod);
+                // Clear existing body completely
+                targetMethod.Body.Variables.Clear();
+                targetMethod.Body.ExceptionHandlers.Clear();
+
+                // Copy variables with imported types
+                foreach (var variable in plugMethod.Body.Variables)
+                {
+                    targetMethod.Body.Variables.Add(
+                        new VariableDefinition(targetMethod.Module.ImportReference(variable.VariableType))
+                    );
+                }
+
+                // Clone and import all instructions
+                foreach (Instruction instruction in plugMethod.Body.Instructions)
+                {
+                    Instruction clone = instruction.Clone();
+
+                    // Import all member references - this is the critical part
+                    clone.Operand = instruction.Operand switch
+                    {
+                        MethodReference m => targetMethod.Module.ImportReference(m),
+                        FieldReference f => targetMethod.Module.ImportReference(f),
+                        TypeReference t => targetMethod.Module.ImportReference(t),
+                        MemberReference mr => targetMethod.Module.ImportReference(mr),
+                        _ => instruction.Operand
+                    };
+
+                    processor.Append(clone);
+                    Console.WriteLine($"[PatchMethod] Cloned instruction {instruction} -> {clone}");
+                }
+
+                // Copy exception handlers if any
+                if (plugMethod.Body.HasExceptionHandlers)
+                {
+                    foreach (var handler in plugMethod.Body.ExceptionHandlers)
+                    {
+                        var newHandler = new ExceptionHandler(handler.HandlerType);
+
+                        // Find corresponding instructions in the new body
+                        int tryStartIndex = plugMethod.Body.Instructions.IndexOf(handler.TryStart);
+                        int tryEndIndex = plugMethod.Body.Instructions.IndexOf(handler.TryEnd);
+                        int handlerStartIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerStart);
+
+                        newHandler.TryStart = targetMethod.Body.Instructions[tryStartIndex];
+                        newHandler.TryEnd = targetMethod.Body.Instructions[tryEndIndex];
+                        newHandler.HandlerStart = targetMethod.Body.Instructions[handlerStartIndex];
+
+                        if (handler.HandlerEnd != null)
+                        {
+                            int handlerEndIndex = plugMethod.Body.Instructions.IndexOf(handler.HandlerEnd);
+                            newHandler.HandlerEnd = targetMethod.Body.Instructions[handlerEndIndex];
+                        }
+
+                        if (handler.CatchType != null)
+                        {
+                            newHandler.CatchType = targetMethod.Module.ImportReference(handler.CatchType);
+                        }
+
+                        if (handler.FilterStart != null)
+                        {
+                            int filterStartIndex = plugMethod.Body.Instructions.IndexOf(handler.FilterStart);
+                            newHandler.FilterStart = targetMethod.Body.Instructions[filterStartIndex];
+                        }
+
+                        targetMethod.Body.ExceptionHandlers.Add(newHandler);
+                    }
+                }
+
+                // Copy other method body properties
+                targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
+                targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[PatchMethod] ERROR during method swap: {ex}");
                 throw;
             }
+        }
+
+        // Remove P/Invoke metadata so the runtime treats the method as managed
+        if (targetMethod.IsPInvokeImpl || targetMethod.PInvokeInfo is not null)
+        {
+            Console.WriteLine("[PatchMethod] Removing P/Invoke metadata");
+            targetMethod.PInvokeInfo = null;
+            targetMethod.Attributes &= ~MethodAttributes.PInvokeImpl;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.PreserveSig;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.InternalCall;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Native;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Unmanaged;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Runtime;
         }
 
         if (targetMethod.Body.Instructions.Count == 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
@@ -417,7 +549,6 @@ public sealed class PlugPatcher
         targetField.Attributes = plugField.Attributes;
         Console.WriteLine($"[PatchField] Attributes patched: {plugField.Attributes}");
 
-
         if (plugField.HasConstant)
         {
             targetField.Constant = plugField.Constant;
@@ -465,10 +596,8 @@ public sealed class PlugPatcher
                 };
 
                 ILProcessor processor = targetCtor.Body.GetILProcessor();
-                processor.RemoveAt(targetFieldInstr.Index -
-                                   1); // The previous index points to the IL of the field value
-                processor.InsertBefore(targetFieldInstr.Instruction,
-                    clone); // Replace the value of the field with the plugged value
+                processor.RemoveAt(targetFieldInstr.Index - 1); // previous index holds IL for the field value
+                processor.InsertBefore(targetFieldInstr.Instruction, clone); // replace value with plugged value
             }
         }
 
@@ -505,7 +634,6 @@ public sealed class PlugPatcher
         Console.WriteLine($"[ReplaceFieldAccess] Completed processing for method: {method.FullName}");
     }
 
-
     private (Instruction? Instruction, int Index) FindField(MethodDefinition method, FieldDefinition fieldDefinition,
         params OpCode[] opcodes) => FindField(method, fieldDefinition.Name, opcodes);
 
@@ -526,5 +654,60 @@ public sealed class PlugPatcher
         }
 
         return default;
+    }
+
+    // ---------- DEBUG HELPERS ----------
+    private static string FmtParams(IEnumerable<ParameterDefinition> ps)
+        => "(" + string.Join(", ", ps.Select(p => p.ParameterType?.FullName ?? "?")) + ")";
+
+    private static string FmtMethod(MethodDefinition m)
+    {
+        string owner = m.DeclaringType?.FullName ?? "?";
+        string ret = m.ReturnType?.FullName ?? "void";
+        string name = m.IsConstructor ? (m.IsStatic ? ".cctor" : ".ctor") : m.Name;
+        string inst = m.IsStatic ? "static" : "instance";
+        return $"{inst} {ret} {owner}::{name}{FmtParams(m.Parameters)}";
+    }
+
+    private static string? TryGetNamedString(CustomAttribute attr, string propertyName)
+    {
+        try
+        {
+            if (attr.HasProperties)
+            {
+                foreach (var p in attr.Properties)
+                    if (p.Name == propertyName && p.Argument.Value is string s)
+                        return s;
+            }
+        }
+        catch
+        {
+            // best-effort debug
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// List all overloads on the target type for a given name and annotate match on params count and instance/static.
+    /// </summary>
+    private static void DumpOverloads(TypeDefinition targetType, string methodName, MethodDefinition plug)
+    {
+        bool isInstancePlug = plug.Parameters.Any(p => p.Name == "aThis");
+        int expectedCount = plug.Parameters.Count - (isInstancePlug ? 1 : 0);
+        Console.WriteLine($"[Overloads] In type: {targetType.FullName}, name: {methodName}");
+
+        var overloads = targetType.Methods.Where(m => m.Name == methodName).ToArray();
+        if (overloads.Length == 0)
+        {
+            Console.WriteLine("[Overloads] none");
+            return;
+        }
+
+        foreach (var m in overloads)
+        {
+            bool countOk = m.Parameters.Count == expectedCount;
+            bool instOk = isInstancePlug ? !m.IsStatic : true; // instance plug expects instance target
+            Console.WriteLine($"  - {FmtMethod(m)}  [params:{m.Parameters.Count} {(countOk ? "OK" : "NO")}, instance:{(!m.IsStatic)} {(instOk ? "OK" : "NO")}]");
+        }
     }
 }
