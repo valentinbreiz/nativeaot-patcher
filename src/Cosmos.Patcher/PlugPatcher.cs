@@ -447,6 +447,19 @@ public sealed class PlugPatcher
             }
         }
 
+        // Remove P/Invoke metadata so the runtime treats the method as managed
+        if (targetMethod.IsPInvokeImpl || targetMethod.PInvokeInfo is not null)
+        {
+            Console.WriteLine("[PatchMethod] Removing P/Invoke metadata");
+            targetMethod.PInvokeInfo = null;
+            targetMethod.Attributes &= ~MethodAttributes.PInvokeImpl;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.PreserveSig;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.InternalCall;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Native;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Unmanaged;
+            targetMethod.ImplAttributes &= ~MethodImplAttributes.Runtime;
+        }
+
         if (targetMethod.Body.Instructions.Count == 0 || targetMethod.Body.Instructions[^1].OpCode != OpCodes.Ret)
         {
             Console.WriteLine("[PatchMethod] Adding final RET instruction");
