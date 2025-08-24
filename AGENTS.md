@@ -91,6 +91,7 @@
   - Patcher: `docs/articles/build/patcher-build.md`
   - ILCompiler: `docs/articles/build/ilc-build.md`
   - Asm: `docs/articles/build/asm-build.md`
+  - GCC: `docs/articles/build/gcc-build.md`
 - DocFX config is in `docs/docfx.json`. If adding public APIs, update or extend docs accordingly.
 
 **Release And Packaging**
@@ -103,4 +104,3 @@
 - Example kernel: `dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output`
 
 This document is a living guide. If you are an agent adding features or refactors, update AGENTS.md with any new rules, flows, or gotchas you introduce.
-
