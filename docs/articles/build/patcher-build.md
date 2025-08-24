@@ -69,6 +69,17 @@ flowchart TD
 
 ---
 
+## Outputs
+
+- Patched app assembly: `$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll` — main project output after plug application.
+- Reference assemblies for ILC: `$(IntermediateOutputPath)/cosmos/ref/*.dll` — patched where plugs apply; otherwise copied unmodified for resolution.
+- Intermediate directories are created on demand under `$(IntermediateOutputPath)/cosmos/`.
+
+Notes:
+- `RunPatcher` only runs when `EnablePatching` is `true` and after `SetupPatcher` computes `@(AssembliesToPatch)` and destinations.
+
+---
+
 ## Related components
 
 - [`Cosmos.Patcher`](../../../src/Cosmos.Patcher)
