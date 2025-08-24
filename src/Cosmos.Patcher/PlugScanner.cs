@@ -58,17 +58,25 @@ public sealed class PlugScanner
             if (!File.Exists(plugPath))
                 continue;
 
-            AssemblyDefinition plugAsm = AssemblyDefinition.ReadAssembly(plugPath);
-            foreach (TypeDefinition type in plugAsm.MainModule.Types)
+            try
             {
-                CustomAttribute? attr = type.CustomAttributes
-                    .FirstOrDefault(a => a.AttributeType.FullName == PlugAttributeFullName);
-                if (attr == null)
-                    continue;
+                using AssemblyDefinition plugAsm = AssemblyDefinition.ReadAssembly(plugPath);
+                foreach (TypeDefinition type in plugAsm.MainModule.Types)
+                {
+                    CustomAttribute? attr = type.CustomAttributes
+                        .FirstOrDefault(a => a.AttributeType.FullName == PlugAttributeFullName);
+                    if (attr == null)
+                        continue;
 
-                string? target = GetTargetName(attr);
-                if (!string.IsNullOrEmpty(target))
-                    targetTypes.Add(target);
+                    string? target = GetTargetName(attr);
+                    if (!string.IsNullOrEmpty(target))
+                        targetTypes.Add(target);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warn($"[Scanner] Skipping non-.NET or invalid assembly '{plugPath}': {ex.Message}");
+                continue;
             }
         }
 
@@ -79,7 +87,10 @@ public sealed class PlugScanner
             if (!File.Exists(candidatePath))
                 continue;
 
-            AssemblyDefinition asm = AssemblyDefinition.ReadAssembly(candidatePath);
+            using AssemblyDefinition? asm = TryReadAssembly(candidatePath);
+            if (asm == null)
+                continue; // skip invalid/native binaries
+
             foreach (string t in targetTypes)
             {
                 TypeDefinition? type = asm.MainModule.GetType(t) ??
@@ -90,6 +101,18 @@ public sealed class PlugScanner
                         yield return candidatePath;
                     break;
                 }
+            }
+        }
+
+        static AssemblyDefinition? TryReadAssembly(string path)
+        {
+            try
+            {
+                return AssemblyDefinition.ReadAssembly(path);
+            }
+            catch
+            {
+                return null;
             }
         }
     }
