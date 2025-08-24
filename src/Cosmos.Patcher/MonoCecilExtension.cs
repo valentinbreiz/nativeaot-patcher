@@ -1824,13 +1824,13 @@ public static class MonoCecilExtensions
         Logger.Debug($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
         Logger.Debug($"[GetArgument] Total properties: {attribute.Properties.Count}");
 
-         CustomAttributeNamedArgument namedProp =  attribute.Properties
-                .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase));
-        
+        CustomAttributeNamedArgument namedProp = attribute.Properties
+               .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase));
+
         CustomAttributeArgument? argument = !string.IsNullOrEmpty(namedProp.Name) ? namedProp.Argument : (positional >= attribute.ConstructorArguments.Count || positional < 0
                 ? null
-                : attribute.ConstructorArguments[positional]); 
-            
+                : attribute.ConstructorArguments[positional]);
+
         if (argument is null)
         {
             Logger.Debug("[GetArgument] Argument was null — skipping.");
