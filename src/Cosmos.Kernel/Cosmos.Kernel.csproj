@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel</PackageId>
+    <Title>Cosmos Kernel Aggregator</Title>
+    <Description>Aggregated Cosmos kernel components including boot, core, HAL, runtime, system and plugs.</Description>
+    <PackageTags>cosmos;kernel;boot;core;hal;runtime;system;graphics;plugs</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+  </ItemGroup>
+</Project>
