@@ -22,7 +22,7 @@ flowchart TD
 | `IlcToolsPath` | Path to the `ilc` executable resolved from the `Microsoft.DotNet.ILCompiler` runtime pack. | auto-resolved |
 | `IlcIntermediateOutputPath` | Directory where `.ilc.rsp` and `.o` files are written. | `$(IntermediateOutputPath)/cosmos/native/` |
 | `IlcSystemModule` | System module used as ILCompiler entry point. | `System.Private.CoreLib` |
-| `UnmanagedEntryPointsAssembly` | Assemblies whose methods are exported via `--generateunmanagedentrypoints`. | none |
+| `UnmanagedEntryPointsAssembly` | Assemblies whose methods are exported via `--generateunmanagedentrypoints`. | `Cosmos.Kernel.Runtime` |
 
 ---
 
