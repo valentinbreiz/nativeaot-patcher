@@ -1,9 +1,9 @@
+using System.Linq;
 using System.Reflection;
 using Cosmos.Patcher;
 using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
 using Xunit;
-using System.Linq;
 
 namespace Cosmos.Tests.Patcher;
 

@@ -1,7 +1,7 @@
 using System.Linq;
+using Cosmos.Patcher;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Cosmos.Patcher;
 
 namespace Cosmos.Build.Patcher.Tasks;
 

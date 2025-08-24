@@ -1,6 +1,6 @@
-using Mono.Cecil;
 using System.IO;
 using System.Linq;
+using Mono.Cecil;
 
 namespace Cosmos.Patcher;
 
