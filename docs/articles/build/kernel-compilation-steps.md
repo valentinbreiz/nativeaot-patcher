@@ -1,4 +1,4 @@
-This document outlines the build process for the C# kernel, which utilizes .NET NativeAOT compilation combined with a custom patching mechanism ([Plugs](../plugs.md) to produce a bootable ELF kernel file and a final bootable ISO image.
+This document outlines the build process for the C# kernel, which utilizes .NET NativeAOT compilation combined with a custom patching mechanism ([Plugs](../plugs.md)) to produce a bootable ELF kernel file and a final bootable ISO image.
 
 ## Overview
 
