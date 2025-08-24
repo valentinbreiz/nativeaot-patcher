@@ -1,4 +1,5 @@
 using System.Linq;
+using Cosmos.Build.Patcher.Logging;
 using Cosmos.Patcher;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -20,7 +21,7 @@ public sealed class FindPluggedAssembliesTask : Microsoft.Build.Utilities.Task
     {
         try
         {
-            PlugScanner scanner = new();
+            PlugScanner scanner = new(new MsBuildLogger(Log));
             string[] plugs = PlugAssemblies.Select(p => p.ItemSpec).ToArray();
             string[] candidates = CandidateAssemblies.Select(c => c.ItemSpec).ToArray();
             AssembliesToPatch = scanner
