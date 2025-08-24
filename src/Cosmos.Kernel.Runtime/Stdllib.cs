@@ -417,7 +417,7 @@ namespace Internal.Runtime
 {
     internal abstract class ThreadStatics
     {
-        public static unsafe object GetThreadStaticBaseForType(TypeManagerSlot* pModuleData, int typeTlsIndex)
+        public static unsafe object? GetThreadStaticBaseForType(TypeManagerSlot* pModuleData, int typeTlsIndex)
         {
             return null;
         }

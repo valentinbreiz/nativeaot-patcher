@@ -4,6 +4,7 @@
     <PublishAOT>true</PublishAOT>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnablePatching>true</EnablePatching>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
