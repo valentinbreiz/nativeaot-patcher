@@ -33,7 +33,6 @@ flowchart TD
 | `ResolveIlcPath` | Downloads and locates ILCompiler, setting `IlcToolsPath`. | `Build` |
 | `WriteIlcRsp` | Produces the ILCompiler response file listing inputs, references, and options. | `ResolveIlcPath` |
 | `CompileWithIlc` | Runs `ilc` using the response file to emit a native object file. | `WriteIlcRsp` |
-| `BuildGCC` | Links ILCompiler output with native libraries into the final binary. | `CompileWithIlc` |
 
 ---
 
@@ -43,6 +42,16 @@ flowchart TD
 2. **WriteIlcRsp** creates `$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp`, gathering patched assemblies from `$(IntermediateOutputPath)/cosmos`, references from `cosmos/ref`, and ILCompiler options such as `--runtimeknob` and `--feature` flags.
 3. **CompileWithIlc** executes `ilc` with the generated response file, producing `$(AssemblyName).o` in `$(IlcIntermediateOutputPath)`.
 4. The native binary is ready for further packaging, such as bootloader integration.
+
+---
+
+## Outputs
+
+- Response file: `$(IntermediateOutputPath)/cosmos/native/$(AssemblyName).ilc.rsp` listing inputs, references, and ILCompiler options.
+- Native object: `$(IntermediateOutputPath)/cosmos/native/$(AssemblyName).o` produced by `CompileWithIlc` for linking.
+
+Notes:
+- Reference assemblies resolved by ILC are located under `$(IntermediateOutputPath)/cosmos/ref/` and come from the Patcher step.
 
 ---
 
