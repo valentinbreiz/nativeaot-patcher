@@ -8,11 +8,11 @@ Marks a class as the replacement for a target type. The attribute accepts the fu
 
 **Use when:** creating a plug class that substitutes an existing type.
 
-**Pitfalls:** mismatched `TargetName` values or forgetting to set `IsOptional` when the target type may be absent can break builds.
+**Pitfalls:** mismatched `TargetName` can break builds.
 
 ### `[PlugMember]`
 
-Indicates that a member should replace or augment a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in [PlugMemberAttribute.cs](../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs).
+Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in [PlugMemberAttribute.cs](../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs).
 
 **Use when:** you need fine‑grained control over which members of the target type are replaced.
 
@@ -20,9 +20,9 @@ Indicates that a member should replace or augment a member on the target type. T
 
 ### `[Expose]`
 
-Adds new private members to the target type so that plugs can maintain state or helper methods. The attribute is useful for introducing fields or methods that are not part of the original type.
+Adds new private members to the target type so that plugs can use them. The attribute is useful for introducing fields or methods that are not part of the original type.
 
-**Use when:** a plug requires additional private storage or helper logic.
+**Use when:** a plug requires additional private storage or logic.
 
 **Pitfalls:** exposing members that conflict with existing names can cause unpredictable behavior.
 
@@ -30,7 +30,7 @@ Adds new private members to the target type so that plugs can maintain state or 
 
 Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see `ReplaceFieldAccess` in [PlugPatcher.cs](../../src/Cosmos.Patcher/PlugPatcher.cs)).
 
-**Use when:** accessing or modifying a private field inside a plugged method.
+**Use when:** accessing or modifying an object field inside a plugged method.
 
 **Pitfalls:** incorrect field names or mismatched parameter types result in runtime failures when the patcher attempts to rewrite field accesses.
 
