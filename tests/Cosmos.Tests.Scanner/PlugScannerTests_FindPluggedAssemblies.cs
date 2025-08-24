@@ -1,6 +1,6 @@
+using System.Linq;
 using Cosmos.Patcher;
 using Cosmos.Tests.NativeWrapper;
-using System.Linq;
 
 namespace Cosmos.Tests.Scanner;
 
