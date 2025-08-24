@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <!-- Avoid ID conflicts with the package project. -->
-    <PackageId>$(MSBuildProjectFile)</PackageId>
+    <PackageId>Cosmos.Build.Analyzer.Patcher</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
