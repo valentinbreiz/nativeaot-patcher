@@ -10,3 +10,5 @@
   href: kernel-compilation-steps.md
 - name: Testing
   href: testing.md
+- name: Kernel Project Layout
+  href: kernel-project-layout.md

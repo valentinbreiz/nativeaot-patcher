@@ -11,6 +11,7 @@ Welcome to the nativeaot-patcher wiki!
 - [Cosmos.Asm.Build](/articles/build/asm-build.md)
 - [Cosmos.Patcher.Build](/articles/build/patcher-build.md)
 - [Cosmos.ilc.Build](/articles/build/ilc-build.md)
+- [Kernel Project Layout](/articles/kernel-project-layout.md)
 
 ## Resources
 - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)

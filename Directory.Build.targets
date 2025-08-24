@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="EnforceKernelReferenceRules" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <ForbiddenReference Include="@(ProjectReference)"
+                           Condition="'$(MSBuildProjectName)' != 'Cosmos.Kernel' and $([System.String]::Copy('%(ProjectReference.Identity)').Contains('Cosmos.Kernel.Boot'))" />
+    </ItemGroup>
+    <Error Condition="@(ForbiddenReference) != ''"
+           Text="Only the Cosmos.Kernel project may reference Cosmos.Kernel.Boot.* projects."
+           />
+  </Target>
+</Project>

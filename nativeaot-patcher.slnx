@@ -13,6 +13,7 @@
     <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" Type="Classic C#" />
+    <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Kernel.Native.x86/Cosmos.Kernel.Native.x86.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" Type="Classic C#" />
