@@ -6,13 +6,12 @@ MSBuild orchestrates several `Cosmos.*` components to transform your kernel into
 
 ```mermaid
 flowchart TD
-    S[Build] --> A[RunPatcher]
-    S --> C[BuildYasm]
-    A --> B[CompileWithIlc]
-    C --> D[BuildGCC]
-    B --> E[LinkTarget]
-    D --> E
-    E --> F[BuildISO]
+    subgraph Cosmos.Sdk
+        A[Cosmos.Build.Patcher] --> B[Cosmos.Build.Ilc]
+        B --> E[Cosmos.Build.Common]
+        C[Cosmos.Build.GCC] --> E[Cosmos.Build.Common]
+        D[Cosmos.Build.Asm] --> E
+    end
 ```
 
 Key components and docs:
