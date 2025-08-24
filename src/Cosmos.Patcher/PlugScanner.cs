@@ -1,12 +1,19 @@
 using System.IO;
 using System.Linq;
+using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 
 namespace Cosmos.Patcher;
 
 public sealed class PlugScanner
 {
+    private readonly IBuildLogger _log;
     private const string PlugAttributeFullName = "Cosmos.Build.API.Attributes.PlugAttribute";
+
+    public PlugScanner(IBuildLogger? logger = null)
+    {
+        _log = logger ?? new ConsoleBuildLogger();
+    }
 
     public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies) => LoadPlugs(null, assemblies);
 
@@ -33,7 +40,7 @@ public sealed class PlugScanner
         ];
 
         foreach (TypeDefinition type in output)
-            Console.WriteLine($"[Scanner] Plug found: {type.Name}");
+            _log.Debug($"[Scanner] Plug found: {type.Name}");
 
         return output;
     }
