@@ -28,6 +28,11 @@
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
 
+  <!-- Add any folder(s) where *.c files exist -->
+  <ItemGroup>
+    <GCCProject Include="./src/C/" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
