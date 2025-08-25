@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 
     <!-- This target will run when MSBuild is collecting the files to be packaged, and we'll implement it below. This property controls the dependency list for this packaging process, so by adding our custom property we hook ourselves into the process in a supported way. -->
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
@@ -12,19 +10,25 @@
     <NoWarn>NU5100</NoWarn>
     <!-- Suppress NuGet warning NU5128. -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Patcher.props" PackagePath="build\" />
     <Content Include="build\*.targets" PackagePath="build\" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime"/>
     <PackageReference Include="PolySharp">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Mono.Cecil" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Patcher\Cosmos.Patcher.csproj" />
   </ItemGroup>
 
   <!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->

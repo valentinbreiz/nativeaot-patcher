@@ -28,25 +28,9 @@
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
 
+  <!-- Add any folder(s) where *.c files exist -->
   <ItemGroup>
     <GCCProject Include="./src/C/" />
-  </ItemGroup>
-
-<!--
-  <ItemGroup>
-    <None Update="Test.CoreLib.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Test.CoreLib">
-      <HintPath>$(OutputPath)Test.CoreLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>-->
-
-  <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +38,10 @@
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0"/>
   </ItemGroup>
 
   <ItemGroup>

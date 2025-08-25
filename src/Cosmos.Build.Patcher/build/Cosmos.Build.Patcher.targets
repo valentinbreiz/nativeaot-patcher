@@ -14,7 +14,9 @@
     <EnableAOT>true</EnableAOT>
   </PropertyGroup>
 
-  <UsingTask TaskName="Cosmos.Patcher.Build.Tasks.PatcherTask"
+  <UsingTask TaskName="Cosmos.Build.Patcher.Tasks.PatcherTask"
+             AssemblyFile="$(CosmosPatcherTasksAssembly)" />
+  <UsingTask TaskName="Cosmos.Build.Patcher.Tasks.FindPluggedAssembliesTask"
              AssemblyFile="$(CosmosPatcherTasksAssembly)" />
 
   <Target Name="Log" BeforeTargets="BeforeBuild">
@@ -31,26 +33,39 @@
     <Message Importance="High" Text="PatcherTask:$(PatcherTask)" />
   </Target>
 
-  <Target Name="SetupPatcher" AfterTargets="Build">
+  <!--
+    Run SetupPatcher before the ILCompiler step to ensure we operate on IL assemblies.
+    This avoids trying to read NativeAOT outputs (native PE) with Mono.Cecil.
+  -->
+  <Target Name="SetupPatcher" AfterTargets="Build" BeforeTargets="CompileWithIlc" DependsOnTargets="ResolveIlcPath">
     <PropertyGroup>
       <PatcherOutputPath Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/ref/</PatcherOutputPath>
       <!-- The Main Assembly is patched to the root folder of Cosmos to make it easy to be found by other build tools -->
       <PatchedAssembly Condition="$(PatcherOutputPath) == ''">$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatchedAssembly>
     </PropertyGroup>
 
+    <!-- Build candidate set of assemblies with output destinations -->
     <ItemGroup>
-      <AssembliesToPatch Include="$(OutputPath)$(AssemblyName).dll">
+      <CandidateAssemblies Include="$(OutputPath)$(AssemblyName).dll">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatcherOutputPath>
-      </AssembliesToPatch>
-      <AssembliesToPatch Include="@(ReferencePath)">
+      </CandidateAssemblies>
+      <CandidateAssemblies Include="@(ReferencePath)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
-      </AssembliesToPatch>
-      <AssembliesToPatch Include="@(PrivateSdkAssemblies)">
+      </CandidateAssemblies>
+      <CandidateAssemblies Include="@(PrivateSdkAssemblies)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
-      </AssembliesToPatch>
-      <AssembliesToPatch Include="@(FrameworkAssemblies)">
+      </CandidateAssemblies>
+      <CandidateAssemblies Include="@(FrameworkAssemblies)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
-      </AssembliesToPatch>
+      </CandidateAssemblies>
+    </ItemGroup>
+
+    <!-- Include ILC SDK reference assemblies as candidates (System.Console, etc.) -->
+    <ItemGroup>
+      <IlcSdkAssemblies Include="$(IlcToolsPath)sdk/*.dll" Condition="'$(IlcToolsPath)' != ''" />
+      <CandidateAssemblies Include="@(IlcSdkAssemblies)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </CandidateAssemblies>
     </ItemGroup>
     
     <!-- Filter references to find plug assemblies based on PlugReference assembly names -->
@@ -80,14 +95,72 @@
     <!-- Clean Output Path -->
     <RemoveDir Directories="$(PatcherOutputPath)" />
 
-    <!-- Ensure the output directory exists -->
+    <!-- Ensure the output directories exist -->
     <MakeDir Directories="$(PatcherOutputPath)" />
+    <MakeDir Directories="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)/cosmos'))" />
 
     <Message Importance="High" Text="PlugReference Assembly Names:" />
     <Message Importance="High" Text="  %(PlugReference.Identity)" />
     
     <Message Importance="High" Text="Resolved PlugRef DLL Paths:" />
     <Message Importance="High" Text="  %(PlugRef.Identity)" />
+
+    <!-- Use FindPluggedAssembliesTask to filter only assemblies that contain target types -->
+    <FindPluggedAssembliesTask PlugAssemblies="@(PlugRef)"
+                               CandidateAssemblies="@(CandidateAssemblies)">
+      <Output TaskParameter="AssembliesToPatch" ItemName="FilteredAssembliesToPatch" />
+    </FindPluggedAssembliesTask>
+
+    <Message Importance="High" Text="Candidates:" />
+    <Message Importance="High" Text="  %(CandidateAssemblies.Identity)" />
+    <Message Importance="High" Text="Filtered assemblies (by plugs):" />
+    <Message Importance="High" Text="  %(FilteredAssembliesToPatch.Identity)" />
+
+    <!-- Build final patch list -->
+    <ItemGroup>
+      <!-- Always include the main assembly so ILC has a "patched" app binary -->
+      <AssembliesToPatch Include="$(OutputPath)$(AssemblyName).dll">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.dll</PatcherOutputPath>
+      </AssembliesToPatch>
+
+      <!-- Add filtered assemblies; place them under ref/ by filename -->
+      <AssembliesToPatch Include="@(FilteredAssembliesToPatch)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </AssembliesToPatch>
+
+      <!-- Always include System.Private.CoreLib for ILC reference stability -->
+      <AssembliesToPatch Include="@(CandidateAssemblies)"
+                         Condition="'%(CandidateAssemblies.Filename)' == 'System.Private.CoreLib'" />
+    </ItemGroup>
+
+    <!-- De-dup final patch list -->
+    <RemoveDuplicates Inputs="@(AssembliesToPatch)">
+      <Output TaskParameter="Filtered" ItemName="AssembliesToPatch"/>
+    </RemoveDuplicates>
+
+    <Message Importance="High" Text="Assemblies selected for patching:" />
+    <Message Importance="High" Text="  %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
+
+    <!-- Copy all non-patched candidates to the ref folder so ILC can resolve them -->
+    <ItemGroup>
+      <AssembliesToCopy Include="@(CandidateAssemblies)"
+                        Condition="$([System.String]::new('@(AssembliesToPatch, ';')').Contains('%(CandidateAssemblies.Identity)')) == false" />
+    </ItemGroup>
+
+    <Message Importance="Low" Text="Assemblies copied (no patch): %(AssembliesToCopy.Identity) -> %(AssembliesToCopy.PatcherOutputPath)" />
+
+    <!-- Ensure copy target directories exist -->
+    <ItemGroup>
+      <CopyDirs Include="@(AssembliesToCopy->'$([System.IO.Path]::GetDirectoryName(%(PatcherOutputPath)))')" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(CopyDirs)">
+      <Output TaskParameter="Filtered" ItemName="CopyDirs"/>
+    </RemoveDuplicates>
+    <MakeDir Directories="@(CopyDirs)" />
+
+    <Copy SourceFiles="@(AssembliesToCopy)"
+          DestinationFiles="@(AssembliesToCopy->'%(PatcherOutputPath)')"
+          SkipUnchangedFiles="true" />
   </Target>
   
   <!-- Clean target to remove the asm folder -->

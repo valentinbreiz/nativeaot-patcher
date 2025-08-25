@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Spectre.Console.Cli;
 
@@ -23,11 +24,12 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
     public override int Execute(CommandContext context, Settings settings)
     {
-        Console.WriteLine("Running PatchCommand...");
+        IBuildLogger logger = new ConsoleBuildLogger();
+        logger.Info("Running PatchCommand...");
 
         if (!File.Exists(settings.TargetAssembly))
         {
-            Console.WriteLine($"Error: Target assembly '{settings.TargetAssembly}' not found.");
+            logger.Error($"Error: Target assembly '{settings.TargetAssembly}' not found.");
             return -1;
         }
 
@@ -39,31 +41,31 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
         if (plugPaths.Length == 0)
         {
-            Console.WriteLine("Error: No plug assemblies specified. Use --plugs \"a.dll;b.dll\"");
+            logger.Error("Error: No plug assemblies specified. Use --plugs \"a.dll;b.dll\"");
             return -1;
         }
 
         plugPaths = plugPaths.Where(File.Exists).ToArray();
         if (plugPaths.Length == 0)
         {
-            Console.WriteLine("Error: No valid plug assemblies provided (files not found).");
+            logger.Error("Error: No valid plug assemblies provided (files not found).");
             return -1;
         }
 
         try
         {
             AssemblyDefinition targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
-            Console.WriteLine($"Loaded target assembly: {settings.TargetAssembly}");
+            logger.Info($"Loaded target assembly: {settings.TargetAssembly}");
 
             AssemblyDefinition[] plugAssemblies = plugPaths
                 .Select(AssemblyDefinition.ReadAssembly)
                 .ToArray();
 
-            Console.WriteLine("Loaded plug assemblies:");
+            logger.Info("Loaded plug assemblies:");
             foreach (string plug in plugPaths)
-                Console.WriteLine($" - {plug}");
+                logger.Info($" - {plug}");
 
-            PlugPatcher plugPatcher = new(new PlugScanner());
+            PlugPatcher plugPatcher = new(new PlugScanner(logger));
             plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
 
             string finalPath = settings.OutputPath ??
@@ -73,13 +75,13 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
             targetAssembly.Write(finalPath);
 
-            Console.WriteLine($"Patched assembly saved to: {finalPath}");
-            Console.WriteLine("Patching completed successfully.");
+            logger.Info($"Patched assembly saved to: {finalPath}");
+            logger.Info("Patching completed successfully.");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during patching: {ex}");
+            logger.Error($"Error during patching: {ex}");
             return -1;
         }
     }
