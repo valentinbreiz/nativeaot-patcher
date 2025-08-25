@@ -38,7 +38,10 @@
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.Native.x86\Cosmos.Kernel.Native.x86.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
