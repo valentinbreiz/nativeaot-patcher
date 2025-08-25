@@ -24,7 +24,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Pack Cosmos
-        run: dotnet build ./Cosmos.slnx --configuration Release /p:Version=3.0.0-build.$(date +"%Y%m%d%H%M") --artifacts-path ./out
+        run: dotnet build ./nativeaot-patcher.slnx --configuration Release /p:Version=3.0.0-build.$(date +"%Y%m%d%H%M") --artifacts-path ./out
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
