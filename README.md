@@ -5,7 +5,7 @@
  Zarlo's NativeAOT patcher. Main goal is to port Cosmos plug system, assembly loading for NativeAOT. See https://github.com/CosmosOS/Cosmos/issues/3088 for details.
 
  ## Documentation
- - [Wiki](https://github.com/valentinbreiz/nativeaot-patcher/wiki/)
+ - [Index]([https://github.com/valentinbreiz/nativeaot-patcher/wiki/](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md))
 
 ## Priority
 - [Priority Board](https://github.com/users/valentinbreiz/projects/2/views/2) 
