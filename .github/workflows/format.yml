@@ -25,8 +25,8 @@ jobs:
         run: ./.devcontainer/postCreateCommand.sh
 
       - name: Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore ./nativeaot-patcher.slnx
 
       - name: Check Formatting
-        run: dotnet format --verify-no-changes --severity error || { echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."; exit 1; }
+        run: dotnet format ./nativeaot-patcher.slnx --verify-no-changes --severity error || { echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."; exit 1; }
 
