@@ -101,27 +101,21 @@ flowchart TD
   1. ResolveIlcPath: Locates ILCompiler tools
   2. WriteIlcRsp: Generates response file with options
   3. CompileWithIlc: Transforms IL to native code
-- **Options**: `--runtimeknob`, `--feature`, `--generateunmanagedentrypoints`
 - **Output**: Native objects in `$(IntermediateOutputPath)/cosmos/native/`
 
 ### Stage 4: Native Code Compilation
 
 #### 4A: Assembly (YASM)
 - **Tool**: `yasm`
-- **Format**: `-felf64`
-- **Search**: `AsmSearchPath` with architecture subfolder support
 - **Output**: `$(IntermediateOutputPath)/cosmos/asm/*.obj`
 
 #### 4B: C Code (GCC)
 - **Tool**: `gcc` (Unix) or `x86_64-elf-gcc` (Windows)
-- **Flags**: `-O2 -fno-stack-protector -nostdinc -fno-builtin -m64 -mcmodel=kernel`
-- **Search**: `GCCProject` directories
 - **Output**: `$(IntermediateOutputPath)/cosmos/cobj/*.o`
 
 ### Stage 5: Linking (ELF)
 - **Tool**: `ld.lld`
-- **Script**: `Linker/linker.ld`
-- **Flags**: `-m elf_x86_64 -nostdlib -static -z max-page-size=0x1000`
+- **Config**: `Linker/linker.ld`
 - **Inputs**: All native, assembly, and C objects
 - **Output**: `$(OutputPath)/$(AssemblyName).elf`
 
