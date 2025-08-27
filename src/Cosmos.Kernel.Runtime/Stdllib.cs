@@ -1,6 +1,7 @@
 using System;
 using System.Runtime;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.Graphics;
 
 #region Things needed by ILC
 namespace System
@@ -72,9 +73,16 @@ namespace Cosmos.Kernel.Runtime
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
         [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(object ex) { while (true) ; }
-
-
+        private static void RhpThrowEx(object ex) 
+        {
+            if (ex == null)
+            {
+                KernelConsole.WriteLine("Null exception thrown");
+                return;
+            }
+            
+            KernelConsole.WriteLine($"Unhandled exception: {ex.GetType().Name}");
+        }
 
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
