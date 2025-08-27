@@ -73,15 +73,15 @@ namespace Cosmos.Kernel.Runtime
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
         [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(object ex) 
+        private static void RhpThrowEx(Exception ex) 
         {
             if (ex == null)
             {
-                KernelConsole.WriteLine("Null exception thrown");
+                Console.WriteLine("Null exception thrown");
                 return;
             }
             
-            KernelConsole.WriteLine($"Unhandled exception: {ex.GetType().Name}");
+            Console.WriteLine($"Unhandled exception: {ex.GetType().Name}");
         }
 
         [RuntimeExport("RhpAssignRef")]
