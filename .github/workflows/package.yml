@@ -23,32 +23,8 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Pack Cosmos.Api
-        run: dotnet build ./src/Cosmos.Build.API/Cosmos.Build.API.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Build.Patcher
-        run: dotnet build ./src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Patcher
-        run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj --configuration Release --artifacts-path ./out
-        
-      - name: Pack Cosmos.Build.Common
-        run: dotnet build ./src/Cosmos.Build.Common/Cosmos.Build.Common.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Build.Ilc
-        run: dotnet build ./src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Build.Asm
-        run: dotnet build ./src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Build.Analyzer.Patcher.Package
-        run: dotnet build ./src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj  --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Kernel.Native.x86
-        run: dotnet build ./src/Cosmos.Kernel.Native.x86/Cosmos.Kernel.Native.x86.csproj --configuration Release --artifacts-path ./out
-
-      - name: Pack Cosmos.Sdk
-        run: dotnet build ./src/Cosmos.Sdk/Cosmos.Sdk.csproj  --configuration Release --artifacts-path ./out
+      - name: Pack Cosmos
+        run: dotnet build ./Packages.slnx --configuration Release /p:Version=3.0.0-build.$(date +"%Y%m%d%H%M") --artifacts-path ./out
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4

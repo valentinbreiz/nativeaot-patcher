@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <!-- Package Metadata -->
-    <PackageId>Cosmos.Kernel.Boot.Limine</PackageId>
-    <Title>Cosmos Kernel Limine Boot Support</Title>
-    <Description>Limine bootloader support for Cosmos kernel development including framebuffer and protocol structures.</Description>
-    <PackageTags>cosmos;kernel;limine;bootloader;framebuffer;boot;protocol;uefi;bios</PackageTags>
+    <PackageId>Cosmos.Kernel.HAL</PackageId>
+    <Title>Cosmos Kernel HAL</Title>
+    <Description>Hardware abstraction layer for Cosmos graphics initialization.</Description>
+    <PackageTags>cosmos;kernel;hal;graphics</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+  </ItemGroup>
 </Project>

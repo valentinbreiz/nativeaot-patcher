@@ -28,6 +28,34 @@ public static unsafe class PCScreenFont
     public static ushort Magic = 0x0436;
     public static uint PSFFontMagic = 0x864ab572;
 
+    private static void EnsureInitialized()
+    {
+        if (!Initialized)
+        {
+            byte* fontData = Base64.Decode(Default.GetUnmanagedFontData(), (uint)Default.Size);
+            Init((byte*)Graphics.Canvas.Address, (int)Graphics.Canvas.Pitch, fontData);
+            Initialized = true;
+        }
+    }
+
+    public static int CharWidth
+    {
+        get
+        {
+            EnsureInitialized();
+            return (int)((PSF_Font*)FontData)->Width;
+        }
+    }
+
+    public static int CharHeight
+    {
+        get
+        {
+            EnsureInitialized();
+            return (int)((PSF_Font*)FontData)->Height;
+        }
+    }
+
     public struct PSF_Header
     {
         public ushort Magic;
@@ -65,20 +93,22 @@ public static unsafe class PCScreenFont
 
     public static void PutString(string str, int x, int y, uint fg, uint bg)
     {
+        int charWidth = CharWidth;
         fixed (char* ptr = str)
         {
             for (int i = 0; i < str.Length; i++)
             {
-                PutChar(ptr[i], x + i * 16, y, fg, bg);
+                PutChar(ptr[i], x + i * charWidth, y, fg, bg);
             }
         }
     }
 
     public static void PutString(char* str, int x, int y, uint fg, uint bg)
     {
+        int charWidth = CharWidth;
         for (int i = 0; str[i] != 0; i++)
         {
-            PutChar(str[i], x + i * 16, y, fg, bg);
+            PutChar(str[i], x + i * charWidth, y, fg, bg);
         }
     }
 
@@ -87,14 +117,7 @@ public static unsafe class PCScreenFont
         uint fg, uint bg)
     {
 
-        if (!Initialized)
-        {
-            byte* fontData = Base64.Decode(Default.GetUnmanagedFontData(), (uint)Default.Size);
-
-            Init((byte*)Graphics.Canvas.Address, (int)Graphics.Canvas.Pitch, fontData);
-
-            Initialized = true;
-        }
+        EnsureInitialized();
 
         PSF_Font* font = (PSF_Font*)FontData;
         int bytesPerLine = ((int)font->Width + 7) / 8;

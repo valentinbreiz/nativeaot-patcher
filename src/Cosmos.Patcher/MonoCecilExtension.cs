@@ -1,4 +1,5 @@
 ﻿#if (UNITY_2017_1_OR_NEWER && UNITY_EDITOR) || !UNITY_2017_1_OR_NEWER
+using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
@@ -12,6 +13,7 @@ namespace Cosmos.Patcher;
 /// </summary>
 public static class MonoCecilExtensions
 {
+    public static IBuildLogger Logger { get; set; } = new ConsoleBuildLogger();
     /// <summary>
     /// Represents an information container for updating Mono.Cecil definitions.
     /// </summary>
@@ -1818,32 +1820,31 @@ public static class MonoCecilExtensions
     public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, string named = "", int positional = 0)
     {
         string? typeName = typeof(T).FullName;
-        Console.WriteLine($"[GetArgument] Trying to get argument of type: {typeName}");
-        Console.WriteLine($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
-        Console.WriteLine($"[GetArgument] Total properties: {attribute.Properties.Count}");
+        Logger.Debug($"[GetArgument] Trying to get argument of type: {typeName}");
+        Logger.Debug($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
+        Logger.Debug($"[GetArgument] Total properties: {attribute.Properties.Count}");
 
-        CustomAttributeArgument? argument = string.IsNullOrEmpty(named)
-            ? positional > attribute.ConstructorArguments.Count - 1 || positional < 0
+        CustomAttributeNamedArgument namedProp = attribute.Properties
+               .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase));
+
+        CustomAttributeArgument? argument = !string.IsNullOrEmpty(namedProp.Name) ? namedProp.Argument : (positional >= attribute.ConstructorArguments.Count || positional < 0
                 ? null
-                : attribute.ConstructorArguments[positional]
-            : attribute.Properties
-                .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase))
-                .Argument;
+                : attribute.ConstructorArguments[positional]);
 
         if (argument is null)
         {
-            Console.WriteLine("[GetArgument] Argument was null — skipping.");
+            Logger.Debug("[GetArgument] Argument was null — skipping.");
             return defaultValue;
         }
 
         string? argTypeName = argument.Value.Type?.FullName;
         if (string.IsNullOrEmpty(argTypeName))
         {
-            Console.WriteLine("[GetArgument] Argument type was null — returning default.");
+            Logger.Debug("[GetArgument] Argument type was null — returning default.");
             return defaultValue;
         }
 
-        Console.WriteLine($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
+        Logger.Debug($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
         if (argTypeName == typeof(Type).FullName)
             return (T?)(object?)argument.Value.Value.ToString();
 
@@ -1854,7 +1855,7 @@ public static class MonoCecilExtensions
                 : defaultValue;
         }
 
-        Console.WriteLine($"Type is enum, Value: {enumValue}");
+        Logger.Debug($"Type is enum, Value: {enumValue}");
         return (T)enumValue;
     }
     #endregion

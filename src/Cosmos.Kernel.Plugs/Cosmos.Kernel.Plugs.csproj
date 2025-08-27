@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <PackageId>Cosmos.Kernel.Plugs</PackageId>
+    <Title>Cosmos Kernel Plugs</Title>
+    <Description>BCL plugs for Cosmos kernel including console redirection.</Description>
+    <PackageTags>cosmos;kernel;plugs;console</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+  </ItemGroup>
+</Project>
