@@ -1,7 +1,6 @@
 using System;
 using System.Runtime;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.Graphics;
 
 #region Things needed by ILC
 namespace System
