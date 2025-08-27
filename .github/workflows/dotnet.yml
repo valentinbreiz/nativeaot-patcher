@@ -181,7 +181,7 @@ jobs:
         run: dotnet tool install -g Cosmos.Patcher
 
       - name: 🔄 Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore ./nativeaot-patcher.slnx
 
       - name: 🚀 Build ISO
         run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output

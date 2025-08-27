@@ -2,9 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.Native.x86</PackageId>
     <Title>Cosmos Kernel x86 Native Assembly</Title>
