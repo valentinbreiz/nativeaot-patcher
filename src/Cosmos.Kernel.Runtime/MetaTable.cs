@@ -8,7 +8,7 @@ public class MetaTable
 {
     // look int what this does
     [RuntimeExport("RhpGetModuleSection")]
-    private static IntPtr RhGetModuleSection(ref TypeManagerHandle module, ReadyToRunSectionType section,
+    private static IntPtr RhGetModuleSection(ref object module, object section,
         out int length)
     {
         length = 0;
