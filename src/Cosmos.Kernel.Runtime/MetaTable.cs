@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime;
-using Internal.Runtime;
 
 namespace Cosmos.Kernel.Runtime;
 
