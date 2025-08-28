@@ -31,4 +31,11 @@ public static class Native
         [RuntimeImport("*", "_native_io_read_dword")]
         public static extern uint Read32(ushort Port);
     }
+
+    public static class Debug
+    {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport("*", "_native_debug_breakpoint")]
+        public static extern void Breakpoint();
+    }
 }

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.Runtime;
 using Cosmos.Kernel.System.IO;
 
 internal unsafe class Program
@@ -21,11 +22,15 @@ internal unsafe class Program
         LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Screen.Init(fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
 
-        Console.WriteLine("CosmosOS gen3 booted.");
+        Console.WriteLine("CosmosOS gen3 v0.1 booted.");
 
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
+
+        Console.WriteLine("About to trigger breakpoint for GDB...");
+        Native.Debug.Breakpoint();
+        Console.WriteLine("Breakpoint passed, continuing execution.");
 
         char[] testChars = new char[] { 'R', 'h', 'p' };
         string testString = new string(testChars);
