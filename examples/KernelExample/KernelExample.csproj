@@ -22,6 +22,16 @@
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
+  <!-- Debug configuration for GDB debugging -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <StripSymbols>false</StripSymbols>
+    <IlcGenerateStackTraceData>true</IlcGenerateStackTraceData>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+  </PropertyGroup>
+
   <!-- Add any folder(s) where *.asm files exist -->
   <ItemGroup>
     <AsmSearchPath Include="./src/Asm/" />
