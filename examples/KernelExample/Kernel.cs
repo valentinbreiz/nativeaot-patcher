@@ -28,9 +28,18 @@ internal unsafe class Program
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
 
-        Console.WriteLine("About to trigger breakpoint for GDB...");
-        Native.Debug.Breakpoint();
-        Console.WriteLine("Breakpoint passed, continuing execution.");
+        Console.WriteLine("Debug stub location (set GDB breakpoint here)...");
+        Native.Debug.Stub();  // You can set a GDB breakpoint on this function
+        Console.WriteLine("Stub passed.");
+        
+        Console.WriteLine("Soft breakpoint (can step over)...");
+        Native.Debug.BreakpointSoft();  // This can be stepped over
+        Console.WriteLine("Soft breakpoint passed.");
+        
+        // Uncomment to use hard breakpoint (must use Continue, not Step Over)
+        // Console.WriteLine("Hard breakpoint (use Continue to resume)...");
+        // Native.Debug.Breakpoint();  // INT3 - stops execution until Continue
+        // Console.WriteLine("Hard breakpoint passed.");
 
         char[] testChars = new char[] { 'R', 'h', 'p' };
         string testString = new string(testChars);
