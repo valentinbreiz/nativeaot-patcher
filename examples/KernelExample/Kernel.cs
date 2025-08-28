@@ -18,6 +18,8 @@ internal unsafe class Program
 
     private static void Main()
     {
+        Native.Debug.BreakpointSoft();
+
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
         LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Screen.Init(fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
@@ -27,15 +29,7 @@ internal unsafe class Program
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
-
-        Console.WriteLine("Debug stub location (set GDB breakpoint here)...");
-        Native.Debug.Stub();  // You can set a GDB breakpoint on this function
-        Console.WriteLine("Stub passed.");
-
-        Console.WriteLine("Soft breakpoint (can step over)...");
-        Native.Debug.BreakpointSoft();  // This can be stepped over
-        Console.WriteLine("Soft breakpoint passed.");
-
+        
         // Uncomment to use hard breakpoint (must use Continue, not Step Over)
         // Console.WriteLine("Hard breakpoint (use Continue to resume)...");
         // Native.Debug.Breakpoint();  // INT3 - stops execution until Continue
