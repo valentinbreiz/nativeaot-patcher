@@ -6,6 +6,7 @@ Welcome to the nativeaot-patcher wiki!
 
 ## Documentation
  - [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md)
+ - [Debugging with VSCode and QEMU](articles/debugging.md)
  - [Plugs](articles/plugs.md)
  - [Testing](articles/testing.md)
  - [Cosmos.Build.Asm](articles/build/asm-build.md)
