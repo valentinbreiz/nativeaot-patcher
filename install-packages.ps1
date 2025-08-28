@@ -1,19 +1,5 @@
-# Build all projects in Release configuration
-$projects = @(
-    'src\Cosmos.Build.API\Cosmos.Build.API.csproj',
-    'src\Cosmos.Build.Patcher\Cosmos.Build.Patcher.csproj',
-    'src\Cosmos.Patcher\Cosmos.Patcher.csproj',
-    'src\Cosmos.Build.Common\Cosmos.Build.Common.csproj',
-    'src\Cosmos.Build.Ilc\Cosmos.Build.Ilc.csproj',
-    'src\Cosmos.Build.Asm\Cosmos.Build.Asm.csproj',
-    'src\Cosmos.Build.Analyzer.Patcher.Package\Cosmos.Build.Analyzer.Patcher.Package.csproj',
-    'src\Cosmos.Build.GCC\Cosmos.Build.GCC.csproj',
-    'src\Cosmos.Sdk\Cosmos.Sdk.csproj',
-    'src\Cosmos.Kernel.Native.x86\Cosmos.Kernel.Native.x86.csproj'
-)
-foreach ($proj in $projects) {
-    dotnet build "$PSScriptRoot\$proj" -c Release
-}
+# Build Packages in Release configuration
+dotnet build ./Packages.slnx -c Release
 
 # Configure the local NuGet source
 $sourceName = 'local-packages'
@@ -31,8 +17,8 @@ dotnet nuget add source $packagePath --name $sourceName
 # Clear all NuGet caches (HTTP, global packages, temp, and plugins) in one go
 dotnet nuget locals all --clear
 
-# Restore project dependencies
-dotnet restore
+# Restore Main Solution
+dotnet restore ./nativeaot-patcher.slnx
 
 # Uninstall old global Cosmos.Patcher tool if it exists
 if (dotnet tool list -g | Select-String '^Cosmos\.Patcher') {
