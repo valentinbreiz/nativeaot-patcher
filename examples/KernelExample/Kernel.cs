@@ -29,7 +29,7 @@ internal unsafe class Program
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
-        
+
         // Uncomment to use hard breakpoint (must use Continue, not Step Over)
         // Console.WriteLine("Hard breakpoint (use Continue to resume)...");
         // Native.Debug.Breakpoint();  // INT3 - stops execution until Continue
