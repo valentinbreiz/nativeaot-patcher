@@ -11,6 +11,7 @@
     <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" Type="Classic C#" />
     <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" Type="Classic C#" />
     <Project Path="src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" Type="Classic C#" />
+    <Project Path="src\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/Build/">
     <Project Path="src/Cosmos.Build.Analyzer.Patcher.CodeFixes/Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" Type="Classic C#" />

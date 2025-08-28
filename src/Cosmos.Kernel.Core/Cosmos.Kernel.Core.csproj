@@ -11,5 +11,8 @@
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
+  </ItemGroup>
 
 </Project>
