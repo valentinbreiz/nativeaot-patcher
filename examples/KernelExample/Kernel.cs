@@ -31,11 +31,11 @@ internal unsafe class Program
         Console.WriteLine("Debug stub location (set GDB breakpoint here)...");
         Native.Debug.Stub();  // You can set a GDB breakpoint on this function
         Console.WriteLine("Stub passed.");
-        
+
         Console.WriteLine("Soft breakpoint (can step over)...");
         Native.Debug.BreakpointSoft();  // This can be stepped over
         Console.WriteLine("Soft breakpoint passed.");
-        
+
         // Uncomment to use hard breakpoint (must use Continue, not Step Over)
         // Console.WriteLine("Hard breakpoint (use Continue to resume)...");
         // Native.Debug.Breakpoint();  // INT3 - stops execution until Continue
