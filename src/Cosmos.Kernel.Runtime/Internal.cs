@@ -37,5 +37,13 @@ public static class Native
         [MethodImpl(MethodImplOptions.InternalCall)]
         [RuntimeImport("*", "_native_debug_breakpoint")]
         public static extern void Breakpoint();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport("*", "_native_debug_stub")]
+        public static extern void Stub();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport("*", "_native_debug_breakpoint_soft")]
+        public static extern void BreakpointSoft();
     }
 }
