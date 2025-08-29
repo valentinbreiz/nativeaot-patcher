@@ -28,4 +28,4 @@ if (dotnet tool list -g | Select-String '^Cosmos\.Patcher') {
 
 # Install the latest global Cosmos.Patcher tool
 Write-Host "➕ Installing global Cosmos.Patcher tool"
-dotnet tool install -g Cosmos.Patcher --version 1.0.0
+dotnet tool install -g Cosmos.Patcher --version 3.0.0
