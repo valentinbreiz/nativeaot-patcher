@@ -1,67 +1,104 @@
-This document outlines the build process for the C# kernel, which utilizes .NET NativeAOT compilation combined with a custom patching mechanism ([Plugs](/articles/Plugs.html)) to produce a bootable ELF kernel file and a final bootable ISO image.
+# Kernel Compilation Steps
 
-## Overview
+This document outlines the complete build pipeline that transforms C# kernel code into a bootable ISO image using .NET NativeAOT compilation, custom IL patching, and native code generation.
 
-The compilation process transforms C# source code into a native executable kernel (`Kernel.elf`) and packages it with the Limine bootloader into a bootable ISO image (`.iso`). It involves several stages orchestrated by MSBuild, leveraging custom build components like `Cosmos.Asm.Build`, `Cosmos.Patcher.Analyzer`, `Cosmos.Ilc.Build`, and `Cosmos.Common.Build`. These components provide MSBuild tasks and targets to manage assembly, C# compilation, static analysis, IL patching, NativeAOT compilation, linking, and ISO image creation.
+## Compilation Flow Chart
 
-![image](https://github.com/user-attachments/assets/d0cb98a5-9c61-48e4-8722-0a7dd151f86f)
-> Visual by [Guillermo-Santos](https://github.com/Guillermo-Santos)
+```mermaid
+flowchart TD
+    CS[C# Source Code] --> ROSLYN[Roslyn Compiler]
+    PLUGS[Plug Definitions] --> ANALYZER[Cosmos.Build.Analyzer.Patcher]
+    ANALYZER -.-> |Validates| ROSLYN
+    ROSLYN --> IL[IL Assembly]
+
+    subgraph "Cosmos.Build.Patcher"
+        PATCHER[IL Patcher]
+        PATCHER --> |cosmos.patcher| PATCHED[Patched Assemblies]
+        PATCHED --> COSMOS_REF["$(IntermediateOutputPath)/cosmos/ref/"]
+        PATCHED --> COSMOS_ROOT["$(IntermediateOutputPath)/cosmos/"]
+    end
+    IL --> PATCHER
+    PLUGS --> PATCHER
+
+    subgraph "Cosmos.Build.Ilc"
+        ILC[NativeAOT Compiler]
+        ILC --> |ilc| NATIVE["Native Object (.o)"]
+        NATIVE --> COSMOS_NATIVE["$(IntermediateOutputPath)/cosmos/native/"]
+    end
+    COSMOS_REF --> ILC
+    COSMOS_ROOT --> ILC
+
+    subgraph "Cosmos.Build.Asm"
+        ASM_BUILD[YASM Compiler]
+        ASM_BUILD --> |yasm -felf64| ASM_OBJ["Assembly Objects (.obj)"]
+        ASM_OBJ --> COSMOS_ASM["$(IntermediateOutputPath)/cosmos/asm/"]
+    end
+    ASM_SRC["Assembly Files (.asm)"] --> ASM_BUILD
+
+    subgraph "Cosmos.Build.GCC"
+        GCC_BUILD[GCC Compiler]
+        GCC_BUILD --> |gcc/x86_64-elf-gcc| C_OBJ["C Objects (.obj)"]
+        C_OBJ --> COSMOS_COBJ["$(IntermediateOutputPath)/cosmos/cobj/"]
+    end
+    C_SRC["C Source Files (.c)"] --> GCC_BUILD
+
+    subgraph "Cosmos.Build.Common"
+        LINK[Link Target]
+        LINK --> |ld.lld| ELF["ELF Binary ($(OutputPath)/$(AssemblyName).elf)"]
+        ELF --> FINAL_ISO[BuildISO Target]
+        FINAL_ISO  --> |xorriso + Limine| ISO_OUT["$(OutputPath)/cosmos/$(AssemblyName).iso"]
+        ISO_OUT --> |PublishISO| PUBLISH["$(PublishDir)/$(AssemblyName).iso"]
+    end
+    
+    COSMOS_NATIVE --> LINK
+    COSMOS_ASM --> LINK
+    COSMOS_COBJ --> LINK
+    LINKER_SCRIPT["linker.ld"] --> LINK
+    LIMINE_CONF["limine.conf"] --> FINAL_ISO
+
+    style CS fill:#e1f5e1
+    style ASM_SRC fill:#e1f5e1
+    style C_SRC fill:#e1f5e1
+    style PLUGS fill:#e1f5e1
+    style LINKER_SCRIPT fill:#e1f5e1
+    style LIMINE_CONF fill:#e1f5e1
+    
+    style PUBLISH fill:#ffe1e1
+```
 
 ## Prerequisites
 
-Ensure the following tools and SDKs are installed:
+| Tool | Purpose | Required Version |
+|------|---------|-----------------|
+| **.NET SDK** | Core compilation | 9.0.200+ |
+| **YASM** | Assembly compilation | Latest |
+| **ld.lld** | ELF linking | LLVM toolchain |
+| **xorriso** | ISO creation | Latest |
+| **gcc/x86_64-elf-gcc** | C compilation | Cross-compiler on Windows |
 
-* **.NET SDK**: Version 9.0.104 or later (as specified in `global.json`), including the NativeAOT compilation tools.
-* **YASM Assembler**: Required by `Cosmos.Asm.Build` for compiling `.asm` files.
-* **LLD Linker (`ld.lld`)**: Part of the LLVM toolchain, required by `Cosmos.Common.Build` for linking object files into the final ELF executable.
-* **xorriso**: Required by `Cosmos.Common.Build` for creating the final bootable ISO image.
+## Key Components
 
-## Compilation Stages
+- [`Cosmos.Sdk`](../../../src/Cosmos.Sdk) - MSBuild SDK orchestration
+- [`Cosmos.Build.Patcher`](../../../src/Cosmos.Build.Patcher) - IL patching infrastructure
+- [`Cosmos.Build.Ilc`](../../../src/Cosmos.Build.Ilc) - NativeAOT integration
+- [`Cosmos.Build.Asm`](../../../src/Cosmos.Build.Asm) - Assembly compilation
+- [`Cosmos.Build.GCC`](../../../src/Cosmos.Build.GCC) - C compilation
+- [`Cosmos.Build.Common`](../../../src/Cosmos.Build.Common) - Linking and ISO creation
 
-The build process, orchestrated by MSBuild using tasks and targets from the various `Cosmos.*.Build` components follows these main steps:
+## Example Project
 
-1.  **Assembly Compilation (`.asm` -> `.obj`) - via [Cosmos.Asm.Build](/articles/Cosmos.Asm.Build.html)**:
-    * Handwritten assembly files (`.asm`) containing low-level x86 and ARM routines (e.g., implementations for functions marked `[RuntimeImport]` like `_native_io_*`) are identified.
-    * The MSBuild task provided by `Cosmos.Asm.Build`, `YasmBuildTask` is executed.
-    * `yasm` is invoked (with `-felf64`) for each `.asm` file.
-    * Resulting object files (*.obj`) are generated.
+Reference implementation: `examples/KernelExample/KernelExample.csproj`
 
-2.  **C# Compilation & Static Analysis (`.cs` -> IL `.dll`) - via .NET SDK + `Cosmos.Patcher.Analyzer`**:
-    * MSBuild invokes the Roslyn C# compiler.
-    * Kernel source files (`KernelEntry.cs`, `Internal.cs`, `Stdlib.cs`, etc.) are compiled into a standard .NET IL assembly (`Kernel.dll`).
-    * During compilation, the **`PatcherAnalyzer`** (from `Cosmos.Patcher.Analyzer`) runs, checking code against plug rules (`DiagnosticMessages.cs`) and reporting diagnostics.
-    * The `PatcherCodeFixProvider` offers IDE assistance.
+## Output Summary
 
-3.  **IL Patching (Mono.Cecil) - via [Cosmos.Patcher.Build](/articles/Liquip.Patcher.html)**:
-    * MSBuild targets execute the `PatcherTask` (from `Cosmos.Patcher.Build.Tasks`).
-    * `PatcherTask` runs the `Cosmos.Patcher` tool.
-    * The tool uses **Mono.Cecil** to load the target IL assembly and plug assemblies.
-    * It **modifies the IL** of target methods based on `[Plug]` attributes, replacing their bodies with the plug code.
-    * The modified (patched) IL assembly (`Kernel_patched.dll`) is saved.
+| Stage | Output Path | Content |
+|-------|------------|---------|
+| Patching | `$(IntermediateOutputPath)/cosmos/` | Main patched assembly |
+| Patching | `$(IntermediateOutputPath)/cosmos/ref/` | Reference assemblies |
+| NativeAOT | `$(IntermediateOutputPath)/cosmos/native/` | Native object files (.o) |
+| Assembly | `$(IntermediateOutputPath)/cosmos/asm/` | YASM objects (.obj) |
+| C Code | `$(IntermediateOutputPath)/cosmos/cobj/` | GCC objects (.o/.obj) |
+| Linking | `$(OutputPath)/$(AssemblyName).elf` | Linked ELF kernel |
+| ISO | `$(OutputPath)/cosmos/$(AssemblyName).iso` | Bootable ISO image |
+| Publish | `$(PublishDir)/$(AssemblyName).iso` | Published ISO |
 
-4.  **NativeAOT Compilation (ILC: Patched IL -> Native `.obj`) - via [Cosmos.Ilc.Build](/articles/Liquip.ilc.Build.html)**:
-    * MSBuild targets (likely from **`Cosmos.Ilc.Build`**) invoke the .NET ILCompiler (ILC).
-    * ILC processes the **patched IL assembly** (`Kernel_patched.dll`).
-    * It performs tree-shaking and compiles the reachable IL into native object files (`.obj` or `.o`) for the target architecture.
-
-5.  **Linking (`.obj` -> `.elf`) - via `Cosmos.Common.Build`**:
-    * MSBuild targets provided by **`Cosmos.Common.Build`** invoke the LLVM linker (`ld.lld`).
-    * It takes all native object files from ILC (C#) and YASM (`.asm`).
-    * It links them using a **linker script** (essential for memory layout, entry point `kmain`, etc.).
-    * It resolves external symbols (like `_native_io_*`).
-    * The final kernel executable is produced: `Kernel.elf`.
-
-6.  **ISO Image Creation (`.iso`) - via `Cosmos.Common.Build`**:
-    * MSBuild targets provided by **`Cosmos.Common.Build`** execute this step.
-    * `xorriso` assembles the necessary components into a bootable ISO 9660 image:
-        * Limine bootloader files.
-        * The bootloader configuration file (`limine.conf`).
-        * The compiled kernel (`Kernel.elf` from step 5).
-    * The final output is a bootable `.iso` file (e.g., `Kernel.iso`).
-
-7.  **Deployment / Execution**:
-    * The generated `.iso` file can be used with a virtual machine (like QEMU, VMware, VirtualBox) or written to a USB drive to boot on physical hardware.
-
-## Build Automation
-
-These steps are automated via MSBuild targets and custom tasks defined within the project's `.csproj` file and shared build components (`Cosmos.Asm.Build`, `Cosmos.Patcher.Analyzer`, `Cosmos.Ilc.Build`, `Cosmos.Common.Build`). This allows the entire kernel and bootable ISO to be built using standard `dotnet build` or `dotnet publish` commands with appropriate configurations. The goal is to make this process as nuget packages which can be integrated without needing to import .targets files from the `.csproj`.
