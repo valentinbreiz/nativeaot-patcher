@@ -33,15 +33,16 @@
                 "GitHub.copilot",
                 "ms-vscode.cpptools",
                 "ms-vscode.cpptools-extension-pack"
-            ]
-        },
-		"settings": {
-			// Loading projects on demand is better for larger codebases
-			"omnisharp.enableMsBuildLoadProjectsOnDemand": true,
-			"omnisharp.enableRoslynAnalyzers": true,
-			"omnisharp.enableEditorConfigSupport": true,
-			"omnisharp.enableAsyncCompletion": true
-		}
+            ],
+            "settings": {
+			    // Loading projects on demand is better for larger codebases
+			    "omnisharp.enableMsBuildLoadProjectsOnDemand": true,
+			    "omnisharp.enableRoslynAnalyzers": true,
+			    "omnisharp.enableEditorConfigSupport": true,
+			    "omnisharp.enableAsyncCompletion": true,
+                "dotnet.defaultSolution": "${containerWorkspaceFolder}/nativeaot-patcher.slnx"
+            }
+        }
     }
 
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
