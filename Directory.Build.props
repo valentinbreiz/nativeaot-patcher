@@ -14,7 +14,6 @@
     <AppendRuntimeIdentifierToOutputPath>true</AppendRuntimeIdentifierToOutputPath>
     <UseArtifactsOutput>true</UseArtifactsOutput>
     <!--pack as nuget-->
-    <IsPackable Condition="$(IsPackable) != ''">true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--pack as nuget-->
 
