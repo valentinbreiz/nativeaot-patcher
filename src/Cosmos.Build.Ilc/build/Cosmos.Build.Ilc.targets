@@ -44,14 +44,14 @@
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
       <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
-    <!--
+    
     <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
       <AutoInitializedAssemblies Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
       <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
       <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
     </ItemGroup>
-    -->
+    
     <ItemGroup>
       <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
       <ManagedBinary Include="@(IlcCompileInput)">
@@ -74,6 +74,8 @@
       <IlcArg Include="--export-unmanaged-entrypoints" />
       <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
       <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
+      <IlcArg Include="@(DirectPInvoke->'--directpinvoke:%(Identity)')" />
+      <IlcArg Include="@(DirectPInvokeList->'--directpinvokelist:%(Identity)')" />
       <IlcArg Include="--nativelib" />
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />

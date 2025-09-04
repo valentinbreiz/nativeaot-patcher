@@ -7,11 +7,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-    <!--
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-     TODO: The next properties are a requirement to allow build with Test.CoreLib
-        , decide if they should be on the Sdk Package or set by the user -->
 
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
@@ -22,35 +17,19 @@
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
-  <!-- Add any folder(s) where *.asm files exist -->
-  <ItemGroup>
-    <AsmSearchPath Include="./src/Asm/" />
-    <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
-  </ItemGroup>
-
   <!-- Add any folder(s) where *.c files exist -->
   <ItemGroup>
     <GCCProject Include="./src/C/" />
   </ItemGroup>
 
+  <!-- PInvokes to be resolved. See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/interop -->
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
-  </ItemGroup>
+    <DirectPInvoke Include="test" />
+    <IlcArg Include="--verbose" />
+  </ItemGroup> 
 
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0"/>
+    <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.Native.x86" Version="3.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PlugReference Include="Cosmos.Kernel.Plugs" />
-  </ItemGroup>
-
-  <Target Name="CustomIlcArgs" BeforeTargets="WriteIlcRsp" DependsOnTargets="PrepareForILLink">
-    <ItemGroup>
-      <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
-    </ItemGroup>
-  </Target>
 </Project>

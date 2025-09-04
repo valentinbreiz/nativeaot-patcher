@@ -17,5 +17,6 @@
     <Content Include="build\Cosmos.Kernel.Native.x86.props" PackagePath="build\" />
     <Content Include="IO\*.asm" PackagePath="build\IO" />
     <Content Include="Debug\*.asm" PackagePath="build\Debug" />
+    <Content Include="CPU\*.asm" PackagePath="build\CPU" />
   </ItemGroup>
 </Project>
