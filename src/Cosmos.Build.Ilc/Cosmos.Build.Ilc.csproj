@@ -6,7 +6,6 @@
     <Company>Cosmos</Company>
     <Description>Build tool to run ilc.</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
   
   <ItemGroup>
