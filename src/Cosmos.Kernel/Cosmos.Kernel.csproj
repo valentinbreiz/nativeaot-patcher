@@ -17,6 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="build\Cosmos.Kernel.props" PackagePath="build\" />
+    <Content Include="Bootstrap\kmain.c"  PackagePath="build\Bootstrap\"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
