@@ -18,6 +18,7 @@
     <Project Path="src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj" />
     <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" />
     <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
+    <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" />
     <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" />
   </Folder>
