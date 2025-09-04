@@ -4,6 +4,7 @@
   <ItemGroup>
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/IO/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Debug/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)/CPU/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
 </Project>
