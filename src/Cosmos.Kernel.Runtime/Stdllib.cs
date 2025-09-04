@@ -136,6 +136,13 @@ namespace Cosmos.Kernel.Runtime
             return RhpNewArray(pEEType, length);
         }
 
+        [RuntimeExport("RhpCheckedXchg")]
+        private static void* InterlockedExchange(void** location1, void* value)
+        {
+            void* original = *location1;
+            *location1 = value;
+            return original;
+        }
         /*
                 [RuntimeExport("RhTypeCast_CheckCastAny")]
                 static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
