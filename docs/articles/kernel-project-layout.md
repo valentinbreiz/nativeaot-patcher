@@ -2,8 +2,26 @@
 
 The Cosmos kernel is composed of layered projects to enforce a clean dependency graph.
 
-```
-UsersKernel -> Cosmos.Kernel -> Cosmos.Kernel.Boot.*
+
+```mermaid
+flowchart LR;
+	UsersKernel-->Cosmos.Kernel;
+	UsersKernel-->Cosmos.Kernel.System;
+	UsersKernel-->Cosmos.Kernel.HAL;
+	UsersKernel-->Cosmos.Kernel.Core;
+    Cosmos.Kernel-->Cosmos.Kernel.Boot.*;
+	Cosmos.Kernel-->Cosmos.Kernel.SubSystem;
+	Cosmos.Kernel.SubSystem-->Cosmos.Kernel.System;
+	Cosmos.Kernel.SubSystem-->Cosmos.Kernel.HAL;
+    Cosmos.Kernel-->Cosmos.Kernel.System;
+    Cosmos.Kernel.System-->Cosmos.Kernel.System.ARM/x86;
+	Cosmos.Kernel.System.Plug-->Cosmos.Kernel.System;
+    Cosmos.Kernel.System-->Cosmos.Kernel.HAL;
+	Cosmos.Kernel.HAL-->Cosmos.Kernel.HAL.ARM/x86;
+	Cosmos.Kernel.HAL.Plug-->Cosmos.Kernel.HAL;
+	Cosmos.Kernel.HAL-->Cosmos.Kernel.Core;
+    Cosmos.Kernel.Core-->Cosmos.Kernel.Core.ARM/x86;
+	Cosmos.Kernel.Core.Plug-->Cosmos.Kernel.Core;
 ```
 
 - **UsersKernel**: your custom kernel project.
