@@ -18,7 +18,7 @@ public class Kernel
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
         LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
         Screen.Init(fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
-        
+
         Console.WriteLine("CosmosOS gen3 v0.1 booted.");
 
         Serial.ComInit();
