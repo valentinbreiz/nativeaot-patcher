@@ -3,7 +3,6 @@
     <TargetFramework Condition="$(TargetFramework) != ''">netstandard2.0</TargetFramework>
     <!--pack as nuget-->
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--pack as nuget-->
   </PropertyGroup>
 </Project>
