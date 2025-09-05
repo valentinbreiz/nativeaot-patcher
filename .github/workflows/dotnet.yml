@@ -406,15 +406,20 @@ jobs:
             iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
           }
           
-          # Install required tools
+          # Install required tools for ISO building
           choco install -y yasm
+          
+          # Install LLVM (includes ld.lld linker needed for ISO building)
+          choco install -y llvm --version=18.1.8
           
           # Install mingw-w64 as cross-compiler base
           choco install -y mingw --version=11.2.0.07112021
           
-          # Add mingw to PATH
+          # Add tools to PATH
           $mingwPath = "C:\tools\mingw64\bin"
-          $env:PATH = "$mingwPath;$env:PATH"
+          $llvmPath = "C:\Program Files\LLVM\bin"
+          $env:PATH = "$llvmPath;$mingwPath;$env:PATH"
+          echo $llvmPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo $mingwPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
           # Create x86_64-elf-gcc wrapper for cross-compilation
@@ -430,6 +435,7 @@ jobs:
           yasm --version
           gcc --version
           x86_64-elf-gcc --version
+          ld.lld --version
         shell: powershell
 
       - name: 🔄 Compile Packages
