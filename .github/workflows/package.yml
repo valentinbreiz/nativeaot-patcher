@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         dotnet-version: [ 9.0.x ]
 
     steps:
@@ -23,13 +23,19 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Pack Cosmos
+      - name: Pack Cosmos (Windows)
+        if: matrix.os == 'windows-latest'
+        run: dotnet build ./Packages.slnx --configuration Release /p:Version=3.0.0-build.$(Get-Date -Format "yyyyMMddHHmm") --artifacts-path ./out
+        shell: powershell
+
+      - name: Pack Cosmos (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: dotnet build ./Packages.slnx --configuration Release /p:Version=3.0.0-build.$(date +"%Y%m%d%H%M") --artifacts-path ./out
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Patcher.Packages
+          name: Cosmos.Patcher.Packages-${{ matrix.os }}
           path: ./out/package/release
 
 

@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
@@ -23,8 +23,59 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
+      - name: 🔧 Setup Windows Dependencies
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Install chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
+          
+          # Install required tools
+          choco install -y yasm
+          
+          # Install mingw-w64 as cross-compiler base
+          choco install -y mingw --version=11.2.0.07112021
+          
+          # Add mingw to PATH
+          $mingwPath = "C:\tools\mingw64\bin"
+          $env:PATH = "$mingwPath;$env:PATH"
+          echo $mingwPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+          # Create x86_64-elf-gcc wrapper for cross-compilation
+          $wrapperScript = @"
+          @echo off
+          rem x86_64-elf-gcc wrapper using mingw-w64
+          x86_64-w64-mingw32-gcc.exe %*
+          "@
+          
+          $wrapperScript | Out-File -FilePath "$mingwPath\x86_64-elf-gcc.cmd" -Encoding ascii
+          
+          Write-Host "Verifying installations..."
+          yasm --version
+          gcc --version
+          x86_64-elf-gcc --version
+        shell: powershell
+
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj
+
+      - name: 📦 Build Packages (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$(Get-Location)\artifacts\package\release" --name local-packages
+          dotnet nuget locals all --clear
+        shell: powershell
+
+      - name: 📦 Build Packages (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+          dotnet nuget locals all --clear
 
       - name: 🔨 Build Cosmos.Patcher
         run: dotnet build ./src/Cosmos.Patcher/Cosmos.Patcher.csproj
@@ -41,7 +92,7 @@ jobs:
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Tests.Patcher-Results
+          name: Cosmos.Tests.Patcher-Results-${{ matrix.os }}
           path: ./tests/Cosmos.Tests.Patcher/TestResults/Cosmos.Tests.Patcher.trx
 
   scanner-tests:
@@ -49,7 +100,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
@@ -59,6 +110,57 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🔧 Setup Windows Dependencies
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Install chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
+          
+          # Install required tools
+          choco install -y yasm
+          
+          # Install mingw-w64 as cross-compiler base
+          choco install -y mingw --version=11.2.0.07112021
+          
+          # Add mingw to PATH
+          $mingwPath = "C:\tools\mingw64\bin"
+          $env:PATH = "$mingwPath;$env:PATH"
+          echo $mingwPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+          # Create x86_64-elf-gcc wrapper for cross-compilation
+          $wrapperScript = @"
+          @echo off
+          rem x86_64-elf-gcc wrapper using mingw-w64
+          x86_64-w64-mingw32-gcc.exe %*
+          "@
+          
+          $wrapperScript | Out-File -FilePath "$mingwPath\x86_64-elf-gcc.cmd" -Encoding ascii
+          
+          Write-Host "Verifying installations..."
+          yasm --version
+          gcc --version
+          x86_64-elf-gcc --version
+        shell: powershell
+
+      - name: 📦 Build Packages (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$(Get-Location)\artifacts\package\release" --name local-packages
+          dotnet nuget locals all --clear
+        shell: powershell
+
+      - name: 📦 Build Packages (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+          dotnet nuget locals all --clear
 
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj
@@ -78,7 +180,7 @@ jobs:
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Tests.Scanner-Results
+          name: Cosmos.Tests.Scanner-Results-${{ matrix.os }}
           path: ./tests/Cosmos.Tests.Scanner/TestResults/Cosmos.Tests.Scanner.trx
 
   analyzer-tests:
@@ -86,7 +188,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
@@ -96,6 +198,57 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🔧 Setup Windows Dependencies
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Install chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
+          
+          # Install required tools
+          choco install -y yasm
+          
+          # Install mingw-w64 as cross-compiler base
+          choco install -y mingw --version=11.2.0.07112021
+          
+          # Add mingw to PATH
+          $mingwPath = "C:\tools\mingw64\bin"
+          $env:PATH = "$mingwPath;$env:PATH"
+          echo $mingwPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+          # Create x86_64-elf-gcc wrapper for cross-compilation
+          $wrapperScript = @"
+          @echo off
+          rem x86_64-elf-gcc wrapper using mingw-w64
+          x86_64-w64-mingw32-gcc.exe %*
+          "@
+          
+          $wrapperScript | Out-File -FilePath "$mingwPath\x86_64-elf-gcc.cmd" -Encoding ascii
+          
+          Write-Host "Verifying installations..."
+          yasm --version
+          gcc --version
+          x86_64-elf-gcc --version
+        shell: powershell
+
+      - name: 📦 Build Packages (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$(Get-Location)\artifacts\package\release" --name local-packages
+          dotnet nuget locals all --clear
+        shell: powershell
+
+      - name: 📦 Build Packages (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+          dotnet nuget locals all --clear
 
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj
@@ -109,7 +262,7 @@ jobs:
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Tests.Build.Analyzer.Patcher-Results
+          name: Cosmos.Tests.Build.Analyzer.Patcher-Results-${{ matrix.os }}
           path: ./tests/Cosmos.Tests.Build.Analyzer.Patcher/TestResults/Cosmos.Tests.Build.Analyzer.Patcher.trx
 
   asm-tests:
@@ -117,7 +270,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         dotnet-version: [ 9.0.x ]
     steps:
       - name: 📥 Checkout Code
@@ -128,8 +281,41 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🔗 Install Linking Tools
+      - name: 🔗 Install Linking Tools (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y yasm
+
+      - name: 🔗 Install Linking Tools (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Install chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
+          
+          # Install yasm
+          choco install -y yasm
+          
+          Write-Host "Verifying YASM installation..."
+          yasm --version
+        shell: powershell
+
+      - name: 📦 Build Packages (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$(Get-Location)\artifacts\package\release" --name local-packages
+          dotnet nuget locals all --clear
+        shell: powershell
+
+      - name: 📦 Build Packages (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet build ./Packages.slnx -c Release
+          dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+          dotnet nuget locals all --clear
 
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj
@@ -149,7 +335,7 @@ jobs:
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
-          name: Cosmos.Build.Asm.Test-Results
+          name: Cosmos.Build.Asm.Test-Results-${{ matrix.os }}
           path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
   unix-iso-tests:
@@ -193,5 +379,87 @@ jobs:
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO
+          name: KernelExample-ISO-Linux
+          path: ./output/KernelExample.iso
+
+  windows-iso-tests:
+    name: Run ISO Build Tests - Windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ 9.0.x ]
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🔧 Setup Windows Dependencies
+        run: |
+          # Install chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
+          
+          # Install required tools
+          choco install -y yasm
+          
+          # Install mingw-w64 as cross-compiler base
+          choco install -y mingw --version=11.2.0.07112021
+          
+          # Add mingw to PATH
+          $mingwPath = "C:\tools\mingw64\bin"
+          $env:PATH = "$mingwPath;$env:PATH"
+          echo $mingwPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+          # Create x86_64-elf-gcc wrapper for cross-compilation
+          $wrapperScript = @"
+          @echo off
+          rem x86_64-elf-gcc wrapper using mingw-w64
+          x86_64-w64-mingw32-gcc.exe %*
+          "@
+          
+          $wrapperScript | Out-File -FilePath "$mingwPath\x86_64-elf-gcc.cmd" -Encoding ascii
+          
+          Write-Host "Verifying installations..."
+          yasm --version
+          gcc --version
+          x86_64-elf-gcc --version
+        shell: powershell
+
+      - name: 🔄 Compile Packages
+        run: .\install-packages.ps1
+        shell: powershell
+
+      - name: 🔧 Install ilc
+        run: dotnet tool install -g ilc
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
+
+      - name: 🔄 Restore Dependencies
+        run: dotnet restore ./nativeaot-patcher.slnx
+
+      - name: 🚀 Build ISO
+        run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output
+
+      - name: 🕵️‍♂️ Verify Output
+        run: |
+          if (Test-Path "./output/KernelExample.iso") {
+            Write-Host "ISO exists"
+          } else {
+            Write-Host "ISO missing"
+            exit 1
+          }
+        shell: powershell
+
+      - name: 📤 Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernelExample-ISO-Windows
           path: ./output/KernelExample.iso
