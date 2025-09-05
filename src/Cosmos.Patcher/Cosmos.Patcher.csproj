@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Cosmos.Patcher</RootNamespace>
     <!--pack as nuget-->

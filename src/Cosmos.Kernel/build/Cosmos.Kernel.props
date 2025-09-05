@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <PlugReference Include="Cosmos.Kernel.Plugs" />
+    <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/Bootstrap/" />
+  </ItemGroup>
+</Project>

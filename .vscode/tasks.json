@@ -1,0 +1,99 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Kernel",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c", "Debug",
+        "-r", "linux-x64",
+        "--verbosity", "minimal",
+        "${workspaceFolder}/examples/KernelExample/KernelExample.csproj"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$msCompile"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Start QEMU Debug Mode",
+      "type": "shell",
+      "dependsOn": "Build Kernel",
+      "command": "bash",
+      "args": [
+        "-c",
+        "qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-x64/cosmos/KernelExample.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & echo QEMU-DEBUG-READY && sleep 1 && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "QEMU-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run QEMU Normal",
+      "type": "shell",
+      "dependsOn": "Build Kernel",
+      "command": "qemu-system-x86_64",
+      "args": [
+        "-M", "q35",
+        "-cpu", "max",
+        "-m", "512M",
+        "-serial", "stdio",
+        "-cdrom", "${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-x64/cosmos/KernelExample.iso",
+        "-display", "gtk",
+        "-vga", "std",
+        "-no-reboot",
+        "-no-shutdown"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Stop QEMU",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "pkill -f qemu-system-x86_64 || true"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Start QEMU with GDB Server (Running)",
+      "type": "shell",
+      "dependsOn": "Build Kernel",
+      "command": "qemu-system-x86_64",
+      "args": [
+        "-M", "q35",
+        "-cpu", "max",
+        "-m", "512M",
+        "-serial", "stdio",
+        "-cdrom", "${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-x64/cosmos/KernelExample.iso",
+        "-display", "gtk",
+        "-vga", "std",
+        "-s",
+        "-no-reboot",
+        "-no-shutdown"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
+}
