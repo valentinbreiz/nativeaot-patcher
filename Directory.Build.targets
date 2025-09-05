@@ -1,4 +1,11 @@
 <Project>
+
+  <PropertyGroup>
+    <ToolCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\tools\Common\</ToolCommonPath>
+    <AotCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\nativeaot\Common\src\</AotCommonPath>
+    <CompilerCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\tools\Common\</CompilerCommonPath>
+  </PropertyGroup>
+
   <Target Name="EnforceKernelReferenceRules" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <ForbiddenReference Include="@(ProjectReference)"
@@ -8,4 +15,5 @@
            Text="Only the Cosmos.Kernel project may reference Cosmos.Kernel.Boot.* projects."
            />
   </Target>
+
 </Project>
