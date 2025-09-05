@@ -29,7 +29,7 @@
     <ItemGroup>
       <PrivateSdkAssemblies Include="$(IlcSdkPath)*.dll"/>
       <FrameworkAssemblies Include="$(IlcFrameworkPath)**/*.dll"/>
-      <ReferencePath Remove="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceOutputAssembly)' != 'true'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceOutputAssembly)' != 'true' and '%(ReferencePath.NuGetSourceType)' != 'Package'" />
     </ItemGroup>
   </Target>
 </Project>
