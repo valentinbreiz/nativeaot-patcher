@@ -1,6 +1,5 @@
 .global ceil
 .global g_cpuFeatures  
-.global RhpDbl2Int
 .global RhpAssignRefArm64
 .global RhpCheckedAssignRefArm64
 .global RhpByRefAssignRefArm64
@@ -25,13 +24,6 @@ g_cpuFeatures:
 
 .text
 .align 4
-
-// Double to integer conversion runtime helper
-// int RhpDbl2Int(double value)
-// d0 = input double, returns result in w0
-RhpDbl2Int:
-    fcvtas w0, d0           // Convert double to signed 32-bit int with saturation
-    ret
 
 // ARM64 runtime helper for assigning object references
 // void RhpAssignRefArm64(Object** dst, Object* src)

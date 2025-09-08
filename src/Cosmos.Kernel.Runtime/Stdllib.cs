@@ -91,13 +91,13 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
         {
-            *location = value;
+            RuntimeHelpersFactory.Instance.AssignRef(location, value);
         }
 
         [RuntimeExport("RhpCheckedAssignRef")]
         private static unsafe void RhpCheckedAssignRef(void** location, void* value)
         {
-            *location = value;
+            RuntimeHelpersFactory.Instance.CheckedAssignRef(location, value);
         }
 
         [RuntimeExport("RhpNewFast")]
@@ -240,7 +240,10 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpLdelemaRef")]
         static unsafe object* RhpLdelemaRef(object array, int index, int typeHandle) { return null; }
         [RuntimeExport("RhpByRefAssignRef")]
-        static unsafe void RhpByRefAssignRef(object* location, object value) { *location = value; }
+        static unsafe void RhpByRefAssignRef(object* location, object value) 
+        { 
+            RuntimeHelpersFactory.Instance.ByRefAssignRef(location, value);
+        }
         [RuntimeExport("RhSpinWait")]
         static void RhSpinWait(int iterations) { }
         [RuntimeExport("RhSetThreadExitCallback")]
@@ -347,6 +350,12 @@ namespace Cosmos.Kernel.Runtime
 
         [RuntimeExport("RhGetTargetOfUnboxingAndInstantiatingStub")]
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode) { return IntPtr.Zero; }
+
+        [RuntimeExport("RhpDbl2Int")]
+        static int RhpDbl2Int(double value) 
+        { 
+            return RuntimeHelpersFactory.Instance.Dbl2Int(value);
+        }
     }
 }
 #endregion

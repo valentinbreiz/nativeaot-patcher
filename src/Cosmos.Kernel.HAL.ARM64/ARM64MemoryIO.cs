@@ -13,8 +13,20 @@ public class ARM64MemoryIO : IPortIO
     [DllImport("*", EntryPoint = "_native_mmio_read_byte")]
     private static extern byte NativeReadByte(ulong address);
 
+    [DllImport("*", EntryPoint = "_native_mmio_read_word")]
+    private static extern ushort NativeReadWord(ulong address);
+
+    [DllImport("*", EntryPoint = "_native_mmio_read_dword")]
+    private static extern uint NativeReadDWord(ulong address);
+
     [DllImport("*", EntryPoint = "_native_mmio_write_byte")]
     private static extern void NativeWriteByte(ulong address, byte value);
+
+    [DllImport("*", EntryPoint = "_native_mmio_write_word")]
+    private static extern void NativeWriteWord(ulong address, ushort value);
+
+    [DllImport("*", EntryPoint = "_native_mmio_write_dword")]
+    private static extern void NativeWriteDWord(ulong address, uint value);
 
     private static ulong PortToAddress(ushort port)
     {
@@ -23,10 +35,10 @@ public class ARM64MemoryIO : IPortIO
     }
 
     public byte ReadByte(ushort port) => NativeReadByte(PortToAddress(port));
-    public ushort ReadWord(ushort port) => 0; // Simplified - not implemented
-    public uint ReadDWord(ushort port) => 0; // Simplified - not implemented
+    public ushort ReadWord(ushort port) => NativeReadWord(PortToAddress(port));
+    public uint ReadDWord(ushort port) => NativeReadDWord(PortToAddress(port));
 
     public void WriteByte(ushort port, byte value) => NativeWriteByte(PortToAddress(port), value);
-    public void WriteWord(ushort port, ushort value) { } // Simplified - not implemented
-    public void WriteDWord(ushort port, uint value) { } // Simplified - not implemented
+    public void WriteWord(ushort port, ushort value) => NativeWriteWord(PortToAddress(port), value);
+    public void WriteDWord(ushort port, uint value) => NativeWriteDWord(PortToAddress(port), value);
 }
