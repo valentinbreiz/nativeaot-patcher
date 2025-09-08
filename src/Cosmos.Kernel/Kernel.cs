@@ -45,9 +45,11 @@ public class Kernel
     /// </summary>
     public static void Halt()
     {
-        PlatformHAL.CpuOps?.Halt() ?? InfiniteLoop();
-
-        static void InfiniteLoop()
+        if (PlatformHAL.CpuOps != null)
+        {
+            PlatformHAL.CpuOps.Halt();
+        }
+        else
         {
             while (true) { }
         }
