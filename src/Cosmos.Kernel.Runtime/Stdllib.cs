@@ -159,7 +159,7 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhSpanHelpers_MemZero")]
         static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { MemoryOp.MemSet(dest, 0, len); }
         [RuntimeExport("RhBoxAny")]
-        static unsafe object RhBoxAny(int typeHandle, void* data) { return null; }
+        static unsafe object? RhBoxAny(int typeHandle, void* data) { return null; }
         [RuntimeExport("RhGetOSModuleFromPointer")]
         static IntPtr RhGetOSModuleFromPointer(IntPtr ptr) { return IntPtr.Zero; }
         [RuntimeExport("RhGetRuntimeVersion")]
@@ -173,17 +173,18 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhHandleSet")]
         static IntPtr RhHandleSet(object obj) { return IntPtr.Zero; }
         [RuntimeExport("RhpNewFinalizable")]
-        static unsafe object RhpNewFinalizable(int typeHandle) { return null; }
+        static unsafe object? RhpNewFinalizable(int typeHandle) { return null; }
         [RuntimeExport("RhTypeCast_AreTypesAssignable")]
         static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest) { return true; }
         [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
         static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle) { return false; }
         [RuntimeExport("RhNewObject")]
-        static unsafe object RhNewObject(int typeHandle) { return null; }
+        static unsafe object? RhNewObject(int typeHandle) { return null; }
         [RuntimeExport("RhBox")]
-        static unsafe object RhBox(int typeHandle, void* data) { return null; }
+        static unsafe object? RhBox(int typeHandle, void* data) { return null; }
         [RuntimeExport("RhpCheckedLockCmpXchg")]
-        static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle) { 
+        static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle)
+        {
             object original = *location;
             if (original == comparand) *location = value;
             return original;
@@ -209,7 +210,8 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
         static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { return obj; }
         [RuntimeExport("RhUnbox")]
-        static unsafe void* RhUnbox(object obj) { 
+        static unsafe void* RhUnbox(object obj)
+        {
             TypedReference tr = __makeref(obj);
             return (void*)*(IntPtr*)&tr;
         }
@@ -245,104 +247,104 @@ namespace Cosmos.Kernel.Runtime
         static void RhSetThreadExitCallback(IntPtr callback) { }
         [RuntimeExport("RhYield")]
         static void RhYield() { }
-        
+
         // Additional runtime exports needed by the linker        
         [RuntimeExport("RhCreateCrashDumpIfEnabled")]
         static void RhCreateCrashDumpIfEnabled() { }
-        
+
         [RuntimeExport("RhpGetTickCount64")]
         static ulong RhpGetTickCount64() { return 0; }
-        
+
         [RuntimeExport("RhpHandleAlloc")]
         static IntPtr RhpHandleAlloc(object value, int type) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhpHandleAllocDependent")]
         static IntPtr RhpHandleAllocDependent(object primary, object secondary) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhRegisterForGCReporting")]
         static void RhRegisterForGCReporting(IntPtr reportingCallback) { }
-        
+
         [RuntimeExport("RhUnregisterForGCReporting")]
         static void RhUnregisterForGCReporting() { }
-        
+
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]
-        static unsafe void RhBuffer_BulkMoveWithWriteBarrier(byte* dmem, byte* smem, nuint len) 
+        static unsafe void RhBuffer_BulkMoveWithWriteBarrier(byte* dmem, byte* smem, nuint len)
         {
             for (nuint i = 0; i < len; i++)
                 dmem[i] = smem[i];
         }
-        
+
         [RuntimeExport("RhFindMethodStartAddress")]
         static IntPtr RhFindMethodStartAddress(IntPtr ip) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhGetCurrentThreadStackTrace")]
         static int RhGetCurrentThreadStackTrace(IntPtr[] outputBuffer) { return 0; }
-        
+
         [RuntimeExport("RhRegisterFrozenSegment")]
         static IntPtr RhRegisterFrozenSegment(IntPtr pSegmentStart, nuint length, IntPtr pRootsMask, nuint cbRootsMask) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhUpdateFrozenSegment")]
         static void RhUpdateFrozenSegment(IntPtr handle, IntPtr pSegmentStart, IntPtr pSegmentEnd) { }
-        
+
         [RuntimeExport("RhGetThreadStaticStorage")]
         static unsafe object** RhGetThreadStaticStorage() { return null; }
-        
+
         [RuntimeExport("RhpGetModuleSection")]
-        static IntPtr RhpGetModuleSection(IntPtr module, int sectionId, out int length) 
+        static IntPtr RhpGetModuleSection(IntPtr module, int sectionId, out int length)
         {
             length = 0;
             return IntPtr.Zero;
         }
-        
+
         [RuntimeExport("RhNewInterfaceDispatchCell")]
         static IntPtr RhNewInterfaceDispatchCell(IntPtr pCell, IntPtr pTarget) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhNewArray")]
-        static unsafe object RhNewArray(IntPtr pEEType, int numElements) 
+        static unsafe object RhNewArray(IntPtr pEEType, int numElements)
         {
             // Delegate to the existing RhpNewArray implementation
             var ptr = RhpNewArray((MethodTable*)pEEType, numElements);
             return Unsafe.AsRef<object>(ptr);
         }
-        
+
         [RuntimeExport("RhAllocateNewArray")]
-        static unsafe object RhAllocateNewArray(IntPtr pEEType, int numElements, uint flags) 
+        static unsafe object RhAllocateNewArray(IntPtr pEEType, int numElements, uint flags)
         {
             return RhNewArray(pEEType, numElements);
         }
-        
+
         [RuntimeExport("RhGetRuntimeHelperForType")]
         static IntPtr RhGetRuntimeHelperForType(IntPtr pEEType, int helperKind) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhGetGCDescSize")]
         static int RhGetGCDescSize(IntPtr pEEType) { return 0; }
-        
+
         [RuntimeExport("RhFindBlob")]
-        static unsafe bool RhFindBlob(IntPtr hOsModule, uint blobId, byte** ppbBlob, uint* pcbBlob) 
-        { 
+        static unsafe bool RhFindBlob(IntPtr hOsModule, uint blobId, byte** ppbBlob, uint* pcbBlob)
+        {
             if (ppbBlob != null) *ppbBlob = null;
             if (pcbBlob != null) *pcbBlob = 0;
-            return false; 
+            return false;
         }
-        
+
         [RuntimeExport("RhHandleGetDependent")]
-        static object RhHandleGetDependent(IntPtr handle) { return null; }
-        
+        static object? RhHandleGetDependent(IntPtr handle) { return null; }
+
         [RuntimeExport("RhpInitialDynamicInterfaceDispatch")]
         static IntPtr RhpInitialDynamicInterfaceDispatch() { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhResolveStaticDispatchOnType")]
         static IntPtr RhResolveStaticDispatchOnType(IntPtr pTargetType, IntPtr pInterfaceType, int slot) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhGetModuleFileName")]
         static unsafe int RhGetModuleFileName(IntPtr module, char* buffer, int bufferLength) { return 0; }
-        
+
         [RuntimeExport("RhResolveDispatch")]
         static IntPtr RhResolveDispatch(object pObject, IntPtr pInterfaceType, int slot) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhGetCodeTarget")]
         static IntPtr RhGetCodeTarget(IntPtr pCode) { return IntPtr.Zero; }
-        
+
         [RuntimeExport("RhGetTargetOfUnboxingAndInstantiatingStub")]
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode) { return IntPtr.Zero; }
     }

@@ -12,13 +12,13 @@ public class X64CpuOps : ICpuOps
     private static extern void NativeHalt();
 
     public void Halt() => NativeHalt();
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void Nop() 
+    public void Nop()
     {
         // NOP instruction will be inlined by compiler
     }
-    
+
     public void MemoryBarrier()
     {
         // Simple memory barrier - compiler won't reorder across this

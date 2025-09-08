@@ -23,7 +23,7 @@ public class Kernel
     public static unsafe void Initialize()
     {
         MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
-        
+
         // Initialize framebuffer if available
         if (Framebuffer.Response != null && Framebuffer.Response->FramebufferCount > 0)
         {
@@ -35,7 +35,7 @@ public class Kernel
         InitializePlatformHAL();
 
         Console.WriteLine("CosmosOS gen3 v0.1 booted.");
-        
+
         // Display architecture info if HAL is available
         if (_platformHAL != null)
         {

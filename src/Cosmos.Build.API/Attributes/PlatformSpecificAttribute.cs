@@ -13,7 +13,7 @@ public class PlatformSpecificAttribute : Attribute
     /// The architectures this element supports.
     /// </summary>
     public PlatformArchitecture Architecture { get; }
-    
+
     /// <summary>
     /// Creates a new PlatformSpecific attribute.
     /// </summary>
@@ -34,22 +34,22 @@ public enum PlatformArchitecture
     /// No specific architecture (platform-agnostic).
     /// </summary>
     None = 0,
-    
+
     /// <summary>
     /// x86-64 / AMD64 architecture.
     /// </summary>
     X64 = 1,
-    
+
     /// <summary>
     /// ARM64 / AArch64 architecture.
     /// </summary>
     ARM64 = 2,
-    
+
     /// <summary>
     /// RISC-V 64-bit architecture.
     /// </summary>
     RISCV64 = 4,
-    
+
     /// <summary>
     /// All supported architectures.
     /// </summary>
