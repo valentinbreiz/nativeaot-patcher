@@ -2,7 +2,16 @@
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcPath" BeforeTargets="CustomizeReferences">
     <ItemGroup>
-      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+      <!-- For ARM64 cross-compilation, always use x64 ILC tools -->
+      <HostILCompilerPack Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+      
+      <!-- For all other architectures, use native ILC -->
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
