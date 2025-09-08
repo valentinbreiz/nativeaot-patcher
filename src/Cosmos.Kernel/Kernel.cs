@@ -12,12 +12,10 @@ public class Kernel
 {
     private static readonly LimineFramebufferRequest Framebuffer = new();
     private static readonly LimineHHDMRequest HHDM = new();
-    private static IPlatformHAL? _platformHAL;
-
     /// <summary>
-    /// Gets the current platform HAL instance, if available.
+    /// Gets the current platform HAL, if available.
     /// </summary>
-    public static IPlatformHAL? PlatformHAL => _platformHAL;
+    public static PlatformArchitecture Architecture => PlatformHAL.Architecture;
 
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
@@ -32,47 +30,25 @@ public class Kernel
         }
 
         // Initialize platform HAL
-        InitializePlatformHAL();
+        PlatformHAL.Initialize();
 
         Console.WriteLine("CosmosOS gen3 v0.1 booted.");
-
-        // Display architecture info if HAL is available
-        if (_platformHAL != null)
-        {
-            Console.WriteLine($"Architecture: {_platformHAL.Architecture}");
-        }
+        Console.WriteLine($"Architecture: {PlatformHAL.Architecture}");
 
         Serial.ComInit();
         Console.WriteLine("UART started.");
         Serial.WriteString("Hello from UART\n");
     }
 
-    private static void InitializePlatformHAL()
-    {
-        try
-        {
-            _platformHAL = PlatformHALFactory.GetPlatformHAL();
-            _platformHAL?.Initialize();
-        }
-        catch
-        {
-            // HAL is optional - system can run without it
-            _platformHAL = null;
-        }
-    }
-
     /// <summary>
-    /// Halt the CPU if HAL is available, otherwise spin loop.
+    /// Halt the CPU using platform-specific implementation.
     /// </summary>
     public static void Halt()
     {
-        if (_platformHAL != null)
+        PlatformHAL.CpuOps?.Halt() ?? InfiniteLoop();
+
+        static void InfiniteLoop()
         {
-            _platformHAL.CpuOps.Halt();
-        }
-        else
-        {
-            // Fallback to spin loop
             while (true) { }
         }
     }
