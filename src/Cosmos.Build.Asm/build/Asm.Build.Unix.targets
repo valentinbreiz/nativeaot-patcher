@@ -1,6 +1,15 @@
 <Project>
   <Target Name="GetYasm">
-    <Exec Command="which yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">      <!-- Ignore error code for now. We will make the build error out later  -->
+    <PropertyGroup>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+    </PropertyGroup>
+    
+    <!-- Use YASM for x64, GNU assembler for ARM64 -->
+    <Exec Command="which yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
+    </Exec>
+    
+    <Exec Command="which aarch64-linux-gnu-as" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'arm64'">
       <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
     </Exec>
   </Target>

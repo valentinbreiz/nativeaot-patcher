@@ -88,6 +88,8 @@
       <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')" />
       <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
       <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
+      <IlcArg Include="--targetarch:$(CosmosArch)" />
+      <IlcArg Include="--targetos:linux" />
       <IlcArg Include="--export-unmanaged-entrypoints" />
       <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
       <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
@@ -100,7 +102,6 @@
       <!-- Architecture-specific instruction sets -->
       <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'" />
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'" />
-      <IlcArg Include="--instruction-set:rv64imafdc" Condition="'$(CosmosArch)' == 'riscv64'" />
       <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
       

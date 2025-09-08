@@ -26,10 +26,13 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+      <!-- Search for .asm files (YASM/NASM) for x64, .s files (GNU AS) for ARM64 -->
+      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'arm64'">@(AsmSearchPath->'%(FullPath)/*.s')</AsmSearchPattern>
     </PropertyGroup>
 
-    <Message Text="⚙️  [ASM] Searching .asm files on: @(AsmSearchPath)" Importance="High" />
+    <Message Text="⚙️  [ASM] TargetArchitecture: $(TargetArchitecture), CosmosArch: $(CosmosArch)" Importance="High" />
+    <Message Text="⚙️  [ASM] Searching assembly files on: @(AsmSearchPath)" Importance="High" />
     <ItemGroup>
       <!-- Use the search pattern to find the .asm files -->
       <AsmSearch Include="$(AsmSearchPattern)" />
@@ -55,7 +58,8 @@
     <YasmBuildTask
       YasmPath="$(YasmPath)"
       OutputPath="$(AsmOutputPath)"
-      SourceFiles="@(AsmFiles)" />
+      SourceFiles="@(AsmFiles)"
+      TargetArchitecture="$(TargetArchitecture)" />
 
     <Message Text="✅ [ASM] Asm files compiled to: $(AsmOutputPath)" Importance="High" />
   </Target>
