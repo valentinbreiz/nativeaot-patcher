@@ -4,13 +4,20 @@ extern void __Initialize_Kernel();
 extern void __managed__Startup();        
 // Tentative name, this function would be exposed by the User's Main Project.
 extern void __managed__Main();             
-// Platform-specific initialization (e.g., enabling SSE on x86)
+
+#ifdef __x86_64__
+// Platform-specific initialization for x64 (enabling SSE)
 extern void EnableSSE();
+#endif
 
 // Entry point
 void kmain()
 {
+#ifdef __x86_64__
     EnableSSE();
+#endif
+    // ARM64: NEON is enabled by default, no initialization needed
+    
     __Initialize_Kernel();
     __managed__Startup();
     __managed__Main();
