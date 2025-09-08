@@ -258,7 +258,7 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpLdelemaRef")]
         static unsafe object* RhpLdelemaRef(object array, int index, int typeHandle) { return null; }
         [RuntimeExport("RhpByRefAssignRef")]
-        static unsafe void RhpByRefAssignRef(object* location, object value) 
+        static unsafe void RhpByRefAssignRef(object* location, object value)
         {
 #if ARM64
             RhpByRefAssignRefArm64(location, value);
@@ -379,7 +379,7 @@ namespace Cosmos.Kernel.Runtime
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode) { return IntPtr.Zero; }
 
         [RuntimeExport("RhpDbl2Int")]
-        static int RhpDbl2Int(double value) 
+        static int RhpDbl2Int(double value)
         {
             return (int)value;
         }
