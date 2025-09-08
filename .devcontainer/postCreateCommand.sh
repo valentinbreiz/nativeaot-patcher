@@ -53,12 +53,6 @@ dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Re
 dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release
 dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -o artifacts/package/release --no-build
-
-dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -o artifacts/package/release --no-build
-
 dotnet build src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release
 dotnet pack src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release -o artifacts/package/release --no-build
 
