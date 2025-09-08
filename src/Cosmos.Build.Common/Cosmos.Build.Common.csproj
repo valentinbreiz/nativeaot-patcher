@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Common.props" PackagePath="build\" />
+    <Content Include="build\Cosmos.Architecture.props" PackagePath="build\" />
     <Content Include="build\*.targets" PackagePath="build\" />
   </ItemGroup>
 </Project>

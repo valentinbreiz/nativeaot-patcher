@@ -153,12 +153,23 @@ jobs:
           path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
   unix-iso-tests:
-    name: Run ISO Build Tests - Unix
+    name: Run ISO Build Tests - Unix (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 9.0.x ]
+        arch: [ x64, arm64, riscv64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            assembler: yasm
+          - arch: arm64
+            rid: linux-arm64
+            assembler: gcc-aarch64-linux-gnu
+          - arch: riscv64
+            rid: linux-riscv64
+            assembler: gcc-riscv64-linux-gnu
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -171,8 +182,20 @@ jobs:
       - name: 🔄 Compile Packages
         run: ./.devcontainer/postCreateCommand.sh
 
-      - name: 🔗 Install Linking Tools
-        run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm
+      - name: 🔗 Install Common Linking Tools
+        run: sudo apt-get update && sudo apt-get install -y xorriso lld
+
+      - name: 🔗 Install x64 Assembler
+        if: matrix.arch == 'x64'
+        run: sudo apt-get install -y yasm
+
+      - name: 🔗 Install ARM64 Cross-Compilation Tools
+        if: matrix.arch == 'arm64'
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: 🔗 Install RISC-V64 Cross-Compilation Tools
+        if: matrix.arch == 'riscv64'
+        run: sudo apt-get install -y gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
@@ -183,15 +206,15 @@ jobs:
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./nativeaot-patcher.slnx
 
-      - name: 🚀 Build ISO
-        run: dotnet publish -c Debug -r linux-x64 --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output
+      - name: 🚀 Build ISO for ${{ matrix.arch }}
+        run: dotnet publish -c Debug -r ${{ matrix.rid }} --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         run: |
-          [ -f ./output/KernelExample.iso ] && echo "ISO exists" || (echo "ISO missing" && exit 1)
+          [ -f ./output-${{ matrix.arch }}/KernelExample.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
 
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO
-          path: ./output/KernelExample.iso
+          name: KernelExample-ISO-${{ matrix.arch }}
+          path: ./output-${{ matrix.arch }}/KernelExample.iso

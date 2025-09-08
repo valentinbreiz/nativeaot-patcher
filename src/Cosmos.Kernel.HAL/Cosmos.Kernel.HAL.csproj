@@ -3,13 +3,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Cosmos.Kernel.HAL</PackageId>
     <Title>Cosmos Kernel HAL</Title>
-    <Description>Hardware abstraction layer for Cosmos graphics initialization.</Description>
-    <PackageTags>cosmos;kernel;hal;graphics</PackageTags>
+    <Description>Hardware abstraction layer interfaces and implementations for multi-architecture kernel development supporting x64, ARM64, and RISC-V architectures.</Description>
+    <PackageTags>cosmos;kernel;hal;abstraction;architecture;x64;arm64;riscv;hardware;graphics</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
   </ItemGroup>
 </Project>

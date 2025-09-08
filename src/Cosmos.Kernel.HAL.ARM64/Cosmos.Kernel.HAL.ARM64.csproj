@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel.HAL.ARM64</PackageId>
+    <Title>Cosmos ARM64 Hardware Abstraction Layer</Title>
+    <Description>ARM64/AArch64 architecture implementation of the Cosmos HAL interfaces including memory-mapped I/O, CPU operations, and GIC interrupt controller.</Description>
+    <PackageTags>cosmos;kernel;hal;arm64;aarch64;hardware;mmio;gic;cpu</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
+  </ItemGroup>
+</Project>

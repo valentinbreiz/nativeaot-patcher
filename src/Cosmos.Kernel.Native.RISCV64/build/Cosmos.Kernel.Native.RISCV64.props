@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup Condition="'$(CosmosArch)' == 'riscv64'">
+    <!-- Path to RISC-V assembly files -->
+    <CosmosNativeRISCV64Path>$(MSBuildThisFileDirectory)</CosmosNativeRISCV64Path>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(CosmosArch)' == 'riscv64'">
+    <!-- Include RISC-V assembly files for compilation -->
+    <AsmSearchPath Include="$(CosmosNativeRISCV64Path)/IO" />
+    <AsmSearchPath Include="$(CosmosNativeRISCV64Path)/CPU" />
+    <AsmSearchPath Include="$(CosmosNativeRISCV64Path)/Debug" />
+  </ItemGroup>
+  
+</Project>

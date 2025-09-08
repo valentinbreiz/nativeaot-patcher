@@ -1,4 +1,7 @@
 <Project>
+  <!-- Import architecture detection and configuration -->
+  <Import Project="Cosmos.Architecture.props" />
+  
   <PropertyGroup>
     <CosmosOutputPath Condition="$(CosmosOutputPath) == ''">$(OutputPath)/cosmos</CosmosOutputPath>
     <CosmosIntermediateOutputPath Condition="$(CosmosIntermediateOutputPath) == ''">$(IntermediateOutputPath)/cosmos</CosmosIntermediateOutputPath>
@@ -24,8 +27,10 @@
 
     <ItemGroup>
       <!-- Arguments for ld.lld -->
-      <LinkerArgs Include="-T Linker/linker.ld" />
-      <LinkerArgs Include="-m elf_x86_64" />
+      <!-- Use architecture-specific linker script -->
+      <LinkerArgs Include="-T Linker/linker.$(CosmosArch).ld" Condition="Exists('Linker/linker.$(CosmosArch).ld')" />
+      <LinkerArgs Include="-T Linker/linker.ld" Condition="!Exists('Linker/linker.$(CosmosArch).ld')" />
+      <LinkerArgs Include="-m $(CosmosLinkerEmulation)" />
       <LinkerArgs Include="-nostdlib" />
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
@@ -64,7 +69,10 @@
 
     <!-- Copy Limine files -->
     <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/limine-bios.sys;$(CosmosIntermediateOutputPath)/limine/limine-bios-cd.bin;$(CosmosIntermediateOutputPath)/limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
-    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
+    <!-- Copy architecture-specific UEFI bootloader -->
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'x64'" />
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTAA64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'arm64'" />
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTRISCV64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'riscv64'" />
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
