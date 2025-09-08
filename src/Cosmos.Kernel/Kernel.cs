@@ -33,7 +33,19 @@ public class Kernel
         PlatformHAL.Initialize();
 
         Console.WriteLine("CosmosOS gen3 v0.1 booted.");
-        Console.WriteLine($"Architecture: {PlatformHAL.Architecture}");
+
+        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
+        {
+            Console.WriteLine("Architecture: x86-64.");
+        }
+        else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
+        {
+            Console.WriteLine("Architecture: ARM64/AArch64.");
+        }
+        else
+        {
+            Console.WriteLine("Architecture: Unknown.");
+        }
 
         Serial.ComInit();
         Console.WriteLine("UART started.");
