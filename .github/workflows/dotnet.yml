@@ -159,7 +159,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 9.0.x ]
-        arch: [ x64, arm64, riscv64 ]
+        arch: [ x64, arm64 ]
         include:
           - arch: x64
             rid: linux-x64
@@ -167,9 +167,6 @@ jobs:
           - arch: arm64
             rid: linux-arm64
             assembler: gcc-aarch64-linux-gnu
-          - arch: riscv64
-            rid: linux-riscv64
-            assembler: gcc-riscv64-linux-gnu
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -192,10 +189,6 @@ jobs:
       - name: 🔗 Install ARM64 Cross-Compilation Tools
         if: matrix.arch == 'arm64'
         run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-
-      - name: 🔗 Install RISC-V64 Cross-Compilation Tools
-        if: matrix.arch == 'riscv64'
-        run: sudo apt-get install -y gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
