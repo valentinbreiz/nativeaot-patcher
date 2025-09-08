@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel.Native.ARM64</PackageId>
+    <Title>Cosmos Kernel ARM64 Native Assembly</Title>
+    <Description>ARM64/AArch64 native assembly routines for Cosmos kernel development including memory operations, barriers, and interrupt management.</Description>
+    <PackageTags>cosmos;kernel;arm64;aarch64;assembly;native;asm;memory;barriers</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="build\Cosmos.Kernel.Native.ARM64.props" PackagePath="build\" />
+    <Content Include="IO\*.s" PackagePath="build\IO" />
+    <Content Include="Debug\*.s" PackagePath="build\Debug" />
+    <Content Include="CPU\*.s" PackagePath="build\CPU" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <!-- Path to ARM64 assembly files -->
+    <CosmosNativeARM64Path>$(MSBuildThisFileDirectory)</CosmosNativeARM64Path>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <!-- Include ARM64 assembly files for compilation -->
+    <AsmSearchPath Include="$(CosmosNativeARM64Path)/IO" />
+    <AsmSearchPath Include="$(CosmosNativeARM64Path)/CPU" />
+    <AsmSearchPath Include="$(CosmosNativeARM64Path)/Debug" />
+  </ItemGroup>
+  
+</Project>
