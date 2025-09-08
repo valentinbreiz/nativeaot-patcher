@@ -12,13 +12,23 @@
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcPath" AfterTargets="Build">
     <ItemGroup>
-      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+      <!-- For cross-compilation, always use x64 ILC tools but keep target runtime libraries -->
+      <HostILCompilerPack Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+      
+      <!-- For native compilation, use the native ILC -->
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
-      <!-- Fallback to x64 ILC for unsupported architectures -->
+      
+      <!-- Fallback to x64 ILC for any other unsupported architectures -->
       <HostILCompilerPackFallback Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
-                                   Condition="'$(RuntimeIdentifier)' != 'linux-x64'">
+                                   Condition="'$(RuntimeIdentifier)' != 'linux-x64' AND '$(RuntimeIdentifier)' != 'linux-arm64'">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPackFallback>
