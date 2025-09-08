@@ -29,7 +29,7 @@ public sealed class YasmBuildTask : ToolTask
 
         // Check if we're using GNU assembler for ARM64
         bool isGnuAs = TargetArchitecture == "arm64" || YasmPath?.Contains("aarch64") == true || YasmPath?.EndsWith("-as") == true;
-        
+
         if (isGnuAs)
         {
             // GNU assembler command line for ARM64

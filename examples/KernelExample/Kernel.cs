@@ -33,7 +33,7 @@ internal unsafe static partial class Program
         Serial.WriteString(testString + "\n");
 
         // Main loop - use Cosmos.Kernel's Halt method
-        while (true) 
+        while (true)
         {
             Kernel.Halt();
         }
