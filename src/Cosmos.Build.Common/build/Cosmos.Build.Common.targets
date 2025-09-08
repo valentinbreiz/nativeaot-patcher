@@ -72,7 +72,6 @@
     <!-- Copy architecture-specific UEFI bootloader -->
     <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'x64'" />
     <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTAA64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'arm64'" />
-    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTRISCV64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'riscv64'" />
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>

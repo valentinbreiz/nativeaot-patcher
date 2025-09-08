@@ -14,7 +14,7 @@ _native_io_read_byte:
     # For ARM64 systems, port I/O is typically mapped to MMIO
     # This is a stub - in a real implementation, you'd map ports
     # to specific MMIO addresses based on the system
-    mov w0, #0              # Return 0 for now
+    mov w0, #0              // Return 0 for now
     ret
 
 # void _native_io_write_byte(uint16_t port, uint8_t value)  

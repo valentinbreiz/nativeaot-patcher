@@ -1,7 +1,11 @@
 <Project>  <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
-    <!-- Always use gcc as the tool path -->
     <PropertyGroup>
-      <GCCPath>gcc</GCCPath>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <!-- Use architecture-specific GCC cross-compiler -->
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64'">gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64'">aarch64-linux-gnu-gcc</GCCPath>
+      <!-- Default fallback -->
+      <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
     </PropertyGroup>
     
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />

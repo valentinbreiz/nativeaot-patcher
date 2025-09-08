@@ -9,11 +9,11 @@
 
 _native_mmio_read_byte:
     ldrb    w0, [x0]
-    dmb     sy              # Memory barrier
+    dmb     sy
     ret
 
 _native_mmio_write_byte:
-    dmb     sy              # Memory barrier before write
+    dmb     sy
     strb    w1, [x0]
-    dmb     sy              # Memory barrier after write
+    dmb     sy
     ret

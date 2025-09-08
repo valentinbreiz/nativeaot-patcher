@@ -12,6 +12,7 @@ public sealed class YasmBuildTask : ToolTask
     [Required] public string? YasmPath { get; set; }
     [Required] public string[]? SourceFiles { get; set; }
     [Required] public string? OutputPath { get; set; }
+    public string? TargetArchitecture { get; set; }
 
     protected override MessageImportance StandardErrorLoggingImportance => MessageImportance.Normal;
 
@@ -26,9 +27,22 @@ public sealed class YasmBuildTask : ToolTask
         Log.LogMessage(MessageImportance.Low, $"[Debug] Generating command-line args for {FilePath} -> {FileName}");
         StringBuilder sb = new();
 
-        sb.Append($" -felf64 ");
-        sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
-        sb.Append($" {FilePath} ");
+        // Check if we're using GNU assembler for ARM64
+        bool isGnuAs = TargetArchitecture == "arm64" || YasmPath?.Contains("aarch64") == true || YasmPath?.EndsWith("-as") == true;
+        
+        if (isGnuAs)
+        {
+            // GNU assembler command line for ARM64
+            sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
+            sb.Append($" {FilePath} ");
+        }
+        else
+        {
+            // YASM command line for x64
+            sb.Append($" -felf64 ");
+            sb.Append($" -o {Path.Combine(OutputPath, FileName)} ");
+            sb.Append($" {FilePath} ");
+        }
 
         return sb.ToString();
     }
