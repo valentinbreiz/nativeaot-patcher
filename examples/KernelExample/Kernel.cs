@@ -22,6 +22,7 @@ internal unsafe static partial class Program
     {
         Native.Debug.BreakpointSoft();
 
+        // Native.Debug.BreakpointSoft(); // Commented out for ARM64 debugging
         // Test GCC integration
         var gccString = testGCC();
         Console.WriteLine(gccString);

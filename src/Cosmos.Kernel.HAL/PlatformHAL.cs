@@ -11,14 +11,14 @@ public static class PlatformHAL
     public static ICpuOps? CpuOps => _cpuOps;
 
     public static PlatformArchitecture Architecture =>
-#if ARM64
+#if ARCH_ARM64
         PlatformArchitecture.ARM64;
 #else
         PlatformArchitecture.X64;
 #endif
 
     public static string PlatformName =>
-#if ARM64
+#if ARCH_ARM64
         "ARM64/AArch64";
 #else
         "x86-64";
@@ -26,7 +26,7 @@ public static class PlatformHAL
 
     public static void Initialize()
     {
-#if ARM64
+#if ARCH_ARM64
         _portIO = new ARM64MemoryIO();
         _cpuOps = new ARM64CpuOps();
 #else

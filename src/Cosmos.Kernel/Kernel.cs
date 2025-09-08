@@ -11,7 +11,9 @@ namespace Cosmos.Kernel;
 public class Kernel
 {
     private static readonly LimineFramebufferRequest Framebuffer = new();
+
     private static readonly LimineHHDMRequest HHDM = new();
+
     /// <summary>
     /// Gets the current platform HAL, if available.
     /// </summary>
@@ -32,7 +34,7 @@ public class Kernel
         // Initialize platform HAL
         PlatformHAL.Initialize();
 
-        Console.WriteLine("CosmosOS gen3 v0.1 booted.");
+        Console.WriteLine("CosmosOS gen3 v0.1.2 booted.");
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
