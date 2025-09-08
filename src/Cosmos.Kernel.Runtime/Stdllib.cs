@@ -300,11 +300,9 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhNewArray")]
         static unsafe object RhNewArray(IntPtr pEEType, int numElements) 
         {
-            // Simplified array allocation - would need proper implementation
-            var arraySize = sizeof(IntPtr) + sizeof(int) + (numElements * 8); // Assuming 8 bytes per element
-            var memory = MemoryOp.Alloc((uint)arraySize);
-            if (memory == null) return null;
-            return Unsafe.AsRef<object>(memory);
+            // Delegate to the existing RhpNewArray implementation
+            var ptr = RhpNewArray((MethodTable*)pEEType, numElements);
+            return Unsafe.AsRef<object>(ptr);
         }
         
         [RuntimeExport("RhAllocateNewArray")]
