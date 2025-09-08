@@ -2,7 +2,21 @@
 
 set -e
 
-echo "=== Starting postCreate setup ==="
+# Parse architecture argument (default to x64)
+ARCH="${1:-x64}"
+echo "=== Starting postCreate setup for architecture: $ARCH ==="
+
+# Set architecture-specific defines
+if [ "$ARCH" = "arm64" ]; then
+    ARCH_DEFINE="ARCH_ARM64"
+    RUNTIME_ID="linux-arm64"
+else
+    ARCH_DEFINE="ARCH_X64"
+    RUNTIME_ID="linux-x64"
+fi
+
+echo "Using define: $ARCH_DEFINE"
+echo "Using runtime: $RUNTIME_ID"
 
 # Clear all NuGet locals cache first
 echo "Clearing NuGet cache..."
@@ -43,29 +57,30 @@ dotnet pack src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release -o a
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release
 dotnet pack src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release -o artifacts/package/release --no-build
 
-# Build kernel projects
-dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release
+# Build kernel projects with architecture-specific defines
+echo "Building kernel projects with $ARCH_DEFINE..."
+dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release
+dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release
+dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release
+dotnet build src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release
+dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release
+dotnet build src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj -c Release
+dotnet build src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -o artifacts/package/release --no-build
 
 # Build native packages
