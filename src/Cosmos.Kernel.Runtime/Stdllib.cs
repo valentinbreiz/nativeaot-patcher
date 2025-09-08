@@ -297,6 +297,42 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhNewInterfaceDispatchCell")]
         static IntPtr RhNewInterfaceDispatchCell(IntPtr pCell, IntPtr pTarget) { return IntPtr.Zero; }
         
+        [RuntimeExport("RhNewArray")]
+        static unsafe object RhNewArray(IntPtr pEEType, int numElements) 
+        {
+            // Simplified array allocation - would need proper implementation
+            var arraySize = sizeof(IntPtr) + sizeof(int) + (numElements * 8); // Assuming 8 bytes per element
+            var memory = MemoryOp.Alloc((uint)arraySize);
+            if (memory == null) return null;
+            return Unsafe.AsRef<object>(memory);
+        }
+        
+        [RuntimeExport("RhAllocateNewArray")]
+        static unsafe object RhAllocateNewArray(IntPtr pEEType, int numElements, uint flags) 
+        {
+            return RhNewArray(pEEType, numElements);
+        }
+        
+        [RuntimeExport("RhGetRuntimeHelperForType")]
+        static IntPtr RhGetRuntimeHelperForType(IntPtr pEEType, int helperKind) { return IntPtr.Zero; }
+        
+        [RuntimeExport("RhGetGCDescSize")]
+        static int RhGetGCDescSize(IntPtr pEEType) { return 0; }
+        
+        [RuntimeExport("RhFindBlob")]
+        static unsafe bool RhFindBlob(IntPtr hOsModule, uint blobId, byte** ppbBlob, uint* pcbBlob) 
+        { 
+            if (ppbBlob != null) *ppbBlob = null;
+            if (pcbBlob != null) *pcbBlob = 0;
+            return false; 
+        }
+        
+        [RuntimeExport("RhHandleGetDependent")]
+        static object RhHandleGetDependent(IntPtr handle) { return null; }
+        
+        [RuntimeExport("RhpInitialDynamicInterfaceDispatch")]
+        static IntPtr RhpInitialDynamicInterfaceDispatch() { return IntPtr.Zero; }
+        
         [RuntimeExport("RhResolveStaticDispatchOnType")]
         static IntPtr RhResolveStaticDispatchOnType(IntPtr pTargetType, IntPtr pInterfaceType, int slot) { return IntPtr.Zero; }
         
