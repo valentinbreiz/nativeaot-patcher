@@ -91,14 +91,32 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
         {
-            RuntimeHelpersFactory.Instance.AssignRef(location, value);
+#if ARM64
+            RhpAssignRefArm64(location, value);
+#else
+            *location = value;
+#endif
         }
+
+#if ARM64
+        [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpAssignRefArm64")]
+        private static extern unsafe void RhpAssignRefArm64(void** location, void* value);
+#endif
 
         [RuntimeExport("RhpCheckedAssignRef")]
         private static unsafe void RhpCheckedAssignRef(void** location, void* value)
         {
-            RuntimeHelpersFactory.Instance.CheckedAssignRef(location, value);
+#if ARM64
+            RhpCheckedAssignRefArm64(location, value);
+#else
+            *location = value;
+#endif
         }
+
+#if ARM64
+        [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpCheckedAssignRefArm64")]
+        private static extern unsafe void RhpCheckedAssignRefArm64(void** location, void* value);
+#endif
 
         [RuntimeExport("RhpNewFast")]
         private static unsafe void* RhpNewFast(MethodTable* pMT)
@@ -241,9 +259,18 @@ namespace Cosmos.Kernel.Runtime
         static unsafe object* RhpLdelemaRef(object array, int index, int typeHandle) { return null; }
         [RuntimeExport("RhpByRefAssignRef")]
         static unsafe void RhpByRefAssignRef(object* location, object value) 
-        { 
-            RuntimeHelpersFactory.Instance.ByRefAssignRef(location, value);
+        {
+#if ARM64
+            RhpByRefAssignRefArm64(location, value);
+#else
+            *location = value;
+#endif
         }
+
+#if ARM64
+        [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpByRefAssignRefArm64")]
+        private static extern unsafe void RhpByRefAssignRefArm64(object* location, object value);
+#endif
         [RuntimeExport("RhSpinWait")]
         static void RhSpinWait(int iterations) { }
         [RuntimeExport("RhSetThreadExitCallback")]
@@ -353,8 +380,8 @@ namespace Cosmos.Kernel.Runtime
 
         [RuntimeExport("RhpDbl2Int")]
         static int RhpDbl2Int(double value) 
-        { 
-            return RuntimeHelpersFactory.Instance.Dbl2Int(value);
+        {
+            return (int)value;
         }
     }
 }
