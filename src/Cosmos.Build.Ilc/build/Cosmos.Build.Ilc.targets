@@ -73,7 +73,7 @@
       <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
       <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
       <IlcArg Include="--export-unmanaged-entrypoints" />  
-      <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Include="--export-dynamic-symbol:g_compilerEmbeddedKnobsBlob" /> <!-- Required to implement 'RhGetKnobValues' -->
       <IlcArg Condition="$(ExportsFile) != ''" Include="--exportsfile:&quot;$(ExportsFile)&quot;" />
       <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
       <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
