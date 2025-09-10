@@ -17,7 +17,7 @@ _native_io_read_byte:
     mov w0, #0              // Return 0 for now
     ret
 
-# void _native_io_write_byte(uint16_t port, uint8_t value)  
+# void _native_io_write_byte(uint16_t port, uint8_t value)
 # w0 = port number, w1 = value
 _native_io_write_byte:
     # This is a stub - in a real implementation, you'd map ports

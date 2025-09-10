@@ -14,5 +14,5 @@ EnableSSE:
     mov rax, cr4
     or  rax, (3 << 9)   ; Set OSFXSR (bit 9) and OSXMMEXCPT (bit 10)
     mov cr4, rax
-    
+
     ret

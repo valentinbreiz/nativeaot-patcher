@@ -278,7 +278,7 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhYield")]
         static void RhYield() { }
 
-        // Additional runtime exports needed by the linker        
+        // Additional runtime exports needed by the linker
         [RuntimeExport("RhCreateCrashDumpIfEnabled")]
         static void RhCreateCrashDumpIfEnabled() { }
 

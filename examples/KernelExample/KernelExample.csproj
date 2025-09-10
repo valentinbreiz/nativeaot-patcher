@@ -27,7 +27,7 @@
   <ItemGroup>
     <DirectPInvoke Include="test" />
     <IlcArg Include="--verbose" />
-  </ItemGroup> 
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />

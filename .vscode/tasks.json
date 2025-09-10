@@ -114,7 +114,7 @@
       "command": "qemu-system-aarch64",
       "args": [
         "-M", "virt",
-        "-cpu", "cortex-a53", 
+        "-cpu", "cortex-a53",
         "-m", "1G",
         "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
         "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-arm64/cosmos/KernelExample.iso",
