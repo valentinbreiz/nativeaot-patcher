@@ -18,14 +18,14 @@
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
-      
+
       <!-- For native compilation, use the native ILC -->
       <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
                           Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
-      
+
       <!-- Fallback to x64 ILC for any other unsupported architectures -->
       <HostILCompilerPackFallback Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
                                    Condition="'$(RuntimeIdentifier)' != 'linux-x64' AND '$(RuntimeIdentifier)' != 'linux-arm64'">
@@ -71,21 +71,21 @@
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
       <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
     </PropertyGroup>
-    
+
     <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
       <AutoInitializedAssemblies Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
       <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
       <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
       <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
-      
+
       <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
     </ItemGroup>
 
@@ -114,7 +114,7 @@
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'" />
       <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
-      
+
       <!-- The managed debugging support in libraries is unused - trim it -->
       <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
     </ItemGroup>

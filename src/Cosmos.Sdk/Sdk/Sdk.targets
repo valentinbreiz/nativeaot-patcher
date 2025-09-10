@@ -8,7 +8,7 @@
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
-      
+
       <!-- For all other architectures, use native ILC -->
       <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
                           Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">

@@ -1,7 +1,7 @@
 <Project>
   <!-- Import architecture detection and configuration -->
   <Import Project="Cosmos.Architecture.props" />
-  
+
   <PropertyGroup>
     <CosmosOutputPath Condition="$(CosmosOutputPath) == ''">$(OutputPath)/cosmos</CosmosOutputPath>
     <CosmosIntermediateOutputPath Condition="$(CosmosIntermediateOutputPath) == ''">$(IntermediateOutputPath)/cosmos</CosmosIntermediateOutputPath>
@@ -11,7 +11,7 @@
 
   <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
   <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
-    
+
   <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
@@ -88,7 +88,7 @@
       <XorrisoArgs Include="--protective-msdos-label $(FinalIsoRoot)" />
       <XorrisoArgs Include="-o $(IsoOutput)" />
     </ItemGroup>
-    
+
     <!-- Create Output Dir -->
     <MakeDir Directories="$(CosmosOutputPath)" />
 
@@ -99,7 +99,7 @@
     <Exec Command="$(CosmosIntermediateOutputPath)/limine/limine bios-install $(IsoOutput)" />
     <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
   </Target>
-  
+
   <Target Name="PublishISO" AfterTargets="Publish">
     <!-- Copy the ISO File to the Publish -->
     <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)" />

@@ -14,3 +14,4 @@
     <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
   </ItemGroup>
 </Project>
+

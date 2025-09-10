@@ -7,7 +7,7 @@
       <!-- Default fallback -->
       <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
     </PropertyGroup>
-    
+
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
   </Target>
 </Project>
