@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <Content Include="build\Cosmos.Kernel.props" PackagePath="build\" />
-    <Content Include="Bootstrap\kmain.c"  PackagePath="build\Bootstrap\"/>
+    <Content Include="Bootstrap\*.c"  PackagePath="build\Bootstrap\"/>
   </ItemGroup>
 
   <ItemGroup>
