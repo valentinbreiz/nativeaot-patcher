@@ -18,6 +18,6 @@
     <Content Include="IO\*.s" PackagePath="build\IO" />
     <Content Include="Debug\*.s" PackagePath="build\Debug" />
     <Content Include="CPU\*.s" PackagePath="build\CPU" />
-    <Content Include="Math\*.s" PackagePath="build\Math" />
+    <Content Include="Runtime\*.s" PackagePath="build\Runtime" />
   </ItemGroup>
 </Project>
