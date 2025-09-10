@@ -41,4 +41,27 @@
       <ReferencePath Remove="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceOutputAssembly)' != 'true' and '%(ReferencePath.NuGetSourceType)' != 'Package'" />
     </ItemGroup>
   </Target>
+  
+  <!-- Ilc Generates an Invalid Exports File for ld, here we clean it up -->
+  <Target Name="CleanVersionScript" AfterTargets="CompileWithIlc" BeforeTargets="LinkTarget" Condition="$(ExportsFile) != ''">
+    <PropertyGroup>
+      <__Semicolon>;</__Semicolon>
+    </PropertyGroup>
+
+    <!-- Read the original version script -->
+    <ReadLinesFromFile File="$(ExportsFile)">
+      <Output TaskParameter="Lines" ItemName="RawVersionScriptLines" />
+    </ReadLinesFromFile>
+
+    <!-- Filter out lines that are just semicolons -->
+    <ItemGroup>
+      <CleanedVersionScriptLines Include="@(RawVersionScriptLines)"  Condition="$([System.String]::new('%(RawVersionScriptLines.Identity)').Trim().Equals($(__Semicolon)).ToString()) == 'False'" />
+    </ItemGroup>
+
+    <!-- Override file with Cleaned Lines -->
+    <WriteLinesToFile
+      File="$(ExportsFile)"
+      Lines="@(CleanedVersionScriptLines)"
+      Overwrite="true" />
+  </Target>
 </Project>
