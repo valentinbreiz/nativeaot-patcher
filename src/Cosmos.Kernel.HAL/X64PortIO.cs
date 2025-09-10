@@ -1,8 +1,7 @@
 using System.Runtime.InteropServices;
-using Cosmos.Build.API.Attributes;
+
 namespace Cosmos.Kernel.HAL;
 
-[PlatformSpecific(PlatformArchitecture.X64)]
 public class X64PortIO : IPortIO
 {
     [DllImport("*", EntryPoint = "_native_io_read_byte")]

@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Build.API.Attributes;
+
 namespace Cosmos.Kernel.HAL;
 
-[PlatformSpecific(PlatformArchitecture.ARM64)]
 public class ARM64CpuOps : ICpuOps
 {
     [DllImport("*", EntryPoint = "_native_cpu_halt")]
