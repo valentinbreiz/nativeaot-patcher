@@ -91,32 +91,14 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
         {
-#if ARM64
-            RhpAssignRefArm64(location, value);
-#else
             *location = value;
-#endif
         }
-
-#if ARM64
-        [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpAssignRefArm64")]
-        private static extern unsafe void RhpAssignRefArm64(void** location, void* value);
-#endif
 
         [RuntimeExport("RhpCheckedAssignRef")]
         private static unsafe void RhpCheckedAssignRef(void** location, void* value)
         {
-#if ARM64
-            RhpCheckedAssignRefArm64(location, value);
-#else
             *location = value;
-#endif
         }
-
-#if ARM64
-        [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpCheckedAssignRefArm64")]
-        private static extern unsafe void RhpCheckedAssignRefArm64(void** location, void* value);
-#endif
 
         [RuntimeExport("RhpNewFast")]
         private static unsafe void* RhpNewFast(MethodTable* pMT)
