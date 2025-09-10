@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;

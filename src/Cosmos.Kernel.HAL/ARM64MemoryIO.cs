@@ -1,8 +1,7 @@
 using System.Runtime.InteropServices;
-using Cosmos.Build.API.Attributes;
+
 namespace Cosmos.Kernel.HAL;
 
-[PlatformSpecific(PlatformArchitecture.ARM64)]
 public class ARM64MemoryIO : IPortIO
 {
     // ARM64 uses memory-mapped I/O instead of port I/O
