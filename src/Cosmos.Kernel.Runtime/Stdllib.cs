@@ -101,7 +101,7 @@ namespace Cosmos.Kernel.Runtime
         }
 
         [RuntimeExport("RhpNewFast")]
-        private static unsafe void* RhpNewFast(MethodTable* pMT)
+        internal static unsafe void* RhpNewFast(MethodTable* pMT)
         {
             MethodTable** result = AllocObject(pMT->_uBaseSize);
             *result = pMT;
@@ -113,7 +113,7 @@ namespace Cosmos.Kernel.Runtime
             return (MethodTable**)MemoryOp.Alloc(size);
         }
 
-        private static unsafe MethodTable* GetMethodTable(object obj)
+        internal static unsafe MethodTable* GetMethodTable(object obj)
         {
             TypedReference tr = __makeref(obj);
             return (MethodTable*)*(IntPtr*)&tr;
@@ -144,15 +144,17 @@ namespace Cosmos.Kernel.Runtime
             *location1 = value;
             return original;
         }
+        [RuntimeExport("RhTypeCast_CheckCastClass")]
+        static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle)
+        {
+            // This is 100% WRONG
+            return obj;
+        }
         /*
-                [RuntimeExport("RhTypeCast_CheckCastAny")]
-                static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
                 [RuntimeExport("RhUnbox2")]
                 static unsafe object RhUnbox2(object obj) { throw null; }
                 [RuntimeExport("RhpCheckedAssignRef")]
                 static unsafe void RhpCheckedAssignRef(object* location, object value, int typeHandle) { }
-                [RuntimeExport("RhTypeCast_CheckCastClass")]
-                static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle) { throw null; }
                 [RuntimeExport("RhpTrapThreads")]
                 static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
