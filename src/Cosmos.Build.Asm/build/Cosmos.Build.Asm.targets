@@ -7,6 +7,28 @@
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
 
+    <!-- Automatically add native package search paths based on architecture -->
+    <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64'">
+      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.x64/3.0.0/build</CosmosNativePackagePath>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetArchitecture)' == 'arm64'">
+      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.arm64/3.0.0/build</CosmosNativePackagePath>
+    </PropertyGroup>
+    
+    <Message Text="🔍 [ASM] CosmosNativePackagePath: $(CosmosNativePackagePath)" Importance="High" />
+    
+    <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64'">
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
+      <AsmSearchPath Include="$(CosmosNativePackagePath)/Runtime/" Condition="Exists('$(CosmosNativePackagePath)/Runtime/')" />
+    </ItemGroup>
+
     <!-- Exclude Folders/Files that doesn't exists -->
     <ItemGroup>
       <NonExistentPaths Include="@(AsmSearchPath)" Condition="!Exists('%(FullPath)')" />
@@ -26,10 +48,13 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+      <!-- Search for .asm files (YASM/NASM) for x64, .s files (GNU AS) for ARM64 -->
+      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
+      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'arm64'">@(AsmSearchPath->'%(FullPath)/*.s')</AsmSearchPattern>
     </PropertyGroup>
 
-    <Message Text="⚙️  [ASM] Searching .asm files on: @(AsmSearchPath)" Importance="High" />
+    <Message Text="⚙️  [ASM] TargetArchitecture: $(TargetArchitecture), CosmosArch: $(CosmosArch)" Importance="High" />
+    <Message Text="⚙️  [ASM] Searching assembly files on: @(AsmSearchPath)" Importance="High" />
     <ItemGroup>
       <!-- Use the search pattern to find the .asm files -->
       <AsmSearch Include="$(AsmSearchPattern)" />
@@ -55,7 +80,8 @@
     <YasmBuildTask
       YasmPath="$(YasmPath)"
       OutputPath="$(AsmOutputPath)"
-      SourceFiles="@(AsmFiles)" />
+      SourceFiles="@(AsmFiles)"
+      TargetArchitecture="$(TargetArchitecture)" />
 
     <Message Text="✅ [ASM] Asm files compiled to: $(AsmOutputPath)" Importance="High" />
   </Target>

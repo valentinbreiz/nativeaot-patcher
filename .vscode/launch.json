@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Kernel",
+      "name": "Debug x64 Kernel",
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
@@ -15,8 +15,8 @@
       "environment": [],
       "externalConsole": false,
       "miDebuggerServerAddress": "localhost:1234",
-      "preLaunchTask": "Start QEMU Debug Mode",
-      "postDebugTask": "Stop QEMU",
+      "preLaunchTask": "Debug x64 Kernel",
+      "postDebugTask": "Stop QEMU x64",
       "setupCommands": [
         {
           "description": "Enable pretty-printing",
@@ -31,6 +31,56 @@
         {
           "description": "Set pagination off",
           "text": "set pagination off",
+          "ignoreFailures": true
+        }
+      ],
+      "launchCompleteCommand": "None"
+    },
+    {
+      "name": "Debug ARM64 Kernel",
+      "type": "cppdbg",
+      "request": "launch",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb-multiarch",
+      "targetArchitecture": "arm64",
+      "program": "${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-arm64/KernelExample.elf",
+      "args": [],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "miDebuggerServerAddress": "localhost:1234",
+      "preLaunchTask": "Debug ARM64 Kernel",
+      "postDebugTask": "Stop QEMU ARM64",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set pagination off",
+          "text": "set pagination off",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set step mode",
+          "text": "set step-mode on",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set architecture",
+          "text": "set architecture aarch64",
+          "ignoreFailures": false
+        },
+        {
+          "description": "Set target endian",
+          "text": "set endian little",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Enable scheduler locking",
+          "text": "set scheduler-locking step",
           "ignoreFailures": true
         }
       ],

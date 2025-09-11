@@ -2,4 +2,17 @@
 FROM mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm
 
 # Install clang, xorriso, lld, and yasm
-RUN apt-get update && apt-get install -y clang xorriso lld llvm yasm gdb qemu-system-x86 qemu-utils && apt-get clean
+RUN apt-get update && apt-get install -y \
+            clang \
+            gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu \
+            xorriso \
+            lld \
+            llvm \
+            yasm \
+            gdb \
+            gdb-multiarch \
+            qemu-system-x86 \
+            qemu-system-aarch64 \
+            qemu-utils \
+            && apt-get clean

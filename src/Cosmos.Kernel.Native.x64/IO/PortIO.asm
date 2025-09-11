@@ -1,12 +1,9 @@
 global _native_io_write_byte
 global _native_io_write_word
 global _native_io_write_dword
-global _native_io_write_qword
-
 global _native_io_read_byte
 global _native_io_read_word
 global _native_io_read_dword
-global _native_io_read_qword
 
 section .text
 
@@ -17,6 +14,7 @@ _native_io_write_byte:
     out     dx, al
     ret
 
+; void out_word(ushort port, ushort value)
 _native_io_write_word:
     mov     dx, di
     mov     ax, si
