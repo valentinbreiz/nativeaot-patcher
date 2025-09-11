@@ -33,18 +33,6 @@
     <CosmosGccTarget>aarch64-elf</CosmosGccTarget>
   </PropertyGroup>
 
-  <!-- Set default native package version if not specified -->
-  <PropertyGroup>
-    <CosmosNativePackageVersion Condition="'$(CosmosNativePackageVersion)' == ''">3.0.0</CosmosNativePackageVersion>
-  </PropertyGroup>
-
-  <!-- Architecture-specific native package references -->
-  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
-    <PackageReference Include="Cosmos.Kernel.Native.x64" Version="$(CosmosNativePackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="$(CosmosNativePackageVersion)" />
-  </ItemGroup>
+  <!-- Package references will automatically import their .props files -->
 
 </Project>
