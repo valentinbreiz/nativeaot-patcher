@@ -2,4 +2,9 @@
   <PropertyGroup>
     <LinkTargetDependsOn>GetLinker;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
+
+  <!-- Set default RuntimeIdentifier if not specified -->
+  <PropertyGroup>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
 </Project>
