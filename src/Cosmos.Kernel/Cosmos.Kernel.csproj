@@ -27,5 +27,7 @@
     <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Native.x64\Cosmos.Kernel.Native.x64.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Native.ARM64\Cosmos.Kernel.Native.ARM64.csproj" />
   </ItemGroup>
 </Project>
