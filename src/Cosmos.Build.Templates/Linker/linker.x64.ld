@@ -27,6 +27,14 @@ SECTIONS
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+    __modules : {
+      __Modules_start = .;     /* Symbol at start of section */
+      *(__modules)       /* Include all input sections named __Modules */
+      __Modules_end = .;       /* Symbol at end of section */
+    }
+
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
+
     .data : {
         *(.data .data.*)
     } :data
