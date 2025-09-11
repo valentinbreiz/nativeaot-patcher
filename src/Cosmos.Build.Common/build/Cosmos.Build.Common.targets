@@ -1,4 +1,7 @@
 <Project>
+  <!-- Import architecture detection and configuration -->
+  <Import Project="Cosmos.Architecture.props" />
+
   <PropertyGroup>
     <CosmosOutputPath Condition="$(CosmosOutputPath) == ''">$(OutputPath)/cosmos</CosmosOutputPath>
     <CosmosIntermediateOutputPath Condition="$(CosmosIntermediateOutputPath) == ''">$(IntermediateOutputPath)/cosmos</CosmosIntermediateOutputPath>
@@ -22,10 +25,23 @@
       <ObjFiles Include="$(IntermediateOutputPath)/cosmos/cobj/*.o" />
     </ItemGroup>
 
+    <PropertyGroup>
+      <!-- Framework linker script paths (included in package) -->
+      <FrameworkLinkerScript>$(MSBuildThisFileDirectory)Linker/linker.$(CosmosArch).ld</FrameworkLinkerScript>
+      <FallbackLinkerScript>$(MSBuildThisFileDirectory)Linker/linker.ld</FallbackLinkerScript>
+      <!-- User project linker script paths (for backward compatibility) -->
+      <UserLinkerScript>Linker/linker.$(CosmosArch).ld</UserLinkerScript>
+      <UserFallbackLinkerScript>Linker/linker.ld</UserFallbackLinkerScript>
+    </PropertyGroup>
+
     <ItemGroup>
       <!-- Arguments for ld.lld -->
-      <LinkerArgs Include="-T Linker/linker.ld" />
-      <LinkerArgs Include="-m elf_x86_64" />
+      <!-- Priority: User project -> Framework architecture-specific -> Framework fallback -->
+      <LinkerArgs Include="-T $(UserLinkerScript)" Condition="Exists('$(UserLinkerScript)')" />
+      <LinkerArgs Include="-T $(FrameworkLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND Exists('$(FrameworkLinkerScript)')" />
+      <LinkerArgs Include="-T $(UserFallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND Exists('$(UserFallbackLinkerScript)')" />
+      <LinkerArgs Include="-T $(FallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND !Exists('$(UserFallbackLinkerScript)') AND Exists('$(FallbackLinkerScript)')" />
+      <LinkerArgs Include="-m $(CosmosLinkerEmulation)" />
       <LinkerArgs Include="-nostdlib" />
       <LinkerArgs Include="-static" />
       <LinkerArgs Include="-z max-page-size=0x1000" />
@@ -33,6 +49,7 @@
       <LinkerArgs Include="@(ObjFiles->'%(FullPath)')" />
       <LinkerArgs Include="-o $(ElfBinary)" />
       <LinkerArgs Include="--error-limit=0" />
+      <LinkerArgs Condition="$(ExportsFile) != ''" Include="--version-script &quot;$(ExportsFile)&quot;" />
     </ItemGroup>
     <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
 
@@ -65,7 +82,9 @@
 
     <!-- Copy Limine files -->
     <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/limine-bios.sys;$(CosmosIntermediateOutputPath)/limine/limine-bios-cd.bin;$(CosmosIntermediateOutputPath)/limine/limine-uefi-cd.bin" DestinationFolder="$(IsoRoot)/boot/limine/" />
-    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" />
+    <!-- Copy architecture-specific UEFI bootloader -->
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTX64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'x64'" />
+    <Copy SourceFiles="$(CosmosIntermediateOutputPath)/limine/BOOTAA64.EFI" DestinationFolder="$(IsoRoot)/EFI/BOOT/" Condition="'$(CosmosArch)' == 'arm64'" />
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
