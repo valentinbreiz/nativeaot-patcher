@@ -30,8 +30,9 @@
       <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -fno-builtin</GCCCompilerFlags>
       <!-- Add architecture-specific flags based on target -->
       <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
+      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'arm64'">$(GCCCompilerFlags) -march=armv8-a -mcmodel=large -fno-PIC -ffreestanding</GCCCompilerFlags>
     </PropertyGroup>
-    
+
     <!-- Create / clean output directory -->
     <MakeDir Directories="$(GCCOutputPath)" Condition="!Exists('$(GCCOutputPath)')" />
     <!-- Always remove all previous GCC-produced object files to avoid linking stale objects -->
@@ -40,12 +41,12 @@
       <OldGccObjs Include="$(GCCOutputPath)*.o" />
     </ItemGroup>
     <Delete Files="@(OldGccObjs)" Condition="@(OldGccObjs) != ''" />
-    
+
     <!-- Process each GCC project directory separately -->
-    <Message 
-      Text="⚙️  [GCC] Processing C project: %(GCCProject.Identity)" 
+    <Message
+      Text="⚙️  [GCC] Processing C project: %(GCCProject.Identity)"
       Importance="High" />
-    
+
     <!-- Compile each project to multiple object files -->
     <GCCBuildTask
       GCCPath="$(GCCPath)"
@@ -53,7 +54,7 @@
       OutputPath="$(GCCOutputPath)"
       OutputFile="dummy.o"
       CompilerFlags="$(GCCCompilerFlags)" />
-    
+
     <Message Text="✅ [GCC] C files compiled to object files in: $(GCCOutputPath)" Importance="High" />
   </Target>
   <!-- Clean target to remove the gcc object files folder -->
