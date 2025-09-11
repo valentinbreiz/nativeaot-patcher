@@ -57,6 +57,14 @@ dotnet pack src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release -o a
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release
 dotnet pack src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release -o artifacts/package/release --no-build
 
+# Build native packages for both architectures
+echo "Building native packages..."
+dotnet build src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj -c Release
+dotnet pack src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj -c Release -o artifacts/package/release --no-build
+
+dotnet build src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release  
+dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release --no-build
+
 # Build kernel projects with architecture-specific defines
 echo "Building kernel projects with $ARCH_DEFINE..."
 dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
