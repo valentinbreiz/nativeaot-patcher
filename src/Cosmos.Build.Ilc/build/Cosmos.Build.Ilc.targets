@@ -12,17 +12,41 @@
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcPath" AfterTargets="Build">
     <ItemGroup>
-      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler">
+      <!-- For cross-compilation, always use x64 ILC tools but keep target runtime libraries -->
+      <HostILCompilerPack Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPack>
+
+      <!-- For native compilation, use the native ILC -->
+      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
+                          Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
+
+      <!-- Fallback to x64 ILC for any other unsupported architectures -->
+      <HostILCompilerPackFallback Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"
+                                   Condition="'$(RuntimeIdentifier)' != 'linux-x64' AND '$(RuntimeIdentifier)' != 'linux-arm64'">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
+      </HostILCompilerPackFallback>
     </ItemGroup>
 
     <GetPackageDirectory
       Items="@(HostILCompilerPack)"
       PackageFolders="@(AssetsFilePackageFolder)"
     >
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+    </GetPackageDirectory>
 
+    <!-- If primary package not found, try fallback -->
+    <GetPackageDirectory
+      Items="@(HostILCompilerPackFallback)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+      Condition="'@(ResolvedILCompilerPack)' == ''"
+    >
       <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
     </GetPackageDirectory>
 
@@ -30,6 +54,9 @@
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
       <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
     </PropertyGroup>
+    <Message Importance="High" Text="⚙️ [ILC] RuntimeIdentifier: $(RuntimeIdentifier)" />
+    <Message Importance="High" Text="⚙️ [ILC] ResolvedILCompilerPack count: @(ResolvedILCompilerPack->Count())" />
+    <Message Importance="High" Text="⚙️ [ILC] IlcHostPackagePath: $(IlcHostPackagePath)" />
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
   </Target>
 
@@ -43,22 +70,23 @@
       <IlcIntermediateOutputPath>$(FullIntermediateOutputPath)/cosmos/native/</IlcIntermediateOutputPath>
       <FinalAssembly>$(NativeOutputPath)$(AssemblyName)</FinalAssembly>
       <IlcSystemModule Condition="$(IlcSystemModule) == ''">System.Private.CoreLib</IlcSystemModule>
+      <ExportsFile>$(IlcIntermediateOutputPath)$(AssemblyName).exports</ExportsFile>
     </PropertyGroup>
-    
+
     <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
       <AutoInitializedAssemblies Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
       <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
       <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
       <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
-      
+
       <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
     </ItemGroup>
 
@@ -71,7 +99,10 @@
       <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')" />
       <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
       <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
-      <IlcArg Include="--export-unmanaged-entrypoints" />
+      <IlcArg Include="--targetarch:$(CosmosArch)" />
+      <IlcArg Include="--targetos:linux" />
+      <IlcArg Include="--export-dynamic-symbol:g_compilerEmbeddedKnobsBlob" /> <!-- Required to implement 'RhGetKnobValues' -->
+      <IlcArg Condition="$(ExportsFile) != ''" Include="--exportsfile:&quot;$(ExportsFile)&quot;" />
       <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
       <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
       <IlcArg Include="@(DirectPInvoke->'--directpinvoke:%(Identity)')" />
@@ -80,10 +111,12 @@
       <IlcArg Include="--noinlinetls" />
       <IlcArg Include="-g" />
       <IlcArg Include="-O" />
-      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" />
+      <!-- Architecture-specific instruction sets -->
+      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'" />
+      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'" />
       <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
-      
+
       <!-- The managed debugging support in libraries is unused - trim it -->
       <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
     </ItemGroup>

@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Common.props" PackagePath="build\" />
+    <Content Include="build\Cosmos.Architecture.props" PackagePath="build\" />
     <Content Include="build\*.targets" PackagePath="build\" />
+    <Content Include="..\Cosmos.Build.Templates\Linker\*.ld" PackagePath="build\Linker\" />
   </ItemGroup>
 </Project>

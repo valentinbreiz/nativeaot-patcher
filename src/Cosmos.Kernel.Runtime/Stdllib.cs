@@ -1,5 +1,6 @@
 using System;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
 
 #region Things needed by ILC
@@ -197,7 +198,18 @@ namespace Cosmos.Kernel.Runtime
                 [RuntimeExport("RhpLdelemaRef")]
                 static unsafe object* RhpLdelemaRef(object array, int index, int typeHandle) { throw null; }
                 [RuntimeExport("RhpByRefAssignRef")]
-                static unsafe void RhpByRefAssignRef(object* location, object value) { }
+                static unsafe void RhpByRefAssignRef(object* location, object value) {
+#if ARM64
+                    RhpByRefAssignRefArm64(location, value);
+#else
+                    *location = value;
+#endif
+                }
+
+#if ARM64
+                [System.Runtime.InteropServices.DllImport("*", EntryPoint = "RhpByRefAssignRefArm64")]
+                private static extern unsafe void RhpByRefAssignRefArm64(object* location, object value);
+#endif
                 [RuntimeExport("RhSpinWait")]
                 static void RhSpinWait(int iterations) { }
                 [RuntimeExport("RhSetThreadExitCallback")]
