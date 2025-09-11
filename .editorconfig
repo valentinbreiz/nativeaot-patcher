@@ -156,6 +156,10 @@ csharp_space_between_square_brackets = false
 file_header_template = This code is licensed under MIT license (see LICENSE for details)
 
 # C++ Files
+
+# CA2255: The 'ModuleInitializer' attribute should not be used in libraries
+dotnet_diagnostic.CA2255.severity = none
+
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman
