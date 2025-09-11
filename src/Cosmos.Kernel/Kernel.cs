@@ -29,7 +29,7 @@ public class Kernel
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-             Serial.WriteString("Architecture: x86-64.");
+            Serial.WriteString("Architecture: x86-64.");
         }
         else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
         {
