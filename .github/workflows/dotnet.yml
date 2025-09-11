@@ -179,9 +179,6 @@ jobs:
       - name: 🔄 Compile Packages for ${{ matrix.arch }}
         run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
 
-      - name: 🧹 Clear NuGet Cache
-        run: dotnet nuget locals all --clear
-
       - name: 🔗 Install Common Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld
 
