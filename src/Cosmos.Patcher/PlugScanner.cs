@@ -1,19 +1,17 @@
-using System.IO;
-using System.Linq;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 
 namespace Cosmos.Patcher;
 
-public sealed class PlugScanner
+public sealed class PlugScanner(IBuildLogger? logger = null)
 {
-    private readonly IBuildLogger _log;
-    private const string PlugAttributeFullName = "Cosmos.Build.API.Attributes.PlugAttribute";
+    public const string PlugAttributeFullName = "Cosmos.Build.API.Attributes.PlugAttribute";
 
-    public PlugScanner(IBuildLogger? logger = null)
-    {
-        _log = logger ?? new ConsoleBuildLogger();
-    }
+    public const string PlugMemberAttributeFullName = "Cosmos.Build.API.Attributes.PlugMemberAttribute";
+
+    public const string PlatformSpecificAttributeFullName = "Cosmos.Build.API.Attributes.PlatformSpecificAttribute";
+
+    private readonly IBuildLogger _log = logger ?? new ConsoleBuildLogger();
 
     public List<TypeDefinition> LoadPlugs(params AssemblyDefinition[] assemblies) => LoadPlugs(null, assemblies);
 
@@ -34,13 +32,13 @@ public sealed class PlugScanner
                     if (targetType == null)
                         return true;
 
-                    string? targetTypeName = GetTargetName(plugAttr);
+                    string? targetTypeName = plugAttr.GetArgument<string>(named: "TargetName");
                     return targetType.FullName == targetTypeName;
                 })
         ];
 
         foreach (TypeDefinition type in output)
-            _log.Debug($"[Scanner] Plug found: {type.Name}");
+            _log.Debug($"Plug found: {type.Name}");
 
         return output;
     }
@@ -51,8 +49,7 @@ public sealed class PlugScanner
     public IEnumerable<string> FindPluggedAssemblies(IEnumerable<string> plugAssemblyPaths,
                                                       IEnumerable<string> candidateAssemblyPaths)
     {
-        HashSet<string> targetTypes = new();
-
+        HashSet<string> targetTypes = [];
         foreach (string plugPath in plugAssemblyPaths)
         {
             if (!File.Exists(plugPath))
@@ -68,7 +65,7 @@ public sealed class PlugScanner
                     if (attr == null)
                         continue;
 
-                    string? target = GetTargetName(attr);
+                    string? target = attr.GetArgument<string>(named: "TargetName");
                     if (!string.IsNullOrEmpty(target))
                         targetTypes.Add(target);
                 }
@@ -81,7 +78,6 @@ public sealed class PlugScanner
         }
 
         HashSet<string> added = new(StringComparer.OrdinalIgnoreCase);
-
         foreach (string candidatePath in candidateAssemblyPaths)
         {
             if (!File.Exists(candidatePath))
@@ -115,23 +111,5 @@ public sealed class PlugScanner
                 return null;
             }
         }
-    }
-
-    private static string? GetTargetName(CustomAttribute attr)
-    {
-        if (attr.ConstructorArguments.Count == 1 && attr.Properties.Count == 0)
-        {
-            object? val = attr.ConstructorArguments[0].Value;
-            return val is TypeReference tr ? tr.FullName : val as string;
-        }
-
-        foreach (var prop in attr.Properties)
-            if (prop.Name == "Target" || prop.Name == "TargetName")
-            {
-                object? val = prop.Argument.Value;
-                return val is TypeReference tr ? tr.FullName : val as string;
-            }
-
-        return null;
     }
 }

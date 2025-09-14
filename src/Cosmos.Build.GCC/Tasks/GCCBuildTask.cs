@@ -1,8 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -43,7 +40,7 @@ public sealed class GCCBuildTask : ToolTask
         }
 
         // Include all source files
-        var sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
+        string[] sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
         sb.Append(string.Join(" ", sourceFilePaths));
 
         return sb.ToString();
@@ -69,7 +66,7 @@ public sealed class GCCBuildTask : ToolTask
             return false;
         }
 
-        var sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
+        string[] sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
         if (sourceFilePaths.Length == 0)
         {
             Log.LogWarning($"No C files found in directory {SourceFiles}");
@@ -91,7 +88,7 @@ public sealed class GCCBuildTask : ToolTask
             // Set file-specific output name
             string baseName = Path.GetFileNameWithoutExtension(file);
             // Produce Windows-friendly .obj extension so the linker (which currently searches for *.obj) can pick them up
-            var objExt = Path.DirectorySeparatorChar == '\\' ? ".obj" : ".o";
+            string objExt = Path.DirectorySeparatorChar == '\\' ? ".obj" : ".o";
             string outputName = $"{baseName}-{fileHashString.Substring(0, 8)}{objExt}";
             string outputPath = Path.Combine(OutputPath!, outputName);
 

@@ -33,6 +33,12 @@
     <CosmosGccTarget>aarch64-elf</CosmosGccTarget>
   </PropertyGroup>
 
+  <ItemGroup>
+    <CompilerVisibleItemMetadata Include="CosmosArch" />
+    <CompilerVisibleProperty>CosmosArch</CompilerVisibleProperty>
+    <GlobalAnalyzerConfigFiles Include="analyzer.globalconfig" />
+  </ItemGroup>
+
   <!-- Architecture-specific native package references -->
   <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
     <PackageReference Include="Cosmos.Kernel.Native.x64" Version="$(CosmosNativePackageVersion)" Condition="'$(CosmosNativePackageVersion)' != ''" />

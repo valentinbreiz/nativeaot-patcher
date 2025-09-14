@@ -1,4 +1,3 @@
-using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
@@ -15,9 +14,8 @@ namespace System
             Optimized
         }
 
-        public sealed class RuntimeExportAttribute : Attribute
+        public sealed class RuntimeExportAttribute(string entry) : Attribute
         {
-            public RuntimeExportAttribute(string entry) { }
         }
 
         public sealed class RuntimeImportAttribute : Attribute
