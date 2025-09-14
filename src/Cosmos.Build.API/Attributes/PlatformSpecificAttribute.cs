@@ -9,7 +9,6 @@ namespace Cosmos.Build.API.Attributes;
 /// <remarks>
 /// Creates a new PlatformSpecific attribute.
 /// </remarks>
-/// <param name="architecture">The supported architectures (can be combined with OR).</param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 public class PlatformSpecificAttribute : Attribute
 {

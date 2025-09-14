@@ -21,7 +21,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
         [CommandOption("--plugs <PLUGS>")]
         [Description("Plug assemblies, separated by ';' or ','.")]
         public required string PlugsReferencesRaw { get; set; }
-        
+
 
         [CommandOption("--output <OUTPUT>")]
         [Description("Output path for the patched dll")]
@@ -32,7 +32,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
     {
         ConsoleBuildLogger logger = new();
         logger.Info("Running PatchCommand...");
-        
+
         if (!File.Exists(settings.TargetAssembly))
         {
             logger.Error($"Error: Target assembly '{settings.TargetAssembly}' not found.");
