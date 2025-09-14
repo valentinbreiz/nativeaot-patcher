@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using ProjectInfo = Cosmos.Patcher.Analyzer.CodeFixes.Models.ProjectInfo;
+using ProjectInfo = Cosmos.Build.Analyzer.Patcher.CodeFixes.Models.ProjectInfo;
 
-namespace Cosmos.Patcher.Analyzer.CodeFixes;
+namespace Cosmos.Build.Analyzer.Patcher.CodeFixes;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PatcherCodeFixProvider))]
 [Shared]
@@ -38,17 +38,13 @@ public class PatcherCodeFixProvider : CodeFixProvider
     {
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root == null)
-        {
             return;
-        }
-
+        
         foreach (Diagnostic diagnostic in context.Diagnostics)
         {
             if (!diagnostic.Id.StartsWith(PatcherAnalyzer.DiagnosticId))
-            {
                 continue;
-            }
-
+            
             SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
             switch (diagnostic.Id)
             {
@@ -57,7 +53,7 @@ public class PatcherCodeFixProvider : CodeFixProvider
                         _ => CodeActions.RemoveExtraParameters(context.Document, declaration), diagnostic);
                     break;
 
-                case var id when id == DiagnosticMessages.MethodNeedsPlug.Id:
+                case var id when id == DiagnosticMessages.MemberNeedsPlug.Id:
                     RegisterCodeFix(context, CodeActions.PlugMethodTitle,
                         c => CodeActions.PlugMethod(context.Document, declaration, c, diagnostic,
                             LoadCurrentProject(context.Document.Project.FilePath).Value), diagnostic);
