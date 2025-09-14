@@ -4,13 +4,14 @@ using Cosmos.Build.API.Attributes;
 
 namespace Cosmos.Tests.NativeWrapper;
 
-public class TestClass
+public partial class TestClass
 {
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern int OutputDebugString(string lpOutputString);
+    [LibraryImport("kernel32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    public static partial int OutputDebugString(string lpOutputString);
 
-    [DllImport("Cosmos.Test.NativeLibrary.dll", EntryPoint = "Add", CallingConvention = CallingConvention.Cdecl)]
-    public static extern int Add(int a, int b);
+    [LibraryImport("Cosmos.Test.NativeLibrary.dll", EntryPoint = "Add")]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial int Add(int a, int b);
 
 
     [UnmanagedCallersOnly(EntryPoint = "Native_Add", CallConvs = [typeof(CallConvCdecl)])]

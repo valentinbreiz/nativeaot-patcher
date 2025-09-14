@@ -1,13 +1,14 @@
-using System;
-using System.Runtime;
-using System.Runtime.CompilerServices;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.Runtime;
 using Cosmos.Kernel.System.IO;
+using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
 internal unsafe static partial class Program
 {
@@ -54,9 +55,23 @@ internal static unsafe class SimpleStringMarshaler
 
     public static char* ConvertToUnmanaged(string managed)
     {
+        ObjectImpl.Arm64OnlyMethod();
         fixed (char* p = managed)
         {
             return p;
         }
     }
 }
+
+
+
+[Plug(typeof(object))]
+public class ObjectImpl
+{
+    [PlatformSpecific(PlatformArchitecture.ARM64)]
+    public static void Arm64OnlyMethod()
+    {
+
+    }
+}
+

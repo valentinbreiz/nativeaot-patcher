@@ -11,5 +11,16 @@ public class TestClassPlug
     [PlugMember]
     public static void OutputDebugString(object aThis)
     {
+
+        NativeWrapperObjectImpl.Riscv64OnlyMethod();
     }
+
+    public static void OutputDebugStringT(object aThis)
+    {
+
+        NativeWrapperObjectImpl.Riscv64OnlyMethod();
+
+    }
+    
+    
 }

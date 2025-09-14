@@ -1,4 +1,3 @@
-using System.Linq;
 using Cosmos.Patcher;
 using Cosmos.Tests.NativeWrapper;
 
@@ -17,7 +16,7 @@ public class PlugScannerTests_FindPluggedAssemblies
         PlugScanner scanner = new();
 
         // Act
-        List<string> result = scanner.FindPluggedAssemblies(new[] { plugPath }, new[] { targetAssembly, unrelatedAssembly }).ToList();
+        List<string> result = [.. scanner.FindPluggedAssemblies(new[] { plugPath }, new[] { targetAssembly, unrelatedAssembly })];
 
         // Assert
         Assert.Contains(targetAssembly, result);

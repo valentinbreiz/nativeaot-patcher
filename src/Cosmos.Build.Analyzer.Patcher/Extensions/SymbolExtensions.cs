@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Cosmos.Patcher.Analyzer.Extensions;
+namespace Cosmos.Build.Analyzer.Patcher.Extensions;
 
 public static class SymbolExtensions
 {

@@ -1,11 +1,7 @@
+using Cosmos.Build.API.Enum;
+
 namespace Cosmos.Kernel.HAL;
 
-public enum PlatformArchitecture
-{
-    X64,
-    ARM64,
-    RISCV64
-}
 
 public static class PlatformHAL
 {

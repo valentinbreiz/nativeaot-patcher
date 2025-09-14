@@ -1,4 +1,3 @@
-using System;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.System.Graphics;
 

@@ -154,4 +154,14 @@ public static class MethodBodyEx
 
         return bc;
     }
+
+    public static void Clear(this MethodBody body)
+    {
+        Helpers.ThrowIfArgumentNull(body);
+
+        body.Instructions.Clear();
+        body.ExceptionHandlers.Clear();
+        body.Variables.Clear();
+    }
+
 }

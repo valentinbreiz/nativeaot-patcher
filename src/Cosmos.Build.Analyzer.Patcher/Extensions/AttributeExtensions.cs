@@ -2,92 +2,55 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Cosmos.Patcher.Analyzer.Extensions;
+namespace Cosmos.Build.Analyzer.Patcher.Extensions;
 
 public static class AttributeExtensions
 {
-    public static T? GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString,
-        SyntaxNodeAnalysisContext context)
+    public static T? GetArgument<T>(this AttributeSyntax attribute, SyntaxNodeAnalysisContext context, string named,
+        int positional = 0)
     {
-        ExpressionSyntax? expression = GetArgumentExpression(attribute, indexOrString);
-        return expression != null ? GetValueFromExpression<T>(expression, context) : default;
-    }
+        ExpressionSyntax? expression = positional >= 0 && positional <= attribute.ArgumentList?.Arguments.Count - 1
+                ? attribute.ArgumentList.Arguments[positional].Expression
+            : attribute.ArgumentList?.Arguments
+                .FirstOrDefault(a => string.Equals((a.NameEquals?.Name ?? a.NameColon?.Name)?.ToString(), named, StringComparison.InvariantCultureIgnoreCase))
+                .Expression;
 
-    public static bool GetAttributeValue<T>(this AttributeSyntax attribute, object indexOrString,
-        SyntaxNodeAnalysisContext context, out T? value)
-    {
-        value = GetAttributeValue<T>(attribute, indexOrString, context);
-        return value != null && (value is not string str || !string.IsNullOrEmpty(str));
-    }
-
-    public static T? GetAttributeValue<T>(this AttributeData attribute, object indexOrString)
-    {
-        TypedConstant argument = GetConstructorArgument(attribute, indexOrString);
-        return argument.Kind == TypedConstantKind.Error ? default : ConvertArgumentValue<T>(argument);
-    }
-
-    private static T? GetValueFromExpression<T>(ExpressionSyntax expression, SyntaxNodeAnalysisContext context) =>
-        expression switch
+        return expression switch
         {
             MemberAccessExpressionSyntax { Name: { } name } when typeof(T).IsEnum
-                => ParseEnum<T>(name.ToString()),
+                => (T?)Enum.Parse(typeof(T), name.ToString()),
             LiteralExpressionSyntax literal
                 => (T?)literal.Token.Value,
             TypeOfExpressionSyntax typeOf
-                => (T?)(object?)GetTypeFromTypeOf(typeOf, context),
+                => (T?)(object?)(
+                    context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol is ITypeSymbol symbol
+                        ? symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))
+                        : "Unknown"
+                ),
             _ => default
         };
-
-    private static string? GetTypeFromTypeOf(TypeOfExpressionSyntax typeOf, SyntaxNodeAnalysisContext context)
-    {
-        ITypeSymbol? symbol = context.SemanticModel.GetSymbolInfo(typeOf.Type).Symbol as ITypeSymbol;
-        return symbol is not null
-            ? symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))
-            : "Unknown";
     }
 
-    private static T? ParseEnum<T>(string name)
+    public static bool GetArgument<T>(this AttributeSyntax attribute, SyntaxNodeAnalysisContext context, string named, int positional,
+         out T? value)
     {
-        T value;
-        return (value = (T)Enum.Parse(typeof(T), name)) != null ? value : default;
+        value = GetArgument<T>(attribute, context, named, positional);
+        return value != null && (value is not string str || !string.IsNullOrEmpty(str));
     }
+    public static T? GetArgument<T>(this AttributeData attributeData, string named = "", int positional = 0)
+    {
+        TypedConstant target = positional >= 0 && attributeData.ConstructorArguments.Length > positional
+            ? attributeData.ConstructorArguments[positional]
+            : attributeData.NamedArguments
+            .FirstOrDefault(kv => string.Equals(kv.Key, named, StringComparison.InvariantCultureIgnoreCase)).Value;
 
-    private static TypedConstant GetConstructorArgument(AttributeData attribute, object indexOrString) =>
-        indexOrString switch
+        if (target.Value == null)
+            return default;
+
+        return target.Value switch
         {
-            int index when index >= 0 && index < attribute.ConstructorArguments.Length
-                => attribute.ConstructorArguments[index],
-            string name
-                => attribute.NamedArguments.FirstOrDefault(kvp =>
-                    kvp.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value,
-            _ => default
+            T v => v,
+            _ => typeof(T).IsEnum ? (T)Enum.Parse(typeof(T), target.Value.ToString()!) : default
         };
-
-    private static ExpressionSyntax? GetArgumentExpression(AttributeSyntax attribute, object indexOrString) =>
-        indexOrString switch
-        {
-            int index when attribute.ArgumentList?.Arguments.Count > index
-                => attribute.ArgumentList.Arguments[index].Expression,
-            string name => attribute.ArgumentList?.Arguments
-                .FirstOrDefault(a => (a.NameEquals?.Name ?? a.NameColon?.Name)?.ToString() == name)?
-                .Expression,
-            _ => null
-        };
-
-    private static T? ConvertArgumentValue<T>(TypedConstant argument)
-    {
-        if (argument.Value is T value)
-        {
-            return value;
-        }
-
-        return typeof(T).IsEnum && argument.Value != null ? ConvertEnum<T>(argument.Value)
-            : typeof(T).Name == "Type" && argument.Value is ITypeSymbol type ? (T?)type
-            : default;
     }
-
-    private static T? ConvertEnum<T>(object value)
-        => (T?)Enum.ToObject(typeof(T), value);
-
-
 }

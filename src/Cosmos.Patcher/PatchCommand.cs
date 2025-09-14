@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Cosmos.Build.API.Enum;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Spectre.Console.Cli;
@@ -11,33 +12,37 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
     {
         [CommandOption("--target <TARGET>")]
         [Description("Path to the target assembly.")]
-        public string TargetAssembly { get; set; } = null!;
+        public required string TargetAssembly { get; set; }
+
+        [CommandOption("--target-platform <TARGET-PLATFORM>")]
+        [Description("Target platform for the patching process.")]
+        public required string TargetPlatform { get; set; }
 
         [CommandOption("--plugs <PLUGS>")]
         [Description("Plug assemblies, separated by ';' or ','.")]
-        public string PlugsReferencesRaw { get; set; } = string.Empty;
+        public required string PlugsReferencesRaw { get; set; }
+        
 
         [CommandOption("--output <OUTPUT>")]
         [Description("Output path for the patched dll")]
-        public string? OutputPath { get; set; }
+        public required string OutputPath { get; set; }
     }
 
     public override int Execute(CommandContext context, Settings settings)
     {
-        IBuildLogger logger = new ConsoleBuildLogger();
+        ConsoleBuildLogger logger = new();
         logger.Info("Running PatchCommand...");
-
+        
         if (!File.Exists(settings.TargetAssembly))
         {
             logger.Error($"Error: Target assembly '{settings.TargetAssembly}' not found.");
             return -1;
         }
 
-        var separators = new[] { ';', ',', Path.PathSeparator };
-        string[] plugPaths = (settings.PlugsReferencesRaw ?? string.Empty)
+        char[] separators = [';', ',', Path.PathSeparator];
+        string[] plugPaths = [.. (settings.PlugsReferencesRaw ?? string.Empty)
             .Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Distinct()
-            .ToArray();
+            .Distinct()];
 
         if (plugPaths.Length == 0)
         {
@@ -45,7 +50,7 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             return -1;
         }
 
-        plugPaths = plugPaths.Where(File.Exists).ToArray();
+        plugPaths = [.. plugPaths.Where(File.Exists)];
         if (plugPaths.Length == 0)
         {
             logger.Error("Error: No valid plug assemblies provided (files not found).");
@@ -57,16 +62,15 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
             AssemblyDefinition targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
             logger.Info($"Loaded target assembly: {settings.TargetAssembly}");
 
-            AssemblyDefinition[] plugAssemblies = plugPaths
-                .Select(AssemblyDefinition.ReadAssembly)
-                .ToArray();
+            AssemblyDefinition[] plugAssemblies = [.. plugPaths.Select(AssemblyDefinition.ReadAssembly)];
+            PlatformArchitecture targetPlatform = Enum.Parse<PlatformArchitecture>(settings.TargetPlatform.ToUpperInvariant());
 
             logger.Info("Loaded plug assemblies:");
             foreach (string plug in plugPaths)
                 logger.Info($" - {plug}");
 
             PlugPatcher plugPatcher = new(new PlugScanner(logger));
-            plugPatcher.PatchAssembly(targetAssembly, plugAssemblies);
+            plugPatcher.PatchAssembly(targetAssembly, targetPlatform, plugAssemblies);
 
             string finalPath = settings.OutputPath ??
                                Path.Combine(
