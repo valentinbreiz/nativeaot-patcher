@@ -11,33 +11,30 @@ PHDRS
 
 SECTIONS
 {
-    /* ARM64 kernel typically starts at 0x80000 for Raspberry Pi */
-    . = 0xffff000000080000;
+    /* ARM64 kernel in higher half for Limine compatibility */
+    . = 0xffffffff80000000;
 
-    . = ALIGN(4K);
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
 
     .text : {
-        *(.text.boot)
         *(.text .text.*)
     } :text
 
-    . = ALIGN(4K);
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
 
     .rodata : {
         *(.rodata .rodata.*)
     } :rodata
 
-    . = ALIGN(4K);
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
 
     .data : {
         *(.data .data.*)
     } :data
 
-    .bss ALIGN(16) : {
-        __bss_start = .;
+    .bss : {
         *(.bss .bss.*)
         *(COMMON)
-        __bss_end = .;
     } :data
 
     /DISCARD/ : {
