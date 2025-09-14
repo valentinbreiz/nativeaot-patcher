@@ -415,7 +415,7 @@ namespace Cosmos.Build.Analyzer.Patcher
                 }
                 DebugLog("Found CCtor method");
                 DebugLog($"CCtor has {cctor!.ParameterList.Parameters.Count} parameters");
-                if (cctor!.ParameterList.Parameters.Count <= 1 || cctor.ParameterList.Parameters.Any(param => param.Identifier.ValueText == "aThis"))
+                if (cctor!.ParameterList.Parameters.Count <= 1)
                     return;
 
                 DebugLog("Reporting static constructor too many params");
