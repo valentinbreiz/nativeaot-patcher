@@ -17,5 +17,5 @@ public static class EnumerableExtensions
         return false;
     }
 
-    
+
 }

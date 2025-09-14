@@ -1853,7 +1853,7 @@ public static class MonoCecilExtensions
 
         if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
         {
-            T? value =  argument.Value.Value is T matchedValue
+            T? value = argument.Value.Value is T matchedValue
                 ? matchedValue
                 : defaultValue;
             Logger.Debug($"Type is not enum, Value: {value}");

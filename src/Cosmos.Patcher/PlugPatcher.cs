@@ -171,20 +171,19 @@ public sealed class PlugPatcher
 
             string? targetMemberName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: member.Name) ?? plugMemberAttr.GetArgument(named: "Target", defaultValue: member.Name);
             _log.Debug($"Looking for target member: {targetMemberName}");
-            IMemberDefinition? targetMember = targetMembers.FirstOrDefault(m => m.Name == targetMemberName);
             try
             {
                 plugMemberAttr.ImportReferences(targetType.Module);
                 switch (member)
                 {
-                    case MethodDefinition plugMethod when targetMember is MethodDefinition targetMethod:
-                        ResolveAndPatchMethod(targetType, plugMethod, plugMemberAttr);
+                    case MethodDefinition plugMethod:
+                        ResolveAndPatchMethod(targetType, plugMethod, targetMemberName);
                         break;
-                    case PropertyDefinition plugProperty when targetMember is PropertyDefinition targetProperty:
-                        PatchProperty(targetProperty, plugProperty);
+                    case PropertyDefinition plugProperty:
+                        PatchProperty(targetType, plugProperty, targetMemberName);
                         break;
-                    case FieldDefinition plugField when targetMember is FieldDefinition targetField:
-                        PatchField(plugField, targetField);
+                    case FieldDefinition plugField:
+                        PatchField(targetType, plugField, targetMemberName);
                         break;
                     default:
                         _log.Warn($"Unsupported member type for member {member.Name} and/or target member not found");
@@ -213,7 +212,7 @@ public sealed class PlugPatcher
 
         // Dump plugType after plugging
         _log.Debug($"--- Dumping plugType after plugging: {plugType.FullName} ---");
-        foreach (var member in plugType.GetMembers())
+        foreach (IMemberDefinition member in plugType.GetMembers())
         {
             _log.Debug($"PlugType Member: {member.GetType().Name} {member.FullName}");
             if (member is MethodDefinition method && method.HasBody)
@@ -223,7 +222,7 @@ public sealed class PlugPatcher
         }
         _log.Debug($"--- End dump for plugType: {plugType.FullName} ---");
     }
-    private void ResolveAndPatchMethod(TypeDefinition targetType, MethodDefinition plugMethod, CustomAttribute attr)
+    private void ResolveAndPatchMethod(TypeDefinition targetType, MethodDefinition plugMethod, string? targetMethodName = "")
     {
         _log.Debug($"Starting method resolution for {plugMethod.FullName}");
         bool isInstance = plugMethod.Parameters.Any(p => p.Name == "aThis");
@@ -255,14 +254,13 @@ public sealed class PlugPatcher
             return;
         }
 
-        string? methodName = attr.GetArgument(named: "TargetName", defaultValue: plugMethod.Name) ?? attr.GetArgument(named: "Target", defaultValue: plugMethod.Name);
-        _log.Debug($"Resolving method: {methodName} (Instance: {isInstance})");
+        _log.Debug($"Resolving method: {targetMethodName} (Instance: {isInstance})");
         _log.Debug($"Plug prototype: {FmtMethod(plugMethod)}");
 
         // Find method with matching name, parameter count, AND parameter types
         MethodDefinition? targetMethod = null;
 
-        foreach (MethodDefinition? m in targetType.Methods.Where(m => m.Name == methodName))
+        foreach (MethodDefinition? m in targetType.Methods.Where(m => m.Name == targetMethodName))
         {
             // Check parameter count
             int expectedParamCount = isInstance ? plugMethod.Parameters.Count - 1 : plugMethod.Parameters.Count;
@@ -302,10 +300,10 @@ public sealed class PlugPatcher
         }
         else
         {
-            _log.Warn($"Target method not found: {methodName}");
+            _log.Warn($"Target method not found: {targetMethodName}");
             _log.Debug($"Expected parameters: {plugMethod.Parameters.Count - (isInstance ? 1 : 0)}");
             _log.Debug($"Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstance ? 1 : 0).Select(p => p.ParameterType.FullName))}");
-            DumpOverloads(targetType, methodName, plugMethod);
+            DumpOverloads(targetType, targetMethodName, plugMethod);
         }
     }
 
@@ -485,8 +483,12 @@ public sealed class PlugPatcher
         _log.Info($"Successfully patched method: {targetMethod.FullName}");
     }
 
-    public void PatchProperty(PropertyDefinition targetProperty, PropertyDefinition plugProperty)
+    public void PatchProperty(TypeDefinition targetType, PropertyDefinition plugProperty, string? targetPropertyName = null)
     {
+        PropertyDefinition? targetProperty = targetType.Properties.FirstOrDefault(p => p.Name == targetPropertyName);
+        if (targetProperty == null)
+            return;
+
         _log.Info($"Patching property: {targetProperty.FullName}");
 
         if (plugProperty.GetMethod == null || plugProperty.SetMethod == null)
@@ -538,7 +540,7 @@ public sealed class PlugPatcher
         FieldReference targetBackingFieldRef = (FieldReference)targetBackingField.Instruction.Operand;
         FieldReference plugBackingFieldRef = (FieldReference)plugBackingField.Instruction.Operand;
 
-        PatchField(targetBackingFieldRef.Resolve(), plugBackingFieldRef.Resolve());
+        PatchField(targetType, plugBackingFieldRef.Resolve(), targetBackingFieldRef.Name);
         if (targetProperty.SetMethod != null)
         {
             ReplaceFieldAccess(targetProperty.SetMethod, plugBackingFieldRef, targetBackingFieldRef);
@@ -552,8 +554,12 @@ public sealed class PlugPatcher
         _log.Info($"Completed property patch: {targetProperty.FullName}");
     }
 
-    public void PatchField(FieldDefinition targetField, FieldDefinition plugField)
+    public void PatchField(TypeDefinition targetType, FieldDefinition plugField, string? targetFieldName = null)
     {
+        FieldDefinition? targetField = targetType.Fields.FirstOrDefault(f => f.Name == targetFieldName);
+        if (targetField == null)
+            return;
+
         _log.Info($"Patching field: {targetField.FullName}");
         ModuleDefinition module = targetField.Module;
 
@@ -669,60 +675,61 @@ public sealed class PlugPatcher
 
     private void RemoveMember(TypeDefinition targetType, IMemberDefinition member)
     {
-        try {
-        _ = member switch
+        try
         {
-            MethodDefinition method => RemoveMethod(method),
-            PropertyDefinition property => RemoveProperty(property),
-            FieldDefinition field => targetType.Fields.Remove(field),
-            _ => throw new InvalidOperationException("Unsupported member type")
-        };
-
-        _log.Debug($"Removed member: {member.Name}");
-
-        bool RemoveMethod(MethodDefinition method)
-        {
-            method.Body?.Clear();
-            method.CustomAttributes.Clear();
-            method.Body = null;
-           
-           
-            targetType.Methods.Remove(method);
-            return true;
-        }
-
-           bool RemoveProperty(PropertyDefinition property)
-        {
-            FieldDefinition? backingField = null;
-            if (property.GetMethod != null)
+            _ = member switch
             {
-                (Instruction? Instruction, int Index) fieldInfo = FindField(property.GetMethod, string.Empty,
-                    OpCodes.Stfld, OpCodes.Stsfld, OpCodes.Ldfld, OpCodes.Ldsfld);
-                if (fieldInfo.Instruction != null)
-                    backingField = ((FieldReference)fieldInfo.Instruction.Operand).Resolve();
+                MethodDefinition method => RemoveMethod(method),
+                PropertyDefinition property => RemoveProperty(property),
+                FieldDefinition field => targetType.Fields.Remove(field),
+                _ => throw new InvalidOperationException("Unsupported member type")
+            };
 
-                RemoveMethod(property.GetMethod);
+            _log.Debug($"Removed member: {member.Name}");
+
+            bool RemoveMethod(MethodDefinition method)
+            {
+                method.Body?.Clear();
+                method.CustomAttributes.Clear();
+                method.Body = null;
+
+
+                targetType.Methods.Remove(method);
+                return true;
             }
 
-            if (property.SetMethod != null)
-                RemoveMethod(property.SetMethod);
-            
+            bool RemoveProperty(PropertyDefinition property)
+            {
+                FieldDefinition? backingField = null;
+                if (property.GetMethod != null)
+                {
+                    (Instruction? Instruction, int Index) fieldInfo = FindField(property.GetMethod, string.Empty,
+                        OpCodes.Stfld, OpCodes.Stsfld, OpCodes.Ldfld, OpCodes.Ldsfld);
+                    if (fieldInfo.Instruction != null)
+                        backingField = ((FieldReference)fieldInfo.Instruction.Operand).Resolve();
 
-            if (backingField != null)
-                targetType.Fields.Remove(backingField);
+                    RemoveMethod(property.GetMethod);
+                }
 
-            targetType.Properties.Remove(property);
-            _log.Debug($"Removed property: {property.Name}");
-            return true;
-        }
-  
+                if (property.SetMethod != null)
+                    RemoveMethod(property.SetMethod);
+
+
+                if (backingField != null)
+                    targetType.Fields.Remove(backingField);
+
+                targetType.Properties.Remove(property);
+                _log.Debug($"Removed property: {property.Name}");
+                return true;
+            }
+
         }
         catch (Exception ex)
         {
             _log.Error($"ERROR removing member {member.Name}: {ex}");
             throw;
         }
-       }
+    }
 
 
     // ---------- DEBUG HELPERS ----------

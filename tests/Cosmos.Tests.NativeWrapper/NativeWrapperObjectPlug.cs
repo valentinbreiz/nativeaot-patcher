@@ -26,7 +26,4 @@ public class NativeWrapperObjectImpl
         get => _instanceBackingField;
         set => _instanceBackingField = value;
     }
-
-    [PlatformSpecific(PlatformArchitecture.RISCV64)]
-    public static void Riscv64OnlyMethod() { }
 }

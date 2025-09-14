@@ -39,12 +39,12 @@ public class PatcherCodeFixProvider : CodeFixProvider
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root == null)
             return;
-        
+
         foreach (Diagnostic diagnostic in context.Diagnostics)
         {
             if (!diagnostic.Id.StartsWith(PatcherAnalyzer.DiagnosticId))
                 continue;
-            
+
             SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
             switch (diagnostic.Id)
             {
