@@ -25,11 +25,22 @@
       <ObjFiles Include="$(IntermediateOutputPath)/cosmos/cobj/*.o" />
     </ItemGroup>
 
+    <PropertyGroup>
+      <!-- Framework linker script paths (included in package) -->
+      <FrameworkLinkerScript>$(MSBuildThisFileDirectory)Linker/linker.$(CosmosArch).ld</FrameworkLinkerScript>
+      <FallbackLinkerScript>$(MSBuildThisFileDirectory)Linker/linker.ld</FallbackLinkerScript>
+      <!-- User project linker script paths (for backward compatibility) -->
+      <UserLinkerScript>Linker/linker.$(CosmosArch).ld</UserLinkerScript>
+      <UserFallbackLinkerScript>Linker/linker.ld</UserFallbackLinkerScript>
+    </PropertyGroup>
+
     <ItemGroup>
       <!-- Arguments for ld.lld -->
-      <!-- Use architecture-specific linker script -->
-      <LinkerArgs Include="-T Linker/linker.$(CosmosArch).ld" Condition="Exists('Linker/linker.$(CosmosArch).ld')" />
-      <LinkerArgs Include="-T Linker/linker.ld" Condition="!Exists('Linker/linker.$(CosmosArch).ld')" />
+      <!-- Priority: User project -> Framework architecture-specific -> Framework fallback -->
+      <LinkerArgs Include="-T $(UserLinkerScript)" Condition="Exists('$(UserLinkerScript)')" />
+      <LinkerArgs Include="-T $(FrameworkLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND Exists('$(FrameworkLinkerScript)')" />
+      <LinkerArgs Include="-T $(UserFallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND Exists('$(UserFallbackLinkerScript)')" />
+      <LinkerArgs Include="-T $(FallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND !Exists('$(UserFallbackLinkerScript)') AND Exists('$(FallbackLinkerScript)')" />
       <LinkerArgs Include="-m $(CosmosLinkerEmulation)" />
       <LinkerArgs Include="-nostdlib" />
       <LinkerArgs Include="-static" />

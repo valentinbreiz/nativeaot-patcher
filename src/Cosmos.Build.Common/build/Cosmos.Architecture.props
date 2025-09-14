@@ -34,9 +34,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <CompilerVisibleItemMetadata Include="CosmosArch" />
-    <CompilerVisibleProperty>CosmosArch</CompilerVisibleProperty>
-    <GlobalAnalyzerConfigFiles Include="analyzer.globalconfig" />
+    <CompilerVisibleProperty Include="CosmosArch" />
   </ItemGroup>
 
   <!-- Architecture-specific native package references -->
