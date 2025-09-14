@@ -1,5 +1,5 @@
 using Microsoft.CodeAnalysis;
 
-namespace Cosmos.Patcher.Analyzer.Models;
+namespace Cosmos.Build.Analyzer.Patcher.Models;
 
-public record PlugInfo(bool IsExternal, INamedTypeSymbol PlugSymbol);
+public record PlugInfo(bool TargetExternal, INamedTypeSymbol PlugSymbol);

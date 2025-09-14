@@ -33,6 +33,17 @@
     <CosmosGccTarget>aarch64-elf</CosmosGccTarget>
   </PropertyGroup>
 
-  <!-- Package references will automatically import their .props files -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="CosmosArch" />
+  </ItemGroup>
+
+  <!-- Architecture-specific native package references -->
+  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
+    <PackageReference Include="Cosmos.Kernel.Native.x64" Version="$(CosmosNativePackageVersion)" Condition="'$(CosmosNativePackageVersion)' != ''" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="$(CosmosNativePackageVersion)" Condition="'$(CosmosNativePackageVersion)' != ''" />
+  </ItemGroup>
 
 </Project>
