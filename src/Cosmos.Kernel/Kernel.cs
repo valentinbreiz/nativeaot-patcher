@@ -4,6 +4,11 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.IO;
+#if ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+#else
+using Cosmos.Kernel.HAL.X64;
+#endif
 
 namespace Cosmos.Kernel;
 

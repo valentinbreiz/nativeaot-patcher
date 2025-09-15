@@ -1,7 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.HAL;
 
-namespace Cosmos.Kernel.HAL;
+namespace Cosmos.Kernel.HAL.ARM64;
 
 public partial class ARM64CpuOps : ICpuOps
 {
