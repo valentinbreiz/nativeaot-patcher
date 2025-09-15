@@ -3,7 +3,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Cosmos.Kernel.HAL</PackageId>
     <Title>Cosmos Kernel HAL</Title>
-    <Description>Hardware abstraction layer interfaces and implementations for multi-architecture kernel development supporting x64, ARM64, and RISC-V architectures.</Description>
+    <Description>Hardware abstraction layer interfaces for multi-architecture kernel development supporting x64, ARM64, and RISC-V architectures.</Description>
     <PackageTags>cosmos;kernel;hal;abstraction;architecture;x64;arm64;riscv;hardware;graphics</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
