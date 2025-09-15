@@ -46,4 +46,13 @@
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="$(CosmosNativePackageVersion)" Condition="'$(CosmosNativePackageVersion)' != ''" />
   </ItemGroup>
 
+  <!-- Architecture-specific HAL package references -->
+  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="$(CosmosPackageVersion)" Condition="'$(CosmosPackageVersion)' != ''" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="$(CosmosPackageVersion)" Condition="'$(CosmosPackageVersion)' != ''" />
+  </ItemGroup>
+
 </Project>
