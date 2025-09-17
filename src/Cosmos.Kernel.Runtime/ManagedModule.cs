@@ -54,7 +54,7 @@ public static unsafe class ManagedModule
                 {
                     // I have yet to see this section, but it wouldn't hurt to implement it.
                     Debug.WriteString("Dehydrated Data Exists\n");
-                    //TODO: Either bring more types from coreclr so we can rehydrate the data 
+                    //TODO: Either bring more types from coreclr so we can rehydrate the data
                     //      or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
                 }
 
@@ -81,8 +81,6 @@ public static unsafe class ManagedModule
                     Debug.WriteString("Running Module Initializers\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
-
-                
             }
         }
     }
@@ -103,7 +101,7 @@ public static unsafe class ManagedModule
     {
         if (!MethodTable.SupportsRelativePointers)
             throw new InvalidProgramException("The compiled binary does not use relative pointers.");
-            
+
         int currentBase = 0;
         for (byte* block = (byte*)rgnStart; (nint)block < rgnEnd; block += sizeof(int))
         {

@@ -11,7 +11,7 @@ internal unsafe partial struct MethodTable
     internal MethodTable* GetArrayEEType()
     {
         void* pGetArrayEEType = ModuleHelpers.RhpGetClasslibFunctionFromEEType((MethodTable*)Unsafe.AsPointer(ref this), ClassLibFunctionId.GetSystemArrayEEType);
-        return ((delegate* <MethodTable*>)pGetArrayEEType)();
+        return ((delegate*<MethodTable*>)pGetArrayEEType)();
         return MethodTable.Of<Array>();
     }
     /*

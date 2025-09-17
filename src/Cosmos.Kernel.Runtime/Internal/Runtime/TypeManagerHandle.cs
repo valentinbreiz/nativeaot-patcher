@@ -61,7 +61,7 @@ namespace Internal.Runtime
         public void* GetClassLibFunction(ClassLibFunctionId functionId)
         {
             uint id = (uint)functionId;
-            
+
             if (id >= m_nClasslibFunctions)
             {
                 return (void*)IntPtr.Zero;
@@ -70,7 +70,7 @@ namespace Internal.Runtime
             return m_pClasslibFunctions[id];
         }
     }
-    
+
     internal enum ClassLibFunctionId
     {
         GetRuntimeException = 0,
