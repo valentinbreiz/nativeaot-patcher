@@ -1,0 +1,4 @@
+[submodule "dotnet/runtime"]
+	path = dotnet/runtime
+	url = https://github.com/dotnet/runtime.git
+	branch = release/9.0
