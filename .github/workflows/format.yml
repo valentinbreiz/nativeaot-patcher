@@ -7,11 +7,11 @@ on:
 jobs:
   format:
     name: Check Code Formatting
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         dotnet-version: [ 9.0.x ]
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-          
+
       - name: Compile Packages
         run: ./.devcontainer/postCreateCommand.sh
 
@@ -28,5 +28,5 @@ jobs:
         run: dotnet restore ./nativeaot-patcher.slnx
 
       - name: Check Formatting
-        run: dotnet format ./nativeaot-patcher.slnx --verify-no-changes --severity error || { echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."; exit 1; }
+        run: dotnet format ./nativeaot-patcher.slnx --exclude dotnet --verify-no-changes --severity error || { echo "::error file=Code Formatting::Some files need formatting. Run 'dotnet format' locally."; exit 1; }
 
