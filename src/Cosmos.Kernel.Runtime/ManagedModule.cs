@@ -139,41 +139,8 @@ public static unsafe class ManagedModule
     }
 }
 
-
 [StructLayout(LayoutKind.Sequential)]
 internal class RawData
 {
     public byte Data;
-}
-[StructLayout(LayoutKind.Sequential)]
-internal struct ObjHeader
-{
-    // Contents of the object header
-    private IntPtr _objHeaderContents;
-}
-[StructLayout(LayoutKind.Sequential)]
-internal unsafe struct ModuleInfoRow
-{
-    internal ReadyToRunSectionType SectionId;
-    internal int Flags;
-    internal nint Start;
-    internal nint End;
-    internal readonly int GetLength() => (int)(End - Start);
-};
-internal static class GCStaticRegionConstants
-{
-    /// <summary>
-    /// Flag set if the corresponding GCStatic entry has not yet been initialized and
-    /// the corresponding MethodTable pointer has been changed into a instance pointer of
-    /// that MethodTable.
-    /// </summary>
-    public const int Uninitialized = 0x1;
-
-    /// <summary>
-    /// Flag set if the next pointer loc points to GCStaticsPreInitDataNode.
-    /// Otherise it is the next GCStatic entry.
-    /// </summary>
-    public const int HasPreInitializedData = 0x2;
-
-    public const int Mask = Uninitialized | HasPreInitializedData;
 }
