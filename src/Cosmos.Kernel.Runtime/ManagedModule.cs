@@ -101,6 +101,9 @@ public static unsafe class ManagedModule
 
     static void InitializeStatics(nint rgnStart, nint rgnEnd)
     {
+        if (!MethodTable.SupportsRelativePointers)
+            throw new InvalidProgramException("The compiled binary does not use relative pointers.");
+            
         int currentBase = 0;
         for (byte* block = (byte*)rgnStart; (nint)block < rgnEnd; block += sizeof(int))
         {
