@@ -1,4 +1,5 @@
 ﻿using Cosmos.Build.API.Attributes;
+using Cosmos.Build.API.Enum;
 
 namespace Cosmos.Tests.NativeWrapper;
 
@@ -10,7 +11,6 @@ public class NativeWrapperObjectImpl
 
     [PlugMember]
     public static void Speakg(object aThis) => Console.WriteLine("bz bz plugged hello");
-
     [PlugMember]
     public static int InstanceMethod(object aThis, int value) => value * 2;
 

@@ -1,13 +1,4 @@
 <Project>
-
-  <PropertyGroup>
-    <!--
-      Windows only: if not overridden, assume the global Cosmos.Patcher
-      tool is installed at %USERPROFILE%\.dotnet\tools\cosmos.patcher.exe
-    -->
-    <CosmosPatcherExe Condition="'$(OS)'=='Windows_NT' and '$(CosmosPatcherExe)' == ''">$(USERPROFILE)\.dotnet\tools\cosmos.patcher.exe</CosmosPatcherExe>
-  </PropertyGroup>
-
   <PropertyGroup>
     <PatchedAssembly />
     <EnablePatching Condition="'$(EnablePatching)'!='false'">true</EnablePatching>

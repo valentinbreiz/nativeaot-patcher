@@ -1,9 +1,9 @@
-namespace Cosmos.Patcher.Analyzer.Extensions;
+namespace Cosmos.Build.Analyzer.Patcher.Extensions;
 
 public static class EnumerableExtensions
 {
 
-    public static bool Any<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate, out T value)
+    public static bool Any<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate, out T? value)
     {
         using IEnumerator<T> enumerator = enumerable.GetEnumerator();
         while (enumerator.MoveNext())
@@ -16,4 +16,6 @@ public static class EnumerableExtensions
         value = default;
         return false;
     }
+
+
 }

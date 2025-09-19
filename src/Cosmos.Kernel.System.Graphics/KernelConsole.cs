@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.Graphics.Fonts;
 
@@ -10,6 +12,21 @@ public static class KernelConsole
     private static int CharWidth => PCScreenFont.CharWidth;
     private static int CharHeight => PCScreenFont.CharHeight;
     private const int LineSpacing = 0;
+
+    [ModuleInitializer]
+    internal static unsafe void Initialize()
+    {
+        // Initialize framebuffer if available
+        if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
+        {
+            LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
+            Canvas.Address = (uint*)fb->Address;
+            Canvas.Width = (uint)fb->Width;
+            Canvas.Height = (uint)fb->Height;
+            Canvas.Pitch = (uint)fb->Pitch;
+            Canvas.ClearScreen(Color.Black);
+        }
+    }
 
     public static void Write(string text)
     {

@@ -1,7 +1,7 @@
-using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
+using Internal.Runtime;
 
 #region Things needed by ILC
 namespace System
@@ -15,9 +15,8 @@ namespace System
             Optimized
         }
 
-        public sealed class RuntimeExportAttribute : Attribute
+        public sealed class RuntimeExportAttribute(string entry) : Attribute
         {
-            public RuntimeExportAttribute(string entry) { }
         }
 
         public sealed class RuntimeImportAttribute : Attribute
@@ -36,20 +35,19 @@ namespace System
                 DllName = dllName;
             }
         }
-
-        internal unsafe struct MethodTable
-        {
-            internal ushort _usComponentSize;
-            private ushort _usFlags;
-            internal uint _uBaseSize;
-            internal MethodTable* _relatedType;
-            private ushort _usNumVtableSlots;
-            private ushort _usNumInterfaces;
-            private uint _uHashCode;
-        }
     }
 }
 
+namespace System.Runtime.CompilerServices
+{
+    // Calls to methods or references to fields marked with this attribute may be replaced at
+    // some call sites with jit intrinsic expansions.
+    // Types marked with this attribute may be specially treated by the runtime/compiler.
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Field, Inherited = false)]
+    internal sealed class IntrinsicAttribute : Attribute
+    {
+    }
+}
 namespace Cosmos.Kernel.Runtime
 {
     // A class that the compiler looks for that has helpers to initialize the
@@ -73,14 +71,14 @@ namespace Cosmos.Kernel.Runtime
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
         [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(Exception ex) 
+        private static void RhpThrowEx(Exception ex)
         {
             if (ex == null)
             {
                 Console.WriteLine("Null exception thrown");
                 return;
             }
-            
+
             Console.WriteLine($"Unhandled exception: {ex.GetType().Name}");
         }
 
@@ -103,14 +101,22 @@ namespace Cosmos.Kernel.Runtime
             *location1 = value;
             return original;
         }
-      
-        /*
-                [RuntimeExport("RhTypeCast_CheckCastAny")]
-                static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle) { throw null; }
+
+        [RuntimeExport("RhTypeCast_CheckCastClass")]
+        static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle)
+        {
+            // This is 100% WRONG
+            return obj;
+        }
+
+    }
+}
+
+/*
                 [RuntimeExport("RhUnbox2")]
                 static unsafe object RhUnbox2(object obj) { throw null; }
-                [RuntimeExport("RhTypeCast_CheckCastClass")]
-                static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle) { throw null; }
+                [RuntimeExport("RhpCheckedAssignRef")]
+                static unsafe void RhpCheckedAssignRef(object* location, object value, int typeHandle) { }
                 [RuntimeExport("RhpTrapThreads")]
                 static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
@@ -258,4 +264,7 @@ namespace Cosmos.Kernel.Runtime
                 static int RhGetLastGCPercentTimeInGC(int generation) { throw null; }
     }
 }
+
+*/
+
 #endregion

@@ -1,8 +1,6 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Cosmos.Patcher.Analyzer.Extensions;
+namespace Cosmos.Build.Analyzer.Patcher.Extensions;
 
 public static class SyntaxNodeExtensions
 {
@@ -34,4 +32,6 @@ public static class SyntaxNodeExtensions
         _ => null
     };
 
+    public static bool HasAttribute(this MemberDeclarationSyntax member, params string[] attributeNames) =>
+      member.AttributeLists.SelectMany(a => a.Attributes).Any(a => attributeNames.Contains(a.Name.ToString()));
 }

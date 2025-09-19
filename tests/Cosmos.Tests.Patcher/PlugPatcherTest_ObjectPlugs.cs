@@ -91,7 +91,7 @@ public class PlugPatcherTest_ObjectPlugs
 
         targetAssembly.Save("./", "targetCtorAssembly.dll");
 
-        var @out = Console.Out; // Store the original output
+        TextWriter @out = Console.Out; // Store the original output
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
 
@@ -109,7 +109,7 @@ public class PlugPatcherTest_ObjectPlugs
         TextWriter originalOutput = Console.Out; // Store the original output
         try
         {
-            var output = Console.Out;
+            TextWriter output = Console.Out;
             // TODO: Use a more robust way to capture console output in tests(patcher should have a logger)
             using (var stringWriter = new StringWriter())
             {

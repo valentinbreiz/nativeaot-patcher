@@ -5,8 +5,8 @@
     <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
   </PropertyGroup>
   <PropertyGroup>
-    <PackageId>Cosmos.Patcher.Analyzer</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
+    <PackageId>Cosmos.Build.Analyzer.Patcher</PackageId>
+    <PackageVersion>3.0.0</PackageVersion>
     <PackageLicenseUrl>https://github.com/valentinbreiz/nativeaot-patcher/blob/main/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</PackageProjectUrl>
     <!-- <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl> -->
@@ -29,8 +29,8 @@
   </ItemGroup>
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Build.Analyzer.Patcher.dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\Cosmos.Build.Analyzer.Patcher.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)/*.dll" PackagePath="analyzers/dotnet/cs" />
+
     </ItemGroup>
   </Target>
 </Project>
