@@ -5,14 +5,6 @@ namespace Cosmos.Kernel.Runtime;
 
 public class MetaTable
 {
-    // look int what this does
-    [RuntimeExport("RhpGetModuleSection")]
-    private static IntPtr RhGetModuleSection(ref object module, object section,
-        out int length)
-    {
-        length = 0;
-        return IntPtr.Zero;
-    }
 
 
     [RuntimeExport("RhGetModuleFileName")]
@@ -21,11 +13,6 @@ public class MetaTable
         return 0;
     }
 
-    [RuntimeExport("RhpCheckedXchg")]
-    internal static object InterlockedExchange([NotNullIfNotNull(nameof(value))] ref object? location1, object? value)
-    {
-        return value;
-    }
 
     // this is 100% wrong
     [RuntimeExport("RhpInitialDynamicInterfaceDispatch")]
