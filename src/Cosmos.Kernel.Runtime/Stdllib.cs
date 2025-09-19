@@ -1,6 +1,7 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
+using Internal.Runtime;
 
 #region Things needed by ILC
 namespace System
@@ -34,20 +35,19 @@ namespace System
                 DllName = dllName;
             }
         }
-
-        internal unsafe struct MethodTable
-        {
-            internal ushort _usComponentSize;
-            private ushort _usFlags;
-            internal uint _uBaseSize;
-            internal MethodTable* _relatedType;
-            private ushort _usNumVtableSlots;
-            private ushort _usNumInterfaces;
-            private uint _uHashCode;
-        }
     }
 }
 
+namespace System.Runtime.CompilerServices
+{
+    // Calls to methods or references to fields marked with this attribute may be replaced at
+    // some call sites with jit intrinsic expansions.
+    // Types marked with this attribute may be specially treated by the runtime/compiler.
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Field, Inherited = false)]
+    internal sealed class IntrinsicAttribute : Attribute
+    {
+    }
+}
 namespace Cosmos.Kernel.Runtime
 {
     // A class that the compiler looks for that has helpers to initialize the
@@ -79,7 +79,7 @@ namespace Cosmos.Kernel.Runtime
             if (length < 0)
                 return null;
 
-            uint size = pMT->_uBaseSize + (uint)length * pMT->_usComponentSize;
+            uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
             MethodTable** result = AllocObject(size);
             *result = pMT;
             *(int*)(result + 1) = length;
@@ -101,7 +101,7 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpNewFast")]
         internal static unsafe void* RhpNewFast(MethodTable* pMT)
         {
-            MethodTable** result = AllocObject(pMT->_uBaseSize);
+            MethodTable** result = AllocObject(pMT->BaseSize);
             *result = pMT;
             return result;
         }
