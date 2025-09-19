@@ -2,6 +2,7 @@ using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
@@ -48,11 +49,20 @@ public static unsafe class ManagedModule
             for (int j = 0; j < header->NumberOfSections; j++)
             {
                 ref var section = ref sections[j];
+
+                if (section.SectionId == ReadyToRunSectionType.DehydratedData)
+                {
+                    // I have yet to see this section, but it wouldn't hurt to implement it.
+                    Debug.WriteString("Dehydrated Data Exists\n");
+                    //TODO: Either bring more types from coreclr so we can rehydrate the data
+                    //      or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
+                }
+
                 if (section.SectionId == ReadyToRunSectionType.GCStaticRegion)
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A GC static region section has a null start or end.");
-
+                    Debug.WriteString("Running Module GCStaticRegion\n");
                     InitializeStatics(section.Start, section.End);
                 }
 
@@ -60,7 +70,7 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A eager constructor section has a null start or end.");
-
+                    Debug.WriteString("Running Module EagerCctor\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
 
@@ -68,7 +78,7 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A module initialization section has a null start or end.");
-
+                    Debug.WriteString("Running Module Initializers\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
             }
@@ -89,6 +99,9 @@ public static unsafe class ManagedModule
 
     static void InitializeStatics(nint rgnStart, nint rgnEnd)
     {
+        if (!MethodTable.SupportsRelativePointers)
+            throw new InvalidProgramException("The compiled binary does not use relative pointers.");
+
         int currentBase = 0;
         for (byte* block = (byte*)rgnStart; (nint)block < rgnEnd; block += sizeof(int))
         {
@@ -112,7 +125,7 @@ public static unsafe class ManagedModule
                     // It actually has all GC fields including non-preinitialized fields and we simply copy over the
                     // entire blob to this object, overwriting everything.
                     void* pPreInitDataAddr = ReadRelPtr32((int*)pBlock + 1);
-                    var size = pEEType->_uBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
+                    var size = pEEType->BaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
 
                     MemoryOp.MemMove((byte*)Unsafe.AsPointer(ref ((RawData)obj).Data), (byte*)pPreInitDataAddr, (int)size);
                 }
@@ -126,40 +139,8 @@ public static unsafe class ManagedModule
     }
 }
 
-
 [StructLayout(LayoutKind.Sequential)]
 internal class RawData
 {
     public byte Data;
-}
-[StructLayout(LayoutKind.Sequential)]
-internal struct ObjHeader
-{
-    // Contents of the object header
-    private IntPtr _objHeaderContents;
-}
-[StructLayout(LayoutKind.Sequential)]
-internal unsafe struct ModuleInfoRow
-{
-    internal ReadyToRunSectionType SectionId;
-    internal int Flags;
-    internal nint Start;
-    internal nint End;
-};
-internal static class GCStaticRegionConstants
-{
-    /// <summary>
-    /// Flag set if the corresponding GCStatic entry has not yet been initialized and
-    /// the corresponding MethodTable pointer has been changed into a instance pointer of
-    /// that MethodTable.
-    /// </summary>
-    public const int Uninitialized = 0x1;
-
-    /// <summary>
-    /// Flag set if the next pointer loc points to GCStaticsPreInitDataNode.
-    /// Otherise it is the next GCStatic entry.
-    /// </summary>
-    public const int HasPreInitializedData = 0x2;
-
-    public const int Mask = Uninitialized | HasPreInitializedData;
 }

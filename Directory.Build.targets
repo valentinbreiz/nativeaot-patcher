@@ -1,4 +1,10 @@
 <Project>
+  <PropertyGroup>
+    <ToolCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\tools\Common\</ToolCommonPath>
+    <AotCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\nativeaot\Common\src\</AotCommonPath>
+    <AotRuntimeBasePath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\nativeaot\Runtime.Base\src\</AotRuntimeBasePath>
+    <CompilerCommonPath>$(MSBuildThisFileDirectory)dotnet\runtime\src\coreclr\nativeaot\Common\src\</CompilerCommonPath>
+  </PropertyGroup>
   <Target Name="EnforceKernelReferenceRules" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <IsExcluded>$(MSBuildProjectName).StartsWith('Cosmos.Kernel')</IsExcluded>
