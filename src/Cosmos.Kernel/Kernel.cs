@@ -1,17 +1,19 @@
-using System;
 using System.Runtime.InteropServices;
+using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.IO;
+#if ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+#else
+using Cosmos.Kernel.HAL.X64;
+#endif
 
 namespace Cosmos.Kernel;
 
 public class Kernel
 {
-    private static readonly LimineFramebufferRequest Framebuffer = new();
-
-    private static readonly LimineHHDMRequest HHDM = new();
 
     /// <summary>
     /// Gets the current platform HAL, if available.
@@ -21,36 +23,27 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        MemoryOp.InitializeHeap(HHDM.Offset, 0x1000000);
-
-        // Initialize framebuffer if available
-        if (Framebuffer.Response != null && Framebuffer.Response->FramebufferCount > 0)
-        {
-            LimineFramebuffer* fb = Framebuffer.Response->Framebuffers[0];
-            Screen.Init(fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
-        }
+        MemoryOp.InitializeHeap(Limine.HHDM.Offset, 0x1000000);
 
         // Initialize platform HAL
         PlatformHAL.Initialize();
 
-        Console.WriteLine("CosmosOS gen3 v0.1.2 booted.");
+        Serial.ComInit();
+        Serial.WriteString("UART started.\n");
+        Serial.WriteString("CosmosOS gen3 v0.1.2 booted.\n");
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            Console.WriteLine("Architecture: x86-64.");
+            Serial.WriteString("Architecture: x86-64.");
         }
         else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
         {
-            Console.WriteLine("Architecture: ARM64/AArch64.");
+            Serial.WriteString("Architecture: ARM64/AArch64.");
         }
         else
         {
-            Console.WriteLine("Architecture: Unknown.");
+            Serial.WriteString("Architecture: Unknown.");
         }
-
-        Serial.ComInit();
-        Console.WriteLine("UART started.");
-        Serial.WriteString("Hello from UART\n");
     }
 
     /// <summary>

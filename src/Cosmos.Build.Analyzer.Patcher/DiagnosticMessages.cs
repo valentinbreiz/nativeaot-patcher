@@ -1,28 +1,38 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Cosmos.Patcher.Analyzer;
+namespace Cosmos.Build.Analyzer.Patcher;
 
 public sealed class DiagnosticMessages
 {
     public static readonly DiagnosticDescriptor TypeNotFound = new(
         "NAOT0001",
         "Type Not Found",
-        "The specified type '{0}' could not be located",
+        "Type '{0}' could not be found",
         "Naming",
         DiagnosticSeverity.Error,
         true,
         "Ensure that the type name is correct and that the type is accessible."
     );
 
-    public static readonly DiagnosticDescriptor MethodNeedsPlug = new(
+    public static readonly DiagnosticDescriptor MemberNeedsPlug = new(
         "NAOT0002",
-        "Method Needs Plug",
-        "Method '{0}' in class '{1}' requires a plug",
+        "Member Needs Plug",
+        "Member '{0}' in class '{1}' requires a plug",
         "Usage",
         DiagnosticSeverity.Error,
         true,
-        "Ensure that the method has a corresponding plug. See http://www.gocosmos.org/docs/plugs/missing/ for more information."
+        "Ensure that the member has a corresponding plug. See http://www.gocosmos.org/docs/plugs/missing/ for more information."
+    );
+
+    public static readonly DiagnosticDescriptor MemberCanNotBeUsed = new(
+        "NAOT0003",
+        "Member Can Not Be Used",
+        "Member '{0}' can not be used because the current architecture ({1}) does not match the target architecture '{2}' of plug '{3}'",
+        "Usage",
+        DiagnosticSeverity.Error,
+        true,
+        "Ensure that the member can be used in the current environment."
     );
 
     public static readonly DiagnosticDescriptor PlugNameDoesNotMatch = new(
@@ -58,5 +68,5 @@ public sealed class DiagnosticMessages
 
 
     public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound,
-        MethodNeedsPlug, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
+        MemberNeedsPlug, MemberCanNotBeUsed, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
 }

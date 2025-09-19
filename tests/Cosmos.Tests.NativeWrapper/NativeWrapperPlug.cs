@@ -11,5 +11,6 @@ public class TestClassPlug
     [PlugMember]
     public static void OutputDebugString(object aThis)
     {
+
     }
 }

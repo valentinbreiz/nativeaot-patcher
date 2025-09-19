@@ -1,7 +1,7 @@
 namespace Cosmos.Build.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class PlugAttribute(string targetName, bool isOptional = false, bool replaceBase = false) : Attribute
+public sealed class PlugAttribute(string targetName, bool isOptional = false, bool replaceTarget = false) : Attribute
 {
     //  public TargetPlatform TargetPlatform;
 
@@ -21,7 +21,7 @@ public sealed class PlugAttribute(string targetName, bool isOptional = false, bo
     {
     }
 
-    public PlugAttribute(bool replaceBase) : this(string.Empty, replaceBase: replaceBase)
+    public PlugAttribute(bool replaceBase) : this(string.Empty, replaceTarget: replaceBase)
     {
     }
 
@@ -40,5 +40,5 @@ public sealed class PlugAttribute(string targetName, bool isOptional = false, bo
     /// </summary>
     public bool IsOptional { get; set; } = isOptional;
 
-    public bool ReplaceBase { get; set; } = replaceBase;
+    public bool ReplaceBase { get; set; } = replaceTarget;
 }

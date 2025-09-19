@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
+using Cosmos.Build.Analyzer.Patcher;
 using Cosmos.Build.API.Attributes;
-using Cosmos.Patcher.Analyzer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,13 +10,14 @@ namespace Cosmos.Tests.Build.Analyzer.Patcher;
 
 public class AnalyzerTests
 {
-    private static readonly MetadataReference CorlibReference =
+    private static readonly MetadataReference s_corlibReference =
         MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
-    private static readonly MetadataReference PlugAttributeReference =
+    private static readonly MetadataReference s_plugAttributeReference =
         MetadataReference.CreateFromFile(typeof(PlugAttribute).Assembly.Location);
 
-    private static SyntaxTree ParseCode(string code) => CSharpSyntaxTree.ParseText(code);
+    private static readonly MetadataReference s_platformSpecificAttributeReference =
+        MetadataReference.CreateFromFile(typeof(PlatformSpecificAttribute).Assembly.Location);
 
 
     [Fact]
@@ -41,20 +42,6 @@ public class AnalyzerTests
             d => d.Id == DiagnosticMessages.TypeNotFound.Id && d.GetMessage().Contains("System.NonExistent"));
     }
 
-    private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
-    {
-        SyntaxTree syntaxTree = ParseCode(code);
-
-        CSharpCompilation compilation = CSharpCompilation.Create("TestCompilation")
-            .AddReferences(CorlibReference, PlugAttributeReference)
-            .AddSyntaxTrees(syntaxTree);
-
-        PatcherAnalyzer analyzer = new();
-        CompilationWithAnalyzers compilationWithAnalyzers =
-            compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
-    }
-
 
     [Fact]
     public async Task Test_AnalyzeAccessedMember()
@@ -64,9 +51,12 @@ public class AnalyzerTests
                                     using System.Runtime.CompilerServices;
                                     using System.Runtime.InteropServices;
                                     using Cosmos.Build.API.Attributes;
+                                    using Cosmos.Build.API.Enum;
 
+                                   
                                     namespace ConsoleApplication1
                                     {
+
                                         public static class TestNativeType
                                         {
                                             [DllImport("example.dll")]
@@ -74,6 +64,9 @@ public class AnalyzerTests
 
                                             [MethodImpl(MethodImplOptions.InternalCall)]
                                             public static extern void NativeMethod();
+
+                                            [PlatformSpecific(PlatformArchitecture.ARM64)]
+                                            public static void Arm64OnlyMethod() { }
                                         }
 
                                         public class Test
@@ -82,6 +75,7 @@ public class AnalyzerTests
                                             {
                                                 TestNativeType.ExternalMethod();
                                                 TestNativeType.NativeMethod();
+                                                TestNativeType.Arm64OnlyMethod();
                                             }
                                         }
                                     }
@@ -89,10 +83,18 @@ public class AnalyzerTests
 
         ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
 
+        Console.WriteLine("Diagnostics:");
+        foreach (var diag in diagnostics)
+        {
+            Console.WriteLine(diag.ToString());
+        }
+
         Assert.Contains(diagnostics,
-            d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
+            d => d.Id == DiagnosticMessages.MemberNeedsPlug.Id && d.GetMessage().Contains("ExternalMethod"));
         Assert.Contains(diagnostics,
-            d => d.Id == DiagnosticMessages.MethodNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
+            d => d.Id == DiagnosticMessages.MemberNeedsPlug.Id && d.GetMessage().Contains("NativeMethod"));
+        Assert.Contains(diagnostics,
+            d => d.Id == DiagnosticMessages.MemberCanNotBeUsed.Id && d.GetMessage().Contains("Arm64OnlyMethod"));
     }
 
     [Fact]
@@ -197,4 +199,20 @@ public class AnalyzerTests
         Assert.Contains(diagnostics,
             d => d.Id == DiagnosticMessages.MethodNotImplemented.Id && d.GetMessage().Contains(".cctor"));
     }
+
+    private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(string code)
+    {
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
+
+        CSharpCompilation compilation = CSharpCompilation.Create("TestCompilation")
+            .AddReferences(s_corlibReference, s_plugAttributeReference, s_platformSpecificAttributeReference)
+            .AddSyntaxTrees(syntaxTree);
+
+        PatcherAnalyzer analyzer = new();
+        CompilationWithAnalyzers compilationWithAnalyzers =
+            compilation.WithAnalyzers([analyzer], new AnalyzerOptions([], new AnalyzerTestConfigOptionsProvider(new AnalyzerTestConfigOptions(("build_property.CosmosArch", "X64")))));
+        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+    }
+
+
 }

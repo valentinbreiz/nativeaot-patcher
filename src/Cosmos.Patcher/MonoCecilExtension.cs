@@ -156,15 +156,13 @@ public static class MonoCecilExtensions
     /// <returns>A collection of MethodDefinition objects for the found methods. Empty collection if none found.</returns>
     public static Collection<MethodDefinition> FindMethods(this TypeDefinition type, string methodSignature)
     {
-        Collection<MethodDefinition> collection = new();
-
-        // This function checks each method in the type's Methods collection,
-        // and adds those methods to the collection whose full name or simple name matches the provided method signature.
-        foreach (MethodDefinition? item in type.Methods.Where(m =>
-                     m.FullName == methodSignature || m.Name == methodSignature))
-        {
-            collection.Add(item);
-        }
+        Collection<MethodDefinition> collection =
+        [
+            // This function checks each method in the type's Methods collection,
+            // and adds those methods to the collection whose full name or simple name matches the provided method signature.
+            .. type.Methods.Where(m =>
+                         m.FullName == methodSignature || m.Name == methodSignature),
+        ];
 
         return collection;
     }
@@ -240,7 +238,7 @@ public static class MonoCecilExtensions
         }
 
         // Clone attributes from the source and add to the destination
-        Collection<CustomAttribute> clonedAttributes = new();
+        Collection<CustomAttribute> clonedAttributes = [];
         foreach (CustomAttribute? attribute in src.CustomAttributes)
         {
             CustomAttribute clonedAttribute = attribute.Clone();
@@ -249,7 +247,7 @@ public static class MonoCecilExtensions
         }
 
         // Clone interfaces from the source and add to the destination
-        Collection<InterfaceImplementation> clonedInterfaces = new();
+        Collection<InterfaceImplementation> clonedInterfaces = [];
         foreach (InterfaceImplementation? @interface in src.Interfaces)
         {
             InterfaceImplementation clonedInterface = @interface.Clone();
@@ -258,7 +256,7 @@ public static class MonoCecilExtensions
         }
 
         // Clone fields from the source and add to the destination
-        Collection<FieldDefinition> clonedFields = new();
+        Collection<FieldDefinition> clonedFields = [];
         foreach (FieldDefinition? field in src.Fields)
         {
             FieldDefinition clonedField = field.Clone();
@@ -267,7 +265,7 @@ public static class MonoCecilExtensions
         }
 
         // Clone properties from the source and add to the destination
-        Collection<PropertyDefinition> clonedProperties = new();
+        Collection<PropertyDefinition> clonedProperties = [];
         foreach (PropertyDefinition? property in src.Properties)
         {
             PropertyDefinition clonedProperty = property.Clone();
@@ -276,7 +274,7 @@ public static class MonoCecilExtensions
         }
 
         // Clone methods from the source (don't add to the destination yet)
-        Collection<MethodDefinition> clonedMethods = new();
+        Collection<MethodDefinition> clonedMethods = [];
         foreach (MethodDefinition? method in src.Methods)
         {
             MethodDefinition clonedMethod = method.Clone();
@@ -284,7 +282,7 @@ public static class MonoCecilExtensions
         }
 
         // List for keeping track of methods that need further processing
-        Collection<MethodDefinition> updatedMethods = new();
+        Collection<MethodDefinition> updatedMethods = [];
 
         // Process each method
         foreach (MethodDefinition? clonedMethod in clonedMethods.ToList())
@@ -309,7 +307,7 @@ public static class MonoCecilExtensions
                 if (destMethod != null)
                 {
                     Collection<Instruction>? clonedInstructions = clonedMethod.Body.Instructions;
-                    List<Instruction> trimmedClonedInstructions = clonedInstructions.ToList();
+                    List<Instruction> trimmedClonedInstructions = [.. clonedInstructions];
 
                     // For constructors
                     if (clonedMethod.Name is ".ctor")
@@ -724,7 +722,7 @@ public static class MonoCecilExtensions
             throw new ArgumentNullException(nameof(instructions));
         }
 
-        Collection<Instruction> clonedInstructions = new();
+        Collection<Instruction> clonedInstructions = [];
 
         foreach (Instruction? instruction in instructions)
         {
@@ -783,7 +781,7 @@ public static class MonoCecilExtensions
             }
 
             // Instruction mapping from old to new instructions used to update branch targets which is necessary after cloning
-            Dictionary<Instruction, Instruction> instructionMapping = new();
+            Dictionary<Instruction, Instruction> instructionMapping = [];
 
             // Clone all the instructions and create the mapping.
             foreach (Instruction? instruction in method.Body.Instructions)
@@ -1474,10 +1472,10 @@ public static class MonoCecilExtensions
     public static void SwapDuplicateMethods(this TypeDefinition type, bool avoidSignatureConflicts = false)
     {
         // This HashSet is used for tracking the methods that have already been swapped.
-        HashSet<string> alreadySwapped = new();
+        HashSet<string> alreadySwapped = [];
 
         // Convert the method collection to list for efficient index-based access.
-        List<MethodDefinition> methods = type.Methods.ToList();
+        List<MethodDefinition> methods = [.. type.Methods];
 
         // Iterate over each pair of methods in the type
         for (int i = 0; i < methods.Count; i++)
@@ -1815,17 +1813,22 @@ public static class MonoCecilExtensions
 
     #endregion InstructionOptimizations
 
+    #region GetMembers
+    public static List<IMemberDefinition> GetMembers(this TypeDefinition type) => [.. type.Fields, .. type.Properties, .. type.Methods];
+    #endregion
+
+
     #region GetArgument
 
     public static T? GetArgument<T>(this CustomAttribute attribute, T? defaultValue = default, string named = "", int positional = 0)
     {
         string? typeName = typeof(T).FullName;
-        Logger.Debug($"[GetArgument] Trying to get argument of type: {typeName}");
-        Logger.Debug($"[GetArgument] Total constructor arguments: {attribute.ConstructorArguments.Count}");
-        Logger.Debug($"[GetArgument] Total properties: {attribute.Properties.Count}");
+        Logger.Debug($"Trying to get argument of type: {typeName}");
+        Logger.Debug($"Total constructor arguments: {attribute.ConstructorArguments.Count}");
+        Logger.Debug($"Total properties: {attribute.Properties.Count}");
 
         CustomAttributeNamedArgument namedProp = attribute.Properties
-               .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.InvariantCultureIgnoreCase));
+               .FirstOrDefault(arg => string.Equals(arg.Name, named, StringComparison.OrdinalIgnoreCase));
 
         CustomAttributeArgument? argument = !string.IsNullOrEmpty(namedProp.Name) ? namedProp.Argument : (positional >= attribute.ConstructorArguments.Count || positional < 0
                 ? null
@@ -1850,9 +1853,11 @@ public static class MonoCecilExtensions
 
         if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
         {
-            return argument.Value.Value is T matchedValue
+            T? value = argument.Value.Value is T matchedValue
                 ? matchedValue
                 : defaultValue;
+            Logger.Debug($"Type is not enum, Value: {value}");
+            return value;
         }
 
         Logger.Debug($"Type is enum, Value: {enumValue}");

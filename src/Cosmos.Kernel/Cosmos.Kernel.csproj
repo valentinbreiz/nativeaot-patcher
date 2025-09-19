@@ -26,8 +26,16 @@
     <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Runtime\Cosmos.Kernel.Runtime.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Native.x64\Cosmos.Kernel.Native.x64.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Native.ARM64\Cosmos.Kernel.Native.ARM64.csproj" />
+  </ItemGroup>
+  
+  <!-- Architecture-specific HAL references -->
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
   </ItemGroup>
 </Project>
