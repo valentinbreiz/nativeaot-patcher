@@ -1,5 +1,6 @@
 using System.Runtime;
 using Cosmos.Kernel.Core.Memory;
+using Internal.Runtime;
 
 namespace Cosmos.Kernel.Runtime;
 
@@ -9,7 +10,7 @@ public static class Memory
     internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, uint flags,
         out void* pResult)
     {
-        uint size = pArrayEEType->_uBaseSize * numElements;
+        uint size = pArrayEEType->BaseSize * numElements;
         pResult = MemoryOp.Alloc(size);
         // as some point we should set flags
     }
@@ -20,7 +21,7 @@ public static class Memory
         if (length < 0)
             return null;
 
-        uint size = pMT->_uBaseSize + (uint)length * pMT->_usComponentSize;
+        uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
         *result = pMT;
         *(int*)(result + 1) = length;
@@ -28,9 +29,9 @@ public static class Memory
     }
 
     [RuntimeExport("RhpNewFast")]
-    private static unsafe void* RhpNewFast(MethodTable* pMT)
+    internal static unsafe void* RhpNewFast(MethodTable* pMT)
     {
-        MethodTable** result = AllocObject(pMT->_uBaseSize);
+        MethodTable** result = AllocObject(pMT->BaseSize);
         *result = pMT;
         return result;
     }
@@ -40,7 +41,7 @@ public static class Memory
         return (MethodTable**)MemoryOp.Alloc(size);
     }
 
-    private static unsafe MethodTable* GetMethodTable(object obj)
+    internal static unsafe MethodTable* GetMethodTable(object obj)
     {
         TypedReference tr = __makeref(obj);
         return (MethodTable*)*(IntPtr*)&tr;
