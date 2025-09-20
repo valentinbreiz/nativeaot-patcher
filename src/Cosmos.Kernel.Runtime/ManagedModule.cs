@@ -53,7 +53,7 @@ public static unsafe class ManagedModule
                 if (section.SectionId == ReadyToRunSectionType.DehydratedData)
                 {
                     // I have yet to see this section, but it wouldn't hurt to implement it.
-                    Debug.WriteString("Dehydrated Data Exists\n");
+                    // Debug.WriteString("Dehydrated Data Exists\n");
                     //TODO: Either bring more types from coreclr so we can rehydrate the data
                     //      or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
                 }
@@ -62,7 +62,7 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A GC static region section has a null start or end.");
-                    Debug.WriteString("Running Module GCStaticRegion\n");
+                    // Debug.WriteString("Running Module GCStaticRegion\n");
                     InitializeStatics(section.Start, section.End);
                 }
 
@@ -70,7 +70,7 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A eager constructor section has a null start or end.");
-                    Debug.WriteString("Running Module EagerCctor\n");
+                    // Debug.WriteString("Running Module EagerCctor\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
 
@@ -78,7 +78,7 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A module initialization section has a null start or end.");
-                    Debug.WriteString("Running Module Initializers\n");
+                    // Debug.WriteString("Running Module Initializers\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
             }
