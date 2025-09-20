@@ -15,6 +15,7 @@
     <PackageVersion Include="log4net" Version="3.0.3" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="1.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CodeFix.Testing" Version="1.1.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />

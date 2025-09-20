@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+
+    <!--pack as nuget-->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- This may need to change -->
     <DefineConstants>$(DefineConstants);NATIVEAOT;TARGET_64BIT</DefineConstants>
@@ -21,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\Cosmos.Kernel.Core\\Cosmos.Kernel.Core.csproj" />
-    <ProjectReference Include="..\\Cosmos.Build.API\\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
   </ItemGroup>
 
 </Project>
