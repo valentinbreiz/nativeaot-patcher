@@ -30,7 +30,7 @@ public class Kernel
 
         Serial.ComInit();
         Serial.WriteString("UART started.\n");
-        Serial.WriteString("CosmosOS gen3 v0.1.2 booted.\n");
+        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
