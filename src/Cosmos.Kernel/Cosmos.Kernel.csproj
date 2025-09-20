@@ -3,6 +3,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
+    <DefineConstants>ARCH_X64</DefineConstants>
 
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel</PackageId>
