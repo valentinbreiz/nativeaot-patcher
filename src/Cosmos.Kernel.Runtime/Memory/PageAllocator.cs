@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Core.Memory.Heap;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.Core.Memory;
 
@@ -64,6 +65,8 @@ public static unsafe class PageAllocator
     /// </exception>
     public static void InitializeHeap(byte* aStartPtr, ulong aSize)
     {
+        Serial.WriteString("UART started.\n");
+        
         if ((uint)aStartPtr % PageSize != 0)
         {
             throw new Exception("RAM start must be page aligned.");
