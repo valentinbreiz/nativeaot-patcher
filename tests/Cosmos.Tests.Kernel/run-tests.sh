@@ -114,36 +114,71 @@ if grep -q "TEST_START" "$LOG_FILE"; then
     # Show individual test results with proper pass/fail indication and categories
     # Two formats: "test_name: PASS (...)" OR "test_name: ...\nPASS (...)"
     prev_test=""
-    sed -n '/TEST_START/,/TEST_END:/p' "$LOG_FILE" | \
-        while IFS= read -r line; do
-            if [[ "$line" =~ ^CATEGORY: ]]; then
-                # Display category header
-                category="${line#CATEGORY: }"
-                echo ""
-                echo -e "${YELLOW}${category}${NC}"
-            elif [[ "$line" =~ ^\[ASSERT_ ]]; then
-                # Skip assertion debug lines (not part of test results)
-                continue
-            elif [[ "$line" =~ ^test_.*:\ PASS\ \( ]]; then
-                # Test name and PASS on same line (match ": PASS (")
-                echo -e "  ${GREEN}✓${NC} ${line}"
-            elif [[ "$line" =~ ^test_.*:\ FAIL\ \( ]]; then
-                # Test name and FAIL on same line (match ": FAIL (")
-                echo -e "  ${RED}✗${NC} ${line}"
-            elif [[ "$line" =~ ^test_ ]]; then
-                # Test name only (result on next line)
-                prev_test="$line"
-            elif [[ "$line" =~ ^PASS\ \( ]]; then
-                # Result line only - PASS (test name was on previous line)
-                echo -e "  ${GREEN}✓${NC} ${prev_test} ${line}"
-            elif [[ "$line" =~ ^FAIL\ \( ]]; then
-                # Result line only - FAIL (test name was on previous line)
-                echo -e "  ${RED}✗${NC} ${prev_test} ${line}"
-            elif [[ "$line" =~ TEST_END ]]; then
-                echo ""
-                echo "$line"
+    failure_messages=""
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^CATEGORY: ]]; then
+            # Display category header
+            category="${line#CATEGORY: }"
+            echo ""
+            echo -e "${YELLOW}${category}${NC}"
+        elif [[ "$line" =~ ^\[ASSERT_FAIL: ]]; then
+            # Collect assertion failure messages
+            failure_msg="${line#\[ASSERT_FAIL: }"
+            failure_msg="${failure_msg%\]}"
+            if [[ -n "$failure_messages" ]]; then
+                failure_messages="${failure_messages}"$'\n'"${failure_msg}"
+            else
+                failure_messages="${failure_msg}"
             fi
-        done
+            continue
+        elif [[ "$line" =~ ^\[ASSERT_ ]]; then
+            # Skip other assertion debug lines
+            continue
+        elif [[ "$line" =~ ^test_.*:\ PASS\ \( ]]; then
+            # Test name and PASS on same line (match ": PASS (")
+            echo -e "  ${GREEN}✓${NC} ${line}"
+            failure_messages=""
+        elif [[ "$line" =~ ^test_.*:\ FAIL\ \( ]]; then
+            # Test name and FAIL on same line (match ": FAIL (")
+            echo -e "  ${RED}✗${NC} ${line}"
+            # Show failure messages
+            if [[ -n "$failure_messages" ]]; then
+                while IFS= read -r msg; do
+                    echo -e "    ${RED}→${NC} $msg"
+                done <<< "$failure_messages"
+            fi
+            failure_messages=""
+        elif [[ "$line" =~ ^test_ ]]; then
+            # Test name only (result on next line)
+            # Extract test name and check for ASSERT_FAIL on same line
+            test_name=$(echo "$line" | sed 's/^\(test_[^:]*:\).*/\1/')
+            prev_test="$test_name"
+            # Check if there's an ASSERT_FAIL on the same line
+            if [[ "$line" =~ \[ASSERT_FAIL:\ ([^\]]*)\] ]]; then
+                failure_msg="${BASH_REMATCH[1]}"
+                failure_messages="$failure_msg"
+            else
+                failure_messages=""
+            fi
+        elif [[ "$line" =~ ^PASS\ \( ]]; then
+            # Result line only - PASS (test name was on previous line)
+            echo -e "  ${GREEN}✓${NC} ${prev_test} ${line}"
+            failure_messages=""
+        elif [[ "$line" =~ ^FAIL\ \( ]]; then
+            # Result line only - FAIL (test name was on previous line)
+            echo -e "  ${RED}✗${NC} ${prev_test} ${line}"
+            # Show failure messages
+            if [[ -n "$failure_messages" ]]; then
+                while IFS= read -r msg; do
+                    echo -e "    ${RED}→${NC} $msg"
+                done <<< "$failure_messages"
+            fi
+            failure_messages=""
+        elif [[ "$line" =~ TEST_END ]]; then
+            echo ""
+            echo "$line"
+        fi
+    done < <(sed -n '/TEST_START/,/TEST_END:/p' "$LOG_FILE")
 fi
 
 echo ""
