@@ -219,3 +219,50 @@ jobs:
         with:
           name: KernelExample-ISO-${{ matrix.arch }}
           path: ./output-${{ matrix.arch }}/KernelExample.iso
+
+  kernel-tests:
+    name: Run Kernel Runtime Tests (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        dotnet-version: [ 9.0.x ]
+        arch: [ x64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🔄 Compile Packages for ${{ matrix.arch }}
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+
+      - name: 🔗 Install Build Tools
+        run: sudo apt-get update && sudo apt-get install -y xorriso lld yasm qemu-system-x86
+
+      - name: 🔧 Install ilc
+        run: dotnet tool install -g ilc
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
+
+      - name: 🔄 Restore Dependencies
+        run: dotnet restore ./nativeaot-patcher.slnx
+
+      - name: 🧪 Run Kernel Tests
+        run: ./tests/Cosmos.Tests.Kernel/run-tests.sh ${{ matrix.arch }} 20
+
+      - name: 📤 Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kernel-Test-Logs-${{ matrix.arch }}
+          path: tests.log
