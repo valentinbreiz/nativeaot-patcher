@@ -405,3 +405,5 @@ main
 *.hdd
 output
 output-x64/
+output-tests/
+tests.log
