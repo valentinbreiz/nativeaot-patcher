@@ -1,0 +1,114 @@
+# NativeAOT-Patcher Quick Reference
+
+## Project Overview
+NativeAOT patcher for Cosmos OS - ports the Cosmos plug system and assembly loading to NativeAOT.
+
+## Complete Test Workflow
+
+To test the entire workflow from setup to kernel execution:
+
+### 1. Setup Framework (Only if Build System Changed)
+
+**IMPORTANT:** Only run `postCreateCommand.sh` if you made changes to:
+- Build system (`src/Cosmos.Build.*`)
+- Patcher (`src/Cosmos.Patcher`)
+
+and NOT in:
+
+- Kernel core libraries (`src/Cosmos.Kernel.*`)
+
+If you only changed the **kernel examples** (`examples/DevKernel/`) or **Kernel core libraries** (`src/Cosmos.Kernel.*`), skip to step 3.
+
+```bash
+./.devcontainer/postCreateCommand.sh [x64|arm64]
+```
+Default is x64. This script:
+- Clears NuGet cache
+- Builds and packs all projects in dependency order
+- Creates packages in `artifacts/package/release/`
+- Installs global tools (ilc, Cosmos.Patcher)
+- Restores main solution
+
+**When to run:**
+- First time setup
+- After modifying build tools or core kernel libraries
+- After pulling changes that affect `src/` directories
+
+**When to skip:**
+- Only modifying kernel examples (`examples/`)
+- Only changing kernel application code
+
+### 2. Initialize Submodules (Required for DevKernel)
+```bash
+git submodule update --init --recursive
+```
+
+### 3. Build Kernel
+```bash
+export PATH="$PATH:$HOME/.dotnet/tools"
+dotnet publish -c Debug -r linux-x64 -p:DefineConstants="ARCH_X64" \
+  ./examples/DevKernel/DevKernel.csproj -o ./output-x64
+```
+
+### 4. Test with QEMU (with UART logs)
+```bash
+# Run QEMU with serial output, wait for boot, check logs, and kill
+qemu-system-x86_64 -cdrom ./output-x64/DevKernel.iso -m 512M \
+  -serial file:uart.log -nographic &
+sleep 5
+head -20 uart.log
+pkill -f qemu-system
+```
+
+Expected output in uart.log:
+```
+UART started.
+```
+
+## Build for Different Architectures
+
+**Note:** Ensure `~/.dotnet/tools` is in your PATH before building:
+```bash
+export PATH="$PATH:$HOME/.dotnet/tools"
+```
+
+### x64
+```bash
+dotnet publish -c Debug -r linux-x64 -p:DefineConstants="ARCH_X64" \
+  ./examples/DevKernel/DevKernel.csproj -o ./output-x64
+```
+
+### ARM64
+```bash
+dotnet publish -c Debug -r linux-arm64 -p:DefineConstants="ARCH_ARM64" \
+  ./examples/DevKernel/DevKernel.csproj -o ./output-arm64
+```
+
+Output: `./output-{arch}/DevKernel.iso`
+
+## Key Architecture Defines
+- x64: `ARCH_X64` with runtime `linux-x64`
+- ARM64: `ARCH_ARM64` with runtime `linux-arm64`
+
+## Project Structure
+- `src/` - Core patcher, build tools, kernel components
+- `examples/DevKernel/` - Development example kernel project (recommended for testing)
+- `examples/KernelExample/` - Basic example kernel project
+- `tests/` - Test projects
+- `dotnet/runtime/` - Submodule with .NET runtime sources (required for DevKernel)
+- `.github/workflows/dotnet.yml` - CI pipeline reference
+
+## Test with QEMU
+
+### x64
+```bash
+qemu-system-x86_64 -cdrom ./output-x64/DevKernel.iso -m 512M
+```
+
+### ARM64
+```bash
+qemu-system-aarch64 -M virt -cpu cortex-a72 -cdrom ./output-arm64/DevKernel.iso -m 512M
+```
+
+## Documentation
+See `docs/index.md` for full documentation links.
