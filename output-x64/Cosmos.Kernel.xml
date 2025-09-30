@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cosmos.Kernel</name>
+    </assembly>
+    <members>
+        <member name="P:Cosmos.Kernel.Kernel.Architecture">
+            <summary>
+            Gets the current platform HAL, if available.
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Kernel.Halt">
+            <summary>
+            Halt the CPU using platform-specific implementation.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -11,7 +11,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
   </ItemGroup>

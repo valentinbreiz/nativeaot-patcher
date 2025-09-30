@@ -6,7 +6,7 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
-using Cosmos.Kernel.Runtime;
+using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.System.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
