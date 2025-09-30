@@ -38,6 +38,10 @@ internal unsafe static partial class Program
         Console.WriteLine(testString);
         Serial.WriteString(testString + "\n");
 
+        // Test exception handling
+        Console.WriteLine("Testing exception handling...");
+        throw new Exception("Test exception from kernel!");
+
         while (true) ;
     }
 }

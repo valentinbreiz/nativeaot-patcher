@@ -48,6 +48,7 @@
       <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
       <LinkerArgs Include="@(ObjFiles->'%(FullPath)')" />
       <LinkerArgs Include="-o $(ElfBinary)" />
+      <LinkerArgs Include="--error-limit=0" />
       <LinkerArgs Condition="$(ExportsFile) != ''" Include="--version-script &quot;$(ExportsFile)&quot;" />
     </ItemGroup>
     <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
