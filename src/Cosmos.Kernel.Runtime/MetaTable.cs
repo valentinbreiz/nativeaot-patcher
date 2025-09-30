@@ -8,8 +8,9 @@ public class MetaTable
 
 
     [RuntimeExport("RhGetModuleFileName")]
-    internal static unsafe int RhGetModuleFileName(IntPtr moduleHandle, out byte* moduleName) {
-        moduleName = (byte*) 0x00;
+    internal static unsafe int RhGetModuleFileName(IntPtr moduleHandle, out byte* moduleName)
+    {
+        moduleName = (byte*)0x00;
         return 0;
     }
 

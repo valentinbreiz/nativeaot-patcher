@@ -124,7 +124,7 @@ namespace Cosmos.Kernel.Runtime
         static void RhpGcPoll() { }
 
         [RuntimeExport("RhBoxAny")]
-        static unsafe object RhBoxAny(int typeHandle, void* data)
+        static unsafe object? RhBoxAny(int typeHandle, void* data)
         {
             return null; // Simplified implementation
         }
@@ -172,13 +172,13 @@ namespace Cosmos.Kernel.Runtime
         static void RhGetMemoryInfo(IntPtr pMemInfo) { }
 
         [RuntimeExport("RhNewArray")]
-        static unsafe object RhNewArray(int typeHandle)
+        static unsafe object? RhNewArray(int typeHandle)
         {
             return null; // Simplified implementation
         }
 
         [RuntimeExport("RhNewObject")]
-        static unsafe object RhNewObject(int typeHandle)
+        static unsafe object? RhNewObject(int typeHandle)
         {
             return null; // Simplified implementation
         }
@@ -205,7 +205,7 @@ namespace Cosmos.Kernel.Runtime
         }
 
         [RuntimeExport("RhBox")]
-        static unsafe object RhBox(int typeHandle, void* data)
+        static unsafe object? RhBox(int typeHandle, void* data)
         {
             return null; // Simplified implementation
         }
@@ -271,7 +271,7 @@ namespace Cosmos.Kernel.Runtime
         }
 
         [RuntimeExport("RhpNewFinalizable")]
-        static unsafe object RhpNewFinalizable(int typeHandle)
+        static unsafe object? RhpNewFinalizable(int typeHandle)
         {
             return null;
         }
