@@ -52,17 +52,14 @@ public static unsafe class ManagedModule
 
                 if (section.SectionId == ReadyToRunSectionType.DehydratedData)
                 {
-                    // I have yet to see this section, but it wouldn't hurt to implement it.
-                    // Debug.WriteString("Dehydrated Data Exists\n");
-                    //TODO: Either bring more types from coreclr so we can rehydrate the data
-                    //      or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
+                    // TODO: Either bring more types from coreclr so we can rehydrate the data
+                    //       or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
                 }
 
                 if (section.SectionId == ReadyToRunSectionType.GCStaticRegion)
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A GC static region section has a null start or end.");
-                    // Debug.WriteString("Running Module GCStaticRegion\n");
                     InitializeStatics(section.Start, section.End);
                 }
 
@@ -70,7 +67,6 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A eager constructor section has a null start or end.");
-                    // Debug.WriteString("Running Module EagerCctor\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
 
@@ -78,7 +74,6 @@ public static unsafe class ManagedModule
                 {
                     if (section.Start == 0 || section.End == 0)
                         throw new InvalidProgramException("A module initialization section has a null start or end.");
-                    // Debug.WriteString("Running Module Initializers\n");
                     RunFuncRelPtrs(section.Start, section.End);
                 }
             }
@@ -105,32 +100,25 @@ public static unsafe class ManagedModule
         int currentBase = 0;
         for (byte* block = (byte*)rgnStart; (nint)block < rgnEnd; block += sizeof(int))
         {
-            // GC Static regions can be shared by modules linked together during compilation. To ensure each
-            // is initialized once, the static region pointer is stored with lowest bit set in the image.
-            // The first time we initialize the static region its pointer is replaced with an object reference
-            // whose lowest bit is no longer set.
             nint* pBlock = (IntPtr*)ReadRelPtr32(block);
             nint blockAddr = (nint)ReadRelPtr32(pBlock);
 
             if ((blockAddr & GCStaticRegionConstants.Uninitialized) == GCStaticRegionConstants.Uninitialized)
             {
-                var ptr = Memory.RhpNewFast((MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask));
+                var pMT = (MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask);
+                var ptr = Memory.RhpNewFast(pMT);
                 object obj = Unsafe.AsRef<object>(ptr);
-                var pEEType = Memory.GetMethodTable(obj);
 
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {
-                    // The next pointer is preinitialized data blob that contains preinitialized static GC fields,
-                    // which are pointer relocs to GC objects in frozen segment.
-                    // It actually has all GC fields including non-preinitialized fields and we simply copy over the
-                    // entire blob to this object, overwriting everything.
                     void* pPreInitDataAddr = ReadRelPtr32((int*)pBlock + 1);
-                    var size = pEEType->BaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
-
-                    MemoryOp.MemMove((byte*)Unsafe.AsPointer(ref ((RawData)obj).Data), (byte*)pPreInitDataAddr, (int)size);
+                    var pEEType = Memory.GetMethodTable(obj);
+                    var size = pEEType->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
+                    byte* objPtr = (byte*)Unsafe.AsPointer(ref obj);
+                    byte* destPtr = objPtr + sizeof(MethodTable*);
+                    MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)size);
                 }
 
-                // Update the base pointer to point to the pinned object
                 *pBlock = *(IntPtr*)&obj;
             }
 

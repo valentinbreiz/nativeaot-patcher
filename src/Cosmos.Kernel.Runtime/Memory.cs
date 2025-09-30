@@ -1,4 +1,5 @@
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
@@ -31,7 +32,9 @@ public static class Memory
     [RuntimeExport("RhpNewFast")]
     internal static unsafe void* RhpNewFast(MethodTable* pMT)
     {
-        MethodTable** result = AllocObject(pMT->BaseSize);
+        // Use RawBaseSize instead of BaseSize because BaseSize only works for canonical/array types
+        // For generic type definitions, BaseSize contains parameter count, not the actual size
+        MethodTable** result = AllocObject(pMT->RawBaseSize);
         *result = pMT;
         return result;
     }
@@ -43,8 +46,9 @@ public static class Memory
 
     internal static unsafe MethodTable* GetMethodTable(object obj)
     {
-        TypedReference tr = __makeref(obj);
-        return (MethodTable*)*(IntPtr*)&tr;
+        // The MethodTable pointer is stored at the beginning of every object
+        // RhpNewFast sets: *result = pMT; where result is the allocated address
+        return *(MethodTable**)Unsafe.AsPointer(ref obj);
     }
 
     [RuntimeExport("memmove")]
