@@ -111,16 +111,34 @@ echo ""
 
 # Extract test results (between TEST_START and TEST_END)
 if grep -q "TEST_START" "$LOG_FILE"; then
-    # Show individual test results
+    # Show individual test results with proper pass/fail indication and categories
+    # Two formats: "test_name: PASS (...)" OR "test_name: ...\nPASS (...)"
+    prev_test=""
     sed -n '/TEST_START/,/TEST_END:/p' "$LOG_FILE" | \
-        grep -E "^test_|^TEST_END:" | \
         while IFS= read -r line; do
-            if [[ "$line" =~ PASS ]]; then
-                echo -e "  ${GREEN}✓${NC} $line"
-            elif [[ "$line" =~ FAIL ]]; then
-                echo -e "  ${RED}✗${NC} $line"
-            elif [[ "$line" =~ ERROR ]]; then
-                echo -e "  ${RED}✗${NC} $line"
+            if [[ "$line" =~ ^CATEGORY: ]]; then
+                # Display category header
+                category="${line#CATEGORY: }"
+                echo ""
+                echo -e "${YELLOW}${category}${NC}"
+            elif [[ "$line" =~ ^\[ASSERT_ ]]; then
+                # Skip assertion debug lines (not part of test results)
+                continue
+            elif [[ "$line" =~ ^test_.*:\ PASS\ \( ]]; then
+                # Test name and PASS on same line (match ": PASS (")
+                echo -e "  ${GREEN}✓${NC} ${line}"
+            elif [[ "$line" =~ ^test_.*:\ FAIL\ \( ]]; then
+                # Test name and FAIL on same line (match ": FAIL (")
+                echo -e "  ${RED}✗${NC} ${line}"
+            elif [[ "$line" =~ ^test_ ]]; then
+                # Test name only (result on next line)
+                prev_test="$line"
+            elif [[ "$line" =~ ^PASS\ \( ]]; then
+                # Result line only - PASS (test name was on previous line)
+                echo -e "  ${GREEN}✓${NC} ${prev_test} ${line}"
+            elif [[ "$line" =~ ^FAIL\ \( ]]; then
+                # Result line only - FAIL (test name was on previous line)
+                echo -e "  ${RED}✗${NC} ${prev_test} ${line}"
             elif [[ "$line" =~ TEST_END ]]; then
                 echo ""
                 echo "$line"

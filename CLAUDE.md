@@ -98,10 +98,27 @@ The script will:
 3. Parse test results and display colored output
 4. Exit with status 0 if all tests pass, 1 if any fail
 
-### Test Coverage
+### Test Coverage (34 tests total: 33 pass, 1 intentional failure)
+
+**Test Categories:**
+- **Validation** (2 tests) - Framework validation (intentional failures), Intentional failure test (demonstrates failure detection)
 - **Serial I/O** (2 tests) - Serial write, number output
-- **Memory Management** (5 tests) - Allocations, arrays, multiple objects
-- **String Operations** (4 tests) - Creation, concatenation, length
+- **Memory Management** (5 tests) - Small/large allocations, arrays, byte arrays
+- **String Operations** (4 tests) - Creation, concatenation, length, allocation
+- **GC/Heap** (5 tests) - Allocation patterns, large objects, mixed sizes, fragmentation, zero-init
+- **Array Operations** (6 tests) - Empty, single element, copy, typed arrays, boundaries, fill patterns
+- **Numeric Operations** (10 tests) - Arithmetic, overflow, unsigned/long integers, bitwise, shifts, comparisons
+
+**Test Validation:**
+- All tests use UART protocol assertions (`[ASSERT_PASS]`/`[ASSERT_FAIL]`)
+- Each assertion verified via serial output - tests actually validate kernel functionality
+- Framework includes intentional failing test to prove failure detection works
+- Expected result: `TEST_END: 33/34 passed, 1 failed` (the failing test is intentional)
+
+**Known Limitations:**
+- Multi-dimensional arrays (`int[,]`) not supported - cause kernel crashes
+- Jagged arrays (`int[][]`) not supported - cause kernel crashes
+- Action delegates not supported - tests use direct method calls
 
 ### Manual Testing
 To manually run and inspect test output:

@@ -64,7 +64,7 @@ public static class MemoryTests
         bytes[0] = 0xFF;
         bytes[255] = 0xAA;
 
-        Assert.AreEqual(0xFF, bytes[0]);
-        Assert.AreEqual(0xAA, bytes[255]);
+        Assert.AreEqual((byte)0xFF, bytes[0]);
+        Assert.AreEqual((byte)0xAA, bytes[255]);
     }
 }
