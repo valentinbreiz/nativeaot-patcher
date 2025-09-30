@@ -55,14 +55,17 @@ dotnet publish -c Debug -r linux-x64 -p:DefineConstants="ARCH_X64" \
 # Run QEMU with serial output, wait for boot, check logs, and kill
 qemu-system-x86_64 -cdrom ./output-x64/DevKernel.iso -m 512M \
   -serial file:uart.log -nographic &
-sleep 5
+QEMU_PID=$!
+sleep 3
 head -20 uart.log
-pkill -f qemu-system
+kill $QEMU_PID 2>/dev/null || pkill -9 -f qemu-system
 ```
 
 Expected output in uart.log:
 ```
 UART started.
+CosmosOS gen3 v0.1.4 booted.
+Architecture: x86-64.
 ```
 
 ## Build for Different Architectures
