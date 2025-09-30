@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cosmos.Kernel.System.Graphics</name>
+    </assembly>
+    <members>
+        <member name="P:Cosmos.Kernel.System.Graphics.KernelConsole.IsAvailable">
+            <summary>
+            Gets whether graphics console is available and initialized.
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.System.Graphics.KernelConsole.Initialize">
+            <summary>
+            Initializes the graphics framebuffer and canvas.
+            Safe to call multiple times - will only initialize once.
+            Should be called early in kernel initialization, after memory is available.
+            </summary>
+            <returns>True if graphics were initialized successfully, false if no framebuffer available.</returns>
+        </member>
+    </members>
+</doc>

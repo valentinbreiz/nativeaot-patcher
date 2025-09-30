@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cosmos.Kernel.HAL</name>
+    </assembly>
+    <members>
+        <member name="T:Cosmos.Kernel.HAL.ICpuOps">
+            <summary>
+            Essential CPU operations for multi-architecture support
+            </summary>
+        </member>
+    </members>
+</doc>

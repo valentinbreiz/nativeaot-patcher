@@ -1,0 +1,717 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cosmos.Kernel.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Cosmos.Kernel.Core.Memory.Heap.Heap">
+            <summary>
+            a basic Heap that uses PageAllocator
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.Heap.Realloc(System.Byte*,System.UInt32)">
+            <summary>
+            Re-allocates or "re-sizes" data asigned to a pointer.
+            The pointer specified must be the start of an allocated block in the heap.
+            This shouldn't be used with objects as a new address is given when realocating memory.
+            </summary>
+            <param name="aPtr">Existing pointer</param>
+            <param name="newSize">Size to extend to</param>
+            <returns>New pointer with specified size while maintaining old data.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.Heap.Alloc(System.UInt32)">
+            <summary>
+            Alloc memory block, of a given size.
+            </summary>
+            <param name="aSize">A size of block to alloc, in bytes.</param>
+            <returns>Byte pointer to the start of the block.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.Heap.Free(System.Void*)">
+            <summary>
+            Free a heap item.
+            </summary>
+            <param name="aPtr">A pointer to the heap item to be freed.</param>
+            <exception cref="T:System.Exception">Thrown if:
+            <list type="bullet">
+            <item>Page type is not found.</item>
+            <item>Heap item not found in RAT.</item>
+            </list>
+            </exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.Heap.Collect">
+            <summary>
+            Collects all unreferenced objects after identifying them first
+            </summary>
+            <returns>Number of objects freed</returns>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.Heap.LargeHeap">
+            <summary>
+            will use more then 1 page
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.LargeHeap.Realloc(System.Byte*,System.UInt32)">
+            <summary>
+            Re-allocates or "re-sizes" data asigned to a pointer.
+            The pointer specified must be the start of an allocated block in the heap.
+            This shouldn't be used with objects as a new address is given when realocating memory.
+            </summary>
+            <param name="ptr">Existing pointer</param>
+            <param name="newSize">Size to extend to</param>
+            <returns>New pointer with specified size while maintaining old data.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.LargeHeap.Alloc(System.UInt32)">
+            <summary>
+            Alloc memory block, of a given size.
+            </summary>
+            <param name="aSize">A size of block to alloc, in bytes.</param>
+            <returns>Byte pointer to the start of the block.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.LargeHeap.Free(System.Void*)">
+            <summary>
+            Free a heap item.
+            </summary>
+            <param name="aPtr">A pointer to the heap item to be freed.</param>
+            <exception cref="T:System.Exception">Thrown if:
+            <list type="bullet">
+            <item>Page type is not found.</item>
+            <item>Heap item not found in RAT.</item>
+            </list>
+            </exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.LargeHeap.Collect">
+            <summary>
+            Collects all unreferenced objects after identifying them first
+            </summary>
+            <returns>Number of objects freed</returns>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.Heap.MediumHeap">
+            <summary>
+            will mostly fill a whole page
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.MediumHeap.Realloc(System.Byte*,System.UInt32)">
+            <summary>
+            Re-allocates or "re-sizes" data asigned to a pointer.
+            The pointer specified must be the start of an allocated block in the heap.
+            This shouldn't be used with objects as a new address is given when realocating memory.
+            </summary>
+            <param name="ptr">Existing pointer</param>
+            <param name="newSize">Size to extend to</param>
+            <returns>New pointer with specified size while maintaining old data.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.MediumHeap.Alloc(System.UInt32)">
+            <summary>
+            Alloc memory block, of a given size.
+            </summary>
+            <param name="aSize">A size of block to alloc, in bytes.</param>
+            <returns>Byte pointer to the start of the block.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.MediumHeap.Free(System.Void*)">
+            <summary>
+            Free a heap item.
+            </summary>
+            <param name="aPtr">A pointer to the heap item to be freed.</param>
+            <exception cref="T:System.Exception">Thrown if:
+            <list type="bullet">
+            <item>Page type is not found.</item>
+            <item>Heap item not found in RAT.</item>
+            </list>
+            </exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.MediumHeap.Collect">
+            <summary>
+            Collects all unreferenced objects after identifying them first
+            </summary>
+            <returns>Number of objects freed</returns>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.Heap.ObjectGcStatus">
+            <summary>
+            Flags to track an object status
+            All higher values in the ushort are used to track count of static counts
+            </summary>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.Heap.SMTPage">
+            <summary>
+            Page containing Size Map Table
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SMTPage.Next">
+            <summary>
+            Pointer to the next page
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SMTPage.First">
+            <summary>
+            Pointer to the root of the smallest block stored on this page
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock.Size">
+            <summary>
+            Elements stored in the page have a size less or equal to this
+            Does not include the prefix bytes
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock.First">
+            <summary>
+            Pointer to the first block for this size
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock.LargerSize">
+            <summary>
+            Next larger size root block
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SMTBlock.PagePtr">
+            <summary>
+            Pointer to the actual page, where the elements are stored
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SMTBlock.SpacesLeft">
+            <summary>
+            How much space is left on the page, makes it easier to skip full pages
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SMTBlock.NextBlock">
+            <summary>
+            Pointer to the next block for this size
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.PrefixBytes">
+            <summary>
+            Number of prefix bytes for each item.
+            We technically only need 2 but to keep it aligned we have two padding
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.mMaxItemSize">
+            <summary>
+            Max item size in the heap.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.SMT">
+            <summary>
+            Size map table
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.NextFreeBlock(Cosmos.Kernel.Core.Memory.Heap.SMTPage*)">
+            <summary>
+            Find the next free block in a page
+            </summary>
+            <returns>Pointer to the start of block in the SMT. null if all SMT pages are full</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetFirstBlock(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Gets the root block in the SMT for objects of this size
+            </summary>
+            <param name="aSize">Size of allocated block</param>
+            <param name="aPage">Page to seach in</param>
+            <returns>Pointer of block in SMT.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetLastBlock(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Gets the last block on a certain page for objects of this size
+            </summary>
+            <param name="page">Page to search</param>
+            <param name="aSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetFirstWithSpace(System.UInt32)">
+            <summary>
+            Get the first block for this size on any SMT page, which has space left to allocate to
+            </summary>
+            <param name="aSize"></param>
+            <returns>Null if no more space on any block of this size</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetFirstWithSpace(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Get the first block for this size on this SMT page, which has space left to allocate to
+            </summary>
+            <param name="aSize"></param>
+            <returns>Null if no more space on this page</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetFirstWithSpace(Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock*,System.UInt32)">
+            <summary>
+            Get the first block for this size in this SMT block chain, which has space left to allocate to
+            </summary>
+            <param name="aRoot">The root node to start the search at</param>
+            <param name="aSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.AddRootSMTBlock(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Add a new root block for a certain size to a certain SMT page
+            </summary>
+            <param name="aSize">Size must be divisible by 2 otherwise Alloc breaks</param>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetSMTLastPage">
+            <summary>
+            Get the Last Page of the SMT
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetRoundedSize(System.UInt32)">
+            <summary>
+            Return the size a certain element will be allocated as
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.Init">
+            <summary>
+            Init small heap.
+            </summary>
+            <exception cref="T:System.Exception">Thrown on fatal error, contact support.</exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.InitSMTPage">
+            <summary>
+            Allocates and initialise a page for the SMT table
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.CreatePage(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Create a page with the size of an item and try add it to the SMT at a certain page
+            If the SMT page is full, it will be added to the first SMT page with space or a new SMT page is allocated
+            </summary>
+            <param name="aItemSize">Object size in bytes</param>
+            <exception cref="T:System.Exception">Thrown if:
+            <list type="bullet">
+            <item>aItemSize is 0.</item>
+            <item>aItemSize is not word aligned.</item>
+            <item>SMT is not initialized.</item>
+            <item>The item size is bigger then a small heap size.</item>
+            </list>
+            </exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.Alloc(System.UInt32)">
+            <summary>
+            Alloc memory block, of a given size.
+            </summary>
+            <param name="aSize">A size of block to alloc, in bytes.</param>
+            <returns>Byte pointer to the start of the block.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.Free(System.Void*)">
+            <summary>
+            Free a object
+            </summary>
+            <param name="aPtr">A pointer to the start object.</param>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetAllocatedObjectCount">
+            <summary>
+            Counts how many elements are currently allocated
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetAllocatedObjectCount(Cosmos.Kernel.Core.Memory.Heap.SMTPage*)">
+            <summary>
+            Counts how many elements are currently allocated on a certain page
+            </summary>
+            <param name="aSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.GetAllocatedObjectCount(Cosmos.Kernel.Core.Memory.Heap.SMTPage*,System.UInt32)">
+            <summary>
+            Counts how many elements are currently allocated in this category on a certain page
+            </summary>
+            <param name="aPage"></param>
+            <param name="aSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.PruneSMT">
+            <summary>
+            This function will free all pages allocated for small objects which are emnpty
+            </summary>
+            <returns>Number of pages freed</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.PruneSMT(Cosmos.Kernel.Core.Memory.Heap.SMTPage*)">
+            <summary>
+            Prune all empty pages allocated on a certain page
+            </summary>
+            <param name="aPage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.Heap.SmallHeap.PruneSMT(Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock*,System.UInt32)">
+            <summary>
+            Prune all empty pages which are linked to root block for a certain size
+            The root block or first one following it will not be removed!
+            </summary>
+            <param name="aBlock"></param>
+            <param name="aSize"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.PageAllocator">
+            <summary>
+            a basic page allocator
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.PageSize">
+            <summary>
+            Native Intel page size.
+            </summary>
+            <remarks><list type="bullet">
+            <item>x86 Page Size: 4k, 2m (PAE only), 4m.</item>
+            <item>x64 Page Size: 4k, 2m</item>
+            </list></remarks>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.RamStart">
+            <summary>
+            Start of area usable for heap, and also start of heap.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.TotalPageCount">
+            <summary>
+            Number of pages in the heap.
+            </summary>
+            <remarks>Calculated from mSize.</remarks>
+        </member>
+        <member name="P:Cosmos.Kernel.Core.Memory.PageAllocator.FreePageCount">
+            <summary>
+            Number of pages which are currently not in use
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.mRAT">
+            <summary>
+            Pointer to the RAT.
+            </summary>
+            <remarks>
+            Covers Data area only.
+            stored at the end of RAM
+            </remarks>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.HeapEnd">
+            <summary>
+            Pointer to end of the heap
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageAllocator.RamSize">
+            <summary>
+            Size of heap.
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.InitializeHeap(System.Byte*,System.UInt64)">
+            <summary>
+            Init RAT.
+            </summary>
+            <param name="aStartPtr">A pointer to the start of the heap.</param>
+            <param name="aSize">A heap size, in bytes.</param>
+            <exception cref="T:System.Exception">Thrown if:
+            <list type="bullet">
+            <item>RAM start or size is not page aligned.</item>
+            </list>
+            </exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.AllocPages(Cosmos.Kernel.Core.Memory.PageType,System.UInt64,System.Boolean)">
+            <summary>
+            Alloc a given number of pages, all of the same type.
+            </summary>
+            <param name="aType">A type of pages to alloc.</param>
+            <param name="aPageCount">Number of pages to alloc. (default = 1)</param>
+            <param name="zero"></param>
+            <returns>A pointer to the first page on success, null on failure.</returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.GetFirstPageAllocatorIndex(System.Void*)">
+            <summary>
+            Get the first PageAllocator address.
+            </summary>
+            <param name="aPtr">A pointer to the block.</param>
+            <returns>The index in RAT to which this pointer belongs</returns>
+            <exception cref="T:System.Exception">Thrown if page type is not found.</exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.GetPagePtr(System.Void*)">
+            <summary>
+            Get the pointer to the start of the page containing the pointer's address
+            </summary>
+            <param name="aPtr"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.GetPageType(System.Void*)">
+            <summary>
+            Get the page type pointed by a pointer to the RAT entry.
+            </summary>
+            <param name="aPtr">A pointer to the page to get the type of.</param>
+            <returns>byte value.</returns>
+            <exception cref="T:System.Exception">Thrown if page type is not found.</exception>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.Free(System.UInt32)">
+            <summary>
+            Free page.
+            </summary>
+            <param name="aPageIdx">A index to the page to be freed.</param>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Memory.PageAllocator.Free(System.Void*)">
+            <summary>
+            Free the page this pointer points to
+            </summary>
+            <param name="aPtr"></param>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.PageType">
+            <summary>
+            PageType enum. Used to define the type of the page.
+            Data Types from 1, special meanings from 255 down.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.Empty">
+            <summary>
+            Empty page.
+            Can also indicate invalid page.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.HeapSmall">
+            <summary>
+            Small heap page.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.HeapMedium">
+            <summary>
+            Medium heap page.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.HeapLarge">
+            <summary>
+            Large heap page.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.Unmanaged">
+            <summary>
+            User Managed page
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.PageDirectory">
+            <summary>
+            Page Directory page
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.PageAllocator">
+            <summary>
+            PageAllocator type page.
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.SMT">
+            <summary>
+            Page which is part of the SMT
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.PageType.Extension">
+            <summary>
+            Extension of pre-existing page.
+            </summary>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Memory.Panics">
+            <summary>
+            panics used be the Memory sub system
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.NonManagedPage">
+            <summary>
+            this page is not managed by a heap backend
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.SmallHeap.AddRootSmtBlockOrder">
+            <summary>
+            you need to add root mst blocks from smallest to largest
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.SmallHeap.AddPage">
+            <summary>
+            failed to add a page
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.SmallHeap.RamCorrupted">
+            <summary>
+            RAM is corrupted, since we know we had a space but it turns out we didnt
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.SmallHeap.DoubleFree">
+            <summary>
+            double free
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Memory.Panics.SmallHeap.FailedFree">
+            <summary>
+            failed to free
+            </summary>
+        </member>
+        <member name="F:Cosmos.Kernel.Core.Runtime.Cpu.TickCount64">
+            <summary>
+            replace this with some thing better
+            </summary>
+        </member>
+        <member name="T:Cosmos.Kernel.Core.Runtime.ManagedModule">
+            <summary>
+            Handles the initialization of managed modules.
+            </summary>
+        </member>
+        <member name="M:Cosmos.Kernel.Core.Runtime.ManagedModule.InitializeAll(System.Span{System.IntPtr})">
+            <summary>
+            Initializes all given managed modules present in a compiled binary.
+            </summary>
+            <param name="modules">The modules to initialize.</param>
+            <exception cref="T:System.InvalidProgramException">Thrown when the compiled binary has malformed runtime information.</exception>
+        </member>
+        <member name="P:Internal.Runtime.MethodTable.SupportsRelativePointers">
+            <summary>
+            Gets a value indicating whether the statically generated data structures use relative pointers.
+            </summary>
+        </member>
+        <member name="P:Internal.Runtime.MethodTable.NullableValueOffset">
+            <summary>
+            Gets the offset of the value embedded in a Nullable&lt;T&gt;.
+            </summary>
+        </member>
+        <member name="P:Internal.Runtime.MethodTable.WritableData">
+            <summary>
+            Gets a pointer to a segment of writable memory associated with this MethodTable.
+            The purpose of the segment is controlled by the class library. The runtime doesn't
+            use this memory for any purpose.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.GCStaticRegionConstants.Uninitialized">
+            <summary>
+            Flag set if the corresponding GCStatic entry has not yet been initialized and
+            the corresponding MethodTable pointer has been changed into a instance pointer of
+            that MethodTable.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.GCStaticRegionConstants.HasPreInitializedData">
+            <summary>
+            Flag set if the next pointer loc points to GCStaticsPreInitDataNode.
+            Otherise it is the next GCStatic entry.
+            </summary>
+        </member>
+        <member name="T:Internal.Runtime.TypeManagerHandle">
+            <summary>
+            TypeManagerHandle represents an AOT module in MRT based runtimes.
+            These handles are a pointer to a TypeManager
+            </summary>
+        </member>
+        <member name="T:Internal.Runtime.EETypeFlags">
+            <summary>
+            Represents the flags stored in the <c>_usFlags</c> field of a <c>System.Runtime.MethodTable</c>.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.EETypeKindMask">
+            <summary>
+            There are four kinds of EETypes, defined in <c>Kinds</c>.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.HasDispatchMap">
+            <summary>
+            Type has an associated dispatch map.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.IsDynamicTypeFlag">
+            <summary>
+            This type was dynamically allocated at runtime.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.HasFinalizerFlag">
+            <summary>
+            This MethodTable represents a type which requires finalization.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.HasSealedVTableEntriesFlag">
+            <summary>
+            This MethodTable has sealed vtable entries
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.GenericVarianceFlag">
+            <summary>
+            This type is generic and one or more of its type parameters is co- or contra-variant. This
+            only applies to interface and delegate types.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.HasPointersFlag">
+            <summary>
+            This type contain GC pointers.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.IsGenericFlag">
+            <summary>
+            This type is generic.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.ElementTypeMask">
+            <summary>
+            We are storing a EETypeElementType in the upper bits for unboxing enums.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlags.HasComponentSizeFlag">
+            <summary>
+            The _usComponentSize is a number (not holding FlagsEx).
+            </summary>
+        </member>
+        <member name="T:Internal.Runtime.EETypeFlagsEx">
+            <summary>
+            Represents the extra flags stored in the <c>_usComponentSize</c> field of a <c>System.Runtime.MethodTable</c>
+            when <c>_usComponentSize</c> does not represent ComponentSize. (i.e. when the type is not an array, string or typedef)
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlagsEx.IDynamicInterfaceCastableFlag">
+            <summary>
+            This type implements IDynamicInterfaceCastable to allow dynamic resolution of interface casts.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlagsEx.IsByRefLikeFlag">
+            <summary>
+            This MethodTable is for a Byref-like class (TypedReference, Span&lt;T&gt;,...)
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlagsEx.ValueTypeFieldPaddingMask">
+            <summary>
+            For valuetypes, stores the padding by which the type size is padded on the GC heap.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlagsEx.NullableValueOffsetMask">
+            <summary>
+            For nullable types, stores the log2 of offset of the value field.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeFlagsEx.RequiresAlign8Flag">
+            <summary>
+            This type requires 8-byte alignment for its fields on certain platforms (ARM32, WASM)
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeKind.CanonicalEEType">
+            <summary>
+            Represents a standard ECMA type
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeKind.FunctionPointerEEType">
+            <summary>
+            Represents a function pointer
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeKind.ParameterizedEEType">
+            <summary>
+            Represents a parameterized type. For example a single dimensional array or pointer type
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.EETypeKind.GenericTypeDefEEType">
+            <summary>
+            Represents an uninstantiated generic type definition
+            </summary>
+        </member>
+        <member name="T:Internal.Runtime.DynamicTypeFlags">
+            <summary>
+            Flags that are set for dynamically allocated types.
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.DynamicTypeFlags.HasLazyCctor">
+            <summary>
+            This dynamically created type has a static constructor
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.DynamicTypeFlags.HasGCStatics">
+            <summary>
+            This dynamically created types has gc statics
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.DynamicTypeFlags.HasNonGCStatics">
+            <summary>
+            This dynamically created types has non gc statics
+            </summary>
+        </member>
+        <member name="F:Internal.Runtime.DynamicTypeFlags.HasThreadStatics">
+            <summary>
+            This dynamically created types has thread statics
+            </summary>
+        </member>
+    </members>
+</doc>

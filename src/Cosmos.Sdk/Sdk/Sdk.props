@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Runtime" />
+      <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core" />
       <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
   </ItemGroup>
 
