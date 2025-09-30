@@ -258,7 +258,7 @@ jobs:
         run: dotnet restore ./nativeaot-patcher.slnx
 
       - name: 🔄 Restore Test Kernel Dependencies
-        run: dotnet restore ./tests/Cosmos.Tests.Kernel/Cosmos.Tests.Kernel.csproj
+        run: dotnet restore ./tests/Cosmos.Tests.Kernel/Cosmos.Tests.Kernel.csproj -r ${{ matrix.rid }}
 
       - name: 🧪 Run Kernel Tests
         run: ./tests/Cosmos.Tests.Kernel/run-tests.sh ${{ matrix.arch }} 20
