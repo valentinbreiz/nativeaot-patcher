@@ -13,10 +13,6 @@ To test the entire workflow from setup to kernel execution:
 - Build system (`src/Cosmos.Build.*`)
 - Patcher (`src/Cosmos.Patcher`)
 
-and NOT in:
-
-- Kernel core libraries (`src/Cosmos.Kernel.*`)
-
 If you only changed the **kernel examples** (`examples/DevKernel/`) or **Kernel core libraries** (`src/Cosmos.Kernel.*`), skip to step 3.
 
 ```bash
@@ -31,7 +27,7 @@ Default is x64. This script:
 
 **When to run:**
 - First time setup
-- After modifying build tools or core kernel libraries
+- After modifying build tools
 - After pulling changes that affect `src/` directories
 
 **When to skip:**
@@ -39,6 +35,10 @@ Default is x64. This script:
 - Only changing kernel application code
 
 ### 2. Initialize Submodules (Required for DevKernel)
+
+**When to run:**
+- First time setup
+  
 ```bash
 git submodule update --init --recursive
 ```
@@ -64,39 +64,14 @@ kill $QEMU_PID 2>/dev/null || pkill -9 -f qemu-system
 Expected output in uart.log:
 ```
 UART started.
-CosmosOS gen3 v0.1.4 booted.
+CosmosOS gen3 v0.*.* booted.
 Architecture: x86-64.
 ```
 
-## Build for Different Architectures
-
-**Note:** Ensure `~/.dotnet/tools` is in your PATH before building:
-```bash
-export PATH="$PATH:$HOME/.dotnet/tools"
-```
-
-### x64
-```bash
-dotnet publish -c Debug -r linux-x64 -p:DefineConstants="ARCH_X64" \
-  ./examples/DevKernel/DevKernel.csproj -o ./output-x64
-```
-
-### ARM64
-```bash
-dotnet publish -c Debug -r linux-arm64 -p:DefineConstants="ARCH_ARM64" \
-  ./examples/DevKernel/DevKernel.csproj -o ./output-arm64
-```
-
-Output: `./output-{arch}/DevKernel.iso`
-
-## Key Architecture Defines
-- x64: `ARCH_X64` with runtime `linux-x64`
-- ARM64: `ARCH_ARM64` with runtime `linux-arm64`
-
 ## Project Structure
 - `src/` - Core patcher, build tools, kernel components
+- `src/Cosmos.Kernel.*` - Kernel components
 - `examples/DevKernel/` - Development example kernel project (recommended for testing)
-- `examples/KernelExample/` - Basic example kernel project
 - `tests/` - Test projects
 - `dotnet/runtime/` - Submodule with .NET runtime sources (required for DevKernel)
 - `.github/workflows/dotnet.yml` - CI pipeline reference
