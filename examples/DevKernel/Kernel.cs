@@ -26,6 +26,17 @@ internal unsafe static partial class Program
     {
         Serial.WriteString("[Main] Starting Main function\n");
 
+        // Initialize graphics console
+        if (KernelConsole.Initialize())
+        {
+            Serial.WriteString("[Main] Graphics console initialized successfully\n");
+            KernelConsole.WriteLine("Graphics console active!");
+        }
+        else
+        {
+            Serial.WriteString("[Main] No framebuffer available - graphics disabled\n");
+        }
+
         // Test memory allocator with various allocations
         Serial.WriteString("[Main] Testing memory allocator...\n");
 
@@ -33,6 +44,7 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 1: Allocating char array...\n");
         char[] testChars = new char[] { 'R', 'h', 'p' };
         Serial.WriteString("[Main] Test 1: SUCCESS - char array allocated\n");
+        KernelConsole.WriteLine("Test 1: PASS");
 
         // Test 2: String allocation
         Serial.WriteString("[Main] Test 2: Allocating string...\n");
@@ -40,6 +52,8 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 2: SUCCESS - string allocated: ");
         Serial.WriteString(testString);
         Serial.WriteString("\n");
+        KernelConsole.Write("Test 2: PASS - ");
+        KernelConsole.WriteLine(testString);
 
         // Test 3: Larger allocation (int array)
         Serial.WriteString("[Main] Test 3: Allocating int array (100 elements)...\n");
@@ -56,6 +70,7 @@ internal unsafe static partial class Program
         Serial.WriteString(", ");
         Serial.WriteNumber((uint)intArray[2], false);
         Serial.WriteString("\n");
+        KernelConsole.WriteLine("Test 3: PASS");
 
         // Test 4: Multiple string allocations
         Serial.WriteString("[Main] Test 4: Multiple string allocations...\n");
@@ -65,6 +80,8 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 4: SUCCESS - concatenated string: ");
         Serial.WriteString(str3);
         Serial.WriteString("\n");
+        KernelConsole.Write("Test 4: PASS - ");
+        KernelConsole.WriteLine(str3);
 
         // Test 5: GCC interop
         Serial.WriteString("[Main] Test 5: Testing GCC interop...\n");
@@ -72,8 +89,12 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 5: SUCCESS - GCC string: ");
         Serial.WriteString(gccString);
         Serial.WriteString("\n");
+        KernelConsole.Write("Test 5: PASS - ");
+        KernelConsole.WriteLine(gccString);
 
         Serial.WriteString("[Main] All memory allocator tests PASSED!\n");
+        KernelConsole.WriteLine();
+        KernelConsole.WriteLine("All tests PASSED!");
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
         while (true) ;
