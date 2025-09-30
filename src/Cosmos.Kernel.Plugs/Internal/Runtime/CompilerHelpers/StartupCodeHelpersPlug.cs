@@ -13,7 +13,17 @@ public unsafe partial class StartupCodeHelpersPlug
     [PlugMember]
     public static void RunModuleInitializers()
     {
-        var count = GetModules(out var modulesptr);
-        ManagedModule.InitializeAll(new(modulesptr, (int)count));
+        // TODO: Fix stack corruption in ManagedModule.InitializeStatics
+        // Module initialization causes memory corruption and system crashes.
+        // For now, skip module initialization to allow kernel to reach Main.
+        // This means GC statics won't be initialized and some features may not work.
+
+        // Cosmos.Kernel.System.IO.Serial.WriteString("[StartupCodeHelpers] RunModuleInitializers - Starting\n");
+        // var count = GetModules(out var modulesptr);
+        // Cosmos.Kernel.System.IO.Serial.WriteString("[StartupCodeHelpers] Found ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(count);
+        // Cosmos.Kernel.System.IO.Serial.WriteString(" modules\n");
+        // ManagedModule.InitializeAll(new(modulesptr, (int)count));
+        // Cosmos.Kernel.System.IO.Serial.WriteString("[StartupCodeHelpers] Module initialization complete\n");
     }
 }

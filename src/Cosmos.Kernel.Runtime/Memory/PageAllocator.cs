@@ -293,8 +293,14 @@ public static unsafe class PageAllocator
 
             if (zero)
             {
-                Span<byte> span = new(pageAddress, (int)(PageSize * aPageCount));
-                span.Fill(0x00);
+                Serial.WriteString("[PageAllocator] Zeroing page...\n");
+                ulong* ptr = (ulong*)pageAddress;
+                ulong count = (PageSize * aPageCount) / sizeof(ulong);
+                for (ulong i = 0; i < count; i++)
+                {
+                    ptr[i] = 0;
+                }
+                Serial.WriteString("[PageAllocator] Page zeroed\n");
             }
 
             // Decrement free page count

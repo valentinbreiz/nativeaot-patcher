@@ -4,6 +4,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.System.Graphics;
 #if ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
 #else
@@ -23,11 +24,17 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
+        // Initialize heap for memory allocations
         MemoryOp.InitializeHeap(Limine.HHDM.Offset, 0x1000000);
 
-        // Initialize platform HAL
+        // Initialize platform-specific HAL
         PlatformHAL.Initialize();
 
+        // TODO: Re-enable after fixing stack corruption in module initialization
+        // Initialize graphics framebuffer
+        // KernelConsole.Initialize();
+
+        // Initialize serial output
         Serial.ComInit();
         Serial.WriteString("UART started.\n");
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");

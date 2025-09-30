@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.Graphics.Fonts;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.System.Graphics;
 
@@ -13,10 +14,13 @@ public static class KernelConsole
     private static int CharHeight => PCScreenFont.CharHeight;
     private const int LineSpacing = 0;
 
-    [ModuleInitializer]
-    internal static unsafe void Initialize()
+    /// <summary>
+    /// Initializes the graphics framebuffer and canvas.
+    /// Should be called early in kernel initialization, after memory is available.
+    /// </summary>
+    public static unsafe void Initialize()
     {
-        // Initialize framebuffer if available
+        // Initialize framebuffer if available from bootloader
         if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
