@@ -5,8 +5,8 @@ using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL;
-using Cosmos.Kernel.Runtime;
 using Cosmos.Kernel.System.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
@@ -37,6 +37,10 @@ internal unsafe static partial class Program
         string testString = new string(testChars);
         Console.WriteLine(testString);
         Serial.WriteString(testString + "\n");
+
+        // Test exception handling
+        Console.WriteLine("Testing exception handling...");
+        throw new Exception("Test exception from kernel!");
 
         while (true) ;
     }

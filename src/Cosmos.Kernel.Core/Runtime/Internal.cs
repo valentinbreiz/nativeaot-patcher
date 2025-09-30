@@ -1,6 +1,6 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
-namespace Cosmos.Kernel.Runtime;
+namespace Cosmos.Kernel.Core.Runtime;
 
 public static class Native
 {

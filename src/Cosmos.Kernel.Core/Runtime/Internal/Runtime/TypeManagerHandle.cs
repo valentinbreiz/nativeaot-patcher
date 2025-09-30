@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Runtime;
+using Cosmos.Kernel.Core.Runtime;
 
 namespace Internal.Runtime
 {

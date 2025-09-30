@@ -83,8 +83,6 @@ dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -o
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
 dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
 
 dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build

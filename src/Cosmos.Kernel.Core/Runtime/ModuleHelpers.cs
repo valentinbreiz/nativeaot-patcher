@@ -2,7 +2,7 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using Internal.Runtime;
 
-namespace Cosmos.Kernel.Runtime;
+namespace Cosmos.Kernel.Core.Runtime;
 
 internal static unsafe class ModuleHelpers
 {

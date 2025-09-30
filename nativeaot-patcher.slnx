@@ -10,11 +10,11 @@
     <Project Path="src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" Type="C#" />
-    <Project Path="src/Cosmos.Kernel.Runtime/Cosmos.Kernel.Runtime.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
-    <Project Path="src\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" Type="C#" />
   </Folder>
   <Folder Name="/src/Build/">
     <Project Path="src/Cosmos.Build.Analyzer.Patcher.CodeFixes/Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" Type="C#" />

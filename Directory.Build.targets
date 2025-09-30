@@ -17,4 +17,5 @@
            Text="Only the Cosmos.Kernel project may reference Cosmos.Kernel.Boot.* projects."
            />
   </Target>
+
 </Project>

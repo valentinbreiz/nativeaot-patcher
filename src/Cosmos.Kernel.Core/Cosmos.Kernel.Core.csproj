@@ -1,15 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!--pack as nuget-->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- This may need to change -->
+    <DefineConstants>$(DefineConstants);NATIVEAOT;TARGET_64BIT</DefineConstants>
 
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System.Core</PackageId>
     <Title>Cosmos Kernel Core</Title>
-    <Description>Core kernel functionality for Cosmos including memory management and fundamental kernel services.</Description>
-    <PackageTags>cosmos;kernel;core;memory;heap;allocation;kernel-services</PackageTags>
+    <Description>Core kernel functionality for Cosmos including memory management, runtime, and fundamental kernel services.</Description>
+    <PackageTags>cosmos;kernel;core;memory;heap;allocation;kernel-services;runtime</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ToolCommonPath)Internal\NativeFormat\NativeFormat.cs">
+      <Link>Runtime\Internal\NativeFormat\NativeFormat.cs</Link>
+    </Compile>
+    <Compile Include="$(ToolCommonPath)Internal\Runtime\MethodTable.Constants.cs">
+      <Link>Runtime\Internal\Runtime\MethodTable.Constants.cs</Link>
+    </Compile>
+    <Compile Include="$(AotCommonPath)Internal\Runtime\MethodTable.cs">
+      <Link>Runtime\Internal\Runtime\MethodTable.cs</Link>
+    </Compile>
+    <Compile Include="$(AotRuntimeBasePath)System\Runtime\ExceptionIDs.cs">
+      <Link>Runtime\Internal\Runtime\ExceptionIDs.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build\**" Pack="true" PackagePath="build\" />
+  </ItemGroup>
 
 </Project>
