@@ -267,8 +267,17 @@ namespace Cosmos.Kernel.Runtime
         [RuntimeExport("RhpByRefAssignRef")]
         static unsafe void RhpByRefAssignRef(void** location, void* value)
         {
+#if ARCH_ARM64
+            RhpByRefAssignRefArm64(location, value);
+#else
             *location = value;
+#endif
         }
+
+#if ARCH_ARM64
+        [RuntimeImport("*", "RhpByRefAssignRefArm64")]
+        private static extern unsafe void RhpByRefAssignRefArm64(void** location, void* value);
+#endif
 
         [RuntimeExport("RhpNewFinalizable")]
         static unsafe object? RhpNewFinalizable(int typeHandle)
