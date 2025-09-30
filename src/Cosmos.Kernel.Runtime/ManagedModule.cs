@@ -114,9 +114,9 @@ public static unsafe class ManagedModule
 
             if ((blockAddr & GCStaticRegionConstants.Uninitialized) == GCStaticRegionConstants.Uninitialized)
             {
-                var ptr = StartupCodeHelpers.RhpNewFast((MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask));
+                var ptr = Memory.RhpNewFast((MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask));
                 object obj = Unsafe.AsRef<object>(ptr);
-                var pEEType = StartupCodeHelpers.GetMethodTable(obj);
+                var pEEType = Memory.GetMethodTable(obj);
 
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {

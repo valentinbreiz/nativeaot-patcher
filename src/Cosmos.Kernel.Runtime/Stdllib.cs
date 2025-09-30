@@ -71,19 +71,15 @@ namespace Cosmos.Kernel.Runtime
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
         [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(object ex) { while (true) ; }
-
-        [RuntimeExport("RhpNewArray")]
-        private static unsafe void* RhpNewArray(MethodTable* pMT, int length)
+        private static void RhpThrowEx(Exception ex)
         {
-            if (length < 0)
-                return null;
+            if (ex == null)
+            {
+                Console.WriteLine("Null exception thrown");
+                return;
+            }
 
-            uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
-            MethodTable** result = AllocObject(size);
-            *result = pMT;
-            *(int*)(result + 1) = length;
-            return result;
+            Console.WriteLine($"Unhandled exception: {ex.GetType().Name}");
         }
 
         [RuntimeExport("RhpAssignRef")]
@@ -98,43 +94,6 @@ namespace Cosmos.Kernel.Runtime
             *location = value;
         }
 
-        [RuntimeExport("RhpNewFast")]
-        internal static unsafe void* RhpNewFast(MethodTable* pMT)
-        {
-            MethodTable** result = AllocObject(pMT->BaseSize);
-            *result = pMT;
-            return result;
-        }
-
-        private static unsafe MethodTable** AllocObject(uint size)
-        {
-            return (MethodTable**)MemoryOp.Alloc(size);
-        }
-
-        internal static unsafe MethodTable* GetMethodTable(object obj)
-        {
-            TypedReference tr = __makeref(obj);
-            return (MethodTable*)*(IntPtr*)&tr;
-        }
-
-        [RuntimeExport("memmove")]
-        private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
-        {
-            MemoryOp.MemMove(dest, src, (int)len);
-        }
-
-        [RuntimeExport("memset")]
-        private static unsafe void memset(byte* dest, int value, UIntPtr len)
-        {
-            MemoryOp.MemSet(dest, (byte)value, (int)len);
-        }
-
-        [RuntimeExport("RhNewString")]
-        private static unsafe void* RhNewString(MethodTable* pEEType, int length)
-        {
-            return RhpNewArray(pEEType, length);
-        }
-
         [RuntimeExport("RhpCheckedXchg")]
         private static void* InterlockedExchange(void** location1, void* value)
         {
@@ -142,13 +101,288 @@ namespace Cosmos.Kernel.Runtime
             *location1 = value;
             return original;
         }
+
         [RuntimeExport("RhTypeCast_CheckCastClass")]
         static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle)
         {
             // This is 100% WRONG
             return obj;
         }
-        /*
+
+        // Essential runtime functions needed by the linker
+        [RuntimeExport("RhTypeCast_IsInstanceOfClass")]
+        static unsafe object RhTypeCast_IsInstanceOfClass(object obj, int classTypeHandle)
+        {
+            return obj; // Simplified implementation
+        }
+
+
+        [RuntimeExport("RhpTrapThreads")]
+        static void RhpTrapThreads() { }
+
+        [RuntimeExport("RhpGcPoll")]
+        static void RhpGcPoll() { }
+
+        [RuntimeExport("RhBoxAny")]
+        static unsafe object RhBoxAny(int typeHandle, void* data)
+        {
+            return null; // Simplified implementation
+        }
+
+        [RuntimeExport("RhGetOSModuleFromPointer")]
+        static IntPtr RhGetOSModuleFromPointer(IntPtr ptr)
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhGetRuntimeVersion")]
+        static int RhGetRuntimeVersion()
+        {
+            return 0;
+        }
+
+        [RuntimeExport("RhBulkMoveWithWriteBarrier")]
+        static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len)
+        {
+            memmove((byte*)dest, (byte*)src, len);
+        }
+
+        [RuntimeExport("RhpCheckedLockCmpXchg")]
+        static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle)
+        {
+            object original = *location;
+            if (original == comparand)
+                *location = value;
+            return original;
+        }
+
+        [RuntimeExport("RhGetProcessCpuCount")]
+        static int RhGetProcessCpuCount()
+        {
+            return 1;
+        }
+
+        [RuntimeExport("RhSuppressFinalize")]
+        static void RhSuppressFinalize(object obj) { }
+
+        [RuntimeExport("RhReRegisterForFinalize")]
+        static void RhReRegisterForFinalize(object obj) { }
+
+        [RuntimeExport("RhGetMemoryInfo")]
+        static void RhGetMemoryInfo(IntPtr pMemInfo) { }
+
+        [RuntimeExport("RhNewArray")]
+        static unsafe object RhNewArray(int typeHandle)
+        {
+            return null; // Simplified implementation
+        }
+
+        [RuntimeExport("RhNewObject")]
+        static unsafe object RhNewObject(int typeHandle)
+        {
+            return null; // Simplified implementation
+        }
+
+        [RuntimeExport("RhHandleSet")]
+        static IntPtr RhHandleSet(object obj)
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhHandleFree")]
+        static void RhHandleFree(IntPtr handle) { }
+
+        [RuntimeExport("RhTypeCast_AreTypesAssignable")]
+        static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest)
+        {
+            return true; // Simplified implementation
+        }
+
+        [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
+        static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count)
+        {
+            return obj; // Simplified implementation
+        }
+
+        [RuntimeExport("RhBox")]
+        static unsafe object RhBox(int typeHandle, void* data)
+        {
+            return null; // Simplified implementation
+        }
+
+        // Additional missing runtime exports
+        [RuntimeExport("RhUnbox")]
+        static unsafe void* RhUnbox(object obj)
+        {
+            // Get the data pointer after the method table
+            return (byte*)Unsafe.AsPointer(ref obj) + sizeof(IntPtr);
+        }
+
+        [RuntimeExport("RhUnbox2")]
+        static unsafe object RhUnbox2(object obj)
+        {
+            return obj;
+        }
+
+        [RuntimeExport("RhpStelemRef")]
+        static unsafe void RhpStelemRef(object array, int index, object value)
+        {
+            // Simplified array element store
+            ((object[])array)[index] = value;
+        }
+
+        [RuntimeExport("RhpResolveInterfaceMethod")]
+        static unsafe IntPtr RhpResolveInterfaceMethod(object obj, int methodHandle)
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhCurrentOSThreadId")]
+        static ulong RhCurrentOSThreadId()
+        {
+            return 1; // Single thread for now
+        }
+
+        [RuntimeExport("RhGetCrashInfoBuffer")]
+        static IntPtr RhGetCrashInfoBuffer()
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhCreateCrashDumpIfEnabled")]
+        static void RhCreateCrashDumpIfEnabled(IntPtr exceptionRecord, IntPtr contextRecord) { }
+
+        [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
+        static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle)
+        {
+            return obj != null;
+        }
+
+        [RuntimeExport("RhTypeCast_CheckCastInterface")]
+        static unsafe object RhTypeCast_CheckCastInterface(object obj, int interfaceTypeHandle)
+        {
+            return obj;
+        }
+
+        [RuntimeExport("RhpByRefAssignRef")]
+        static unsafe void RhpByRefAssignRef(void** location, void* value)
+        {
+            *location = value;
+        }
+
+        [RuntimeExport("RhpNewFinalizable")]
+        static unsafe object RhpNewFinalizable(int typeHandle)
+        {
+            return null;
+        }
+
+        [RuntimeExport("RhpRethrow")]
+        static void RhpRethrow()
+        {
+            while (true) ;
+        }
+
+        [RuntimeExport("RhSpinWait")]
+        static void RhSpinWait(int iterations)
+        {
+            // Simple spin wait
+            for (int i = 0; i < iterations; i++)
+            {
+                // Spin
+            }
+        }
+
+        [RuntimeExport("RhSetThreadExitCallback")]
+        static void RhSetThreadExitCallback(IntPtr callback) { }
+
+        [RuntimeExport("RhYield")]
+        static void RhYield() { }
+
+        [RuntimeExport("RhpHandleAlloc")]
+        static IntPtr RhpHandleAlloc(object obj, bool fPinned)
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhpHandleAllocDependent")]
+        static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
+        {
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]
+        static unsafe void RhBuffer_BulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len)
+        {
+            memmove((byte*)dest, (byte*)src, len);
+        }
+
+        [RuntimeExport("RhTypeCast_CheckCastClassSpecial")]
+        static unsafe object RhTypeCast_CheckCastClassSpecial(object obj, int typeHandle, byte fThrow)
+        {
+            return obj;
+        }
+
+        [RuntimeExport("RhFindMethodStartAddress")]
+        static IntPtr RhFindMethodStartAddress(IntPtr ip)
+        {
+            return ip;
+        }
+
+        [RuntimeExport("RhGetCurrentThreadStackTrace")]
+        static IntPtr RhGetCurrentThreadStackTrace(int skipFrames, int maxFrames, out int pFrameCount)
+        {
+            pFrameCount = 0;
+            return IntPtr.Zero;
+        }
+
+        [RuntimeExport("RhpLdelemaRef")]
+        static unsafe void* RhpLdelemaRef(object array, int index, int typeHandle)
+        {
+            // Get address of array element
+            object[] objArray = (object[])array;
+            fixed (object* ptr = &objArray[index])
+            {
+                return ptr;
+            }
+        }
+
+        [RuntimeExport("RhGetCodeTarget")]
+        static IntPtr RhGetCodeTarget(IntPtr pCode)
+        {
+            return pCode;
+        }
+
+        [RuntimeExport("RhGetTargetOfUnboxingAndInstantiatingStub")]
+        static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode)
+        {
+            return pCode;
+        }
+
+        [RuntimeExport("RhFindBlob")]
+        static unsafe bool RhFindBlob(IntPtr hOsModule, uint blobId, void** ppbBlob, uint* pcbBlob)
+        {
+            if (ppbBlob != null)
+                *ppbBlob = null;
+            if (pcbBlob != null)
+                *pcbBlob = 0;
+            return false;
+        }
+
+        [RuntimeExport("RhTypeCast_CheckCastAny")]
+        static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle)
+        {
+            return obj;
+        }
+
+        private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
+        {
+            MemoryOp.MemMove(dest, src, (int)len);
+        }
+
+    }
+}
+
+/*
                 [RuntimeExport("RhUnbox2")]
                 static unsafe object RhUnbox2(object obj) { throw null; }
                 [RuntimeExport("RhpCheckedAssignRef")]
@@ -297,7 +531,10 @@ namespace Cosmos.Kernel.Runtime
                 [RuntimeExport("RhGetTotalAllocatedBytes")]
                 static long RhGetTotalAllocatedBytes() { throw null; }
                 [RuntimeExport("RhGetLastGCPercentTimeInGC")]
-                static int RhGetLastGCPercentTimeInGC(int generation) { throw null; }*/
+                static int RhGetLastGCPercentTimeInGC(int generation) { throw null; }
     }
 }
+
+*/
+
 #endregion
