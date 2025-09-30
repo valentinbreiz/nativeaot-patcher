@@ -404,3 +404,4 @@ main
 *.iso
 *.hdd
 output
+output-x64/
