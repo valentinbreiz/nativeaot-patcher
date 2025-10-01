@@ -206,10 +206,6 @@ public static unsafe class SmallHeap
     /// <param name="aSize">Size must be divisible by 2 otherwise Alloc breaks</param>
     private static void AddRootSMTBlock(SMTPage* aPage, uint aSize)
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] AddRootSMTBlock - size: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(aSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
         RootSMTBlock* ptr = aPage->First;
         while (ptr->LargerSize != null)
         {
@@ -268,23 +264,13 @@ public static unsafe class SmallHeap
     /// <exception cref="Exception">Thrown on fatal error, contact support.</exception>
     public static void Init()
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Init started\n");
-
         // Later Adjust for new page and header sizes
         // 4 slots, ~1k ea
         ulong xMaxItemSize = PageAllocator.PageSize / 4 - PrefixBytes;
         // Word align it
         mMaxItemSize = xMaxItemSize / sizeof(uint) * sizeof(uint);
 
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Max item size: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(mMaxItemSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
         SMT = InitSMTPage();
-
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Init complete, SMT at: 0x");
-        Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)SMT);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
     }
 
     /// <summary>
@@ -293,7 +279,6 @@ public static unsafe class SmallHeap
     /// <returns></returns>
     private static SMTPage* InitSMTPage()
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] InitSMTPage - Allocating SMT page\n");
         SMTPage* page = (SMTPage*)PageAllocator.AllocPages(PageType.SMT, 1, zero: true);
 
         if (page == null)
@@ -301,10 +286,6 @@ public static unsafe class SmallHeap
             Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] ERROR: Failed to allocate SMT page!\n");
             return null;
         }
-
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] SMT page allocated at: 0x");
-        Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)page);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
 
         page->Next = null;
         page->First = (RootSMTBlock*)((byte*)page + sizeof(SMTPage));
@@ -318,7 +299,6 @@ public static unsafe class SmallHeap
         // Later Change these sizes after further study and also when page size changes.
         // SMT can be grown as needed. Also can adjust and create new ones dynamicaly as it runs.
         // The current algorithm only works if we create the inital pages in increasing order
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Adding root SMT blocks\n");
         AddRootSMTBlock(page, 16);
         AddRootSMTBlock(page, 24);
         AddRootSMTBlock(page, 48);
@@ -326,7 +306,6 @@ public static unsafe class SmallHeap
         AddRootSMTBlock(page, 128);
         AddRootSMTBlock(page, 256);
         AddRootSMTBlock(page, 512);
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] InitSMTPage complete\n");
         return page;
     }
 
@@ -345,20 +324,12 @@ public static unsafe class SmallHeap
     /// </exception>
     private static void CreatePage(SMTPage* aPage, uint aItemSize)
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] CreatePage - itemSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(aItemSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
         byte* xPtr = (byte*)PageAllocator.AllocPages(PageType.HeapSmall, 1, zero: true);
         if (xPtr == null)
         {
             Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] ERROR: Failed to allocate HeapSmall page!\n");
             return; // we failed to create the page, Alloc should still handle this case
         }
-
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] HeapSmall page allocated at: 0x");
-        Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)xPtr);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
 
         ulong xSlotSize = aItemSize + PrefixBytes;
         ulong xItemCount = PageAllocator.PageSize / xSlotSize;
@@ -438,14 +409,9 @@ public static unsafe class SmallHeap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Alloc - size: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(aSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
         SMTBlock* pageBlock = GetFirstWithSpace(aSize);
         if (pageBlock == null) // This happens when the page is full and we need to allocate a new page for this size
         {
-            Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] No space found, creating new page\n");
             CreatePage(SMT,
                 GetRoundedSize(
                     aSize)); // CreatePage will try add this page to any page of the SMT until it finds one with space
@@ -464,27 +430,11 @@ public static unsafe class SmallHeap
         ulong elementSize = roundedSize + PrefixBytes;
         ulong positions = PageAllocator.PageSize / elementSize;
 
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] PagePtr: 0x");
-        Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)pageBlock->PagePtr);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", RoundedSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(roundedSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", ElementSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(elementSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", PageSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(PageAllocator.PageSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", Positions: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(positions);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
         for (ulong i = 0; i < positions; i++)
         {
             if (page[i * elementSize / 2] == 0)
             {
                 // we have found an empty slot
-                Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Found free slot at position ");
-                Cosmos.Kernel.System.IO.Serial.WriteNumber(i);
-                Cosmos.Kernel.System.IO.Serial.WriteString(", allocating at 0x");
-
                 // update SMT block info
                 pageBlock->SpacesLeft--;
 
@@ -494,9 +444,6 @@ public static unsafe class SmallHeap
                 heapObject[1] = 0; // gc status starts as 0
 
                 byte* result = (byte*)&heapObject[2];
-                Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)result);
-                Cosmos.Kernel.System.IO.Serial.WriteString("\n");
-
                 return result;
             }
         }

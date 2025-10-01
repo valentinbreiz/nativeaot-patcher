@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
+
+    <!-- Cosmos.Sdk is not compatible with Global Package managment -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <!-- Add any folder(s) where *.c files exist -->
+  <ItemGroup>
+    <GCCProject Include="./src/C/" />
+    <GCCProject Include="../../src/Cosmos.Kernel/Bootstrap/" />
+  </ItemGroup>
+
+  <!-- PInvokes to be resolved. See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/interop -->
+  <ItemGroup>
+    <IlcArg Include="--verbose" />
+    <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
+  </ItemGroup>
+
+  <!-- Include Plugs -->
+  <ItemGroup>
+    <PlugReference Include="Cosmos.Kernel.Plugs" />
+  </ItemGroup>
+
+
+  <!-- Direct project references for kernel components that we want to develop -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cosmos.Kernel\Cosmos.Kernel.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+  </ItemGroup>
+
+  <!-- Architecture-specific HAL references -->
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
+    <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
+    <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
+  </ItemGroup>
+
+
+</Project>

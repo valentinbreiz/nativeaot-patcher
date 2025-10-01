@@ -65,8 +65,6 @@ public static unsafe class PageAllocator
     /// </exception>
     public static void InitializeHeap(byte* aStartPtr, ulong aSize)
     {
-        Serial.WriteString("[PageAllocator] UART started.\n");
-
         if ((uint)aStartPtr % PageSize != 0)
         {
             throw new Exception("RAM start must be page aligned.");
@@ -77,33 +75,17 @@ public static unsafe class PageAllocator
             throw new Exception("RAM size must be page aligned.");
         }
 
-        Serial.WriteString("[PageAllocator] RAM start: 0x");
-        Serial.WriteHex((ulong)aStartPtr);
-        Serial.WriteString(", size: ");
-        Serial.WriteNumber(aSize);
-        Serial.WriteString("\n");
-
         RamStart = aStartPtr;
         RamSize = aSize;
         HeapEnd = aStartPtr + aSize;
         TotalPageCount = aSize / PageSize;
         FreePageCount = TotalPageCount;
 
-        Serial.WriteString("[PageAllocator] Total pages: ");
-        Serial.WriteNumber(TotalPageCount);
-        Serial.WriteString("\n");
-
         // We need one status byte for each block.
         // Intel blocks are 4k (10 bits). So for 4GB, this means
         // 32 - 12 = 20 bits, 1 MB for a RAT for 4GB. 0.025%
         ulong xRatPageCount = (TotalPageCount - 1) / PageSize + 1;
         ulong xRatTotalSize = xRatPageCount * PageSize;
-
-        Serial.WriteString("[PageAllocator] RAT pages needed: ");
-        Serial.WriteNumber(xRatPageCount);
-        Serial.WriteString(", RAT total size: ");
-        Serial.WriteNumber(xRatTotalSize);
-        Serial.WriteString("\n");
 
         // Place RAT at the beginning of heap instead of end to avoid memory protection issues
         mRAT = RamStart;
@@ -113,26 +95,18 @@ public static unsafe class PageAllocator
         RamSize = RamSize - xRatTotalSize;
         HeapEnd = RamStart + RamSize;
 
-        Serial.WriteString("[PageAllocator] RAT location: 0x");
-        Serial.WriteHex((ulong)mRAT);
-        Serial.WriteString(", New RamStart: 0x");
-        Serial.WriteHex((ulong)RamStart);
-        Serial.WriteString("\n");
-
         if (mRAT > HeapEnd)
         {
             throw new Exception("mRAT is greater than heap. rattotalsize is " + xRatTotalSize);
         }
 
         // Initialize ALL RAT entries first
-        Serial.WriteString("[PageAllocator] Initializing RAT entries...\n");
         for (ulong i = 0; i < TotalPageCount; i++)
         {
             mRAT[i] = (byte)PageType.Empty;
         }
 
         // Mark the RAT pages as PageAllocator (first xRatPageCount pages)
-        Serial.WriteString("[PageAllocator] Marking RAT pages...\n");
         for (ulong i = 0; i < xRatPageCount; i++)
         {
             mRAT[i] = (byte)PageType.PageAllocator;
@@ -141,20 +115,12 @@ public static unsafe class PageAllocator
         // Remove pages needed for RAT table from count
         FreePageCount -= xRatPageCount;
 
-        Serial.WriteString("[PageAllocator] RAT initialization complete. Free pages: ");
-        Serial.WriteNumber(FreePageCount);
-        Serial.WriteString("\n");
-
         // Test RAT is writable
         byte testValue = mRAT[0];
         mRAT[0] = 123;
         if (mRAT[0] != 123)
         {
             Serial.WriteString("[PageAllocator] ERROR: RAT is not writable!\n");
-        }
-        else
-        {
-            Serial.WriteString("[PageAllocator] RAT write test passed\n");
         }
         mRAT[0] = testValue; // Restore
 
@@ -170,14 +136,6 @@ public static unsafe class PageAllocator
     /// <returns>A pointer to the first page on success, null on failure.</returns>
     public static void* AllocPages(PageType aType, ulong aPageCount = 1, bool zero = false)
     {
-        Serial.WriteString("[PageAllocator] AllocPages - Type: ");
-        Serial.WriteNumber((uint)aType);
-        Serial.WriteString(", Count: ");
-        Serial.WriteNumber(aPageCount);
-        Serial.WriteString(", Free: ");
-        Serial.WriteNumber(FreePageCount);
-        Serial.WriteString("\n");
-
         byte* startPage = null;
 
         // Could combine with an external method or delegate, but will slow things down
@@ -188,24 +146,9 @@ public static unsafe class PageAllocator
         {
             for (byte* ptr = mRAT; ptr < mRAT + TotalPageCount; ptr++)
             {
-                ulong currentOffset = (ulong)(ptr - mRAT);
-                PageType currentType = (PageType)(*ptr);
-
-                if (currentOffset < 10)  // Only log first 10 entries to avoid spam
-                {
-                    Serial.WriteString("[PageAllocator] RAT[");
-                    Serial.WriteNumber(currentOffset);
-                    Serial.WriteString("] = ");
-                    Serial.WriteNumber((uint)currentType);
-                    Serial.WriteString("\n");
-                }
-
-                if (currentType == PageType.Empty)
+                if (*ptr == (byte)PageType.Empty)
                 {
                     startPage = ptr;
-                    Serial.WriteString("[PageAllocator] Found empty page at offset ");
-                    Serial.WriteNumber(currentOffset);
-                    Serial.WriteString("\n");
                     break;
                 }
             }
@@ -237,23 +180,12 @@ public static unsafe class PageAllocator
             long offset = startPage - mRAT;
             byte* pageAddress = RamStart + (ulong)offset * PageSize;
 
-            Serial.WriteString("[PageAllocator] Allocating at offset ");
-            Serial.WriteNumber((uint)offset);
-            Serial.WriteString(", address: 0x");
-            Serial.WriteHex((ulong)pageAddress);
-            Serial.WriteString("\n");
-
             // Bounds check before writing to RAT
             if ((ulong)offset >= TotalPageCount)
             {
                 Serial.WriteString("[PageAllocator] ERROR: Offset out of bounds!\n");
                 return null;
             }
-
-            // Diagnostic: Test if we can write to the RAT at all
-            Serial.WriteString("[PageAllocator] Testing RAT write at offset ");
-            Serial.WriteNumber((uint)offset);
-            Serial.WriteString("\n");
 
             // Try writing a test value first
             mRAT[offset] = 99;
@@ -266,54 +198,28 @@ public static unsafe class PageAllocator
             // Now try the actual value
             mRAT[offset] = (byte)aType;
 
-            // Test adjacent memory locations
-            if (offset > 0)
-            {
-                Serial.WriteString("[PageAllocator] Adjacent RAT values - Prev: ");
-                Serial.WriteNumber((uint)mRAT[offset - 1]);
-                Serial.WriteString(", Current: ");
-                Serial.WriteNumber((uint)mRAT[offset]);
-                if (offset + 1 < (long)TotalPageCount)
-                {
-                    Serial.WriteString(", Next: ");
-                    Serial.WriteNumber((uint)mRAT[offset + 1]);
-                }
-                Serial.WriteString("\n");
-            }
-
             for (ulong i = 1; i < aPageCount; i++)
             {
                 mRAT[(ulong)offset + i] = (byte)PageType.Extension;
             }
 
-            // Verify the RAT entry was set correctly
-            Serial.WriteString("[PageAllocator] RAT entry set to: ");
-            Serial.WriteNumber((uint)mRAT[offset]);
-            Serial.WriteString("\n");
-
             if (zero)
             {
-                Serial.WriteString("[PageAllocator] Zeroing page...\n");
                 ulong* ptr = (ulong*)pageAddress;
                 ulong count = (PageSize * aPageCount) / sizeof(ulong);
                 for (ulong i = 0; i < count; i++)
                 {
                     ptr[i] = 0;
                 }
-                Serial.WriteString("[PageAllocator] Page zeroed\n");
             }
 
             // Decrement free page count
             FreePageCount -= aPageCount;
 
-            Serial.WriteString("[PageAllocator] Allocation successful. Remaining free pages: ");
-            Serial.WriteNumber(FreePageCount);
-            Serial.WriteString("\n");
-
             return pageAddress;
         }
 
-        Serial.WriteString("[PageAllocator] No free pages found!\n");
+        Serial.WriteString("[PageAllocator] ERROR: No free pages found!\n");
         return null;
     }
 
