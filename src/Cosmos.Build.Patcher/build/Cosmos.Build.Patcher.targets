@@ -5,6 +5,11 @@
     <EnableAOT>true</EnableAOT>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PatcherTargetPlatform Condition="'$(PatcherTargetPlatform)' == '' and '$(CosmosArch)' != ''">$([System.String]::Copy('$(CosmosArch)').ToUpperInvariant())</PatcherTargetPlatform>
+  <PatcherTargetPlatform Condition="'$(PatcherTargetPlatform)' == ''">X64</PatcherTargetPlatform>
+  </PropertyGroup>
+
   <UsingTask TaskName="Cosmos.Build.Patcher.Tasks.PatcherTask"
              AssemblyFile="$(CosmosPatcherTasksAssembly)" />
   <UsingTask TaskName="Cosmos.Build.Patcher.Tasks.FindPluggedAssembliesTask"
@@ -53,7 +58,7 @@
 
     <!-- Include ILC SDK reference assemblies as candidates (System.Console, etc.) -->
     <ItemGroup>
-      <IlcSdkAssemblies Include="$(IlcToolsPath)sdk/*.dll" Condition="'$(IlcToolsPath)' != ''" />
+      <IlcSdkAssemblies Include="$(IlcSdkPath)**/*.dll" Condition="'$(IlcSdkPath)' != ''" />
       <CandidateAssemblies Include="@(IlcSdkAssemblies)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </CandidateAssemblies>
