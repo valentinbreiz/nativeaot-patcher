@@ -18,7 +18,7 @@
     <Message Text="▶ Running Patch…" Importance="High" />
 
     <Exec
-      Command="&quot;$(CosmosPatcherExe)&quot; patch --target &quot;%(AssembliesToPatch.Identity)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot;"
+      Command="&quot;$(CosmosPatcherExe)&quot; patch --target &quot;%(AssembliesToPatch.Identity)&quot; --target-platform &quot;$(PatcherTargetPlatform)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot;"
       ConsoleToMSBuild="true"
       IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />
