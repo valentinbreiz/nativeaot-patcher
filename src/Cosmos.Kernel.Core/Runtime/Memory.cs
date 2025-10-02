@@ -51,6 +51,13 @@ public static class Memory
         return *(MethodTable**)Unsafe.AsPointer(ref obj);
     }
 
+    
+    [RuntimeExport("RhSpanHelpers_MemCopy")]
+    private static unsafe void RhSpanHelpers_MemCopy(byte* dest, byte* src, UIntPtr len)
+    {
+        MemoryOp.MemCopy(dest, src, (int)len);
+    }
+    
     [RuntimeExport("memmove")]
     private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
     {
