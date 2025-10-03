@@ -10,6 +10,7 @@
     <Project Path="src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" />
     <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj" />
     <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj" />
+    <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" />
     <Project Path="src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" />
     <Project Path="src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
     <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" />
