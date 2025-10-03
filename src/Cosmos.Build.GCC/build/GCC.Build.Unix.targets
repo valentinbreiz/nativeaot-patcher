@@ -1,4 +1,5 @@
-<Project>  <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
+<Project>
+  <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
       <!-- Use architecture-specific GCC cross-compiler -->
@@ -7,7 +8,6 @@
       <!-- Default fallback -->
       <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
     </PropertyGroup>
-
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
   </Target>
 </Project>
