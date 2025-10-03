@@ -24,5 +24,6 @@
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" />
     <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" />
+    <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" />
   </Folder>
 </Solution>
