@@ -27,11 +27,11 @@ public sealed class PatcherTask : ToolTask
 
         // Add --target arg
         builder.AppendSwitch("--target");
-    builder.AppendFileNameIfNotNull(TargetAssembly);
+        builder.AppendFileNameIfNotNull(TargetAssembly);
 
-    // Add --target-platform arg
-    builder.AppendSwitch("--target-platform");
-    builder.AppendFileNameIfNotNull(TargetPlatform);
+        // Add --target-platform arg
+        builder.AppendSwitch("--target-platform");
+        builder.AppendFileNameIfNotNull(TargetPlatform);
 
 
         // Add plugs
@@ -53,8 +53,8 @@ public sealed class PatcherTask : ToolTask
         Log.LogMessage(MessageImportance.High, "Running Liquip.Patcher...");
         Log.LogMessage(MessageImportance.High, $"Platform: {Environment.OSVersion.Platform}");
         Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
-    Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
-    Log.LogMessage(MessageImportance.High, $"Target Platform: {TargetPlatform}");
+        Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
+        Log.LogMessage(MessageImportance.High, $"Target Platform: {TargetPlatform}");
         Log.LogMessage(MessageImportance.High,
             $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
         Log.LogMessage(MessageImportance.High, $"Command: {GenerateCommandLineCommands()}");

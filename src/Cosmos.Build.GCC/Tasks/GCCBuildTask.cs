@@ -23,7 +23,7 @@ public sealed class GCCBuildTask : ToolTask
     protected override MessageImportance StandardErrorLoggingImportance => MessageImportance.Normal;
 
     protected override string GenerateFullPathToTool() =>
-        GCCPath!; protected override string GenerateCommandLineCommands()
+            GCCPath!; protected override string GenerateCommandLineCommands()
     {
         var sb = new StringBuilder();
 
@@ -178,15 +178,15 @@ public sealed class GCCBuildTask : ToolTask
         using var process = new System.Diagnostics.Process();
         process.StartInfo = psi;
         process.OutputDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                Log.LogMessage(MessageImportance.Normal, e.Data);
-        };
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Log.LogMessage(MessageImportance.Normal, e.Data);
+                };
         process.ErrorDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                Log.LogError(e.Data);
-        };
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Log.LogError(e.Data);
+                };
 
         process.Start();
         process.BeginOutputReadLine();
