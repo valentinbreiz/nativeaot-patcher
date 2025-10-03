@@ -6,11 +6,15 @@
 
     <!-- Use YASM for x64, GNU assembler for ARM64 -->
     <Exec Command="which yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">
-      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
     </Exec>
 
     <Exec Command="which aarch64-linux-gnu-as" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'arm64'">
-      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
     </Exec>
+
+    <PropertyGroup>
+      <YasmPath>$('$(YasmPaths)'.Split(';')[0].Trim())</YasmPath>
+    </PropertyGroup>
   </Target>
 </Project>
