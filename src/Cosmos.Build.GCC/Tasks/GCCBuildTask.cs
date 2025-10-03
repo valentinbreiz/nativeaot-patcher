@@ -35,10 +35,8 @@ public sealed class GCCBuildTask : ToolTask
 
         // Add any user-provided compiler flags
         if (!string.IsNullOrEmpty(CompilerFlags))
-        {
             sb.Append($" {CompilerFlags} ");
-        }
-
+        
         // Include all source files
         string[] sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
         sb.Append(string.Join(" ", sourceFilePaths));
@@ -119,6 +117,7 @@ public sealed class GCCBuildTask : ToolTask
             if (!ExecuteCommand(GenerateFullPathToTool(), commandLineArguments))
             {
                 Log.LogError($"Failed to compile {file}");
+                Log.LogError($"Command: {GenerateFullPathToTool()} {commandLineArguments}");
                 return false;
             }
         }
