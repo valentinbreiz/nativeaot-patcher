@@ -219,3 +219,78 @@ jobs:
         with:
           name: KernelExample-ISO-${{ matrix.arch }}
           path: ./output-${{ matrix.arch }}/KernelExample.iso
+
+  windows-iso-tests:
+    name: Run ISO Build Tests - Windows (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 9.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: windows-x64
+            assembler: yasm
+          - arch: arm64
+            rid: windows-arm64
+            assembler: gcc-aarch64-linux-gnu
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🔗 Install Linking Tools
+        uses: crazy-max/ghaction-chocolatey@v3.3.0
+        with:
+          args: install -y llvm
+      
+      - name: 🔗 Install x64 Assembler
+        if: matrix.arch == 'x64'
+        uses: crazy-max/ghaction-chocolatey@v3.3.0
+        with:
+          args: install -y yasm
+
+      - name: 🔗 Install ARM64 Cross-Compilation Tools
+        if: matrix.arch == 'arm64'
+        run: |
+            curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
+            Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
+            setx PATH "%PATH%;C:\x86_64-elf-tools\bin"
+
+      - name: 🔄 Compile Packages for ${{ matrix.arch }}
+        shell: bash
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+          
+      - name: 🔧 Install ilc
+        run: dotnet tool install -g ilc
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
+
+      - name: 🔄 Restore Dependencies
+        run: dotnet restore ./nativeaot-patcher.slnx
+
+      - name: 🚀 Build ISO for ${{ matrix.arch }}
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            ARCH_DEFINE="ARCH_ARM64"
+          else
+            ARCH_DEFINE="ARCH_X64"
+          fi
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
+
+      - name: 🕵️‍♂️ Verify Output
+        shell: bash
+        run: |
+          [ -f ./output-${{ matrix.arch }}/KernelExample.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
+
+      - name: 📤 Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernelExample-ISO-${{ matrix.arch }}
+          path: ./output-${{ matrix.arch }}/KernelExample.iso
