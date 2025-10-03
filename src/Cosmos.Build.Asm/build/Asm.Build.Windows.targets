@@ -5,7 +5,7 @@
     </Exec>
 
     <PropertyGroup>
-      <YasmPath>$('$(YasmPaths)'.Split(';')[0].Trim())</YasmPath>
+      <YasmPath>$([System.String]::Copy('$(YasmPaths)').Split(';')[0].Trim())</YasmPath>
     </PropertyGroup>
   </Target>
 </Project>
