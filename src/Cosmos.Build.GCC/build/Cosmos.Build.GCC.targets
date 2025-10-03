@@ -31,6 +31,7 @@
       <!-- Add architecture-specific flags based on target -->
       <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
       <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'arm64'">$(GCCCompilerFlags) -march=armv8-a -mcmodel=large -fno-PIC -ffreestanding</GCCCompilerFlags>
+      <GCCCompilerFlags Condition="'$(OS)' == 'Windows_NT'">$(GCCCompilerFlags) -no-pie</GCCCompilerFlags>
     </PropertyGroup>
 
     <!-- Create / clean output directory -->
