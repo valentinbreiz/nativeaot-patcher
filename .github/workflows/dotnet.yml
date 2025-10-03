@@ -282,14 +282,15 @@ jobs:
         run: dotnet restore ./nativeaot-patcher.slnx
 
       - name: 🚀 Build ISO for ${{ matrix.arch }}
+        shell: pwsh
         run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            ARCH_DEFINE="ARCH_ARM64"
-          else
-            ARCH_DEFINE="ARCH_X64"
-          fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
-
+         if ("${{ matrix.arch }}" -eq "arm64") {
+            $ARCH_DEFINE = "ARCH_ARM64"
+          } else {
+            $ARCH_DEFINE = "ARCH_X64"
+          }
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
+          
       - name: 🕵️‍♂️ Verify Output
         shell: pwsh
         run: |
