@@ -270,7 +270,7 @@ jobs:
         run: |
             curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
             Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
-            setx PATH "%PATH%;C:\x86_64-elf-tools\bin"
+            echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
