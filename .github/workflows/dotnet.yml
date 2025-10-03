@@ -263,8 +263,8 @@ jobs:
             setx PATH "%PATH%;C:\x86_64-elf-tools\bin"
 
       - name: 🔄 Compile Packages for ${{ matrix.arch }}
-        shell: bash
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        shell: pwsh
+        run: pwsh -File ./install-packages.ps1
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
