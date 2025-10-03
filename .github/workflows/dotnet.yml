@@ -234,7 +234,7 @@ jobs:
             assembler: yasm
           - arch: arm64
             rid: windows-arm64
-            assembler: gcc-aarch64-linux-gnu
+            assembler: x86_64-elf
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -261,7 +261,7 @@ jobs:
         with:
           args: install -y yasm
 
-      - name: 🔗 Install ARM64 Cross-Compilation Tools
+      - name: 🔗 Install ARM64 Assembler
         if: matrix.arch == 'arm64'
         run: |
             curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
@@ -287,9 +287,14 @@ jobs:
           dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
-        shell: bash
+        shell: pwsh
         run: |
-          [ -f ./output-${{ matrix.arch }}/KernelExample.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
+          if (Test-Path "./output-${{ matrix.arch }}/KernelExample.iso") {
+              Write-Host "ISO exists for ${{ matrix.arch }}"
+          } else {
+              Write-Error "ISO missing for ${{ matrix.arch }}"
+              exit 1
+           }
 
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
