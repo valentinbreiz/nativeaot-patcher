@@ -230,10 +230,10 @@ jobs:
         arch: [ x64, arm64 ]
         include:
           - arch: x64
-            rid: windows-x64
+            rid: win-x64
             assembler: yasm
           - arch: arm64
-            rid: windows-arm64
+            rid: win-arm64
             assembler: x86_64-elf
     steps:
       - name: 🛠️ Enable long paths in Git
@@ -290,7 +290,7 @@ jobs:
             $ARCH_DEFINE = "ARCH_X64"
           }
           dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
-          
+
       - name: 🕵️‍♂️ Verify Output
         shell: pwsh
         run: |
