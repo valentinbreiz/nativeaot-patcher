@@ -1,3 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+    <ItemGroup>
+        <PackageId Include="Cosmos.Kernel.Debug" />
+    </ItemGroup>
 </Project>
