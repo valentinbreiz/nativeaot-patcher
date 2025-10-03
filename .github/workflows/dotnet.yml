@@ -238,11 +238,17 @@ jobs:
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: 🛠️ Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+      
+      - name: 🔄 Compile Packages for ${{ matrix.arch }}
+        shell: pwsh
+        run: pwsh -File ./install-packages.ps1
 
       - name: 🔗 Install Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
@@ -261,10 +267,6 @@ jobs:
             curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
             Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
             setx PATH "%PATH%;C:\x86_64-elf-tools\bin"
-
-      - name: 🔄 Compile Packages for ${{ matrix.arch }}
-        shell: pwsh
-        run: pwsh -File ./install-packages.ps1
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc
