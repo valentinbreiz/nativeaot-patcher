@@ -236,6 +236,10 @@ jobs:
             rid: windows-arm64
             assembler: x86_64-elf
     steps:
+      - name: 🛠️ Enable long paths in Git
+        run: git config --system core.longpaths true
+        shell: pwsh
+
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
         with:
