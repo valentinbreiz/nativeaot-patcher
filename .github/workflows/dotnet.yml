@@ -254,19 +254,12 @@ jobs:
         shell: pwsh
         run: pwsh -File ./install-packages.ps1
 
-      - name: 🔗 Install Linking Tools
+      - name: 🔗 Install Assembler & Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
         with:
-          args: install -y llvm
-      
-      - name: 🔗 Install x64 Assembler
-        if: matrix.arch == 'x64'
-        uses: crazy-max/ghaction-chocolatey@v3.3.0
-        with:
-          args: install -y yasm
+          args: install -y llvm yasm
 
-      - name: 🔗 Install ARM64 Assembler
-        if: matrix.arch == 'arm64'
+      - name: 🔗 Install GCC Toolchain
         run: |
             curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
             Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
