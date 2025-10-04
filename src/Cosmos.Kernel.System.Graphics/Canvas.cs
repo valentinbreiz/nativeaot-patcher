@@ -10,6 +10,8 @@ public unsafe class Canvas
     public static uint Height;
     public static uint Pitch;
 
+    public static FontFormat DefaultFont = new BIOSFont();
+
     public static void DrawPixel(uint color, int x, int y)
     {
         if (x >= 0 && x < Width && y >= 0 && y < Height)
@@ -83,16 +85,69 @@ public unsafe class Canvas
 
     public static void DrawChar(char c, int x, int y, uint color)
     {
-        PCScreenFont.PutChar(c, x, y, color, Color.Transparent);
+        DefaultFont.PutChar(c, x, y, color, Color.Transparent);
     }
 
     public static void DrawString(string text, int x, int y, uint color)
     {
-        PCScreenFont.PutString(text, x, y, color, Color.Transparent);
+        DefaultFont.PutString(text, x, y, color, Color.Transparent);
     }
 
     public static unsafe void DrawString(char* text, int x, int y, uint color)
     {
-        PCScreenFont.PutString(text, x, y, color, Color.Transparent);
+        DefaultFont.PutString(text, x, y, color, Color.Transparent);
+    }
+
+    public static unsafe void DrawQuadraticBezier(uint color, int x0, int y0, int x1, int y1, int x2, int y2)
+    {
+        //Smooth line, so first calculate the distance between the start and end points to determine the number of steps
+        int dx = x2 - x0;
+        int dy = y2 - y0;
+        int distance = Math.Sqrt((int)(dx * dx + dy * dy));
+        int steps = distance * 2; // More steps for smoother curve
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = (float)i / steps;
+            float u = 1 - t;
+            int x = (int)(u * u * x0 + 2 * u * t * x1 + t * t * x2);
+            int y = (int)(u * u * y0 + 2 * u * t * y1 + t * t * y2);
+            DrawPixel(color, x, y);
+        }
+    }
+
+    public static unsafe void DrawQuadraticBezierAA(uint color, int x0, int y0, int x1, int y1, int x2, int y2)
+    {
+        // First, calculate the distance between the start and end points to determine the number of steps, then each nearby pixel is drawn with an intensity based on its distance to the ideal curve
+        int dx = x2 - x0;
+        int dy = y2 - y0;
+        int distance = Math.Sqrt((int)(dx * dx + dy * dy));
+        int steps = distance * 2; // More steps for smoother curve
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = (float)i / steps;
+            float u = 1 - t;
+            int x = (int)(u * u * x0 + 2 * u * t * x1 + t * t * x2);
+            int y = (int)(u * u * y0 + 2 * u * t * y1 + t * t * y2);
+
+            // Draw the pixel with anti-aliasing
+            for (int offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                for (int offsetY = -1; offsetY <= 1; offsetY++)
+                {
+                    int px = x + offsetX;
+                    int py = y + offsetY;
+                    if (px >= 0 && px < Width && py >= 0 && py < Height)
+                    {
+                        float distanceToCurve = Math.Sqrt(offsetX * offsetX + offsetY * offsetY);
+                        if (distanceToCurve <= 1.5f) // Adjust the threshold for anti-aliasing effect
+                        {
+                            float intensity = 1.5f - distanceToCurve; // Closer pixels are more intense
+                            uint blendedColor = Color.Blend(color, Address[py * (int)(Pitch / 4) + px], intensity);
+                            DrawPixel(blendedColor, px, py);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

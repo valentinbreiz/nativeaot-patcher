@@ -10,8 +10,8 @@ public static class KernelConsole
 {
     private static int _cursorX;
     private static int _cursorY;
-    private static int CharWidth => PCScreenFont.CharWidth;
-    private static int CharHeight => PCScreenFont.CharHeight;
+    private static int CharWidth => Canvas.DefaultFont.CharWidth;
+    private static int CharHeight => Canvas.DefaultFont.CharHeight;
     private const int LineSpacing = 0;
     private static bool _isInitialized = false;
 
