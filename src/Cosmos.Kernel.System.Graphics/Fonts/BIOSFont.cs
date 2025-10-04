@@ -3,7 +3,7 @@ using Cosmos.Kernel.System.Conversion;
 
 namespace Cosmos.Kernel.System.Graphics.Fonts;
 
-public static unsafe class BIOSFont
+public unsafe class BIOSFont : FontFormat
 {
     public static class Default
     {
@@ -22,10 +22,13 @@ public static unsafe class BIOSFont
 
     public static uint* Framebuffer;
     private static bool _Initialized;
-    public const int CharWidth = 8;
-    public const int CharHeight = 16;
+
     private static uint Pitch;
     private static byte* FontData;
+
+    public override int CharWidth => 8;
+
+    public override int CharHeight => 16;
 
     private static void EnsureInitialized()
     {
@@ -44,7 +47,7 @@ public static unsafe class BIOSFont
         FontData = fontData;
     }
 
-    public static void PutChar(char c, int x, int y, uint fgcolor, uint bgcolor)
+    public override void PutChar(char c, int x, int y, uint fgcolor, uint bgcolor)
     {
         EnsureInitialized();
 
@@ -82,7 +85,7 @@ public static unsafe class BIOSFont
         }
     }
 
-    public static void PutString(string str, int x, int y, uint fgcolor, uint bgcolor)
+    public override void PutString(string str, int x, int y, uint fgcolor, uint bgcolor)
     {
         EnsureInitialized();
 
@@ -92,7 +95,7 @@ public static unsafe class BIOSFont
         }
     }
 
-    public static unsafe void PutString(char* str, int x, int y, uint fgcolor, uint bgcolor)
+    public override unsafe void PutString(char* str, int x, int y, uint fgcolor, uint bgcolor)
     {
         EnsureInitialized();
 

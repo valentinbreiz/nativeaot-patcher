@@ -10,6 +10,8 @@ public unsafe class Canvas
     public static uint Height;
     public static uint Pitch;
 
+    public static FontFormat DefaultFont = new BIOSFont();
+
     public static void DrawPixel(uint color, int x, int y)
     {
         if (x >= 0 && x < Width && y >= 0 && y < Height)
@@ -83,16 +85,16 @@ public unsafe class Canvas
 
     public static void DrawChar(char c, int x, int y, uint color)
     {
-        BIOSFont.PutChar(c, x, y, color, Color.Transparent);
+        DefaultFont.PutChar(c, x, y, color, Color.Transparent);
     }
 
     public static void DrawString(string text, int x, int y, uint color)
     {
-        BIOSFont.PutString(text, x, y, color, Color.Transparent);
+        DefaultFont.PutString(text, x, y, color, Color.Transparent);
     }
 
     public static unsafe void DrawString(char* text, int x, int y, uint color)
     {
-        BIOSFont.PutString(text, x, y, color, Color.Transparent);
+        DefaultFont.PutString(text, x, y, color, Color.Transparent);
     }
 }
