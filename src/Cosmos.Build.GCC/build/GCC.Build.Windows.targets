@@ -1,9 +1,9 @@
 <Project>  
   <Target Name="GetGCC" Condition="'$(OS)' == 'Windows_NT'">
-   <Exec Command="where x86_64-elf-gcc" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true"
-          Condition="$(GCCPath) ==''">
-      <Output TaskParameter="ConsoleOutput" PropertyName="GCCPath" />
-    </Exec>
+    <!-- Always use x86_64-elf-gcc as the tool path -->
+    <PropertyGroup>
+      <GCCPath>x86_64-elf-gcc</GCCPath>
+    </PropertyGroup>
 
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
   </Target>
