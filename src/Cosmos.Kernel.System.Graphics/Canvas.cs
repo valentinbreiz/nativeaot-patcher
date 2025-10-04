@@ -83,16 +83,16 @@ public unsafe class Canvas
 
     public static void DrawChar(char c, int x, int y, uint color)
     {
-        PCScreenFont.PutChar(c, x, y, color, Color.Transparent);
+        BIOSFont.PutChar(c, x, y, color, Color.Transparent);
     }
 
     public static void DrawString(string text, int x, int y, uint color)
     {
-        PCScreenFont.PutString(text, x, y, color, Color.Transparent);
+        BIOSFont.PutString(text, x, y, color, Color.Transparent);
     }
 
     public static unsafe void DrawString(char* text, int x, int y, uint color)
     {
-        PCScreenFont.PutString(text, x, y, color, Color.Transparent);
+        BIOSFont.PutString(text, x, y, color, Color.Transparent);
     }
 }
