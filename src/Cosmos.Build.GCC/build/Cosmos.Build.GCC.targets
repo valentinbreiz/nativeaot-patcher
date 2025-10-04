@@ -29,8 +29,8 @@
       <!-- Default compiler flags for generating position-independent code suitable for kernel -->
       <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -fno-builtin</GCCCompilerFlags>
       <!-- Add architecture-specific flags based on target -->
-      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-pic -ffreestanding</GCCCompilerFlags>
-      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'arm64'">$(GCCCompilerFlags) -march=armv8-a -mcmodel=large -fno-pic -ffreestanding</GCCCompilerFlags>
+      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(GCCCompilerFlags) -m64 -mcmodel=kernel -fno-pic -no-pie -ffreestanding</GCCCompilerFlags>
+      <GCCCompilerFlags Condition="'$(TargetArchitecture)' == 'arm64'">$(GCCCompilerFlags) -march=armv8-a -mcmodel=large -fno-pic -no-pie -ffreestanding</GCCCompilerFlags>
     </PropertyGroup>
 
     <!-- Create / clean output directory -->
