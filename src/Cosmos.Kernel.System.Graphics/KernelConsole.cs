@@ -21,6 +21,11 @@ public static class KernelConsole
     public static unsafe bool IsAvailable => _isInitialized && Canvas.Address != null;
 
     /// <summary>
+    /// Gets whether the graphics console has been initialized.
+    /// </summary>
+    public static bool IsInitialized => _isInitialized;
+
+    /// <summary>
     /// Initializes the graphics framebuffer and canvas.
     /// Safe to call multiple times - will only initialize once.
     /// Should be called early in kernel initialization, after memory is available.
@@ -47,6 +52,16 @@ public static class KernelConsole
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Module initializer to ensure graphics console is initialized at module load time.
+    /// </summary>
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        // Ensure initialized at module load time
+        Initialize();
     }
 
     public static void Write(string text)
