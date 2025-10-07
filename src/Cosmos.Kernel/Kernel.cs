@@ -5,6 +5,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.Core.Runtime;
 #if ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
 #else
@@ -51,6 +52,9 @@ public class Kernel
         {
             Serial.WriteString("Architecture: Unknown.");
         }
+        
+        // Initialize managed modules
+        ManagedModule.InitializeModules();
     }
 
     /// <summary>

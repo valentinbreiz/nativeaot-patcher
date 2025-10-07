@@ -1,6 +1,8 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.System.IO;
 
 namespace Internal.Runtime
 {
@@ -8,54 +10,62 @@ namespace Internal.Runtime
     /// TypeManagerHandle represents an AOT module in MRT based runtimes.
     /// These handles are a pointer to a TypeManager
     /// </summary>
-    internal unsafe partial struct TypeManagerHandle
+    internal readonly unsafe partial struct TypeManagerHandle(TypeManager* handleValue)
     {
-        private TypeManager* _handleValue;
+        internal readonly TypeManager* _handleValue = handleValue;
 
-        public TypeManagerHandle(TypeManager* handleValue)
-        {
-            _handleValue = handleValue;
-        }
-
-        public readonly TypeManager* AsTypeManager() => _handleValue;
+        public TypeManager* AsTypeManager() => _handleValue;
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct TypeManagerSlot
+    {
+        public TypeManagerHandle TypeManager;
+        public int ModuleIndex;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal unsafe struct TypeManager
     {
         public IntPtr OsHandle;
         public ReadyToRunHeader* Header;
-        public byte* m_pStaticsGCDataSection;
-        public byte* m_pThreadStaticsDataSection;
+        public IntPtr m_pStaticsGCDataSection;
+        public IntPtr m_pThreadStaticsDataSection;
         public void** m_pClasslibFunctions;
         public uint m_nClasslibFunctions;
 
         public TypeManager(IntPtr osModule, ReadyToRunHeader* pHeader, void** pClasslibFunctions, uint nClasslibFunctions)
         {
+            int length;
             OsHandle = osModule;
             Header = pHeader;
             m_pClasslibFunctions = pClasslibFunctions;
             m_nClasslibFunctions = nClasslibFunctions;
-            m_pStaticsGCDataSection = (byte*)GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out _);
-            m_pThreadStaticsDataSection = (byte*)GetModuleSection(ReadyToRunSectionType.ThreadStaticRegion, out _);
+            m_pStaticsGCDataSection = GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out length);
+            m_pThreadStaticsDataSection = GetModuleSection(ReadyToRunSectionType.ThreadStaticRegion, out length);
         }
 
         public IntPtr GetModuleSection(ReadyToRunSectionType sectionId, out int length)
         {
-            ModuleInfoRow* moduleInfoRows = (ModuleInfoRow*)(Header + 1);
+            ModuleInfoRow* moduleInfoRows, pCurrent;
+            IntPtr pResult = IntPtr.Zero;
+            length = 0;
+
+            moduleInfoRows = (ModuleInfoRow*)(Header + 1);
 
             for (int i = 0; i < Header->NumberOfSections; i++)
             {
-                ModuleInfoRow* pCurrent = moduleInfoRows + i;
+                pCurrent = moduleInfoRows + i;
+
                 if (sectionId == pCurrent->SectionId)
                 {
                     length = pCurrent->GetLength();
-                    return pCurrent->Start;
+                    pResult = pCurrent->Start;
+                    break;
                 }
             }
 
-            length = 0;
-            return IntPtr.Zero;
+            return pResult;
         }
 
         public void* GetClassLibFunction(ClassLibFunctionId functionId)
