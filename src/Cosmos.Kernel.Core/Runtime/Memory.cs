@@ -33,7 +33,7 @@ public static class Memory
     }
 
     [RuntimeExport("RhAllocateNewObject")]
-    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags,  void* pResult)
+    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags, void* pResult)
     {
         *(void**)pResult = RhpNewFast(pEEType);
         // as some point we should set flags   

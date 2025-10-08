@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Cosmos.Build.API.Attributes;
 
 namespace Cosmos.Kernel.Plugs.System.Threading
-{  
+{
     [Plug("System.Threading.LowLevelMonitor")]
     internal class LowLevelMonitorPlug
     {

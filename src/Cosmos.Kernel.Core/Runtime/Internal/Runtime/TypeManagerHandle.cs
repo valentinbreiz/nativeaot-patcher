@@ -16,7 +16,7 @@ namespace Internal.Runtime
 
         public TypeManager* AsTypeManager() => _handleValue;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct TypeManagerSlot
     {
