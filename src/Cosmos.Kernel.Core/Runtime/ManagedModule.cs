@@ -20,7 +20,9 @@ public static unsafe partial class ManagedModule
     /// <summary>
     /// Table of logical modules.
     /// </summary>
-    private static required TypeManagerHandle[] s_modules;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    private static TypeManagerHandle[] s_modules;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private static int s_moduleCount = 0;
 
     [LibraryImport("*", EntryPoint = "GetModules")]
