@@ -10,6 +10,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Graphics;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
+using System.Runtime.CompilerServices;
 
 internal unsafe static partial class Program
 {
@@ -25,17 +26,6 @@ internal unsafe static partial class Program
     private static void Main()
     {
         Serial.WriteString("[Main] Starting Main function\n");
-
-        // Initialize graphics console
-        if (KernelConsole.Initialize())
-        {
-            Serial.WriteString("[Main] Graphics console initialized successfully\n");
-            KernelConsole.WriteLine("Graphics console active!");
-        }
-        else
-        {
-            Serial.WriteString("[Main] No framebuffer available - graphics disabled\n");
-        }
 
         // Test memory allocator with various allocations
         Serial.WriteString("[Main] Testing memory allocator...\n");
@@ -98,6 +88,11 @@ internal unsafe static partial class Program
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
         while (true) ;
+    }
+    [ModuleInitializer]
+    public static void Init()
+    {
+        Serial.WriteString("Kernel Init\n");
     }
 }
 
