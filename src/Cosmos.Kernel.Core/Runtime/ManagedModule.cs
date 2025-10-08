@@ -20,7 +20,7 @@ public static unsafe partial class ManagedModule
     /// <summary>
     /// Table of logical modules.
     /// </summary>
-    private static TypeManagerHandle[] s_modules;
+    private static required TypeManagerHandle[] s_modules;
     private static int s_moduleCount = 0;
 
     [LibraryImport("*", EntryPoint = "GetModules")]
@@ -46,7 +46,7 @@ public static unsafe partial class ManagedModule
 
             InitializeGlobalTablesForModule(modules[i], i);
 
-            Serial.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");        
+            Serial.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");
             RunInitializers(modules[i], ReadyToRunSectionType.EagerCctor);
         }
 

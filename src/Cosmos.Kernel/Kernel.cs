@@ -52,7 +52,7 @@ public class Kernel
         {
             Serial.WriteString("Architecture: Unknown.");
         }
-        
+
         // Initialize managed modules
         ManagedModule.InitializeModules();
     }
