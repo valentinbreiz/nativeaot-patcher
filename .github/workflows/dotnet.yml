@@ -217,7 +217,7 @@ jobs:
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO-${{ matrix.arch }}
+          name: KernelExample-ISO-${{ matrix.arch }}-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
           path: ./output-${{ matrix.arch }}/KernelExample.iso
 
   windows-iso-tests:
@@ -297,5 +297,5 @@ jobs:
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO-${{ matrix.arch }}
+          name: KernelExample-ISO-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
           path: ./output-${{ matrix.arch }}/KernelExample.iso
