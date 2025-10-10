@@ -36,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
   </ItemGroup>
 
   <ItemGroup>

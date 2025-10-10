@@ -51,6 +51,10 @@ public static unsafe class LargeHeap
     {
         ulong pages = (aSize + PrefixBytes) / PageAllocator.PageSize + 1;
         void* ptr = PageAllocator.AllocPages(PageType.HeapLarge, pages, true);
+        if (ptr == null)
+        {
+            return null;
+        }
         LargeHeapHeader* header = (LargeHeapHeader*)ptr;
         header->Used = pages * PageAllocator.PageSize - PrefixBytes;
         header->Size = (uint)aSize;

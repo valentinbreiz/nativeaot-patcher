@@ -1,5 +1,6 @@
 using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Boot.Limine;
 
 namespace Cosmos.Kernel.Core.Memory;
 
@@ -54,7 +55,97 @@ public static unsafe class PageAllocator
     public static ulong RamSize;
 
     /// <summary>
-    /// Init RAT.
+    /// Convert virtual address to physical address for Higher Half Kernel mapping
+    /// </summary>
+    /// <param name="virtualAddress">Virtual address to convert</param>
+    /// <returns>Physical address</returns>
+    private static ulong VirtualToPhysical(ulong virtualAddress)
+    {
+        // Higher Half Kernel mapping: virtual addresses start with 0xFFFF8000
+        // Remove the higher half offset to get physical address
+        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
+        if (virtualAddress >= HigherHalfOffset)
+        {
+            return virtualAddress - HigherHalfOffset;
+        }
+        // If not in higher half mapping, assume it's already physical
+        return virtualAddress;
+    }
+
+    /// <summary>
+    /// Check if an address is in a usable memory region according to Limine memory map
+    /// </summary>
+    /// <param name="address">Virtual address to check</param>
+    /// <param name="size">Size of the region</param>
+    /// <returns>True if the region is usable, false otherwise</returns>
+    private static bool IsUsableMemoryRegion(byte* address, ulong size)
+    {
+        if (Limine.MemoryMap.Response == null)
+        {
+            Serial.WriteString("[PageAllocator] Warning: No memory map available, assuming usable\n");
+            return true;
+        }
+
+        ulong virtualAddressStart = (ulong)address;
+        ulong virtualAddressEnd = virtualAddressStart + size;
+
+        // Convert virtual addresses to physical addresses for comparison with memory map
+        ulong physicalAddressStart = VirtualToPhysical(virtualAddressStart);
+        ulong physicalAddressEnd = VirtualToPhysical(virtualAddressEnd);
+
+        Serial.WriteString("[PageAllocator] Checking virtual 0x");
+        Serial.WriteHex(virtualAddressStart);
+        Serial.WriteString(" -> physical 0x");
+        Serial.WriteHex(physicalAddressStart);
+        Serial.WriteString("\n");
+
+        bool foundMatch = false;
+        for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
+        {
+            LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
+            ulong entryStart = (ulong)entry->Base;
+            ulong entryEnd = entryStart + entry->Length;
+
+            // Check if our physical allocation overlaps with this memory region
+            if (physicalAddressStart < entryEnd && physicalAddressEnd > entryStart)
+            {
+                foundMatch = true;
+                Serial.WriteString("[PageAllocator] Physical region 0x");
+                Serial.WriteHex(physicalAddressStart);
+                Serial.WriteString("-0x");
+                Serial.WriteHex(physicalAddressEnd);
+                Serial.WriteString(" overlaps with entry ");
+                Serial.WriteNumber(i);
+                Serial.WriteString(" (0x");
+                Serial.WriteHex(entryStart);
+                Serial.WriteString("-0x");
+                Serial.WriteHex(entryEnd);
+                Serial.WriteString(") type: ");
+                Serial.WriteNumber((uint)entry->Type);
+                Serial.WriteString("\n");
+
+                // Only allow allocation in usable memory
+                if (entry->Type != LimineMemmapType.Usable)
+                {
+                    Serial.WriteString("[PageAllocator] ERROR: Attempting to allocate in non-usable memory region!\n");
+                    return false;
+                }
+            }
+        }
+
+        if (!foundMatch)
+        {
+            Serial.WriteString("[PageAllocator] ERROR: Physical address 0x");
+            Serial.WriteHex(physicalAddressStart);
+            Serial.WriteString(" not found in any usable memory map entry!\n");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Init RAT based on Limine memory map usable regions only.
     /// </summary>
     /// <param name="aStartPtr">A pointer to the start of the heap.</param>
     /// <param name="aSize">A heap size, in bytes.</param>
@@ -77,19 +168,125 @@ public static unsafe class PageAllocator
             throw new Exception("RAM size must be page aligned.");
         }
 
-        Serial.WriteString("[PageAllocator] RAM start: 0x");
+        Serial.WriteString("[PageAllocator] Initial RAM start: 0x");
         Serial.WriteHex((ulong)aStartPtr);
         Serial.WriteString(", size: ");
         Serial.WriteNumber(aSize);
         Serial.WriteString("\n");
 
-        RamStart = aStartPtr;
-        RamSize = aSize;
-        HeapEnd = aStartPtr + aSize;
-        TotalPageCount = aSize / PageSize;
+        // Find the largest usable memory region for our heap
+        byte* usableStart = null;
+        ulong usableSize = 0;
+        if (Limine.MemoryMap.Response != null)
+        {
+            Serial.WriteString("[PageAllocator] Memory map detected with ");
+            Serial.WriteNumber(Limine.MemoryMap.Response->EntryCount);
+            Serial.WriteString(" entries:\n");
+
+            // Display all memory map entries for debugging
+            for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
+            {
+                LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
+                Serial.WriteString("[MemMap] Entry ");
+                Serial.WriteNumber(i);
+                Serial.WriteString(": 0x");
+                Serial.WriteHex((ulong)entry->Base);
+                Serial.WriteString(" - 0x");
+                Serial.WriteHex((ulong)entry->Base + entry->Length);
+                Serial.WriteString(" (");
+                Serial.WriteNumber(entry->Length);
+                Serial.WriteString(" bytes) Type: ");
+                Serial.WriteNumber((uint)entry->Type);
+
+                // Add type name for clarity
+                switch (entry->Type)
+                {
+                    case LimineMemmapType.Usable:
+                        Serial.WriteString(" (Usable)");
+                        break;
+                    case LimineMemmapType.Reserved:
+                        Serial.WriteString(" (Reserved)");
+                        break;
+                    case LimineMemmapType.AcpiReclaimable:
+                        Serial.WriteString(" (ACPI Reclaimable)");
+                        break;
+                    case LimineMemmapType.AcpiNvs:
+                        Serial.WriteString(" (ACPI NVS)");
+                        break;
+                    case LimineMemmapType.BadMemory:
+                        Serial.WriteString(" (Bad Memory)");
+                        break;
+                    case LimineMemmapType.BootloaderReclaimable:
+                        Serial.WriteString(" (Bootloader Reclaimable)");
+                        break;
+                    case LimineMemmapType.KernelAndModules:
+                        Serial.WriteString(" (Kernel and Modules)");
+                        break;
+                    case LimineMemmapType.Framebuffer:
+                        Serial.WriteString(" (Framebuffer)");
+                        break;
+                    default:
+                        Serial.WriteString(" (Unknown)");
+                        break;
+                }
+                Serial.WriteString("\n");
+            }
+
+            Serial.WriteString("[PageAllocator] Searching for usable memory regions...\n");
+
+            for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
+            {
+                LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
+                if (entry->Type == LimineMemmapType.Usable)
+                {
+                    // Convert physical address to virtual address
+                    ulong virtualStart = (ulong)entry->Base + 0xFFFF800000000000UL;
+                    ulong entrySize = entry->Length;
+
+                    Serial.WriteString("[PageAllocator] Found usable region: phys 0x");
+                    Serial.WriteHex((ulong)entry->Base);
+                    Serial.WriteString(" -> virt 0x");
+                    Serial.WriteHex(virtualStart);
+                    Serial.WriteString(" size: ");
+                    Serial.WriteNumber(entrySize);
+                    Serial.WriteString("\n");
+
+                    // Use the largest usable region
+                    if (entrySize > usableSize)
+                    {
+                        usableStart = (byte*)virtualStart;
+                        usableSize = entrySize;
+                    }
+                }
+            }
+        }
+
+        if (usableStart == null || usableSize == 0)
+        {
+            Serial.WriteString("[PageAllocator] No usable memory found, falling back to original method\n");
+            usableStart = aStartPtr;
+            usableSize = aSize;
+        }
+        else
+        {
+            Serial.WriteString("[PageAllocator] Using largest usable region: 0x");
+            Serial.WriteHex((ulong)usableStart);
+            Serial.WriteString(", size: ");
+            Serial.WriteNumber(usableSize);
+            Serial.WriteString("\n");
+        }
+
+        RamStart = usableStart;
+        RamSize = usableSize;
+        HeapEnd = usableStart + usableSize;
+        TotalPageCount = usableSize / PageSize;
         FreePageCount = TotalPageCount;
 
-        Serial.WriteString("[PageAllocator] Total pages: ");
+        Serial.WriteString("[PageAllocator] Final heap - Start: 0x");
+        Serial.WriteHex((ulong)RamStart);
+        Serial.WriteString(", Size: ");
+        Serial.WriteNumber(RamSize);
+        Serial.WriteString(", Total pages: ");
         Serial.WriteNumber(TotalPageCount);
         Serial.WriteString("\n");
 
@@ -105,7 +302,7 @@ public static unsafe class PageAllocator
         Serial.WriteNumber(xRatTotalSize);
         Serial.WriteString("\n");
 
-        // Place RAT at the beginning of heap instead of end to avoid memory protection issues
+        // Place RAT at the beginning of heap
         mRAT = RamStart;
 
         // Adjust RamStart and RamSize to account for RAT at beginning
