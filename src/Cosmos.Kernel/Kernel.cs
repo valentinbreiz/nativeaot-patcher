@@ -42,15 +42,15 @@ public class Kernel
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            Serial.WriteString("Architecture: x86-64.");
+            Serial.WriteString("Architecture: x86-64.\n");
         }
         else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
         {
-            Serial.WriteString("Architecture: ARM64/AArch64.");
+            Serial.WriteString("Architecture: ARM64/AArch64.\n");
         }
         else
         {
-            Serial.WriteString("Architecture: Unknown.");
+            Serial.WriteString("Architecture: Unknown.\n");
         }
 
         // Initialize managed modules
