@@ -25,8 +25,14 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
+        // Initialize serial output first for diagnostics
+        Serial.ComInit();
+        Serial.WriteString("UART started.\n");
+        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
+
         // Initialize heap for memory allocations
-        MemoryOp.InitializeHeap(Limine.HHDM.Offset, 0x1000000);
+        // Parameters are ignored - heap initialization uses Limine memory map
+        MemoryOp.InitializeHeap(0, 0);
 
         // Initialize platform-specific HAL
         PlatformHAL.Initialize();
@@ -34,11 +40,6 @@ public class Kernel
         // TODO: Re-enable after fixing stack corruption in module initialization
         // Initialize graphics framebuffer
         // KernelConsole.Initialize();
-
-        // Initialize serial output
-        Serial.ComInit();
-        Serial.WriteString("UART started.\n");
-        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
