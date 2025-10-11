@@ -28,4 +28,24 @@ public class Color
     public static uint LightPink = 0xFFB6C1;
     public static uint LightBrown = 0xD2B48C;
     public static uint Transparent = 0x00000000; // Transparent color
+
+    public static uint Blend(uint color1, uint color2, float ratio)
+    {
+        if (ratio < 0) ratio = 0;
+        if (ratio > 1) ratio = 1;
+
+        byte r1 = (byte)((color1 >> 16) & 0xFF);
+        byte g1 = (byte)((color1 >> 8) & 0xFF);
+        byte b1 = (byte)(color1 & 0xFF);
+
+        byte r2 = (byte)((color2 >> 16) & 0xFF);
+        byte g2 = (byte)((color2 >> 8) & 0xFF);
+        byte b2 = (byte)(color2 & 0xFF);
+
+        byte r = (byte)(r1 * (1 - ratio) + r2 * ratio);
+        byte g = (byte)(g1 * (1 - ratio) + g2 * ratio);
+        byte b = (byte)(b1 * (1 - ratio) + b2 * ratio);
+
+        return (uint)((r << 16) | (g << 8) | b);
+    }
 }
