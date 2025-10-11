@@ -172,15 +172,17 @@ namespace Cosmos.Kernel.Core.Runtime
         static void RhGetMemoryInfo(IntPtr pMemInfo) { }
 
         [RuntimeExport("RhNewArray")]
-        static unsafe object? RhNewArray(int typeHandle)
+        static unsafe void* RhNewArray(MethodTable* pEEType, int length)
         {
-            return null; // Simplified implementation
+            void* result;
+            Memory.RhAllocateNewArray(pEEType, (uint)length, 0, out result);
+            return result;
         }
 
         [RuntimeExport("RhNewObject")]
-        static unsafe object? RhNewObject(int typeHandle)
+        static unsafe void* RhNewObject(MethodTable* pEEType)
         {
-            return null; // Simplified implementation
+            return Memory.RhpNewFast(pEEType); // Simplified implementation
         }
 
         [RuntimeExport("RhHandleSet")]
@@ -280,9 +282,10 @@ namespace Cosmos.Kernel.Core.Runtime
 #endif
 
         [RuntimeExport("RhpNewFinalizable")]
-        static unsafe object? RhpNewFinalizable(int typeHandle)
+        static unsafe void* RhpNewFinalizable(MethodTable* pEEType)
         {
-            return null;
+            // TODO: Should actually be Memory.RhAllocateNewObject with finalizable flag
+            return Memory.RhpNewFast(pEEType); // Simplified implementation (Should set gc flag)
         }
 
         [RuntimeExport("RhpRethrow")]
@@ -305,7 +308,10 @@ namespace Cosmos.Kernel.Core.Runtime
         static void RhSetThreadExitCallback(IntPtr callback) { }
 
         [RuntimeExport("RhYield")]
-        static void RhYield() { }
+        static int RhYield()
+        {
+            return 0;
+        }
 
         [RuntimeExport("RhpHandleAlloc")]
         static IntPtr RhpHandleAlloc(object obj, bool fPinned)

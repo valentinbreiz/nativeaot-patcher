@@ -12,12 +12,15 @@ public static class Memory
         out void* pResult)
     {
         uint size = pArrayEEType->BaseSize * numElements;
-        pResult = MemoryOp.Alloc(size);
+        MethodTable** result = AllocObject(size);
+        *result = pArrayEEType;
+        *(int*)(result + 1) = (int)numElements;
+        pResult = result;
         // as some point we should set flags
     }
 
     [RuntimeExport("RhpNewArray")]
-    private static unsafe void* RhpNewArray(MethodTable* pMT, int length)
+    internal static unsafe void* RhpNewArray(MethodTable* pMT, int length)
     {
         if (length < 0)
             return null;
@@ -27,6 +30,13 @@ public static class Memory
         *result = pMT;
         *(int*)(result + 1) = length;
         return result;
+    }
+
+    [RuntimeExport("RhAllocateNewObject")]
+    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags, void* pResult)
+    {
+        *(void**)pResult = RhpNewFast(pEEType);
+        // as some point we should set flags   
     }
 
     [RuntimeExport("RhpNewFast")]
@@ -39,6 +49,7 @@ public static class Memory
         return result;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe MethodTable** AllocObject(uint size)
     {
         return (MethodTable**)MemoryOp.Alloc(size);

@@ -1,5 +1,6 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.System.IO;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -26,9 +27,17 @@ internal static unsafe class ModuleHelpers
     [RuntimeExport("RhpCreateTypeManager")]
     internal static unsafe TypeManagerHandle RhpCreateTypeManager(IntPtr osModule, ReadyToRunHeader* moduleHeader, void** pClasslibFunctions, uint nClasslibFunctions)
     {
-        TypeManager typeManager = new(osModule, moduleHeader, pClasslibFunctions, nClasslibFunctions);
+        TypeManager* tm = (TypeManager*)Memory.RhpNewFast(MethodTable.Of<TypeManager>());
+        tm->OsHandle = osModule;
+        tm->Header = moduleHeader;
+        tm->m_pClasslibFunctions = pClasslibFunctions;
+        tm->m_nClasslibFunctions = nClasslibFunctions;
+        tm->m_pStaticsGCDataSection = tm->GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out _);
+        tm->m_pThreadStaticsDataSection = tm->GetModuleSection(ReadyToRunSectionType.ThreadStaticRegion, out _);
 
-        return new TypeManagerHandle(&typeManager);
+        return new TypeManagerHandle(tm);
+        // TypeManager typeManager = new(osModule, moduleHeader, pClasslibFunctions, nClasslibFunctions);
+        // return new TypeManagerHandle((TypeManager*)Unsafe.AsPointer(ref typeManager));
     }
     [RuntimeExport("RhpGetClasslibFunctionFromCodeAddress")]
     internal static unsafe void* RhpGetClasslibFunctionFromCodeAddress(IntPtr address, ClassLibFunctionId id)
@@ -43,9 +52,86 @@ internal static unsafe class ModuleHelpers
         return pEEType->TypeManager.AsTypeManager()->GetClassLibFunction(id);
     }
 
-#if NET10_0_OR_GREATER
-    // We could use this function to rehydratate data from modules, if dehydrated data section is present.
-    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "RehydrateData")]
-    private static extern void RehydrateData([UnsafeAccessorType("Internal.Runtime.CompilerHelpers.StartupCodeHelpers")] object obj, IntPtr dehydratedData, int length);
-#endif
+
+    internal static unsafe TypeManagerHandle[] CreateTypeManagers(IntPtr osModule, Span<nint> pModuleHeaders, void** pClasslibFunctions, uint nClasslibFunctions)
+    {
+        // Count the number of modules so we can allocate an array to hold the TypeManager objects.
+        // At this stage of startup, complex collection classes will not work.
+        int moduleCount = 0;
+        for (int i = 0; i < pModuleHeaders.Length; i++)
+        {
+            // The null pointers are sentinel values and padding inserted as side-effect of
+            // the section merging. (The global static constructors section used by C++ has
+            // them too.)
+            if (pModuleHeaders[i] != IntPtr.Zero)
+                moduleCount++;
+        }
+
+        // We cannot use the new keyword just yet, so stackalloc the array first
+        var pHandles = stackalloc TypeManagerHandle[moduleCount];
+        int moduleIndex = 0;
+        for (int i = 0; i < pModuleHeaders.Length; i++)
+        {
+            if (pModuleHeaders[i] != IntPtr.Zero)
+            {
+                TypeManagerHandle handle = RhpCreateTypeManager(pModuleHeaders[0], (ReadyToRunHeader*)pModuleHeaders[i], pClasslibFunctions, nClasslibFunctions);
+
+                IntPtr dehydratedRegion = handle.AsTypeManager()->GetModuleSection(ReadyToRunSectionType.DehydratedData, out int length);
+                if (dehydratedRegion != IntPtr.Zero)
+                {
+                    Serial.WriteString("[ManagedModule] - Dehydrated Data found for module ");
+                    Serial.WriteNumber(moduleIndex);
+                    Serial.WriteString("\n");
+                }
+
+                pHandles[moduleIndex] = handle;
+                moduleIndex++;
+            }
+        }
+
+        //void* ptr;
+
+        //Memory.RhAllocateNewArray(MethodTable.Of<TypeManagerHandle[]>(), (uint)moduleCount, 0, out ptr);
+        // Any potentially dehydrated MethodTables got rehydrated, we can safely use `new` now.
+        var modules = new TypeManagerHandle[moduleCount];
+        //var modules = Unsafe.AsRef<TypeManagerHandle[]>(ptr);
+        for (int i = 0; i < modules.Length; i++)
+            modules[i] = pHandles[i];
+        return modules;
+    }
+    internal static unsafe TypeManagerHandle[] CreateTypeManagers(IntPtr osModule, ReadyToRunHeader** pModuleHeaders, int count, void** pClasslibFunctions, uint nClasslibFunctions)
+    {
+        // Count the number of modules so we can allocate an array to hold the TypeManager objects.
+        // At this stage of startup, complex collection classes will not work.
+        int moduleCount = 0;
+        for (int i = 0; i < count; i++)
+        {
+            // The null pointers are sentinel values and padding inserted as side-effect of
+            // the section merging. (The global static constructors section used by C++ has
+            // them too.)
+            if (pModuleHeaders[i] != (void*)IntPtr.Zero)
+                moduleCount++;
+        }
+
+        // We cannot use the new keyword just yet, so stackalloc the array first
+        var pHandles = stackalloc TypeManagerHandle[moduleCount];
+        int moduleIndex = 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (pModuleHeaders[i] != (void*)IntPtr.Zero)
+            {
+                TypeManagerHandle handle = RhpCreateTypeManager(osModule, pModuleHeaders[i], pClasslibFunctions, nClasslibFunctions);
+
+                pHandles[moduleIndex] = handle;
+                moduleIndex++;
+            }
+        }
+
+        // Any potentially dehydrated MethodTables got rehydrated, we can safely use `new` now.
+        TypeManagerHandle[] modules = new TypeManagerHandle[moduleCount];
+        for (int i = 0; i < moduleCount; i++)
+            modules[i] = pHandles[i];
+
+        return modules;
+    }
 }
