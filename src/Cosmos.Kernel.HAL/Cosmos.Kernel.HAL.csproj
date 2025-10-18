@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
     <ProjectReference Include="..\Cosmos.Build.Common\Cosmos.Build.Common.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
   

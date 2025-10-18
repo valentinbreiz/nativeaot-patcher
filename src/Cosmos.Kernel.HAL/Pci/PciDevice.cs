@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.HAL.Pci.Enums;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
@@ -49,6 +50,13 @@ public class PciDevice
 
     public PciDevice(uint bus, uint slot, uint function)
     {
+        Serial.WriteString("[PciDevice] Init");
+        Serial.WriteNumber(bus);
+        Serial.WriteString(",");
+        Serial.WriteNumber(slot);
+        Serial.WriteString(",");
+        Serial.WriteNumber(function);
+        Serial.WriteString("\n");
         Bus = bus;
         Slot = slot;
         Function = function;
@@ -91,6 +99,8 @@ public class PciDevice
             BaseAddressBar[4] = new PciBaseAddressBar(ReadRegister32(0x20));
             BaseAddressBar[5] = new PciBaseAddressBar(ReadRegister32(0x24));
         }
+
+        Serial.WriteString("[PciDevice] Init Done \n");
     }
 
     public void EnableDevice() => Command |= PciCommand.Master | PciCommand.Io | PciCommand.Memory;
@@ -104,9 +114,19 @@ public class PciDevice
     /// <returns>ushort value.</returns>
     public static ushort GetHeaderType(ushort bus, ushort slot, ushort function)
     {
+        Serial.WriteString("[PciDevice] GetHeaderType(");
+        Serial.WriteNumber(bus);
+        Serial.WriteString(",");
+        Serial.WriteNumber(slot);
+        Serial.WriteString(",");
+        Serial.WriteNumber(function);
+        Serial.WriteString(") = ");
         uint xAddr = GetAddressBase(bus, slot, function) | (0xE & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0xE % 4 * 8)) & 0xFF);
+        byte headerType = (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0xE % 4 * 8)) & 0xFF);
+        Serial.WriteNumber(headerType);
+        Serial.WriteString("\n");
+        return headerType;
     }
 
     /// <summary>
@@ -118,9 +138,17 @@ public class PciDevice
     /// <returns>UInt16 value.</returns>
     public static ushort GetVendorId(ushort bus, ushort slot, ushort function)
     {
+        Serial.WriteString("[PciDevice] GetVendorId(");
+        Serial.WriteNumber(bus);
+        Serial.WriteString(",");
+        Serial.WriteNumber(slot);
+        Serial.WriteString(") = ");
         uint xAddr = GetAddressBase(bus, slot, function) | (0x0 & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0x0 % 4 * 8)) & 0xFFFF);
+        ushort vendorId = (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0x0 % 4 * 8)) & 0xFFFF);
+        Serial.WriteNumber(vendorId);
+        Serial.WriteString("\n");
+        return vendorId;
     }
 
     #region IOReadWrite
@@ -132,9 +160,15 @@ public class PciDevice
     /// <returns>byte value.</returns>
     public byte ReadRegister8(byte aRegister)
     {
+        Serial.WriteString("[PciDevice] ReadRegister8(");
+        Serial.WriteNumber(aRegister);
+        Serial.WriteString(") =");
         uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFF);
+        byte value = (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFF);
+        Serial.WriteNumber(value);
+        Serial.WriteString("\n");
+        return value;
     }
 
     public void WriteRegister8(byte aRegister, byte value)
@@ -151,9 +185,15 @@ public class PciDevice
     /// <returns>UInt16 value.</returns>
     public ushort ReadRegister16(byte aRegister)
     {
+        Serial.WriteString("[PciDevice] ReadRegister16(");
+        Serial.WriteNumber(aRegister);
+        Serial.WriteString(") =");
         uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFFFF);
+        ushort value = (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFFFF);
+        Serial.WriteNumber(value);
+        Serial.WriteString("\n");
+        return value;
     }
 
     /// <summary>
@@ -163,6 +203,11 @@ public class PciDevice
     /// <param name="value">A value.</param>
     public void WriteRegister16(byte aRegister, ushort value)
     {
+        Serial.WriteString("[PciDevice] WriteRegister16(");
+        Serial.WriteNumber(aRegister);
+        Serial.WriteString(",");
+        Serial.WriteNumber(value);
+        Serial.WriteString(")\n");
         uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
         PlatformHAL.PortIO.WriteWord(ConfigDataPort, value);
@@ -170,9 +215,15 @@ public class PciDevice
 
     public uint ReadRegister32(byte aRegister)
     {
+        Serial.WriteString("[PciDevice] ReadRegister32(");
+        Serial.WriteNumber(aRegister);
+        Serial.WriteString(") =");
         uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return PlatformHAL.PortIO.ReadDWord(ConfigDataPort);
+        uint value = PlatformHAL.PortIO.ReadDWord(ConfigDataPort);
+        Serial.WriteNumber(value);
+        Serial.WriteString("\n");
+        return value;
     }
 
     public void WriteRegister32(byte aRegister, uint value)

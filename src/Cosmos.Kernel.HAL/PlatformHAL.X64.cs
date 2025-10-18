@@ -14,6 +14,6 @@ public static partial class PlatformHAL
         _architecture = PlatformArchitecture.X64;
         _portIO = new X64PortIO();
         _cpuOps = new X64CpuOps();
-        PciManager.Setup();
+
     }
 }

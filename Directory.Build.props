@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="src/Cosmos.Build.Common/build/Cosmos.ArchitecturePicker.props" />
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -17,22 +18,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--pack as nuget-->
 
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Parse architecture from RuntimeIdentifier (e.g., linux-x64, win-arm64, osx-arm64) -->
-    <CosmosArch Condition="'$(RuntimeIdentifier)' != '' AND '$(CosmosArch)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</CosmosArch>
-
-    <!-- Default to x64 if not specified -->
-    <CosmosArch Condition="'$(CosmosArch)' == ''">x64</CosmosArch>
-
-    <!-- Normalize architecture names -->
-    <CosmosArch Condition="'$(CosmosArch)' == 'x86_64'">x64</CosmosArch>
-    <CosmosArch Condition="'$(CosmosArch)' == 'aarch64'">arm64</CosmosArch>
-
-    <!-- Set architecture-specific defines -->
-    <DefineConstants Condition="'$(CosmosArch)' == 'x64'">$(DefineConstants);ARCH_X64</DefineConstants>
-    <DefineConstants Condition="'$(CosmosArch)' == 'arm64'">$(DefineConstants);ARCH_ARM64</DefineConstants>
   </PropertyGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+#!/bin/pwsh
 # Build Packages in Release configuration
 dotnet build ./Packages.slnx -c Release
 

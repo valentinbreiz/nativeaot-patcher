@@ -3,6 +3,7 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel;
@@ -30,6 +31,9 @@ public class Kernel
 
         // Initialize serial output
         Serial.ComInit();
+
+        PciManager.Setup();
+
         Serial.WriteString("UART started.\n");
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 

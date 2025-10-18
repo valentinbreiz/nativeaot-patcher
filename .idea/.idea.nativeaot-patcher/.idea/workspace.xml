@@ -8,7 +8,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="" />
+    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Directory.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/Directory.Build.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/articles/kernel-project-layout.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/articles/kernel-project-layout.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install-packages.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/install-packages.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Common/Cosmos.Build.Common.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Common/Cosmos.Build.Common.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Common/build/Cosmos.Architecture.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Common/build/Cosmos.Architecture.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/Heap/SmallHeap.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/Heap/SmallHeap.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciDevice.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciDevice.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.X64.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.X64.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,14 +33,29 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d9b136c710f545068f03b8ae312551c33400/0c/e3a5c603/ThreadState.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Threading/ProcessContext.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Threading/ProcessorScheduler.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Threading/Lock.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.X86.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/ClassId.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/Config.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/DeviceID.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/PCIBist.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/PCICommand.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/PCIHeaderType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/PCIInterruptPIN.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/ProgramIF.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/SubclassId.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/Enums/VendorID.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PCIDeviceBridge.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PCIDeviceCardbus.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PCIDeviceNormal.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciBaseAddressBar.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciDevice.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Threading/Lock.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="Toolset" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -45,7 +73,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;zarlo/threading/locks/0&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;zarlo/pci/0&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -62,7 +90,9 @@
       <updated>1760683196197</updated>
       <workItem from="1760683203931" duration="10091000" />
       <workItem from="1760752000703" duration="147000" />
-      <workItem from="1760757278863" duration="7371000" />
+      <workItem from="1760757278863" duration="15990000" />
+      <workItem from="1760778901060" duration="5437000" />
+      <workItem from="1760784373085" duration="5219000" />
     </task>
     <servers />
   </component>

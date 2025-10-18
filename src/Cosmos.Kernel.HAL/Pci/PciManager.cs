@@ -1,18 +1,22 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.HAL.Pci.Enums;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
 public class PciManager
 {
-    public static List<PciDevice> Devices = null!;
+    public static PciDevice[] Devices;
 
-    public static uint Count => (uint)Devices.Count;
+    public static uint Count = 0;
 
     public static void Setup()
     {
-        Devices = new List<PciDevice>();
+        Serial.WriteString("[PciManager] Setup .\n");
+        Serial.WriteString("[PciManager] Setup Clearing List.\n");
+        Devices = new PciDevice[20];
+        Serial.WriteString("[PciManager] Setup Cleared List.\n");
         if ((PciDevice.GetHeaderType(0x0, 0x0, 0x0) & 0x80) == 0)
         {
             CheckBus(0x0);
@@ -21,6 +25,9 @@ public class PciManager
         {
             for (ushort fn = 0; fn < 8; fn++)
             {
+                Serial.WriteString("[PciManager] Setup ");
+                Serial.WriteNumber(fn);
+                Serial.WriteString("\n");
                 if (PciDevice.GetVendorId(0x0, 0x0, fn) != 0xFFFF)
                 {
                     break;
@@ -29,6 +36,9 @@ public class PciManager
                 CheckBus(fn);
             }
         }
+        Serial.WriteString("[PciManager] Found Count ");
+        Serial.WriteNumber(Count);
+        Serial.WriteString("\n");
     }
 
     /// <summary>
@@ -37,8 +47,14 @@ public class PciManager
     /// <param name="xBus">A bus to check.</param>
     private static void CheckBus(ushort xBus)
     {
+        Serial.WriteString("[PciManager] CheckBus(");
+        Serial.WriteNumber(xBus);
+        Serial.WriteString(")\n");
         for (ushort device = 0; device < 32; device++)
         {
+            Serial.WriteString("[PciManager] CheckBus - ");
+            Serial.WriteNumber(device);
+            Serial.WriteString("\n");
             if (PciDevice.GetVendorId(xBus, device, 0x0) == 0xFFFF)
             {
                 continue;
@@ -60,12 +76,23 @@ public class PciManager
 
     private static void CheckFunction(PciDevice xPCIDevice)
     {
-        Devices.Add(xPCIDevice);
-
+        Serial.WriteString("[PciManager] CheckFunction - ");
+        Serial.WriteNumber(xPCIDevice.DeviceId);
+        Serial.WriteString(",");
+        Serial.WriteNumber(xPCIDevice.Function);
+        Serial.WriteString(")\n");
+        Add(xPCIDevice);
+        Serial.WriteString("[PciManager] Cached\n");
         if (xPCIDevice.ClassCode == 0x6 && xPCIDevice.Subclass == 0x4)
         {
             CheckBus(xPCIDevice.SecondaryBusNumber);
         }
+    }
+
+    private static void Add(PciDevice xPciDevice)
+    {
+        Devices[Count] = xPciDevice;
+        Count++;
     }
 
     public static bool Exists(PciDevice pciDevice) =>

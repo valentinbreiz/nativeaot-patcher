@@ -326,6 +326,8 @@ public static unsafe class SmallHeap
         AddRootSMTBlock(page, 128);
         AddRootSMTBlock(page, 256);
         AddRootSMTBlock(page, 512);
+        AddRootSMTBlock(page, 1024);
+        AddRootSMTBlock(page, 2048);
         Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] InitSMTPage complete\n");
         return page;
     }
