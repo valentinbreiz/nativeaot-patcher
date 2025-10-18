@@ -11,6 +11,18 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Common\Cosmos.Build.Common.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
+  
+  <!-- Architecture-specific HAL references -->
+  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
+  </ItemGroup>
+  
 </Project>
 

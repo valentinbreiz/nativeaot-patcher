@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.HAL;
+namespace Cosmos.Kernel.HAL.Interfaces;
 
 /// <summary>
 /// Essential CPU operations for multi-architecture support
