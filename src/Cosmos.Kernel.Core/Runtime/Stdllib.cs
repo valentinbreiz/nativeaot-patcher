@@ -265,7 +265,7 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
 #if ARCH_ARM64
-        [RuntimeImport("*", "RhpByRefAssignRefArm64")]
+        [DllImport("*", EntryPoint = "RhpByRefAssignRefArm64")]
         private static extern unsafe void RhpByRefAssignRefArm64(void** location, void* value);
 #endif
 
