@@ -1,16 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
-using System.Runtime.CompilerServices;
 
 internal unsafe static partial class Program
 {
