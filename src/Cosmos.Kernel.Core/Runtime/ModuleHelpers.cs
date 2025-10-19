@@ -52,7 +52,7 @@ internal static unsafe class ModuleHelpers
         return pEEType->TypeManager.AsTypeManager()->GetClassLibFunction(id);
     }
 
-    
+
     [RuntimeExport("RhFindBlob")]
     internal static unsafe bool RhFindBlob(TypeManagerHandle* typeManagerHandle, uint blobId, byte** ppbBlob, uint* pcbBlob)
     {
@@ -65,7 +65,7 @@ internal static unsafe class ModuleHelpers
 
         *ppbBlob = (byte*)pBlob;
         *pcbBlob = (uint)length;
-        
+
         return pBlob != IntPtr.Zero;
     }
 

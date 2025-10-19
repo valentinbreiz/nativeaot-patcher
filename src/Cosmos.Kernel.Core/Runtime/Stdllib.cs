@@ -213,7 +213,7 @@ namespace Cosmos.Kernel.Core.Runtime
             MethodTable* elementType = array.GetMethodTable()->RelatedParameterType;
 
             if (obj == null)
-            {        
+            {
                 element = null!;
                 return;
             }
