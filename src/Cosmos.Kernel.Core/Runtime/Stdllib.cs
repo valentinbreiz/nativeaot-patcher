@@ -1,5 +1,6 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
@@ -123,12 +124,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpGcPoll")]
         static void RhpGcPoll() { }
 
-        [RuntimeExport("RhBoxAny")]
-        static unsafe object? RhBoxAny(int typeHandle, void* data)
-        {
-            return null; // Simplified implementation
-        }
-
         [RuntimeExport("RhGetOSModuleFromPointer")]
         static IntPtr RhGetOSModuleFromPointer(IntPtr ptr)
         {
@@ -142,7 +137,7 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhBulkMoveWithWriteBarrier")]
-        static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len)
+        internal static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len)
         {
             memmove((byte*)dest, (byte*)src, len);
         }
@@ -206,31 +201,24 @@ namespace Cosmos.Kernel.Core.Runtime
             return obj; // Simplified implementation
         }
 
-        [RuntimeExport("RhBox")]
-        static unsafe object? RhBox(int typeHandle, void* data)
-        {
-            return null; // Simplified implementation
-        }
-
-        // Additional missing runtime exports
-        [RuntimeExport("RhUnbox")]
-        static unsafe void* RhUnbox(object obj)
-        {
-            // Get the data pointer after the method table
-            return (byte*)Unsafe.AsPointer(ref obj) + sizeof(IntPtr);
-        }
-
-        [RuntimeExport("RhUnbox2")]
-        static unsafe object RhUnbox2(object obj)
-        {
-            return obj;
-        }
-
         [RuntimeExport("RhpStelemRef")]
-        static unsafe void RhpStelemRef(object array, int index, object value)
+        static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
         {
-            // Simplified array element store
-            ((object[])array)[index] = value;
+            if (array is null)
+                throw new NullReferenceException();
+
+            ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;
+            ref object element = ref Unsafe.Add(ref rawData, index);
+
+            MethodTable* elementType = array.GetMethodTable()->RelatedParameterType;
+
+            if (obj == null)
+            {        
+                element = null!;
+                return;
+            }
+
+            RhpAssignRef((void**)Unsafe.AsPointer(ref element), &obj);
         }
 
         [RuntimeExport("RhpResolveInterfaceMethod")]
@@ -351,14 +339,20 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhpLdelemaRef")]
-        static unsafe void* RhpLdelemaRef(object array, int index, int typeHandle)
+        public static unsafe ref object? RhpLdelemaRef(object?[] array, nint index, MethodTable* elementType)
         {
-            // Get address of array element
-            object[] objArray = (object[])array;
-            fixed (object* ptr = &objArray[index])
-            {
-                return ptr;
-            }
+
+            ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;
+            ref object element = ref Unsafe.Add(ref rawData, index);
+
+            MethodTable* arrayElemType = array.GetMethodTable()->RelatedParameterType;
+
+            /* This is causing issues, disabling for now.
+            if (elementType != arrayElemType)
+                throw new ArrayTypeMismatchException();
+            */
+
+            return ref element;
         }
 
         [RuntimeExport("RhGetCodeTarget")]
@@ -371,16 +365,6 @@ namespace Cosmos.Kernel.Core.Runtime
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode)
         {
             return pCode;
-        }
-
-        [RuntimeExport("RhFindBlob")]
-        static unsafe bool RhFindBlob(IntPtr hOsModule, uint blobId, void** ppbBlob, uint* pcbBlob)
-        {
-            if (ppbBlob != null)
-                *ppbBlob = null;
-            if (pcbBlob != null)
-                *pcbBlob = 0;
-            return false;
         }
 
         [RuntimeExport("RhTypeCast_CheckCastAny")]
@@ -410,8 +394,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void __security_cookie() { }
                 [RuntimeExport("RhSpanHelpers_MemZero")]
                 static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { }
-                [RuntimeExport("RhBoxAny")]
-                static unsafe object RhBoxAny(int typeHandle, void* data) { throw null; }
                 [RuntimeExport("RhGetOSModuleFromPointer")]
                 static IntPtr RhGetOSModuleFromPointer(IntPtr ptr) { throw null; }
                 [RuntimeExport("RhGetRuntimeVersion")]
@@ -432,8 +414,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle) { throw null; }
                 [RuntimeExport("RhNewObject")]
                 static unsafe object RhNewObject(int typeHandle) { throw null; }
-                [RuntimeExport("RhBox")]
-                static unsafe object RhBox(int typeHandle, void* data) { throw null; }
                 [RuntimeExport("RhpCheckedLockCmpXchg")]
                 static unsafe object RhpCheckedLockCmpXchg(object* location, object value, object comparand, int typeHandle) { throw null; }
                 [RuntimeExport("RhGetProcessCpuCount")]
