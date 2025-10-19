@@ -12,7 +12,7 @@ internal static unsafe class ModuleHelpers
     internal static void* RhpGetModuleSection(TypeManagerHandle* module, ReadyToRunSectionType sectionId, int* length)
     {
         nint section = module->AsTypeManager()->GetModuleSection(sectionId, out int len);
-        length = &len;
+        *length = len;
         return (void*)section;
     }
 
@@ -52,6 +52,22 @@ internal static unsafe class ModuleHelpers
         return pEEType->TypeManager.AsTypeManager()->GetClassLibFunction(id);
     }
 
+    
+    [RuntimeExport("RhFindBlob")]
+    internal static unsafe bool RhFindBlob(TypeManagerHandle* typeManagerHandle, uint blobId, byte** ppbBlob, uint* pcbBlob)
+    {
+        ReadyToRunSectionType sectionId = (ReadyToRunSectionType)((uint)ReadyToRunSectionType.ReadonlyBlobRegionStart + blobId);
+
+        TypeManager* pModule = typeManagerHandle->AsTypeManager();
+
+        IntPtr pBlob;
+        pBlob = pModule->GetModuleSection(sectionId, out int length);
+
+        *ppbBlob = (byte*)pBlob;
+        *pcbBlob = (uint)length;
+        
+        return pBlob != IntPtr.Zero;
+    }
 
     internal static unsafe TypeManagerHandle[] CreateTypeManagers(IntPtr osModule, Span<nint> pModuleHeaders, void** pClasslibFunctions, uint nClasslibFunctions)
     {
