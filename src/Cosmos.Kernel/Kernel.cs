@@ -3,6 +3,8 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Cpu;
+using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.IO;
 
@@ -31,9 +33,11 @@ public class Kernel
 
         // Initialize serial output
         Serial.ComInit();
-
+        InterruptManager.Initialize();
         PciManager.Setup();
-
+        int a = 0;
+        int b = 2;
+        int c = a / b;
         Serial.WriteString("UART started.\n");
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
@@ -64,5 +68,14 @@ public class Kernel
         {
             while (true) { }
         }
+    }
+}
+
+public static unsafe class InterruptBridge
+{
+    [UnmanagedCallersOnly(EntryPoint = "__managed__irq")]
+    public static void IrqHandlerNative(IRQContext* ctx)
+    {
+        InterruptManager.Dispatch(ref *ctx);
     }
 }

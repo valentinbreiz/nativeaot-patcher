@@ -92,6 +92,8 @@ internal unsafe static partial class Program
         KernelConsole.Write("Test 5: PASS - ");
         KernelConsole.WriteLine(gccString);
 
+        DebugInfo.Print();
+
         Serial.WriteString("[Main] All memory allocator tests PASSED!\n");
         KernelConsole.WriteLine();
         KernelConsole.WriteLine("All tests PASSED!");

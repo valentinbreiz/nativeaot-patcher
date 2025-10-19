@@ -36,6 +36,17 @@ public class PciManager
                 CheckBus(fn);
             }
         }
+
+        for (int i = 0; i < Count; i++)
+        {
+            PciDevice device = Devices[i];
+            Serial.WriteString("[PciManager] Found - ");
+            Serial.WriteString(device.GetDeviceString());
+            Serial.WriteString(" --- ");
+            Serial.WriteString(device.GetTypeString());
+            Serial.WriteString(" \n");
+        }
+
         Serial.WriteString("[PciManager] Found Count ");
         Serial.WriteNumber(Count);
         Serial.WriteString("\n");
@@ -77,10 +88,10 @@ public class PciManager
     private static void CheckFunction(PciDevice xPCIDevice)
     {
         Serial.WriteString("[PciManager] CheckFunction - ");
-        Serial.WriteNumber(xPCIDevice.DeviceId);
-        Serial.WriteString(",");
-        Serial.WriteNumber(xPCIDevice.Function);
-        Serial.WriteString(")\n");
+        Serial.WriteString(xPCIDevice.GetDeviceString());
+        Serial.WriteString(" --- ");
+        Serial.WriteString(xPCIDevice.GetTypeString());
+        Serial.WriteString(" \n");
         Add(xPCIDevice);
         Serial.WriteString("[PciManager] Cached\n");
         if (xPCIDevice.ClassCode == 0x6 && xPCIDevice.Subclass == 0x4)

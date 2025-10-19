@@ -9,6 +9,8 @@ test: build
 	  -serial file:uart.log \
 	  -nographic \
 	  -no-reboot \
+	  -enable-kvm \
+	  -cpu host \
 	  -no-shutdown &
 	QEMU_PID=$!
 	sleep 10

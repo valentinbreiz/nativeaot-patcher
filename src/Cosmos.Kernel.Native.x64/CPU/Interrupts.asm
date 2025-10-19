@@ -1,0 +1,572 @@
+global irq0_stub
+global irq1_stub
+global irq2_stub
+global irq3_stub
+global irq4_stub
+global irq5_stub
+global irq6_stub
+global irq7_stub
+global irq8_stub
+global irq9_stub
+global irq10_stub
+global irq11_stub
+global irq12_stub
+global irq13_stub
+global irq14_stub
+global irq15_stub
+global irq16_stub
+global irq17_stub
+global irq18_stub
+global irq19_stub
+global irq20_stub
+global irq21_stub
+global irq22_stub
+global irq23_stub
+global irq24_stub
+global irq25_stub
+global irq26_stub
+global irq27_stub
+global irq28_stub
+global irq29_stub
+global irq30_stub
+global irq31_stub
+global irq32_stub
+global irq33_stub
+global irq34_stub
+global irq35_stub
+global irq36_stub
+global irq37_stub
+global irq38_stub
+global irq39_stub
+global irq40_stub
+global irq41_stub
+global irq42_stub
+global irq43_stub
+global irq44_stub
+global irq45_stub
+global irq46_stub
+global irq47_stub
+global irq48_stub
+global irq49_stub
+global irq50_stub
+global irq51_stub
+global irq52_stub
+global irq53_stub
+global irq54_stub
+global irq55_stub
+global irq56_stub
+global irq57_stub
+global irq58_stub
+global irq59_stub
+global irq60_stub
+global irq61_stub
+global irq62_stub
+global irq63_stub
+global irq64_stub
+global irq65_stub
+global irq66_stub
+global irq67_stub
+global irq68_stub
+global irq69_stub
+global irq70_stub
+global irq71_stub
+global irq72_stub
+global irq73_stub
+global irq74_stub
+global irq75_stub
+global irq76_stub
+global irq77_stub
+global irq78_stub
+global irq79_stub
+global irq80_stub
+global irq81_stub
+global irq82_stub
+global irq83_stub
+global irq84_stub
+global irq85_stub
+global irq86_stub
+global irq87_stub
+global irq88_stub
+global irq89_stub
+global irq90_stub
+global irq91_stub
+global irq92_stub
+global irq93_stub
+global irq94_stub
+global irq95_stub
+global irq96_stub
+global irq97_stub
+global irq98_stub
+global irq99_stub
+global irq100_stub
+global irq101_stub
+global irq102_stub
+global irq103_stub
+global irq104_stub
+global irq105_stub
+global irq106_stub
+global irq107_stub
+global irq108_stub
+global irq109_stub
+global irq110_stub
+global irq111_stub
+global irq112_stub
+global irq113_stub
+global irq114_stub
+global irq115_stub
+global irq116_stub
+global irq117_stub
+global irq118_stub
+global irq119_stub
+global irq120_stub
+global irq121_stub
+global irq122_stub
+global irq123_stub
+global irq124_stub
+global irq125_stub
+global irq126_stub
+global irq127_stub
+global irq128_stub
+global irq129_stub
+global irq130_stub
+global irq131_stub
+global irq132_stub
+global irq133_stub
+global irq134_stub
+global irq135_stub
+global irq136_stub
+global irq137_stub
+global irq138_stub
+global irq139_stub
+global irq140_stub
+global irq141_stub
+global irq142_stub
+global irq143_stub
+global irq144_stub
+global irq145_stub
+global irq146_stub
+global irq147_stub
+global irq148_stub
+global irq149_stub
+global irq150_stub
+global irq151_stub
+global irq152_stub
+global irq153_stub
+global irq154_stub
+global irq155_stub
+global irq156_stub
+global irq157_stub
+global irq158_stub
+global irq159_stub
+global irq160_stub
+global irq161_stub
+global irq162_stub
+global irq163_stub
+global irq164_stub
+global irq165_stub
+global irq166_stub
+global irq167_stub
+global irq168_stub
+global irq169_stub
+global irq170_stub
+global irq171_stub
+global irq172_stub
+global irq173_stub
+global irq174_stub
+global irq175_stub
+global irq176_stub
+global irq177_stub
+global irq178_stub
+global irq179_stub
+global irq180_stub
+global irq181_stub
+global irq182_stub
+global irq183_stub
+global irq184_stub
+global irq185_stub
+global irq186_stub
+global irq187_stub
+global irq188_stub
+global irq189_stub
+global irq190_stub
+global irq191_stub
+global irq192_stub
+global irq193_stub
+global irq194_stub
+global irq195_stub
+global irq196_stub
+global irq197_stub
+global irq198_stub
+global irq199_stub
+global irq200_stub
+global irq201_stub
+global irq202_stub
+global irq203_stub
+global irq204_stub
+global irq205_stub
+global irq206_stub
+global irq207_stub
+global irq208_stub
+global irq209_stub
+global irq210_stub
+global irq211_stub
+global irq212_stub
+global irq213_stub
+global irq214_stub
+global irq215_stub
+global irq216_stub
+global irq217_stub
+global irq218_stub
+global irq219_stub
+global irq220_stub
+global irq221_stub
+global irq222_stub
+global irq223_stub
+global irq224_stub
+global irq225_stub
+global irq226_stub
+global irq227_stub
+global irq228_stub
+global irq229_stub
+global irq230_stub
+global irq231_stub
+global irq232_stub
+global irq233_stub
+global irq234_stub
+global irq235_stub
+global irq236_stub
+global irq237_stub
+global irq238_stub
+global irq239_stub
+global irq240_stub
+global irq241_stub
+global irq242_stub
+global irq243_stub
+global irq244_stub
+global irq245_stub
+global irq246_stub
+global irq247_stub
+global irq248_stub
+global irq249_stub
+global irq250_stub
+global irq251_stub
+global irq252_stub
+global irq253_stub
+global irq254_stub
+global irq255_stub
+
+extern __managed__irq
+
+section .text
+
+%macro IRQ_STUB 1
+irq%1_stub:
+    push 0
+    push %1              ; interrupt number
+    ; Save registers
+    push rax
+    push rcx
+    push rdx
+    push rbx
+    push rbp
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+
+    ; Call managed handler
+    mov rdi, rsp
+    call __managed__irq
+
+    ; Restore registers
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
+    pop rdx
+    pop rcx
+    pop rax
+
+    add rsp, 16          ; remove pushed dummy + IRQ number
+
+
+%endmacro
+
+global __load_lidt
+
+; void lidt_native(IdtPointer* ptr)
+__load_lidt:
+    lidt [rdi]
+    ret
+
+; Generate IRQ stubs
+IRQ_STUB 0
+IRQ_STUB 1
+IRQ_STUB 2
+IRQ_STUB 3
+IRQ_STUB 4
+IRQ_STUB 5
+IRQ_STUB 6
+IRQ_STUB 7
+IRQ_STUB 8
+IRQ_STUB 9
+IRQ_STUB 10
+IRQ_STUB 11
+IRQ_STUB 12
+IRQ_STUB 13
+IRQ_STUB 14
+IRQ_STUB 15
+IRQ_STUB 16
+IRQ_STUB 17
+IRQ_STUB 18
+IRQ_STUB 19
+IRQ_STUB 20
+IRQ_STUB 21
+IRQ_STUB 22
+IRQ_STUB 23
+IRQ_STUB 24
+IRQ_STUB 25
+IRQ_STUB 26
+IRQ_STUB 27
+IRQ_STUB 28
+IRQ_STUB 29
+IRQ_STUB 30
+IRQ_STUB 31
+IRQ_STUB 32
+IRQ_STUB 33
+IRQ_STUB 34
+IRQ_STUB 35
+IRQ_STUB 36
+IRQ_STUB 37
+IRQ_STUB 38
+IRQ_STUB 39
+IRQ_STUB 40
+IRQ_STUB 41
+IRQ_STUB 42
+IRQ_STUB 43
+IRQ_STUB 44
+IRQ_STUB 45
+IRQ_STUB 46
+IRQ_STUB 47
+IRQ_STUB 48
+IRQ_STUB 49
+IRQ_STUB 50
+IRQ_STUB 51
+IRQ_STUB 52
+IRQ_STUB 53
+IRQ_STUB 54
+IRQ_STUB 55
+IRQ_STUB 56
+IRQ_STUB 57
+IRQ_STUB 58
+IRQ_STUB 59
+IRQ_STUB 60
+IRQ_STUB 61
+IRQ_STUB 62
+IRQ_STUB 63
+IRQ_STUB 64
+IRQ_STUB 65
+IRQ_STUB 66
+IRQ_STUB 67
+IRQ_STUB 68
+IRQ_STUB 69
+IRQ_STUB 70
+IRQ_STUB 71
+IRQ_STUB 72
+IRQ_STUB 73
+IRQ_STUB 74
+IRQ_STUB 75
+IRQ_STUB 76
+IRQ_STUB 77
+IRQ_STUB 78
+IRQ_STUB 79
+IRQ_STUB 80
+IRQ_STUB 81
+IRQ_STUB 82
+IRQ_STUB 83
+IRQ_STUB 84
+IRQ_STUB 85
+IRQ_STUB 86
+IRQ_STUB 87
+IRQ_STUB 88
+IRQ_STUB 89
+IRQ_STUB 90
+IRQ_STUB 91
+IRQ_STUB 92
+IRQ_STUB 93
+IRQ_STUB 94
+IRQ_STUB 95
+IRQ_STUB 96
+IRQ_STUB 97
+IRQ_STUB 98
+IRQ_STUB 99
+IRQ_STUB 100
+IRQ_STUB 101
+IRQ_STUB 102
+IRQ_STUB 103
+IRQ_STUB 104
+IRQ_STUB 105
+IRQ_STUB 106
+IRQ_STUB 107
+IRQ_STUB 108
+IRQ_STUB 109
+IRQ_STUB 110
+IRQ_STUB 111
+IRQ_STUB 112
+IRQ_STUB 113
+IRQ_STUB 114
+IRQ_STUB 115
+IRQ_STUB 116
+IRQ_STUB 117
+IRQ_STUB 118
+IRQ_STUB 119
+IRQ_STUB 120
+IRQ_STUB 121
+IRQ_STUB 122
+IRQ_STUB 123
+IRQ_STUB 124
+IRQ_STUB 125
+IRQ_STUB 126
+IRQ_STUB 127
+IRQ_STUB 128
+IRQ_STUB 129
+IRQ_STUB 130
+IRQ_STUB 131
+IRQ_STUB 132
+IRQ_STUB 133
+IRQ_STUB 134
+IRQ_STUB 135
+IRQ_STUB 136
+IRQ_STUB 137
+IRQ_STUB 138
+IRQ_STUB 139
+IRQ_STUB 140
+IRQ_STUB 141
+IRQ_STUB 142
+IRQ_STUB 143
+IRQ_STUB 144
+IRQ_STUB 145
+IRQ_STUB 146
+IRQ_STUB 147
+IRQ_STUB 148
+IRQ_STUB 149
+IRQ_STUB 150
+IRQ_STUB 151
+IRQ_STUB 152
+IRQ_STUB 153
+IRQ_STUB 154
+IRQ_STUB 155
+IRQ_STUB 156
+IRQ_STUB 157
+IRQ_STUB 158
+IRQ_STUB 159
+IRQ_STUB 160
+IRQ_STUB 161
+IRQ_STUB 162
+IRQ_STUB 163
+IRQ_STUB 164
+IRQ_STUB 165
+IRQ_STUB 166
+IRQ_STUB 167
+IRQ_STUB 168
+IRQ_STUB 169
+IRQ_STUB 170
+IRQ_STUB 171
+IRQ_STUB 172
+IRQ_STUB 173
+IRQ_STUB 174
+IRQ_STUB 175
+IRQ_STUB 176
+IRQ_STUB 177
+IRQ_STUB 178
+IRQ_STUB 179
+IRQ_STUB 180
+IRQ_STUB 181
+IRQ_STUB 182
+IRQ_STUB 183
+IRQ_STUB 184
+IRQ_STUB 185
+IRQ_STUB 186
+IRQ_STUB 187
+IRQ_STUB 188
+IRQ_STUB 189
+IRQ_STUB 190
+IRQ_STUB 191
+IRQ_STUB 192
+IRQ_STUB 193
+IRQ_STUB 194
+IRQ_STUB 195
+IRQ_STUB 196
+IRQ_STUB 197
+IRQ_STUB 198
+IRQ_STUB 199
+IRQ_STUB 200
+IRQ_STUB 201
+IRQ_STUB 202
+IRQ_STUB 203
+IRQ_STUB 204
+IRQ_STUB 205
+IRQ_STUB 206
+IRQ_STUB 207
+IRQ_STUB 208
+IRQ_STUB 209
+IRQ_STUB 210
+IRQ_STUB 211
+IRQ_STUB 212
+IRQ_STUB 213
+IRQ_STUB 214
+IRQ_STUB 215
+IRQ_STUB 216
+IRQ_STUB 217
+IRQ_STUB 218
+IRQ_STUB 219
+IRQ_STUB 220
+IRQ_STUB 221
+IRQ_STUB 222
+IRQ_STUB 223
+IRQ_STUB 224
+IRQ_STUB 225
+IRQ_STUB 226
+IRQ_STUB 227
+IRQ_STUB 228
+IRQ_STUB 229
+IRQ_STUB 230
+IRQ_STUB 231
+IRQ_STUB 232
+IRQ_STUB 233
+IRQ_STUB 234
+IRQ_STUB 235
+IRQ_STUB 236
+IRQ_STUB 237
+IRQ_STUB 238
+IRQ_STUB 239
+IRQ_STUB 240
+IRQ_STUB 241
+IRQ_STUB 242
+IRQ_STUB 243
+IRQ_STUB 244
+IRQ_STUB 245
+IRQ_STUB 246
+IRQ_STUB 247
+IRQ_STUB 248
+IRQ_STUB 249
+IRQ_STUB 250
+IRQ_STUB 251
+IRQ_STUB 252
+IRQ_STUB 253
+IRQ_STUB 254
+IRQ_STUB 255
