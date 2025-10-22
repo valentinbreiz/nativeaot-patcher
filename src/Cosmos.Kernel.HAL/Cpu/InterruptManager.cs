@@ -35,7 +35,7 @@ public static partial class InterruptManager
     /// <summary>
     /// Registers a handler for a hardware IRQ.
     /// </summary>
-    /// <param name="irqNo">IRQ index (0–15).</param>
+    /// <param name="irqNo">IRQ index.</param>
     /// <param name="handler">IRQ handler delegate.</param>
     public static void SetIrqHandler(byte irqNo, IrqDelegate handler)
         => SetHandler((byte)(0x20 + irqNo), handler);
@@ -48,7 +48,8 @@ public static partial class InterruptManager
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
-        Serial.Write("INT ", ctx.interrupt, " - ", ctx.interrupt - 0x20, " START", NewLine);
+        Serial.Write("[INT] ", ctx.interrupt, " START", NewLine);
+        Serial.Write("[INT] cpu_flags ", ctx.cpu_flags, NewLine);
         Serial.Write("[INT] interrupt ", ctx.interrupt, NewLine);
         Serial.Write("[INT] rax ", ctx.rax, NewLine);
         Serial.Write("[INT] rcx ", ctx.rcx, NewLine);
@@ -57,8 +58,8 @@ public static partial class InterruptManager
         Serial.Write("[INT] rbp ", ctx.rbp, NewLine);
         Serial.Write("[INT] rsi ", ctx.rsi, NewLine);
         Serial.Write("[INT] rdi ", ctx.rdi, NewLine);
-        Serial.Write("[INT] r8 ", ctx.r8, NewLine);
-        Serial.Write("[INT] r9 ", ctx.r9, NewLine);
+        Serial.Write("[INT] r8  ", ctx.r8, NewLine);
+        Serial.Write("[INT] r9  ", ctx.r9, NewLine);
         Serial.Write("[INT] r10 ", ctx.r10, NewLine);
         Serial.Write("[INT] r11 ", ctx.r11, NewLine);
         Serial.Write("[INT] r12 ", ctx.r12, NewLine);
@@ -66,20 +67,17 @@ public static partial class InterruptManager
         Serial.Write("[INT] r14 ", ctx.r14, NewLine);
         Serial.Write("[INT] r15 ", ctx.r15, NewLine);
 
-
         IrqDelegate handler = s_irqHandlers[ctx.interrupt];
         if (handler != null)
         {
-            Serial.Write("INT Found");
+            Serial.Write("[INT] Found \n");
+            handler(ref ctx);
         }
         else
         {
-            Serial.Write("INT not Found");
+            Serial.Write("[INT] not Found \n");
         }
-        // {
-        //     handler(ref ctx);
-        // }
 
-        Serial.Write("INT ", ctx.interrupt - 0x20, " END \n");
+        Serial.Write("[INT] ", ctx.interrupt, " END \n");
     }
 }

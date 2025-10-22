@@ -1,6 +1,7 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.IO;
 using Internal.Runtime;
 
 #region Things needed by ILC
@@ -76,9 +77,12 @@ namespace Cosmos.Kernel.Core.Runtime
             if (ex == null)
             {
                 Console.WriteLine("Null exception thrown");
+                Serial.WriteString("Null exception thrown \n");
                 return;
             }
-
+            Serial.WriteString("Unhandled exception: ");
+            Serial.WriteString(ex.GetType().Name);
+            Serial.WriteString("\n");
             Console.WriteLine($"Unhandled exception: {ex.GetType().Name}");
         }
 

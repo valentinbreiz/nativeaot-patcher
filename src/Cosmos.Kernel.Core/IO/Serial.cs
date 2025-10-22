@@ -154,6 +154,18 @@ public static class Serial
                 case bool @bool:
                     WriteString(@bool ? TRUE : FALSE);
                     break;
+                case byte @byte:
+                    WriteNumber((ulong)@byte, true);
+                    break;
+                case byte[] @byteArray:
+                    for (int j = 0; j < @byteArray.Length; j++)
+                    {
+                        WriteNumber((ulong)@byteArray[i], true);
+                    }
+                    break;
+                default:
+                    WriteString(args[i].ToString());
+                    break;
             }
         }
     }

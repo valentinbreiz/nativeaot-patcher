@@ -8,7 +8,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Version>3.0.0</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;CS1998;NU1903;SYSLIB0011;</NoWarn>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -19,5 +18,17 @@
     <!--pack as nuget-->
 
   </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>3.0.0</VersionPrefix>
+  </PropertyGroup>
+
+  <Target Name="SetDynamicVersion" BeforeTargets="GenerateAssemblyInfo">
+    <PropertyGroup>
+      <VersionSuffix>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmm"))</VersionSuffix>
+      <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    </PropertyGroup>
+    <Message Importance="High" Text="Version: $(Version)" />
+  </Target>
 
 </Project>

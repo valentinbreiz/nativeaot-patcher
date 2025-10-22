@@ -255,29 +255,305 @@ global irq253_stub
 global irq254_stub
 global irq255_stub
 
+global __irq_table
 extern __managed__irq
 
 section .text
 
+section .data
+__irq_table:
+dq irq0_stub
+dq irq1_stub
+dq irq2_stub
+dq irq3_stub
+dq irq4_stub
+dq irq5_stub
+dq irq6_stub
+dq irq7_stub
+dq irq8_stub
+dq irq9_stub
+dq irq10_stub
+dq irq11_stub
+dq irq12_stub
+dq irq13_stub
+dq irq14_stub
+dq irq15_stub
+dq irq16_stub
+dq irq17_stub
+dq irq18_stub
+dq irq19_stub
+dq irq20_stub
+dq irq21_stub
+dq irq22_stub
+dq irq23_stub
+dq irq24_stub
+dq irq25_stub
+dq irq26_stub
+dq irq27_stub
+dq irq28_stub
+dq irq29_stub
+dq irq30_stub
+dq irq31_stub
+dq irq32_stub
+dq irq33_stub
+dq irq34_stub
+dq irq35_stub
+dq irq36_stub
+dq irq37_stub
+dq irq38_stub
+dq irq39_stub
+dq irq40_stub
+dq irq41_stub
+dq irq42_stub
+dq irq43_stub
+dq irq44_stub
+dq irq45_stub
+dq irq46_stub
+dq irq47_stub
+dq irq48_stub
+dq irq49_stub
+dq irq50_stub
+dq irq51_stub
+dq irq52_stub
+dq irq53_stub
+dq irq54_stub
+dq irq55_stub
+dq irq56_stub
+dq irq57_stub
+dq irq58_stub
+dq irq59_stub
+dq irq60_stub
+dq irq61_stub
+dq irq62_stub
+dq irq63_stub
+dq irq64_stub
+dq irq65_stub
+dq irq66_stub
+dq irq67_stub
+dq irq68_stub
+dq irq69_stub
+dq irq70_stub
+dq irq71_stub
+dq irq72_stub
+dq irq73_stub
+dq irq74_stub
+dq irq75_stub
+dq irq76_stub
+dq irq77_stub
+dq irq78_stub
+dq irq79_stub
+dq irq80_stub
+dq irq81_stub
+dq irq82_stub
+dq irq83_stub
+dq irq84_stub
+dq irq85_stub
+dq irq86_stub
+dq irq87_stub
+dq irq88_stub
+dq irq89_stub
+dq irq90_stub
+dq irq91_stub
+dq irq92_stub
+dq irq93_stub
+dq irq94_stub
+dq irq95_stub
+dq irq96_stub
+dq irq97_stub
+dq irq98_stub
+dq irq99_stub
+dq irq100_stub
+dq irq101_stub
+dq irq102_stub
+dq irq103_stub
+dq irq104_stub
+dq irq105_stub
+dq irq106_stub
+dq irq107_stub
+dq irq108_stub
+dq irq109_stub
+dq irq110_stub
+dq irq111_stub
+dq irq112_stub
+dq irq113_stub
+dq irq114_stub
+dq irq115_stub
+dq irq116_stub
+dq irq117_stub
+dq irq118_stub
+dq irq119_stub
+dq irq120_stub
+dq irq121_stub
+dq irq122_stub
+dq irq123_stub
+dq irq124_stub
+dq irq125_stub
+dq irq126_stub
+dq irq127_stub
+dq irq128_stub
+dq irq129_stub
+dq irq130_stub
+dq irq131_stub
+dq irq132_stub
+dq irq133_stub
+dq irq134_stub
+dq irq135_stub
+dq irq136_stub
+dq irq137_stub
+dq irq138_stub
+dq irq139_stub
+dq irq140_stub
+dq irq141_stub
+dq irq142_stub
+dq irq143_stub
+dq irq144_stub
+dq irq145_stub
+dq irq146_stub
+dq irq147_stub
+dq irq148_stub
+dq irq149_stub
+dq irq150_stub
+dq irq151_stub
+dq irq152_stub
+dq irq153_stub
+dq irq154_stub
+dq irq155_stub
+dq irq156_stub
+dq irq157_stub
+dq irq158_stub
+dq irq159_stub
+dq irq160_stub
+dq irq161_stub
+dq irq162_stub
+dq irq163_stub
+dq irq164_stub
+dq irq165_stub
+dq irq166_stub
+dq irq167_stub
+dq irq168_stub
+dq irq169_stub
+dq irq170_stub
+dq irq171_stub
+dq irq172_stub
+dq irq173_stub
+dq irq174_stub
+dq irq175_stub
+dq irq176_stub
+dq irq177_stub
+dq irq178_stub
+dq irq179_stub
+dq irq180_stub
+dq irq181_stub
+dq irq182_stub
+dq irq183_stub
+dq irq184_stub
+dq irq185_stub
+dq irq186_stub
+dq irq187_stub
+dq irq188_stub
+dq irq189_stub
+dq irq190_stub
+dq irq191_stub
+dq irq192_stub
+dq irq193_stub
+dq irq194_stub
+dq irq195_stub
+dq irq196_stub
+dq irq197_stub
+dq irq198_stub
+dq irq199_stub
+dq irq200_stub
+dq irq201_stub
+dq irq202_stub
+dq irq203_stub
+dq irq204_stub
+dq irq205_stub
+dq irq206_stub
+dq irq207_stub
+dq irq208_stub
+dq irq209_stub
+dq irq210_stub
+dq irq211_stub
+dq irq212_stub
+dq irq213_stub
+dq irq214_stub
+dq irq215_stub
+dq irq216_stub
+dq irq217_stub
+dq irq218_stub
+dq irq219_stub
+dq irq220_stub
+dq irq221_stub
+dq irq222_stub
+dq irq223_stub
+dq irq224_stub
+dq irq225_stub
+dq irq226_stub
+dq irq227_stub
+dq irq228_stub
+dq irq229_stub
+dq irq230_stub
+dq irq231_stub
+dq irq232_stub
+dq irq233_stub
+dq irq234_stub
+dq irq235_stub
+dq irq236_stub
+dq irq237_stub
+dq irq238_stub
+dq irq239_stub
+dq irq240_stub
+dq irq241_stub
+dq irq242_stub
+dq irq243_stub
+dq irq244_stub
+dq irq245_stub
+dq irq246_stub
+dq irq247_stub
+dq irq248_stub
+dq irq249_stub
+dq irq250_stub
+dq irq251_stub
+dq irq252_stub
+dq irq253_stub
+dq irq254_stub
+dq irq255_stub
+
+
 %macro IRQ_STUB 1
 irq%1_stub:
-    push 0
+    pushfq
     push %1              ; interrupt number
     ; Save registers
+    ; mov  rax, 2
     push rax
+    ; mov  rcx, 3
     push rcx
+    ; mov  rdx, 4
     push rdx
+    ; mov  rbx, 5
     push rbx
+    ; mov  rbp, 6
     push rbp
+    ; mov  rsi, 7
     push rsi
+    ; mov  rdi, 8
     push rdi
+    ; mov  r8, 9
     push r8
+    ; mov  r9, 10
     push r9
+    ; mov  r10, 11
     push r10
+    ; mov  r11, 12
     push r11
+    ; mov  r12, 13
     push r12
+    ; mov  r13, 14
     push r13
+    ; mov  r14, 15
     push r14
+    ; mov  r15, 16
     push r15
 
     ; Call managed handler
@@ -310,7 +586,9 @@ global __load_lidt
 
 ; void lidt_native(IdtPointer* ptr)
 __load_lidt:
+    cli
     lidt [rdi]
+    sti
     ret
 
 ; Generate IRQ stubs
