@@ -218,7 +218,9 @@ namespace Cosmos.Kernel.Core.Runtime
                 return;
             }
 
-            RhpAssignRef((void**)Unsafe.AsPointer(ref element), &obj);
+            void* objPtr = Unsafe.AsPointer(ref obj);  // Get address of the obj parameter
+            void* actualObjPtr = *(void**)objPtr;       // Dereference to get the actual object pointer
+            RhpAssignRef((void**)Unsafe.AsPointer(ref element), actualObjPtr);
         }
 
         [RuntimeExport("RhpResolveInterfaceMethod")]

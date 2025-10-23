@@ -299,9 +299,39 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 19: FAILED");
         }
 
-        Serial.WriteString("[Main] All tests PASSED!\n");
+        // Test 20: List<string> - Test WITHOUT pre-allocation (triggers resize)
+        Serial.WriteString("[Main] Test 20: Testing List<string> WITHOUT pre-allocation...\n");
+
+        List<string> stringList = new List<string>(); // Capacity 0 - will trigger resize
+        stringList.Add("First");
+        stringList.Add("Second");
+        stringList.Add("Third");
+        stringList.Add("Fourth");
+        stringList.Add("Fifth");
+
+        if (stringList.Count == 5 &&
+            stringList[0] == "First" &&
+            stringList[1] == "Second" &&
+            stringList[2] == "Third" &&
+            stringList[3] == "Fourth" &&
+            stringList[4] == "Fifth")
+        {
+            Serial.WriteString("[Main] Test 20: PASSED - List<string> works without pre-allocation!\n");
+            KernelConsole.WriteLine("Test 20: PASS");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 20: FAILED - Count=");
+            Serial.WriteNumber((uint)stringList.Count, false);
+            Serial.WriteString(", [0]='");
+            Serial.WriteString(stringList[0]);
+            Serial.WriteString("'\n");
+            KernelConsole.WriteLine("Test 20: FAILED");
+        }
+
+        Serial.WriteString("[Main] All core tests PASSED!\n");
         KernelConsole.WriteLine();
-        KernelConsole.WriteLine("All tests PASSED!");
+        KernelConsole.WriteLine("All core tests PASSED!");
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
         while (true) ;
