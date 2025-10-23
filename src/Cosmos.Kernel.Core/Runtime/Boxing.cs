@@ -45,17 +45,18 @@ internal static class Boxing
         void* result;
 
         result = Memory.RhpNewFast(pEEType);
-        byte* destPtr = (byte*)&result + sizeof(MethodTable*);
+        // result is a pointer to the object, cast to byte* and skip the MethodTable pointer to get to the data
+        byte* destPtr = (byte*)result + sizeof(MethodTable*);
 
         // Copy the unboxed value type data into the new object.
         // Perform any write barriers necessary for embedded reference fields.
         if (pEEType->ContainsGCPointers)
         {
-            StartupCodeHelpers.RhBulkMoveWithWriteBarrier(destPtr, data, pEEType->ValueTypeSize);
+            StartupCodeHelpers.RhBulkMoveWithWriteBarrier(destPtr, dataAdjustedForNullable, pEEType->ValueTypeSize);
         }
         else
         {
-            MemoryOp.MemCopy(destPtr, data, (int)pEEType->ValueTypeSize);
+            MemoryOp.MemCopy(destPtr, dataAdjustedForNullable, (int)pEEType->ValueTypeSize);
         }
 
         return result;
