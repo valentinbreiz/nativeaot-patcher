@@ -102,6 +102,5 @@ internal static class Boxing
     {
         Serial.WriteString(nameof(RhUnbox2));
         return (byte*)obj + sizeof(MethodTable*);
-        //return (byte*)Unsafe.AsPointer(ref Unsafe.AsRef<RawData>(obj).Data);
     }
 }

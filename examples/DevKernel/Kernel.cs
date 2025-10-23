@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -161,22 +162,6 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 12: Testing Nullable<T> boxing (with value)...\n");
         int? nullableValue = 777;
         object boxedNullable = nullableValue;
-
-        // Debug: Check if boxedNullable is null
-        if (boxedNullable == null)
-        {
-            Serial.WriteString("[Main] Test 12 DEBUG: boxedNullable is NULL!\n");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 12 DEBUG: boxedNullable is NOT null\n");
-            // Try to unbox and see what value we get
-            int unboxedValue = (int)boxedNullable;
-            Serial.WriteString("[Main] Test 12 DEBUG: Unboxed value = ");
-            Serial.WriteNumber((uint)unboxedValue, false);
-            Serial.WriteString("\n");
-        }
-
         if (boxedNullable != null && (int)boxedNullable == 777)
         {
             Serial.WriteString("[Main] Test 12: SUCCESS - Nullable<T> with value boxes correctly: ");
@@ -222,7 +207,86 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 14: FAILED");
         }
 
-        Serial.WriteString("[Main] All tests (including boxing) PASSED!\n");
+        // Test 15: List<int> - value types
+        Serial.WriteString("[Main] Test 15: Testing List<int>...\n");
+        List<int> intList = new List<int>();
+        intList.Add(100);
+        intList.Add(200);
+        intList.Add(300);
+        if (intList.Count == 3 && intList[0] == 100 && intList[1] == 200 && intList[2] == 300)
+        {
+            Serial.WriteString("[Main] Test 15: SUCCESS - List<int> works correctly\n");
+            KernelConsole.WriteLine("Test 15: PASS - List<int> works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 15: FAILED - List<int> incorrect\n");
+            KernelConsole.WriteLine("Test 15: FAILED");
+        }
+
+        // Test 16: Simple boxing/unboxing
+        Serial.WriteString("[Main] Test 16: Testing simple box/unbox...\n");
+        object simpleBoxed = (object)999;
+        int simpleUnboxed = (int)simpleBoxed;
+        if (simpleUnboxed == 999)
+        {
+            Serial.WriteString("[Main] Test 16: SUCCESS - simple boxing works\n");
+            KernelConsole.WriteLine("Test 16: PASS - simple boxing works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 16: FAILED - simple boxing incorrect\n");
+            KernelConsole.WriteLine("Test 16: FAILED");
+        }
+
+        // Test 17: List iteration and manual search
+        Serial.WriteString("[Main] Test 17: Testing List<int> iteration and search...\n");
+        List<int> searchList = new List<int>();
+        searchList.Add(10);
+        searchList.Add(20);
+        searchList.Add(30);
+        searchList.Add(40);
+
+        // Manual search instead of Contains (which may use IEquatable)
+        bool found20 = false;
+        bool found99 = false;
+        for (int i = 0; i < searchList.Count; i++)
+        {
+            if (searchList[i] == 20) found20 = true;
+            if (searchList[i] == 99) found99 = true;
+        }
+
+        if (found20 && !found99)
+        {
+            Serial.WriteString("[Main] Test 17: SUCCESS - List<int> iteration and search works\n");
+            KernelConsole.WriteLine("Test 17: PASS - List iteration works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 17: FAILED - search incorrect (found20=");
+            Serial.WriteNumber((uint)(found20 ? 1 : 0), false);
+            Serial.WriteString(", found99=");
+            Serial.WriteNumber((uint)(found99 ? 1 : 0), false);
+            Serial.WriteString(")\n");
+            KernelConsole.WriteLine("Test 17: FAILED");
+        }
+
+        // Test 18: List.Count and capacity
+        Serial.WriteString("[Main] Test 18: Testing List<int> Count property...\n");
+        if (searchList.Count == 4)
+        {
+            Serial.WriteString("[Main] Test 18: SUCCESS - List.Count is correct (4)\n");
+            KernelConsole.WriteLine("Test 18: PASS - List.Count works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 18: FAILED - List.Count incorrect (");
+            Serial.WriteNumber((uint)searchList.Count, false);
+            Serial.WriteString(")\n");
+            KernelConsole.WriteLine("Test 18: FAILED");
+        }
+
+        Serial.WriteString("[Main] All tests PASSED!\n");
         KernelConsole.WriteLine();
         KernelConsole.WriteLine("All tests PASSED!");
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
