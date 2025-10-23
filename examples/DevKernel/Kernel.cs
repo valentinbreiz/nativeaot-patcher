@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
@@ -10,6 +11,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Graphics;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
+using System.Runtime.CompilerServices;
 
 internal unsafe static partial class Program
 {
@@ -25,17 +27,6 @@ internal unsafe static partial class Program
     private static void Main()
     {
         Serial.WriteString("[Main] Starting Main function\n");
-
-        // Initialize graphics console
-        if (KernelConsole.Initialize())
-        {
-            Serial.WriteString("[Main] Graphics console initialized successfully\n");
-            KernelConsole.WriteLine("Graphics console active!");
-        }
-        else
-        {
-            Serial.WriteString("[Main] No framebuffer available - graphics disabled\n");
-        }
 
         // Test memory allocator with various allocations
         Serial.WriteString("[Main] Testing memory allocator...\n");
@@ -92,14 +83,35 @@ internal unsafe static partial class Program
         KernelConsole.Write("Test 5: PASS - ");
         KernelConsole.WriteLine(gccString);
 
-        DebugInfo.Print();
+        // Test 6: StringBuilder
+        Serial.WriteString("[Main] Test 6: Testing StringBuilder...\n");
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Hello");
+        sb.Append(" ");
+        sb.Append("StringBuilder");
+        sb.Append(" from ");
+        sb.Append("Cosmos!");
+        string sbResult = sb.ToString();
+        Serial.WriteString("[Main] Test 6: SUCCESS - StringBuilder result: ");
+        Serial.WriteString(sbResult);
+        Serial.WriteString("\n");
+        KernelConsole.Write("Test 6: PASS - ");
+        KernelConsole.WriteLine(sbResult);
 
         Serial.WriteString("[Main] All memory allocator tests PASSED!\n");
         KernelConsole.WriteLine();
         KernelConsole.WriteLine("All tests PASSED!");
+      
+        DebugInfo.Print();
+      
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
         while (true) ;
+    }
+    [ModuleInitializer]
+    public static void Init()
+    {
+        Serial.WriteString("Kernel Init\n");
     }
 }
 

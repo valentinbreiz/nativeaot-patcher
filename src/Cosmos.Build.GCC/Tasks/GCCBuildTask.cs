@@ -23,7 +23,7 @@ public sealed class GCCBuildTask : ToolTask
     protected override MessageImportance StandardErrorLoggingImportance => MessageImportance.Normal;
 
     protected override string GenerateFullPathToTool() =>
-        GCCPath!; protected override string GenerateCommandLineCommands()
+            GCCPath!; protected override string GenerateCommandLineCommands()
     {
         var sb = new StringBuilder();
 
@@ -35,9 +35,7 @@ public sealed class GCCBuildTask : ToolTask
 
         // Add any user-provided compiler flags
         if (!string.IsNullOrEmpty(CompilerFlags))
-        {
             sb.Append($" {CompilerFlags} ");
-        }
 
         // Include all source files
         string[] sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
@@ -119,6 +117,7 @@ public sealed class GCCBuildTask : ToolTask
             if (!ExecuteCommand(GenerateFullPathToTool(), commandLineArguments))
             {
                 Log.LogError($"Failed to compile {file}");
+                Log.LogError($"Command: {GenerateFullPathToTool()} {commandLineArguments}");
                 return false;
             }
         }
@@ -178,15 +177,15 @@ public sealed class GCCBuildTask : ToolTask
         using var process = new System.Diagnostics.Process();
         process.StartInfo = psi;
         process.OutputDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                Log.LogMessage(MessageImportance.Normal, e.Data);
-        };
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Log.LogMessage(MessageImportance.Normal, e.Data);
+                };
         process.ErrorDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                Log.LogError(e.Data);
-        };
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Log.LogError(e.Data);
+                };
 
         process.Start();
         process.BeginOutputReadLine();

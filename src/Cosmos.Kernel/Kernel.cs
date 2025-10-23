@@ -7,6 +7,13 @@ using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.Core.Runtime;
+#if ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+#else
+using Cosmos.Kernel.HAL.X64;
+#endif
 
 namespace Cosmos.Kernel;
 
@@ -21,8 +28,14 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
+        // Initialize serial output first for diagnostics
+        Serial.ComInit();
+        Serial.WriteString("UART started.\n");
+        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
+
         // Initialize heap for memory allocations
-        MemoryOp.InitializeHeap(Limine.HHDM.Offset, 0x1000000);
+        // Parameters are ignored - heap initialization uses Limine memory map
+        MemoryOp.InitializeHeap(0, 0);
 
         // Initialize platform-specific HAL
         PlatformHAL.Initialize();
@@ -33,26 +46,30 @@ public class Kernel
 
         // Initialize serial output
         Serial.ComInit();
+      
+        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
+        {
+            Serial.WriteString("Architecture: x86-64.\n");
+        }
+        else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
+        {
+            Serial.WriteString("Architecture: ARM64/AArch64.\n");
+        }
+        else
+        {
+            Serial.WriteString("Architecture: Unknown.\n");
+        }
+      
         InterruptManager.Initialize();
         PciManager.Setup();
         int a = 0;
         int b = 2;
         int c = a / b;
-        Serial.WriteString("UART started.\n");
+        
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
-        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
-        {
-            Serial.WriteString("Architecture: x86-64.");
-        }
-        else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
-        {
-            Serial.WriteString("Architecture: ARM64/AArch64.");
-        }
-        else
-        {
-            Serial.WriteString("Architecture: Unknown.");
-        }
+        // Initialize managed modules
+        ManagedModule.InitializeModules();
     }
 
     /// <summary>

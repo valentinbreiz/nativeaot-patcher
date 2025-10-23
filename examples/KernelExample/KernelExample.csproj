@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
 
   <PropertyGroup>
@@ -30,6 +29,6 @@
 
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.System.Graphics" Version="3.0.0" />
   </ItemGroup>
 </Project>

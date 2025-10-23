@@ -1,6 +1,8 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
+#pragma warning disable CS1591
+
 namespace Cosmos.Build.Patcher.Tasks;
 
 public sealed class PatcherTask : ToolTask
@@ -11,6 +13,8 @@ public sealed class PatcherTask : ToolTask
     [Required] public required ITaskItem[] PlugsReferences { get; set; }
 
     [Required] public required string OutputPath { get; set; }
+
+    [Required] public required string TargetPlatform { get; set; }
 
     protected override string GenerateFullPathToTool() => ToolName;
 
@@ -24,6 +28,10 @@ public sealed class PatcherTask : ToolTask
         // Add --target arg
         builder.AppendSwitch("--target");
         builder.AppendFileNameIfNotNull(TargetAssembly);
+
+        // Add --target-platform arg
+        builder.AppendSwitch("--target-platform");
+        builder.AppendFileNameIfNotNull(TargetPlatform);
 
 
         // Add plugs
@@ -46,6 +54,7 @@ public sealed class PatcherTask : ToolTask
         Log.LogMessage(MessageImportance.High, $"Platform: {Environment.OSVersion.Platform}");
         Log.LogMessage(MessageImportance.High, $"Target Assembly: {TargetAssembly}");
         Log.LogMessage(MessageImportance.High, $"Output Path: {OutputPath}");
+        Log.LogMessage(MessageImportance.High, $"Target Platform: {TargetPlatform}");
         Log.LogMessage(MessageImportance.High,
             $"Plugs References: {string.Join(", ", PlugsReferences.Select(p => p.ItemSpec))}");
         Log.LogMessage(MessageImportance.High, $"Command: {GenerateCommandLineCommands()}");
@@ -55,3 +64,4 @@ public sealed class PatcherTask : ToolTask
 
     protected override string ToolName => "Cosmos.Patcher";
 }
+#pragma warning restore CS1591

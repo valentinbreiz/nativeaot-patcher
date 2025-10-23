@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.IO;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -14,108 +15,142 @@ namespace Cosmos.Kernel.Core.Runtime;
 /// Handles the initialization of managed modules.
 /// </summary>
 // https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/readytorun-format.md
-public static unsafe class ManagedModule
+public static unsafe partial class ManagedModule
 {
-
-    static void* ReadRelPtr32(void* address)
-    {
-        if (address == null)
-            throw new InvalidProgramException("A null dereference was attempted while reading a relative pointer.");
-
-        return (byte*)address + *(int*)address;
-    }
-
     /// <summary>
-    /// Initializes all given managed modules present in a compiled binary.
+    /// Table of logical modules.
     /// </summary>
-    /// <param name="modules">The modules to initialize.</param>
-    /// <exception cref="InvalidProgramException">Thrown when the compiled binary has malformed runtime information.</exception>
-    public static void InitializeAll(Span<nint> modules)
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    private static TypeManagerHandle[] s_modules;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    private static int s_moduleCount = 0;
+
+    [LibraryImport("*", EntryPoint = "GetModules")]
+    internal static unsafe partial uint GetModules(out ReadyToRunHeader* modules);
+
+    //This method requires no optimization and inlining to ensure the stack is not corrupted.
+    [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+    public static void InitializeModules()
     {
-        for (var i = 0; i < modules.Length; i++)
+        Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Starting\n");
+        var count = GetModules(out var modulesptr);
+        Serial.WriteString("[ManagedModule] - Found ");
+        Serial.WriteNumber(count);
+        Serial.WriteString(" modules\n");
+        // TODO: We need the classlib functions, implement the array.
+        var modules = ModuleHelpers.CreateTypeManagers((nint)modulesptr, new(modulesptr, (int)count), (void**)IntPtr.Zero, 0);
+
+        for (int i = 0; i < modules.Length; i++)
         {
-            if (modules[i] == 0)
-                break;
+            Serial.WriteString("[ManagedModule] - Setting TypeManagerSlot for module ");
+            Serial.WriteNumber(i);
+            Serial.WriteString("\n");
 
-            var header = (ReadyToRunHeader*)modules[i];
-            var sections = (ModuleInfoRow*)(header + 1);
+            InitializeGlobalTablesForModule(modules[i], i);
 
-            if (header == null)
-                throw new InvalidProgramException("An entry in the managed module section points to null.");
+            Serial.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");
+            RunInitializers(modules[i], ReadyToRunSectionType.EagerCctor);
+        }
 
-            if (header->Signature != ReadyToRunHeaderConstants.Signature)
-                throw new InvalidProgramException("Unexpected signature found in a R2R module.");
+        s_modules = modules;
+        s_moduleCount = modules.Length;
+        Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
+    }
 
-            for (int j = 0; j < header->NumberOfSections; j++)
-            {
-                ref var section = ref sections[j];
+    private static void InitializeGlobalTablesForModule(TypeManagerHandle typeManagerHandle, int moduleIndex)
+    {
+        int length;
+        TypeManagerSlot* section;
 
-                if (section.SectionId == ReadyToRunSectionType.DehydratedData)
-                {
-                    // TODO: Either bring more types from coreclr so we can rehydrate the data
-                    //       or wait till .NET 10 and use UnsafeAccessorAttribute (https://github.com/dotnet/runtime/issues/90081).
-                }
+        TypeManager* typeManager = typeManagerHandle.AsTypeManager();
 
-                if (section.SectionId == ReadyToRunSectionType.GCStaticRegion)
-                {
-                    if (section.Start == 0 || section.End == 0)
-                        throw new InvalidProgramException("A GC static region section has a null start or end.");
-                    InitializeStatics(section.Start, section.End);
-                }
+        section = (TypeManagerSlot*)typeManager->GetModuleSection(ReadyToRunSectionType.TypeManagerIndirection, out length);
+        section->TypeManager = typeManagerHandle;
+        section->ModuleIndex = moduleIndex;
 
-                if (section.SectionId == ReadyToRunSectionType.EagerCctor)
-                {
-                    if (section.Start == 0 || section.End == 0)
-                        throw new InvalidProgramException("A eager constructor section has a null start or end.");
-                    RunFuncRelPtrs(section.Start, section.End);
-                }
+        IntPtr gcStaticBase = typeManager->GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out length);
+        if (gcStaticBase != IntPtr.Zero)
+        {
+            Serial.WriteString("[ManagedModule] - Initializing Statics for module ");
+            Serial.WriteNumber(moduleIndex);
+            Serial.WriteString("\n");
 
-                if (section.SectionId == ReadyToRunSectionType.ModuleInitializerList)
-                {
-                    if (section.Start == 0 || section.End == 0)
-                        throw new InvalidProgramException("A module initialization section has a null start or end.");
-                    RunFuncRelPtrs(section.Start, section.End);
-                }
-            }
+            InitializeStatics(gcStaticBase, length);
         }
     }
 
-    // Runs an array of relative pointers to functions that do not return any value
-    // and accept no parameters. The length of the array is determined via "rgnEnd - rgnStart".
-    static void RunFuncRelPtrs(nint rgnStart, nint rgnEnd)
+    public static void RunModuleInitializers()
     {
-        byte* funcs = (byte*)rgnStart;
-
-        for (byte* curr = funcs; curr < (byte*)rgnEnd; curr += sizeof(int))
+        for (int i = 0; i < s_moduleCount; i++)
         {
-            ((delegate*<void>)ReadRelPtr32(curr))();
+            Serial.WriteString("[ManagedModule] - Running Module Initializers for module ");
+            Serial.WriteNumber(i);
+            Serial.WriteString("\n");
+
+            RunInitializers(s_modules[i], ReadyToRunSectionType.ModuleInitializerList);
         }
     }
 
-    static void InitializeStatics(nint rgnStart, nint rgnEnd)
+    private static unsafe void RunInitializers(TypeManagerHandle typeManager, ReadyToRunSectionType section)
     {
-        if (!MethodTable.SupportsRelativePointers)
-            throw new InvalidProgramException("The compiled binary does not use relative pointers.");
+        var pInitializers = (byte*)typeManager.AsTypeManager()->GetModuleSection(section, out int length);
+
+        Serial.WriteString("[ManagedModule] - Running Initializers, found ");
+        Serial.WriteNumber(length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
+        Serial.WriteString(" initializers for section ");
+        Serial.WriteNumber((int)section);
+        Serial.WriteString("\n");
+
+        for (byte* pCurrent = pInitializers;
+            pCurrent < (pInitializers + length);
+            pCurrent += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
+        {
+            Serial.WriteString("[ManagedModule] - Running Initializer at address ");
+            Serial.WriteHex((uint)(nint)pCurrent);
+            Serial.WriteString("\n");
+            var initializer = MethodTable.SupportsRelativePointers ? (delegate*<void>)ReadRelPtr32(pCurrent) : *(delegate*<void>*)pCurrent;
+            initializer();
+            Serial.WriteString("[ManagedModule] - Completed Initializer at address ");
+            Serial.WriteHex((uint)(nint)pCurrent);
+            Serial.WriteString("\n");
+        }
+
+        static void* ReadRelPtr32(void* address)
+            => (byte*)address + *(int*)address;
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
+    {
+        byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
 
         int currentBase = 0;
-        for (byte* block = (byte*)rgnStart; (nint)block < rgnEnd; block += sizeof(int))
+        for (byte* block = (byte*)gcStaticRegionStart;
+            block < gcStaticRegionEnd;
+            block += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
         {
-            nint* pBlock = (IntPtr*)ReadRelPtr32(block);
-            nint blockAddr = (nint)ReadRelPtr32(pBlock);
+
+            IntPtr* pBlock = MethodTable.SupportsRelativePointers ? (IntPtr*)ReadRelPtr32(block) : *(IntPtr**)block;
+            nint blockAddr = MethodTable.SupportsRelativePointers ? (nint)ReadRelPtr32(pBlock) : *pBlock;
 
             if ((blockAddr & GCStaticRegionConstants.Uninitialized) == GCStaticRegionConstants.Uninitialized)
             {
+                object? obj = null;
                 var pMT = (MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask);
-                var ptr = Memory.RhpNewFast(pMT);
-                object obj = Unsafe.AsRef<object>(ptr);
+                Memory.RhAllocateNewObject(pMT, 0, &obj);
+
+                if (obj is null)
+                {
+                    Serial.WriteString("Failed allocating GC static bases\n");
+                    throw new OutOfMemoryException();
+                }
 
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {
-                    void* pPreInitDataAddr = ReadRelPtr32((int*)pBlock + 1);
-                    var pEEType = Memory.GetMethodTable(obj);
-                    var size = pEEType->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
-                    byte* objPtr = (byte*)Unsafe.AsPointer(ref obj);
-                    byte* destPtr = objPtr + sizeof(MethodTable*);
+                    void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
+                    var size = pMT->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
+                    byte* destPtr = (byte*)&obj + sizeof(MethodTable*);
                     MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)size);
                 }
 
@@ -124,6 +159,9 @@ public static unsafe class ManagedModule
 
             currentBase++;
         }
+
+        static void* ReadRelPtr32(void* address)
+            => (byte*)address + *(int*)address;
     }
 }
 

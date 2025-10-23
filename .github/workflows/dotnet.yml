@@ -217,5 +217,85 @@ jobs:
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO-${{ matrix.arch }}
+          name: KernelExample-ISO-${{ matrix.arch }}-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: ./output-${{ matrix.arch }}/KernelExample.iso
+
+  windows-iso-tests:
+    name: Run ISO Build Tests - Windows (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        dotnet-version: [ 9.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: win-x64
+            assembler: yasm
+          - arch: arm64
+            rid: win-arm64
+            assembler: x86_64-elf
+    steps:
+      - name: 🛠️ Enable long paths in Git
+        run: git config --system core.longpaths true
+        shell: pwsh
+
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      
+      - name: 🔄 Compile Packages for ${{ matrix.arch }}
+        shell: pwsh
+        run: pwsh -File ./install-packages.ps1
+
+      - name: 🔗 Install Assembler & Linking Tools
+        uses: crazy-max/ghaction-chocolatey@v3.3.0
+        with:
+          args: install -y llvm yasm
+
+      - name: 🔗 Install GCC Toolchain
+        run: |
+            curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
+            Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
+            echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - name: 🔧 Install ilc
+        run: dotnet tool install -g ilc
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher
+
+      - name: 🔄 Restore Dependencies
+        run: dotnet restore ./nativeaot-patcher.slnx
+
+      - name: 🚀 Build ISO for ${{ matrix.arch }}
+        shell: pwsh
+        run: |
+         if ("${{ matrix.arch }}" -eq "arm64") {
+            $ARCH_DEFINE = "ARCH_ARM64"
+          } else {
+            $ARCH_DEFINE = "ARCH_X64"
+          }
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
+
+      - name: 🕵️‍♂️ Verify Output
+        shell: pwsh
+        run: |
+          if (Test-Path "./output-${{ matrix.arch }}/KernelExample.iso") {
+              Write-Host "ISO exists for ${{ matrix.arch }}"
+          } else {
+              Write-Error "ISO missing for ${{ matrix.arch }}"
+              exit 1
+           }
+
+      - name: 📤 Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernelExample-ISO-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
           path: ./output-${{ matrix.arch }}/KernelExample.iso

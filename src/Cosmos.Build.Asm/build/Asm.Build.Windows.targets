@@ -1,7 +1,11 @@
 <Project>
   <Target Name="GetYasm">
-    <Exec Command="where yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">      <!-- Ignore error code for now. We will make the build error out later  -->
-      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPath" />
+    <Exec Command="where yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
     </Exec>
+
+    <PropertyGroup>
+      <YasmPath>$([System.String]::Copy('$(YasmPaths)').Split(';')[0].Trim())</YasmPath>
+    </PropertyGroup>
   </Target>
 </Project>
