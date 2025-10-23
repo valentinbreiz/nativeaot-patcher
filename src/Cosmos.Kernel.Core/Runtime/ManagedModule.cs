@@ -3,8 +3,11 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Text;
+using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.IO;
+using Internal.NativeFormat;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -15,15 +18,16 @@ namespace Cosmos.Kernel.Core.Runtime;
 /// Handles the initialization of managed modules.
 /// </summary>
 // https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/readytorun-format.md
+
 public static unsafe partial class ManagedModule
 {
     /// <summary>
     /// Table of logical modules.
     /// </summary>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    private static TypeManagerHandle[] s_modules;
+    internal static TypeManagerHandle[] s_modules;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    private static int s_moduleCount = 0;
+    internal static int s_moduleCount = 0;
 
     [LibraryImport("*", EntryPoint = "GetModules")]
     internal static unsafe partial uint GetModules(out ReadyToRunHeader* modules);
@@ -59,12 +63,11 @@ public static unsafe partial class ManagedModule
 
     private static void InitializeGlobalTablesForModule(TypeManagerHandle typeManagerHandle, int moduleIndex)
     {
-        int length;
         TypeManagerSlot* section;
 
         TypeManager* typeManager = typeManagerHandle.AsTypeManager();
 
-        section = (TypeManagerSlot*)typeManager->GetModuleSection(ReadyToRunSectionType.TypeManagerIndirection, out length);
+        section = (TypeManagerSlot*)typeManager->GetModuleSection(ReadyToRunSectionType.TypeManagerIndirection, out int length);
         section->TypeManager = typeManagerHandle;
         section->ModuleIndex = moduleIndex;
 
@@ -93,7 +96,7 @@ public static unsafe partial class ManagedModule
 
     private static unsafe void RunInitializers(TypeManagerHandle typeManager, ReadyToRunSectionType section)
     {
-        var pInitializers = (byte*)typeManager.AsTypeManager()->GetModuleSection(section, out int length);
+        byte* pInitializers = (byte*)typeManager.AsTypeManager()->GetModuleSection(section, out int length);
 
         Serial.WriteString("[ManagedModule] - Running Initializers, found ");
         Serial.WriteNumber(length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
