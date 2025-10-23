@@ -239,31 +239,24 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 16: FAILED");
         }
 
-        // Test 17: List iteration and manual search
-        Serial.WriteString("[Main] Test 17: Testing List<int> iteration and search...\n");
+        // Test 17: List.Contains with value types
+        Serial.WriteString("[Main] Test 17: Testing List<int>.Contains...\n");
         List<int> searchList = new List<int>();
         searchList.Add(10);
         searchList.Add(20);
         searchList.Add(30);
-        searchList.Add(40);
 
-        // Manual search instead of Contains (which may use IEquatable)
-        bool found20 = false;
-        bool found99 = false;
-        for (int i = 0; i < searchList.Count; i++)
-        {
-            if (searchList[i] == 20) found20 = true;
-            if (searchList[i] == 99) found99 = true;
-        }
+        bool found20 = searchList.Contains(20);
+        bool found99 = searchList.Contains(99);
 
         if (found20 && !found99)
         {
-            Serial.WriteString("[Main] Test 17: SUCCESS - List<int> iteration and search works\n");
-            KernelConsole.WriteLine("Test 17: PASS - List iteration works");
+            Serial.WriteString("[Main] Test 17: SUCCESS - List.Contains works correctly\n");
+            KernelConsole.WriteLine("Test 17: PASS - List.Contains works");
         }
         else
         {
-            Serial.WriteString("[Main] Test 17: FAILED - search incorrect (found20=");
+            Serial.WriteString("[Main] Test 17: FAILED - Contains returned wrong values (found20=");
             Serial.WriteNumber((uint)(found20 ? 1 : 0), false);
             Serial.WriteString(", found99=");
             Serial.WriteNumber((uint)(found99 ? 1 : 0), false);
@@ -271,19 +264,39 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 17: FAILED");
         }
 
-        // Test 18: List.Count and capacity
-        Serial.WriteString("[Main] Test 18: Testing List<int> Count property...\n");
-        if (searchList.Count == 4)
+        // Test 18: List.IndexOf with value types
+        Serial.WriteString("[Main] Test 18: Testing List<int>.IndexOf...\n");
+        int index20 = searchList.IndexOf(20);
+        int index99 = searchList.IndexOf(99);
+
+        if (index20 == 1 && index99 == -1)
         {
-            Serial.WriteString("[Main] Test 18: SUCCESS - List.Count is correct (4)\n");
-            KernelConsole.WriteLine("Test 18: PASS - List.Count works");
+            Serial.WriteString("[Main] Test 18: SUCCESS - List.IndexOf works correctly\n");
+            KernelConsole.WriteLine("Test 18: PASS - List.IndexOf works");
         }
         else
         {
-            Serial.WriteString("[Main] Test 18: FAILED - List.Count incorrect (");
-            Serial.WriteNumber((uint)searchList.Count, false);
+            Serial.WriteString("[Main] Test 18: FAILED - IndexOf incorrect (index20=");
+            Serial.WriteNumber((uint)index20, false);
+            Serial.WriteString(", index99=");
+            Serial.WriteNumber((uint)index99, false);
             Serial.WriteString(")\n");
             KernelConsole.WriteLine("Test 18: FAILED");
+        }
+
+        // Test 19: List.Count property
+        Serial.WriteString("[Main] Test 19: Testing List<int>.Count...\n");
+        if (searchList.Count == 3)
+        {
+            Serial.WriteString("[Main] Test 19: SUCCESS - List.Count is correct (3)\n");
+            KernelConsole.WriteLine("Test 19: PASS - List.Count works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 19: FAILED - List.Count incorrect (");
+            Serial.WriteNumber((uint)searchList.Count, false);
+            Serial.WriteString(")\n");
+            KernelConsole.WriteLine("Test 19: FAILED");
         }
 
         Serial.WriteString("[Main] All tests PASSED!\n");
