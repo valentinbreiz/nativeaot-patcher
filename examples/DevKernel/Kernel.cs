@@ -317,7 +317,7 @@ internal unsafe static partial class Program
             stringList[4] == "Fifth")
         {
             Serial.WriteString("[Main] Test 20: PASSED - List<string> works without pre-allocation!\n");
-            KernelConsole.WriteLine("Test 20: PASS");
+            KernelConsole.WriteLine("Test 20: PASS - List<string> works!");
         }
         else
         {
@@ -326,7 +326,7 @@ internal unsafe static partial class Program
             Serial.WriteString(", [0]='");
             Serial.WriteString(stringList[0]);
             Serial.WriteString("'\n");
-            KernelConsole.WriteLine("Test 20: FAILED");
+            KernelConsole.WriteLine("Test 20: FAILED - List<string> broken");
         }
 
         Serial.WriteString("[Main] All core tests PASSED!\n");
