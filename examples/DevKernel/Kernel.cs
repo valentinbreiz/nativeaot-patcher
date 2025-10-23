@@ -329,6 +329,94 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 20: FAILED - List<string> broken");
         }
 
+        // Test 21: List<byte> - small value type
+        Serial.WriteString("[Main] Test 21: Testing List<byte>...\n");
+        List<byte> byteList = new List<byte>();
+        byteList.Add(0xFF);
+        byteList.Add(0x00);
+        byteList.Add(0xAB);
+        byteList.Add(0x12);
+        if (byteList.Count == 4 && byteList[0] == 0xFF && byteList[1] == 0x00 &&
+            byteList[2] == 0xAB && byteList[3] == 0x12)
+        {
+            Serial.WriteString("[Main] Test 21: SUCCESS - List<byte> works\n");
+            KernelConsole.WriteLine("Test 21: PASS - List<byte> works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 21: FAILED\n");
+            KernelConsole.WriteLine("Test 21: FAILED");
+        }
+
+        // Test 22: List<long> - 64-bit value type
+        Serial.WriteString("[Main] Test 22: Testing List<long>...\n");
+        List<long> longList = new List<long>();
+        longList.Add(0x123456789ABCDEF0);
+        longList.Add(-9999999999999);
+        longList.Add(42);
+        if (longList.Count == 3 && longList[0] == 0x123456789ABCDEF0 &&
+            longList[1] == -9999999999999 && longList[2] == 42)
+        {
+            Serial.WriteString("[Main] Test 22: SUCCESS - List<long> works\n");
+            KernelConsole.WriteLine("Test 22: PASS - List<long> works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 22: FAILED\n");
+            KernelConsole.WriteLine("Test 22: FAILED");
+        }
+
+        // Test 23: List<struct> - custom struct
+        Serial.WriteString("[Main] Test 23: Testing List<TestPoint>...\n");
+        List<TestPoint> pointList = new List<TestPoint>();
+        pointList.Add(new TestPoint { X = 1, Y = 2 });
+        pointList.Add(new TestPoint { X = 3, Y = 4 });
+        pointList.Add(new TestPoint { X = 5, Y = 6 });
+        if (pointList.Count == 3 &&
+            pointList[0].X == 1 && pointList[0].Y == 2 &&
+            pointList[1].X == 3 && pointList[1].Y == 4 &&
+            pointList[2].X == 5 && pointList[2].Y == 6)
+        {
+            Serial.WriteString("[Main] Test 23: SUCCESS - List<TestPoint> works\n");
+            KernelConsole.WriteLine("Test 23: PASS - List<struct> works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 23: FAILED\n");
+            KernelConsole.WriteLine("Test 23: FAILED");
+        }
+
+        // Test 24: List.RemoveAt
+        Serial.WriteString("[Main] Test 24: Testing List.RemoveAt...\n");
+        List<int> removeList24 = new List<int>();
+        removeList24.Add(10);
+        removeList24.Add(20);
+        removeList24.Add(30);
+        removeList24.Add(40);
+        removeList24.Add(50);
+        Serial.WriteString("[Main] Test 24: List created with 5 items\n");
+        Serial.WriteString("[Main] Test 24: Calling IndexOf(30)...\n");
+        int idx24 = removeList24.IndexOf(30);
+        Serial.WriteString("[Main] Test 24: IndexOf returned ");
+        Serial.WriteString(idx24.ToString());
+        Serial.WriteString("\n");
+        Serial.WriteString("[Main] Test 24: Calling RemoveAt(");
+        Serial.WriteString(idx24.ToString());
+        Serial.WriteString(")...\n");
+        removeList24.RemoveAt(idx24);
+        Serial.WriteString("[Main] Test 24: RemoveAt completed\n");
+        bool removed24 = true;
+        if (removed24 && removeList24.Count == 4 && removeList24[2] == 40)
+        {
+            Serial.WriteString("[Main] Test 24: SUCCESS - List.Remove works\n");
+            KernelConsole.WriteLine("Test 24: PASS - List.Remove works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 24: FAILED\n");
+            KernelConsole.WriteLine("Test 24: FAILED");
+        }
+
         Serial.WriteString("[Main] All core tests PASSED!\n");
         KernelConsole.WriteLine();
         KernelConsole.WriteLine("All core tests PASSED!");
@@ -336,6 +424,7 @@ internal unsafe static partial class Program
 
         while (true) ;
     }
+
     [ModuleInitializer]
     public static void Init()
     {
