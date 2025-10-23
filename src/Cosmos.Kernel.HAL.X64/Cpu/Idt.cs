@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.System.IO;
@@ -14,8 +16,14 @@ public static unsafe partial class Idt
     [LibraryImport("*", EntryPoint = "__load_lidt")]
     private static partial void LoadIdt(void* ptr);
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 10)]
+    private struct IdtPointer
+    {
+        public ushort Limit;      // Size of IDT - 1 (offset 0-1)
+        public ulong Base;        // Base address of IDT (offset 2-9)
+    }
 
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 16)]
     private struct IdtEntry
     {
 
@@ -53,7 +61,7 @@ public static unsafe partial class Idt
         public ushort RawOffsetMid;
         [FieldOffset(8)]
         public uint RawOffsetHigh;
-        [FieldOffset(16)]
+        [FieldOffset(12)]
         public uint Reserved;
 
 
@@ -84,23 +92,42 @@ public static unsafe partial class Idt
     public static void RegisterAllInterrupts()
     {
         Serial.Write("[IDT] start \n");
-        for (int i = 0; i < 255; i++)
+        // Initialize all IDT entries
+        for (int i = 0; i < 256; i++)
         {
-            IdtEntries[i].Selector = 0;
-            Serial.Write("[IDT] Selector ", IdtEntries[i].Selector, "\n");
-            IdtEntries[i].RawFlags = 0;
+            IdtEntries[i].Selector = 0x08;  // Kernel code segment
+            IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate (1110)
             IdtEntries[i].Offset = (ulong)GetStub(i);
-            Serial.Write("[IDT] Offset ", IdtEntries[i].Offset, "\n");
+
+            Serial.Write("[IDT] Selector ", IdtEntries[i].Selector, "\n");
+            Serial.Write("[IDT] Offset 0x", IdtEntries[i].Offset.ToString("X"), "\n");
         }
 
         Serial.Write("[IDT] LoadIdt \n");
-        // Load the IDT
+
+        // Get the base address of the IDT array
         fixed (void* ptr = &IdtEntries[0])
         {
-            LoadIdt(&ptr);
+            // Create the IDT pointer
+            IdtPointer idtPtr = new IdtPointer
+            {
+                Limit = (ushort)(256 * 16 - 1),  // 256 entries * 16 bytes - 1
+                Base = (ulong)ptr
+            };
+
+            Serial.Write("[IDT] IDT base: 0x", idtPtr.Base.ToString("X"), "\n");
+            Serial.Write("[IDT] IDTR Limit: 0x", ((ulong)idtPtr.Limit).ToString("X"), "\n");
+            Serial.Write("[IDT] IDTR Base: 0x", idtPtr.Base.ToString("X"), "\n");
+
+            // Load the IDT
+            LoadIdt((void*)&idtPtr);
+
+            Serial.Write("[IDT] LoadIdt called\n");
         }
-        Serial.Write("[IDT] end \n");
+        
+        Serial.Write("[IDT] IDT loaded.\n");
     }
+    
     [LibraryImport("*", EntryPoint = "__get_irq_table")]
     private static partial nint GetIrqStub(int index);
 

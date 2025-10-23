@@ -260,6 +260,14 @@ extern __managed__irq
 
 section .text
 
+; void lidt_native(IdtPointer* ptr)
+global __load_lidt
+__load_lidt:
+    cli
+    lidt [rdi]
+    sti
+    ret
+
 section .data
 __irq_table:
 dq irq0_stub
@@ -581,15 +589,6 @@ irq%1_stub:
 
 
 %endmacro
-
-global __load_lidt
-
-; void lidt_native(IdtPointer* ptr)
-__load_lidt:
-    cli
-    lidt [rdi]
-    sti
-    ret
 
 ; Generate IRQ stubs
 IRQ_STUB 0
