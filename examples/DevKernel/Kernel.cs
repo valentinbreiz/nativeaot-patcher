@@ -408,8 +408,8 @@ internal unsafe static partial class Program
         bool removed24 = true;
         if (removed24 && removeList24.Count == 4 && removeList24[2] == 40)
         {
-            Serial.WriteString("[Main] Test 24: SUCCESS - List.Remove works\n");
-            KernelConsole.WriteLine("Test 24: PASS - List.Remove works");
+            Serial.WriteString("[Main] Test 24: SUCCESS - List.RemoveAt works\n");
+            KernelConsole.WriteLine("Test 24: PASS - List.RemoveAt works");
         }
         else
         {
