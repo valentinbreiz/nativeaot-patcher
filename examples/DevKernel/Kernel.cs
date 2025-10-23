@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
@@ -81,6 +82,21 @@ internal unsafe static partial class Program
         Serial.WriteString("\n");
         KernelConsole.Write("Test 5: PASS - ");
         KernelConsole.WriteLine(gccString);
+
+        // Test 6: StringBuilder
+        Serial.WriteString("[Main] Test 6: Testing StringBuilder...\n");
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Hello");
+        sb.Append(" ");
+        sb.Append("StringBuilder");
+        sb.Append(" from ");
+        sb.Append("Cosmos!");
+        string sbResult = sb.ToString();
+        Serial.WriteString("[Main] Test 6: SUCCESS - StringBuilder result: ");
+        Serial.WriteString(sbResult);
+        Serial.WriteString("\n");
+        KernelConsole.Write("Test 6: PASS - ");
+        KernelConsole.WriteLine(sbResult);
 
         Serial.WriteString("[Main] All memory allocator tests PASSED!\n");
         KernelConsole.WriteLine();

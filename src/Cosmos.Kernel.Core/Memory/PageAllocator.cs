@@ -146,37 +146,24 @@ public static unsafe class PageAllocator
 
     /// <summary>
     /// Init RAT based on Limine memory map usable regions only.
+    /// This follows the Cosmos OS memory structure with RAT at the END of heap.
     /// </summary>
-    /// <param name="aStartPtr">A pointer to the start of the heap.</param>
-    /// <param name="aSize">A heap size, in bytes.</param>
+    /// <param name="aStartPtr">A pointer to the start of the heap (ignored, we use memory map).</param>
+    /// <param name="aSize">A heap size hint (ignored, we use memory map).</param>
     /// <exception cref="Exception">Thrown if:
     /// <list type="bullet">
+    /// <item>No usable memory found.</item>
     /// <item>RAM start or size is not page aligned.</item>
     /// </list>
     /// </exception>
     public static void InitializeHeap(byte* aStartPtr, ulong aSize)
     {
-        Serial.WriteString("[PageAllocator] UART started.\n");
-
-        if ((uint)aStartPtr % PageSize != 0)
-        {
-            throw new Exception("RAM start must be page aligned.");
-        }
-
-        if (aSize % PageSize != 0)
-        {
-            throw new Exception("RAM size must be page aligned.");
-        }
-
-        Serial.WriteString("[PageAllocator] Initial RAM start: 0x");
-        Serial.WriteHex((ulong)aStartPtr);
-        Serial.WriteString(", size: ");
-        Serial.WriteNumber(aSize);
-        Serial.WriteString("\n");
+        Serial.WriteString("[PageAllocator] Initializing heap using Limine memory map...\n");
 
         // Find the largest usable memory region for our heap
         byte* usableStart = null;
         ulong usableSize = 0;
+
         if (Limine.MemoryMap.Response != null)
         {
             Serial.WriteString("[PageAllocator] Memory map detected with ");
@@ -194,8 +181,8 @@ public static unsafe class PageAllocator
                 Serial.WriteString(" - 0x");
                 Serial.WriteHex((ulong)entry->Base + entry->Length);
                 Serial.WriteString(" (");
-                Serial.WriteNumber(entry->Length);
-                Serial.WriteString(" bytes) Type: ");
+                Serial.WriteNumber(entry->Length / 1024 / 1024);
+                Serial.WriteString(" MB) Type: ");
                 Serial.WriteNumber((uint)entry->Type);
 
                 // Add type name for clarity
@@ -232,30 +219,105 @@ public static unsafe class PageAllocator
                 Serial.WriteString("\n");
             }
 
-            Serial.WriteString("[PageAllocator] Searching for usable memory regions...\n");
+            Serial.WriteString("[PageAllocator] Searching for largest safe usable memory region...\n");
 
+            // First, collect all protected regions (kernel, framebuffer, etc.)
+            ulong kernelStart = 0;
+            ulong kernelEnd = 0;
+            ulong framebufferStart = 0;
+            ulong framebufferEnd = 0;
+
+            for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
+            {
+                LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
+
+                if (entry->Type == LimineMemmapType.KernelAndModules)
+                {
+                    kernelStart = (ulong)entry->Base;
+                    kernelEnd = (ulong)entry->Base + entry->Length;
+                    Serial.WriteString("[PageAllocator] Protected: Kernel/Modules 0x");
+                    Serial.WriteHex(kernelStart);
+                    Serial.WriteString(" - 0x");
+                    Serial.WriteHex(kernelEnd);
+                    Serial.WriteString(" (");
+                    Serial.WriteNumber((kernelEnd - kernelStart) / 1024 / 1024);
+                    Serial.WriteString(" MB)\n");
+                }
+                else if (entry->Type == LimineMemmapType.Framebuffer)
+                {
+                    framebufferStart = (ulong)entry->Base;
+                    framebufferEnd = (ulong)entry->Base + entry->Length;
+                    Serial.WriteString("[PageAllocator] Protected: Framebuffer 0x");
+                    Serial.WriteHex(framebufferStart);
+                    Serial.WriteString(" - 0x");
+                    Serial.WriteHex(framebufferEnd);
+                    Serial.WriteString(" (");
+                    Serial.WriteNumber((framebufferEnd - framebufferStart) / 1024 / 1024);
+                    Serial.WriteString(" MB)\n");
+                }
+            }
+
+            // Find the LARGEST usable memory region that doesn't conflict with protected areas
+            // Following Cosmos convention: avoid kernel, framebuffer, and other protected regions
             for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
             {
                 LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
                 if (entry->Type == LimineMemmapType.Usable)
                 {
-                    // Convert physical address to virtual address
-                    ulong virtualStart = (ulong)entry->Base + 0xFFFF800000000000UL;
+                    ulong physStart = (ulong)entry->Base;
+                    ulong physEnd = physStart + entry->Length;
+                    ulong virtualStart = physStart + 0xFFFF800000000000UL;
                     ulong entrySize = entry->Length;
 
-                    Serial.WriteString("[PageAllocator] Found usable region: phys 0x");
-                    Serial.WriteHex((ulong)entry->Base);
-                    Serial.WriteString(" -> virt 0x");
-                    Serial.WriteHex(virtualStart);
-                    Serial.WriteString(" size: ");
-                    Serial.WriteNumber(entrySize);
+                    Serial.WriteString("[PageAllocator] Evaluating region: phys 0x");
+                    Serial.WriteHex(physStart);
+                    Serial.WriteString(" - 0x");
+                    Serial.WriteHex(physEnd);
+                    Serial.WriteString(" (");
+                    Serial.WriteNumber(entrySize / 1024 / 1024);
+                    Serial.WriteString(" MB)");
+
+                    // Check if this region overlaps with kernel/modules
+                    bool overlapsKernel = false;
+                    if (kernelStart > 0 && kernelEnd > 0)
+                    {
+                        // Regions overlap if one starts before the other ends
+                        if (physStart < kernelEnd && physEnd > kernelStart)
+                        {
+                            overlapsKernel = true;
+                            Serial.WriteString(" [OVERLAPS KERNEL]");
+                        }
+                    }
+
+                    // Check if this region overlaps with framebuffer
+                    bool overlapsFramebuffer = false;
+                    if (framebufferStart > 0 && framebufferEnd > 0)
+                    {
+                        if (physStart < framebufferEnd && physEnd > framebufferStart)
+                        {
+                            overlapsFramebuffer = true;
+                            Serial.WriteString(" [OVERLAPS FRAMEBUFFER]");
+                        }
+                    }
+
                     Serial.WriteString("\n");
 
-                    // Use the largest usable region
+                    // Skip regions that overlap with protected areas
+                    if (overlapsKernel || overlapsFramebuffer)
+                    {
+                        Serial.WriteString("[PageAllocator] ⚠ Region overlaps protected memory, skipping\n");
+                        continue;
+                    }
+
+                    // Use the largest safe usable region
                     if (entrySize > usableSize)
                     {
                         usableStart = (byte*)virtualStart;
                         usableSize = entrySize;
+
+                        Serial.WriteString("[PageAllocator] ✓ Best candidate so far: ");
+                        Serial.WriteNumber(usableSize / 1024 / 1024);
+                        Serial.WriteString(" MB\n");
                     }
                 }
             }
@@ -263,98 +325,134 @@ public static unsafe class PageAllocator
 
         if (usableStart == null || usableSize == 0)
         {
-            Serial.WriteString("[PageAllocator] No usable memory found, falling back to original method\n");
-            usableStart = aStartPtr;
-            usableSize = aSize;
+            Serial.WriteString("[PageAllocator] ERROR: No usable memory found in memory map!\n");
+            throw new Exception("No usable memory found in Limine memory map");
         }
-        else
+
+        Serial.WriteString("[PageAllocator] Selected largest usable region:\n");
+        Serial.WriteString("  Start (virt): 0x");
+        Serial.WriteHex((ulong)usableStart);
+        Serial.WriteString("\n  Size: ");
+        Serial.WriteNumber(usableSize / 1024 / 1024);
+        Serial.WriteString(" MB (");
+        Serial.WriteNumber(usableSize);
+        Serial.WriteString(" bytes)\n");
+
+        // Check alignment
+        if ((ulong)usableStart % PageSize != 0)
         {
-            Serial.WriteString("[PageAllocator] Using largest usable region: 0x");
+            // Align start up to next page boundary
+            ulong offset = PageSize - ((ulong)usableStart % PageSize);
+            usableStart += offset;
+            usableSize -= offset;
+            Serial.WriteString("[PageAllocator] Aligned start to page boundary: 0x");
             Serial.WriteHex((ulong)usableStart);
-            Serial.WriteString(", size: ");
-            Serial.WriteNumber(usableSize);
             Serial.WriteString("\n");
         }
 
-        RamStart = usableStart;
-        RamSize = usableSize;
-        HeapEnd = usableStart + usableSize;
+        if (usableSize % PageSize != 0)
+        {
+            // Align size down to page boundary
+            usableSize = (usableSize / PageSize) * PageSize;
+            Serial.WriteString("[PageAllocator] Aligned size to page boundary: ");
+            Serial.WriteNumber(usableSize);
+            Serial.WriteString(" bytes\n");
+        }
+
+        // Calculate total pages and RAT size
+        // RAT needs 1 byte per page
         TotalPageCount = usableSize / PageSize;
-        FreePageCount = TotalPageCount;
-
-        Serial.WriteString("[PageAllocator] Final heap - Start: 0x");
-        Serial.WriteHex((ulong)RamStart);
-        Serial.WriteString(", Size: ");
-        Serial.WriteNumber(RamSize);
-        Serial.WriteString(", Total pages: ");
-        Serial.WriteNumber(TotalPageCount);
-        Serial.WriteString("\n");
-
-        // We need one status byte for each block.
-        // Intel blocks are 4k (10 bits). So for 4GB, this means
-        // 32 - 12 = 20 bits, 1 MB for a RAT for 4GB. 0.025%
         ulong xRatPageCount = (TotalPageCount - 1) / PageSize + 1;
         ulong xRatTotalSize = xRatPageCount * PageSize;
 
-        Serial.WriteString("[PageAllocator] RAT pages needed: ");
+        Serial.WriteString("[PageAllocator] Total pages: ");
+        Serial.WriteNumber(TotalPageCount);
+        Serial.WriteString(", RAT pages: ");
         Serial.WriteNumber(xRatPageCount);
-        Serial.WriteString(", RAT total size: ");
-        Serial.WriteNumber(xRatTotalSize);
-        Serial.WriteString("\n");
+        Serial.WriteString(", RAT size: ");
+        Serial.WriteNumber(xRatTotalSize / 1024);
+        Serial.WriteString(" KB\n");
 
-        // Place RAT at the beginning of heap
-        mRAT = RamStart;
+        // IMPORTANT: Following Cosmos OS structure, place RAT at the END of usable memory
+        // Heap: [RamStart ... HeapEnd] [RAT]
+        mRAT = usableStart + usableSize - xRatTotalSize;
+        RamStart = usableStart;
+        RamSize = usableSize - xRatTotalSize;
+        HeapEnd = mRAT;  // Heap ends where RAT begins
 
-        // Adjust RamStart and RamSize to account for RAT at beginning
-        RamStart = RamStart + xRatTotalSize;
-        RamSize = RamSize - xRatTotalSize;
-        HeapEnd = RamStart + RamSize;
-
-        Serial.WriteString("[PageAllocator] RAT location: 0x");
-        Serial.WriteHex((ulong)mRAT);
-        Serial.WriteString(", New RamStart: 0x");
+        Serial.WriteString("[PageAllocator] Memory layout (Cosmos-style):\n");
+        Serial.WriteString("  RamStart (heap): 0x");
         Serial.WriteHex((ulong)RamStart);
-        Serial.WriteString("\n");
+        Serial.WriteString("\n  HeapEnd: 0x");
+        Serial.WriteHex((ulong)HeapEnd);
+        Serial.WriteString("\n  RAT location: 0x");
+        Serial.WriteHex((ulong)mRAT);
+        Serial.WriteString("\n  RAT end: 0x");
+        Serial.WriteHex((ulong)(mRAT + xRatTotalSize));
+        Serial.WriteString("\n  Heap size: ");
+        Serial.WriteNumber(RamSize / 1024 / 1024);
+        Serial.WriteString(" MB\n");
 
-        if (mRAT > HeapEnd)
+        // Sanity checks
+        if (mRAT < RamStart)
         {
-            throw new Exception("mRAT is greater than heap. rattotalsize is " + xRatTotalSize);
+            throw new Exception("RAT is before heap start - invalid memory layout!");
+        }
+        if ((ulong)mRAT % PageSize != 0)
+        {
+            throw new Exception("RAT is not page-aligned!");
         }
 
-        // Initialize ALL RAT entries first
-        Serial.WriteString("[PageAllocator] Initializing RAT entries...\n");
+        // Initialize ALL RAT entries to Empty
+        Serial.WriteString("[PageAllocator] Initializing ");
+        Serial.WriteNumber(TotalPageCount);
+        Serial.WriteString(" RAT entries...\n");
+
         for (ulong i = 0; i < TotalPageCount; i++)
         {
             mRAT[i] = (byte)PageType.Empty;
         }
 
-        // Mark the RAT pages as PageAllocator (first xRatPageCount pages)
-        Serial.WriteString("[PageAllocator] Marking RAT pages...\n");
-        for (ulong i = 0; i < xRatPageCount; i++)
+        // Mark the RAT pages themselves as PageAllocator type
+        // RAT pages are at the END, so we mark the LAST xRatPageCount pages
+        ulong ratStartPage = TotalPageCount - xRatPageCount;
+        Serial.WriteString("[PageAllocator] Marking RAT pages (");
+        Serial.WriteNumber(xRatPageCount);
+        Serial.WriteString(" pages starting at index ");
+        Serial.WriteNumber(ratStartPage);
+        Serial.WriteString(")...\n");
+
+        for (ulong i = ratStartPage; i < TotalPageCount; i++)
         {
             mRAT[i] = (byte)PageType.PageAllocator;
         }
 
-        // Remove pages needed for RAT table from count
-        FreePageCount -= xRatPageCount;
+        // Free page count is total minus RAT pages
+        FreePageCount = TotalPageCount - xRatPageCount;
 
-        Serial.WriteString("[PageAllocator] RAT initialization complete. Free pages: ");
+        Serial.WriteString("[PageAllocator] Heap initialization complete!\n");
+        Serial.WriteString("  Total pages: ");
+        Serial.WriteNumber(TotalPageCount);
+        Serial.WriteString("\n  Free pages: ");
         Serial.WriteNumber(FreePageCount);
-        Serial.WriteString("\n");
+        Serial.WriteString("\n  Usable heap: ");
+        Serial.WriteNumber(FreePageCount * PageSize / 1024 / 1024);
+        Serial.WriteString(" MB\n");
 
         // Test RAT is writable
+        Serial.WriteString("[PageAllocator] Testing RAT write access...\n");
         byte testValue = mRAT[0];
         mRAT[0] = 123;
         if (mRAT[0] != 123)
         {
             Serial.WriteString("[PageAllocator] ERROR: RAT is not writable!\n");
-        }
-        else
-        {
-            Serial.WriteString("[PageAllocator] RAT write test passed\n");
+            throw new Exception("RAT memory is not writable!");
         }
         mRAT[0] = testValue; // Restore
+        Serial.WriteString("[PageAllocator] RAT write test passed\n");
 
+        // Initialize small heap
+        Serial.WriteString("[PageAllocator] Initializing SmallHeap...\n");
         SmallHeap.Init();
     }
 
