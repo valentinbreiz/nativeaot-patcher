@@ -7,7 +7,7 @@ public class PciDeviceBridge : PciDevice
     public PciBaseAddressBar[] BaseAddresses { get; private set; }
 
     public byte PrimaryBusNumber { get; private set; }
-    public byte SecondaryBusNumber { get; private set; }
+    public new byte SecondaryBusNumber { get; private set; }
     public byte SubordinateBusNumber { get; private set; }
     public byte SecondaryLatencyTimer { get; private set; }
 

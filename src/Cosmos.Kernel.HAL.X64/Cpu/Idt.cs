@@ -4,8 +4,8 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory.Heap;
-using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
 
@@ -69,7 +69,8 @@ public static unsafe partial class Idt
         public uint Reserved;
 
 
-        public ulong Offset {
+        public ulong Offset
+        {
             get
             {
                 ulong low = RawOffsetLow;
@@ -123,7 +124,7 @@ public static unsafe partial class Idt
             LoadIdt((void*)&idtPtr);
             Serial.Write("[IDT] Loaded 256 interrupt vectors at 0x", idtPtr.Base.ToString("X"), "\n");
         }
-        
+
         Serial.Write("[IDT] IDT loaded.\n");
     }
 

@@ -115,9 +115,9 @@ public static class Serial
     {
         WriteNumber((ulong)number, true);
     }
-    private const string NULL =  "null";
-    private const string TRUE =  "TRUE";
-    private const string FALSE =  "FALSE";
+    private const string NULL = "null";
+    private const string TRUE = "TRUE";
+    private const string FALSE = "FALSE";
     public static void Write(params object?[] args)
     {
         for (int i = 0; i < args.Length; i++)

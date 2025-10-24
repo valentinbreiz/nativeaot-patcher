@@ -46,7 +46,7 @@ public class Kernel
 
         // Initialize serial output
         Serial.ComInit();
-      
+
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
             Serial.WriteString("Architecture: x86-64.\n");
@@ -59,13 +59,13 @@ public class Kernel
         {
             Serial.WriteString("Architecture: Unknown.\n");
         }
-      
+
         InterruptManager.Initialize();
         PciManager.Setup();
         int a = 0;
         int b = 2;
         int c = a / b;
-        
+
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
         // Initialize managed modules
