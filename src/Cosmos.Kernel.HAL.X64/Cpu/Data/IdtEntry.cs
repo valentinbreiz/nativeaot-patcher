@@ -1,5 +1,3 @@
-// This code is licensed under MIT license (see LICENSE for details)
-
 using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu.Data;
