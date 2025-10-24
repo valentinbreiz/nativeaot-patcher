@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL.X64;
 

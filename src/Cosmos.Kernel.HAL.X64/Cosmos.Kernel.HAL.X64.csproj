@@ -10,6 +10,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
 </Project>

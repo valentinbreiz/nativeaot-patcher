@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -11,6 +12,8 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Cpu;
+using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
@@ -417,12 +420,42 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 24: FAILED");
         }
 
-        Serial.WriteString("[Main] All core tests PASSED!\n");
-        KernelConsole.WriteLine();
         KernelConsole.WriteLine("All core tests PASSED!");
+
+        DebugInfo.Print();
+
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
+        // Register a handler for INT 32 to test interrupt handling
+        Serial.WriteString("[Main] Registering handler for INT 32...\n");
+        InterruptManager.SetHandler(32, TestInt32Handler);
+        Serial.WriteString("[Main] Handler registered\n");
+
+        // Test interrupt handling with registered handler
+        Serial.WriteString("[Interrupt Test] About to trigger INT 32 with handler...\n");
+        TriggerInt32Test();
+        Serial.WriteString("[Interrupt Test] INT 32 returned successfully!\n");
+
         while (true) ;
+    }
+    
+    [LibraryImport("*", EntryPoint = "__test_int32")]
+    private static partial void TriggerInt32Test();
+
+    // Handler for INT 32 - this will be called when the interrupt fires
+    private static void TestInt32Handler(ref IRQContext context)
+    {
+        Serial.WriteString("[INT 32 Handler] Interrupt 32 received!\n");
+        Serial.WriteString("[INT 32 Handler] RIP: 0x");
+        Serial.WriteString(context.rax.ToString("X16"));
+        Serial.WriteString("\n");
+        Serial.WriteString("[INT 32 Handler] Interrupt number: ");
+        Serial.WriteString(context.interrupt.ToString());
+        Serial.WriteString("\n");
+        Serial.WriteString("[INT 32 Handler] CPU Flags: 0x");
+        Serial.WriteString(context.cpu_flags.ToString("X16"));
+        Serial.WriteString("\n");
+        Serial.WriteString("[INT 32 Handler] Handler execution complete\n");
     }
 
     [ModuleInitializer]

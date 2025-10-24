@@ -115,4 +115,58 @@ public static class Serial
     {
         WriteNumber((ulong)number, true);
     }
+    private const string NULL = "null";
+    private const string TRUE = "TRUE";
+    private const string FALSE = "FALSE";
+    public static void Write(params object?[] args)
+    {
+        for (int i = 0; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case null:
+                    WriteString(NULL);
+                    break;
+                case string s:
+                    WriteString(s);
+                    break;
+                case char c:
+                    WriteString(c.ToString());
+                    break;
+                case short @short:
+                    WriteNumber(@short);
+                    break;
+                case ushort @ushort:
+                    WriteNumber(@ushort);
+                    break;
+                case int @int:
+                    WriteNumber(@int);
+                    break;
+                case uint @uint:
+                    WriteNumber(@uint);
+                    break;
+                case long @long:
+                    WriteNumber(@long);
+                    break;
+                case ulong @ulong:
+                    WriteNumber(@ulong);
+                    break;
+                case bool @bool:
+                    WriteString(@bool ? TRUE : FALSE);
+                    break;
+                case byte @byte:
+                    WriteNumber((ulong)@byte, true);
+                    break;
+                case byte[] @byteArray:
+                    for (int j = 0; j < @byteArray.Length; j++)
+                    {
+                        WriteNumber((ulong)@byteArray[i], true);
+                    }
+                    break;
+                default:
+                    WriteString(args[i].ToString());
+                    break;
+            }
+        }
+    }
 }

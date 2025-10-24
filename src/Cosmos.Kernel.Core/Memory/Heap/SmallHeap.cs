@@ -440,14 +440,14 @@ public static unsafe class SmallHeap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Alloc - size: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(aSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
+        // Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Alloc - size: ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(aSize);
+        // Cosmos.Kernel.System.IO.Serial.WriteString("\n");
 
         SMTBlock* pageBlock = GetFirstWithSpace(aSize);
         if (pageBlock == null) // This happens when the page is full and we need to allocate a new page for this size
         {
-            Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] No space found, creating new page\n");
+            // Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] No space found, creating new page\n");
             CreatePage(SMT,
                 GetRoundedSize(
                     aSize)); // CreatePage will try add this page to any page of the SMT until it finds one with space
@@ -466,26 +466,26 @@ public static unsafe class SmallHeap
         ulong elementSize = roundedSize + PrefixBytes;
         ulong positions = PageAllocator.PageSize / elementSize;
 
-        Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] PagePtr: 0x");
-        Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)pageBlock->PagePtr);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", RoundedSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(roundedSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", ElementSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(elementSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", PageSize: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(PageAllocator.PageSize);
-        Cosmos.Kernel.System.IO.Serial.WriteString(", Positions: ");
-        Cosmos.Kernel.System.IO.Serial.WriteNumber(positions);
-        Cosmos.Kernel.System.IO.Serial.WriteString("\n");
+        // Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] PagePtr: 0x");
+        // Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)pageBlock->PagePtr);
+        // Cosmos.Kernel.System.IO.Serial.WriteString(", RoundedSize: ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(roundedSize);
+        // Cosmos.Kernel.System.IO.Serial.WriteString(", ElementSize: ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(elementSize);
+        // Cosmos.Kernel.System.IO.Serial.WriteString(", PageSize: ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(PageAllocator.PageSize);
+        // Cosmos.Kernel.System.IO.Serial.WriteString(", Positions: ");
+        // Cosmos.Kernel.System.IO.Serial.WriteNumber(positions);
+        // Cosmos.Kernel.System.IO.Serial.WriteString("\n");
 
         for (ulong i = 0; i < positions; i++)
         {
             if (page[i * elementSize / 2] == 0)
             {
                 // we have found an empty slot
-                Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Found free slot at position ");
-                Cosmos.Kernel.System.IO.Serial.WriteNumber(i);
-                Cosmos.Kernel.System.IO.Serial.WriteString(", allocating at 0x");
+                // Cosmos.Kernel.System.IO.Serial.WriteString("[SmallHeap] Found free slot at position ");
+                // Cosmos.Kernel.System.IO.Serial.WriteNumber(i);
+                // Cosmos.Kernel.System.IO.Serial.WriteString(", allocating at 0x");
 
                 // update SMT block info
                 pageBlock->SpacesLeft--;
@@ -496,8 +496,8 @@ public static unsafe class SmallHeap
                 heapObject[1] = 0; // gc status starts as 0
 
                 byte* result = (byte*)&heapObject[2];
-                Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)result);
-                Cosmos.Kernel.System.IO.Serial.WriteString("\n");
+                // Cosmos.Kernel.System.IO.Serial.WriteHex((ulong)result);
+                // Cosmos.Kernel.System.IO.Serial.WriteString("\n");
 
                 return result;
             }

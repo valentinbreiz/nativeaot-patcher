@@ -1,3 +1,4 @@
+#!/bin/pwsh
 # Build Packages in Release configuration
 dotnet build ./Packages.slnx -c Release
 
@@ -15,7 +16,7 @@ if ($existing) {
 dotnet nuget add source $packagePath --name $sourceName
 
 # Clear all NuGet caches (HTTP, global packages, temp, and plugins) in one go
-dotnet nuget locals all --clear
+# dotnet nuget locals all --clear
 
 # Restore Main Solution
 dotnet restore ./nativeaot-patcher.slnx

@@ -3,6 +3,9 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Cpu;
+using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.Core.Runtime;
@@ -41,6 +44,9 @@ public class Kernel
         // Initialize graphics framebuffer
         // KernelConsole.Initialize();
 
+        // Initialize serial output
+        Serial.ComInit();
+
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
             Serial.WriteString("Architecture: x86-64.\n");
@@ -53,6 +59,11 @@ public class Kernel
         {
             Serial.WriteString("Architecture: Unknown.\n");
         }
+
+        InterruptManager.Initialize();
+        PciManager.Setup();
+
+        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
 
         // Initialize managed modules
         ManagedModule.InitializeModules();
@@ -71,5 +82,14 @@ public class Kernel
         {
             while (true) { }
         }
+    }
+}
+
+public static unsafe class InterruptBridge
+{
+    [UnmanagedCallersOnly(EntryPoint = "__managed__irq")]
+    public static void IrqHandlerNative(IRQContext* ctx)
+    {
+        InterruptManager.Dispatch(ref *ctx);
     }
 }

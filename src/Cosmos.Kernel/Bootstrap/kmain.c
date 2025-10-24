@@ -7,6 +7,13 @@ extern void __managed__Startup();
 // Tentative name, this function would be exposed by the User's Main Project.
 extern void __managed__Main();
 
+// This field is inspected from the generated code to determine what intrinsics are available.
+extern int g_cpuFeatures;
+int g_cpuFeatures = 0;
+
+// This field is defined in the generated code and sets the ISA expectations.
+extern int g_requiredCpuFeatures;
+
 #ifdef __x86_64__
 // Platform-specific initialization for x64 (enabling SSE)
 extern void EnableSSE();
@@ -28,7 +35,7 @@ void kmain()
     __managed__Main();
 }
 
-// Return the size of the '__modules' section and 
+// Return the size of the '__modules' section and
 // populates 'modules' with a pointer to the start of the section.
 extern size_t GetModules(void** modules)
 {
