@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.HAL;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
 
@@ -15,6 +16,9 @@ public static unsafe partial class Idt
 {
     [LibraryImport("*", EntryPoint = "__load_lidt")]
     private static partial void LoadIdt(void* ptr);
+
+    [LibraryImport("*", EntryPoint = "__get_current_code_selector")]
+    private static partial ulong GetCurrentCodeSelector();
 
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 10)]
     private struct IdtPointer
@@ -91,43 +95,38 @@ public static unsafe partial class Idt
     /// </summary>
     public static void RegisterAllInterrupts()
     {
-        Serial.Write("[IDT] start \n");
-        // Initialize all IDT entries
+        // Get the current code selector from the bootloader (Limine)
+        ulong cs = GetCurrentCodeSelector();
+        Serial.Write("[IDT] Initializing with CS=0x", cs.ToString("X"), "\n");
+
+        // Initialize all 256 IDT entries
         for (int i = 0; i < 256; i++)
         {
-            IdtEntries[i].Selector = 0x08;  // Kernel code segment
-            IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate (1110)
+            IdtEntries[i].Selector = (ushort)cs;
+            IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate
             IdtEntries[i].Offset = (ulong)GetStub(i);
-
-            Serial.Write("[IDT] Selector ", IdtEntries[i].Selector, "\n");
-            Serial.Write("[IDT] Offset 0x", IdtEntries[i].Offset.ToString("X"), "\n");
         }
 
-        Serial.Write("[IDT] LoadIdt \n");
-
-        // Get the base address of the IDT array
+        // Load the IDT into the CPU
         fixed (void* ptr = &IdtEntries[0])
         {
-            // Create the IDT pointer
             IdtPointer idtPtr = new IdtPointer
             {
-                Limit = (ushort)(256 * 16 - 1),  // 256 entries * 16 bytes - 1
+                Limit = (ushort)(256 * 16 - 1),
                 Base = (ulong)ptr
             };
 
             Serial.Write("[IDT] IDT base: 0x", idtPtr.Base.ToString("X"), "\n");
-            Serial.Write("[IDT] IDTR Limit: 0x", ((ulong)idtPtr.Limit).ToString("X"), "\n");
-            Serial.Write("[IDT] IDTR Base: 0x", idtPtr.Base.ToString("X"), "\n");
+            Serial.Write("[IDT] IDT Limit: 0x", ((ulong)idtPtr.Limit).ToString("X"), "\n");
 
             // Load the IDT
             LoadIdt((void*)&idtPtr);
-
-            Serial.Write("[IDT] LoadIdt called\n");
+            Serial.Write("[IDT] Loaded 256 interrupt vectors at 0x", idtPtr.Base.ToString("X"), "\n");
         }
         
         Serial.Write("[IDT] IDT loaded.\n");
     }
-    
+
     [LibraryImport("*", EntryPoint = "__get_irq_table")]
     private static partial nint GetIrqStub(int index);
 
@@ -135,6 +134,8 @@ public static unsafe partial class Idt
     {
         if ((uint)index >= 256)
             throw new ArgumentOutOfRangeException(nameof(index));
-        return (delegate* unmanaged<void>)GetIrqStub(index);
+        nint stubAddr = GetIrqStub(index);
+
+        return (delegate* unmanaged<void>)stubAddr;
     }
 }

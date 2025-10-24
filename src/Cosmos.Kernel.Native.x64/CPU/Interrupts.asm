@@ -268,6 +268,22 @@ __load_lidt:
     sti
     ret
 
+; uint64_t __get_current_code_selector()
+; Returns the current CS (code segment selector) value
+global __get_current_code_selector
+__get_current_code_selector:
+    xor rax, rax
+    mov ax, cs
+    ret
+
+; void __test_int32()
+; Triggers INT 32 to test if interrupt stubs work
+global __test_int32
+__test_int32:
+    ; Execute INT 32 - should call our stub
+    int 32
+    ret
+
 section .data
 __irq_table:
 dq irq0_stub
@@ -528,47 +544,62 @@ dq irq254_stub
 dq irq255_stub
 
 
+section .text
+
+; nint __get_irq_table(int index)
+; Returns the address of the IRQ stub for the given vector index (0-255)
+; rdi = index (first argument in x86-64 calling convention)
+; Returns address in rax
+global __get_irq_table
+__get_irq_table:
+    ; Load the address from the __irq_table lookup array
+    ; The table is in .data section and has 256 entries (8 bytes each)
+    lea rax, [rel __irq_table]
+    mov rax, [rax + rdi * 8]  ; Load stub address for vector index
+    ret
+
 %macro IRQ_STUB 1
 irq%1_stub:
-    pushfq
-    push %1              ; interrupt number
-    ; Save registers
-    ; mov  rax, 2
-    push rax
-    ; mov  rcx, 3
+    ; When interrupt is delivered, CPU pushes: RIP, CS, RFLAGS
+    ; Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
+
+    ; Read RFLAGS from CPU frame first (before we modify anything)
+    mov rax, [rsp + 16]          ; Load RFLAGS from CPU frame
+
+    ; Push in REVERSE order of struct (last field first, so it ends up at highest address)
+    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags
+    ; Push order: cpu_flags, interrupt, rax, ..., r14, r15
+
+    push rax                     ; Push cpu_flags (save RFLAGS)
+    push %1                      ; Push interrupt vector
+
+    ; Now push general purpose registers (we'll use the saved RFLAGS in rax later)
+    ; But first save the actual rax value
+    mov rax, [rsp + 16 + 8 + 8]  ; Get original RAX from before our two pushes
+    push rax                     ; Push actual rax value
     push rcx
-    ; mov  rdx, 4
     push rdx
-    ; mov  rbx, 5
     push rbx
-    ; mov  rbp, 6
     push rbp
-    ; mov  rsi, 7
     push rsi
-    ; mov  rdi, 8
     push rdi
-    ; mov  r8, 9
     push r8
-    ; mov  r9, 10
     push r9
-    ; mov  r10, 11
     push r10
-    ; mov  r11, 12
     push r11
-    ; mov  r12, 13
     push r12
-    ; mov  r13, 14
     push r13
-    ; mov  r14, 15
     push r14
-    ; mov  r15, 16
     push r15
 
-    ; Call managed handler
+    ; At this point: RSP points to r15 (start of struct)
+    ; Stack layout: [RSP] = r15, [RSP+8] = r14, ..., [RSP+128] = interrupt, [RSP+136] = cpu_flags, [RSP+144] = RIP, [RSP+152] = CS, [RSP+160] = RFLAGS
+
+    ; Call managed handler with pointer to context
     mov rdi, rsp
     call __managed__irq
 
-    ; Restore registers
+    ; Restore registers in reverse order (last pushed = first popped)
     pop r15
     pop r14
     pop r13
@@ -585,8 +616,12 @@ irq%1_stub:
     pop rcx
     pop rax
 
-    add rsp, 16          ; remove pushed dummy + IRQ number
+    ; Skip interrupt number and cpu_flags (2 qwords)
+    add rsp, 16
 
+    ; Now stack has: RIP, CS, RFLAGS from the CPU interrupt frame
+    ; iretq will pop these and return to caller
+    iretq
 
 %endmacro
 

@@ -17,7 +17,7 @@ public static partial class InterruptManager
     /// <param name="context">The interrupt context captured by the CPU.</param>
     public delegate void IrqDelegate(ref IRQContext context);
 
-    private static IrqDelegate[] s_irqHandlers;
+    internal static IrqDelegate[] s_irqHandlers = new IrqDelegate[256];
 
     /// <summary>
     /// Initializes the platform interrupt system (IDT for x86, GIC for ARM).
@@ -30,7 +30,14 @@ public static partial class InterruptManager
     /// <param name="vector">Interrupt vector index.</param>
     /// <param name="handler">Delegate to handle the interrupt.</param>
     public static void SetHandler(byte vector, IrqDelegate handler)
-        => s_irqHandlers[vector] = handler;
+    {
+        if (s_irqHandlers == null)
+        {
+            Serial.Write("[InterruptManager] ERROR: s_irqHandlers is null! Initialize() must be called first.\n");
+            return;
+        }
+        s_irqHandlers[vector] = handler;
+    }
 
     /// <summary>
     /// Registers a handler for a hardware IRQ.
@@ -67,17 +74,14 @@ public static partial class InterruptManager
         Serial.Write("[INT] r14 ", ctx.r14, NewLine);
         Serial.Write("[INT] r15 ", ctx.r15, NewLine);
 
-        IrqDelegate handler = s_irqHandlers[ctx.interrupt];
-        if (handler != null)
+        // Check if handlers array is initialized and interrupt is in valid range
+        if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
         {
-            Serial.Write("[INT] Found \n");
-            handler(ref ctx);
+            IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
+            if (handler != null)
+            {
+                handler(ref ctx);
+            }
         }
-        else
-        {
-            Serial.Write("[INT] not Found \n");
-        }
-
-        Serial.Write("[INT] ", ctx.interrupt, " END \n");
     }
 }

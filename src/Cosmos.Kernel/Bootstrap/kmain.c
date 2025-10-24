@@ -43,10 +43,3 @@ extern size_t GetModules(void** modules)
     //return sizeof(size_t);
     return  __Modules_end - __Modules_start;
 }
-
-extern void* __irq_table[];
-
-extern void* __get_irq_table(int index)
-{
-    return __irq_table[index];
-}

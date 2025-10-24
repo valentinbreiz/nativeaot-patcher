@@ -3,6 +3,7 @@
 
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.HAL.Cpu;
 
@@ -17,8 +18,9 @@ public static partial class InterruptManager
     /// </summary>
     public static partial void Initialize()
     {
-        s_irqHandlers =  new IrqDelegate[256];
+        Serial.Write("[InterruptManager.Initialize] Starting IDT initialization...\n");
         Idt.RegisterAllInterrupts();
+        Serial.Write("[InterruptManager.Initialize] IDT initialization complete\n");
     }
 
 }
