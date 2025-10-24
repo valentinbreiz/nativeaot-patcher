@@ -436,18 +436,25 @@ internal unsafe static partial class Program
         TriggerInt32Test();
         Serial.WriteString("[Main] INT 32 test complete!\n");
 
-        // Test actual CPU exception - Divide by Zero
-        Serial.WriteString("[Main] Testing Divide by Zero exception...\n");
-        unsafe
-        {
-            int zero = 0;
-            int result = 42 / zero; // This should trigger exception 0x00
-            Serial.WriteString("[Main] ERROR - Should not reach here!\n");
-        }
+        // Test exception handling
+        TestExceptionHandling();
 
         while (true) ;
     }
     
+    private static void TestExceptionHandling()
+    {
+        Console.WriteLine("Testing throw statement...");
+        Serial.WriteString("[Main] Testing throw statement...\n");
+
+        // This will throw an exception
+        // Expected: System will print exception info and halt gracefully
+        throw new InvalidOperationException("This is a test exception!");
+
+         // Should not reach here
+        Console.WriteLine("  ✗ ERROR: Should not reach here\n");
+    }
+
     [LibraryImport("*", EntryPoint = "__test_int32")]
     private static partial void TriggerInt32Test();
 

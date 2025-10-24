@@ -67,7 +67,10 @@ namespace Cosmos.Kernel.Core.Runtime
         private static void RhpPInvokeReturn(IntPtr frame) { }
 
         [RuntimeExport("RhpFallbackFailFast")]
-        private static void RhpFallbackFailFast() { while (true) ; }
+        private static void RhpFallbackFailFast()
+        {
+            ExceptionHelper.FailFast("Fallback fail fast called");
+        }
 
         [RuntimeExport("InitializeModules")]
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
@@ -75,16 +78,12 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpThrowEx")]
         private static void RhpThrowEx(Exception ex)
         {
-            if (ex == null)
-            {
-                Console.WriteLine("Null exception thrown");
-                Serial.WriteString("Null exception thrown \n");
-                return;
-            }
-            Serial.WriteString("Unhandled exception: ");
-            Serial.WriteString(ex.GetType().Name);
-            Serial.WriteString("\n");
-            Console.WriteLine($"Unhandled exception: {ex.GetType().Name}");
+            // Get the return address (where the exception was thrown from)
+            // This is an approximation - the actual throw site is the caller
+            nuint throwAddress = 0; // Will be populated by assembly helper in real implementation
+
+            // Use our exception handling infrastructure
+            ExceptionHelper.ThrowException(ex, throwAddress);
         }
 
         [RuntimeExport("RhpAssignRef")]
