@@ -1,7 +1,9 @@
 // ACPI subsystem for Cosmos OS
 // C# interop layer for LAI (Lightweight ACPI Implementation)
 
+using System;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.System.IO;
 
 namespace Cosmos.Kernel.HAL.Acpi;
@@ -115,21 +117,27 @@ public static unsafe partial class Acpi
     /// Get MADT (Multiple APIC Description Table) information
     /// NOTE: ACPI is initialized early in C code, this just retrieves the data
     /// </summary>
-    /// <param name="info">Output structure to receive MADT info</param>
+    /// <returns>Pointer to MADT info if found, null otherwise</returns>
+    public static MadtInfo* GetMadtInfoPtr()
+    {
+        return AcpiGetMadtInfo();
+    }
+
+    /// <summary>
+    /// Get and display MADT information
+    /// </summary>
     /// <returns>True if MADT was found and parsed successfully during early boot</returns>
-    public static bool GetMadtInfo(out MadtInfo info)
+    public static bool DisplayMadtInfo()
     {
         MadtInfo* ptr = AcpiGetMadtInfo();
 
         if (ptr == null)
         {
             Serial.Write("[ACPI] Error: MADT not available (ACPI early init may have failed)\n");
-            info = default;
             return false;
         }
 
-        // Copy the data
-        info = *ptr;
+        MadtInfo info = *ptr;
 
         // Log discovered information
         Serial.Write("[ACPI] Local APIC at 0x", info.LocalApicAddress.ToString("X8"), "\n");
@@ -137,7 +145,7 @@ public static unsafe partial class Acpi
 
         foreach (var cpu in info.Cpus)
         {
-            Serial.Write("[ACPI]   CPU ", cpu.ProcessorId, " → APIC ID ", cpu.ApicId,
+            Serial.Write("[ACPI]   CPU ", cpu.ProcessorId, " -> APIC ID ", cpu.ApicId,
                         (cpu.IsEnabled ? " (enabled)" : " (disabled)"), "\n");
         }
 
@@ -153,7 +161,7 @@ public static unsafe partial class Acpi
 
         foreach (var iso in info.Overrides)
         {
-            Serial.Write("[ACPI]   IRQ ", iso.Source, " → GSI ", iso.Gsi);
+            Serial.Write("[ACPI]   IRQ ", iso.Source, " -> GSI ", iso.Gsi);
 
             if (iso.IsActiveLow)
                 Serial.Write(" (active low)");

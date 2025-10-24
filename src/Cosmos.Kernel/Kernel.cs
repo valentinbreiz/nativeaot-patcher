@@ -3,6 +3,7 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Acpi;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
@@ -58,6 +59,12 @@ public class Kernel
         else
         {
             Serial.WriteString("Architecture: Unknown.\n");
+        }
+
+        // Retrieve and display ACPI MADT information (initialized during early boot)
+        if (Acpi.DisplayMadtInfo())
+        {
+            Serial.WriteString("\n");
         }
 
         InterruptManager.Initialize();
