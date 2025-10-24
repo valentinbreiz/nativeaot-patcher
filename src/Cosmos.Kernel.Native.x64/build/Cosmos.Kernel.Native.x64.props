@@ -7,4 +7,13 @@
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/CPU/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
+
+  <!-- Add C source directories for ACPI/LAI -->
+  <ItemGroup>
+    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/core/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/helpers/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/drivers/" />
+    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/lai/include/" />
+  </ItemGroup>
 </Project>
