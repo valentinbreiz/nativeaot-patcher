@@ -17,4 +17,8 @@
     <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="../Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\DefaultFont.psf" />
+  </ItemGroup>
 </Project>
