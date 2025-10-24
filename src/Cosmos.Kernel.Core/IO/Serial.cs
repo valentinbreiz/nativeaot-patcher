@@ -115,6 +115,19 @@ public static class Serial
     {
         WriteNumber((ulong)number, true);
     }
+
+    public static void WriteHexWithPrefix(ulong number)
+    {
+        WriteString("0x");
+        WriteNumber(number, true);
+    }
+
+    public static void WriteHexWithPrefix(uint number)
+    {
+        WriteString("0x");
+        WriteNumber((ulong)number, true);
+    }
+
     private const string NULL = "null";
     private const string TRUE = "TRUE";
     private const string FALSE = "FALSE";

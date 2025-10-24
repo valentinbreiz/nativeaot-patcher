@@ -19,6 +19,11 @@
     <Content Include="Debug\*.asm" PackagePath="build\Debug" />
     <Content Include="CPU\*.asm" PackagePath="build\CPU" />
     <Content Include="C\CPU\*.c" PackagePath="build\C\CPU" />
+    <Content Include="ACPI\*.c" PackagePath="build\ACPI" />
+    <Content Include="lai\core\*.c" PackagePath="build\lai\core" />
+    <Content Include="lai\helpers\*.c" PackagePath="build\lai\helpers" />
+    <Content Include="lai\drivers\*.c" PackagePath="build\lai\drivers" />
+    <Content Include="lai\include\**\*.h" PackagePath="build\lai\include" />
   </ItemGroup>
 
 </Project>

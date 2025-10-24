@@ -21,7 +21,16 @@
   <ItemGroup>
     <GCCProject Include="./src/C/" />
     <GCCProject Include="../../src/Cosmos.Kernel/Bootstrap/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/ACPI/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/core/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/helpers/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/drivers/" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Add LAI include path to compiler flags and allow compiler's built-in headers -->
+    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -I../../src/Cosmos.Kernel.Native.x64/lai/include</GCCCompilerFlags>
+  </PropertyGroup>
 
   <!-- PInvokes to be resolved. See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/interop -->
   <ItemGroup>
