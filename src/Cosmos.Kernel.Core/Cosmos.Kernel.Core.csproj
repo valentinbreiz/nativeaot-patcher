@@ -19,8 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(ToolCommonPath)Internal\NativeFormat\NativeFormat.cs">
-      <Link>Runtime\Internal\NativeFormat\NativeFormat.cs</Link>
+    <Compile Include="$(ToolCommonPath)Internal\NativeFormat\*.cs">
+      <Link>Runtime\Internal\NativeFormat\%(Filename).cs</Link>
+    </Compile>
+    <Compile Include="$(ToolCommonPath)Internal\Runtime\MetadataBlob.cs">
+      <Link>Runtime\Internal\Runtime\MetadataBlob.cs</Link>
     </Compile>
     <Compile Include="$(ToolCommonPath)Internal\Runtime\MethodTable.Constants.cs">
       <Link>Runtime\Internal\Runtime\MethodTable.Constants.cs</Link>
