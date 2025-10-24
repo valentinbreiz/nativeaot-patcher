@@ -427,14 +427,23 @@ internal unsafe static partial class Program
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
         // Register a handler for INT 32 to test interrupt handling
-        Serial.WriteString("[Main] Registering handler for INT 32...\n");
-        InterruptManager.SetHandler(32, TestInt32Handler);
-        Serial.WriteString("[Main] Handler registered\n");
+        Serial.WriteString("[Main] Registering INT 32 handler...\n");
+        Cosmos.Kernel.HAL.Cpu.InterruptManager.SetHandler(32, TestInt32Handler);
+        Serial.WriteString("[Main] INT 32 handler registered!\n");
 
-        // Test interrupt handling with registered handler
-        Serial.WriteString("[Interrupt Test] About to trigger INT 32 with handler...\n");
+        // Test triggering INT 32
+        Serial.WriteString("[Main] Triggering INT 32...\n");
         TriggerInt32Test();
-        Serial.WriteString("[Interrupt Test] INT 32 returned successfully!\n");
+        Serial.WriteString("[Main] INT 32 test complete!\n");
+
+        // Test actual CPU exception - Divide by Zero
+        Serial.WriteString("[Main] Testing Divide by Zero exception...\n");
+        unsafe
+        {
+            int zero = 0;
+            int result = 42 / zero; // This should trigger exception 0x00
+            Serial.WriteString("[Main] ERROR - Should not reach here!\n");
+        }
 
         while (true) ;
     }
