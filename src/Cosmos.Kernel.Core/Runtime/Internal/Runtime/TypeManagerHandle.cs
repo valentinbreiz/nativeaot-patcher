@@ -10,7 +10,7 @@ namespace Internal.Runtime
     /// TypeManagerHandle represents an AOT module in MRT based runtimes.
     /// These handles are a pointer to a TypeManager
     /// </summary>
-    internal readonly unsafe partial struct TypeManagerHandle(TypeManager* handleValue)
+    public readonly unsafe partial struct TypeManagerHandle(TypeManager* handleValue)
     {
         internal readonly TypeManager* _handleValue = handleValue;
 
@@ -25,7 +25,7 @@ namespace Internal.Runtime
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    internal unsafe struct TypeManager
+    public unsafe struct TypeManager
     {
         public IntPtr OsHandle;
         public ReadyToRunHeader* Header;
@@ -81,7 +81,7 @@ namespace Internal.Runtime
         }
     }
 
-    internal enum ClassLibFunctionId
+    public enum ClassLibFunctionId
     {
         GetRuntimeException = 0,
         FailFast = 1,

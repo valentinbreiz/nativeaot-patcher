@@ -68,6 +68,7 @@ public class Kernel
         }
 
         InterruptManager.Initialize();
+
         PciManager.Setup();
 
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
