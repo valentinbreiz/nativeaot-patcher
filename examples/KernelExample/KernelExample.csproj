@@ -29,6 +29,6 @@
 
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Kernel.System.Graphics" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.0" />
   </ItemGroup>
 </Project>

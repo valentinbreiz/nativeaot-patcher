@@ -1,7 +1,7 @@
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.Graphics.Fonts;
+using Cosmos.Kernel.Graphics.Fonts;
 
-namespace Cosmos.Kernel.System.Graphics;
+namespace Cosmos.Kernel.Graphics;
 
 public unsafe class Canvas
 {

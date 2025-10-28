@@ -21,15 +21,15 @@
   <ItemGroup>
     <GCCProject Include="./src/C/" />
     <GCCProject Include="../../src/Cosmos.Kernel/Bootstrap/" />
-    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/ACPI/" />
-    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/core/" />
-    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/helpers/" />
-    <GCCProject Include="../../src/Cosmos.Kernel.Native.x64/lai/drivers/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.X64/ACPI/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.X64/lai/core/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.X64/lai/helpers/" />
+    <GCCProject Include="../../src/Cosmos.Kernel.Native.X64/lai/drivers/" />
   </ItemGroup>
 
   <PropertyGroup>
     <!-- Add LAI include path to compiler flags and allow compiler's built-in headers -->
-    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -I../../src/Cosmos.Kernel.Native.x64/lai/include</GCCCompilerFlags>
+    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -I../../src/Cosmos.Kernel.Native.X64/lai/include</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- PInvokes to be resolved. See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/interop -->
@@ -48,7 +48,7 @@
   <!-- Direct project references for kernel components that we want to develop -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.Kernel\Cosmos.Kernel.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.System.Graphics\Cosmos.Kernel.System.Graphics.csproj" />
+    <ProjectReference Include="..\..\src\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
   </ItemGroup>
 
   <!-- Architecture-specific HAL references -->

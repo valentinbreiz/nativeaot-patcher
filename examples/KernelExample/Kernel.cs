@@ -7,7 +7,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
 internal unsafe static partial class Program

@@ -2,7 +2,6 @@
 
 
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL.Cpu;
@@ -18,9 +17,9 @@ public static partial class InterruptManager
     /// </summary>
     public static partial void Initialize()
     {
-        Serial.Write("[InterruptManager.Initialize] Starting IDT initialization...\n");
-        Idt.RegisterAllInterrupts();
-        Serial.Write("[InterruptManager.Initialize] IDT initialization complete\n");
+        Serial.Write("[InterruptManager.Initialize] Starting ARM64 GIC initialization...\n");
+        // TODO: Implement GIC (Generic Interrupt Controller) initialization for ARM64
+        Serial.Write("[InterruptManager.Initialize] ARM64 GIC initialization placeholder\n");
     }
 
 }

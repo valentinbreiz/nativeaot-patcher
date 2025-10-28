@@ -2,7 +2,7 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 using Internal.Runtime;
 
 #region Things needed by ILC

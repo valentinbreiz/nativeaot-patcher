@@ -1,6 +1,6 @@
 using Cosmos.Kernel.Core.Runtime;
 
-namespace Cosmos.Kernel.System.IO;
+namespace Cosmos.Kernel.Core.IO;
 
 public static class Serial
 {

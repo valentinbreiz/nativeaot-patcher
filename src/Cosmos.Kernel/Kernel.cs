@@ -7,14 +7,9 @@ using Cosmos.Kernel.HAL.Acpi;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
-using Cosmos.Kernel.System.IO;
-using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.Core.Runtime;
-#if ARCH_ARM64
-using Cosmos.Kernel.HAL.ARM64;
-#else
-using Cosmos.Kernel.HAL.X64;
-#endif
 
 namespace Cosmos.Kernel;
 

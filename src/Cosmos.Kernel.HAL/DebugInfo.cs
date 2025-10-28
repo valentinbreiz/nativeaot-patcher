@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.Intrinsics.X86;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL;
 

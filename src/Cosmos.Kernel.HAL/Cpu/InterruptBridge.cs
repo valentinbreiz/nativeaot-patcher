@@ -2,7 +2,7 @@
 
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL.Cpu;
 

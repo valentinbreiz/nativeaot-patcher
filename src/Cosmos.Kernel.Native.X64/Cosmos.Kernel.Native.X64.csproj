@@ -4,9 +4,9 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
     <!-- Package Metadata -->
-    <PackageId>Cosmos.Kernel.Native.x64</PackageId>
-    <Title>Cosmos Kernel x64 Native Assembly</Title>
-    <Description>x64 (x86-64) native assembly routines for Cosmos kernel development including port I/O operations and CPU control.</Description>
+    <PackageId>Cosmos.Kernel.Native.X64</PackageId>
+    <Title>Cosmos Kernel X64 Native Assembly</Title>
+    <Description>X64 (x86-64) native assembly routines for Cosmos kernel development including port I/O operations and CPU control.</Description>
     <PackageTags>cosmos;kernel;x64;x86_64;assembly;native;asm;port;io;in;out;cpu</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="build\Cosmos.Kernel.Native.x64.props" PackagePath="build\" />
+    <Content Include="build\Cosmos.Kernel.Native.X64.props" PackagePath="build\" />
     <Content Include="IO\*.asm" PackagePath="build\IO" />
     <Content Include="Debug\*.asm" PackagePath="build\Debug" />
     <Content Include="CPU\*.asm" PackagePath="build\CPU" />
