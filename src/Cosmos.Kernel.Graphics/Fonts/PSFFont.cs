@@ -8,7 +8,7 @@ public static unsafe class PCScreenFont
 {
     public static class Default
     {
-        public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.DefaultFont";
+        public const string DefaultFontKey = "Cosmos.Kernel.Graphics.Fonts.DefaultFont";
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
     }
     public static byte* Framebuffer;

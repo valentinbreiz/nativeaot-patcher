@@ -5,14 +5,14 @@
     <IlcDependsOn>RunPatcher;$(IlcDependsOn);PrepareForILLink</IlcDependsOn>
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;BuildGCC;$(LinkTargetDependsOn)</LinkTargetDependsOn>
     <UnRootGraphics Condition="$(UnRootGraphics) != 'true'">false</UnRootGraphics>
-    <CosmosDefaultFont Condition="$(CosmosDefaultFont) == '' and $(UnRootGraphics) != 'true'">Cosmos.Kernel.System.Graphics.Fonts.DefaultFont.psf</CosmosDefaultFont>
+    <CosmosDefaultFont Condition="$(CosmosDefaultFont) == '' and $(UnRootGraphics) != 'true'">Cosmos.Kernel.Graphics.Fonts.DefaultFont.psf</CosmosDefaultFont>
   </PropertyGroup>
 
   <ItemGroup>
     <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core" />
     <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
-    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.System.Graphics" />
-    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
+    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics" />
+    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
   </ItemGroup>
 
   <ItemGroup>
