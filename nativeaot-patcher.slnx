@@ -14,7 +14,7 @@
     <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" Type="C#" />
-    <Project Path="src/Cosmos.Kernel.Services/Cosmos.Kernel.System.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" Type="Classic C#" />
   </Folder>
