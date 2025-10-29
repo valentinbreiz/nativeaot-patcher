@@ -11,8 +11,8 @@
 
 | Platform | x64 | ARM64 |
 |----------|-----|-------|
-| **Linux** | ![passing](https://img.shields.io/badge/build-passing-success) | ![passing](https://img.shields.io/badge/build-passing-success) |
-| **Windows** | ![passing](https://img.shields.io/badge/build-passing-success) | ![failing](https://img.shields.io/badge/build-failing-critical) |
+| **Linux** | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) |
+| **Windows** | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) | [![failing](https://img.shields.io/badge/build-failing-critical)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) |
 
  ## Documentation
  - [Index](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)
