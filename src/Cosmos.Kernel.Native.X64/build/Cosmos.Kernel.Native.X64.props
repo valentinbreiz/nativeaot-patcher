@@ -15,5 +15,6 @@
     <GCCProject Include="$(MSBuildThisFileDirectory)/lai/helpers/" />
     <GCCProject Include="$(MSBuildThisFileDirectory)/lai/drivers/" />
     <GCCIncludePath Include="$(MSBuildThisFileDirectory)/lai/include/" />
+    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/lai/core/" />
   </ItemGroup>
 </Project>

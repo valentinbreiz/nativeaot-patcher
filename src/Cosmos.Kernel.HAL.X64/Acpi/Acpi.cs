@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL.Acpi;
 

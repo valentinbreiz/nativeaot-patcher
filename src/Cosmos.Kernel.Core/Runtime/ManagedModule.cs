@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 using Internal.NativeFormat;
 using Internal.Runtime;
 

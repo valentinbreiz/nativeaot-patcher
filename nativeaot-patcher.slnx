@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/examples/">
-    <Project Path="examples\KernelExample\KernelExample.csproj" Type="C#" />
     <Project Path="examples\DevKernel\DevKernel.csproj" Type="C#" />
   </Folder>
   <Folder Name="/src/">
@@ -11,10 +10,10 @@
     <Project Path="src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj" Type="C#" />
-    <Project Path="src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" Type="C#" />
-    <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" Type="C#" />
-    <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" Type="C#" />
+    <Project Path="src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj" Type="C#" />
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" Type="Classic C#" />
   </Folder>

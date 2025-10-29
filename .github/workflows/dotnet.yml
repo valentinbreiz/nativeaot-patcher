@@ -178,6 +178,9 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
+      - name: 🧹 Clear NuGet cache before building packages
+        run: dotnet nuget locals all --clear
+
       - name: 🔄 Compile Packages for ${{ matrix.arch }}
         run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
 
@@ -193,32 +196,31 @@ jobs:
         run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
 
       - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc
+        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
       - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher
+        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
-      - name: 🔄 Restore Dependencies
-        run: dotnet restore ./nativeaot-patcher.slnx
-
-      - name: 🚀 Build ISO for ${{ matrix.arch }}
+      - name:  Build ISO for ${{ matrix.arch }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             ARCH_DEFINE="ARCH_ARM64"
+            COSMOS_ARCH="arm64"
           else
             ARCH_DEFINE="ARCH_X64"
+            COSMOS_ARCH="x64"
           fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch="$COSMOS_ARCH" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         run: |
-          [ -f ./output-${{ matrix.arch }}/KernelExample.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
+          [ -f ./output-${{ matrix.arch }}/DevKernel.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
 
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO-${{ matrix.arch }}-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
-          path: ./output-${{ matrix.arch }}/KernelExample.iso
+          name: DevKernel-ISO-${{ matrix.arch }}-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: ./output-${{ matrix.arch }}/DevKernel.iso
 
   windows-iso-tests:
     name: Run ISO Build Tests - Windows (${{ matrix.arch }})
@@ -250,6 +252,9 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
       
+      - name: 🧹 Clear NuGet cache before building packages
+        run: dotnet nuget locals all --clear
+
       - name: 🔄 Compile Packages for ${{ matrix.arch }}
         shell: pwsh
         run: pwsh -File ./install-packages.ps1
@@ -266,28 +271,27 @@ jobs:
             echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc
+        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
       - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher
+        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
-      - name: 🔄 Restore Dependencies
-        run: dotnet restore ./nativeaot-patcher.slnx
-
-      - name: 🚀 Build ISO for ${{ matrix.arch }}
+      - name:  Build ISO for ${{ matrix.arch }}
         shell: pwsh
         run: |
          if ("${{ matrix.arch }}" -eq "arm64") {
             $ARCH_DEFINE = "ARCH_ARM64"
+            $COSMOS_ARCH = "arm64"
           } else {
             $ARCH_DEFINE = "ARCH_X64"
+            $COSMOS_ARCH = "x64"
           }
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/KernelExample/KernelExample.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE -p:CosmosArch=$COSMOS_ARCH --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         shell: pwsh
         run: |
-          if (Test-Path "./output-${{ matrix.arch }}/KernelExample.iso") {
+          if (Test-Path "./output-${{ matrix.arch }}/DevKernel.iso") {
               Write-Host "ISO exists for ${{ matrix.arch }}"
           } else {
               Write-Error "ISO missing for ${{ matrix.arch }}"
@@ -297,5 +301,5 @@ jobs:
       - name: 📤 Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: KernelExample-ISO-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
-          path: ./output-${{ matrix.arch }}/KernelExample.iso
+          name: DevKernel-ISO-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: ./output-${{ matrix.arch }}/DevKernel.iso

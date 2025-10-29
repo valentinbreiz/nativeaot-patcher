@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.System.Graphics;
+namespace Cosmos.Kernel.Graphics;
 
 public class Color
 {

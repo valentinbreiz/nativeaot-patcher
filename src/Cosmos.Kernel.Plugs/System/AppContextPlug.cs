@@ -4,8 +4,8 @@ using System.Text;
 using System.Text.Unicode;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.Utilities;
-using Cosmos.Kernel.System.Graphics;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Plugs.System;
 

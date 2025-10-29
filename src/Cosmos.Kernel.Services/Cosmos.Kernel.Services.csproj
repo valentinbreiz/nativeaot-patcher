@@ -3,10 +3,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Package Metadata -->
-    <PackageId>Cosmos.Kernel.System</PackageId>
-    <Title>Cosmos Kernel System Utilities</Title>
-    <Description>System utilities for Cosmos kernel development including Math, IO, and conversion utilities.</Description>
-    <PackageTags>cosmos;kernel;system;math;io;serial;conversion;base64</PackageTags>
+    <PackageId>Cosmos.Kernel.Services</PackageId>
+    <Title>Cosmos Kernel Services</Title>
+    <Description>Service utilities for Cosmos kernel development including Math, IO, and conversion utilities.</Description>
+    <PackageTags>cosmos;kernel;services;utilities;math;io;conversion;base64</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -24,9 +24,12 @@ extern void EnableSSE();
 extern void* __Modules_start[]; // Start of __modules Section
 extern void* __Modules_end[];   // End of __modules Section
 
-// ACPI early initialization (must run before managed code)
+#ifdef ARCH_X64
+// ACPI early initialization (must run before managed code) - x64 only
 extern void acpi_early_init(void* rsdp_address);
 extern void* __get_limine_rsdp_address(void);  // C# function to get RSDP from Limine
+#endif
+
 extern void __cosmos_serial_write(const char* message);  // C# function for serial logging
 extern void __cosmos_serial_write_hex_u64(uint64_t value);  // C# function for hex printing
 extern void __cosmos_serial_write_hex_u32(uint32_t value);  // C# function for hex printing
@@ -41,6 +44,7 @@ void kmain()
 
     __cosmos_serial_write("[KMAIN] Starting kernel bootstrap...\n");
 
+#ifdef ARCH_X64
     // Get RSDP address from Limine (via C# static data)
     void* rsdp_address = __get_limine_rsdp_address();
 
@@ -59,6 +63,9 @@ void kmain()
     {
         __cosmos_serial_write("[KMAIN] ERROR: RSDP not found from Limine!\n");
     }
+#else
+    __cosmos_serial_write("[KMAIN] ACPI initialization skipped (ARM64 platform)\n");
+#endif
 
     __cosmos_serial_write("[KMAIN] Initializing managed kernel...\n");
     __Initialize_Kernel();

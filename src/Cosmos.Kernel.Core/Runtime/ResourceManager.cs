@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text.Unicode;
 using Cosmos.Kernel.Core.Utilities;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 using Internal.NativeFormat;
 using Internal.Runtime;
 

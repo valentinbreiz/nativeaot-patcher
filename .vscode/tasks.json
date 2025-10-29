@@ -2,148 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build x64 Kernel",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "examples/KernelExample/KernelExample.csproj",
-        "-c", "Debug",
-        "-r", "linux-x64",
-        "-p:DefineConstants=ARCH_X64",
-        "--verbosity", "minimal"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$msCompile"],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Build ARM64 Kernel",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "examples/KernelExample/KernelExample.csproj",
-        "-c", "Debug",
-        "-r", "linux-arm64",
-        "-p:DefineConstants=ARCH_ARM64",
-        "--verbosity", "minimal"
-      ],
-      "group": "build",
-      "problemMatcher": ["$msCompile"],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Debug x64 Kernel",
-      "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "dotnet publish examples/KernelExample/KernelExample.csproj -c Debug -r linux-x64 -p:DefineConstants=ARCH_X64 --verbosity minimal && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-x64/cosmos/KernelExample.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & echo QEMU-DEBUG-READY && sleep 1 && wait"
-      ],
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "qemu",
-        "fileLocation": ["relative", "${workspaceFolder}"],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".*",
-          "endsPattern": "QEMU-DEBUG-READY"
-        },
-        "pattern": { "regexp": ".*" }
-      },
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Debug ARM64 Kernel",
-      "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "dotnet publish examples/KernelExample/KernelExample.csproj -c Debug -r linux-arm64 -p:DefineConstants=ARCH_ARM64 --verbosity minimal && qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-arm64/cosmos/KernelExample.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & echo QEMU-ARM64-DEBUG-READY && sleep 1 && wait"
-      ],
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "qemu-arm64",
-        "fileLocation": ["relative", "${workspaceFolder}"],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".*",
-          "endsPattern": "QEMU-ARM64-DEBUG-READY"
-        },
-        "pattern": { "regexp": ".*" }
-      },
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Run QEMU x64",
-      "type": "shell",
-      "dependsOn": "Build x64 Kernel",
-      "command": "qemu-system-x86_64",
-      "args": [
-        "-M", "q35",
-        "-cpu", "max",
-        "-m", "512M",
-        "-serial", "stdio",
-        "-cdrom", "${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-x64/cosmos/KernelExample.iso",
-        "-display", "gtk",
-        "-vga", "std",
-        "-no-reboot",
-        "-no-shutdown"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Run QEMU ARM64",
-      "type": "shell",
-      "dependsOn": "Build ARM64 Kernel",
-      "command": "qemu-system-aarch64",
-      "args": [
-        "-M", "virt",
-        "-cpu", "cortex-a53",
-        "-m", "1G",
-        "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
-        "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/KernelExample/debug_linux-arm64/cosmos/KernelExample.iso",
-        "-device", "virtio-scsi-pci",
-        "-device", "scsi-cd,drive=cd,bootindex=0",
-        "-device", "ramfb",
-        "-display", "gtk,show-cursor=on",
-        "-serial", "stdio"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Stop QEMU x64",
-      "type": "shell",
-      "command": "bash",
-      "args": ["-c", "pkill -f qemu-system-x86_64 || true"],
-      "problemMatcher": []
-    },
-    {
-      "label": "Stop QEMU ARM64",
-      "type": "shell",
-      "command": "bash",
-      "args": ["-c", "pkill -f qemu-system-aarch64 || true"],
-      "problemMatcher": []
-    },
-    {
       "label": "Rebuild Libraries for x64",
       "type": "shell",
       "command": "bash",
@@ -179,6 +37,7 @@
         "-c", "Debug",
         "-r", "linux-x64",
         "-p:DefineConstants=ARCH_X64",
+        "-p:CosmosArch=x64",
         "--verbosity", "minimal"
       ],
       "group": "build",
@@ -197,6 +56,7 @@
         "-c", "Debug",
         "-r", "linux-arm64",
         "-p:DefineConstants=ARCH_ARM64",
+        "-p:CosmosArch=arm64",
         "--verbosity", "minimal"
       ],
       "group": "build",
@@ -211,7 +71,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-x64 -p:DefineConstants=ARCH_X64 --verbosity minimal && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & echo QEMU-DEVKERNEL-DEBUG-READY && sleep 1 && wait"
+        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-x64 -p:DefineConstants=ARCH_X64 -p:CosmosArch=x64 --verbosity minimal && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & echo QEMU-DEVKERNEL-DEBUG-READY && sleep 1 && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -234,7 +94,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-arm64 -p:DefineConstants=ARCH_ARM64 --verbosity minimal && qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && sleep 1 && wait"
+        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-arm64 -p:DefineConstants=ARCH_ARM64 -p:CosmosArch=arm64 --verbosity minimal && qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && sleep 1 && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -292,6 +152,26 @@
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Stop QEMU x64",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "qemu-system-x86_64.*DevKernel"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "Stop QEMU ARM64",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "qemu-system-aarch64.*DevKernel"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never"
       }
     }
   ]

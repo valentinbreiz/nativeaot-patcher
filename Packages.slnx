@@ -15,11 +15,11 @@
     <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" />
     <Project Path="src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj" />
     <Project Path="src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj" />
-    <Project Path="src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj" />
+    <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj" />
     <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj" />
     <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" />
-    <Project Path="src/Cosmos.Kernel.System.Graphics/Cosmos.Kernel.System.Graphics.csproj" />
-    <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
+    <Project Path="src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" />
+    <Project Path="src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj" />
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" />
     <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" />

@@ -1,5 +1,5 @@
 using Cosmos.Build.API.Attributes;
-using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.Graphics;
 
 namespace Cosmos.Kernel.Plugs.System;
 

@@ -1,10 +1,10 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.System.Graphics.Fonts;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Graphics.Fonts;
+using Cosmos.Kernel.Core.IO;
 
-namespace Cosmos.Kernel.System.Graphics;
+namespace Cosmos.Kernel.Graphics;
 
 public static class KernelConsole
 {

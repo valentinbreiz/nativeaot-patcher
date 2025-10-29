@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.System.IO;
+using Cosmos.Kernel.Core.IO;
 
 namespace Internal.Runtime
 {
