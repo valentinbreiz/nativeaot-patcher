@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/examples/">
-    <Project Path="examples\KernelExample\KernelExample.csproj" Type="C#" />
     <Project Path="examples\DevKernel\DevKernel.csproj" Type="C#" />
   </Folder>
   <Folder Name="/src/">

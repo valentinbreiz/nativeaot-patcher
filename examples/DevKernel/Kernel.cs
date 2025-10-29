@@ -426,6 +426,7 @@ internal unsafe static partial class Program
 
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
+#if ARCH_X64
         // Register a handler for INT 32 to test interrupt handling
         Serial.WriteString("[Main] Registering INT 32 handler...\n");
         Cosmos.Kernel.HAL.Cpu.InterruptManager.SetHandler(32, TestInt32Handler);
@@ -435,6 +436,9 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Triggering INT 32...\n");
         TriggerInt32Test();
         Serial.WriteString("[Main] INT 32 test complete!\n");
+#else
+        Serial.WriteString("[Main] Interrupt test skipped (ARM64 platform)\n");
+#endif
 
         // Test exception handling
         TestExceptionHandling();
@@ -455,6 +459,7 @@ internal unsafe static partial class Program
         Console.WriteLine("  ✗ ERROR: Should not reach here\n");
     }
 
+#if ARCH_X64
     [LibraryImport("*", EntryPoint = "__test_int32")]
     private static partial void TriggerInt32Test();
 
@@ -473,6 +478,7 @@ internal unsafe static partial class Program
         Serial.WriteString("\n");
         Serial.WriteString("[INT 32 Handler] Handler execution complete\n");
     }
+#endif
 
     [ModuleInitializer]
     public static void Init()

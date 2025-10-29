@@ -87,7 +87,7 @@ flowchart TD
 
 ## Example Project
 
-Reference implementation: `examples/KernelExample/KernelExample.csproj`
+Reference implementation: `examples/DevKernel/DevKernel.csproj`
 
 ## Output Summary
 

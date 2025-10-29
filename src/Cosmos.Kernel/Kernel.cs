@@ -3,7 +3,9 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
+#if ARCH_X64
 using Cosmos.Kernel.HAL.Acpi;
+#endif
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
@@ -56,11 +58,13 @@ public class Kernel
             Serial.WriteString("Architecture: Unknown.\n");
         }
 
+#if ARCH_X64
         // Retrieve and display ACPI MADT information (initialized during early boot)
         if (Acpi.DisplayMadtInfo())
         {
             Serial.WriteString("\n");
         }
+#endif
 
         InterruptManager.Initialize();
 
@@ -97,41 +101,13 @@ public static unsafe class InterruptBridge
     }
 }
 
-public static unsafe class AcpiBridge
+/// <summary>
+/// Bridge functions for C code (kmain.c) to call C# methods
+/// </summary>
+public static unsafe class KernelBridge
 {
     /// <summary>
-    /// Get RSDP address from Limine bootloader for early ACPI initialization in C code
-    /// </summary>
-    [UnmanagedCallersOnly(EntryPoint = "__get_limine_rsdp_address")]
-    public static void* GetLimineRsdpAddress()
-    {
-        if (Limine.Rsdp.Response != null)
-        {
-            return Limine.Rsdp.Response->Address;
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Allocate memory from Cosmos heap for ACPI/LAI use
-    /// </summary>
-    [UnmanagedCallersOnly(EntryPoint = "__cosmos_heap_alloc")]
-    public static void* CosmosHeapAlloc(nuint size)
-    {
-        return MemoryOp.Alloc((uint)size);
-    }
-
-    /// <summary>
-    /// Free memory from Cosmos heap
-    /// </summary>
-    [UnmanagedCallersOnly(EntryPoint = "__cosmos_heap_free")]
-    public static void CosmosHeapFree(void* ptr)
-    {
-        MemoryOp.Free(ptr);
-    }
-
-    /// <summary>
-    /// Write string to serial port for ACPI/LAI logging
+    /// Write string to serial port for C code logging
     /// </summary>
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
     public static void CosmosSerialWrite(byte* str)
@@ -180,6 +156,24 @@ public static unsafe class AcpiBridge
     }
 
     /// <summary>
+    /// Allocate memory from Cosmos heap
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__cosmos_heap_alloc")]
+    public static void* CosmosHeapAlloc(nuint size)
+    {
+        return MemoryOp.Alloc((uint)size);
+    }
+
+    /// <summary>
+    /// Free memory from Cosmos heap
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__cosmos_heap_free")]
+    public static void CosmosHeapFree(void* ptr)
+    {
+        MemoryOp.Free(ptr);
+    }
+
+    /// <summary>
     /// Copy memory using Cosmos MemoryOp.MemCopy
     /// </summary>
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_memcpy")]
@@ -199,3 +193,21 @@ public static unsafe class AcpiBridge
         return equal ? 0 : 1;
     }
 }
+
+#if ARCH_X64
+public static unsafe class AcpiBridge
+{
+    /// <summary>
+    /// Get RSDP address from Limine bootloader for early ACPI initialization in C code
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__get_limine_rsdp_address")]
+    public static void* GetLimineRsdpAddress()
+    {
+        if (Limine.Rsdp.Response != null)
+        {
+            return Limine.Rsdp.Response->Address;
+        }
+        return null;
+    }
+}
+#endif

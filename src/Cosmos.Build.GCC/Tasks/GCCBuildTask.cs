@@ -73,6 +73,13 @@ public sealed class GCCBuildTask : ToolTask
 
         Log.LogMessage(MessageImportance.Normal, $"Found {sourceFilePaths.Length} C files to compile");
 
+        // Get GCC's freestanding include directory
+        string? gccIncludePath = GetGCCIncludePath();
+        if (gccIncludePath != null)
+        {
+            Log.LogMessage(MessageImportance.Normal, $"Using GCC include path: {gccIncludePath}");
+        }
+
         // Execute the GCC command for each C file
         using SHA1? hasher = SHA1.Create();
 
@@ -101,6 +108,15 @@ public sealed class GCCBuildTask : ToolTask
                 sb.Append($" {CompilerFlags} ");
             }
 
+            // Add GCC's freestanding include directory for standard headers (stdint.h, stddef.h, etc.)
+            if (gccIncludePath != null)
+            {
+                sb.Append($" -I{gccIncludePath} ");
+            }
+
+            // Add source directory as include path for local header files
+            sb.Append($" -I{SourceFiles} ");
+
             // Add the source file
             sb.Append($" {file} ");
             // Execute GCC for this file
@@ -127,6 +143,38 @@ public sealed class GCCBuildTask : ToolTask
     }
 
     protected override string ToolName => "Cosmos.GCC";
+
+    private string? GetGCCIncludePath()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = GCCPath,
+                Arguments = "--print-file-name=include",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var process = new System.Diagnostics.Process();
+            process.StartInfo = psi;
+            process.Start();
+            string output = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            if (process.ExitCode == 0 && !string.IsNullOrEmpty(output) && Directory.Exists(output))
+            {
+                return output;
+            }
+        }
+        catch
+        {
+            // If we can't get the include path, continue without it
+        }
+        return null;
+    }
 
     private bool TestGCCInPath()
     {
