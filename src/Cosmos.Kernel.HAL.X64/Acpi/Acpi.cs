@@ -1,8 +1,6 @@
 // ACPI subsystem for Cosmos OS
 // C# interop layer for LAI (Lightweight ACPI Implementation)
 
-#if ARCH_X64
-
 using System;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Memory;
@@ -177,5 +175,3 @@ public static unsafe partial class Acpi
     }
 
 }
-
-#endif
