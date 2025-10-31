@@ -26,7 +26,7 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        // Initialize serial output first for diagnostics
+        // Initialize serial port first - this must happen after managed runtime startup
         Serial.ComInit();
         Serial.WriteString("UART started.\n");
         Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
@@ -34,16 +34,16 @@ public class Kernel
         // Initialize heap for memory allocations
         // Parameters are ignored - heap initialization uses Limine memory map
         MemoryOp.InitializeHeap(0, 0);
+        Serial.WriteString("Heap initialized.\n");
 
         // Initialize platform-specific HAL
+        Serial.WriteString("Initializing HAL...\n");
         PlatformHAL.Initialize();
+        Serial.WriteString("HAL initialized.\n");
 
         // TODO: Re-enable after fixing stack corruption in module initialization
         // Initialize graphics framebuffer
         // KernelConsole.Initialize();
-
-        // Initialize serial output
-        Serial.ComInit();
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
@@ -58,19 +58,20 @@ public class Kernel
             Serial.WriteString("Architecture: Unknown.\n");
         }
 
-#if ARCH_X64
-        // Retrieve and display ACPI MADT information (initialized during early boot)
-        if (Acpi.DisplayMadtInfo())
+        // Platform-specific initialization
+        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            Serial.WriteString("\n");
-        }
+            InterruptManager.Initialize();
+            PciManager.Setup();
+
+#if ARCH_X64
+            // Retrieve and display ACPI MADT information (initialized during early boot)
+            if (Acpi.DisplayMadtInfo())
+            {
+                Serial.WriteString("\n");
+            }
 #endif
-
-        InterruptManager.Initialize();
-
-        PciManager.Setup();
-
-        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
+        }
 
         // Initialize managed modules
         ManagedModule.InitializeModules();
@@ -102,12 +103,14 @@ public static unsafe class InterruptBridge
 }
 
 /// <summary>
-/// Bridge functions for C code (kmain.c) to call C# methods
+/// Bridge functions for C library code (ACPI, libc stubs) to call C# methods
+/// NOTE: These are NOT called from C bootstrap (kmain.c) - only from library code
+/// C bootstrap uses pure C implementations for clean architecture
 /// </summary>
 public static unsafe class KernelBridge
 {
     /// <summary>
-    /// Write string to serial port for C code logging
+    /// Write string to serial port for C library code logging
     /// </summary>
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
     public static void CosmosSerialWrite(byte* str)
@@ -195,10 +198,15 @@ public static unsafe class KernelBridge
 }
 
 #if ARCH_X64
+/// <summary>
+/// Wrapper for C code to access managed Limine data (RSDP address)
+/// NOTE: This is a data accessor wrapper - C code gets managed data, then continues in C
+/// We do NOT call C code from managed code - only provide data access
+/// </summary>
 public static unsafe class AcpiBridge
 {
     /// <summary>
-    /// Get RSDP address from Limine bootloader for early ACPI initialization in C code
+    /// Wrapper to expose Limine RSDP address to C bootstrap for LAI ACPI initialization
     /// </summary>
     [UnmanagedCallersOnly(EntryPoint = "__get_limine_rsdp_address")]
     public static void* GetLimineRsdpAddress()

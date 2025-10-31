@@ -32,7 +32,6 @@ extern void* __get_limine_rsdp_address(void);  // C# function to get RSDP from L
 
 extern void __cosmos_serial_write(const char* message);  // C# function for serial logging
 extern void __cosmos_serial_write_hex_u64(uint64_t value);  // C# function for hex printing
-extern void __cosmos_serial_write_hex_u32(uint32_t value);  // C# function for hex printing
 
 // Entry point
 void kmain()
@@ -54,7 +53,7 @@ void kmain()
         __cosmos_serial_write("[KMAIN] RSDP found at: ");
         __cosmos_serial_write_hex_u64((uint64_t)rsdp_address);
         __cosmos_serial_write("\n");
-        
+
         __cosmos_serial_write("[KMAIN] Calling acpi_early_init()...\n");
         acpi_early_init(rsdp_address);
         __cosmos_serial_write("[KMAIN] acpi_early_init() completed\n");
@@ -69,7 +68,10 @@ void kmain()
 
     __cosmos_serial_write("[KMAIN] Initializing managed kernel...\n");
     __Initialize_Kernel();
-    __managed__Startup();
+
+    // Call main application entry point
+    // NOTE: __managed__Startup() is NOT called here - the runtime is already initialized
+    // before kmain() is reached by the bootloader
     __managed__Main();
 }
 
