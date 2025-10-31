@@ -68,10 +68,7 @@ void kmain()
 
     __cosmos_serial_write("[KMAIN] Initializing managed kernel...\n");
     __Initialize_Kernel();
-
-    // Call main application entry point
-    // NOTE: __managed__Startup() is NOT called here - the runtime is already initialized
-    // before kmain() is reached by the bootloader
+    __managed__Startup();
     __managed__Main();
 }
 
