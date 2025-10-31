@@ -15,19 +15,11 @@ public class BlockDeviceStream : Stream
         Length = (long)(blockDevice.BlockCount * blockDevice.BlockSize);
     }
 
-    private static void CheckBuffer(int bufferSize, int count)
-    {
-        if (bufferSize < count)
-        {
-            throw new Exception("Buffer size must be more than or equal to count");
-        }
-    }
-
     public override void Flush() => throw new NotImplementedException();
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        CheckBuffer(buffer.Length, count);
+
         ulong blockSize = _blockDevice.BlockSize;
         ulong startBlock = (ulong)(_position / (long)blockSize);
         int startOffsetInBlock = (int)(_position % (long)blockSize);
@@ -49,7 +41,6 @@ public class BlockDeviceStream : Stream
 
     public override void Write(byte[] buffer, int offset, int count)
     {
-        CheckBuffer(buffer.Length - offset, count);
 
         ulong blockSize = _blockDevice.BlockSize;
         ulong startByte = (ulong)Position;

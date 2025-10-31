@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.HAL.BlockDevice;
 
-namespace Cosmos.Kernel.System.VFS;
+namespace Cosmos.Kernel.Services.VFS;
 
 public class Partition
 {
