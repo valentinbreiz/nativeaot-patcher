@@ -41,9 +41,16 @@ public class Kernel
         PlatformHAL.Initialize();
         Serial.WriteString("HAL initialized.\n");
 
-        // TODO: Re-enable after fixing stack corruption in module initialization
         // Initialize graphics framebuffer
-        // KernelConsole.Initialize();
+        Serial.WriteString("Initializing graphics console...\n");
+        if (KernelConsole.Initialize())
+        {
+            Serial.WriteString("Graphics console initialized successfully!\n");
+        }
+        else
+        {
+            Serial.WriteString("Graphics console initialization failed - no framebuffer available\n");
+        }
 
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
