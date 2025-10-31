@@ -90,3 +90,7 @@ qemu-system-aarch64 -M virt -cpu cortex-a72 -cdrom ./output-arm64/DevKernel.iso 
 
 ## Documentation
 See `docs/index.md` for full documentation links.
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
