@@ -30,7 +30,7 @@ public static class Serial
     {
 #if ARCH_ARM64
         // ARM64: Initialize PL011 UART
-        InitializePL011();
+        InitializeARM64Serial();
 #else
         // x86-64: Initialize COM1 serial port
         InitializeX64Serial();
@@ -48,7 +48,7 @@ public static class Serial
     private const ulong UARTCR = 0x30;
     private const ulong UARTIMSC = 0x38;
 
-    private static void InitializePL011()
+    private static void InitializeARM64Serial()
     {
         // Disable UART
         Native.IO.WriteDWord(UART0_BASE + UARTCR, 0);
