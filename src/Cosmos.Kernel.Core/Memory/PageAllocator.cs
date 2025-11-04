@@ -1,6 +1,6 @@
 using Cosmos.Kernel.Boot.Limine;
-using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory.Heap;
 
 namespace Cosmos.Kernel.Core.Memory;
 

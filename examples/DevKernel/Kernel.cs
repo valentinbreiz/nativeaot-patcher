@@ -9,13 +9,13 @@ using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.Core.IO;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
 internal unsafe static partial class Program
@@ -445,7 +445,7 @@ internal unsafe static partial class Program
 
         while (true) ;
     }
-    
+
     private static void TestExceptionHandling()
     {
         Console.WriteLine("Testing throw statement...");
@@ -455,7 +455,7 @@ internal unsafe static partial class Program
         // Expected: System will print exception info and halt gracefully
         throw new InvalidOperationException("This is a test exception!");
 
-         // Should not reach here
+        // Should not reach here
         Console.WriteLine("  ✗ ERROR: Should not reach here\n");
     }
 

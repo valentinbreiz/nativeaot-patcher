@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.HAL.Cpu;
+using Cosmos.Kernel.HAL.Cpu.Data;
 
 namespace Cosmos.Kernel;
 
