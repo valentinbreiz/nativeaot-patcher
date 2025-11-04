@@ -113,13 +113,27 @@ public static partial class AppContextPlug
         return length;
     }
 
-    internal static string Utf8Decode(ReadOnlySpan<byte> bytes)
+    internal static unsafe string Utf8Decode(ReadOnlySpan<byte> bytes)
     {
+        // WORKAROUND: Utf8.ToUtf16() has a NativeAOT ARM64 codegen bug with infinite loop
+        // Use simple ASCII-only conversion instead (AppContext knob values are ASCII-only)
         Span<char> buffer = stackalloc char[bytes.Length];
-        return Utf8.ToUtf16(bytes, buffer, out _, out int charsWritten) switch
+
+        fixed (byte* pBytes = bytes)
+        fixed (char* pChars = buffer)
         {
-            global::System.Buffers.OperationStatus.Done => new string(buffer.Slice(0, charsWritten)),
-            _ => string.Empty,
-        };
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = pBytes[i];
+                if (b > 127)
+                {
+                    // Non-ASCII - should not happen for AppContext knobs
+                    return string.Empty;
+                }
+                pChars[i] = (char)b;
+            }
+        }
+
+        return new string(buffer);
     }
 }
