@@ -3,10 +3,10 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.X64.Cpu.Data;
-using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
 

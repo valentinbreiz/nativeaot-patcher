@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Graphics.Fonts;
-using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Graphics;
 
