@@ -151,48 +151,6 @@ jobs:
             tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.elf
           retention-days: 7
 
-      - name: 💬 Comment Test Failure Details
-        if: failure() && steps.run-tests.outcome == 'failure'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let uartLog = 'UART log not available';
-            try {
-              uartLog = fs.readFileSync('uart-output.log', 'utf8');
-              // Truncate if too long
-              if (uartLog.length > 5000) {
-                uartLog = uartLog.substring(uartLog.length - 5000);
-                uartLog = '... (truncated)\n' + uartLog;
-              }
-            } catch (e) {
-              uartLog = 'Could not read UART log: ' + e.message;
-            }
-
-            const comment = `## ❌ Kernel Tests Failed (${{ matrix.arch }})
-
-            **Architecture:** ${{ matrix.arch }}
-            **Timeout:** ${{ matrix.timeout }}s
-
-            <details>
-            <summary>📋 UART Output (last 5000 chars)</summary>
-
-            \`\`\`
-            ${uartLog}
-            \`\`\`
-
-            </details>
-
-            [Download full artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            `;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
