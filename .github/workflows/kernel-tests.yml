@@ -27,6 +27,11 @@ on:
           - x64
           - arm64
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   kernel-tests:
     name: Kernel Tests - ${{ matrix.arch }}
@@ -119,7 +124,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          files: test-results-${{ matrix.arch }}.xml
+          junit_files: test-results-${{ matrix.arch }}.xml
           check_name: Kernel Test Results (${{ matrix.arch }})
           comment_title: 🧪 Cosmos Kernel Tests (${{ matrix.arch }})
           comment_mode: always
