@@ -137,11 +137,11 @@ public class OutputHandlerXml : OutputHandlerBase
             writer.WriteEndElement(); // system-err
         }
 
-        // UART log as system-out
+        // UART log as system-out (filter invalid XML characters)
         if (!string.IsNullOrEmpty(results.UartLog))
         {
             writer.WriteStartElement("system-out");
-            writer.WriteCData(results.UartLog);
+            writer.WriteCData(FilterInvalidXmlChars(results.UartLog));
             writer.WriteEndElement(); // system-out
         }
 
@@ -174,5 +174,29 @@ public class OutputHandlerXml : OutputHandlerBase
         {
             Console.WriteLine($"[OutputHandlerXml] ERROR: Failed to write XML: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Filters characters that are invalid in XML 1.0.
+    /// Valid characters are: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+    /// </summary>
+    private static string FilterInvalidXmlChars(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        var filtered = new StringBuilder(text.Length);
+        foreach (char c in text)
+        {
+            // Allow: tab (0x09), newline (0x0A), carriage return (0x0D), and standard printable characters
+            if (c == 0x09 || c == 0x0A || c == 0x0D ||
+                (c >= 0x20 && c <= 0xD7FF) ||
+                (c >= 0xE000 && c <= 0xFFFD))
+            {
+                filtered.Append(c);
+            }
+            // Skip invalid characters
+        }
+        return filtered.ToString();
     }
 }
