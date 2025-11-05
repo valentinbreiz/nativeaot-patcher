@@ -124,7 +124,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: test-results-${{ matrix.arch }}.xml
+          files: test-results-${{ matrix.arch }}.xml
           check_name: Kernel Test Results (${{ matrix.arch }})
           comment_title: 🧪 Cosmos Kernel Tests (${{ matrix.arch }})
           comment_mode: always

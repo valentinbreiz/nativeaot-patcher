@@ -55,6 +55,8 @@ public class OutputHandlerXml : OutputHandlerBase
     public override void OnTestSuiteEnd(TestResults results)
     {
         // Generate JUnit XML format
+        // Note: StringWriter uses UTF-16 internally, which affects the XML declaration
+        // We fix this in Complete() by replacing utf-16 with utf-8 before writing to file
         var settings = new XmlWriterSettings
         {
             Indent = true,
@@ -158,7 +160,7 @@ public class OutputHandlerXml : OutputHandlerBase
 
     public override void Complete()
     {
-        // Write XML to file
+        // Write XML to file with explicit UTF-8 encoding
         try
         {
             var directory = Path.GetDirectoryName(_outputPath);
@@ -167,7 +169,12 @@ public class OutputHandlerXml : OutputHandlerBase
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(_outputPath, _xmlBuilder.ToString());
+            // StringWriter uses UTF-16 internally, so XmlWriter writes encoding="utf-16"
+            // We need to replace it with "utf-8" since we're writing to file as UTF-8
+            var xmlContent = _xmlBuilder.ToString().Replace("encoding=\"utf-16\"", "encoding=\"utf-8\"");
+
+            // Write with UTF-8 encoding (no BOM) to match the XML declaration
+            File.WriteAllText(_outputPath, xmlContent, new UTF8Encoding(false));
             Console.WriteLine($"[OutputHandlerXml] Wrote test results to: {_outputPath}");
         }
         catch (Exception ex)
