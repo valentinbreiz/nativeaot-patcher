@@ -2,7 +2,7 @@ name: Kernel Tests
 
 on:
   push:
-    branches: [ "main", "feature/**" ]
+    branches: [ "main" ]
     paths:
       - 'src/**'
       - 'tests/Cosmos.TestRunner.**'
