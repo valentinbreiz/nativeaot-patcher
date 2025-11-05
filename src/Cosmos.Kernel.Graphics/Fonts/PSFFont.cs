@@ -1,6 +1,6 @@
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Graphics.Fonts;
 

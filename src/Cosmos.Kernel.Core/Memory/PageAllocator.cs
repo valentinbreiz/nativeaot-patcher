@@ -1,6 +1,6 @@
 using Cosmos.Kernel.Boot.Limine;
-using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory.Heap;
 
 namespace Cosmos.Kernel.Core.Memory;
 
@@ -266,7 +266,19 @@ public static unsafe class PageAllocator
                 {
                     ulong physStart = (ulong)entry->Base;
                     ulong physEnd = physStart + entry->Length;
-                    ulong virtualStart = physStart + 0xFFFF800000000000UL;
+
+                    // ARM64 note: Check if higher-half mapping is enabled
+                    // If Limine already provides virtual addresses, don't add offset
+                    // x64 Limine uses higher-half, ARM64 might use direct mapping
+                    ulong virtualStart;
+#if ARCH_ARM64
+                    // ARM64: Use physical addresses directly (identity mapping)
+                    virtualStart = physStart;
+                    Serial.WriteString("[PageAllocator] ARM64: Using identity mapping (phys == virt)\n");
+#else
+                    // x64: Use higher-half mapping
+                    virtualStart = physStart + 0xFFFF800000000000UL;
+#endif
                     ulong entrySize = entry->Length;
 
                     Serial.WriteString("[PageAllocator] Evaluating region: phys 0x");
@@ -408,10 +420,29 @@ public static unsafe class PageAllocator
         Serial.WriteNumber(TotalPageCount);
         Serial.WriteString(" RAT entries...\n");
 
+        // Test first write before loop
+        Serial.WriteString("[PageAllocator] Testing first RAT write at 0x");
+        Serial.WriteHex((ulong)mRAT);
+        Serial.WriteString("...\n");
+        mRAT[0] = (byte)PageType.Empty;
+        Serial.WriteString("[PageAllocator] First write successful, initializing all entries...\n");
+
         for (ulong i = 0; i < TotalPageCount; i++)
         {
             mRAT[i] = (byte)PageType.Empty;
+
+            // Progress indicator every 10000 pages to confirm loop is progressing
+            if (i > 0 && i % 10000 == 0)
+            {
+                Serial.WriteString("[PageAllocator] Initialized ");
+                Serial.WriteNumber(i);
+                Serial.WriteString(" / ");
+                Serial.WriteNumber(TotalPageCount);
+                Serial.WriteString(" entries...\n");
+            }
         }
+
+        Serial.WriteString("[PageAllocator] All RAT entries initialized.\n");
 
         // Mark the RAT pages themselves as PageAllocator type
         // RAT pages are at the END, so we mark the LAST xRatPageCount pages

@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.HAL.Pci.Enums;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Pci;
 

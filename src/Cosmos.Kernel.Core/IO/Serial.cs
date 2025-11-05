@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Runtime;
 
 namespace Cosmos.Kernel.Core.IO;
@@ -13,21 +14,84 @@ public static class Serial
 
     public static void ComWrite(byte value)
     {
-        // Wait for the transmit buffer to be empty
+#if !ARCH_ARM64
+        // Wait for the transmit buffer to be empty (x86 only)
+        // ARM64: PL011 UART has a FIFO, no need to wait for each byte
         WaitForTransmitBufferEmpty();
+#endif
         // Write the byte to the COM port
         Native.IO.Write8(COM1, value);
     }
 
+    /// <summary>
+    /// Initialize serial port - called from managed Kernel.Initialize()
+    /// </summary>
     public static void ComInit()
     {
-        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
-        Native.IO.Write8((ushort)(COM1 + 3), 0x80);
-        Native.IO.Write8(COM1, 0x01);
-        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
-        Native.IO.Write8((ushort)(COM1 + 3), 0x03);
-        Native.IO.Write8((ushort)(COM1 + 2), 0xC7);
+#if ARCH_ARM64
+        // ARM64: Initialize PL011 UART
+        InitializeARM64Serial();
+#else
+        // x86-64: Initialize COM1 serial port
+        InitializeX64Serial();
+#endif
     }
+
+#if ARCH_ARM64
+    // ARM64 PL011 UART constants
+    private const ulong UART0_BASE = 0x09000000;
+    private const ulong UARTDR = 0x00;
+    private const ulong UARTFR = 0x18;
+    private const ulong UARTIBRD = 0x24;
+    private const ulong UARTFBRD = 0x28;
+    private const ulong UARTLCR_H = 0x2C;
+    private const ulong UARTCR = 0x30;
+    private const ulong UARTIMSC = 0x38;
+
+    private static void InitializeARM64Serial()
+    {
+        // Disable UART
+        Native.IO.WriteDWord(UART0_BASE + UARTCR, 0);
+
+        // Clear all interrupts
+        Native.IO.WriteDWord(UART0_BASE + UARTIMSC, 0);
+
+        // Set baud rate to 115200 (24MHz clock)
+        // Divisor = 24000000 / (16 * 115200) = 13.02
+        Native.IO.WriteDWord(UART0_BASE + UARTIBRD, 13);
+        Native.IO.WriteDWord(UART0_BASE + UARTFBRD, 1);
+
+        // Enable FIFO, 8-bit data, no parity, 1 stop bit
+        Native.IO.WriteDWord(UART0_BASE + UARTLCR_H, (1 << 4) | (3 << 5));
+
+        // Enable UART, TX, and RX
+        Native.IO.WriteDWord(UART0_BASE + UARTCR, (1 << 0) | (1 << 8) | (1 << 9));
+    }
+#else
+    private static void InitializeX64Serial()
+    {
+        // Disable all interrupts
+        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
+
+        // Enable DLAB (set baud rate divisor)
+        Native.IO.Write8((ushort)(COM1 + 3), 0x80);
+
+        // Set divisor to 1 (lo byte) 115200 baud
+        Native.IO.Write8(COM1, 0x01);
+
+        // Set divisor to 1 (hi byte)
+        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
+
+        // 8 bits, no parity, one stop bit
+        Native.IO.Write8((ushort)(COM1 + 3), 0x03);
+
+        // Enable FIFO, clear them, with 14-byte threshold
+        Native.IO.Write8((ushort)(COM1 + 2), 0xC7);
+
+        // IRQs enabled, RTS/DSR set
+        Native.IO.Write8((ushort)(COM1 + 4), 0x0B);
+    }
+#endif
 
     public static unsafe void WriteString(string str)
     {

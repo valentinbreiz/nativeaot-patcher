@@ -18,9 +18,17 @@ fi
 echo "Using define: $ARCH_DEFINE"
 echo "Using runtime: $RUNTIME_ID"
 
+# CRITICAL: Clean everything to avoid stale file references
+echo "Cleaning all build artifacts and caches..."
+
 # Clear all NuGet locals cache first
-echo "Clearing NuGet cache..."
 dotnet nuget locals all --clear
+
+# Clear specific Cosmos packages from NuGet cache (handles deleted files like PageFaultHandler)
+rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
+
+# Remove all build artifacts (bin, obj, packages)
+rm -rf artifacts/ 2>/dev/null || true
 
 # Remove local source if it exists (to avoid path issues)
 dotnet nuget remove source local-packages 2>/dev/null || true
@@ -67,13 +75,21 @@ dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c 
 
 # Build kernel projects with architecture-specific defines
 echo "Building kernel projects with $ARCH_DEFINE..."
+
+# Build interfaces first (no arch dependencies)
+dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release
+dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -o artifacts/package/release --no-build
+
+dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release
+dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -o artifacts/package/release --no-build
+
 dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
 
 dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
 
-dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
+dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
 dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
 
 # Build architecture-specific HAL packages
