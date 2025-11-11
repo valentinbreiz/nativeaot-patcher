@@ -1,10 +1,10 @@
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using Mono.Cecil;
 
 namespace Cosmos.Build.Ilc.Tasks;
 
@@ -63,7 +63,7 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                 // Skip if this assembly isn't in AssemblyNames
                 if (!requestedAssemblies.Contains(asm.Name.Name))
                     continue;
-                    
+
                 allAssemblies.Add(kvp.Key);
 
                 // Only consider dependencies that are also part of AssemblyNames
