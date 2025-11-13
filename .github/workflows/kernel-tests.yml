@@ -1,0 +1,180 @@
+name: Kernel Tests
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - 'tests/Cosmos.TestRunner.**'
+      - 'tests/Kernels/**'
+      - '.github/workflows/kernel-tests.yml'
+  pull_request:
+    branches: [ "**" ]
+    paths:
+      - 'src/**'
+      - 'tests/Cosmos.TestRunner.**'
+      - 'tests/Kernels/**'
+      - '.github/workflows/kernel-tests.yml'
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Architecture to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - x64
+          - arm64
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  kernel-tests:
+    name: Kernel Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 9.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 60
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 90
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run HelloWorld Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: 📊 Display Test Summary
+        if: always()
+        run: |
+          if [ -f "test-results-${{ matrix.arch }}.xml" ]; then
+            echo "✅ Test results file created"
+            grep -o 'tests="[^"]*"' test-results-${{ matrix.arch }}.xml || echo "Could not parse test count"
+            grep -o 'failures="[^"]*"' test-results-${{ matrix.arch }}.xml || echo "Could not parse failure count"
+          else
+            echo "❌ Test results file not found"
+          fi
+
+      - name: 📊 Publish Test Results to PR
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results-${{ matrix.arch }}.xml
+          check_name: Kernel Test Results (${{ matrix.arch }})
+          comment_title: 🧪 Cosmos Kernel Tests (${{ matrix.arch }})
+          comment_mode: always
+          compare_to_earlier_commit: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.arch }}-${{ github.run_number }}
+          path: test-results-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-${{ matrix.arch }}-${{ github.run_number }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: HelloWorld-Test-ISO-${{ matrix.arch }}-${{ github.run_number }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: kernel-tests
+    if: always()
+    steps:
+      - name: 📊 Generate Summary
+        run: |
+          echo "# 🧪 Kernel Test Suite Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Architecture | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.kernel-tests.result }}" == "success" ]; then
+            echo "| All | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| All | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

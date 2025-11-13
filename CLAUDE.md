@@ -20,6 +20,59 @@
 2. Ask user for guidance
 3. DON'T keep trying random approaches
 
+## 🎯 TASK MASTER UPDATE DISCIPLINE 🎯
+
+**CRITICAL: ALWAYS document what you do, but keep it CLEAN, FOCUSED, and MINIMAL**
+
+**Core Principle:**
+- **ALWAYS update tasks/subtasks** as you work - documentation is MANDATORY
+- Keep updates **concise and signal-focused** - avoid noise and redundancy
+- **Document decisions, blockers, and outcomes** - not obvious steps
+
+**Update Guidelines:**
+- ✅ **DO**: Write concise, technical updates focused ONLY on what's relevant to the task
+- ✅ **DO**: Document ALL significant work - findings, decisions, blockers, completions
+- ✅ **DO**: Update subtasks as you progress through them (even brief updates like "Complete" or "Found issue with X")
+- ✅ **DO**: Use clear, factual language (e.g., "Implemented X, found Y issue, resolved with Z")
+- ✅ **DO**: Keep individual updates under 3-4 sentences unless complexity requires more
+- ❌ **DON'T**: Add verbose summaries listing every file/class/method you touched
+- ❌ **DON'T**: Repeat information already in the task description or subtask titles
+- ❌ **DON'T**: Include build output, full file paths, or implementation minutiae unless specifically relevant
+- ❌ **DON'T**: Skip documentation - always log what you did, even if brief
+
+**Examples:**
+
+**BAD (verbose, redundant, lists everything):**
+```bash
+tm update-task --id=3 --prompt="Successfully implemented complete output handler system with OutputHandlerBase abstract class, OutputHandlerConsole for colored terminal output, OutputHandlerXml for JUnit CI integration, MultiplexingOutputHandler for simultaneous multiple outputs, and integrated into Engine.cs. Build succeeds with zero warnings/errors. Support for custom handlers via TestConfiguration.OutputHandler and automatic console+XML multiplexing via XmlOutputPath config option."
+```
+
+**GOOD (focused, documents key outcome):**
+```bash
+tm update-subtask --id=3.2 --prompt="Complete. Added real-time progress indicators and colored output support."
+```
+
+**GOOD (documents blocker/decision):**
+```bash
+tm update-subtask --id=3.4 --prompt="Hit issue with Finalize() method name conflicting with destructor. Renamed to Complete() throughout."
+```
+
+**When to update:**
+- ✅ **ALWAYS**: When completing a subtask (even just "Done" or "Complete")
+- ✅ **ALWAYS**: When you hit a blocker or make an architectural decision
+- ✅ **ALWAYS**: When you discover something unexpected that affects approach
+- ✅ **ALWAYS**: When you change course or deviate from original plan
+- ❌ **NEVER**: Skip documenting work - always log progress
+
+**What to include in updates:**
+- ✅ Blockers encountered and how resolved
+- ✅ Key decisions made (e.g., "Chose X over Y because...")
+- ✅ Unexpected findings (e.g., "Found existing implementation in...")
+- ✅ Completion status (e.g., "Complete", "Done", "Working")
+- ❌ Lists of files created/modified (unless specifically relevant)
+- ❌ Code snippets (unless showing a specific decision point)
+- ❌ Build output (unless showing an error you fixed)
+
 ## Project Overview
 NativeAOT patcher for Cosmos OS - ports the Cosmos plug system and assembly loading to NativeAOT.
 

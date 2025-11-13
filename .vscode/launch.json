@@ -85,6 +85,40 @@
         }
       ],
       "launchCompleteCommand": "None"
+    },
+    {
+      "name": "Debug Test Runner (HelloWorld x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "x64",
+        "60",
+        "${workspaceFolder}/test-results.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (HelloWorld ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "arm64",
+        "90",
+        "${workspaceFolder}/test-results-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
     }
   ]
 }
