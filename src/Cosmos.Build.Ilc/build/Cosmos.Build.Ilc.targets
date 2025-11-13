@@ -70,7 +70,8 @@
       <AutoInitializedAssemblies Include="System.Private.CoreLib" />
       <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
       <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
-      <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" />
+      <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" Condition="$(IlcDisableReflection) != 'true'" />
+      <AutoInitializedAssemblies Include="System.Private.DisabledReflection" Condition="$(IlcDisableReflection) == 'true'" />
     </ItemGroup>
 
     <ItemGroup>
@@ -83,6 +84,18 @@
       <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
     </ItemGroup>
 
+
+    <SortAutoInitialedAssemblies
+      AssemblyNames="@(AutoInitializedAssemblies)"
+      AssemblyPaths="@(IlcReferences)">
+      <Output TaskParameter="SortedAssemblyNames" ItemName="SortedAutoInitializedAssemblies" />
+    </SortAutoInitialedAssemblies>
+    
+    <ItemGroup>
+      <AutoInitializedAssemblies Remove="@(AutoInitializedAssemblies)" />
+      <AutoInitializedAssemblies Include="@(SortedAutoInitializedAssemblies)" />
+    </ItemGroup>
+    
     <MakeDir Directories="$(IlcIntermediateOutputPath)" />
 
     <ItemGroup>
@@ -106,8 +119,6 @@
       <IlcArg Include="-O" />
       <!-- Architecture-specific instruction sets -->
       <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'" />
-      <!-- ARM64: Use only base instruction set. X86 intrinsics are not applicable to ARM64 architecture.
-           Runtime plugs in X86IntrinsicsPlug.cs ensure X86 intrinsics report IsSupported=false at runtime. -->
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'" />
       <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />

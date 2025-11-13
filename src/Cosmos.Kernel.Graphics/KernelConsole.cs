@@ -54,16 +54,6 @@ public static class KernelConsole
         return false;
     }
 
-    /// <summary>
-    /// Module initializer to ensure graphics console is initialized at module load time.
-    /// </summary>
-    [ModuleInitializer]
-    internal static void Init()
-    {
-        // Ensure initialized at module load time
-        Initialize();
-    }
-
     public static void Write(string text)
     {
         if (!IsAvailable)

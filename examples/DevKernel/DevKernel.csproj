@@ -42,6 +42,7 @@
     <DirectPInvoke Include="test" />
     <IlcArg Include="--verbose" />
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.Graphics"/>
   </ItemGroup>
 
   <!-- Include Plugs -->

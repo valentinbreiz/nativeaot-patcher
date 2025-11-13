@@ -41,17 +41,6 @@ public class Kernel
         PlatformHAL.Initialize();
         Serial.WriteString("HAL initialized.\n");
 
-        // Initialize graphics framebuffer
-        Serial.WriteString("Initializing graphics console...\n");
-        if (KernelConsole.Initialize())
-        {
-            Serial.WriteString("Graphics console initialized successfully!\n");
-        }
-        else
-        {
-            Serial.WriteString("Graphics console initialization failed - no framebuffer available\n");
-        }
-
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
             Serial.WriteString("Architecture: x86-64.\n");
