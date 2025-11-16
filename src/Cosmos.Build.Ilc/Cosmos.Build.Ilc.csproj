@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>$(AssemblyName)</Title>
-    <Version>1.0.0</Version>
     <Company>Cosmos</Company>
     <Description>Build tool to run ilc.</Description>
 
@@ -14,7 +13,7 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Ilc.props" PackagePath="build\" />
     <Content Include="build\Cosmos.Build.Ilc.targets" PackagePath="build\" />
@@ -25,7 +24,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime"/>
   </ItemGroup>
 
-  
+
   <!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>

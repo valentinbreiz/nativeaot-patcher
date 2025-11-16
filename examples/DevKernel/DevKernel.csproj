@@ -3,11 +3,11 @@
   <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>

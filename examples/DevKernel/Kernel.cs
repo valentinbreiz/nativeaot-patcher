@@ -420,6 +420,115 @@ internal unsafe static partial class Program
             KernelConsole.WriteLine("Test 24: FAILED");
         }
 
+        // Test 25: RhTypeCast_IsInstanceOfClass via C# 'is' checks
+        Serial.WriteString("[Main] Test 25: Testing RhTypeCast_IsInstanceOfClass via 'is'...\n");
+        Animal a1 = new Dog();
+        bool t25a = a1 is Animal; // expected true
+        bool t25b = a1 is Dog;    // expected true
+        bool t25c = a1 is Bird;   // expected false
+        if (t25a && t25b && !t25c)
+        {
+            Serial.WriteString("[Main] Test 25: SUCCESS - class 'is' checks passed\n");
+            KernelConsole.WriteLine("Test 25: PASS - IsInstanceOfClass works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 25: FAILED - results: ");
+            Serial.WriteNumber((uint)(t25a ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t25b ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t25c ? 1u : 0u), false); Serial.WriteString("\n");
+            KernelConsole.WriteLine("Test 25: FAILED");
+        }
+
+        // Test 26: RhTypeCast_IsInstanceOfInterface via 'is IFlyable'
+        Serial.WriteString("[Main] Test 26: Testing RhTypeCast_IsInstanceOfInterface via 'is IFlyable'...\n");
+        Bird bird = new Bird();
+        Dog dog = new Dog();
+        bool t26a = bird is IFlyable; // expected true
+        bool t26b = dog is IFlyable;  // expected false
+        // Also check value type implementing interface (ITestPoint)
+        TestPoint tp = new TestPoint { X = 2, Y = 3 };
+        ITestPoint? itp = tp; // boxing to interface should succeed
+        bool t26c = itp is ITestPoint; // expected true
+        if (t26a && !t26b && t26c)
+        {
+            Serial.WriteString("[Main] Test 26: SUCCESS - interface 'is' checks passed\n");
+            KernelConsole.WriteLine("Test 26: PASS - IsInstanceOfInterface works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 26: FAILED - results: ");
+            Serial.WriteNumber((uint)(t26a ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t26b ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t26c ? 1u : 0u), false); Serial.WriteString("\n");
+            KernelConsole.WriteLine("Test 26: FAILED");
+        }
+
+        // Test 27: RhTypeCast_CheckCastInterface via explicit cast
+        Serial.WriteString("[Main] Test 27: Testing RhTypeCast_CheckCastInterface via explicit casts...\n");
+        bool t27a;
+        bool t27b;
+        try
+        {
+            // Value type to its interface: should box and succeed
+            ITestPoint castOk = (ITestPoint)tp;
+            t27a = castOk.Value == 5;
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[Main] Test 27: Unexpected exception on valid interface cast: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            t27a = false;
+        }
+        try
+        {
+            // Invalid interface cast: should throw InvalidCastException
+            _ = (IFlyable)dog;
+            t27b = false; // should not reach here
+        }
+        catch (InvalidCastException)
+        {
+            t27b = true;
+        }
+        catch (Exception)
+        {
+            t27b = false;
+        }
+        if (t27a && t27b)
+        {
+            Serial.WriteString("[Main] Test 27: SUCCESS - interface explicit cast behavior correct\n");
+            KernelConsole.WriteLine("Test 27: PASS - CheckCastInterface works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 27: FAILED\n");
+            KernelConsole.WriteLine("Test 27: FAILED");
+        }
+
+        // Test 28: RhTypeCast_IsInstanceOfAny via multi-type pattern matching
+        Serial.WriteString("[Main] Test 28: Testing RhTypeCast_IsInstanceOfAny via multi-type pattern...\n");
+        bool MatchIntStringAnimal(object o) => o is int || o is string || o is Dog;
+        object o1 = 123;
+        object o2 = new Dog();
+        object o3 = 3.1415; // double
+        bool t28a = MatchIntStringAnimal(o1); // true (int)
+        bool t28b = MatchIntStringAnimal(o2); // true (Dog)
+        bool t28c = MatchIntStringAnimal(o3); // false
+        if (t28a && t28b && !t28c)
+        {
+            Serial.WriteString("[Main] Test 28: SUCCESS - multi-type 'is' pattern works\n");
+            KernelConsole.WriteLine("Test 28: PASS - IsInstanceOfAny works");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 28: FAILED - results: ");
+            Serial.WriteNumber((uint)(t28a ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t28b ? 1u : 0u), false); Serial.WriteString(",");
+            Serial.WriteNumber((uint)(t28c ? 1u : 0u), false); Serial.WriteString("\n");
+            KernelConsole.WriteLine("Test 28: FAILED");
+        }
+
         KernelConsole.WriteLine("All core tests PASSED!");
 
         DebugInfo.Print();
@@ -488,11 +597,23 @@ internal unsafe static partial class Program
 }
 
 // Test struct for boxing tests
-internal struct TestPoint
+internal struct TestPoint : ITestPoint
 {
     public int X;
     public int Y;
+    public readonly int Value => X + Y;
 }
+
+internal interface ITestPoint
+{
+    int Value { get; }
+}
+
+// Simple hierarchy for type-cast helper tests
+internal class Animal { }
+internal class Dog : Animal { }
+internal interface IFlyable { void Fly(); }
+internal class Bird : Animal, IFlyable { public void Fly() { } }
 
 [CustomMarshaller(typeof(string), MarshalMode.Default, typeof(SimpleStringMarshaler))]
 internal static unsafe class SimpleStringMarshaler
