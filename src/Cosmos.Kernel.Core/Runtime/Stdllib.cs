@@ -106,20 +106,6 @@ namespace Cosmos.Kernel.Core.Runtime
             return original;
         }
 
-        [RuntimeExport("RhTypeCast_CheckCastClass")]
-        static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle)
-        {
-            // This is 100% WRONG
-            return obj;
-        }
-
-        // Essential runtime functions needed by the linker
-        [RuntimeExport("RhTypeCast_IsInstanceOfClass")]
-        static unsafe object RhTypeCast_IsInstanceOfClass(object obj, int classTypeHandle)
-        {
-            return obj; // Simplified implementation
-        }
-
 
         [RuntimeExport("RhpTrapThreads")]
         static void RhpTrapThreads() { }
@@ -192,17 +178,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhHandleFree")]
         static void RhHandleFree(IntPtr handle) { }
 
-        [RuntimeExport("RhTypeCast_AreTypesAssignable")]
-        static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest)
-        {
-            return true; // Simplified implementation
-        }
-
-        [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
-        static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count)
-        {
-            return obj; // Simplified implementation
-        }
 
         [RuntimeExport("RhpStelemRef")]
         static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
@@ -246,18 +221,6 @@ namespace Cosmos.Kernel.Core.Runtime
 
         [RuntimeExport("RhCreateCrashDumpIfEnabled")]
         static void RhCreateCrashDumpIfEnabled(IntPtr exceptionRecord, IntPtr contextRecord) { }
-
-        [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
-        static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle)
-        {
-            return obj != null;
-        }
-
-        [RuntimeExport("RhTypeCast_CheckCastInterface")]
-        static unsafe object RhTypeCast_CheckCastInterface(object obj, int interfaceTypeHandle)
-        {
-            return obj;
-        }
 
         [RuntimeExport("RhpByRefAssignRef")]
         static unsafe void RhpByRefAssignRef(void** location, void* value)

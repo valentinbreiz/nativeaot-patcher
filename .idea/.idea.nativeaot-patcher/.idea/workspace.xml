@@ -9,57 +9,49 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Directory.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/Directory.Build.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install-packages.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/install-packages.ps1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/build/Cosmos.Build.Ilc.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/build/Cosmos.Build.Ilc.targets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/build/Cosmos.Build.Patcher.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/build/Cosmos.Build.Patcher.targets" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/InterruptManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/InterruptManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.x64/CPU/Interrupts.asm" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.x64/CPU/Interrupts.asm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.x64/Cosmos.Kernel.Native.x64.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Bootstrap/kmain.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Bootstrap/kmain.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="42" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d9b136c710f545068f03b8ae312551c33400/0c/e3a5c603/ThreadState.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e7c03d2e023040c8b9fba03fd4fc02c417120/7e/141e6759/ToolTask.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/98ecf4ebd1d9a35e95cb73d6be798c135d5783d7e5ace5ac3b778bf15fed1a/Span.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e744562ef42dc5e29efed36f99fad0bd8896f768f06a144364a62cb95d92813/Console.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/632852b58e154d7691b15e91250fc18b2400/64/2b731c9f/02000009pdb2.il" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/fa43ce40a1d39ccdb6ae73cf12cb85560606f704322dd5368bbaeb88f486d6/InvalidCastException.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.Core/IO/Serial.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/ATAPI.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/ATA_PIO.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/Ata.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/BlockDevice.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/BlockDeviceManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/Enums/BlockDeviceType.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/GPT.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/IOGroup/ATA.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/IdeManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/MBR.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/Partition.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IdtEntry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Enums/EFlagsEnum.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/InterruptBridge.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.HAL/Cpu/InterruptManager.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/InterruptManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/DebugInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/DeviceString.cs" root0="FORCE_HIGHLIGHTING" />
@@ -80,9 +72,10 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciDevice.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.x64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.Native.x64/CPU/Interrupts.asm" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel/Bootstrap/kmain.c" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Plugs/System/Runtime/Intrinsics/X86IntrinsicsPlug.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Plugs/System/Runtime/Intrinsics/X86IntrinsicsPlug.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Patcher/PlugPatcher.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProblemsViewState">
@@ -99,31 +92,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;zarlo/pci/0&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/multiarch/typecasting",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.environmentSetup",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="DevKernel" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="PTY_MODE" value="Auto" />
       <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
@@ -156,6 +153,9 @@
       <workItem from="1760943148128" duration="511000" />
       <workItem from="1760961777018" duration="3965000" />
       <workItem from="1761088397686" duration="10056000" />
+      <workItem from="1763139388511" duration="23118000" />
+      <workItem from="1763263209289" duration="763000" />
+      <workItem from="1763272051231" duration="8190000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />

@@ -37,20 +37,20 @@
       Items="@(HostILCompilerPack)"
       PackageFolders="@(AssetsFilePackageFolder)"
     >
-      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
+      <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack"/>
     </GetPackageDirectory>
 
     <PropertyGroup>
       <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''">$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
     </PropertyGroup>
-    <Message Importance="High" Text="⚙️ [ILC] RuntimeIdentifier: $(RuntimeIdentifier)" />
-    <Message Importance="High" Text="⚙️ [ILC] CosmosArch: $(CosmosArch)" />
-    <Message Importance="High" Text="⚙️ [ILC] IlcHostOs: $(IlcHostOs)" />
-    <Message Importance="High" Text="⚙️ [ILC] HostILCompilerPack: @(HostILCompilerPack->'%(NuGetPackageId)')" />
-    <Message Importance="High" Text="⚙️ [ILC] ResolvedILCompilerPack count: @(ResolvedILCompilerPack->Count())" />
-    <Message Importance="High" Text="⚙️ [ILC] IlcHostPackagePath: $(IlcHostPackagePath)" />
-    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
+    <Message Importance="High" Text="⚙️ [ILC] RuntimeIdentifier: $(RuntimeIdentifier)"/>
+    <Message Importance="High" Text="⚙️ [ILC] CosmosArch: $(CosmosArch)"/>
+    <Message Importance="High" Text="⚙️ [ILC] IlcHostOs: $(IlcHostOs)"/>
+    <Message Importance="High" Text="⚙️ [ILC] HostILCompilerPack: @(HostILCompilerPack->'%(NuGetPackageId)')"/>
+    <Message Importance="High" Text="⚙️ [ILC] ResolvedILCompilerPack count: @(ResolvedILCompilerPack->Count())"/>
+    <Message Importance="High" Text="⚙️ [ILC] IlcHostPackagePath: $(IlcHostPackagePath)"/>
+    <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)"/>
   </Target>
 
   <!-- Writes the response file for ILC compilation. -->
@@ -67,76 +67,79 @@
     </PropertyGroup>
 
     <ItemGroup Condition="$(IlcSystemModule) == 'System.Private.CoreLib'">
-      <AutoInitializedAssemblies Include="System.Private.CoreLib" />
-      <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'" />
-      <AutoInitializedAssemblies Include="System.Private.TypeLoader" />
-      <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" Condition="$(IlcDisableReflection) != 'true'" />
-      <AutoInitializedAssemblies Include="System.Private.DisabledReflection" Condition="$(IlcDisableReflection) == 'true'" />
+      <AutoInitializedAssemblies Include="System.Private.CoreLib"/>
+      <AutoInitializedAssemblies Include="System.Private.StackTraceMetadata" Condition="$(StackTraceSupport) != 'false'"/>
+      <AutoInitializedAssemblies Include="System.Private.TypeLoader"/>
+      <AutoInitializedAssemblies Include="System.Private.Reflection.Execution" Condition="$(IlcDisableReflection) != 'true'"/>
+      <AutoInitializedAssemblies Include="System.Private.DisabledReflection" Condition="$(IlcDisableReflection) == 'true'"/>
     </ItemGroup>
 
     <ItemGroup>
-      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll" />
+      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll"/>
       <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
 
-      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll"/>
+      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll" />
     </ItemGroup>
 
 
     <SortAutoInitialedAssemblies
       AssemblyNames="@(AutoInitializedAssemblies)"
       AssemblyPaths="@(IlcReferences)">
-      <Output TaskParameter="SortedAssemblyNames" ItemName="SortedAutoInitializedAssemblies" />
+      <Output TaskParameter="SortedAssemblyNames" ItemName="SortedAutoInitializedAssemblies"/>
     </SortAutoInitialedAssemblies>
-    
-    <ItemGroup>
-      <AutoInitializedAssemblies Remove="@(AutoInitializedAssemblies)" />
-      <AutoInitializedAssemblies Include="@(SortedAutoInitializedAssemblies)" />
-    </ItemGroup>
-    
-    <MakeDir Directories="$(IlcIntermediateOutputPath)" />
 
     <ItemGroup>
-      <IlcArg Include="@(IlcCompileInput)" />
-      <IlcArg Include="-o:%(ManagedBinary.OutputFile)" />
-      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')" />
-      <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')" />
-      <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')" />
-      <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)" />
-      <IlcArg Include="--targetarch:$(CosmosArch)" />
-      <IlcArg Include="--targetos:linux" />
-      <IlcArg Include="--export-dynamic-symbol:g_compilerEmbeddedKnobsBlob" /> <!-- Required to implement 'RhGetKnobValues' -->
-      <IlcArg Condition="$(ExportsFile) != ''" Include="--exportsfile:&quot;$(ExportsFile)&quot;" />
-      <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')" />
-      <IlcArg Include="--systemmodule:$(IlcSystemModule)" />
-      <IlcArg Include="@(DirectPInvoke->'--directpinvoke:%(Identity)')" />
-      <IlcArg Include="@(DirectPInvokeList->'--directpinvokelist:%(Identity)')" />
-      <IlcArg Include="--nativelib" />
-      <IlcArg Include="--noinlinetls" />
-      <IlcArg Include="-g" />
-      <IlcArg Include="-O" />
+      <AutoInitializedAssemblies Remove="@(AutoInitializedAssemblies)"/>
+      <AutoInitializedAssemblies Include="@(SortedAutoInitializedAssemblies)"/>
+    </ItemGroup>
+
+    <MakeDir Directories="$(IlcIntermediateOutputPath)"/>
+
+    <ItemGroup>
+      <IlcArg Include="@(IlcCompileInput)"/>
+      <IlcArg Include="-o:%(ManagedBinary.OutputFile)"/>
+      <IlcArg Include="@(IlcReferences->'-r:%(Identity)')"/>
+      <IlcArg Include="@(_TrimmerFeatureSettings->'--feature:%(Identity)=%(Value)')"/>
+      <IlcArg Include="@(RuntimeHostConfigurationOption->'--runtimeknob:%(Identity)=%(Value)')"/>
+      <IlcArg Include="--runtimeknob:RUNTIME_IDENTIFIER=$(RuntimeIdentifier)"/>
+      <IlcArg Include="--targetarch:$(CosmosArch)"/>
+      <IlcArg Include="--targetos:linux"/>
+      <IlcArg Include="--export-dynamic-symbol:g_compilerEmbeddedKnobsBlob"/> <!-- Required to implement 'RhGetKnobValues' -->
+      <IlcArg Condition="$(ExportsFile) != ''" Include="--exportsfile:&quot;$(ExportsFile)&quot;"/>
+      <IlcArg Include="@(AutoInitializedAssemblies->'--initassembly:%(Identity)')"/>
+      <IlcArg Include="--systemmodule:$(IlcSystemModule)"/>
+      <IlcArg Include="@(DirectPInvoke->'--directpinvoke:%(Identity)')"/>
+      <IlcArg Include="@(DirectPInvokeList->'--directpinvokelist:%(Identity)')"/>
+      <IlcArg Include="--nativelib"/>
+      <IlcArg Include="--noinlinetls"/>
+      <IlcArg Include="-g"/>
+      <IlcArg Include="-O"/>
       <!-- Architecture-specific instruction sets -->
-      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'" />
-      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'" />
-      <IlcArg Include="--preinitstatics" /> <!-- Implied by -O, but we rely on this for Limine requests. -->
-      <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')" />
+      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'"/>
+      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'"/>
+      <IlcArg Include="--preinitstatics"/> <!-- Implied by -O, but we rely on this for Limine requests. -->
+      <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')"/>
 
       <!-- The managed debugging support in libraries is unused - trim it -->
-      <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false" />
+      <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false"/>
     </ItemGroup>
 
-    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true" />
+    <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true"/>
   </Target>
 
   <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
-    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)" />
+    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
     <Exec
       Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
       WorkingDirectory="$(FullIntermediateOutputPath)"
+      IgnoreExitCode="false"
+      StandardOutputImportance="High"
+      StandardErrorImportance="High"
     />
 
-    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)" />
+    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)"/>
   </Target>
 </Project>
