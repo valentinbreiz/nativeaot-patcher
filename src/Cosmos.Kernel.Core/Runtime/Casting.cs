@@ -1,7 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime;
-using System.Runtime.CompilerServices;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -9,22 +8,22 @@ namespace Cosmos.Kernel.Core.Runtime;
 internal static unsafe class Casting
 {
     [RuntimeExport("RhTypeCast_AreTypesAssignable")]
-    public static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest)
+    public static bool RhTypeCast_AreTypesAssignable(MethodTable* typeHandleSrc, MethodTable* typeHandleDest)
     {
-        MethodTable* srcType = (MethodTable*)typeHandleSrc;
-        MethodTable* destType = (MethodTable*)typeHandleDest;
-        return destType->IsInterface
-            ? RhTypeCast_IsInstanceOfInterface(srcType, destType)
-            : RhTypeCast_IsInstanceOfClass(srcType, destType);
+        return typeHandleDest->IsInterface
+            ? RhTypeCast_IsInstanceOfInterface(typeHandleSrc, typeHandleDest)
+            : RhTypeCast_IsInstanceOfClass(typeHandleSrc, typeHandleDest);
     }
 
     [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
-    public static object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count)
+    public static object RhTypeCast_IsInstanceOfAny(object obj, MethodTable** pTypeHandles, int count)
     {
         MethodTable* type = obj.GetMethodTable();
         for (int i = 0; i < count; i++)
         {
-            if (type == (MethodTable*)pTypeHandles[i])
+            MethodTable* typeHandle = pTypeHandles[i];
+            if ((typeHandle->IsInterface && RhTypeCast_IsInstanceOfInterface(type, typeHandle)) ||
+                RhTypeCast_IsInstanceOfClass(type, pTypeHandles[i]))
                 return obj;
         }
 
@@ -32,12 +31,10 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
-    public static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle)
+    public static bool RhTypeCast_IsInstanceOfInterface(object obj, MethodTable* interfaceTypeHandle)
     {
         MethodTable* type = obj.GetMethodTable();
-        MethodTable* interfaceType = (MethodTable*)interfaceTypeHandle;
-
-        return RhTypeCast_IsInstanceOfInterface(type, interfaceType);
+        return RhTypeCast_IsInstanceOfInterface(type, interfaceTypeHandle);
     }
 
     private static bool RhTypeCast_IsInstanceOfInterface(MethodTable* type, MethodTable* interfaceType)
@@ -57,7 +54,7 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_CheckCastInterface")]
-    public static object RhTypeCast_CheckCastInterface(object obj, int interfaceTypeHandle)
+    public static object RhTypeCast_CheckCastInterface(object obj, MethodTable* interfaceTypeHandle)
     {
         if (!RhTypeCast_IsInstanceOfInterface(obj, interfaceTypeHandle))
             throw new InvalidCastException();
@@ -66,22 +63,20 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_CheckCastClass")]
-    public static object RhTypeCast_CheckCastClass(object obj, int typeHandle)
+    public static object RhTypeCast_CheckCastClass(object obj, MethodTable* typeHandle)
     {
         return RhTypeCast_IsInstanceOfClass(obj, typeHandle) ?? throw new InvalidCastException();
     }
 
     // Essential runtime functions needed by the linker
     [RuntimeExport("RhTypeCast_IsInstanceOfClass")]
-    public static object RhTypeCast_IsInstanceOfClass(object obj, int classTypeHandle)
+    public static object RhTypeCast_IsInstanceOfClass(object obj, MethodTable* classTypeHandle)
     {
         MethodTable* type = obj.GetMethodTable();
-        MethodTable* classType = (MethodTable*)classTypeHandle;
-
-        return RhTypeCast_IsInstanceOfClass(type, classType) ? obj : null;
+        return RhTypeCast_IsInstanceOfClass(type, classTypeHandle) ? obj : null;
     }
 
-   private static bool RhTypeCast_IsInstanceOfClass(MethodTable* type, MethodTable* classType)
+    private static bool RhTypeCast_IsInstanceOfClass(MethodTable* type, MethodTable* classType)
     {
         while (type != null)
         {
