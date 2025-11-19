@@ -119,6 +119,12 @@ namespace Cosmos.Kernel.Core.Runtime
             return IntPtr.Zero;
         }
 
+        [RuntimeExport("RhpStackProbe")]
+        static void RhpStackProbe()
+        {
+
+        }
+
         [RuntimeExport("RhGetRuntimeVersion")]
         static int RhGetRuntimeVersion()
         {
@@ -287,12 +293,6 @@ namespace Cosmos.Kernel.Core.Runtime
             memmove((byte*)dest, (byte*)src, len);
         }
 
-        [RuntimeExport("RhTypeCast_CheckCastClassSpecial")]
-        static unsafe object RhTypeCast_CheckCastClassSpecial(object obj, int typeHandle, byte fThrow)
-        {
-            return obj;
-        }
-
         [RuntimeExport("RhFindMethodStartAddress")]
         static IntPtr RhFindMethodStartAddress(IntPtr ip)
         {
@@ -333,12 +333,6 @@ namespace Cosmos.Kernel.Core.Runtime
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode)
         {
             return pCode;
-        }
-
-        [RuntimeExport("RhTypeCast_CheckCastAny")]
-        static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle)
-        {
-            return obj;
         }
 
         private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)

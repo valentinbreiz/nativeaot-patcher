@@ -18,10 +18,8 @@ using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
 
-internal unsafe static partial class Program
+internal static partial class Program
 {
-
-
     [LibraryImport("test", EntryPoint = "testGCC")]
     [return: MarshalUsing(typeof(SimpleStringMarshaler))]
     public static unsafe partial string testGCC();
@@ -38,7 +36,7 @@ internal unsafe static partial class Program
 
         // Test 1: Small allocation (char array)
         Serial.WriteString("[Main] Test 1: Allocating char array...\n");
-        char[] testChars = new char[] { 'R', 'h', 'p' };
+        char[] testChars = new[] { 'R', 'h', 'p' };
         Serial.WriteString("[Main] Test 1: SUCCESS - char array allocated\n");
         KernelConsole.WriteLine("Test 1: PASS");
 
@@ -58,13 +56,14 @@ internal unsafe static partial class Program
         {
             intArray[i] = i * 10;
         }
+
         Serial.WriteString("[Main] Test 3: SUCCESS - int array allocated and populated\n");
         Serial.WriteString("[Main] Test 3: First 3 values: ");
-        Serial.WriteNumber((uint)intArray[0], false);
+        Serial.WriteNumber((uint)intArray[0]);
         Serial.WriteString(", ");
-        Serial.WriteNumber((uint)intArray[1], false);
+        Serial.WriteNumber((uint)intArray[1]);
         Serial.WriteString(", ");
-        Serial.WriteNumber((uint)intArray[2], false);
+        Serial.WriteNumber((uint)intArray[2]);
         Serial.WriteString("\n");
         KernelConsole.WriteLine("Test 3: PASS");
 
@@ -108,7 +107,7 @@ internal unsafe static partial class Program
         int valueInt = 42;
         object boxedInt = valueInt;
         Serial.WriteString("[Main] Test 7: SUCCESS - boxed int value: ");
-        Serial.WriteNumber((uint)(int)boxedInt, false);
+        Serial.WriteNumber((uint)(int)boxedInt);
         Serial.WriteString("\n");
         KernelConsole.WriteLine("Test 7: PASS - boxing works");
 
@@ -118,7 +117,7 @@ internal unsafe static partial class Program
         if (unboxedInt == 42)
         {
             Serial.WriteString("[Main] Test 8: SUCCESS - unboxed value matches: ");
-            Serial.WriteNumber((uint)unboxedInt, false);
+            Serial.WriteNumber((uint)unboxedInt);
             Serial.WriteString("\n");
             KernelConsole.WriteLine("Test 8: PASS - unboxed correctly");
         }
@@ -168,7 +167,7 @@ internal unsafe static partial class Program
         if (boxedNullable != null && (int)boxedNullable == 777)
         {
             Serial.WriteString("[Main] Test 12: SUCCESS - Nullable<T> with value boxes correctly: ");
-            Serial.WriteNumber((uint)(int)boxedNullable, false);
+            Serial.WriteNumber((uint)(int)boxedNullable);
             Serial.WriteString("\n");
             KernelConsole.WriteLine("Test 12: PASS - nullable value boxing works");
         }
@@ -180,7 +179,7 @@ internal unsafe static partial class Program
 
         // Test 13: Array.Copy with boxing
         Serial.WriteString("[Main] Test 13: Testing Array.Copy with boxing...\n");
-        int[] sourceIntArray = new int[] { 10, 20, 30 };
+        int[] sourceIntArray = new[] { 10, 20, 30 };
         object[] destObjectArray = new object[3];
         Array.Copy(sourceIntArray, destObjectArray, 3);
         if ((int)destObjectArray[0] == 10 && (int)destObjectArray[1] == 20 && (int)destObjectArray[2] == 30)
@@ -229,7 +228,7 @@ internal unsafe static partial class Program
 
         // Test 16: Simple boxing/unboxing
         Serial.WriteString("[Main] Test 16: Testing simple box/unbox...\n");
-        object simpleBoxed = (object)999;
+        object simpleBoxed = 999;
         int simpleUnboxed = (int)simpleBoxed;
         if (simpleUnboxed == 999)
         {
@@ -260,9 +259,9 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 17: FAILED - Contains returned wrong values (found20=");
-            Serial.WriteNumber((uint)(found20 ? 1 : 0), false);
+            Serial.WriteNumber((uint)(found20 ? 1 : 0));
             Serial.WriteString(", found99=");
-            Serial.WriteNumber((uint)(found99 ? 1 : 0), false);
+            Serial.WriteNumber((uint)(found99 ? 1 : 0));
             Serial.WriteString(")\n");
             KernelConsole.WriteLine("Test 17: FAILED");
         }
@@ -280,9 +279,9 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 18: FAILED - IndexOf incorrect (index20=");
-            Serial.WriteNumber((uint)index20, false);
+            Serial.WriteNumber((uint)index20);
             Serial.WriteString(", index99=");
-            Serial.WriteNumber((uint)index99, false);
+            Serial.WriteNumber((uint)index99);
             Serial.WriteString(")\n");
             KernelConsole.WriteLine("Test 18: FAILED");
         }
@@ -297,7 +296,7 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 19: FAILED - List.Count incorrect (");
-            Serial.WriteNumber((uint)searchList.Count, false);
+            Serial.WriteNumber((uint)searchList.Count);
             Serial.WriteString(")\n");
             KernelConsole.WriteLine("Test 19: FAILED");
         }
@@ -325,7 +324,7 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 20: FAILED - Count=");
-            Serial.WriteNumber((uint)stringList.Count, false);
+            Serial.WriteNumber((uint)stringList.Count);
             Serial.WriteString(", [0]='");
             Serial.WriteString(stringList[0]);
             Serial.WriteString("'\n");
@@ -424,8 +423,8 @@ internal unsafe static partial class Program
         Serial.WriteString("[Main] Test 25: Testing RhTypeCast_IsInstanceOfClass via 'is'...\n");
         Animal a1 = new Dog();
         bool t25a = a1 is Animal; // expected true
-        bool t25b = a1 is Dog;    // expected true
-        bool t25c = a1 is Bird;   // expected false
+        bool t25b = a1 is Dog; // expected true
+        bool t25c = a1 is Bird; // expected false
         if (t25a && t25b && !t25c)
         {
             Serial.WriteString("[Main] Test 25: SUCCESS - class 'is' checks passed\n");
@@ -434,9 +433,12 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 25: FAILED - results: ");
-            Serial.WriteNumber((uint)(t25a ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t25b ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t25c ? 1u : 0u), false); Serial.WriteString("\n");
+            Serial.WriteNumber(t25a ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t25b ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t25c ? 1u : 0u);
+            Serial.WriteString("\n");
             KernelConsole.WriteLine("Test 25: FAILED");
         }
 
@@ -445,7 +447,7 @@ internal unsafe static partial class Program
         Bird bird = new Bird();
         Dog dog = new Dog();
         bool t26a = bird is IFlyable; // expected true
-        bool t26b = dog is IFlyable;  // expected false
+        bool t26b = dog is IFlyable; // expected false
         // Also check value type implementing interface (ITestPoint)
         TestPoint tp = new TestPoint { X = 2, Y = 3 };
         ITestPoint? itp = tp; // boxing to interface should succeed
@@ -458,9 +460,12 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 26: FAILED - results: ");
-            Serial.WriteNumber((uint)(t26a ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t26b ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t26c ? 1u : 0u), false); Serial.WriteString("\n");
+            Serial.WriteNumber(t26a ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t26b ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t26c ? 1u : 0u);
+            Serial.WriteString("\n");
             KernelConsole.WriteLine("Test 26: FAILED");
         }
 
@@ -471,7 +476,7 @@ internal unsafe static partial class Program
         try
         {
             // Value type to its interface: should box and succeed
-            ITestPoint castOk = (ITestPoint)tp;
+            ITestPoint castOk = tp;
             t27a = castOk.Value == 5;
         }
         catch (Exception ex)
@@ -481,6 +486,7 @@ internal unsafe static partial class Program
             Serial.WriteString("\n");
             t27a = false;
         }
+
         try
         {
             // Invalid interface cast: should throw InvalidCastException
@@ -495,6 +501,7 @@ internal unsafe static partial class Program
         {
             t27b = false;
         }
+
         if (t27a && t27b)
         {
             Serial.WriteString("[Main] Test 27: SUCCESS - interface explicit cast behavior correct\n");
@@ -508,7 +515,7 @@ internal unsafe static partial class Program
 
         // Test 28: RhTypeCast_IsInstanceOfAny via multi-type pattern matching
         Serial.WriteString("[Main] Test 28: Testing RhTypeCast_IsInstanceOfAny via multi-type pattern...\n");
-        bool MatchIntStringAnimal(object o) => o is int || o is string || o is Dog;
+        bool MatchIntStringAnimal(object o) => o is int or string or Dog;
         object o1 = 123;
         object o2 = new Dog();
         object o3 = 3.1415; // double
@@ -523,10 +530,102 @@ internal unsafe static partial class Program
         else
         {
             Serial.WriteString("[Main] Test 28: FAILED - results: ");
-            Serial.WriteNumber((uint)(t28a ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t28b ? 1u : 0u), false); Serial.WriteString(",");
-            Serial.WriteNumber((uint)(t28c ? 1u : 0u), false); Serial.WriteString("\n");
+            Serial.WriteNumber(t28a ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t28b ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t28c ? 1u : 0u);
+            Serial.WriteString("\n");
             KernelConsole.WriteLine("Test 28: FAILED");
+        }
+
+        // Test 29: Generic invariance and interface covariance (List<T> vs IEnumerable<out T>)
+        Serial.WriteString("[Main] Test 29: Testing generics invariance and covariance...\n");
+        List<Dog> dogList = new() { new Dog(), new Dog() };
+        bool t29a = dogList is List<Animal>; // expected false (invariant)
+        bool t29b = dogList is IEnumerable<Animal>; // expected true (IEnumerable is covariant)
+        if (!t29a && t29b)
+        {
+            Serial.WriteString("[Main] Test 29: SUCCESS - List<T> is invariant; IEnumerable<out T> is covariant\n");
+            KernelConsole.WriteLine("Test 29: PASS - generics invariance/covariance");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 29: FAILED - results: ");
+            Serial.WriteNumber(t29a ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t29b ? 1u : 0u);
+            Serial.WriteString("\n");
+            KernelConsole.WriteLine("Test 29: FAILED");
+        }
+
+        // Test 30: Delegate contravariance (Action<in T>)
+        Serial.WriteString("[Main] Test 30: Testing delegate contravariance (Action<in T>)...\n");
+        Action<Animal> actAnimal = delegate { };
+        bool t30 = actAnimal is Action<Dog>; // expected true (contravariant)
+        if (t30)
+        {
+            Serial.WriteString("[Main] Test 30: SUCCESS - Action<Animal> is Action<Dog>\n");
+            KernelConsole.WriteLine("Test 30: PASS - delegate contravariance");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 30: FAILED\n");
+            KernelConsole.WriteLine("Test 30: FAILED");
+        }
+
+        // Test 31: Array covariance (T[] is array of base type)
+        Serial.WriteString("[Main] Test 31: Testing array covariance...\n");
+        Dog[] dogArray = new[] { new Dog(), new Dog() };
+        bool t31 = dogArray is Animal[]; // expected true
+        if (t31)
+        {
+            // Also try assigning a Dog through the base-typed array reference
+            Animal[] animalArrayRef = dogArray;
+            animalArrayRef[0] = new Dog();
+            Serial.WriteString("[Main] Test 31: SUCCESS - Dog[] is Animal[] and assignment via base ref works\n");
+            KernelConsole.WriteLine("Test 31: PASS - array covariance");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 31: FAILED\n");
+            KernelConsole.WriteLine("Test 31: FAILED");
+        }
+
+        // Test 32: Custom generic variance (covariant/contravariant interfaces)
+        Serial.WriteString("[Main] Test 32: Testing custom generic variance on interfaces...\n");
+        DogProducer producer = new();
+        AnimalConsumer consumer = new();
+        bool t32a = producer is IProducer<Animal>; // covariant (out T)
+        bool t32b = consumer is IConsumer<Dog>; // contravariant (in T)
+        if (t32a && t32b)
+        {
+            Serial.WriteString("[Main] Test 32: SUCCESS - custom interface variance works\n");
+            KernelConsole.WriteLine("Test 32: PASS - custom variance");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 32: FAILED - results: ");
+            Serial.WriteNumber(t32a ? 1u : 0u);
+            Serial.WriteString(",");
+            Serial.WriteNumber(t32b ? 1u : 0u);
+            Serial.WriteString("\n");
+            KernelConsole.WriteLine("Test 32: FAILED");
+        }
+
+        // Test 33: IEnumerable<object> from array of reference type (covariance)
+        Serial.WriteString("[Main] Test 33: Testing covariance to IEnumerable<object> from string[]...\n");
+        string[] strArray = new[] { "a", "b", "c" };
+        bool t33 = strArray is IEnumerable<object>; // expected true
+        if (t33)
+        {
+            Serial.WriteString("[Main] Test 33: SUCCESS - string[] is IEnumerable<object>\n");
+            KernelConsole.WriteLine("Test 33: PASS - covariance to IEnumerable<object>");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 33: FAILED\n");
+            KernelConsole.WriteLine("Test 33: FAILED");
         }
 
         KernelConsole.WriteLine("All core tests PASSED!");
@@ -538,7 +637,7 @@ internal unsafe static partial class Program
 #if ARCH_X64
         // Register a handler for INT 32 to test interrupt handling
         Serial.WriteString("[Main] Registering INT 32 handler...\n");
-        Cosmos.Kernel.HAL.Cpu.InterruptManager.SetHandler(32, TestInt32Handler);
+        InterruptManager.SetHandler(32, TestInt32Handler);
         Serial.WriteString("[Main] INT 32 handler registered!\n");
 
         // Test triggering INT 32
@@ -610,15 +709,52 @@ internal interface ITestPoint
 }
 
 // Simple hierarchy for type-cast helper tests
-internal class Animal { }
-internal class Dog : Animal { }
-internal interface IFlyable { void Fly(); }
-internal class Bird : Animal, IFlyable { public void Fly() { } }
+internal class Animal
+{
+}
+
+internal class Dog : Animal
+{
+}
+
+internal interface IFlyable
+{
+    void Fly();
+}
+
+internal class Bird : Animal, IFlyable
+{
+    public void Fly()
+    {
+    }
+}
+
+// Custom generic variance types for testing RhTypeCast with generics
+internal interface IProducer<out T>
+{
+    T Produce();
+}
+
+internal interface IConsumer<in T>
+{
+    void Consume(T item);
+}
+
+internal class DogProducer : IProducer<Dog>
+{
+    public Dog Produce() => new Dog();
+}
+
+internal class AnimalConsumer : IConsumer<Animal>
+{
+    public void Consume(Animal item)
+    {
+    }
+}
 
 [CustomMarshaller(typeof(string), MarshalMode.Default, typeof(SimpleStringMarshaler))]
 internal static unsafe class SimpleStringMarshaler
 {
-
     public static string ConvertToManaged(char* unmanaged)
     {
         // Count the length of the null-terminated UTF-16 string

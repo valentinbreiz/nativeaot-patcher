@@ -9,15 +9,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/build/Cosmos.Build.Ilc.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/build/Cosmos.Build.Ilc.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/build/Cosmos.Build.Patcher.targets" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/build/Cosmos.Build.Patcher.targets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +26,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="feature/multiarch/typecasting" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -41,13 +36,14 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/632852b58e154d7691b15e91250fc18b2400/64/2b731c9f/02000009pdb2.il" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/fa43ce40a1d39ccdb6ae73cf12cb85560606f704322dd5368bbaeb88f486d6/InvalidCastException.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Enums/EFlagsEnum.cs" root0="FORCE_HIGHLIGHTING" />
@@ -73,13 +69,10 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Pci/PciManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Plugs/System/Runtime/Intrinsics/X86IntrinsicsPlug.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Kernel.Plugs/System/Runtime/Intrinsics/X86IntrinsicsPlug.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Patcher/PlugPatcher.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="Toolset" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
@@ -92,27 +85,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/multiarch/typecasting&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.environmentSetup&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/typecasting",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.environmentSetup",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="DevKernel" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -156,6 +149,9 @@
       <workItem from="1763139388511" duration="23118000" />
       <workItem from="1763263209289" duration="763000" />
       <workItem from="1763272051231" duration="8190000" />
+      <workItem from="1763342570640" duration="1044000" />
+      <workItem from="1763487312856" duration="10484000" />
+      <workItem from="1763558224607" duration="11222000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -165,7 +161,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760872061508</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="upd: traverse inheritance chain for RhTypeCast_IsInstanceOfAny">
+      <option name="closed" value="true" />
+      <created>1763343329732</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1763343329734</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -179,7 +183,8 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="work" />
-    <option name="LAST_COMMIT_MESSAGE" value="work" />
+    <MESSAGE value="upd: traverse inheritance chain for RhTypeCast_IsInstanceOfAny" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: traverse inheritance chain for RhTypeCast_IsInstanceOfAny" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
