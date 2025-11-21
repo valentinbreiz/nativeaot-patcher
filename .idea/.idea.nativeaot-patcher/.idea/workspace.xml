@@ -10,8 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +21,7 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="34" />
+    <option name="cachedIndexableFilesCount" value="46" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -42,6 +41,8 @@
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://C:/Users/Student/RiderProjects/nativeaot-patcher/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
@@ -216,7 +217,7 @@
       <workItem from="1763689321905" duration="2158000" />
       <workItem from="1763691791038" duration="1041000" />
       <workItem from="1763692900260" duration="1817000" />
-      <workItem from="1763696739453" duration="501000" />
+      <workItem from="1763696739453" duration="1394000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -258,7 +259,23 @@
       <option name="project" value="LOCAL" />
       <updated>1763696244209</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="upd: filter out invalid assemblies">
+      <option name="closed" value="true" />
+      <created>1763697556259</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1763697556260</updated>
+    </task>
+    <task id="LOCAL-00007" summary="upd: push changes">
+      <option name="closed" value="true" />
+      <created>1763697656668</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1763697656668</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,7 +292,9 @@
     <MESSAGE value="upd: traverse inheritance chain for RhTypeCast_IsInstanceOfAny" />
     <MESSAGE value="upd: fix failing test" />
     <MESSAGE value="upd: fix failing tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: fix failing tests" />
+    <MESSAGE value="upd: filter out invalid assemblies" />
+    <MESSAGE value="upd: push changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: push changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
