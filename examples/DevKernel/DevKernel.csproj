@@ -3,7 +3,7 @@
   <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
