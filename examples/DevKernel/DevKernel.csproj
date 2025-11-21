@@ -7,7 +7,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -67,6 +66,5 @@
     <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
   </ItemGroup>
-
 
 </Project>

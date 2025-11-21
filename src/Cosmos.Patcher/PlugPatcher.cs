@@ -30,7 +30,8 @@ public sealed class PlugPatcher
     public void PatchAssembly(AssemblyDefinition targetAssembly, params AssemblyDefinition[] plugAssemblies) =>
         PatchAssembly(targetAssembly, null, plugAssemblies);
 
-    public void PatchAssembly(AssemblyDefinition targetAssembly, PlatformArchitecture? platformArchitecture, params AssemblyDefinition[] plugAssemblies)
+    public void PatchAssembly(AssemblyDefinition targetAssembly, PlatformArchitecture? platformArchitecture,
+        params AssemblyDefinition[] plugAssemblies)
     {
         _log.Info($"Starting patch process for assembly: {targetAssembly.FullName}");
         _log.Debug($"Plug assemblies provided: {plugAssemblies.Length}");
@@ -46,7 +47,8 @@ public sealed class PlugPatcher
                 if (plugAttr == null)
                     continue;
 
-                string? targetName = plugAttr.GetArgument<string>(named: "TargetName") ?? plugAttr.GetArgument<string>(named: "Target");
+                string? targetName = plugAttr.GetArgument<string>(named: "TargetName") ??
+                                     plugAttr.GetArgument<string>(named: "Target");
                 if (string.IsNullOrWhiteSpace(targetName))
                 {
                     _log.Warn($"PlugAttribute on {plug.FullName} missing TargetName/Target argument. Skipping.");
@@ -71,7 +73,8 @@ public sealed class PlugPatcher
             foreach ((string targetName, List<TypeDefinition> plugTypes) in plugsByTarget)
             {
                 TypeDefinition? targetType = targetAssembly.MainModule.GetType(targetName)
-                    ?? targetAssembly.MainModule.Types.FirstOrDefault(t => t.FullName == targetName);
+                                             ?? targetAssembly.MainModule.Types.FirstOrDefault(t =>
+                                                 t.FullName == targetName);
 
                 if (targetType == null)
                 {
@@ -138,28 +141,34 @@ public sealed class PlugPatcher
         _log.Info($"Completed processing type: {targetType.FullName}");
     }
 
-    private void ProcessPlugMembers(TypeDefinition targetType, TypeDefinition plugType, PlatformArchitecture? platformArchitecture = null)
+    private void ProcessPlugMembers(TypeDefinition targetType, TypeDefinition plugType,
+        PlatformArchitecture? platformArchitecture = null)
     {
         _log.Debug($"Processing methods for {plugType.FullName}");
-        List<IMemberDefinition> targetMembers = targetType.GetMembers();
         foreach (IMemberDefinition member in plugType.GetMembers())
         {
             _log.Debug($"Plug member: {member.Name} ({member.GetType().Name})");
 
             _log.Debug($"Processing method: {member.FullName}");
             CustomAttribute? plugMemberAttr = member.GetCustomAttribute(PlugScanner.PlugMemberAttributeFullName);
-            CustomAttribute? platformSpecAttr = member.GetCustomAttribute(PlugScanner.PlatformSpecificAttributeFullName);
-            PlatformArchitecture? memberArchitecture = platformSpecAttr?.GetArgument<PlatformArchitecture>(named: "Architecture");
+            CustomAttribute? platformSpecAttr =
+                member.GetCustomAttribute(PlugScanner.PlatformSpecificAttributeFullName);
+            PlatformArchitecture? memberArchitecture =
+                platformSpecAttr?.GetArgument<PlatformArchitecture>(named: "Architecture");
 
-            if (platformSpecAttr != null && platformArchitecture != null && memberArchitecture != null && !memberArchitecture.Value.HasFlag(platformArchitecture.Value))
+            if (platformSpecAttr != null && platformArchitecture != null && memberArchitecture != null &&
+                !memberArchitecture.Value.HasFlag(platformArchitecture.Value))
             {
                 if (plugMemberAttr != null)
-                    _log.Debug($"Skipping plugging member due to platform mismatch: {member.Name} (Member Target Architecture: {memberArchitecture}, Target Architecture: {platformArchitecture})");
+                    _log.Debug(
+                        $"Skipping plugging member due to platform mismatch: {member.Name} (Member Target Architecture: {memberArchitecture}, Target Architecture: {platformArchitecture})");
                 else
                 {
-                    _log.Info($"Removing member due to platform mismatch: {member.Name} (Member Target Architecture: {memberArchitecture}, Target Architecture: {platformArchitecture})");
+                    _log.Info(
+                        $"Removing member due to platform mismatch: {member.Name} (Member Target Architecture: {memberArchitecture}, Target Architecture: {platformArchitecture})");
                     RemoveMember(plugType, member);
                 }
+
                 continue;
             }
 
@@ -169,7 +178,8 @@ public sealed class PlugPatcher
                 continue;
             }
 
-            string? targetMemberName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: member.Name) ?? plugMemberAttr.GetArgument(named: "Target", defaultValue: member.Name);
+            string? targetMemberName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: member.Name) ??
+                                       plugMemberAttr.GetArgument(named: "Target", defaultValue: member.Name);
             _log.Debug($"Looking for target member: {targetMemberName}");
             try
             {
@@ -198,7 +208,8 @@ public sealed class PlugPatcher
                 // _log.Debug(Fmt(member));
                 try
                 {
-                    string? targetName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: member.Name) ?? plugMemberAttr.GetArgument(named: "Target", defaultValue: member.Name);
+                    string? targetName = plugMemberAttr.GetArgument(named: "TargetName", defaultValue: member.Name) ??
+                                         plugMemberAttr.GetArgument(named: "Target", defaultValue: member.Name);
                     _log.Debug($"PlugMember.TargetName = {targetName}");
                     DumpOverloads(targetType, targetName, member);
                 }
@@ -206,6 +217,7 @@ public sealed class PlugPatcher
                 {
                     _log.Warn($"WARN while dumping overloads: {e2}");
                 }
+
                 _log.Debug("--- DEBUG DUMP END ---");
             }
         }
@@ -215,14 +227,17 @@ public sealed class PlugPatcher
         foreach (IMemberDefinition member in plugType.GetMembers())
         {
             _log.Debug($"PlugType Member: {member.GetType().Name} {member.FullName}");
-            if (member is MethodDefinition method && method.HasBody)
+            if (member is MethodDefinition { HasBody: true } method)
             {
                 DumpIL(method);
             }
         }
+
         _log.Debug($"--- End dump for plugType: {plugType.FullName} ---");
     }
-    private void ResolveAndPatchMethod(TypeDefinition targetType, MethodDefinition plugMethod, string? targetMethodName = "")
+
+    private void ResolveAndPatchMethod(TypeDefinition targetType, MethodDefinition plugMethod,
+        string? targetMethodName = "")
     {
         _log.Debug($"Starting method resolution for {plugMethod.FullName}");
         bool isInstance = plugMethod.Parameters.Any(p => p.Name == "aThis");
@@ -248,7 +263,8 @@ public sealed class PlugPatcher
             else
             {
                 _log.Warn($"No matching constructor found for {plugMethod.FullName}");
-                _log.Debug($"Plug parameters: {string.Join(", ", plugMethod.Parameters.Select(p => p.ParameterType + " " + p.Name))}");
+                _log.Debug(
+                    $"Plug parameters: {string.Join(", ", plugMethod.Parameters.Select(p => p.ParameterType + " " + p.Name))}");
             }
 
             return;
@@ -302,7 +318,8 @@ public sealed class PlugPatcher
         {
             _log.Warn($"Target method not found: {targetMethodName}");
             _log.Debug($"Expected parameters: {plugMethod.Parameters.Count - (isInstance ? 1 : 0)}");
-            _log.Debug($"Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstance ? 1 : 0).Select(p => p.ParameterType.FullName))}");
+            _log.Debug(
+                $"Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstance ? 1 : 0).Select(p => p.ParameterType.FullName))}");
             DumpOverloads(targetType, targetMethodName, plugMethod);
         }
     }
@@ -310,7 +327,8 @@ public sealed class PlugPatcher
     public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool instance = false)
     {
         _log.Info($"Starting method patch: {targetMethod.FullName} <- {plugMethod.FullName}");
-        _log.Debug($"Target method attributes: Static={targetMethod.IsStatic}, Constructor={targetMethod.IsConstructor}");
+        _log.Debug(
+            $"Target method attributes: Static={targetMethod.IsStatic}, Constructor={targetMethod.IsConstructor}");
         _log.Debug($"Plug method parameters: {plugMethod.Parameters.Count}");
 
         targetMethod.Body ??= new MethodBody(targetMethod);
@@ -328,7 +346,8 @@ public sealed class PlugPatcher
             {
                 int index = targetMethod.Body.Instructions.IndexOf(call);
                 int instructionsToKeep = index + 1;
-                _log.Debug($"Base Constructor Call found at index {index}, preserving {instructionsToKeep} instructions");
+                _log.Debug(
+                    $"Base Constructor Call found at index {index}, preserving {instructionsToKeep} instructions");
                 while (targetMethod.Body.Instructions.Count > instructionsToKeep)
                 {
                     processor.RemoveAt(instructionsToKeep);
@@ -451,7 +470,8 @@ public sealed class PlugPatcher
                 targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
                 targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
                 DumpIL(targetMethod);
-                _log.Debug($"Cloned {targetMethod.Body.Instructions.Count} instructions with {targetMethod.Body.Variables.Count} variables and {targetMethod.Body.ExceptionHandlers.Count} exception handlers");
+                _log.Debug(
+                    $"Cloned {targetMethod.Body.Instructions.Count} instructions with {targetMethod.Body.Variables.Count} variables and {targetMethod.Body.ExceptionHandlers.Count} exception handlers");
             }
             catch (Exception ex)
             {
@@ -483,7 +503,8 @@ public sealed class PlugPatcher
         _log.Info($"Successfully patched method: {targetMethod.FullName}");
     }
 
-    public void PatchProperty(TypeDefinition targetType, PropertyDefinition plugProperty, string? targetPropertyName = null)
+    public void PatchProperty(TypeDefinition targetType, PropertyDefinition plugProperty,
+        string? targetPropertyName = null)
     {
         PropertyDefinition? targetProperty = targetType.Properties.FirstOrDefault(p => p.Name == targetPropertyName);
         if (targetProperty == null)
@@ -640,7 +661,9 @@ public sealed class PlugPatcher
 
             OpCode opcode = method.IsStatic
                 ? loadField ? OpCodes.Ldsfld : OpCodes.Stsfld
-                : loadField ? OpCodes.Ldfld : OpCodes.Stfld;
+                : loadField
+                    ? OpCodes.Ldfld
+                    : OpCodes.Stfld;
             Instruction newInstruction = Instruction.Create(opcode, method.Module.ImportReference(newField));
             processor.Replace(instruction, newInstruction);
 
@@ -722,7 +745,6 @@ public sealed class PlugPatcher
                 _log.Debug($"Removed property: {property.Name}");
                 return true;
             }
-
         }
         catch (Exception ex)
         {
@@ -744,7 +766,6 @@ public sealed class PlugPatcher
         string inst = m.IsStatic ? "static" : "instance";
         return $"{inst} {ret} {owner}::{name}{FmtParams(m.Parameters)}";
     }
-
 
 
     /// <summary>
@@ -769,7 +790,8 @@ public sealed class PlugPatcher
         {
             bool countOk = m.Parameters.Count == expectedCount;
             bool instOk = !isInstancePlug || !m.IsStatic; // instance plug expects instance target
-            _log.Debug($"  - {FmtMethod(m)}  [params:{m.Parameters.Count} {(countOk ? "OK" : "NO")}, instance:{(!m.IsStatic)} {(instOk ? "OK" : "NO")}]");
+            _log.Debug(
+                $"  - {FmtMethod(m)}  [params:{m.Parameters.Count} {(countOk ? "OK" : "NO")}, instance:{(!m.IsStatic)} {(instOk ? "OK" : "NO")}]");
         }
     }
 
