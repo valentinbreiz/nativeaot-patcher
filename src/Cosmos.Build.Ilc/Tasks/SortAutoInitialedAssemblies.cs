@@ -66,7 +66,7 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                 {
                     Log.LogMessage(MessageImportance.High,
                         "SKIPPED: Not a valid IL assembly (likely native/AOT compiled)");
-                    Log.LogErrorFromException(ex);
+                    Log.LogMessage(MessageImportance.Low, $"     Exception: {ex.Message}");
                     continue;
                 }
                 catch (Exception ex)
