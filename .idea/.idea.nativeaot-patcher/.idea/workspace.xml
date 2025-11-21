@@ -11,7 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +21,7 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="34" />
+    <option name="cachedIndexableFilesCount" value="42" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -39,8 +38,8 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e7c03d2e023040c8b9fba03fd4fc02c417120/a8/a27bb8a4/Task.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e466d67f482b0e1a84e8b7a513a33ded7b5f9c89109694b34051a07150a3c/ModuleDefinition.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/fa43ce40a1d39ccdb6ae73cf12cb85560606f704322dd5368bbaeb88f486d6/InvalidCastException.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
@@ -85,34 +84,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.ConsoleApp1.executor": "Run",
-    ".NET Project.DevKernel.executor": "Run",
-    "Attach to Process.23784:MSBuild.executor": "Debug",
-    "MSBuild.Cosmos.Build.Ilc Target.executor": "Debug",
-    "MSBuild.Cosmos.Build.Ilc.executor": "Run",
-    "MSBuild.DevKernel.executor": "Debug",
-    "MSBuild.Unnamed.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/typecasting",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pathVariables",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Project.ConsoleApp1.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Project.DevKernel.executor&quot;: &quot;Run&quot;,
+    &quot;Attach to Process.23784:MSBuild.executor&quot;: &quot;Debug&quot;,
+    &quot;MSBuild.Cosmos.Build.Ilc Target.executor&quot;: &quot;Debug&quot;,
+    &quot;MSBuild.Cosmos.Build.Ilc.executor&quot;: &quot;Run&quot;,
+    &quot;MSBuild.DevKernel.executor&quot;: &quot;Debug&quot;,
+    &quot;MSBuild.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/typecasting&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pathVariables&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
@@ -213,7 +212,8 @@
       <workItem from="1763688310316" duration="537000" />
       <workItem from="1763689024030" duration="178000" />
       <workItem from="1763689321905" duration="2158000" />
-      <workItem from="1763691791038" duration="409000" />
+      <workItem from="1763691791038" duration="1041000" />
+      <workItem from="1763692900260" duration="1329000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -239,7 +239,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763690681894</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="upd: fix failing test">
+      <option name="closed" value="true" />
+      <created>1763692480117</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1763692480117</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
