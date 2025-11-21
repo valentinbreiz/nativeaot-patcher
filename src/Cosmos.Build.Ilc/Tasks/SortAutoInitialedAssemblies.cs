@@ -20,71 +20,102 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
     {
         if (AssemblyNames.Length == 0)
         {
+            Log.LogMessage(MessageImportance.High, "No assembly names provided, returning empty");
             SortedAssemblyNames = Array.Empty<ITaskItem>();
             return true;
         }
 
         try
         {
-            var systemAssemblies = new HashSet<string>(
+            HashSet<string> systemAssemblies = new(
                 AssemblyNames
                     .Select(a => a.ItemSpec)
                     .Where(n => n.StartsWith("System.", StringComparison.OrdinalIgnoreCase)),
                 StringComparer.OrdinalIgnoreCase);
 
-            var requestedAssemblies = new HashSet<string>(
+            HashSet<string> requestedAssemblies = new(
                 AssemblyNames.Select(a => a.ItemSpec),
                 StringComparer.OrdinalIgnoreCase);
 
-            var dllMap = AssemblyPaths.ToDictionary(
+            Dictionary<string, string> dllMap = AssemblyPaths.ToDictionary(
                 item => Path.GetFileNameWithoutExtension(item.ItemSpec),
                 item => item.ItemSpec,
                 StringComparer.OrdinalIgnoreCase);
 
-            var graph = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-            var allAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, HashSet<string>> graph = new(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> allAssemblies = new(StringComparer.OrdinalIgnoreCase);
 
             // Build dependency graph only for assemblies we explicitly care about
-            foreach (var kvp in dllMap)
+            foreach (KeyValuePair<string, string> kvp in dllMap)
             {
-                var asmPath = kvp.Value;
+                string asmPath = kvp.Value;
                 if (!File.Exists(asmPath))
                 {
                     Log.LogWarning($"Assembly file not found: {asmPath}");
                     continue;
                 }
 
-                using var asm = AssemblyDefinition.ReadAssembly(asmPath);
-
-                // Skip if this assembly isn't in AssemblyNames
-                if (!requestedAssemblies.Contains(asm.Name.Name))
+                // Try to read the assembly, skip if it's not a valid IL assembly
+                AssemblyDefinition asm;
+                try
+                {
+                    asm = AssemblyDefinition.ReadAssembly(asmPath);
+                    Log.LogMessage(MessageImportance.High, " Successfully loaded as IL assembly");
+                }
+                catch (BadImageFormatException ex)
+                {
+                    Log.LogMessage(MessageImportance.High,
+                        "SKIPPED: Not a valid IL assembly (likely native/AOT compiled)");
+                    Log.LogErrorFromException(ex);
                     continue;
+                }
+                catch (Exception ex)
+                {
+                    Log.LogWarning($"Could not read assembly {asmPath}: {ex.GetType().Name} - {ex.Message}");
+                    continue;
+                }
 
-                allAssemblies.Add(kvp.Key);
+                using (asm)
+                {
+                    // Skip if this assembly isn't in AssemblyNames
+                    if (!requestedAssemblies.Contains(asm.Name.Name))
+                        continue;
 
-                // Only consider dependencies that are also part of AssemblyNames
-                var refs = new HashSet<string>(
-                    asm.MainModule.AssemblyReferences
-                        .Select(r => r.Name)
-                        .Where(requestedAssemblies.Contains),
-                    StringComparer.OrdinalIgnoreCase);
 
-                graph[kvp.Key] = refs;
+                    allAssemblies.Add(kvp.Key);
+
+                    // Only consider dependencies that are also part of AssemblyNames
+                    HashSet<string> refs = new(
+                        asm.MainModule.AssemblyReferences
+                            .Select(r => r.Name)
+                            .Where(requestedAssemblies.Contains),
+                        StringComparer.OrdinalIgnoreCase);
+                    graph[kvp.Key] = refs;
+                }
             }
 
             Log.LogMessage(MessageImportance.Low, "Performing topological sort on assembly dependency graph...");
-            var sorted = TopologicalSort(graph, allAssemblies);
+            List<string> sorted = TopologicalSort(graph, allAssemblies);
 
             // Non-System assemblies requested for sorting
-            var nonSystemRequested = new HashSet<string>(
+            HashSet<string> nonSystemRequested = new(
                 requestedAssemblies.Where(a => !systemAssemblies.Contains(a)),
                 StringComparer.OrdinalIgnoreCase);
 
-            var sortedSet = new HashSet<string>(sorted, StringComparer.OrdinalIgnoreCase);
-            var missing = nonSystemRequested.Where(name => !sortedSet.Contains(name));
+            HashSet<string> sortedSet = new(sorted, StringComparer.OrdinalIgnoreCase);
+            List<string> missing = nonSystemRequested.Where(name => !sortedSet.Contains(name)).ToList();
+
+            if (missing.Count > 0)
+            {
+                Log.LogMessage(MessageImportance.High, "--- Missing assemblies (not in graph) ---");
+                foreach (string m in missing)
+                {
+                    Log.LogMessage(MessageImportance.High, $"  - {m}");
+                }
+            }
 
             // System.* assemblies must always come first
-            var ordered = systemAssemblies
+            TaskItem[] ordered = systemAssemblies
                 .Concat(sorted.Where(nonSystemRequested.Contains))
                 .Concat(missing)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -105,31 +136,31 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
         Dictionary<string, HashSet<string>> graph,
         HashSet<string> allNodes)
     {
-        var inDegree = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var node in allNodes)
+        Dictionary<string, int> inDegree = new(StringComparer.OrdinalIgnoreCase);
+        foreach (string node in allNodes)
             inDegree[node] = 0;
 
-        foreach (var deps in graph.Values)
+        foreach (HashSet<string> deps in graph.Values)
         {
-            foreach (var dep in deps)
+            foreach (string dep in deps)
             {
                 if (inDegree.ContainsKey(dep))
                     inDegree[dep]++;
             }
         }
 
-        var queue = new Queue<string>(
+        Queue<string> queue = new(
             inDegree.Where(kvp => kvp.Value == 0).Select(kvp => kvp.Key));
 
-        var result = new List<string>();
+        List<string> result = new();
 
         while (queue.Count > 0)
         {
-            var node = queue.Dequeue();
+            string node = queue.Dequeue();
             result.Add(node);
 
-            if (!graph.TryGetValue(node, out var deps)) continue;
-            foreach (var dep in deps)
+            if (!graph.TryGetValue(node, out HashSet<string> deps)) continue;
+            foreach (string dep in deps)
             {
                 if (--inDegree[dep] == 0)
                     queue.Enqueue(dep);
@@ -137,7 +168,7 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
         }
 
         // Add any missing (e.g., in cycles)
-        var missing = allNodes.Except(result, StringComparer.OrdinalIgnoreCase);
+        IEnumerable<string> missing = allNodes.Except(result, StringComparer.OrdinalIgnoreCase);
         result.AddRange(missing);
 
         return result;
