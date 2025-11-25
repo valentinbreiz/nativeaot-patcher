@@ -52,6 +52,8 @@ public partial class Engine
             _ => throw new ArgumentException($"Unsupported architecture: {_config.Architecture}")
         };
 
+        string cosmosArch = _config.Architecture.ToLowerInvariant();
+
         var startInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
@@ -59,6 +61,7 @@ public partial class Engine
                        $"-c {_config.BuildConfiguration} " +
                        $"-r {runtime} " +
                        $"-p:DefineConstants=\"{defineConstants}\" " +
+                       $"-p:CosmosArch=\"{cosmosArch}\" " +
                        $"\"{projectFile}\" " +
                        $"-o \"{outputDir}\"",
             WorkingDirectory = _config.KernelProjectPath,
