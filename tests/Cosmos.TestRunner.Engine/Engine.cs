@@ -160,21 +160,11 @@ public partial class Engine
 
     private TestResults ParseResults(QemuRunResult qemuResult)
     {
-        if (!string.IsNullOrEmpty(qemuResult.ErrorMessage))
-        {
-            return new TestResults
-            {
-                Architecture = _config.Architecture,
-                ErrorMessage = qemuResult.ErrorMessage,
-                TimedOut = qemuResult.TimedOut,
-                UartLog = qemuResult.UartLog
-            };
-        }
-
-        // Parse binary protocol messages from UART log
-        var results = UartMessageParser.ParseUartLog(qemuResult.UartLog, _config.Architecture);
+        // Always try to parse UART log, even on timeout - kernel may have completed tests
+        var results = UartMessageParser.ParseUartLog(qemuResult.UartLog ?? string.Empty, _config.Architecture);
         results.TimedOut = qemuResult.TimedOut;
         results.UartLog = qemuResult.UartLog;
+        results.ErrorMessage = qemuResult.ErrorMessage;
 
         return results;
     }

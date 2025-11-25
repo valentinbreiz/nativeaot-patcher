@@ -79,6 +79,10 @@ public class Kernel
             }
 #endif
         }
+        else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
+        {
+            InterruptManager.Initialize();
+        }
 
         // Initialize managed modules
         ManagedModule.InitializeModules();

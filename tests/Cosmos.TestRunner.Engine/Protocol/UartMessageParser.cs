@@ -60,7 +60,16 @@ public class UartMessageParser
             return false;
 
         byte command = data[offset];
+
+        // Only proceed if this looks like a valid protocol command
+        if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.TestSuiteEnd)
+            return false;
+
         ushort length = (ushort)(data[offset + 1] | (data[offset + 2] << 8));
+
+        // Sanity check: length shouldn't be huge (max test name ~256 chars)
+        if (length > 1024)
+            return false;
 
         // Validate we have enough data for payload
         if (offset + 3 + length > data.Length)
@@ -69,6 +78,7 @@ public class UartMessageParser
         byte[] payload = new byte[length];
         Array.Copy(data, offset + 3, payload, 0, length);
 
+        // Only advance offset after we've validated this is a real message
         offset += 3 + length;
 
         // Parse based on command
@@ -110,11 +120,11 @@ public class UartMessageParser
 
     private static void ParseTestStart(byte[] payload, TestResults results)
     {
-        // Payload: [TestNumber:4][TestName:string]
-        if (payload.Length < 4) return;
+        // Payload: [TestNumber:2][TestName:string]
+        if (payload.Length < 2) return;
 
-        int testNumber = BitConverter.ToInt32(payload, 0);
-        string testName = Encoding.UTF8.GetString(payload, 4, payload.Length - 4);
+        int testNumber = BitConverter.ToUInt16(payload, 0);
+        string testName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
 
         // Add test with pending status
         results.Tests.Add(new TestResult
@@ -127,11 +137,11 @@ public class UartMessageParser
 
     private static void ParseTestPass(byte[] payload, TestResults results)
     {
-        // Payload: [TestNumber:4][DurationMs:4]
-        if (payload.Length < 8) return;
+        // Payload: [TestNumber:2][DurationMs:4]
+        if (payload.Length < 6) return;
 
-        int testNumber = BitConverter.ToInt32(payload, 0);
-        uint durationMs = BitConverter.ToUInt32(payload, 4);
+        int testNumber = BitConverter.ToUInt16(payload, 0);
+        uint durationMs = BitConverter.ToUInt32(payload, 2);
 
         var test = results.Tests.Find(t => t.TestNumber == testNumber);
         if (test != null)
@@ -143,11 +153,11 @@ public class UartMessageParser
 
     private static void ParseTestFail(byte[] payload, TestResults results)
     {
-        // Payload: [TestNumber:4][ErrorMessage:string]
-        if (payload.Length < 4) return;
+        // Payload: [TestNumber:2][ErrorMessage:string]
+        if (payload.Length < 2) return;
 
-        int testNumber = BitConverter.ToInt32(payload, 0);
-        string errorMessage = Encoding.UTF8.GetString(payload, 4, payload.Length - 4);
+        int testNumber = BitConverter.ToUInt16(payload, 0);
+        string errorMessage = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
 
         var test = results.Tests.Find(t => t.TestNumber == testNumber);
         if (test != null)
@@ -159,11 +169,11 @@ public class UartMessageParser
 
     private static void ParseTestSkip(byte[] payload, TestResults results)
     {
-        // Payload: [TestNumber:4][Reason:string]
-        if (payload.Length < 4) return;
+        // Payload: [TestNumber:2][Reason:string]
+        if (payload.Length < 2) return;
 
-        int testNumber = BitConverter.ToInt32(payload, 0);
-        string reason = Encoding.UTF8.GetString(payload, 4, payload.Length - 4);
+        int testNumber = BitConverter.ToUInt16(payload, 0);
+        string reason = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
 
         var test = results.Tests.Find(t => t.TestNumber == testNumber);
         if (test != null)
