@@ -1,23 +1,50 @@
-using System;
-
 namespace Cosmos.TestRunner.Framework
 {
     /// <summary>
-    /// Assertion methods for kernel tests
+    /// Assertion methods for kernel tests.
+    /// Uses static failure state instead of exceptions for NativeAOT compatibility.
     /// </summary>
     public static class Assert
     {
         /// <summary>
+        /// Whether the current test has failed
+        /// </summary>
+        public static bool Failed { get; private set; }
+
+        /// <summary>
+        /// The failure message if Failed is true
+        /// </summary>
+        public static string? FailureMessage { get; private set; }
+
+        /// <summary>
+        /// Reset the failure state for a new test
+        /// </summary>
+        public static void Reset()
+        {
+            Failed = false;
+            FailureMessage = null;
+        }
+
+        private static void SetFailed(string message)
+        {
+            if (!Failed)  // Only record first failure
+            {
+                Failed = true;
+                FailureMessage = message;
+            }
+        }
+
+        /// <summary>
         /// Assert that two values are equal
         /// </summary>
-        public static void Equal<T>(T expected, T actual) where T : IEquatable<T>
+        public static void Equal<T>(T expected, T actual) where T : System.IEquatable<T>
         {
             if (expected == null && actual == null)
                 return;
 
             if (expected == null || actual == null || !expected.Equals(actual))
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Values are not equal");
             }
         }
 
@@ -28,7 +55,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (expected != actual)
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Integer values are not equal");
             }
         }
 
@@ -39,7 +66,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (expected != actual)
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Unsigned integer values are not equal");
             }
         }
 
@@ -50,7 +77,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (expected != actual)
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Long values are not equal");
             }
         }
 
@@ -61,7 +88,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (expected != actual)
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Byte values are not equal");
             }
         }
 
@@ -72,7 +99,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (expected != actual)
             {
-                throw new AssertionException($"Expected {expected}, got {actual}");
+                SetFailed("Boolean values are not equal");
             }
         }
 
@@ -83,7 +110,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (obj == null)
             {
-                throw new AssertionException("Expected non-null, got null");
+                SetFailed("Expected non-null value");
             }
         }
 
@@ -94,7 +121,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (obj != null)
             {
-                throw new AssertionException($"Expected null, got {obj}");
+                SetFailed("Expected null value");
             }
         }
 
@@ -105,8 +132,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (!condition)
             {
-                var msg = message != null ? $"Expected true: {message}" : "Expected true, got false";
-                throw new AssertionException(msg);
+                SetFailed(message ?? "Expected true");
             }
         }
 
@@ -117,29 +143,7 @@ namespace Cosmos.TestRunner.Framework
         {
             if (condition)
             {
-                var msg = message != null ? $"Expected false: {message}" : "Expected false, got true";
-                throw new AssertionException(msg);
-            }
-        }
-
-        /// <summary>
-        /// Assert that an action throws a specific exception type
-        /// </summary>
-        public static void Throws<TException>(Action action) where TException : Exception
-        {
-            try
-            {
-                action();
-                throw new AssertionException($"Expected {typeof(TException).Name}, but no exception was thrown");
-            }
-            catch (TException)
-            {
-                // Expected exception caught
-                return;
-            }
-            catch (Exception ex)
-            {
-                throw new AssertionException($"Expected {typeof(TException).Name}, but got {ex.GetType().Name}");
+                SetFailed(message ?? "Expected false");
             }
         }
 
@@ -148,7 +152,7 @@ namespace Cosmos.TestRunner.Framework
         /// </summary>
         public static void Fail(string message)
         {
-            throw new AssertionException(message);
+            SetFailed(message);
         }
     }
 }

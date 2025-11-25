@@ -33,7 +33,7 @@ namespace Cosmos.TestRunner.Framework
         }
 
         /// <summary>
-        /// Run a test with automatic exception handling
+        /// Run a test with automatic failure detection
         /// </summary>
         public static void Run(string testName, Action testAction)
         {
@@ -43,34 +43,30 @@ namespace Cosmos.TestRunner.Framework
             // Send TestStart message
             SendTestStart(_currentTestNumber, testName);
 
+            // Reset assertion state
+            Assert.Reset();
+
             // Record start time
             _testStartTicks = Stopwatch.GetTimestamp();
 
-            try
+            // Execute test
+            testAction();
+
+            // Calculate duration
+            var endTicks = Stopwatch.GetTimestamp();
+            var elapsedTicks = endTicks - _testStartTicks;
+            var durationMs = (uint)((elapsedTicks * 1000) / Stopwatch.Frequency);
+
+            // Check if test failed via Assert
+            if (Assert.Failed)
             {
-                // Execute test
-                testAction();
-
-                // Calculate duration
-                var endTicks = Stopwatch.GetTimestamp();
-                var elapsedTicks = endTicks - _testStartTicks;
-                var durationMs = (uint)((elapsedTicks * 1000) / Stopwatch.Frequency);
-
-                // Test passed
+                _failedCount++;
+                SendTestFail(_currentTestNumber, Assert.FailureMessage ?? "Test failed");
+            }
+            else
+            {
                 _passedCount++;
                 SendTestPass(_currentTestNumber, durationMs);
-            }
-            catch (AssertionException ex)
-            {
-                // Test failed with assertion
-                _failedCount++;
-                SendTestFail(_currentTestNumber, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                // Test failed with unexpected exception
-                _failedCount++;
-                SendTestFail(_currentTestNumber, $"Unexpected exception: {ex.GetType().Name}: {ex.Message}");
             }
         }
 
@@ -213,13 +209,5 @@ namespace Cosmos.TestRunner.Framework
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// Exception thrown when an assertion fails
-    /// </summary>
-    public class AssertionException : Exception
-    {
-        public AssertionException(string message) : base(message) { }
     }
 }
