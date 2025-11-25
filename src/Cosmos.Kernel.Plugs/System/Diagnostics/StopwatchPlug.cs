@@ -5,7 +5,7 @@ namespace Cosmos.Kernel.Plugs.System.Diagnostics;
 
 /// <summary>
 /// Plug for System.Diagnostics.Stopwatch to provide timestamp functionality
-/// for both x64 (using TSC) and ARM64 (using generic timer).
+/// TODO: Implement real timer for both x64 (using TSC or other) and ARM64 (using generic timer or other).
 /// </summary>
 [Plug(typeof(Stopwatch))]
 public static class StopwatchPlug
