@@ -90,8 +90,15 @@ namespace Cosmos.TestRunner.Framework
             SendTestSuiteEnd(_testCount, _passedCount, _failedCount);
 
             // Also send a text message for fallback/debugging
-            Serial.WriteString($"\nTest Suite: {_currentSuite ?? "Unknown"}\n");
-            Serial.WriteString($"Total: {_testCount}  Passed: {_passedCount}  Failed: {_failedCount}\n");
+            Serial.WriteString("\nTest Suite: ");
+            Serial.WriteString(_currentSuite ?? "Unknown");
+            Serial.WriteString("\nTotal: ");
+            Serial.WriteNumber(_testCount);
+            Serial.WriteString("  Passed: ");
+            Serial.WriteNumber(_passedCount);
+            Serial.WriteString("  Failed: ");
+            Serial.WriteNumber(_failedCount);
+            Serial.WriteString("\n");
         }
 
         #region Protocol Message Sending
