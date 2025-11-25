@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Cosmos.TestRunner.Protocol;
 
 namespace Cosmos.TestRunner.Engine.Hosts;
 
@@ -169,12 +168,16 @@ public class QemuARM64Host : IQemuHost
         }
     }
 
+    // End marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
+    private static readonly byte[] TestEndMarker = { 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE };
+
     /// <summary>
-    /// Monitor UART log file for TestSuiteEnd message (byte 105)
+    /// Monitor UART log file for test suite end marker
     /// </summary>
     private static async Task<bool> MonitorUartLogForTestEndAsync(string uartLogPath, CancellationToken cancellationToken)
     {
         long lastPosition = 0;
+        int markerIndex = 0;
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -190,12 +193,25 @@ public class QemuARM64Host : IQemuHost
                         int bytesRead = await fs.ReadAsync(buffer, cancellationToken);
                         lastPosition += bytesRead;
 
-                        // Look for TestSuiteEnd command byte (105)
+                        // Look for end marker sequence
                         for (int i = 0; i < bytesRead; i++)
                         {
-                            if (buffer[i] == Ds2Vs.TestSuiteEnd)
+                            if (buffer[i] == TestEndMarker[markerIndex])
                             {
-                                return true;
+                                markerIndex++;
+                                if (markerIndex == TestEndMarker.Length)
+                                {
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                markerIndex = 0;
+                                // Check if current byte starts the marker
+                                if (buffer[i] == TestEndMarker[0])
+                                {
+                                    markerIndex = 1;
+                                }
                             }
                         }
                     }
