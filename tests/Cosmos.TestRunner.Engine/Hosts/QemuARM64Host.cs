@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Cosmos.TestRunner.Protocol;
 
 namespace Cosmos.TestRunner.Engine.Hosts;
 
@@ -83,12 +84,36 @@ public class QemuARM64Host : IQemuHost
         using var process = new Process { StartInfo = startInfo };
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
+        bool testSuiteCompleted = false;
+
         try
         {
             process.Start();
 
-            // Wait for process to exit or timeout
-            await process.WaitForExitAsync(cts.Token);
+            // Monitor UART log for TestSuiteEnd while waiting for process
+            var monitorTask = MonitorUartLogForTestEndAsync(uartLogPath, cts.Token);
+            var processTask = process.WaitForExitAsync(cts.Token);
+
+            // Wait for either test completion or process exit
+            var completedTask = await Task.WhenAny(monitorTask, processTask);
+
+            if (completedTask == monitorTask && await monitorTask)
+            {
+                // Test suite completed - kill QEMU
+                testSuiteCompleted = true;
+                if (!process.HasExited)
+                {
+                    // Give a brief moment for final UART flush
+                    await Task.Delay(200);
+                    process.Kill(entireProcessTree: true);
+                    await process.WaitForExitAsync();
+                }
+            }
+            else if (!process.HasExited)
+            {
+                // Process task completed (process exited on its own)
+                await processTask;
+            }
 
             // Give UART log a moment to flush
             await Task.Delay(100);
@@ -102,7 +127,7 @@ public class QemuARM64Host : IQemuHost
 
             return new QemuRunResult
             {
-                ExitCode = process.ExitCode,
+                ExitCode = testSuiteCompleted ? 0 : process.ExitCode,
                 UartLog = uartLog,
                 TimedOut = false
             };
@@ -142,5 +167,48 @@ public class QemuARM64Host : IQemuHost
                 ErrorMessage = $"Failed to run QEMU: {ex.Message}"
             };
         }
+    }
+
+    /// <summary>
+    /// Monitor UART log file for TestSuiteEnd message (byte 105)
+    /// </summary>
+    private static async Task<bool> MonitorUartLogForTestEndAsync(string uartLogPath, CancellationToken cancellationToken)
+    {
+        long lastPosition = 0;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                if (File.Exists(uartLogPath))
+                {
+                    using var fs = new FileStream(uartLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    if (fs.Length > lastPosition)
+                    {
+                        fs.Seek(lastPosition, SeekOrigin.Begin);
+                        var buffer = new byte[fs.Length - lastPosition];
+                        int bytesRead = await fs.ReadAsync(buffer, cancellationToken);
+                        lastPosition += bytesRead;
+
+                        // Look for TestSuiteEnd command byte (105)
+                        for (int i = 0; i < bytesRead; i++)
+                        {
+                            if (buffer[i] == Ds2Vs.TestSuiteEnd)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (IOException)
+            {
+                // File might be locked, try again
+            }
+
+            await Task.Delay(100, cancellationToken);
+        }
+
+        return false;
     }
 }
