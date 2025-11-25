@@ -18,6 +18,11 @@ public static class ExceptionHandler
     [ModuleInitializer]
     public static void Initialize()
     {
+#if !ARCH_X64
+        // Exception handlers are x86-64 specific, skip on other architectures
+        Serial.WriteString("[ExceptionHandler] Skipping x86-64 exception handlers (not x64 architecture)\n");
+        return;
+#else
         // Register handlers for common CPU exceptions
         // Vector 0x00: Divide by Zero
         InterruptManager.SetHandler(0x00, DivideByZero);
@@ -74,6 +79,7 @@ public static class ExceptionHandler
         InterruptManager.SetHandler(0x13, SimdFloatingPoint);
 
         Serial.WriteString("[ExceptionHandler] CPU exception handlers registered\n");
+#endif
     }
 
     private static void DivideByZero(ref IRQContext ctx)
