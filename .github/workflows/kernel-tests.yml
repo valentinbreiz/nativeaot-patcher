@@ -192,6 +192,23 @@ jobs:
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
 
             const body = `## 🧪 HelloWorld Tests
 
@@ -203,31 +220,31 @@ jobs:
             ### 📎 Artifacts
             | Architecture | Test Results | UART Log | Kernel ISO |
             |--------------|--------------|----------|------------|
-            | x64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
-            | arm64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+            | x64 | [XML](${getArtifactUrl('test-results-helloworld-x64')}) | [Log](${getArtifactUrl('uart-log-helloworld-x64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-helloworld-arm64')}) | [Log](${getArtifactUrl('uart-log-helloworld-arm64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-arm64')}) |
 
             📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
             `;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner,
+              repo: repoName,
               issue_number: context.issue.number,
             });
             const botComment = comments.find(c => c.body.includes('## 🧪 HelloWorld Tests'));
 
             if (botComment) {
               await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo: repoName,
                 comment_id: botComment.id,
                 body: body
               });
             } else {
               await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo: repoName,
                 issue_number: context.issue.number,
                 body: body
               });
@@ -392,6 +409,23 @@ jobs:
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
 
             const body = `## 🧪 Memory Tests
 
@@ -403,31 +437,31 @@ jobs:
             ### 📎 Artifacts
             | Architecture | Test Results | UART Log | Kernel ISO |
             |--------------|--------------|----------|------------|
-            | x64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
-            | arm64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+            | x64 | [XML](${getArtifactUrl('test-results-memory-x64')}) | [Log](${getArtifactUrl('uart-log-memory-x64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-memory-arm64')}) | [Log](${getArtifactUrl('uart-log-memory-arm64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-arm64')}) |
 
             📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
             `;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner,
+              repo: repoName,
               issue_number: context.issue.number,
             });
             const botComment = comments.find(c => c.body.includes('## 🧪 Memory Tests'));
 
             if (botComment) {
               await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo: repoName,
                 comment_id: botComment.id,
                 body: body
               });
             } else {
               await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo: repoName,
                 issue_number: context.issue.number,
                 body: body
               });
