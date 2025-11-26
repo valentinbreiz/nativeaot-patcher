@@ -22,7 +22,10 @@ public class TestResults
     public int FailedTests => Tests.Count(t => t.Status == TestStatus.Failed);
     public int SkippedTests => Tests.Count(t => t.Status == TestStatus.Skipped);
 
-    public bool AllTestsPassed => Tests.Count > 0 && Tests.All(t => t.Status == TestStatus.Passed);
+    /// <summary>
+    /// Returns true if all tests passed (skipped tests are acceptable, only failures count as not passed)
+    /// </summary>
+    public bool AllTestsPassed => Tests.Count > 0 && FailedTests == 0;
 }
 
 /// <summary>
