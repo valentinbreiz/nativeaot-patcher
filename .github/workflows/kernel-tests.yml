@@ -109,17 +109,6 @@ jobs:
         timeout-minutes: 5
         continue-on-error: false
 
-      - name: 📊 Display Test Summary
-        if: always()
-        run: |
-          if [ -f "test-results-helloworld-${{ matrix.arch }}.xml" ]; then
-            echo "✅ Test results file created"
-            grep -o 'tests="[^"]*"' test-results-helloworld-${{ matrix.arch }}.xml || echo "Could not parse test count"
-            grep -o 'failures="[^"]*"' test-results-helloworld-${{ matrix.arch }}.xml || echo "Could not parse failure count"
-          else
-            echo "❌ Test results file not found"
-          fi
-
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4
         if: always()
@@ -156,25 +145,93 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-results-helloworld-x64
-          path: results/
+          path: results-x64/
         continue-on-error: true
 
       - name: 📥 Download arm64 Results
         uses: actions/download-artifact@v4
         with:
           name: test-results-helloworld-arm64
-          path: results/
+          path: results-arm64/
         continue-on-error: true
 
-      - name: 📊 Publish HelloWorld Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              passed=$((tests - failures - skipped))
+              if [ "$failures" = "0" ]; then
+                status="✅ Passed"
+              else
+                status="❌ Failed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-helloworld-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-helloworld-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
         with:
-          files: results/*.xml
-          check_name: HelloWorld Test Results
-          comment_title: 🧪 HelloWorld Tests
-          comment_mode: always
-          compare_to_earlier_commit: false
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+
+            const body = `## 🧪 HelloWorld Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+            | arm64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 HelloWorld Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
 
   memory-tests:
     name: Memory Tests - ${{ matrix.arch }}
@@ -252,17 +309,6 @@ jobs:
         timeout-minutes: 10
         continue-on-error: false
 
-      - name: 📊 Display Test Summary
-        if: always()
-        run: |
-          if [ -f "test-results-memory-${{ matrix.arch }}.xml" ]; then
-            echo "✅ Test results file created"
-            grep -o 'tests="[^"]*"' test-results-memory-${{ matrix.arch }}.xml || echo "Could not parse test count"
-            grep -o 'failures="[^"]*"' test-results-memory-${{ matrix.arch }}.xml || echo "Could not parse failure count"
-          else
-            echo "❌ Test results file not found"
-          fi
-
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4
         if: always()
@@ -299,25 +345,93 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-results-memory-x64
-          path: results/
+          path: results-x64/
         continue-on-error: true
 
       - name: 📥 Download arm64 Results
         uses: actions/download-artifact@v4
         with:
           name: test-results-memory-arm64
-          path: results/
+          path: results-arm64/
         continue-on-error: true
 
-      - name: 📊 Publish Memory Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              passed=$((tests - failures - skipped))
+              if [ "$failures" = "0" ]; then
+                status="✅ Passed"
+              else
+                status="❌ Failed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-memory-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-memory-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
         with:
-          files: results/*.xml
-          check_name: Memory Test Results
-          comment_title: 🧪 Memory Tests
-          comment_mode: always
-          compare_to_earlier_commit: false
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+
+            const body = `## 🧪 Memory Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+            | arm64 | [XML](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [Log](https://github.com/${repo}/actions/runs/${runId}/artifacts) | [ISO](https://github.com/${repo}/actions/runs/${runId}/artifacts) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 Memory Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
 
   test-summary:
     name: Test Summary
