@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- This may need to change -->
     <DefineConstants>$(DefineConstants);NATIVEAOT;TARGET_64BIT</DefineConstants>
-
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System.Core</PackageId>
     <Title>Cosmos Kernel Core</Title>
@@ -16,6 +15,14 @@
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!-- Architecture-specific defines -->
+  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CosmosArch)' != 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

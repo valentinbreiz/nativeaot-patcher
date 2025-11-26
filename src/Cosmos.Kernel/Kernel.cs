@@ -54,10 +54,11 @@ public class Kernel
             Serial.WriteString("Architecture: Unknown.\n");
         }
 
+        InterruptManager.Initialize();
+
         // Platform-specific initialization
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            InterruptManager.Initialize();
             PciManager.Setup();
 
 #if ARCH_X64

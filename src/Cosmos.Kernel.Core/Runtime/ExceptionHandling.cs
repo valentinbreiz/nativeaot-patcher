@@ -103,19 +103,15 @@ public static unsafe class ExceptionHelper
         s_exceptionContext.CurrentException = ex;
         s_exceptionContext.ThrowAddress = throwAddress;
 
-        // Print to both serial and console
-        string header = "\n=== DOTNET EXCEPTION THROWN ===";
-        Serial.WriteString(header);
-        Serial.WriteString("\n");
-        Console.WriteLine(header);
+        // Print to serial only - Console.WriteLine can trigger font loading which may fail
+        Serial.WriteString("\n=== DOTNET EXCEPTION THROWN ===\n");
 
         // Print message
         if (ex.Message != null)
         {
-            string msg = "Message: " + ex.Message;
-            Serial.WriteString(msg);
+            Serial.WriteString("Message: ");
+            Serial.WriteString(ex.Message);
             Serial.WriteString("\n");
-            Console.WriteLine(msg);
         }
 
         // Print throw address
@@ -129,15 +125,8 @@ public static unsafe class ExceptionHelper
 
         if (!handled)
         {
-            string unhandled = "\n*** UNHANDLED EXCEPTION ***";
-            Serial.WriteString(unhandled);
-            Serial.WriteString("\n");
-            Console.WriteLine(unhandled);
-
-            string halting = "System halting...";
-            Serial.WriteString(halting);
-            Serial.WriteString("\n");
-            Console.WriteLine(halting);
+            Serial.WriteString("\n*** UNHANDLED EXCEPTION ***\n");
+            Serial.WriteString("System halting...\n");
 
             // Call unhandled exception handler
             OnUnhandledException(ex);
