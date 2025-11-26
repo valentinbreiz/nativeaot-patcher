@@ -120,21 +120,11 @@ jobs:
             echo "❌ Test results file not found"
           fi
 
-      - name: 📊 Publish Test Results to PR
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: test-results-helloworld-${{ matrix.arch }}.xml
-          check_name: HelloWorld Test Results (${{ matrix.arch }})
-          comment_title: 🧪 HelloWorld Tests (${{ matrix.arch }})
-          comment_mode: always
-          compare_to_earlier_commit: false
-
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-helloworld-${{ matrix.arch }}-${{ github.run_number }}
+          name: test-results-helloworld-${{ matrix.arch }}
           path: test-results-helloworld-${{ matrix.arch }}.xml
           retention-days: 30
 
@@ -142,7 +132,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: uart-log-helloworld-${{ matrix.arch }}-${{ github.run_number }}
+          name: uart-log-helloworld-${{ matrix.arch }}
           path: uart-output.log
           retention-days: 7
 
@@ -150,11 +140,41 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: HelloWorld-Test-ISO-${{ matrix.arch }}-${{ github.run_number }}
+          name: HelloWorld-Test-ISO-${{ matrix.arch }}
           path: |
             tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.iso
             tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.elf
           retention-days: 7
+
+  helloworld-results:
+    name: HelloWorld Results
+    runs-on: ubuntu-latest
+    needs: helloworld-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-helloworld-x64
+          path: results/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-helloworld-arm64
+          path: results/
+        continue-on-error: true
+
+      - name: 📊 Publish HelloWorld Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: results/*.xml
+          check_name: HelloWorld Test Results
+          comment_title: 🧪 HelloWorld Tests
+          comment_mode: always
+          compare_to_earlier_commit: false
 
   memory-tests:
     name: Memory Tests - ${{ matrix.arch }}
@@ -243,21 +263,11 @@ jobs:
             echo "❌ Test results file not found"
           fi
 
-      - name: 📊 Publish Test Results to PR
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: test-results-memory-${{ matrix.arch }}.xml
-          check_name: Memory Test Results (${{ matrix.arch }})
-          comment_title: 🧪 Memory Tests (${{ matrix.arch }})
-          comment_mode: always
-          compare_to_earlier_commit: false
-
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-memory-${{ matrix.arch }}-${{ github.run_number }}
+          name: test-results-memory-${{ matrix.arch }}
           path: test-results-memory-${{ matrix.arch }}.xml
           retention-days: 30
 
@@ -265,7 +275,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: uart-log-memory-${{ matrix.arch }}-${{ github.run_number }}
+          name: uart-log-memory-${{ matrix.arch }}
           path: uart-output.log
           retention-days: 7
 
@@ -273,11 +283,41 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Memory-Test-ISO-${{ matrix.arch }}-${{ github.run_number }}
+          name: Memory-Test-ISO-${{ matrix.arch }}
           path: |
             tests/Kernels/Cosmos.Kernel.Tests.Memory/output-${{ matrix.arch }}/*.iso
             tests/Kernels/Cosmos.Kernel.Tests.Memory/output-${{ matrix.arch }}/*.elf
           retention-days: 7
+
+  memory-results:
+    name: Memory Results
+    runs-on: ubuntu-latest
+    needs: memory-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-memory-x64
+          path: results/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-memory-arm64
+          path: results/
+        continue-on-error: true
+
+      - name: 📊 Publish Memory Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: results/*.xml
+          check_name: Memory Test Results
+          comment_title: 🧪 Memory Tests
+          comment_mode: always
+          compare_to_earlier_commit: false
 
   test-summary:
     name: Test Summary
