@@ -173,6 +173,173 @@
       "presentation": {
         "reveal": "never"
       }
+    },
+    {
+      "label": "Build Test Runner",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Run Test: HelloWorld (x64)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
+        "--",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "x64",
+        "60",
+        "${workspaceFolder}/test-results.xml",
+        "ci"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Test: HelloWorld (x64, Console Only)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
+        "--",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "x64",
+        "60"
+      ],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Test: HelloWorld (ARM64)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
+        "--",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "arm64",
+        "90",
+        "${workspaceFolder}/test-results-arm64.xml",
+        "ci"
+      ],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev Test: HelloWorld (x64)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
+        "--",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
+        "x64",
+        "60",
+        "-",
+        "dev"
+      ],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build HelloWorld Test Kernel (x64)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c",
+        "Debug",
+        "-r",
+        "linux-x64",
+        "-p:DefineConstants=ARCH_X64",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj",
+        "-o",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-x64"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Build HelloWorld Test Kernel (ARM64)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c",
+        "Debug",
+        "-r",
+        "linux-arm64",
+        "-p:DefineConstants=ARCH_ARM64",
+        "-p:CosmosArch=arm64",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj",
+        "-o",
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-arm64"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Clean Test Artifacts",
+      "type": "shell",
+      "command": "rm",
+      "args": [
+        "-f",
+        "${workspaceFolder}/test-results*.xml",
+        "${workspaceFolder}/uart-output.log"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
     }
   ]
 }

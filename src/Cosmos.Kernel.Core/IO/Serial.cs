@@ -14,14 +14,25 @@ public static class Serial
 
     public static void ComWrite(byte value)
     {
-#if !ARCH_ARM64
-        // Wait for the transmit buffer to be empty (x86 only)
-        // ARM64: PL011 UART has a FIFO, no need to wait for each byte
+#if ARCH_ARM64
+        // Wait for the PL011 TX FIFO to have space
+        WaitForARM64TransmitReady();
+#else
+        // Wait for the transmit buffer to be empty (x86)
         WaitForTransmitBufferEmpty();
 #endif
         // Write the byte to the COM port
         Native.IO.Write8(COM1, value);
     }
+
+#if ARCH_ARM64
+    private static void WaitForARM64TransmitReady()
+    {
+        // PL011 UARTFR (Flag Register) at offset 0x18
+        // Bit 5 (TXFF) = TX FIFO Full flag (1 = full, 0 = not full)
+        while ((Native.IO.ReadDWord(UART0_BASE + UARTFR) & (1 << 5)) != 0) ;
+    }
+#endif
 
     /// <summary>
     /// Initialize serial port - called from managed Kernel.Initialize()
