@@ -62,8 +62,9 @@ public class QemuARM64Host : IQemuHost
 
         // Build QEMU arguments
         // Note: Always write UART to file for parsing, display mode only affects GUI
+        // ARM64 virt machine doesn't support -vga std, use ramfb device instead
         string displayArgs = showDisplay
-            ? $"-display gtk -vga std -serial file:\"{uartLogPath}\""
+            ? $"-device ramfb -display gtk -serial file:\"{uartLogPath}\""
             : $"-serial file:\"{uartLogPath}\" -nographic";
 
         var startInfo = new ProcessStartInfo
