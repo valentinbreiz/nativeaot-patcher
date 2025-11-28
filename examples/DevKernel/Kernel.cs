@@ -6,6 +6,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 
 internal static partial class Program
