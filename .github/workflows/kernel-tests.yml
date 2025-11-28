@@ -467,10 +467,227 @@ jobs:
               });
             }
 
+  typecasting-tests:
+    name: TypeCasting Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 9.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run TypeCasting Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running TypeCasting kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.TypeCasting \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-typecasting-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-typecasting-${{ matrix.arch }}
+          path: test-results-typecasting-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-typecasting-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TypeCasting-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  typecasting-results:
+    name: TypeCasting Results
+    runs-on: ubuntu-latest
+    needs: typecasting-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-typecasting-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-typecasting-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              passed=$((tests - failures - skipped))
+              if [ "$failures" = "0" ]; then
+                status="✅ Passed"
+              else
+                status="❌ Failed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-typecasting-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-typecasting-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 TypeCasting Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-typecasting-x64')}) | [Log](${getArtifactUrl('uart-log-typecasting-x64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-typecasting-arm64')}) | [Log](${getArtifactUrl('uart-log-typecasting-arm64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 TypeCasting Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [helloworld-tests, memory-tests]
+    needs: [helloworld-tests, memory-tests, typecasting-tests]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -490,6 +707,12 @@ jobs:
             echo "| Memory | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Memory | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.typecasting-tests.result }}" == "success" ]; then
+            echo "| TypeCasting | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| TypeCasting | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
