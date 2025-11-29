@@ -18,6 +18,9 @@ internal static unsafe class Casting
     [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
     public static object RhTypeCast_IsInstanceOfAny(object obj, MethodTable** pTypeHandles, int count)
     {
+        if (obj == null)
+            return null;
+
         MethodTable* type = obj.GetMethodTable();
         for (int i = 0; i < count; i++)
         {
@@ -31,6 +34,9 @@ internal static unsafe class Casting
     [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
     public static bool RhTypeCast_IsInstanceOfInterface(object obj, MethodTable* interfaceTypeHandle)
     {
+        if (obj == null)
+            return false;
+
         MethodTable* type = obj.GetMethodTable();
         return IsInstanceOfInterface(type, interfaceTypeHandle);
     }
@@ -47,6 +53,9 @@ internal static unsafe class Casting
     [RuntimeExport("RhTypeCast_CheckCastInterface")]
     public static object RhTypeCast_CheckCastInterface(object obj, MethodTable* interfaceTypeHandle)
     {
+        if (obj == null)
+            return null;
+
         return !RhTypeCast_IsInstanceOfInterface(obj, interfaceTypeHandle)
             ? throw new InvalidCastException()
             : obj;
@@ -59,8 +68,11 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_CheckCastClassSpecial")]
-    static unsafe object RhTypeCast_CheckCastClassSpecial(object obj, MethodTable* typeHandle, bool fThrow)
+    static object RhTypeCast_CheckCastClassSpecial(object obj, MethodTable* typeHandle, bool fThrow)
     {
+        if (obj == null)
+            return null;
+
         if (IsInstanceOfClass(obj.GetMethodTable(), typeHandle))
             return obj;
 
@@ -83,9 +95,10 @@ internal static unsafe class Casting
                 if (interfaceImpl != interfaceType)
                     continue;
 
-                if (interfaceType->GenericDefinition->GenericParameterCount == 0)
-                    return true;
+                if (interfaceType->GenericParameterCount == 0)
+                    return true; // No generics, so it's an exact match
 
+                return AreGenericsAssignable(interfaceImpl, interfaceType);
             }
 
             type = type->BaseType;
@@ -120,11 +133,13 @@ internal static unsafe class Casting
             MethodTable* sourceGeneric = sourceType->GenericArguments[i]; // Generic of the cast target
             MethodTable* targetGeneric = targetType->GenericArguments[i]; // Generic of the cast type;
 
+            if (sourceGeneric == null || targetGeneric == null)
+                return false;
+
             if (!targetGeneric->HasGenericVariance)
                 return sourceGeneric == targetGeneric; // Nonvariant generic, check if they are the same
 
-
-            GenericVariance targetGenericVariance = targetGeneric->GenericVariance[i];
+            GenericVariance targetGenericVariance = targetType->GenericVariance[i];
             bool assignable = targetGenericVariance == GenericVariance.Covariant &&
                               RhTypeCast_AreTypesAssignable(sourceGeneric, targetGeneric) ||
                               targetGenericVariance == GenericVariance.Contravariant &&

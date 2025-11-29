@@ -9,9 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/DevKernel.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,7 +19,7 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="46" />
+    <option name="cachedIndexableFilesCount" value="49" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -217,7 +215,7 @@
       <workItem from="1763689321905" duration="2158000" />
       <workItem from="1763691791038" duration="1041000" />
       <workItem from="1763692900260" duration="1817000" />
-      <workItem from="1763696739453" duration="1394000" />
+      <workItem from="1763696739453" duration="7650000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -275,7 +273,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763697656668</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="upd: remove RuntimeIdentifier from csproj">
+      <option name="closed" value="true" />
+      <created>1763698196699</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1763698196700</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -294,7 +300,8 @@
     <MESSAGE value="upd: fix failing tests" />
     <MESSAGE value="upd: filter out invalid assemblies" />
     <MESSAGE value="upd: push changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: push changes" />
+    <MESSAGE value="upd: remove RuntimeIdentifier from csproj" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: remove RuntimeIdentifier from csproj" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
