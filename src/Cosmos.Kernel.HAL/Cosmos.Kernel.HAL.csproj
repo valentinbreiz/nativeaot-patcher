@@ -22,6 +22,14 @@
     <Compile Remove="Cpu\InterruptManager.*.cs" />
   </ItemGroup>
 
+  <!-- Architecture-specific DefineConstants -->
+  <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
+    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
+  </PropertyGroup>
+
   <!-- Architecture-specific HAL references and files -->
   <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
     <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />

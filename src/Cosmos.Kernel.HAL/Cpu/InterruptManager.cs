@@ -58,6 +58,30 @@ public static partial class InterruptManager
         Serial.Write("[INT] ", ctx.interrupt, " START", NewLine);
         Serial.Write("[INT] cpu_flags ", ctx.cpu_flags, NewLine);
         Serial.Write("[INT] interrupt ", ctx.interrupt, NewLine);
+
+#if ARCH_ARM64
+        Serial.Write("[INT] x0  ", ctx.x0, NewLine);
+        Serial.Write("[INT] x1  ", ctx.x1, NewLine);
+        Serial.Write("[INT] x2  ", ctx.x2, NewLine);
+        Serial.Write("[INT] x3  ", ctx.x3, NewLine);
+        Serial.Write("[INT] x29 ", ctx.x29, NewLine);
+        Serial.Write("[INT] x30 ", ctx.x30, NewLine);
+        Serial.Write("[INT] sp  ", ctx.sp, NewLine);
+        Serial.Write("[INT] elr ", ctx.elr, NewLine);
+        Serial.Write("[INT] About to check handlers\n");
+
+        // During early boot, halt on sync exceptions to prevent infinite recursion
+        // The static array access may cause another exception if memory isn't ready
+        if (ctx.interrupt == 0)
+        {
+            Serial.Write("[INT] FATAL: Sync exception during early boot\n");
+            Serial.Write("[INT] ESR: 0x", ctx.cpu_flags.ToString("X"), NewLine);
+            Serial.Write("[INT] ELR: 0x", ctx.elr.ToString("X"), NewLine);
+            Serial.Write("[INT] FAR: 0x", ctx.far.ToString("X"), NewLine);
+            Serial.Write("[INT] Halting.\n");
+            while (true) { }
+        }
+#else
         Serial.Write("[INT] rax ", ctx.rax, NewLine);
         Serial.Write("[INT] rcx ", ctx.rcx, NewLine);
         Serial.Write("[INT] rdx ", ctx.rdx, NewLine);
@@ -73,6 +97,7 @@ public static partial class InterruptManager
         Serial.Write("[INT] r13 ", ctx.r13, NewLine);
         Serial.Write("[INT] r14 ", ctx.r14, NewLine);
         Serial.Write("[INT] r15 ", ctx.r15, NewLine);
+#endif
 
         // Check if handlers array is initialized and interrupt is in valid range
         if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
@@ -80,8 +105,33 @@ public static partial class InterruptManager
             IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
             if (handler != null)
             {
+                Serial.Write("[INT] Calling registered handler\n");
                 handler(ref ctx);
+                Serial.Write("[INT] Handler returned\n");
+                return;
+            }
+            else
+            {
+                Serial.Write("[INT] No handler for vector ", ctx.interrupt, NewLine);
             }
         }
+        else
+        {
+            Serial.Write("[INT] Handler array null or vector out of range\n");
+        }
+
+#if ARCH_ARM64
+        Serial.Write("[INT] ARM64 unhandled exception path\n");
+        // ARM64: Unhandled synchronous exceptions (type 0) are fatal - halt
+        // Also halt on SError (type 3) as these are typically hardware errors
+        if (ctx.interrupt == 0 || ctx.interrupt == 3)
+        {
+            Serial.Write("[INT] FATAL: Unhandled ARM64 exception type ", ctx.interrupt, NewLine);
+            Serial.Write("[INT] ESR_EL1: 0x", ctx.cpu_flags.ToString("X"), NewLine);
+            Serial.Write("[INT] ELR_EL1: 0x", ctx.elr.ToString("X"), NewLine);
+            Serial.Write("[INT] System halted.\n");
+            while (true) { }
+        }
+#endif
     }
 }
