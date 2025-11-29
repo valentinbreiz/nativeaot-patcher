@@ -34,9 +34,8 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Memory_CharArray", TestCharArrayAllocation);
             Run("Memory_StringAllocation", TestStringAllocation);
             Run("Memory_IntArray", TestIntArrayAllocation);
-            // Skip string concat and StringBuilder - triggers invalid opcode in kernel
-            Skip("Memory_StringConcat", "String concat triggers #UD exception");
-            Skip("Memory_StringBuilder", "StringBuilder triggers #UD exception");
+            Run("Memory_StringConcat", TestStringConcatenation);
+            Run("Memory_StringBuilder", TestStringBuilder);
 
             // Generic Collection Tests
             Run("Collections_ListInt", TestListInt);
@@ -46,8 +45,7 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Collections_ListStruct", TestListStruct);
             Run("Collections_ListContains", TestListContains);
             Run("Collections_ListIndexOf", TestListIndexOf);
-            // Skip RemoveAt - triggers #UD exception due to Array.Copy in List implementation
-            Skip("Collections_ListRemoveAt", "List.RemoveAt triggers #UD exception");
+            Run("Collections_ListRemoveAt", TestListRemoveAt);
 
             Serial.WriteString("[Memory Tests] All tests completed\n");
             Finish();

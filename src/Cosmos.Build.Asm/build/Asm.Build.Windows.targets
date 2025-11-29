@@ -1,6 +1,6 @@
 <Project>
   <Target Name="GetYasm">
-    <Exec Command="where yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">
+    <Exec Command="where.exe yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
     </Exec>
 
