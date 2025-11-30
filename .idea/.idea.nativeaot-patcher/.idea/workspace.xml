@@ -9,7 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="" />
+    <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Kernel.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -160,23 +163,6 @@
         <option name="Build" />
       </method>
     </configuration>
-    <configuration default="true" type="MSBuildConfiguration" factoryName="MSBuildConfiguration">
-      <option name="EXE_PATH" value="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="$MSBUILDDEBUGONSTART$" />
-      <option name="ENV_FILE_PATHS" value="" />
-      <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
-      <option name="USE_MONO" value="0" />
-      <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="AUTO_ATTACH_CHILDREN" value="0" />
-      <option name="MSBUILD_TARGETS" value="" />
-      <option name="PROJECT_FILE_PATH" value="" />
-      <method v="2">
-        <option name="Build" />
-      </method>
-    </configuration>
     <list>
       <item itemvalue=".NET Project.DevKernel" />
       <item itemvalue="MSBuild.DevKernel" />
@@ -216,6 +202,8 @@
       <workItem from="1763691791038" duration="1041000" />
       <workItem from="1763692900260" duration="1817000" />
       <workItem from="1763696739453" duration="7650000" />
+      <workItem from="1764389239006" duration="2473000" />
+      <workItem from="1764546021564" duration="319000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -281,7 +269,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763698196700</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="upd: fixed generics check">
+      <option name="closed" value="true" />
+      <created>1764390173844</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1764390173844</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -301,7 +297,8 @@
     <MESSAGE value="upd: filter out invalid assemblies" />
     <MESSAGE value="upd: push changes" />
     <MESSAGE value="upd: remove RuntimeIdentifier from csproj" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: remove RuntimeIdentifier from csproj" />
+    <MESSAGE value="upd: fixed generics check" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: fixed generics check" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
