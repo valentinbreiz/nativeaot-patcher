@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -257,7 +257,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -474,7 +474,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64

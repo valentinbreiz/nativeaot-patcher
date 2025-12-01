@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -158,7 +158,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -228,7 +228,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
