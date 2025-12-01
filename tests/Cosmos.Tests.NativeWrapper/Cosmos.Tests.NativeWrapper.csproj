@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="obj\Debug\net9.0\cosmos\Cosmos.NativeWrapper_patched.dll" />
+    <Content Include="obj\Debug\net10.0\cosmos\Cosmos.NativeWrapper_patched.dll" />
   </ItemGroup>
 
 </Project>

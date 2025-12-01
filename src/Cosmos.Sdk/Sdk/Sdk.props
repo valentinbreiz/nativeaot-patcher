@@ -14,12 +14,17 @@
     <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
     <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
   </ItemGroup>
+  
+  <ItemGroup>
+    <!-- Ensure AOT Reference are present in nuget cache -->
+    <PackageDownload Include="Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)" Version="[$(BundledNETCoreAppPackageVersion)]" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cosmos.Build.Common"/>
-    <PackageReference Include="Cosmos.Build.Asm"/>
-    <PackageReference Include="Cosmos.Build.Patcher"/>
-    <PackageReference Include="Cosmos.Build.GCC"/>
-    <PackageReference Include="Cosmos.Build.Ilc"/>
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.0" />
   </ItemGroup>
 </Project>

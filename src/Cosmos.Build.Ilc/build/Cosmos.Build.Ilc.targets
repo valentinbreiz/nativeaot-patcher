@@ -118,7 +118,7 @@
       <IlcArg Include="-g"/>
       <IlcArg Include="-O"/>
       <!-- Architecture-specific instruction sets -->
-      <IlcArg Include="--instruction-set:base,lzcnt,popcnt" Condition="'$(CosmosArch)' == 'x64'"/>
+      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'x64'"/>
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'"/>
       <IlcArg Include="--preinitstatics"/> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')"/>
