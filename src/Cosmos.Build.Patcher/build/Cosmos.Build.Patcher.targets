@@ -88,8 +88,9 @@
       <PlugRef Include="@(UniquePlugRef)" />
     </ItemGroup>
 
-    <!-- Clean Output Path -->
-    <RemoveDir Directories="$(PatcherOutputPath)" />
+    <!-- Note: We don't RemoveDir here anymore to enable incremental builds.
+         The Copy task uses SkipUnchangedFiles="true" for efficiency.
+         Use 'dotnet clean' to fully reset the output directory. -->
 
     <!-- Ensure the output directories exist -->
     <MakeDir Directories="$(PatcherOutputPath)" />
@@ -120,13 +121,11 @@
       </AssembliesToPatch>
 
       <!-- Add filtered assemblies; place them under ref/ by filename -->
-      <AssembliesToPatch Include="@(FilteredAssembliesToPatch)">
+      <!-- Exclude System.Private.CoreLib from patching - it should be copied unchanged -->
+      <AssembliesToPatch Include="@(FilteredAssembliesToPatch)"
+                         Condition="'%(FilteredAssembliesToPatch.Filename)' != 'System.Private.CoreLib'">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </AssembliesToPatch>
-
-      <!-- Always include System.Private.CoreLib for ILC reference stability -->
-      <AssembliesToPatch Include="@(CandidateAssemblies)"
-                         Condition="'%(CandidateAssemblies.Filename)' == 'System.Private.CoreLib'" />
     </ItemGroup>
 
     <!-- De-dup final patch list -->

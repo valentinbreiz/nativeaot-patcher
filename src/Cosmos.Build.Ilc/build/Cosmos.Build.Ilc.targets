@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <DefaultIlcDependsOn>ResolveIlcPath</DefaultIlcDependsOn>
+    <DefaultIlcDependsOn>ResolveIlcToolsPath</DefaultIlcDependsOn>
     <IlcDependsOn>$(DefaultIlcDependsOn);$(IlcDependsOn)</IlcDependsOn>
   </PropertyGroup>
 
@@ -10,7 +10,7 @@
   />
 
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
-  <Target Name="ResolveIlcPath" AfterTargets="Build">
+  <Target Name="ResolveIlcToolsPath" AfterTargets="Build" DependsOnTargets="ResolvePackageAssets">
     <PropertyGroup>
       <!-- Determine host OS for ILC compiler selection -->
       <IlcHostOs Condition="'$(OS)' == 'Windows_NT'">win</IlcHostOs>
@@ -75,13 +75,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <IlcCompileInput Include="$(IntermediateOutputPath)/cosmos/*.dll"/>
+      <IlcCompileInput Include="$(FullIntermediateOutputPath)/cosmos/*.dll"/>
       <ManagedBinary Include="@(IlcCompileInput)">
         <RspFile>$([System.IO.Path]::GetFullPath('$(IlcIntermediateOutputPath)$(AssemblyName).ilc.rsp'))</RspFile>
         <OutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</OutputFile>
       </ManagedBinary>
 
-      <IlcReferences Include="$(IntermediateOutputPath)/cosmos/ref/*.dll" />
+      <IlcReferences Include="$(FullIntermediateOutputPath)/cosmos/ref/*.dll" />
     </ItemGroup>
 
 
@@ -130,7 +130,7 @@
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true"/>
   </Target>
 
-  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcPath">
+  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcToolsPath">
     <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
     <Exec
       Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"

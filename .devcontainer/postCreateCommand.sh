@@ -115,6 +115,9 @@ dotnet pack src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -p:RuntimeIdentifi
 # Build SDK
 dotnet pack src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release -o artifacts/package/release
 
+# Build Templates (includes dotnet new project template)
+dotnet pack src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj -c Release -o artifacts/package/release
+
 # Restore main solution
 echo "Restoring main solution..."
 dotnet restore ./nativeaot-patcher.slnx

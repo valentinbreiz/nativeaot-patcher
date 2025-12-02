@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "CosmosOS",
+  "classifications": ["Cosmos", "Kernel", "OS Development", "Bare Metal"],
+  "identity": "Cosmos.Kernel.Template",
+  "name": "Cosmos Kernel Project",
+  "shortName": "cosmos-kernel",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "KernelName",
+  "preferNameDirectory": true,
+  "symbols": {
+    "TargetArch": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "x64",
+          "description": "x86-64 architecture"
+        },
+        {
+          "choice": "arm64",
+          "description": "ARM64 architecture"
+        }
+      ],
+      "defaultValue": "x64",
+      "description": "Target architecture for the kernel"
+    },
+    "EnableGraphics": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include Cosmos.Kernel.Graphics reference for framebuffer support"
+    }
+  },
+  "postActions": [
+    {
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "description": "Display getting started instructions",
+      "manualInstructions": [
+        {
+          "text": "Your Cosmos kernel project has been created!\n\nGetting Started:\n\n1. Build for x64:\n   dotnet publish -c Debug -r linux-x64 -p:DefineConstants=\"ARCH_X64\"\n\n2. Build for ARM64:\n   dotnet publish -c Debug -r linux-arm64 -p:DefineConstants=\"ARCH_ARM64\" -p:CosmosArch=arm64\n\n3. Test with QEMU (x64):\n   qemu-system-x86_64 -cdrom ./bin/Debug/net10.0/linux-x64/publish/KernelName.iso -m 512M -serial stdio\n\n4. Test with QEMU (ARM64):\n   qemu-system-aarch64 -M virt -cpu cortex-a72 -m 512M -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cdrom ./bin/Debug/net10.0/linux-arm64/publish/KernelName.iso -serial stdio\n\nDocumentation: https://github.com/valentinbreiz/nativeaot-patcher"
+        }
+      ]
+    }
+  ]
+}
