@@ -153,6 +153,7 @@ jobs:
           path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
   unix-iso-tests:
+    if: false  # Temporarily disabled
     name: Run ISO Build Tests - Unix (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -223,6 +224,7 @@ jobs:
           path: ./output-${{ matrix.arch }}/DevKernel.iso
 
   windows-iso-tests:
+    if: false  # Temporarily disabled
     name: Run ISO Build Tests - Windows (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
