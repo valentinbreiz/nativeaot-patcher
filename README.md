@@ -5,14 +5,8 @@
 ## Build Status
 
 [![.NET Tests](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml/badge.svg?branch=main&event=push)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml)
+[![Kernel Tests](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml/badge.svg)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml)
 [![Package](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/package.yml/badge.svg)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/package.yml)
-
-**ISO Builds:**
-
-| Platform | x64 | ARM64 |
-|----------|-----|-------|
-| **Linux** | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) |
-| **Windows** | [![passing](https://img.shields.io/badge/build-passing-success)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) | [![failing](https://img.shields.io/badge/build-failing-critical)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml?query=branch%3Amain) |
 
  ## Documentation
  - [Index](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)
