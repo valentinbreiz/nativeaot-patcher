@@ -16,8 +16,9 @@ public class TestResults
     public string ErrorMessage { get; set; } = string.Empty;
     public bool TimedOut { get; set; }
     public string UartLog { get; set; } = string.Empty;
+    public int ExpectedTestCount { get; set; }
 
-    public int TotalTests => Tests.Count;
+    public int TotalTests => ExpectedTestCount > 0 ? ExpectedTestCount : Tests.Count;
     public int PassedTests => Tests.Count(t => t.Status == TestStatus.Passed);
     public int FailedTests => Tests.Count(t => t.Status == TestStatus.Failed);
     public int SkippedTests => Tests.Count(t => t.Status == TestStatus.Skipped);

@@ -18,7 +18,7 @@ namespace Cosmos.Kernel.Tests.Memory
         private static void Main()
         {
             Serial.WriteString("[Memory Tests] Starting test suite\n");
-            Start("Memory Tests");
+            Start("Memory Tests", expectedTests: 22); // 8 boxing + 5 memory + 9 collections
 
             // Boxing/Unboxing Tests
             Run("Boxing_Char", TestBoxingChar);

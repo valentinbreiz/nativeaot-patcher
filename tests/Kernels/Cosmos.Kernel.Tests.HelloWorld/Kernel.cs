@@ -25,7 +25,7 @@ namespace Cosmos.Kernel.Tests.HelloWorld
             Serial.WriteString("[HelloWorld] Starting tests...\n");
 
             // Initialize test suite
-            Start("HelloWorld Basic Tests");
+            Start("HelloWorld Basic Tests", expectedTests: 3);
 
             // Test 1: Basic arithmetic
             Run("Test_BasicArithmetic", () =>

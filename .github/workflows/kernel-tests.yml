@@ -165,11 +165,17 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed ($failures failures)"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                missing=$((tests - actual_tests))
+                status="❌ Failed ($missing missing)"
               else
-                status="❌ Failed"
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else
@@ -382,11 +388,17 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed ($failures failures)"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                missing=$((tests - actual_tests))
+                status="❌ Failed ($missing missing)"
               else
-                status="❌ Failed"
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else
@@ -599,11 +611,17 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed ($failures failures)"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                missing=$((tests - actual_tests))
+                status="❌ Failed ($missing missing)"
               else
-                status="❌ Failed"
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else
