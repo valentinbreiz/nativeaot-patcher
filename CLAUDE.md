@@ -1,5 +1,17 @@
 # NativeAOT-Patcher Quick Reference
 
+## GitHub Integration
+**Tasks MUST be linked to GitHub issues.** Use `gh` CLI for all GitHub operations.
+
+- Repository: `valentinbreiz/nativeaot-patcher`
+- Priority board: https://github.com/users/valentinbreiz/projects/2/views/2
+
+```bash
+gh issue list --repo valentinbreiz/nativeaot-patcher
+gh issue view <number> --repo valentinbreiz/nativeaot-patcher
+gh issue create --repo valentinbreiz/nativeaot-patcher --title "Title" --body "Description"
+```
+
 ## 🚨 MANDATORY WORKFLOW RULES 🚨
 
 **BEFORE doing ANY work, you MUST:**

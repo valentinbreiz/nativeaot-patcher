@@ -116,13 +116,21 @@ public class OutputHandlerConsole : OutputHandlerBase
         WriteHeader();
 
         // Final result
-        if (results.AllTestsPassed)
+        int actualTestsRun = results.PassedTests + results.FailedTests + results.SkippedTests;
+        bool allTestsRan = results.ExpectedTestCount == 0 || actualTestsRun >= results.ExpectedTestCount;
+
+        if (results.AllTestsPassed && allTestsRan)
         {
             WriteLine("ALL TESTS PASSED", ConsoleColor.Green);
         }
         else if (results.FailedTests > 0)
         {
             WriteLine($"TESTS FAILED ({results.FailedTests} failures)", ConsoleColor.Red);
+        }
+        else if (!allTestsRan)
+        {
+            int missingTests = results.ExpectedTestCount - actualTestsRun;
+            WriteLine($"INCOMPLETE TEST RUN ({missingTests} tests did not execute)", ConsoleColor.Red);
         }
         else if (results.TotalTests == 0)
         {

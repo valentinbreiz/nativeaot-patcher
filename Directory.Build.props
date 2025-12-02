@@ -1,7 +1,7 @@
 <Project>
   <Import Project="src/Cosmos.Build.Common/build/Cosmos.ArchitecturePicker.props" />
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

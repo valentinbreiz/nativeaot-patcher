@@ -12,6 +12,7 @@ namespace Cosmos.TestRunner.Framework
     {
         private static string? _currentSuite;
         private static ushort _testCount;
+        private static ushort _expectedTestCount;
         private static ushort _passedCount;
         private static ushort _failedCount;
         private static ushort _currentTestNumber;
@@ -20,16 +21,19 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>
         /// Start a test suite
         /// </summary>
-        public static void Start(string suiteName)
+        /// <param name="suiteName">Name of the test suite</param>
+        /// <param name="expectedTests">Total number of tests that will be registered (0 = unknown)</param>
+        public static void Start(string suiteName, ushort expectedTests = 0)
         {
             _currentSuite = suiteName;
             _testCount = 0;
+            _expectedTestCount = expectedTests;
             _passedCount = 0;
             _failedCount = 0;
             _currentTestNumber = 0;
 
-            // Send TestSuiteStart message
-            SendTestSuiteStart(suiteName);
+            // Send TestSuiteStart message with expected test count
+            SendTestSuiteStart(suiteName, expectedTests);
         }
 
         /// <summary>
@@ -87,13 +91,21 @@ namespace Cosmos.TestRunner.Framework
         /// </summary>
         public static void Finish()
         {
-            SendTestSuiteEnd(_testCount, _passedCount, _failedCount);
+            // Use expected count if provided, otherwise actual count
+            ushort totalToReport = _expectedTestCount > 0 ? _expectedTestCount : _testCount;
+            SendTestSuiteEnd(totalToReport, _passedCount, _failedCount);
 
             // Also send a text message for fallback/debugging
             Serial.WriteString("\nTest Suite: ");
             Serial.WriteString(_currentSuite ?? "Unknown");
             Serial.WriteString("\nTotal: ");
             Serial.WriteNumber(_testCount);
+            if (_expectedTestCount > 0 && _expectedTestCount != _testCount)
+            {
+                Serial.WriteString(" / ");
+                Serial.WriteNumber(_expectedTestCount);
+                Serial.WriteString(" expected");
+            }
             Serial.WriteString("  Passed: ");
             Serial.WriteNumber(_passedCount);
             Serial.WriteString("  Failed: ");
@@ -110,6 +122,7 @@ namespace Cosmos.TestRunner.Framework
         private const byte TestFail = 103;
         private const byte TestSkip = 104;
         private const byte TestSuiteEnd = 105;
+        private const byte TestRegister = 106; // New: register a test before execution
 
         /// <summary>
         /// Send a protocol message with format: [Command:1][Length:2][Payload:N]
@@ -144,9 +157,15 @@ namespace Cosmos.TestRunner.Framework
             return bytes;
         }
 
-        private static void SendTestSuiteStart(string suiteName)
+        private static void SendTestSuiteStart(string suiteName, ushort expectedTests)
         {
-            var payload = EncodeString(suiteName);
+            var nameBytes = EncodeString(suiteName);
+            var payload = new byte[2 + nameBytes.Length];
+            // First 2 bytes: expected test count
+            payload[0] = (byte)(expectedTests & 0xFF);
+            payload[1] = (byte)((expectedTests >> 8) & 0xFF);
+            // Rest: suite name
+            Array.Copy(nameBytes, 0, payload, 2, nameBytes.Length);
             SendMessage(TestSuiteStart, payload);
         }
 

@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -165,11 +165,16 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
-              else
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
                 status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else
@@ -257,7 +262,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -382,11 +387,16 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
-              else
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
                 status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else
@@ -474,7 +484,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-version: [ 9.0.x ]
+        dotnet-version: [ 10.0.x ]
         arch: [ x64, arm64 ]
         include:
           - arch: x64
@@ -599,11 +609,16 @@ jobs:
               failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
               skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
               time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
-              passed=$((tests - failures - skipped))
-              if [ "$failures" = "0" ]; then
-                status="✅ Passed"
-              else
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
                 status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
               fi
               echo "$tests|$passed|$failures|$skipped|${time}s|$status"
             else

@@ -1,7 +1,7 @@
 [submodule "dotnet/runtime"]
 	path = dotnet/runtime
 	url = https://github.com/dotnet/runtime.git
-	branch = release/9.0
+	branch = release/10.0
 [submodule "src/Cosmos.Kernel.Native.X64/lai"]
 	path = src/Cosmos.Kernel.Native.X64/lai
 	url = https://github.com/managarm/lai.git

@@ -166,6 +166,23 @@ public partial class Engine
         results.UartLog = qemuResult.UartLog;
         results.ErrorMessage = qemuResult.ErrorMessage;
 
+        // If expected test count was provided and not all tests ran, add missing tests as failures
+        if (results.ExpectedTestCount > 0 && results.Tests.Count < results.ExpectedTestCount)
+        {
+            int actualCount = results.Tests.Count;
+            for (int i = actualCount + 1; i <= results.ExpectedTestCount; i++)
+            {
+                results.Tests.Add(new TestResult
+                {
+                    TestNumber = i,
+                    TestName = $"Test {i}",
+                    Status = TestStatus.Failed,
+                    ErrorMessage = "Test did not execute (kernel crashed or timed out)",
+                    DurationMs = 0
+                });
+            }
+        }
+
         return results;
     }
 

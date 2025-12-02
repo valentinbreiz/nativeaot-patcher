@@ -448,3 +448,7 @@ opencode.json
 .cursor/
 .vscode/mcp.json 
 output-helloworld/
+
+# Task files
+# tasks.json
+# tasks/ 

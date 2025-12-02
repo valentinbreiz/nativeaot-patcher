@@ -37,21 +37,33 @@ namespace Cosmos.TestRunner.Protocol
     {
         public override byte Command => Ds2Vs.TestSuiteStart;
         public string SuiteName { get; set; } = "";
+        public ushort ExpectedTests { get; set; }
 
         public TestSuiteStartMessage() { }
-        public TestSuiteStartMessage(string suiteName)
+        public TestSuiteStartMessage(string suiteName, ushort expectedTests = 0)
         {
             SuiteName = suiteName;
+            ExpectedTests = expectedTests;
         }
 
         public override byte[] GetPayload()
         {
-            return Encoding.UTF8.GetBytes(SuiteName);
+            var nameBytes = Encoding.UTF8.GetBytes(SuiteName);
+            var result = new byte[2 + nameBytes.Length];
+            result[0] = (byte)(ExpectedTests & 0xFF);
+            result[1] = (byte)((ExpectedTests >> 8) & 0xFF);
+            Array.Copy(nameBytes, 0, result, 2, nameBytes.Length);
+            return result;
         }
 
         public static TestSuiteStartMessage Deserialize(byte[] payload)
         {
-            return new TestSuiteStartMessage(Encoding.UTF8.GetString(payload));
+            if (payload.Length < 2)
+                return new TestSuiteStartMessage(Encoding.UTF8.GetString(payload), 0);
+
+            var expectedTests = (ushort)(payload[0] | (payload[1] << 8));
+            var suiteName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
+            return new TestSuiteStartMessage(suiteName, expectedTests);
         }
     }
 

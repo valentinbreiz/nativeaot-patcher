@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.Tests.TypeCasting
         private static void Main()
         {
             Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-            Start("TypeCasting Tests");
+            Start("TypeCasting Tests", expectedTests: 9);
 
             // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
             Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);

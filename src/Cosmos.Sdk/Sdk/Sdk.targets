@@ -9,6 +9,11 @@
         <NuGetPackageId>runtime.linux-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
 
+      <NAOTRuntimePack Include="Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)">
+        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
+        <NuGetPackageId>Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)</NuGetPackageId>
+      </NAOTRuntimePack>
+
       <!-- For all other architectures, use native ILC -->
       <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
                           Condition="'$(RuntimeIdentifier)' != 'linux-arm64'">
@@ -18,6 +23,14 @@
     </ItemGroup>
 
     <GetPackageDirectory
+      Items="@(NAOTRuntimePack)"
+      PackageFolders="@(AssetsFilePackageFolder)"
+    >
+
+      <Output TaskParameter="Output" ItemName="ResolvedRuntimePack" />
+    </GetPackageDirectory>
+    
+    <GetPackageDirectory
       Items="@(HostILCompilerPack)"
       PackageFolders="@(AssetsFilePackageFolder)"
     >
@@ -25,18 +38,41 @@
       <Output TaskParameter="Output" ItemName="ResolvedILCompilerPack" />
     </GetPackageDirectory>
 
+    <!-- Pick one matching package directory instead of joining multiple values with semicolons.
+         Prefer the runtime package that contains a 'runtimes/<RID>/native' directory; otherwise fall back to any found package directory. -->
+    <ItemGroup>
+      <!-- find the runtime pack(s) that actually contain the native folder for this RID -->
+      <ResolvedRuntimeNative Include="@(ResolvedRuntimePack)"
+                             Condition="Exists('%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/native')" />
+
+      <!-- If ResolvedRuntimeNative is empty, we'll fall back to the first ResolvedRuntimePack item -->
+      <ResolvedRuntimeFallback Include="@(ResolvedRuntimePack)" Condition="@(ResolvedRuntimeNative->Count()) == 0" />
+
+      <!-- pick ILCompiler host package dir that contains tools (should be unique) -->
+      <ResolvedIlcHostWithTools Include="@(ResolvedILCompilerPack)"
+                                Condition="Exists('%(ResolvedILCompilerPack.PackageDirectory)/tools')" />
+      <ResolvedIlcHostFallback Include="@(ResolvedILCompilerPack)" Condition="@(ResolvedIlcHostWithTools->Count()) == 0" />
+    </ItemGroup>
+
     <PropertyGroup>
-      <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
-      <IlcSdkPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/sdk/))</IlcSdkPath>
-      <IlcFrameworkPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/framework/))</IlcFrameworkPath>
-      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''" >$([MSBuild]::NormalizePath($(IlcHostPackagePath)/tools/))</IlcToolsPath>
+      <IlcHostPackagePath Condition="@(ResolvedIlcHostWithTools) != ''">%(ResolvedIlcHostWithTools.PackageDirectory)</IlcHostPackagePath>
+      <IlcHostPackagePath Condition="@(ResolvedIlcHostWithTools) == '' and @(ResolvedIlcHostFallback) != ''">%(ResolvedIlcHostFallback.PackageDirectory)</IlcHostPackagePath>
+
+      <IlcRuntimePackagePath Condition="@(ResolvedRuntimeNative) != ''">%(ResolvedRuntimeNative.PackageDirectory)</IlcRuntimePackagePath>
+      <IlcRuntimePackagePath Condition="@(ResolvedRuntimeNative) == '' and @(ResolvedRuntimeFallback) != ''">%(ResolvedRuntimeFallback.PackageDirectory)</IlcRuntimePackagePath>
+
+      <IlcSdkPath Condition="$(IlcRuntimePackagePath) != ''">$([MSBuild]::NormalizePath('$(IlcRuntimePackagePath)/runtimes/$(RuntimeIdentifier)/native/'))</IlcSdkPath>
+      <IlcFrameworkPath Condition="$(IlcHostPackagePath) != ''">$([MSBuild]::NormalizePath('$(IlcRuntimePackagePath)/runtimes/$(RuntimeIdentifier)/lib/net10.0/'))</IlcFrameworkPath>
+      <IlcToolsPath Condition="$(IlcHostPackagePath) != ''">$([MSBuild]::NormalizePath('$(IlcHostPackagePath)/tools/'))</IlcToolsPath>
     </PropertyGroup>
     <Message Importance="High" Text="⚙️ [ILC] Using ILCompiler from: $(IlcToolsPath)" />
+    <Message Importance="High" Text="⚙️ [ILC] Using SDK Path: $(IlcSdkPath)" />
+    <Message Importance="High" Text="⚙️ [ILC] Using Framework Path: $(IlcFrameworkPath)" />
   </Target>
 
   <Target Name="CustomizeReferences" BeforeTargets="SetupPatcher">
     <ItemGroup>
-        <PrivateSdkAssemblies Include="$(IlcSdkPath)**/*.dll"/>
+      <PrivateSdkAssemblies Include="$(IlcSdkPath)**/*.dll"/>
       <FrameworkAssemblies Include="$(IlcFrameworkPath)**/*.dll"/>
       <ReferencePath Remove="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceOutputAssembly)' != 'true' and '%(ReferencePath.NuGetSourceType)' != 'Package'" />
     </ItemGroup>

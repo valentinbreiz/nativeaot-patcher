@@ -119,6 +119,74 @@
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (TypeCasting x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting",
+        "x64",
+        "60",
+        "${workspaceFolder}/test-results-typecasting-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (TypeCasting ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting",
+        "arm64",
+        "90",
+        "${workspaceFolder}/test-results-typecasting-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Memory x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Memory",
+        "x64",
+        "60",
+        "${workspaceFolder}/test-results-memory-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Memory ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Memory",
+        "arm64",
+        "90",
+        "${workspaceFolder}/test-results-memory-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
     }
   ]
 }

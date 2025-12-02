@@ -115,7 +115,16 @@ public class UartMessageParser
 
     private static void ParseTestSuiteStart(byte[] payload, TestResults results)
     {
-        results.SuiteName = Encoding.UTF8.GetString(payload);
+        if (payload.Length < 2)
+        {
+            results.SuiteName = Encoding.UTF8.GetString(payload);
+            results.ExpectedTestCount = 0;
+            return;
+        }
+
+        // Payload: [ExpectedTests:2][SuiteName:string]
+        results.ExpectedTestCount = BitConverter.ToUInt16(payload, 0);
+        results.SuiteName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
     }
 
     private static void ParseTestStart(byte[] payload, TestResults results)

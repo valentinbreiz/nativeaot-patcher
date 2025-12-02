@@ -41,76 +41,76 @@ echo "Building and packing projects individually..."
 
 # First build the base projects without dependencies
 dotnet build src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release
-dotnet pack src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release -o artifacts/package/release
 
 dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release
-dotnet pack src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Add local source now that we have some packages
 dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 
 # Build remaining projects
 dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release
-dotnet pack src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release
-dotnet pack src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release
-dotnet pack src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release
-dotnet pack src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release
-dotnet pack src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release -o artifacts/package/release
 
 # Build native packages for both architectures
 echo "Building native packages..."
 dotnet build src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Build kernel projects with architecture-specific defines
 echo "Building kernel projects with $ARCH_DEFINE..."
 
 # Build interfaces first (no arch dependencies)
 dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
-dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Build architecture-specific HAL packages
 dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 
 dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
-dotnet pack src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build
+dotnet pack src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Build SDK
 dotnet pack src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release -o artifacts/package/release
