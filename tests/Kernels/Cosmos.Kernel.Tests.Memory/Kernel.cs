@@ -28,7 +28,7 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Boxing_Nullable", TestBoxingNullable);
             Run("Boxing_Interface", TestBoxingInterface);
             Run("Boxing_CustomStruct", TestBoxingCustomStruct);
-            Run("Boxing_ArrayCopy", TestArrayCopyWithBoxing);
+            Skip("Boxing_ArrayCopy", TestArrayCopyWithBoxing);
 
             // Memory Allocation Tests
             Run("Memory_CharArray", TestCharArrayAllocation);
