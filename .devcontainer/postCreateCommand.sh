@@ -18,110 +18,81 @@ fi
 echo "Using define: $ARCH_DEFINE"
 echo "Using runtime: $RUNTIME_ID"
 
-# CRITICAL: Clean everything to avoid stale file references
-echo "Cleaning all build artifacts and caches..."
-
-# Clear all NuGet locals cache first
-dotnet nuget locals all --clear
-
-# Clear specific Cosmos packages from NuGet cache (handles deleted files like PageFaultHandler)
+# Only clear Cosmos packages from NuGet cache (not everything)
+echo "Clearing Cosmos packages from NuGet cache..."
 rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
 
-# Remove all build artifacts (bin, obj, packages)
+# Remove build artifacts
 rm -rf artifacts/ 2>/dev/null || true
 
-# Remove local source if it exists (to avoid path issues)
+# Remove local source if it exists (to avoid duplicates)
 dotnet nuget remove source local-packages 2>/dev/null || true
 
 # Create artifacts directory
 mkdir -p artifacts/package/release
 
+# Add local source FIRST with higher priority
+# The order matters - local-packages will be checked before nuget.org
+dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+
 # Build and pack each project individually in dependency order
+# Note: GeneratePackageOnBuild=true in Directory.Build.props means build also packs
 echo "Building and packing projects individually..."
 
 # First build the base projects without dependencies
 dotnet build src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release
-dotnet pack src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release -o artifacts/package/release
-
 dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release
-dotnet pack src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
-# Add local source now that we have some packages
-dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
-
-# Build remaining projects
+# Build remaining build tools
 dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release
-dotnet pack src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release
-dotnet pack src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release
-dotnet pack src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release
-dotnet pack src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release
-dotnet pack src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release -o artifacts/package/release
 
 # Build native packages for both architectures
 echo "Building native packages..."
 dotnet build src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Build kernel projects with architecture-specific defines
 echo "Building kernel projects with $ARCH_DEFINE..."
 
 # Build interfaces first (no arch dependencies)
 dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release
-dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
-dotnet pack src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
 # Build architecture-specific HAL packages
 dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
-dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 
 dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet pack src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
-
 dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
-dotnet pack src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -p:RuntimeIdentifier=$RUNTIME_ID -o artifacts/package/release --no-build -p:BuildProjectReferences=false
 
-# Build SDK
-dotnet pack src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release -o artifacts/package/release
+# Build SDK - must be built fresh to include updated Sdk.props
+dotnet build src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release
 
-# Restore main solution
+# Build Templates (includes dotnet new project template)
+dotnet build src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj -c Release
+
+# Clear Cosmos packages again to ensure fresh restore from local source
+echo "Clearing Cosmos packages to force fresh restore..."
+rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
+
+# Restore main solution - will now use local packages since they're the only source for cosmos.*
 echo "Restoring main solution..."
 dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 echo "Installing global tools..."
-dotnet tool install -g ilc --add-source artifacts/package/release || true
-dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release || true
+dotnet tool install -g ilc --add-source artifacts/package/release || dotnet tool update -g ilc --add-source artifacts/package/release || true
+dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release || dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release || true
 
 echo "=== PostCreate setup completed ==="

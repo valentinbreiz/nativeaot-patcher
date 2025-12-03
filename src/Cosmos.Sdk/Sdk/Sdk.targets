@@ -1,6 +1,6 @@
 <Project>
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
-  <Target Name="ResolveIlcPath" BeforeTargets="CustomizeReferences">
+  <Target Name="ResolveIlcPath" BeforeTargets="CustomizeReferences" DependsOnTargets="ResolvePackageAssets">
     <ItemGroup>
       <!-- For ARM64 cross-compilation, always use x64 ILC tools -->
       <HostILCompilerPack Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler"

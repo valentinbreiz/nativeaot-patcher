@@ -67,11 +67,13 @@
     },
     {
       "label": "Debug x64 DevKernel",
+      "dependsOn": ["Build x64 DevKernel"],
+      "dependsOrder": "sequence",
       "type": "shell",
       "command": "bash",
       "args": [
         "-c",
-        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-x64 -p:DefineConstants=ARCH_X64 -p:CosmosArch=x64 --verbosity minimal && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & echo QEMU-DEVKERNEL-DEBUG-READY && sleep 1 && wait"
+        "qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -79,7 +81,7 @@
         "fileLocation": ["relative", "${workspaceFolder}"],
         "background": {
           "activeOnStart": true,
-          "beginsPattern": ".*",
+          "beginsPattern": "^qemu",
           "endsPattern": "QEMU-DEVKERNEL-DEBUG-READY"
         },
         "pattern": { "regexp": ".*" }
@@ -90,11 +92,13 @@
     },
     {
       "label": "Debug ARM64 DevKernel",
+      "dependsOn": ["Build ARM64 DevKernel"],
+      "dependsOrder": "sequence",
       "type": "shell",
       "command": "bash",
       "args": [
         "-c",
-        "dotnet publish examples/DevKernel/DevKernel.csproj -c Debug -r linux-arm64 -p:DefineConstants=ARCH_ARM64 -p:CosmosArch=arm64 --verbosity minimal && qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && sleep 1 && wait"
+        "qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -102,7 +106,7 @@
         "fileLocation": ["relative", "${workspaceFolder}"],
         "background": {
           "activeOnStart": true,
-          "beginsPattern": ".*",
+          "beginsPattern": "^qemu",
           "endsPattern": "QEMU-DEVKERNEL-ARM64-DEBUG-READY"
         },
         "pattern": { "regexp": ".*" }

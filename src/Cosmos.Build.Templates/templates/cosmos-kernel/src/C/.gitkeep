@@ -1,0 +1,3 @@
+# This directory is for native C files that will be compiled with GCC.
+# Place your .c and .h files here.
+# They will be automatically compiled and linked into your kernel.
