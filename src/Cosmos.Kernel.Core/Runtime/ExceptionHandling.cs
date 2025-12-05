@@ -30,8 +30,9 @@ public unsafe struct EHClause
     public void* TargetType;  // MethodTable* for the exception type to catch
 }
 
+#if ARCH_X64
 /// <summary>
-/// PAL_LIMITED_CONTEXT structure matching assembly offsets
+/// PAL_LIMITED_CONTEXT structure matching x64 assembly offsets
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 0x50)]
 public unsafe struct PAL_LIMITED_CONTEXT
@@ -49,26 +50,24 @@ public unsafe struct PAL_LIMITED_CONTEXT
 }
 
 /// <summary>
-/// REGDISPLAY structure for funclet calls - matches assembly offsets exactly
-/// Total size = 0x88 bytes
+/// REGDISPLAY structure for x64 funclet calls - matches assembly offsets exactly
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 0x88)]
 public unsafe struct REGDISPLAY
 {
-    // Storage for register values (we store actual values, pointers point here)
-    // These are at the beginning so we have space to point to them
+    // Storage for register values
     [FieldOffset(0x00)] public nuint Rbx;
     [FieldOffset(0x08)] public nuint Rbp;
-    [FieldOffset(0x10)] public nuint Rsi;  // Not in PAL_LIMITED_CONTEXT but we can leave as 0
+    [FieldOffset(0x10)] public nuint Rsi;
 
-    // Pointers to register values - offsets must match assembly exactly
+    // Pointers to register values
     [FieldOffset(0x18)] public nuint* pRbx;
     [FieldOffset(0x20)] public nuint* pRbp;
     [FieldOffset(0x28)] public nuint* pRsi;
     [FieldOffset(0x30)] public nuint* pRdi;
 
     // More storage
-    [FieldOffset(0x38)] public nuint Rdi;  // Storage for Rdi
+    [FieldOffset(0x38)] public nuint Rdi;
     [FieldOffset(0x40)] public nuint R12;
     [FieldOffset(0x48)] public nuint R13;
     [FieldOffset(0x50)] public nuint R14;
@@ -82,9 +81,51 @@ public unsafe struct REGDISPLAY
     // Stack pointer for resume
     [FieldOffset(0x78)] public nuint SP;
 
-    // R15 storage and Shadow stack pointer
+    // R15 storage
     [FieldOffset(0x80)] public nuint R15;
 }
+#elif ARCH_ARM64
+/// <summary>
+/// PAL_LIMITED_CONTEXT structure matching ARM64 assembly offsets
+/// </summary>
+[StructLayout(LayoutKind.Explicit, Size = 0x50)]
+public unsafe struct PAL_LIMITED_CONTEXT
+{
+    [FieldOffset(0x00)] public nuint SP;    // Stack pointer
+    [FieldOffset(0x08)] public nuint IP;    // Instruction pointer (PC/LR)
+    [FieldOffset(0x10)] public nuint FP;    // Frame pointer (x29)
+    [FieldOffset(0x18)] public nuint LR;    // Link register (x30)
+    [FieldOffset(0x20)] public nuint X19;
+    [FieldOffset(0x28)] public nuint X20;
+    [FieldOffset(0x30)] public nuint X21;
+    [FieldOffset(0x38)] public nuint X22;
+    [FieldOffset(0x40)] public nuint X23;
+    [FieldOffset(0x48)] public nuint X24;
+}
+
+/// <summary>
+/// REGDISPLAY structure for ARM64 funclet calls - matches assembly offsets exactly
+/// </summary>
+[StructLayout(LayoutKind.Explicit, Size = 0x60)]
+public unsafe struct REGDISPLAY
+{
+    // Stack pointer for resume
+    [FieldOffset(0x00)] public nuint SP;
+
+    // Pointers to callee-saved registers
+    [FieldOffset(0x08)] public nuint* pFP;
+    [FieldOffset(0x10)] public nuint* pX19;
+    [FieldOffset(0x18)] public nuint* pX20;
+    [FieldOffset(0x20)] public nuint* pX21;
+    [FieldOffset(0x28)] public nuint* pX22;
+    [FieldOffset(0x30)] public nuint* pX23;
+    [FieldOffset(0x38)] public nuint* pX24;
+    [FieldOffset(0x40)] public nuint* pX25;
+    [FieldOffset(0x48)] public nuint* pX26;
+    [FieldOffset(0x50)] public nuint* pX27;
+    [FieldOffset(0x58)] public nuint* pX28;
+}
+#endif
 
 /// <summary>
 /// Stack frame information for unwinding
@@ -682,24 +723,20 @@ public static unsafe partial class ExceptionHelper
                 Serial.WriteHex((nuint)pContext);
                 Serial.WriteString("\n");
 
-                // Copy register values from PAL_LIMITED_CONTEXT to REGDISPLAY storage
+                // Get pointer to regDisplay for setting up internal pointers
+                REGDISPLAY* pRegDisplay = &regDisplay;
+
+#if ARCH_X64
+                // x64: Copy register values from PAL_LIMITED_CONTEXT to REGDISPLAY storage
                 regDisplay.Rbx = pContext->Rbx;
                 regDisplay.Rbp = pContext->Rbp;
                 regDisplay.R12 = pContext->R12;
                 regDisplay.R13 = pContext->R13;
                 regDisplay.R14 = pContext->R14;
                 regDisplay.R15 = pContext->R15;
-
-                // Set the resume SP to the original throwing context's RSP
-                // This is critical - when we resume, we need the stack to be at the right place
                 regDisplay.SP = pContext->Rsp;
 
-                // Get pointer to regDisplay and set up internal pointers
-                // Since regDisplay is a local variable, we can take its address directly
-                REGDISPLAY* pRegDisplay = &regDisplay;
-
-                // Point to the storage locations within the REGDISPLAY struct
-                // These offsets are relative to the start of the struct
+                // Set up pointers to storage locations
                 regDisplay.pRbx = &pRegDisplay->Rbx;
                 regDisplay.pRbp = &pRegDisplay->Rbp;
                 regDisplay.pRsi = &pRegDisplay->Rsi;
@@ -714,6 +751,28 @@ public static unsafe partial class ExceptionHelper
                 Serial.WriteString(" RBP=0x");
                 Serial.WriteHex(regDisplay.Rbp);
                 Serial.WriteString("\n");
+#elif ARCH_ARM64
+                // ARM64: Set resume SP from context
+                regDisplay.SP = pContext->SP;
+
+                // ARM64 uses x19-x28 as callee-saved registers
+                // The context has X19-X24, we store pointers to them
+                // Note: For ARM64, we don't have storage in REGDISPLAY,
+                // we point directly to the context values
+                regDisplay.pFP = &pContext->FP;
+                regDisplay.pX19 = &pContext->X19;
+                regDisplay.pX20 = &pContext->X20;
+                regDisplay.pX21 = &pContext->X21;
+                regDisplay.pX22 = &pContext->X22;
+                regDisplay.pX23 = &pContext->X23;
+                regDisplay.pX24 = &pContext->X24;
+
+                Serial.WriteString("[EH] REGDISPLAY: SP=0x");
+                Serial.WriteHex(regDisplay.SP);
+                Serial.WriteString(" FP=0x");
+                Serial.WriteHex(pContext->FP);
+                Serial.WriteString("\n");
+#endif
 
                 // Clear the exception handling flag BEFORE calling funclet
                 s_isHandlingException = false;

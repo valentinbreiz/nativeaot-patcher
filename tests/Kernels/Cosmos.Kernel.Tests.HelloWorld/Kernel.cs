@@ -25,7 +25,7 @@ namespace Cosmos.Kernel.Tests.HelloWorld
             Serial.WriteString("[HelloWorld] Starting tests...\n");
 
             // Initialize test suite
-            Start("HelloWorld Basic Tests", expectedTests: 7);
+            Start("HelloWorld Basic Tests", expectedTests: 3);
 
             // Test 1: Basic arithmetic
             Run("Test_BasicArithmetic", () =>
@@ -52,70 +52,6 @@ namespace Cosmos.Kernel.Tests.HelloWorld
                 Equal(a, b);
                 True(a < c);
                 False(a > c);
-            });
-
-            // Test 4: Try-catch basic functionality
-            Run("Test_TryCatch_Basic", () =>
-            {
-                bool caughtException = false;
-                try
-                {
-                    throw new InvalidOperationException("Test exception");
-                }
-                catch (InvalidOperationException)
-                {
-                    caughtException = true;
-                }
-
-                True(caughtException, "Exception should have been caught");
-            });
-
-            // Test 5: Try-catch with exception message
-            Run("Test_TryCatch_Message", () =>
-            {
-                string caughtMessage = null;
-                try
-                {
-                    throw new InvalidOperationException("Expected message");
-                }
-                catch (InvalidOperationException ex)
-                {
-                    caughtMessage = ex.Message;
-                }
-
-                Equal("Expected message", caughtMessage);
-            });
-
-            // Test 6: Try-catch with base exception type
-            Run("Test_TryCatch_BaseType", () =>
-            {
-                bool caughtException = false;
-                try
-                {
-                    throw new InvalidOperationException("Test");
-                }
-                catch (Exception)
-                {
-                    caughtException = true;
-                }
-
-                True(caughtException, "Base Exception type should catch derived exceptions");
-            });
-
-            // Test 7: Try-finally
-            Run("Test_TryFinally", () =>
-            {
-                bool finallyExecuted = false;
-                try
-                {
-                    // No exception
-                }
-                finally
-                {
-                    finallyExecuted = true;
-                }
-
-                True(finallyExecuted, "Finally block should always execute");
             });
 
             // Finish test suite

@@ -87,8 +87,8 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             // Get throw address and context from ExInfo
             nuint throwAddress = 0;
-            nuint throwRbp = 0;
-            nuint throwRsp = 0;
+            nuint throwFp = 0;  // Frame pointer (RBP on x64, FP/x29 on ARM64)
+            nuint throwSp = 0;  // Stack pointer
 
             if (pExInfo != null)
             {
@@ -96,18 +96,28 @@ namespace Cosmos.Kernel.Core.Runtime
                 void* pContext = *(void**)((byte*)pExInfo + 0x08); // OFFSETOF__ExInfo__m_pExContext
                 if (pContext != null)
                 {
-                    // PAL_LIMITED_CONTEXT layout:
+#if ARCH_X64
+                    // x64 PAL_LIMITED_CONTEXT layout:
                     // 0x00: IP (instruction pointer / return address)
                     // 0x08: Rsp
                     // 0x10: Rbp
                     throwAddress = *(nuint*)((byte*)pContext + 0x00);
-                    throwRsp = *(nuint*)((byte*)pContext + 0x08);
-                    throwRbp = *(nuint*)((byte*)pContext + 0x10);
+                    throwSp = *(nuint*)((byte*)pContext + 0x08);
+                    throwFp = *(nuint*)((byte*)pContext + 0x10);
+#elif ARCH_ARM64
+                    // ARM64 PAL_LIMITED_CONTEXT layout:
+                    // 0x00: SP (stack pointer)
+                    // 0x08: IP (instruction pointer / LR)
+                    // 0x10: FP (frame pointer / x29)
+                    throwSp = *(nuint*)((byte*)pContext + 0x00);
+                    throwAddress = *(nuint*)((byte*)pContext + 0x08);
+                    throwFp = *(nuint*)((byte*)pContext + 0x10);
+#endif
                 }
             }
 
             // Use our exception handling infrastructure
-            ExceptionHelper.ThrowExceptionWithContext(ex, throwAddress, throwRbp, throwRsp, pExInfo);
+            ExceptionHelper.ThrowExceptionWithContext(ex, throwAddress, throwFp, throwSp, pExInfo);
         }
 
         [RuntimeExport("RhpAssignRef")]
