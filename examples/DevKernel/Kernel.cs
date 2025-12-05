@@ -57,15 +57,84 @@ internal static partial class Program
 
     private static void TestExceptionHandling()
     {
-        Console.WriteLine("Testing throw statement...");
-        Serial.WriteString("[Main] Testing throw statement...\n");
+        Console.WriteLine("Testing exception handling...");
+        Serial.WriteString("[Main] Testing exception handling...\n");
 
-        // This will throw an exception
-        // Expected: System will print exception info and halt gracefully
-        throw new InvalidOperationException("This is a test exception!");
+        // Test 1: Try-catch basic
+        Serial.WriteString("[Main] Test 1: Basic try-catch...\n");
+        bool caught = false;
+        try
+        {
+            throw new InvalidOperationException("Test exception");
+        }
+        catch (InvalidOperationException ex)
+        {
+            caught = true;
+            Serial.WriteString("[Main] Caught exception: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+        }
 
-        // Should not reach here
-        Console.WriteLine("  ✗ ERROR: Should not reach here\n");
+        if (caught)
+        {
+            Serial.WriteString("[Main] Test 1: PASS - Exception was caught!\n");
+            Console.WriteLine("  Test 1: PASS - Try-catch works!");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 1: FAIL - Exception was not caught!\n");
+            Console.WriteLine("  Test 1: FAIL - Try-catch did not work!");
+        }
+
+        // Test 2: Try-catch with base Exception type
+        Serial.WriteString("[Main] Test 2: Catch base Exception type...\n");
+        caught = false;
+        try
+        {
+            throw new InvalidOperationException("Derived exception");
+        }
+        catch (Exception)
+        {
+            caught = true;
+        }
+
+        if (caught)
+        {
+            Serial.WriteString("[Main] Test 2: PASS - Base type caught derived exception!\n");
+            Console.WriteLine("  Test 2: PASS - Base Exception catches derived!");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 2: FAIL - Base type did not catch!\n");
+            Console.WriteLine("  Test 2: FAIL - Base Exception did not catch!");
+        }
+
+        // Test 3: Try-finally
+        Serial.WriteString("[Main] Test 3: Try-finally...\n");
+        bool finallyRan = false;
+        try
+        {
+            Serial.WriteString("[Main] Inside try block\n");
+        }
+        finally
+        {
+            finallyRan = true;
+            Serial.WriteString("[Main] Inside finally block\n");
+        }
+
+        if (finallyRan)
+        {
+            Serial.WriteString("[Main] Test 3: PASS - Finally block executed!\n");
+            Console.WriteLine("  Test 3: PASS - Finally block works!");
+        }
+        else
+        {
+            Serial.WriteString("[Main] Test 3: FAIL - Finally block did not execute!\n");
+            Console.WriteLine("  Test 3: FAIL - Finally block did not work!");
+        }
+
+        Serial.WriteString("[Main] Exception handling tests complete.\n");
+        Console.WriteLine("Exception handling tests complete.");
     }
 
 #if ARCH_X64

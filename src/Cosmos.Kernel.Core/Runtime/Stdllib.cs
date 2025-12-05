@@ -75,15 +75,39 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("InitializeModules")]
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
-        [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(Exception ex)
+        // RhpThrowEx is now implemented in assembly (CPU/ExceptionHandling.asm)
+        // The assembly stub saves register context, creates ExInfo, then calls RhThrowEx
+
+        /// <summary>
+        /// Managed exception dispatcher called from assembly RhpThrowEx.
+        /// This is the entry point for the two-pass exception handling.
+        /// </summary>
+        [RuntimeExport("RhThrowEx")]
+        private static void RhThrowEx(Exception ex, void* pExInfo)
         {
-            // Get the return address (where the exception was thrown from)
-            // This is an approximation - the actual throw site is the caller
-            nuint throwAddress = 0; // Will be populated by assembly helper in real implementation
+            // Get throw address and context from ExInfo
+            nuint throwAddress = 0;
+            nuint throwRbp = 0;
+            nuint throwRsp = 0;
+
+            if (pExInfo != null)
+            {
+                // ExInfo.m_pExContext points to PAL_LIMITED_CONTEXT
+                void* pContext = *(void**)((byte*)pExInfo + 0x08); // OFFSETOF__ExInfo__m_pExContext
+                if (pContext != null)
+                {
+                    // PAL_LIMITED_CONTEXT layout:
+                    // 0x00: IP (instruction pointer / return address)
+                    // 0x08: Rsp
+                    // 0x10: Rbp
+                    throwAddress = *(nuint*)((byte*)pContext + 0x00);
+                    throwRsp = *(nuint*)((byte*)pContext + 0x08);
+                    throwRbp = *(nuint*)((byte*)pContext + 0x10);
+                }
+            }
 
             // Use our exception handling infrastructure
-            ExceptionHelper.ThrowException(ex, throwAddress);
+            ExceptionHelper.ThrowExceptionWithContext(ex, throwAddress, throwRbp, throwRsp, pExInfo);
         }
 
         [RuntimeExport("RhpAssignRef")]
@@ -250,11 +274,7 @@ namespace Cosmos.Kernel.Core.Runtime
             return Memory.RhpNewFast(pEEType); // Simplified implementation (Should set gc flag)
         }
 
-        [RuntimeExport("RhpRethrow")]
-        static void RhpRethrow()
-        {
-            while (true) ;
-        }
+        // RhpRethrow is now implemented in assembly (CPU/ExceptionHandling.asm)
 
         [RuntimeExport("RhSpinWait")]
         static void RhSpinWait(int iterations)
