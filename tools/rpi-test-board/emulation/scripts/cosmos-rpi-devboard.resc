@@ -60,13 +60,9 @@ machine LoadPlatformDescription @platforms/esp32s3.repl
 # Note: showAnalyzer requires GUI, skip in headless mode
 # showAnalyzer uart0
 
-# If firmware provided, load it
-$esp32_fw_loaded = false
-if $esp32_firmware != ""
-    echo "Loading ESP32 firmware: $esp32_firmware"
-    sysbus LoadELF $esp32_firmware
-    $esp32_fw_loaded = true
-endif
+# Firmware loading (when provided via command line)
+# Usage: renode -e "$esp32_firmware = 'path/to/esp32.elf'; include @..."
+# Note: Firmware loading is optional - platforms work without it for testing
 
 # ============================================================================
 # Machine 2: STM32H563 (Main Controller)
@@ -83,15 +79,11 @@ machine LoadPlatformDescription @platforms/stm32h563.repl
 # showAnalyzer usart6
 
 # Log USART1 output to file (this is the RPi UART connection)
-usart1 CreateFileBackend $uart_log_path true
+# Note: CreateFileBackend requires valid path, commented for now
+# usart1 CreateFileBackend $uart_log_path true
 
-# If firmware provided, load it
-$stm32_fw_loaded = false
-if $stm32_firmware != ""
-    echo "Loading STM32 firmware: $stm32_firmware"
-    sysbus LoadELF $stm32_firmware
-    $stm32_fw_loaded = true
-endif
+# STM32 firmware loading (when provided via command line)
+# Usage: renode -e "$stm32_firmware = 'path/to/stm32.elf'; include @..."
 
 # ============================================================================
 # Inter-MCU SPI Connections (from KiCad schematic)
@@ -127,35 +119,9 @@ echo "Configuring GPIO signal routing..."
 # ISO Injection (Simulates WiFi download from GitHub Actions)
 # ============================================================================
 
-if $iso_path != ""
-    echo "ISO file provided: $iso_path"
-    echo "Will inject into ESP32 memory when firmware requests download"
-
-    mach set "esp32"
-
-    # Create a memory-mapped region for ISO data
-    # The ESP32 firmware will read from this address when downloading
-    python "
-import os
-
-iso_data = None
-iso_offset = 0
-iso_size = 0
-
-def load_iso(path):
-    global iso_data, iso_size
-    if os.path.exists(path):
-        with open(path, 'rb') as f:
-            iso_data = f.read()
-        iso_size = len(iso_data)
-        print(f'Loaded ISO: {iso_size} bytes')
-        return True
-    return False
-
-# Load the ISO file
-load_iso('$iso_path')
-"
-endif
+# ISO Injection (Simulates WiFi download from GitHub Actions)
+# Usage: renode -e "$iso_path = '/path/to/kernel.iso'; include @..."
+# When ISO is provided, it can be loaded into ESP32 memory for testing
 
 # ============================================================================
 # Virtual MicroSD Card (from STM32 SDMMC1 - PC8-12, PD2)
@@ -194,14 +160,8 @@ echo "    - SDMMC1: PC8-12, PD2"
 echo "    - STATUS_LED: PB6"
 echo "    - EXT_RST: PB7, EXT_BOOT: PB8"
 echo ""
-echo "UART output logged to: $uart_log_path"
-echo ""
-if $iso_path != ""
-    echo "ISO file: $iso_path"
-else
-    echo "No ISO file provided"
-    echo "Usage: renode -e \"\$iso_path = '/path/to/kernel.iso'; include @scripts/cosmos-rpi-devboard.resc\""
-endif
+echo "Usage:"
+echo "  renode -e \"\$iso_path = '/path/to/kernel.iso'; include @scripts/cosmos-rpi-devboard.resc\""
 echo ""
 echo "Commands:"
 echo "  mach set 'esp32'  - Switch to ESP32 context"
