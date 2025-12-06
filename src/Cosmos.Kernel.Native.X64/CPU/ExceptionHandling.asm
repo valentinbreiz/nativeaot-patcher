@@ -205,6 +205,87 @@ RhpCallCatchFunclet:
 
 
 ;=============================================================================
+; RhpCallFilterFunclet - Call a filter funclet to evaluate exception filter
+;
+; INPUT:  RDI = exception object
+;         RSI = filter funclet address
+;         RDX = REGDISPLAY*
+;
+; OUTPUT: RAX = 1 if filter matched (should catch), 0 if not
+;
+; The filter funclet expects the exception object in RDI.
+; It returns non-zero if the exception should be caught by this handler.
+;=============================================================================
+global RhpCallFilterFunclet
+RhpCallFilterFunclet:
+    ; Save callee-saved registers
+    push    rbp
+    push    rbx
+    push    r12
+    push    r13
+    push    r14
+    push    r15
+
+    ; Save arguments
+    push    rdi                     ; exception object
+    push    rsi                     ; filter address
+    push    rdx                     ; REGDISPLAY*
+
+    ; Restore callee-saved registers from REGDISPLAY
+    ; These are the registers the funclet expects to have the values from the method
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pRbx]
+    test    rax, rax
+    jz      .skip_rbx_f
+    mov     rbx, [rax]
+.skip_rbx_f:
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pRbp]
+    test    rax, rax
+    jz      .skip_rbp_f
+    mov     rbp, [rax]
+.skip_rbp_f:
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pR12]
+    test    rax, rax
+    jz      .skip_r12_f
+    mov     r12, [rax]
+.skip_r12_f:
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pR13]
+    test    rax, rax
+    jz      .skip_r13_f
+    mov     r13, [rax]
+.skip_r13_f:
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pR14]
+    test    rax, rax
+    jz      .skip_r14_f
+    mov     r14, [rax]
+.skip_r14_f:
+    mov     rax, [rdx + OFFSETOF__REGDISPLAY__pR15]
+    test    rax, rax
+    jz      .skip_r15_f
+    mov     r15, [rax]
+.skip_r15_f:
+
+    ; Load exception object and call filter
+    mov     rdi, [rsp + 16]         ; exception object
+    call    qword [rsp + 8]         ; call filter funclet
+
+    ; RAX now contains the filter result (0 = no match, non-zero = match)
+    mov     r8, rax                 ; save result
+
+    ; Clean up stack and restore our callee-saved registers
+    add     rsp, 24                 ; pop saved args
+    pop     r15
+    pop     r14
+    pop     r13
+    pop     r12
+    pop     rbx
+    pop     rbp
+
+    ; Return filter result
+    mov     rax, r8
+    ret
+
+
+;=============================================================================
 ; RhpRethrow - Rethrow the current exception
 ;
 ; Called when a 'throw;' statement (without exception object) is executed.

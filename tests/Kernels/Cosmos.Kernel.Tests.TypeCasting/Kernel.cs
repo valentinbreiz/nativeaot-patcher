@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.Tests.TypeCasting
         private static void Main()
         {
             Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-            Start("TypeCasting Tests", expectedTests: 13);
+            Start("TypeCasting Tests", expectedTests: 15);
 
             // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
             Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);
@@ -49,6 +49,8 @@ namespace Cosmos.Kernel.Tests.TypeCasting
             Run("TryCatch_Basic", TestTryCatchBasic);
             Run("TryCatch_BaseType", TestTryCatchBaseType);
             Run("TryCatch_Message", TestTryCatchMessage);
+            Run("TryCatch_Filter_When", TestTryCatchFilterWhen);
+            Run("TryCatch_Filter_WhenFalse", TestTryCatchFilterWhenFalse);
             Run("TryFinally", TestTryFinally);
 
             Serial.WriteString("[TypeCasting Tests] All tests completed\n");
@@ -232,6 +234,45 @@ namespace Cosmos.Kernel.Tests.TypeCasting
             }
 
             Equal("Expected message", caughtMessage);
+        }
+
+        private static void TestTryCatchFilterWhen()
+        {
+            bool caughtWithFilter = false;
+            string? caughtMessage = null;
+            try
+            {
+                throw new InvalidOperationException("FilterMatch");
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "FilterMatch")
+            {
+                caughtWithFilter = true;
+                caughtMessage = ex.Message;
+            }
+
+            True(caughtWithFilter, "Exception filter 'when' should match and catch");
+            Equal("FilterMatch", caughtMessage);
+        }
+
+        private static void TestTryCatchFilterWhenFalse()
+        {
+            bool caughtSpecific = false;
+            bool caughtGeneral = false;
+            try
+            {
+                throw new InvalidOperationException("NoMatch");
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "SomethingElse")
+            {
+                caughtSpecific = true;
+            }
+            catch (Exception)
+            {
+                caughtGeneral = true;
+            }
+
+            True(!caughtSpecific, "Exception filter 'when' should NOT match when condition is false");
+            True(caughtGeneral, "General catch should handle exception when filter doesn't match");
         }
 
         private static void TestTryFinally()
