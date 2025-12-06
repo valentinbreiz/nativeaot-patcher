@@ -33,18 +33,36 @@ static const char *TAG = "cosmos-rpi";
 #define WIFI_SSID      CONFIG_WIFI_SSID
 #define WIFI_PASSWORD  CONFIG_WIFI_PASSWORD
 
-// SPI pins for STM32 communication
-#define SPI_MOSI_PIN   GPIO_NUM_11
-#define SPI_MISO_PIN   GPIO_NUM_13
-#define SPI_SCLK_PIN   GPIO_NUM_12
-#define SPI_CS_PIN     GPIO_NUM_10
+// SPI1 pins for STM32 communication (from KiCad schematic)
+// ESP32 SPI1 (master) -> STM32 SPI1 (slave)
+//   GPIO9  -> STM32 PA3 (SPI1_NSS)
+//   GPIO10 -> STM32 PB5 (SPI1_MOSI)
+//   GPIO11 -> STM32 PB3 (SPI1_SCK)
+//   GPIO12 <- STM32 PA6 (SPI1_MISO)
+#define SPI_CS_PIN     GPIO_NUM_9
+#define SPI_MOSI_PIN   GPIO_NUM_10
+#define SPI_SCLK_PIN   GPIO_NUM_11
+#define SPI_MISO_PIN   GPIO_NUM_12
 
-// LED pins
-#define LED_POWER      GPIO_NUM_4
-#define LED_WIFI       GPIO_NUM_5
-#define LED_JOB        GPIO_NUM_6
-#define LED_TEST       GPIO_NUM_7
-#define LED_RESULT     GPIO_NUM_8
+// SPI2 pins for secondary channel (optional, from KiCad schematic)
+// ESP32 SPI2 (master) -> STM32 SPI2 (slave)
+//   GPIO5  -> STM32 PA4 (SPI2_NSS)
+//   GPIO6  -> STM32 PC3 (SPI2_MOSI)
+//   GPIO7  -> STM32 PB13 (SPI2_SCK)
+//   GPIO8  <- STM32 PC2 (SPI2_MISO)
+#define SPI2_CS_PIN    GPIO_NUM_5
+#define SPI2_MOSI_PIN  GPIO_NUM_6
+#define SPI2_SCLK_PIN  GPIO_NUM_7
+#define SPI2_MISO_PIN  GPIO_NUM_8
+
+// LED pin (from KiCad schematic: GPIO1 = ESP32_LED)
+#define LED_STATUS     GPIO_NUM_1
+
+// Control signals (from KiCad schematic)
+#define GPIO_BOOT      GPIO_NUM_0   // ESP32_BOOT - Boot mode selection
+#define GPIO_WAKEUP    GPIO_NUM_2   // STM32_WKUP - Wake-up signal to STM32
+#define GPIO_PWM1      GPIO_NUM_3   // ESP32_PWM1 - PWM output 1
+#define GPIO_PWM2      GPIO_NUM_4   // ESP32_PWM2 - PWM output 2
 
 // SPI Commands (matching protocol spec)
 #define CMD_PING         0x01
@@ -95,30 +113,49 @@ static esp_err_t log_handler(httpd_req_t *req);
 static esp_err_t reset_handler(httpd_req_t *req);
 
 /**
- * Initialize LEDs
+ * Initialize GPIO (LED and control signals)
  */
-static void init_leds(void)
+static void init_gpio(void)
 {
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << LED_POWER) | (1ULL << LED_WIFI) |
-                       (1ULL << LED_JOB) | (1ULL << LED_TEST) | (1ULL << LED_RESULT),
+    // Configure LED_STATUS (GPIO1) as output
+    gpio_config_t led_conf = {
+        .pin_bit_mask = (1ULL << LED_STATUS),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
-    gpio_config(&io_conf);
+    gpio_config(&led_conf);
 
-    // Power LED on
-    gpio_set_level(LED_POWER, 1);
+    // Configure GPIO_WAKEUP (GPIO2) as output to signal STM32
+    gpio_config_t wakeup_conf = {
+        .pin_bit_mask = (1ULL << GPIO_WAKEUP),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&wakeup_conf);
+
+    // LED on to indicate power
+    gpio_set_level(LED_STATUS, 1);
+    gpio_set_level(GPIO_WAKEUP, 0);
 }
 
 /**
- * Set LED state
+ * Set status LED state (blink patterns for different states)
  */
-static void set_led(gpio_num_t led, bool on)
+static void set_status_led(bool on)
 {
-    gpio_set_level(led, on ? 1 : 0);
+    gpio_set_level(LED_STATUS, on ? 1 : 0);
+}
+
+/**
+ * Signal STM32 wake-up
+ */
+static void signal_stm32_wakeup(bool active)
+{
+    gpio_set_level(GPIO_WAKEUP, active ? 1 : 0);
 }
 
 /**
@@ -215,13 +252,13 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        set_led(LED_WIFI, false);
+        set_status_led(false);  // LED off when disconnected
         esp_wifi_connect();
         ESP_LOGI(TAG, "Reconnecting to WiFi...");
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
-        set_led(LED_WIFI, true);
+        set_status_led(true);  // LED on when connected
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
@@ -290,7 +327,7 @@ static esp_err_t upload_handler(httpd_req_t *req)
     }
 
     g_state = STATE_UPLOADING;
-    set_led(LED_JOB, true);
+    signal_stm32_wakeup(true);  // Wake up STM32
     snprintf(g_message, sizeof(g_message), "Receiving ISO...");
 
     // Get content length
@@ -364,7 +401,7 @@ static esp_err_t upload_handler(httpd_req_t *req)
     g_state = STATE_IDLE;
     g_progress = 100;
     snprintf(g_message, sizeof(g_message), "Upload complete");
-    set_led(LED_JOB, false);
+    signal_stm32_wakeup(false);  // Release STM32 wake-up
 
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_send(req, "{\"success\":true}", 16);
@@ -382,8 +419,7 @@ static esp_err_t run_handler(httpd_req_t *req)
 
     g_state = STATE_BOOTING;
     g_progress = 0;
-    set_led(LED_JOB, true);
-    set_led(LED_TEST, true);
+    signal_stm32_wakeup(true);  // Signal STM32 to start
     snprintf(g_message, sizeof(g_message), "Starting test...");
 
     // Tell STM32 to start test
@@ -443,9 +479,7 @@ static esp_err_t reset_handler(httpd_req_t *req)
     g_state = STATE_IDLE;
     g_progress = 0;
     snprintf(g_message, sizeof(g_message), "Ready");
-    set_led(LED_JOB, false);
-    set_led(LED_TEST, false);
-    set_led(LED_RESULT, false);
+    signal_stm32_wakeup(false);  // Release STM32
 
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_send(req, "{\"success\":true}", 16);
@@ -522,15 +556,13 @@ static void status_task(void *pvParameters)
                     ESP_LOGI(TAG, "State changed: %d -> %d", g_state, new_state);
                     g_state = new_state;
 
-                    // Update LEDs based on state
+                    // Update status LED and wake-up signal based on state
                     if (new_state == STATE_COMPLETED) {
-                        set_led(LED_TEST, false);
-                        set_led(LED_RESULT, true);  // Green for pass
-                        set_led(LED_JOB, false);
+                        set_status_led(true);        // LED on for completion
+                        signal_stm32_wakeup(false);  // Release STM32
                     } else if (new_state == STATE_ERROR) {
-                        set_led(LED_TEST, false);
-                        set_led(LED_RESULT, true);  // Would be red in real hardware
-                        set_led(LED_JOB, false);
+                        set_status_led(false);       // LED off for error
+                        signal_stm32_wakeup(false);  // Release STM32
                     }
                 }
                 g_progress = new_progress;
@@ -558,7 +590,7 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     // Initialize hardware
-    init_leds();
+    init_gpio();
     ESP_ERROR_CHECK(init_spi());
     init_wifi();
 
