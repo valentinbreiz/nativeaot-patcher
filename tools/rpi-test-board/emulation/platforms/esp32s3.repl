@@ -1,0 +1,115 @@
+// Renode Platform Definition for ESP32-S3 (QFN-56)
+// Cosmos-RPi-Dev-Board WiFi Module (U5)
+//
+// Pin configuration from CosmosRpiDevBoard.kicad_sch
+//
+// SPI1 (to STM32 - Master mode, directly connecting to STM32 SPI1 slave):
+//   GPIO9  (Pin 14) - SPI1_CS   (Chip Select)
+//   GPIO10 (Pin 15) - SPI1_MOSI (Master Out Slave In)
+//   GPIO11 (Pin 16) - SPI1_CLK  (Clock)
+//   GPIO12 (Pin 17) - SPI1_MISO (Master In Slave Out - from STM32)
+//
+// SPI2 (to STM32 - Master mode, directly connecting to STM32 SPI2 slave):
+//   GPIO5  (Pin 10) - SPI2_CS   (Chip Select)
+//   GPIO6  (Pin 11) - SPI2_MOSI (Master Out Slave In)
+//   GPIO7  (Pin 12) - SPI2_CLK  (Clock)
+//   GPIO8  (Pin 13) - SPI2_MISO (Master In Slave Out - from STM32)
+//
+// SPI0 (Internal Flash/PSRAM):
+//   GPIO33 (Pin 38) - SPI0_CS1  (PSRAM CS)
+//   GPIO34 (Pin 39) - SPI0_HD   (Flash HOLD)
+//   GPIO35 (Pin 40) - SPI0_WP   (Flash Write Protect)
+//   GPIO36 (Pin 41) - SPI0_CS0  (Flash CS)
+//   GPIO37 (Pin 42) - SPI0_CLK  (Flash Clock)
+//   GPIO38 (Pin 43) - SPI0_MOSI (Flash Data Out)
+//
+// UART (Debug):
+//   GPIO17 (Pin 23) - ESP32_TX
+//   GPIO18 (Pin 24) - ESP32_RX
+//
+// USB (USB-C connector):
+//   GPIO19 (Pin 25) - ESP32_D- (USB Data Minus)
+//   GPIO20 (Pin 26) - ESP32_D+ (USB Data Plus)
+//
+// GPIO Control Signals:
+//   GPIO0  (Pin 5)  - ESP32_BOOT (Boot mode selection)
+//   GPIO1  (Pin 6)  - ESP32_LED  (Status LED)
+//   GPIO2  (Pin 7)  - STM32_WKUP (Wake-up signal to STM32)
+//   GPIO3  (Pin 8)  - ESP32_PWM1 (PWM output 1)
+//   GPIO4  (Pin 9)  - ESP32_PWM2 (PWM output 2)
+//
+// Strapping Pins:
+//   GPIO45 (Pin 51) - ESP32_GPIO45 (VDD_SPI voltage select)
+//   GPIO46 (Pin 52) - ESP32_GPIO46 (ROM log output)
+//
+// Crystal:
+//   HXI/HXO - 40MHz main crystal
+//   LXI/LXO - 32.768kHz RTC crystal
+//
+// CHIP_PU - Enable/Reset signal
+
+// ESP32-S3 uses Xtensa LX7 dual-core processor
+cpu0: CPU.Xtensa @ sysbus
+    cpuType: "esp32s3"
+
+// Memory map for ESP32-S3 (per TRM)
+iram: Memory.MappedMemory @ sysbus 0x40370000
+    size: 0x70000   // 448KB Internal SRAM
+
+dram: Memory.MappedMemory @ sysbus 0x3FC88000
+    size: 0x78000   // 480KB Data SRAM
+
+// External PSRAM (8MB Octal PSRAM - connected via SPI0)
+psram: Memory.MappedMemory @ sysbus 0x3C000000
+    size: 0x800000  // 8MB PSRAM
+
+// External Flash (8MB - connected via SPI0)
+flash: Memory.MappedMemory @ sysbus 0x42000000
+    size: 0x800000  // 8MB Flash
+
+// Internal ROM
+rom: Memory.MappedMemory @ sysbus 0x40000000
+    size: 0x60000   // 384KB ROM
+
+// UART0 - Debug output (GPIO17=TX, GPIO18=RX)
+// Note: Memory stub - actual UART emulation via external bridge
+uart0: Memory.MappedMemory @ sysbus 0x60000000
+    size: 0x1000
+
+// UART1 - Available for use
+uart1: Memory.MappedMemory @ sysbus 0x60010000
+    size: 0x1000
+
+// SPI2 (HSPI) - Connected to STM32 SPI1 (Master mode)
+// GPIO9=CS, GPIO10=MOSI, GPIO11=CLK, GPIO12=MISO
+// Note: Memory stub - actual SPI handled by external bridge
+spi2: Memory.MappedMemory @ sysbus 0x60024000
+    size: 0x1000
+
+// SPI3 (VSPI) - Connected to STM32 SPI2 (Master mode)
+// GPIO5=CS, GPIO6=MOSI, GPIO7=CLK, GPIO8=MISO
+spi3: Memory.MappedMemory @ sysbus 0x60025000
+    size: 0x1000
+
+// GPIO Controller - Memory stub
+// Note: ESP32_GPIO may not be available, using memory region
+gpio: Memory.MappedMemory @ sysbus 0x60004000
+    size: 0x1000
+
+// System Timer - Memory stub
+systimer: Memory.MappedMemory @ sysbus 0x6001F000
+    size: 0x1000
+
+// RTC Controller - Memory stub
+rtc: Memory.MappedMemory @ sysbus 0x60008000
+    size: 0x1000
+
+// WiFi/BT Radio Controller - Memory stub
+// Actual WiFi emulation handled by external process or file injection
+wifi: Memory.MappedMemory @ sysbus 0x60033000
+    size: 0x1000
+
+// USB OTG Controller (GPIO19=D-, GPIO20=D+) - Memory stub
+usb: Memory.MappedMemory @ sysbus 0x60080000
+    size: 0x1000
+
