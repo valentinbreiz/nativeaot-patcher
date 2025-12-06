@@ -152,7 +152,8 @@ RhpThrowEx:
 .balign 4
 RhpCallCatchFunclet:
     // Save callee-saved registers and arguments
-    stp     x29, x30, [sp, #-0x70]!
+    // Allocate 0x80 bytes to have room for all saved data
+    stp     x29, x30, [sp, #-0x80]!
     mov     x29, sp                     // Set up frame pointer
     stp     x19, x20, [sp, #0x10]
     stp     x21, x22, [sp, #0x20]
@@ -160,25 +161,94 @@ RhpCallCatchFunclet:
     stp     x25, x26, [sp, #0x40]
     stp     x27, x28, [sp, #0x50]
 
-    // Also save exception object and handler on stack (like x64 does)
-    str     x0, [sp, #0x60]             // Save exception object at known offset
-    str     x1, [sp, #0x68]             // Save handler address at known offset
+    // Save all arguments on stack (funclet may clobber callee-saved registers)
+    str     x0, [sp, #0x60]             // Save exception object
+    str     x1, [sp, #0x68]             // Save handler address
+    str     x2, [sp, #0x70]             // Save REGDISPLAY*
+    str     x3, [sp, #0x78]             // Save ExInfo*
 
-    // Save arguments in callee-saved registers
-    mov     x19, x0                     // x19 = exception object
-    mov     x20, x1                     // x20 = handler address
-    mov     x21, x2                     // x21 = REGDISPLAY*
-    mov     x22, x3                     // x22 = ExInfo*
+    // Restore callee-saved registers from REGDISPLAY BEFORE calling funclet
+    // The funclet expects these registers to have the values from the throwing method
+    // x2 = REGDISPLAY*
+
+    // pFP -> x29 (frame pointer)
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .pre_skip_fp
+    ldr     x29, [x8]
+.pre_skip_fp:
+
+    // pX19 -> x19
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .pre_skip_x19
+    ldr     x19, [x8]
+.pre_skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .pre_skip_x20
+    ldr     x20, [x8]
+.pre_skip_x20:
+
+    // pX21 -> x21
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .pre_skip_x21
+    ldr     x21, [x8]
+.pre_skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .pre_skip_x22
+    ldr     x22, [x8]
+.pre_skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .pre_skip_x23
+    ldr     x23, [x8]
+.pre_skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .pre_skip_x24
+    ldr     x24, [x8]
+.pre_skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .pre_skip_x25
+    ldr     x25, [x8]
+.pre_skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .pre_skip_x26
+    ldr     x26, [x8]
+.pre_skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .pre_skip_x27
+    ldr     x27, [x8]
+.pre_skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .pre_skip_x28
+    ldr     x28, [x8]
+.pre_skip_x28:
 
     // Call handler funclet
-    // Load exception object from stack (guaranteed not clobbered)
-    ldr     x0, [sp, #0x60]
-    // Call handler address from x20 (we know x20 wasn't modified)
-    blr     x20
+    // Load exception object and handler address from stack (registers may have been restored)
+    ldr     x0, [sp, #0x60]             // exception object
+    ldr     x8, [sp, #0x68]             // handler address
+    blr     x8                          // Call handler funclet
 
     // x0 now contains the resume address
-    // Save it in a non-callee-saved register that we won't restore
+    // Save it in a temp register
     mov     x9, x0                      // x9 = resume address (temp)
+
+    // Reload REGDISPLAY* from stack (funclet may have clobbered x21)
+    ldr     x10, [sp, #0x70]            // x10 = REGDISPLAY*
 
     // Now restore ALL callee-saved registers from REGDISPLAY to the values
     // they had at the throw site. This is critical because when we jump to
@@ -186,27 +256,24 @@ RhpCallCatchFunclet:
     // from before the exception was thrown.
 
     // pFP -> x29
-    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pFP]
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pFP]
     cbz     x8, .skip_fp_restore
     ldr     x29, [x8]
 .skip_fp_restore:
 
     // pX19 -> x19
-    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pX19]
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX19]
     cbz     x8, .skip_x19
     ldr     x19, [x8]
 .skip_x19:
 
     // pX20 -> x20
-    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pX20]
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX20]
     cbz     x8, .skip_x20
     ldr     x20, [x8]
 .skip_x20:
 
-    // pX21 -> x21 (do this last since we're using x21 as REGDISPLAY*)
-    // First save REGDISPLAY* to x10
-    mov     x10, x21
-
+    // pX21 -> x21
     ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX21]
     cbz     x8, .skip_x21
     ldr     x21, [x8]
@@ -275,6 +342,126 @@ RhpCallCatchFunclet:
     // x9 = resume address, x11 = resume SP
     mov     sp, x11
     br      x9
+
+
+//=============================================================================
+// RhpCallFilterFunclet - Call a filter funclet to evaluate exception filter
+//
+// INPUT:  x0 = exception object
+//         x1 = filter funclet address
+//         x2 = REGDISPLAY*
+//
+// OUTPUT: x0 = 1 if filter matched (should catch), 0 if not
+//
+// The filter funclet expects the exception object in x0.
+// It returns non-zero if the exception should be caught by this handler.
+//=============================================================================
+.global RhpCallFilterFunclet
+.balign 4
+RhpCallFilterFunclet:
+    // Save callee-saved registers and allocate space for arguments
+    stp     x29, x30, [sp, #-0x70]!
+    mov     x29, sp
+    stp     x19, x20, [sp, #0x10]
+    stp     x21, x22, [sp, #0x20]
+    stp     x23, x24, [sp, #0x30]
+    stp     x25, x26, [sp, #0x40]
+    stp     x27, x28, [sp, #0x50]
+
+    // Save arguments on stack (funclet may clobber callee-saved registers)
+    str     x0, [sp, #0x60]             // Save exception object
+    str     x1, [sp, #0x68]             // Save filter address
+
+    // Restore callee-saved registers from REGDISPLAY BEFORE calling funclet
+    // The funclet expects these registers to have the values from the method
+    // x2 = REGDISPLAY*
+
+    // pFP -> x29 (frame pointer)
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .filter_skip_fp
+    ldr     x29, [x8]
+.filter_skip_fp:
+
+    // pX19 -> x19
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .filter_skip_x19
+    ldr     x19, [x8]
+.filter_skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .filter_skip_x20
+    ldr     x20, [x8]
+.filter_skip_x20:
+
+    // pX21 -> x21
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .filter_skip_x21
+    ldr     x21, [x8]
+.filter_skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .filter_skip_x22
+    ldr     x22, [x8]
+.filter_skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .filter_skip_x23
+    ldr     x23, [x8]
+.filter_skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .filter_skip_x24
+    ldr     x24, [x8]
+.filter_skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .filter_skip_x25
+    ldr     x25, [x8]
+.filter_skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .filter_skip_x26
+    ldr     x26, [x8]
+.filter_skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .filter_skip_x27
+    ldr     x27, [x8]
+.filter_skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .filter_skip_x28
+    ldr     x28, [x8]
+.filter_skip_x28:
+
+    // Call filter funclet
+    // Load exception object and filter address from stack (registers may have been restored)
+    ldr     x0, [sp, #0x60]             // exception object
+    ldr     x8, [sp, #0x68]             // filter address
+    blr     x8                          // call filter funclet
+
+    // x0 now contains the filter result (0 = no match, non-zero = match)
+    mov     x9, x0                      // save result
+
+    // Restore our callee-saved registers from stack
+    ldp     x27, x28, [sp, #0x50]
+    ldp     x25, x26, [sp, #0x40]
+    ldp     x23, x24, [sp, #0x30]
+    ldp     x21, x22, [sp, #0x20]
+    ldp     x19, x20, [sp, #0x10]
+    ldp     x29, x30, [sp], #0x70
+
+    // Return filter result
+    mov     x0, x9
+    ret
 
 
 //=============================================================================

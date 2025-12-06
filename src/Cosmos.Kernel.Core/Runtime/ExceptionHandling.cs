@@ -7,6 +7,21 @@ using Unsafe = System.Runtime.CompilerServices.Unsafe;
 namespace Cosmos.Kernel.Core.Runtime;
 
 /// <summary>
+/// Runtime exception IDs
+/// </summary>
+public enum ExceptionIDs
+{
+    OutOfMemory = 1,
+    NullReference = 2,
+    DivideByZero = 3,
+    InvalidCast = 4,
+    IndexOutOfRange = 5,
+    ArrayTypeMismatch = 6,
+    Overflow = 7,
+    Arithmetic = 8,
+}
+
+/// <summary>
 /// Exception handling clauses as defined in ICodeManager.h
 /// </summary>
 public enum EHClauseKind
@@ -85,6 +100,7 @@ public unsafe struct REGDISPLAY
     [FieldOffset(0x80)] public nuint R15;
 }
 #elif ARCH_ARM64
+
 /// <summary>
 /// PAL_LIMITED_CONTEXT structure matching ARM64 assembly offsets
 /// </summary>
@@ -149,9 +165,25 @@ public static unsafe partial class ExceptionHelper
     // Maximum stack frames to walk
     private const int MAX_STACK_FRAMES = 64;
 
+    // LSDA parsing constants (from UnixNativeCodeManager.cpp)
+    private const byte UBF_FUNC_KIND_MASK = 0x03;
+    private const byte UBF_FUNC_KIND_ROOT = 0x00;
+    private const byte UBF_FUNC_HAS_EHINFO = 0x04;
+    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
+
     // Assembly funclet callers - use nint for object reference since P/Invoke doesn't support object
     [LibraryImport("*", EntryPoint = "RhpCallCatchFunclet")]
     private static partial void* RhpCallCatchFunclet(nint exceptionPtr, void* handlerAddress, void* pRegDisplay, void* pExInfo);
+
+    [LibraryImport("*", EntryPoint = "RhpCallFilterFunclet")]
+    private static partial nint RhpCallFilterFunclet(nint exceptionPtr, void* filterAddress, void* pRegDisplay);
+
+    // C functions from kmain.c that return eh_frame section addresses
+    [LibraryImport("*", EntryPoint = "get_eh_frame_start")]
+    private static partial byte* GetEhFrameStart();
+
+    [LibraryImport("*", EntryPoint = "get_eh_frame_end")]
+    private static partial byte* GetEhFrameEnd();
 
     // Guard against recursive exception handling
     private static bool s_isHandlingException = false;
@@ -225,6 +257,53 @@ public static unsafe partial class ExceptionHelper
             return false;
         }
 
+        // Build a REGDISPLAY from the context for filter evaluation
+        REGDISPLAY regDisplay = default;
+        REGDISPLAY* pRegDisplay = null;
+
+        if (pExInfo != null)
+        {
+            PAL_LIMITED_CONTEXT* pContext = *(PAL_LIMITED_CONTEXT**)((byte*)pExInfo + 0x08);
+            if (pContext != null)
+            {
+                pRegDisplay = &regDisplay;
+
+#if ARCH_X64
+                // Copy register values from PAL_LIMITED_CONTEXT to REGDISPLAY storage
+                regDisplay.Rbx = pContext->Rbx;
+                regDisplay.Rbp = pContext->Rbp;
+                regDisplay.R12 = pContext->R12;
+                regDisplay.R13 = pContext->R13;
+                regDisplay.R14 = pContext->R14;
+                regDisplay.R15 = pContext->R15;
+                regDisplay.SP = pContext->Rsp;
+
+                // Set up pointers to storage locations
+                regDisplay.pRbx = &pRegDisplay->Rbx;
+                regDisplay.pRbp = &pRegDisplay->Rbp;
+                regDisplay.pRsi = &pRegDisplay->Rsi;
+                regDisplay.pRdi = &pRegDisplay->Rdi;
+                regDisplay.pR12 = &pRegDisplay->R12;
+                regDisplay.pR13 = &pRegDisplay->R13;
+                regDisplay.pR14 = &pRegDisplay->R14;
+                regDisplay.pR15 = &pRegDisplay->R15;
+#elif ARCH_ARM64
+                regDisplay.SP = pContext->SP;
+                regDisplay.pFP = &pContext->FP;
+                regDisplay.pX19 = &pContext->X19;
+                regDisplay.pX20 = &pContext->X20;
+                regDisplay.pX21 = &pContext->X21;
+                regDisplay.pX22 = &pContext->X22;
+                regDisplay.pX23 = &pContext->X23;
+                regDisplay.pX24 = &pContext->X24;
+                regDisplay.pX25 = &pContext->X25;
+                regDisplay.pX26 = &pContext->X26;
+                regDisplay.pX27 = &pContext->X27;
+                regDisplay.pX28 = &pContext->X28;
+#endif
+            }
+        }
+
         // Pass 1: Walk stack to find a handler
         StackFrame catchFrame = default;
         EHClause catchClause = default;
@@ -248,7 +327,8 @@ public static unsafe partial class ExceptionHelper
             Serial.WriteString("\n");
 
             // Check if this frame has an exception handler for our exception
-            if (TryFindHandler(ex, frame.ReturnAddress, out EHClause clause))
+            // Pass REGDISPLAY for filter evaluation
+            if (TryFindHandler(ex, frame.ReturnAddress, out EHClause clause, pRegDisplay))
             {
                 Serial.WriteString("[EH] FOUND HANDLER at 0x");
                 Serial.WriteNumber((nuint)clause.HandlerAddress);
@@ -348,6 +428,15 @@ public static unsafe partial class ExceptionHelper
     /// </summary>
     private static bool TryFindHandler(Exception ex, nuint instructionPointer, out EHClause clause)
     {
+        return TryFindHandler(ex, instructionPointer, out clause, null);
+    }
+
+    /// <summary>
+    /// Try to find an exception handler for the given IP with context for filter evaluation
+    /// Uses LSDA (Language Specific Data Area) parsing to find EH clauses
+    /// </summary>
+    private static bool TryFindHandler(Exception ex, nuint instructionPointer, out EHClause clause, REGDISPLAY* pRegDisplay)
+    {
         clause = default;
 
         Serial.WriteString("[EH] Looking for handler for IP 0x");
@@ -374,15 +463,8 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteString("\n");
 
         // Parse LSDA and enumerate EH clauses
-        return TryFindHandlerInLSDA(pLSDA, methodStart, codeOffset, out clause);
+        return TryFindHandlerInLSDA(ex, pLSDA, methodStart, codeOffset, out clause, pRegDisplay);
     }
-
-    // C functions from kmain.c that return eh_frame section addresses
-    [LibraryImport("*", EntryPoint = "get_eh_frame_start")]
-    private static partial byte* GetEhFrameStart();
-
-    [LibraryImport("*", EntryPoint = "get_eh_frame_end")]
-    private static partial byte* GetEhFrameEnd();
 
     /// <summary>
     /// Try to find the LSDA for a given IP address by parsing eh_frame
@@ -527,16 +609,10 @@ public static unsafe partial class ExceptionHelper
         return result;
     }
 
-    // LSDA parsing constants (from UnixNativeCodeManager.cpp)
-    private const byte UBF_FUNC_KIND_MASK = 0x03;
-    private const byte UBF_FUNC_KIND_ROOT = 0x00;
-    private const byte UBF_FUNC_HAS_EHINFO = 0x04;
-    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
-
     /// <summary>
     /// Parse LSDA and find a handler for the given code offset
     /// </summary>
-    private static bool TryFindHandlerInLSDA(byte* pLSDA, nuint methodStart, uint codeOffset, out EHClause clause)
+    private static bool TryFindHandlerInLSDA(Exception ex, byte* pLSDA, nuint methodStart, uint codeOffset, out EHClause clause, REGDISPLAY* pRegDisplay)
     {
         clause = default;
 
@@ -627,6 +703,40 @@ public static unsafe partial class ExceptionHelper
             if (codeOffset >= tryStartOffset && codeOffset < tryEndOffset)
             {
                 Serial.WriteString("[EH] Found matching clause!\n");
+
+                // For filter clauses, we need to evaluate the filter to see if it matches
+                if (kind == EHClauseKind.EH_CLAUSE_FILTER)
+                {
+                    Serial.WriteString("[EH] Evaluating filter at 0x");
+                    Serial.WriteHex((nuint)filterAddress);
+                    Serial.WriteString("\n");
+
+                    // If we have a valid REGDISPLAY, call the filter funclet
+                    if (pRegDisplay != null && filterAddress != null)
+                    {
+                        nint exceptionPtr = Unsafe.As<Exception, nint>(ref ex);
+                        nint filterResult = RhpCallFilterFunclet(exceptionPtr, filterAddress, pRegDisplay);
+
+                        Serial.WriteString("[EH] Filter returned: ");
+                        Serial.WriteNumber((nuint)filterResult);
+                        Serial.WriteString("\n");
+
+                        // If filter returned 0, this clause doesn't match - continue to next clause
+                        if (filterResult == 0)
+                        {
+                            Serial.WriteString("[EH] Filter did not match, continuing search\n");
+                            continue;
+                        }
+
+                        Serial.WriteString("[EH] Filter matched!\n");
+                    }
+                    else
+                    {
+                        // Without REGDISPLAY we can't call the filter - skip this clause
+                        Serial.WriteString("[EH] No REGDISPLAY available for filter evaluation, skipping\n");
+                        continue;
+                    }
+                }
 
                 clause.ClauseKind = kind;
                 clause.TryStartOffset = tryStartOffset;
@@ -825,19 +935,4 @@ public static unsafe partial class ExceptionHelper
             _ => new Exception($"Unknown runtime exception: {id}"),
         };
     }
-}
-
-/// <summary>
-/// Runtime exception IDs
-/// </summary>
-public enum ExceptionIDs
-{
-    OutOfMemory = 1,
-    NullReference = 2,
-    DivideByZero = 3,
-    InvalidCast = 4,
-    IndexOutOfRange = 5,
-    ArrayTypeMismatch = 6,
-    Overflow = 7,
-    Arithmetic = 8,
 }
