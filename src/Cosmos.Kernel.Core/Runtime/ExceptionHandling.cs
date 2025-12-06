@@ -88,7 +88,7 @@ public unsafe struct REGDISPLAY
 /// <summary>
 /// PAL_LIMITED_CONTEXT structure matching ARM64 assembly offsets
 /// </summary>
-[StructLayout(LayoutKind.Explicit, Size = 0x50)]
+[StructLayout(LayoutKind.Explicit, Size = 0x70)]
 public unsafe struct PAL_LIMITED_CONTEXT
 {
     [FieldOffset(0x00)] public nuint SP;    // Stack pointer
@@ -101,6 +101,10 @@ public unsafe struct PAL_LIMITED_CONTEXT
     [FieldOffset(0x38)] public nuint X22;
     [FieldOffset(0x40)] public nuint X23;
     [FieldOffset(0x48)] public nuint X24;
+    [FieldOffset(0x50)] public nuint X25;
+    [FieldOffset(0x58)] public nuint X26;
+    [FieldOffset(0x60)] public nuint X27;
+    [FieldOffset(0x68)] public nuint X28;
 }
 
 /// <summary>
@@ -756,7 +760,7 @@ public static unsafe partial class ExceptionHelper
                 regDisplay.SP = pContext->SP;
 
                 // ARM64 uses x19-x28 as callee-saved registers
-                // The context has X19-X24, we store pointers to them
+                // The context has X19-X28, we store pointers to them
                 // Note: For ARM64, we don't have storage in REGDISPLAY,
                 // we point directly to the context values
                 regDisplay.pFP = &pContext->FP;
@@ -766,6 +770,10 @@ public static unsafe partial class ExceptionHelper
                 regDisplay.pX22 = &pContext->X22;
                 regDisplay.pX23 = &pContext->X23;
                 regDisplay.pX24 = &pContext->X24;
+                regDisplay.pX25 = &pContext->X25;
+                regDisplay.pX26 = &pContext->X26;
+                regDisplay.pX27 = &pContext->X27;
+                regDisplay.pX28 = &pContext->X28;
 
                 Serial.WriteString("[EH] REGDISPLAY: SP=0x");
                 Serial.WriteHex(regDisplay.SP);

@@ -26,7 +26,7 @@ __cosmos_exinfo_stack_head: .quad 0
 .equ OFFSETOF__ExInfo__m_idxCurClause, 0x1c
 
 // PAL_LIMITED_CONTEXT offsets for ARM64
-.equ SIZEOF__PAL_LIMITED_CONTEXT,     0x50
+.equ SIZEOF__PAL_LIMITED_CONTEXT,     0x70
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__SP,  0x00
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__IP,  0x08
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__FP,  0x10
@@ -37,6 +37,10 @@ __cosmos_exinfo_stack_head: .quad 0
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__X22, 0x38
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__X23, 0x40
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__X24, 0x48
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X25, 0x50
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X26, 0x58
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X27, 0x60
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X28, 0x68
 
 // REGDISPLAY offsets for ARM64
 .equ OFFSETOF__REGDISPLAY__SP,        0x00
@@ -87,6 +91,10 @@ RhpThrowEx:
     str     x22, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X22]
     str     x23, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X23]
     str     x24, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X24]
+    str     x25, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X25]
+    str     x26, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X26]
+    str     x27, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X27]
+    str     x28, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X28]
 
     // Save exception object in callee-saved register
     mov     x19, x0                     // x19 = exception object
@@ -144,75 +152,129 @@ RhpThrowEx:
 .balign 4
 RhpCallCatchFunclet:
     // Save callee-saved registers and arguments
-    stp     x29, x30, [sp, #-0x60]!
+    stp     x29, x30, [sp, #-0x70]!
+    mov     x29, sp                     // Set up frame pointer
     stp     x19, x20, [sp, #0x10]
     stp     x21, x22, [sp, #0x20]
     stp     x23, x24, [sp, #0x30]
     stp     x25, x26, [sp, #0x40]
     stp     x27, x28, [sp, #0x50]
 
-    // Save arguments for later
+    // Also save exception object and handler on stack (like x64 does)
+    str     x0, [sp, #0x60]             // Save exception object at known offset
+    str     x1, [sp, #0x68]             // Save handler address at known offset
+
+    // Save arguments in callee-saved registers
     mov     x19, x0                     // x19 = exception object
     mov     x20, x1                     // x20 = handler address
     mov     x21, x2                     // x21 = REGDISPLAY*
     mov     x22, x3                     // x22 = ExInfo*
 
-    // Restore callee-saved registers from REGDISPLAY
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pFP]
-    ldr     x29, [x9]
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX19]
-    cbz     x9, 1f
-    ldr     x23, [x9]                   // Use x23 temporarily, will restore x19 later
-1:
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX20]
-    cbz     x9, 2f
-    ldr     x24, [x9]                   // Use x24 temporarily
-2:
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX21]
-    cbz     x9, 3f
-    ldr     x25, [x9]                   // Use x25 temporarily
-3:
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX22]
-    cbz     x9, 4f
-    ldr     x26, [x9]                   // Use x26 temporarily
-4:
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX23]
-    cbz     x9, 5f
-    ldr     x27, [x9]                   // Use x27 temporarily
-5:
-    ldr     x9, [x21, #OFFSETOF__REGDISPLAY__pX24]
-    cbz     x9, 6f
-    ldr     x28, [x9]                   // Use x28 temporarily
-6:
-
     // Call handler funclet
-    // x0 = exception object
-    mov     x0, x19
+    // Load exception object from stack (guaranteed not clobbered)
+    ldr     x0, [sp, #0x60]
+    // Call handler address from x20 (we know x20 wasn't modified)
     blr     x20
 
     // x0 now contains the resume address
-    mov     x10, x0                     // x10 = resume address
+    // Save it in a non-callee-saved register that we won't restore
+    mov     x9, x0                      // x9 = resume address (temp)
 
-    // Get resume SP from REGDISPLAY
-    ldr     x11, [x21, #OFFSETOF__REGDISPLAY__SP]   // x11 = resume SP
+    // Now restore ALL callee-saved registers from REGDISPLAY to the values
+    // they had at the throw site. This is critical because when we jump to
+    // the resume point, the code expects these registers to have the values
+    // from before the exception was thrown.
+
+    // pFP -> x29
+    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .skip_fp_restore
+    ldr     x29, [x8]
+.skip_fp_restore:
+
+    // pX19 -> x19
+    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .skip_x19
+    ldr     x19, [x8]
+.skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x21, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .skip_x20
+    ldr     x20, [x8]
+.skip_x20:
+
+    // pX21 -> x21 (do this last since we're using x21 as REGDISPLAY*)
+    // First save REGDISPLAY* to x10
+    mov     x10, x21
+
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .skip_x21
+    ldr     x21, [x8]
+.skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .skip_x22
+    ldr     x22, [x8]
+.skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .skip_x23
+    ldr     x23, [x8]
+.skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .skip_x24
+    ldr     x24, [x8]
+.skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .skip_x25
+    ldr     x25, [x8]
+.skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .skip_x26
+    ldr     x26, [x8]
+.skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .skip_x27
+    ldr     x27, [x8]
+.skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .skip_x28
+    ldr     x28, [x8]
+.skip_x28:
+
+    // Get resume SP from REGDISPLAY (use x10 which still has REGDISPLAY*)
+    ldr     x11, [x10, #OFFSETOF__REGDISPLAY__SP]   // x11 = resume SP
 
     // Pop ExInfo entries that are below the resume SP
     adrp    x8, __cosmos_exinfo_stack_head
     add     x8, x8, :lo12:__cosmos_exinfo_stack_head
 
 .pop_exinfo_loop:
-    ldr     x9, [x8]                    // current ExInfo
-    cbz     x9, .pop_exinfo_done        // null = done
-    cmp     x9, x11
+    ldr     x12, [x8]                   // current ExInfo (use x12, not x9)
+    cbz     x12, .pop_exinfo_done       // null = done
+    cmp     x12, x11
     b.ge    .pop_exinfo_done            // >= resume SP = done
-    ldr     x9, [x9, #OFFSETOF__ExInfo__m_pPrevExInfo]
-    str     x9, [x8]                    // pop it
+    ldr     x12, [x12, #OFFSETOF__ExInfo__m_pPrevExInfo]
+    str     x12, [x8]                   // pop it
     b       .pop_exinfo_loop
 
 .pop_exinfo_done:
     // Reset SP to resume point and jump
+    // x9 = resume address, x11 = resume SP
     mov     sp, x11
-    br      x10
+    br      x9
 
 
 //=============================================================================
