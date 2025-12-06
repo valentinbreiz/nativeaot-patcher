@@ -49,23 +49,7 @@ internal static partial class Program
         Serial.WriteString("[Main] Interrupt test skipped (ARM64 platform)\n");
 #endif
 
-        // Test exception handling
-        TestExceptionHandling();
-
         while (true) ;
-    }
-
-    private static void TestExceptionHandling()
-    {
-        Console.WriteLine("Testing throw statement...");
-        Serial.WriteString("[Main] Testing throw statement...\n");
-
-        // This will throw an exception
-        // Expected: System will print exception info and halt gracefully
-        throw new InvalidOperationException("This is a test exception!");
-
-        // Should not reach here
-        Console.WriteLine("  ✗ ERROR: Should not reach here\n");
     }
 
 #if ARCH_X64

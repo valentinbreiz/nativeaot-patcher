@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.Tests.TypeCasting
         private static void Main()
         {
             Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-            Start("TypeCasting Tests", expectedTests: 9);
+            Start("TypeCasting Tests", expectedTests: 13);
 
             // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
             Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);
@@ -44,6 +44,12 @@ namespace Cosmos.Kernel.Tests.TypeCasting
 
             // IEnumerable covariance
             Run("IEnumerable_Covariance", TestIEnumerableCovariance);
+
+            // Exception handling tests
+            Run("TryCatch_Basic", TestTryCatchBasic);
+            Run("TryCatch_BaseType", TestTryCatchBaseType);
+            Run("TryCatch_Message", TestTryCatchMessage);
+            Run("TryFinally", TestTryFinally);
 
             Serial.WriteString("[TypeCasting Tests] All tests completed\n");
             Finish();
@@ -179,6 +185,68 @@ namespace Cosmos.Kernel.Tests.TypeCasting
             bool isIEnumerableObject = strArray is IEnumerable<object>;
 
             True(isIEnumerableObject, "string[] is IEnumerable<object> (covariance)");
+        }
+
+        // ==================== Exception Handling Tests ====================
+
+        private static void TestTryCatchBasic()
+        {
+            bool caughtException = false;
+            try
+            {
+                throw new InvalidOperationException("Test exception");
+            }
+            catch (InvalidOperationException)
+            {
+                caughtException = true;
+            }
+
+            True(caughtException, "Exception should have been caught");
+        }
+
+        private static void TestTryCatchBaseType()
+        {
+            bool caughtException = false;
+            try
+            {
+                throw new InvalidOperationException("Test");
+            }
+            catch (Exception)
+            {
+                caughtException = true;
+            }
+
+            True(caughtException, "Base Exception type should catch derived exceptions");
+        }
+
+        private static void TestTryCatchMessage()
+        {
+            string? caughtMessage = null;
+            try
+            {
+                throw new InvalidOperationException("Expected message");
+            }
+            catch (InvalidOperationException ex)
+            {
+                caughtMessage = ex.Message;
+            }
+
+            Equal("Expected message", caughtMessage);
+        }
+
+        private static void TestTryFinally()
+        {
+            bool finallyExecuted = false;
+            try
+            {
+                // No exception
+            }
+            finally
+            {
+                finallyExecuted = true;
+            }
+
+            True(finallyExecuted, "Finally block should always execute");
         }
     }
 

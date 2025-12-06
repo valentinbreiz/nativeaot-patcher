@@ -24,6 +24,12 @@ extern void EnableSSE();
 extern void* __Modules_start[]; // Start of __modules Section
 extern void* __Modules_end[];   // End of __modules Section
 
+// EH frame symbols for exception handling
+extern char __eh_frame_start[];
+extern char __eh_frame_end[];
+extern char __dotnet_eh_table_start[];
+extern char __dotnet_eh_table_end[];
+
 #ifdef ARCH_X64
 // ACPI early initialization (must run before managed code) - x64 only
 extern void acpi_early_init(void* rsdp_address);
@@ -88,4 +94,26 @@ extern size_t GetModules(void** modules)
     *modules = __Modules_start;
     //return sizeof(size_t);
     return  __Modules_end - __Modules_start;
+}
+
+// Exception handling section accessors
+// These functions return the start/end addresses of EH data sections
+void* get_eh_frame_start(void)
+{
+    return __eh_frame_start;
+}
+
+void* get_eh_frame_end(void)
+{
+    return __eh_frame_end;
+}
+
+void* get_dotnet_eh_table_start(void)
+{
+    return __dotnet_eh_table_start;
+}
+
+void* get_dotnet_eh_table_end(void)
+{
+    return __dotnet_eh_table_end;
 }
