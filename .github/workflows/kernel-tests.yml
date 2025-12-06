@@ -26,6 +26,7 @@ on:
           - all
           - x64
           - arm64
+          - raspberry-pi
 
 permissions:
   contents: read
@@ -35,23 +36,32 @@ permissions:
 jobs:
   helloworld-tests:
     name: HelloWorld Tests - ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
+        arch: [ x64, arm64, raspberry-pi ]
         include:
           - arch: x64
             rid: linux-x64
             qemu-package: qemu-system-x86
             timeout: 60
+            runner: ubuntu-latest
+            is-hardware: false
           - arch: arm64
             rid: linux-arm64
             qemu-package: qemu-system-arm
             qemu-firmware: qemu-efi-aarch64
             timeout: 90
+            runner: ubuntu-latest
+            is-hardware: false
+          - arch: raspberry-pi
+            rid: linux-arm64
+            timeout: 180
+            runner: [self-hosted, rpi4-test-board]
+            is-hardware: true
 
     steps:
       - name: 📥 Checkout Repository
@@ -75,6 +85,7 @@ jobs:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
       - name: 🔧 Install QEMU and Build Tools
+        if: ${{ !matrix.is-hardware }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
@@ -84,7 +95,15 @@ jobs:
             sudo apt-get install -y yasm
           fi
 
+      - name: 🔧 Install Build Tools (Hardware)
+        if: ${{ matrix.is-hardware }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso lld gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu python3 python3-pip
+          pip install requests pyserial
+
       - name: 🔍 Verify QEMU Installation
+        if: ${{ !matrix.is-hardware }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             qemu-system-aarch64 --version
@@ -95,8 +114,9 @@ jobs:
       - name: 🔨 Build Test Runner Engine
         run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
 
-      - name: 🧪 Run HelloWorld Kernel Tests
-        id: run-tests
+      - name: 🧪 Run HelloWorld Kernel Tests (QEMU)
+        if: ${{ !matrix.is-hardware }}
+        id: run-tests-qemu
         run: |
           echo "Running HelloWorld kernel tests for ${{ matrix.arch }}..."
           dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
@@ -107,6 +127,45 @@ jobs:
             test-results-helloworld-${{ matrix.arch }}.xml \
             ci
         timeout-minutes: 5
+        continue-on-error: false
+
+      - name: 🧪 Run HelloWorld Kernel Tests (Hardware)
+        if: ${{ matrix.is-hardware }}
+        id: run-tests-hardware
+        env:
+          RPI_TEST_BOARD_ENDPOINT: ${{ secrets.RPI_TEST_BOARD_ENDPOINT }}
+          RPI_TEST_BOARD_SERIAL: ${{ secrets.RPI_TEST_BOARD_SERIAL }}
+        run: |
+          echo "Running HelloWorld kernel tests on Raspberry Pi 4B..."
+
+          # Build the kernel ISO
+          dotnet publish -c Debug -r linux-arm64 \
+            -p:DefineConstants="ARCH_ARM64" \
+            -p:CosmosArch=arm64 \
+            ./tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj \
+            -o ./output-raspberry-pi
+
+          ISO_PATH=$(find ./output-raspberry-pi -name "*.iso" | head -1)
+
+          # Determine communication mode
+          if [ -n "$RPI_TEST_BOARD_ENDPOINT" ]; then
+            MODE="http"
+            EXTRA_ARGS="--endpoint $RPI_TEST_BOARD_ENDPOINT"
+          elif [ -n "$RPI_TEST_BOARD_SERIAL" ]; then
+            MODE="serial"
+            EXTRA_ARGS="--port $RPI_TEST_BOARD_SERIAL"
+          else
+            echo "Error: No test board configuration found"
+            exit 1
+          fi
+
+          python3 tools/rpi-test-board/scripts/rpi-test-controller.py \
+            --mode $MODE \
+            $EXTRA_ARGS \
+            --iso "$ISO_PATH" \
+            --output uart-output.log \
+            --timeout ${{ matrix.timeout }}
+        timeout-minutes: 10
         continue-on-error: false
 
       - name: 📤 Upload Test Results XML
@@ -155,6 +214,13 @@ jobs:
           path: results-arm64/
         continue-on-error: true
 
+      - name: 📥 Download raspberry-pi Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-helloworld-raspberry-pi
+          path: results-raspberry-pi/
+        continue-on-error: true
+
       - name: 📊 Parse Test Results
         id: parse
         run: |
@@ -184,9 +250,11 @@ jobs:
 
           x64_result=$(parse_xml "results-x64/test-results-helloworld-x64.xml")
           arm64_result=$(parse_xml "results-arm64/test-results-helloworld-arm64.xml")
+          rpi_result=$(parse_xml "results-raspberry-pi/test-results-helloworld-raspberry-pi.xml")
 
           echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
           echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+          echo "rpi_result=$rpi_result" >> $GITHUB_OUTPUT
 
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
@@ -195,6 +263,7 @@ jobs:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const rpi = '${{ steps.parse.outputs.rpi_result }}'.split('|');
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
             const owner = context.repo.owner;
@@ -221,12 +290,14 @@ jobs:
             |--------------|-------|--------|--------|---------|----------|--------|
             | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
             | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+            | raspberry-pi | ${rpi[0]} | ${rpi[1]} | ${rpi[2]} | ${rpi[3]} | ${rpi[4]} | ${rpi[5]} |
 
             ### 📎 Artifacts
             | Architecture | Test Results | UART Log | Kernel ISO |
             |--------------|--------------|----------|------------|
             | x64 | [XML](${getArtifactUrl('test-results-helloworld-x64')}) | [Log](${getArtifactUrl('uart-log-helloworld-x64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-x64')}) |
             | arm64 | [XML](${getArtifactUrl('test-results-helloworld-arm64')}) | [Log](${getArtifactUrl('uart-log-helloworld-arm64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-arm64')}) |
+            | raspberry-pi | [XML](${getArtifactUrl('test-results-helloworld-raspberry-pi')}) | [Log](${getArtifactUrl('uart-log-helloworld-raspberry-pi')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-raspberry-pi')}) |
 
             📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
             `;
@@ -257,23 +328,32 @@ jobs:
 
   memory-tests:
     name: Memory Tests - ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
+        arch: [ x64, arm64, raspberry-pi ]
         include:
           - arch: x64
             rid: linux-x64
             qemu-package: qemu-system-x86
             timeout: 120
+            runner: ubuntu-latest
+            is-hardware: false
           - arch: arm64
             rid: linux-arm64
             qemu-package: qemu-system-arm
             qemu-firmware: qemu-efi-aarch64
             timeout: 180
+            runner: ubuntu-latest
+            is-hardware: false
+          - arch: raspberry-pi
+            rid: linux-arm64
+            timeout: 180
+            runner: [self-hosted, rpi4-test-board]
+            is-hardware: true
 
     steps:
       - name: 📥 Checkout Repository
@@ -297,6 +377,7 @@ jobs:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
       - name: 🔧 Install QEMU and Build Tools
+        if: ${{ !matrix.is-hardware }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
@@ -306,7 +387,15 @@ jobs:
             sudo apt-get install -y yasm
           fi
 
+      - name: 🔧 Install Build Tools (Hardware)
+        if: ${{ matrix.is-hardware }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso lld gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu python3 python3-pip
+          pip install requests pyserial
+
       - name: 🔍 Verify QEMU Installation
+        if: ${{ !matrix.is-hardware }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             qemu-system-aarch64 --version
@@ -317,8 +406,9 @@ jobs:
       - name: 🔨 Build Test Runner Engine
         run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
 
-      - name: 🧪 Run Memory Kernel Tests
-        id: run-tests
+      - name: 🧪 Run Memory Kernel Tests (QEMU)
+        if: ${{ !matrix.is-hardware }}
+        id: run-tests-qemu
         run: |
           echo "Running Memory kernel tests for ${{ matrix.arch }}..."
           dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
@@ -328,6 +418,45 @@ jobs:
             ${{ matrix.timeout }} \
             test-results-memory-${{ matrix.arch }}.xml \
             ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 🧪 Run Memory Kernel Tests (Hardware)
+        if: ${{ matrix.is-hardware }}
+        id: run-tests-hardware
+        env:
+          RPI_TEST_BOARD_ENDPOINT: ${{ secrets.RPI_TEST_BOARD_ENDPOINT }}
+          RPI_TEST_BOARD_SERIAL: ${{ secrets.RPI_TEST_BOARD_SERIAL }}
+        run: |
+          echo "Running Memory kernel tests on Raspberry Pi 4B..."
+
+          # Build the kernel ISO
+          dotnet publish -c Debug -r linux-arm64 \
+            -p:DefineConstants="ARCH_ARM64" \
+            -p:CosmosArch=arm64 \
+            ./tests/Kernels/Cosmos.Kernel.Tests.Memory/Cosmos.Kernel.Tests.Memory.csproj \
+            -o ./output-raspberry-pi
+
+          ISO_PATH=$(find ./output-raspberry-pi -name "*.iso" | head -1)
+
+          # Determine communication mode
+          if [ -n "$RPI_TEST_BOARD_ENDPOINT" ]; then
+            MODE="http"
+            EXTRA_ARGS="--endpoint $RPI_TEST_BOARD_ENDPOINT"
+          elif [ -n "$RPI_TEST_BOARD_SERIAL" ]; then
+            MODE="serial"
+            EXTRA_ARGS="--port $RPI_TEST_BOARD_SERIAL"
+          else
+            echo "Error: No test board configuration found"
+            exit 1
+          fi
+
+          python3 tools/rpi-test-board/scripts/rpi-test-controller.py \
+            --mode $MODE \
+            $EXTRA_ARGS \
+            --iso "$ISO_PATH" \
+            --output uart-output.log \
+            --timeout ${{ matrix.timeout }}
         timeout-minutes: 10
         continue-on-error: false
 
@@ -377,6 +506,13 @@ jobs:
           path: results-arm64/
         continue-on-error: true
 
+      - name: 📥 Download raspberry-pi Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-memory-raspberry-pi
+          path: results-raspberry-pi/
+        continue-on-error: true
+
       - name: 📊 Parse Test Results
         id: parse
         run: |
@@ -406,9 +542,11 @@ jobs:
 
           x64_result=$(parse_xml "results-x64/test-results-memory-x64.xml")
           arm64_result=$(parse_xml "results-arm64/test-results-memory-arm64.xml")
+          rpi_result=$(parse_xml "results-raspberry-pi/test-results-memory-raspberry-pi.xml")
 
           echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
           echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+          echo "rpi_result=$rpi_result" >> $GITHUB_OUTPUT
 
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
@@ -417,6 +555,7 @@ jobs:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const rpi = '${{ steps.parse.outputs.rpi_result }}'.split('|');
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
             const owner = context.repo.owner;
@@ -443,12 +582,14 @@ jobs:
             |--------------|-------|--------|--------|---------|----------|--------|
             | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
             | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+            | raspberry-pi | ${rpi[0]} | ${rpi[1]} | ${rpi[2]} | ${rpi[3]} | ${rpi[4]} | ${rpi[5]} |
 
             ### 📎 Artifacts
             | Architecture | Test Results | UART Log | Kernel ISO |
             |--------------|--------------|----------|------------|
             | x64 | [XML](${getArtifactUrl('test-results-memory-x64')}) | [Log](${getArtifactUrl('uart-log-memory-x64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-x64')}) |
             | arm64 | [XML](${getArtifactUrl('test-results-memory-arm64')}) | [Log](${getArtifactUrl('uart-log-memory-arm64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-arm64')}) |
+            | raspberry-pi | [XML](${getArtifactUrl('test-results-memory-raspberry-pi')}) | [Log](${getArtifactUrl('uart-log-memory-raspberry-pi')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-raspberry-pi')}) |
 
             📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
             `;
@@ -479,23 +620,32 @@ jobs:
 
   typecasting-tests:
     name: TypeCasting Tests - ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
+        arch: [ x64, arm64, raspberry-pi ]
         include:
           - arch: x64
             rid: linux-x64
             qemu-package: qemu-system-x86
             timeout: 120
+            runner: ubuntu-latest
+            is-hardware: false
           - arch: arm64
             rid: linux-arm64
             qemu-package: qemu-system-arm
             qemu-firmware: qemu-efi-aarch64
             timeout: 180
+            runner: ubuntu-latest
+            is-hardware: false
+          - arch: raspberry-pi
+            rid: linux-arm64
+            timeout: 180
+            runner: [self-hosted, rpi4-test-board]
+            is-hardware: true
 
     steps:
       - name: 📥 Checkout Repository
@@ -519,6 +669,7 @@ jobs:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
       - name: 🔧 Install QEMU and Build Tools
+        if: ${{ !matrix.is-hardware }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
@@ -528,7 +679,15 @@ jobs:
             sudo apt-get install -y yasm
           fi
 
+      - name: 🔧 Install Build Tools (Hardware)
+        if: ${{ matrix.is-hardware }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso lld gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu python3 python3-pip
+          pip install requests pyserial
+
       - name: 🔍 Verify QEMU Installation
+        if: ${{ !matrix.is-hardware }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             qemu-system-aarch64 --version
@@ -539,8 +698,9 @@ jobs:
       - name: 🔨 Build Test Runner Engine
         run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
 
-      - name: 🧪 Run TypeCasting Kernel Tests
-        id: run-tests
+      - name: 🧪 Run TypeCasting Kernel Tests (QEMU)
+        if: ${{ !matrix.is-hardware }}
+        id: run-tests-qemu
         run: |
           echo "Running TypeCasting kernel tests for ${{ matrix.arch }}..."
           dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
@@ -550,6 +710,45 @@ jobs:
             ${{ matrix.timeout }} \
             test-results-typecasting-${{ matrix.arch }}.xml \
             ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 🧪 Run TypeCasting Kernel Tests (Hardware)
+        if: ${{ matrix.is-hardware }}
+        id: run-tests-hardware
+        env:
+          RPI_TEST_BOARD_ENDPOINT: ${{ secrets.RPI_TEST_BOARD_ENDPOINT }}
+          RPI_TEST_BOARD_SERIAL: ${{ secrets.RPI_TEST_BOARD_SERIAL }}
+        run: |
+          echo "Running TypeCasting kernel tests on Raspberry Pi 4B..."
+
+          # Build the kernel ISO
+          dotnet publish -c Debug -r linux-arm64 \
+            -p:DefineConstants="ARCH_ARM64" \
+            -p:CosmosArch=arm64 \
+            ./tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Cosmos.Kernel.Tests.TypeCasting.csproj \
+            -o ./output-raspberry-pi
+
+          ISO_PATH=$(find ./output-raspberry-pi -name "*.iso" | head -1)
+
+          # Determine communication mode
+          if [ -n "$RPI_TEST_BOARD_ENDPOINT" ]; then
+            MODE="http"
+            EXTRA_ARGS="--endpoint $RPI_TEST_BOARD_ENDPOINT"
+          elif [ -n "$RPI_TEST_BOARD_SERIAL" ]; then
+            MODE="serial"
+            EXTRA_ARGS="--port $RPI_TEST_BOARD_SERIAL"
+          else
+            echo "Error: No test board configuration found"
+            exit 1
+          fi
+
+          python3 tools/rpi-test-board/scripts/rpi-test-controller.py \
+            --mode $MODE \
+            $EXTRA_ARGS \
+            --iso "$ISO_PATH" \
+            --output uart-output.log \
+            --timeout ${{ matrix.timeout }}
         timeout-minutes: 10
         continue-on-error: false
 
@@ -599,6 +798,13 @@ jobs:
           path: results-arm64/
         continue-on-error: true
 
+      - name: 📥 Download raspberry-pi Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-typecasting-raspberry-pi
+          path: results-raspberry-pi/
+        continue-on-error: true
+
       - name: 📊 Parse Test Results
         id: parse
         run: |
@@ -627,10 +833,12 @@ jobs:
           }
 
           x64_result=$(parse_xml "results-x64/test-results-typecasting-x64.xml")
+          rpi_result=$(parse_xml "results-raspberry-pi/test-results-typecasting-raspberry-pi.xml")
           arm64_result=$(parse_xml "results-arm64/test-results-typecasting-arm64.xml")
 
           echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
           echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+          echo "rpi_result=$rpi_result" >> $GITHUB_OUTPUT
 
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
@@ -639,6 +847,7 @@ jobs:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const rpi = '${{ steps.parse.outputs.rpi_result }}'.split('|');
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
             const owner = context.repo.owner;
@@ -665,12 +874,14 @@ jobs:
             |--------------|-------|--------|--------|---------|----------|--------|
             | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
             | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+            | raspberry-pi | ${rpi[0]} | ${rpi[1]} | ${rpi[2]} | ${rpi[3]} | ${rpi[4]} | ${rpi[5]} |
 
             ### 📎 Artifacts
             | Architecture | Test Results | UART Log | Kernel ISO |
             |--------------|--------------|----------|------------|
             | x64 | [XML](${getArtifactUrl('test-results-typecasting-x64')}) | [Log](${getArtifactUrl('uart-log-typecasting-x64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-x64')}) |
             | arm64 | [XML](${getArtifactUrl('test-results-typecasting-arm64')}) | [Log](${getArtifactUrl('uart-log-typecasting-arm64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-arm64')}) |
+            | raspberry-pi | [XML](${getArtifactUrl('test-results-typecasting-raspberry-pi')}) | [Log](${getArtifactUrl('uart-log-typecasting-raspberry-pi')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-raspberry-pi')}) |
 
             📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
             `;
