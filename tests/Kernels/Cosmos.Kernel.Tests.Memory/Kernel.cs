@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.TestRunner.Framework;
 using static Cosmos.TestRunner.Framework.TestRunner;
 using static Cosmos.TestRunner.Framework.Assert;
@@ -18,7 +19,7 @@ namespace Cosmos.Kernel.Tests.Memory
         private static void Main()
         {
             Serial.WriteString("[Memory Tests] Starting test suite\n");
-            Start("Memory Tests", expectedTests: 22); // 8 boxing + 5 memory + 9 collections
+            Start("Memory Tests", expectedTests: 34); // 8 boxing + 5 memory + 9 collections + 12 SIMD
 
             // Boxing/Unboxing Tests
             Run("Boxing_Char", TestBoxingChar);
@@ -47,6 +48,20 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Collections_ListIndexOf", TestListIndexOf);
             Run("Collections_ListRemoveAt", TestListRemoveAt);
             Skip("Boxing_ArrayCopy", "TestListRemoveAt fails");
+
+            // Memory Copy Tests (scalar path - SIMD disabled by default)
+            Run("MemCopy_8Bytes", TestMemCopy8Bytes);
+            Run("MemCopy_16Bytes", TestMemCopy16Bytes);
+            Run("MemCopy_24Bytes", TestMemCopy24Bytes);
+            Run("MemCopy_32Bytes", TestMemCopy32Bytes);
+            Run("MemCopy_48Bytes", TestMemCopy48Bytes);
+            Run("MemCopy_64Bytes", TestMemCopy64Bytes);
+            Run("MemCopy_80Bytes", TestMemCopy80Bytes);
+            Run("MemCopy_128Bytes", TestMemCopy128Bytes);
+            Run("MemCopy_256Bytes", TestMemCopy256Bytes);
+            Run("MemCopy_264Bytes", TestMemCopy264Bytes);
+            Run("MemSet_64Bytes", TestMemSet64Bytes);
+            Run("MemMove_Overlap", TestMemMoveOverlap);
 
             Serial.WriteString("[Memory Tests] All tests completed\n");
             Finish();
@@ -273,6 +288,231 @@ namespace Cosmos.Kernel.Tests.Memory
             list.RemoveAt(idx);
 
             True(list.Count == 4 && list[2] == 40, "Collections: List.RemoveAt method");
+        }
+
+        // ==================== Memory Copy Tests ====================
+
+        private static void TestMemCopy8Bytes()
+        {
+            byte* src = stackalloc byte[8];
+            byte* dest = stackalloc byte[8];
+
+            for (int i = 0; i < 8; i++) src[i] = (byte)(i + 1);
+            for (int i = 0; i < 8; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 8);
+
+            bool passed = true;
+            for (int i = 0; i < 8; i++)
+            {
+                if (dest[i] != (byte)(i + 1)) passed = false;
+            }
+            True(passed, "MemCopy: 8-byte copy");
+        }
+
+        private static void TestMemCopy16Bytes()
+        {
+            byte* src = stackalloc byte[16];
+            byte* dest = stackalloc byte[16];
+
+            for (int i = 0; i < 16; i++) src[i] = (byte)(i + 1);
+            for (int i = 0; i < 16; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 16);
+
+            bool passed = true;
+            for (int i = 0; i < 16; i++)
+            {
+                if (dest[i] != (byte)(i + 1)) passed = false;
+            }
+            True(passed, "MemCopy: 16-byte copy");
+        }
+
+        private static void TestMemCopy24Bytes()
+        {
+            byte* src = stackalloc byte[24];
+            byte* dest = stackalloc byte[24];
+
+            for (int i = 0; i < 24; i++) src[i] = (byte)(i + 1);
+            for (int i = 0; i < 24; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 24);
+
+            bool passed = true;
+            for (int i = 0; i < 24; i++)
+            {
+                if (dest[i] != (byte)(i + 1)) passed = false;
+            }
+            True(passed, "MemCopy: 24-byte copy");
+        }
+
+        private static void TestMemCopy32Bytes()
+        {
+            byte* src = stackalloc byte[32];
+            byte* dest = stackalloc byte[32];
+
+            for (int i = 0; i < 32; i++) src[i] = (byte)(i + 1);
+            for (int i = 0; i < 32; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 32);
+
+            bool passed = true;
+            for (int i = 0; i < 32; i++)
+            {
+                if (dest[i] != (byte)(i + 1)) passed = false;
+            }
+            True(passed, "MemCopy: 32-byte copy");
+        }
+
+        private static void TestMemCopy48Bytes()
+        {
+            byte* src = stackalloc byte[48];
+            byte* dest = stackalloc byte[48];
+
+            for (int i = 0; i < 48; i++) src[i] = (byte)((i + 1) & 0xFF);
+            for (int i = 0; i < 48; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 48);
+
+            bool passed = true;
+            for (int i = 0; i < 48; i++)
+            {
+                if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 48-byte copy");
+        }
+
+        private static void TestMemCopy64Bytes()
+        {
+            byte* src = stackalloc byte[64];
+            byte* dest = stackalloc byte[64];
+
+            for (int i = 0; i < 64; i++) src[i] = (byte)((i + 1) & 0xFF);
+            for (int i = 0; i < 64; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 64);
+
+            bool passed = true;
+            for (int i = 0; i < 64; i++)
+            {
+                if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 64-byte copy");
+        }
+
+        private static void TestMemCopy80Bytes()
+        {
+            byte* src = stackalloc byte[80];
+            byte* dest = stackalloc byte[80];
+
+            for (int i = 0; i < 80; i++) src[i] = (byte)((i + 1) & 0xFF);
+            for (int i = 0; i < 80; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 80);
+
+            bool passed = true;
+            for (int i = 0; i < 80; i++)
+            {
+                if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 80-byte copy");
+        }
+
+        private static void TestMemCopy128Bytes()
+        {
+            byte* src = stackalloc byte[128];
+            byte* dest = stackalloc byte[128];
+
+            for (int i = 0; i < 128; i++) src[i] = (byte)((i + 1) & 0xFF);
+            for (int i = 0; i < 128; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 128);
+
+            bool passed = true;
+            for (int i = 0; i < 128; i++)
+            {
+                if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 128-byte copy");
+        }
+
+        private static void TestMemCopy256Bytes()
+        {
+            byte* src = stackalloc byte[256];
+            byte* dest = stackalloc byte[256];
+
+            for (int i = 0; i < 256; i++) src[i] = (byte)(i & 0xFF);
+            for (int i = 0; i < 256; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 256);
+
+            bool passed = true;
+            for (int i = 0; i < 256; i++)
+            {
+                if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 256-byte copy");
+        }
+
+        private static void TestMemCopy264Bytes()
+        {
+            byte* src = stackalloc byte[264];
+            byte* dest = stackalloc byte[264];
+
+            for (int i = 0; i < 264; i++) src[i] = (byte)(i & 0xFF);
+            for (int i = 0; i < 264; i++) dest[i] = 0;
+
+            MemoryOp.MemCopy(dest, src, 264);
+
+            bool passed = true;
+            for (int i = 0; i < 264; i++)
+            {
+                if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            }
+            True(passed, "MemCopy: 264-byte copy");
+        }
+
+        private static void TestMemSet64Bytes()
+        {
+            byte* dest = stackalloc byte[64];
+
+            // Clear first
+            for (int i = 0; i < 64; i++) dest[i] = 0;
+
+            // Fill with value 0xAB
+            MemoryOp.MemSet(dest, 0xAB, 64);
+
+            bool passed = true;
+            for (int i = 0; i < 64; i++)
+            {
+                if (dest[i] != 0xAB) passed = false;
+            }
+            True(passed, "MemSet: 64 bytes with 0xAB");
+        }
+
+        private static void TestMemMoveOverlap()
+        {
+            // Test overlapping copy (dest > src)
+            byte* buffer = stackalloc byte[32];
+
+            for (int i = 0; i < 16; i++) buffer[i] = (byte)(i + 1);
+            for (int i = 16; i < 32; i++) buffer[i] = 0;
+
+            // Move 16 bytes from offset 0 to offset 8 (overlapping)
+            MemoryOp.MemMove(buffer + 8, buffer, 16);
+
+            bool passed = true;
+            // First 8 bytes should be unchanged
+            for (int i = 0; i < 8; i++)
+            {
+                if (buffer[i] != (byte)(i + 1)) passed = false;
+            }
+            // Bytes 8-23 should be copies of original 0-15
+            for (int i = 8; i < 24; i++)
+            {
+                if (buffer[i] != (byte)(i - 8 + 1)) passed = false;
+            }
+            True(passed, "MemMove: overlapping regions");
         }
     }
 
