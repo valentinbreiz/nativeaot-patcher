@@ -12,6 +12,7 @@ namespace Cosmos.Kernel.HAL.Cpu;
 public static partial class InterruptManager
 {
     [LibraryImport("*", EntryPoint = "__arm64_init_exception_vectors")]
+    [SuppressGCTransition]
     private static partial void InitExceptionVectors();
 
     /// <summary>

@@ -203,6 +203,16 @@ namespace Cosmos.Kernel.Core.Runtime
             return result;
         }
 
+        /// <summary>
+        /// Returns the MethodTable* for System.Array. This is used by the runtime when
+        /// it needs to determine the base type of array types.
+        /// </summary>
+        [RuntimeExport("GetSystemArrayEEType")]
+        static unsafe MethodTable* GetSystemArrayEEType()
+        {
+            return MethodTable.Of<Array>();
+        }
+
         [RuntimeExport("RhNewObject")]
         static unsafe void* RhNewObject(MethodTable* pEEType)
         {

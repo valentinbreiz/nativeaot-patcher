@@ -21,6 +21,12 @@ extern int g_requiredCpuFeatures;
 extern void EnableSSE();
 #endif
 
+#ifdef __aarch64__
+// Platform-specific initialization for ARM64 (enabling NEON/FP)
+extern void __arm64_enable_neon(void);
+extern void __arm64_disable_alignment_check(void);
+#endif
+
 extern void* __Modules_start[]; // Start of __modules Section
 extern void* __Modules_end[];   // End of __modules Section
 
@@ -39,11 +45,6 @@ extern void* __get_limine_rsdp_address(void);  // C# function to get RSDP from L
 extern void __cosmos_serial_write(const char* message);  // C# function for serial logging
 extern void __cosmos_serial_write_hex_u64(uint64_t value);  // C# function for hex printing
 
-// ARM64: Disable alignment checking
-#ifdef __aarch64__
-extern void __arm64_disable_alignment_check(void);
-#endif
-
 // Entry point
 void kmain()
 {
@@ -52,6 +53,8 @@ void kmain()
 #endif
 
 #ifdef __aarch64__
+    // ARM64: Enable NEON/FP (SIMD) - must be done before any SIMD instructions
+    __arm64_enable_neon();
     // ARM64: Disable alignment checking - NativeAOT generates unaligned accesses
     __arm64_disable_alignment_check();
 #endif

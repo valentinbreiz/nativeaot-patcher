@@ -173,16 +173,20 @@ public static unsafe partial class ExceptionHelper
 
     // Assembly funclet callers - use nint for object reference since P/Invoke doesn't support object
     [LibraryImport("*", EntryPoint = "RhpCallCatchFunclet")]
+    [SuppressGCTransition]
     private static partial void* RhpCallCatchFunclet(nint exceptionPtr, void* handlerAddress, void* pRegDisplay, void* pExInfo);
 
     [LibraryImport("*", EntryPoint = "RhpCallFilterFunclet")]
+    [SuppressGCTransition]
     private static partial nint RhpCallFilterFunclet(nint exceptionPtr, void* filterAddress, void* pRegDisplay);
 
     // C functions from kmain.c that return eh_frame section addresses
     [LibraryImport("*", EntryPoint = "get_eh_frame_start")]
+    [SuppressGCTransition]
     private static partial byte* GetEhFrameStart();
 
     [LibraryImport("*", EntryPoint = "get_eh_frame_end")]
+    [SuppressGCTransition]
     private static partial byte* GetEhFrameEnd();
 
     // Guard against recursive exception handling

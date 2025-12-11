@@ -8,9 +8,11 @@ namespace Cosmos.Kernel.HAL.X64;
 public partial class X64CpuOps : ICpuOps
 {
     [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
+    [SuppressGCTransition]
     private static partial void NativeHalt();
 
     [LibraryImport("*", EntryPoint = "_native_cpu_memory_barrier")]
+    [SuppressGCTransition]
     private static partial void NativeMemoryBarrier();
 
     public void Halt() => NativeHalt();
