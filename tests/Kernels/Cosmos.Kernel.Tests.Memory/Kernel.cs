@@ -49,7 +49,7 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Collections_ListRemoveAt", TestListRemoveAt);
             Skip("Boxing_ArrayCopy", "TestListRemoveAt fails");
 
-            // Memory Copy Tests (scalar path - SIMD disabled by default)
+            // Memory Copy Tests (SIMD enabled for 16+ bytes)
             Run("MemCopy_8Bytes", TestMemCopy8Bytes);
             Run("MemCopy_16Bytes", TestMemCopy16Bytes);
             Run("MemCopy_24Bytes", TestMemCopy24Bytes);

@@ -33,29 +33,65 @@ public static unsafe partial class MemoryOp
 
     #endregion
 
-    // Flag to enable/disable SIMD
-    private static bool _simdEnabled = true;
-
-    public static void SetSimdEnabled(bool enabled) => _simdEnabled = enabled;
-
     #region MemSet
 
     public static void MemSet(byte* dest, byte value, int count)
     {
         if (count <= 0) return;
 
-        // Simple byte-by-byte fill (always works)
-        for (int i = 0; i < count; i++)
+        if (count >= 16)
         {
-            dest[i] = value;
+            // SIMD path - broadcast byte to 32-bit value for SIMD fill
+            uint fillValue = (uint)(value | (value << 8) | (value << 16) | (value << 24));
+            FillWithSimd(dest, fillValue, count);
+        }
+        else
+        {
+            // Scalar path for small fills
+            for (int i = 0; i < count; i++)
+            {
+                dest[i] = value;
+            }
         }
     }
 
     public static void MemSet(uint* dest, uint value, int count)
     {
-        for (int i = 0; i < count; i++)
+        if (count <= 0) return;
+
+        if (count >= 4)
         {
-            dest[i] = value;
+            // SIMD path
+            FillWithSimd((byte*)dest, value, count * sizeof(uint));
+        }
+        else
+        {
+            // Scalar path
+            for (int i = 0; i < count; i++)
+            {
+                dest[i] = value;
+            }
+        }
+    }
+
+    private static void FillWithSimd(byte* dest, uint value, int count)
+    {
+        int offset = 0;
+
+        // Fill 16-byte blocks using SIMD
+        int blockCount = count / 16;
+        if (blockCount > 0)
+        {
+            SimdFill16Blocks(dest, (int)value, blockCount);
+            offset = blockCount * 16;
+        }
+
+        // Fill remaining bytes using scalar (with the byte value extracted)
+        byte byteValue = (byte)(value & 0xFF);
+        while (offset < count)
+        {
+            dest[offset] = byteValue;
+            offset++;
         }
     }
 
@@ -70,7 +106,7 @@ public static unsafe partial class MemoryOp
     {
         if (count <= 0) return;
 
-        if (_simdEnabled && count >= 16)
+        if (count >= 16)
         {
             // SIMD path
             CopyWithSimd(dest, src, count);
@@ -164,16 +200,33 @@ public static unsafe partial class MemoryOp
         // Check for overlap
         if (dest < src || dest >= src + count)
         {
-            // No overlap - safe to use forward copy
+            // No overlap - safe to use forward copy (with SIMD)
             MemCopy(dest, src, count);
         }
         else
         {
-            // Overlap detected - use byte-by-byte backward copy
-            for (int i = count - 1; i >= 0; i--)
-            {
-                dest[i] = src[i];
-            }
+            // Overlap detected - use backward copy
+            CopyBackward(dest, src, count);
+        }
+    }
+
+    private static void CopyBackward(byte* dest, byte* src, int count)
+    {
+        // Use 64-bit copies where possible for better performance
+        int i = count;
+
+        // Copy 8 bytes at a time from the end
+        while (i >= 8)
+        {
+            i -= 8;
+            *(ulong*)(dest + i) = *(ulong*)(src + i);
+        }
+
+        // Copy remaining bytes
+        while (i > 0)
+        {
+            i--;
+            dest[i] = src[i];
         }
     }
 
