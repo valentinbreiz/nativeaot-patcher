@@ -57,32 +57,6 @@ namespace Cosmos.Kernel.Core.Runtime
     // but the class itself being absent is unhandled. Let's add an empty class.
     internal static unsafe partial class StartupCodeHelpers
     {
-        // Import the compiler-generated knobs blob symbol
-        // Layout: { uint32_t m_count; void* m_first[]; } where m_first = [keys...][values...]
-        [LibraryImport("*", EntryPoint = "g_compilerEmbeddedKnobsBlob")]
-        [SuppressGCTransition]
-        private static partial nint GetKnobsBlobAddress();
-
-        [RuntimeExport("RhGetKnobValues")]
-        private static uint RhGetKnobValues(byte*** pResultKeys, byte*** pResultValues)
-        {
-            // Get address of g_compilerEmbeddedKnobsBlob
-            byte* blob = (byte*)GetKnobsBlobAddress();
-
-            // Read count (first 4 bytes)
-            uint count = *(uint*)blob;
-
-            // Keys start at offset 8 (after count + padding)
-            byte** keys = (byte**)(blob + 8);
-            *pResultKeys = keys;
-
-            // Values start after keys array
-            byte** values = keys + count;
-            *pResultValues = values;
-
-            return count;
-        }
-
         [RuntimeExport("RhpReversePInvoke")]
         private static void RhpReversePInvoke(IntPtr frame) { }
         [RuntimeExport("RhpReversePInvokeReturn")]
@@ -425,8 +399,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
                 static void RhpGcPoll() { }
-                [RuntimeExport("__security_cookie")]
-                static void __security_cookie() { }
                 [RuntimeExport("RhSpanHelpers_MemZero")]
                 static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { }
                 [RuntimeExport("RhGetOSModuleFromPointer")]

@@ -35,43 +35,43 @@ internal static partial class Program
 
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
+        // Register and test interrupt handler
 #if ARCH_X64
-        // Register a handler for INT 32 to test interrupt handling
-        Serial.WriteString("[Main] Registering INT 32 handler...\n");
-        InterruptManager.SetHandler(32, TestInt32Handler);
-        Serial.WriteString("[Main] INT 32 handler registered!\n");
-
-        // Test triggering INT 32
-        Serial.WriteString("[Main] Triggering INT 32...\n");
-        TriggerInt32Test();
-        Serial.WriteString("[Main] INT 32 test complete!\n");
-#else
-        Serial.WriteString("[Main] Interrupt test skipped (ARM64 platform)\n");
+        const int testInterrupt = 32;
+#elif ARCH_ARM64
+        const int testInterrupt = 0;  // SVC
 #endif
+        Serial.WriteString("[Main] Registering test interrupt handler...\n");
+        InterruptManager.SetHandler(testInterrupt, TestInterruptHandler);
+        Serial.WriteString("[Main] Handler registered!\n");
+
+        Serial.WriteString("[Main] Triggering test interrupt...\n");
+        TriggerTestInterrupt();
+        Serial.WriteString("[Main] Test complete!\n");
 
         while (true) ;
     }
 
 #if ARCH_X64
-    [LibraryImport("*", EntryPoint = "__test_int32")]
-    private static partial void TriggerInt32Test();
+    [LibraryImport("*", EntryPoint = "_native_x64_test_int32")]
+    private static partial void TriggerTestInterrupt();
+#elif ARCH_ARM64
+    [LibraryImport("*", EntryPoint = "_native_arm64_test_svc")]
+    private static partial void TriggerTestInterrupt();
+#endif
 
-    // Handler for INT 32 - this will be called when the interrupt fires
-    private static void TestInt32Handler(ref IRQContext context)
+    // Handler for test interrupt - this will be called when the interrupt fires
+    private static void TestInterruptHandler(ref IRQContext context)
     {
-        Serial.WriteString("[INT 32 Handler] Interrupt 32 received!\n");
-        Serial.WriteString("[INT 32 Handler] RIP: 0x");
-        Serial.WriteString(context.rax.ToString("X16"));
-        Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] Interrupt number: ");
+        Serial.WriteString("[Test Interrupt] Interrupt received!\n");
+        Serial.WriteString("[Test Interrupt] Interrupt number: ");
         Serial.WriteString(context.interrupt.ToString());
         Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] CPU Flags: 0x");
+        Serial.WriteString("[Test Interrupt] CPU Flags: 0x");
         Serial.WriteString(context.cpu_flags.ToString("X16"));
         Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] Handler execution complete\n");
+        Serial.WriteString("[Test Interrupt] Handler execution complete\n");
     }
-#endif
 
     [ModuleInitializer]
     public static void Init()

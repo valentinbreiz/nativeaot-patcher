@@ -1,5 +1,5 @@
 // ARM64 NativeAOT Runtime Stubs
-// Write barriers, security cookie, and EH section accessors
+// Write barriers and EH section accessors
 
 .global RhpAssignRefArm64
 .global RhpCheckedAssignRefArm64
@@ -7,16 +7,10 @@
 .global RhpAssignRefAVLocation
 .global RhpCheckedAssignRefAVLocation
 .global RhpByRefAssignRefAVLocation1
-.global __security_cookie
 .global get_eh_frame_start
 .global get_eh_frame_end
 .global get_dotnet_eh_table_start
 .global get_dotnet_eh_table_end
-
-.data
-.align 8
-__security_cookie:
-    .quad 0x2B992DDFA23249D6
 
 .text
 .align 4

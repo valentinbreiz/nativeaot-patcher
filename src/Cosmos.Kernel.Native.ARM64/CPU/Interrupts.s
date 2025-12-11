@@ -218,3 +218,13 @@ _native_arm64_init_exception_vectors:
     msr     vbar_el1, x0
     isb
     ret
+
+// ============================================================================
+// Test interrupt trigger - triggers SVC to test exception handling
+// void _native_arm64_test_svc(void)
+// ============================================================================
+.global _native_arm64_test_svc
+.balign 4
+_native_arm64_test_svc:
+    svc     #0
+    ret

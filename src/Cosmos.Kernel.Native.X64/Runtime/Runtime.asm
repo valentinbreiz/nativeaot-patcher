@@ -1,7 +1,6 @@
 ; x64 NativeAOT Runtime Stubs
-; Security cookie and EH section accessors
+; EH section accessors
 
-global __security_cookie
 global get_eh_frame_start
 global get_eh_frame_end
 global get_dotnet_eh_table_start
@@ -11,11 +10,6 @@ extern __eh_frame_start
 extern __eh_frame_end
 extern __dotnet_eh_table_start
 extern __dotnet_eh_table_end
-
-section .data
-align 8
-__security_cookie:
-    dq 0x2B992DDFA23249D6
 
 section .text
 
