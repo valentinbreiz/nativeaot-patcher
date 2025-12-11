@@ -1,5 +1,5 @@
 // ARM64 NativeAOT Runtime Stubs
-// Write barriers, security cookie, knob values accessor, and EH section accessors
+// Write barriers, security cookie, and EH section accessors
 
 .global RhpAssignRefArm64
 .global RhpCheckedAssignRefArm64
@@ -8,7 +8,6 @@
 .global RhpCheckedAssignRefAVLocation
 .global RhpByRefAssignRefAVLocation1
 .global __security_cookie
-.global RhGetKnobValues
 .global get_eh_frame_start
 .global get_eh_frame_end
 .global get_dotnet_eh_table_start
@@ -21,40 +20,6 @@ __security_cookie:
 
 .text
 .align 4
-
-// uint32_t RhGetKnobValues(char*** pResultKeys, char*** pResultValues)
-//
-// Retrieves compiler-embedded knob values for AppContext initialization
-//
-// Parameters:
-//   x0 - pointer to receive keys array
-//   x1 - pointer to receive values array
-//
-// Returns:
-//   w0 - count of knob entries
-RhGetKnobValues:
-    // g_compilerEmbeddedKnobsBlob layout:
-    //   offset 0: m_count (uint32_t)
-    //   offset 8: m_first[] (flexible array of pointers)
-
-    adrp    x2, g_compilerEmbeddedKnobsBlob
-    add     x2, x2, :lo12:g_compilerEmbeddedKnobsBlob
-
-    // Get count
-    ldr     w3, [x2]                // w3 = m_count
-
-    // Calculate keys pointer (m_first starts at offset 8)
-    add     x4, x2, #8              // x4 = &m_first[0] (keys)
-    str     x4, [x0]                // *pResultKeys = keys
-
-    // Calculate values pointer (m_first + count * 8)
-    lsl     x5, x3, #3              // x5 = count * 8
-    add     x4, x2, #8
-    add     x4, x4, x5              // x4 = &m_first[count] (values)
-    str     x4, [x1]                // *pResultValues = values
-
-    mov     w0, w3                  // return count
-    ret
 
 // void RhpByRefAssignRefArm64()
 //
