@@ -10,21 +10,27 @@ public partial class ARM64MemoryIO : IPortIO
     private const ulong MMIO_BASE = 0x3F000000; // Example base for Raspberry Pi 3/4
 
     [LibraryImport("*", EntryPoint = "_native_mmio_read_byte")]
+    [SuppressGCTransition]
     private static partial byte NativeReadByte(ulong address);
 
     [LibraryImport("*", EntryPoint = "_native_mmio_read_word")]
+    [SuppressGCTransition]
     private static partial ushort NativeReadWord(ulong address);
 
     [LibraryImport("*", EntryPoint = "_native_mmio_read_dword")]
+    [SuppressGCTransition]
     private static partial uint NativeReadDWord(ulong address);
 
     [LibraryImport("*", EntryPoint = "_native_mmio_write_byte")]
+    [SuppressGCTransition]
     private static partial void NativeWriteByte(ulong address, byte value);
 
     [LibraryImport("*", EntryPoint = "_native_mmio_write_word")]
+    [SuppressGCTransition]
     private static partial void NativeWriteWord(ulong address, ushort value);
 
     [LibraryImport("*", EntryPoint = "_native_mmio_write_dword")]
+    [SuppressGCTransition]
     private static partial void NativeWriteDWord(ulong address, uint value);
 
     private static ulong PortToAddress(ushort port)

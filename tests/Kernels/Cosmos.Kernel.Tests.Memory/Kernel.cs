@@ -19,7 +19,7 @@ namespace Cosmos.Kernel.Tests.Memory
         private static void Main()
         {
             Serial.WriteString("[Memory Tests] Starting test suite\n");
-            Start("Memory Tests", expectedTests: 34); // 8 boxing + 5 memory + 9 collections + 12 SIMD
+            Start("Memory Tests", expectedTests: 36); // 8 boxing + 5 memory + 8 collections + 12 SIMD + 3 Array.Copy
 
             // Boxing/Unboxing Tests
             Run("Boxing_Char", TestBoxingChar);
@@ -29,7 +29,7 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Boxing_Nullable", TestBoxingNullable);
             Run("Boxing_Interface", TestBoxingInterface);
             Run("Boxing_CustomStruct", TestBoxingCustomStruct);
-            Skip("Boxing_ArrayCopy", "TestArrayCopyWithBoxing Array Copy fails with boxing");
+            Run("Boxing_ArrayCopy", TestArrayCopyWithBoxing);
 
             // Memory Allocation Tests
             Run("Memory_CharArray", TestCharArrayAllocation);
@@ -47,7 +47,6 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("Collections_ListContains", TestListContains);
             Run("Collections_ListIndexOf", TestListIndexOf);
             Run("Collections_ListRemoveAt", TestListRemoveAt);
-            Skip("Boxing_ArrayCopy", "TestListRemoveAt fails");
 
             // Memory Copy Tests (SIMD enabled for 16+ bytes)
             Run("MemCopy_8Bytes", TestMemCopy8Bytes);
@@ -62,6 +61,11 @@ namespace Cosmos.Kernel.Tests.Memory
             Run("MemCopy_264Bytes", TestMemCopy264Bytes);
             Run("MemSet_64Bytes", TestMemSet64Bytes);
             Run("MemMove_Overlap", TestMemMoveOverlap);
+
+            // Array.Copy Tests (uses SIMD via memmove/RhBulkMoveWithWriteBarrier)
+            Run("ArrayCopy_IntArray", TestArrayCopyIntArray);
+            Run("ArrayCopy_ByteArray", TestArrayCopyByteArray);
+            Run("ArrayCopy_LargeArray", TestArrayCopyLargeArray);
 
             Serial.WriteString("[Memory Tests] All tests completed\n");
             Finish();
@@ -144,6 +148,7 @@ namespace Cosmos.Kernel.Tests.Memory
         {
             int[] sourceIntArray = new int[] { 10, 20, 30 };
             object[] destObjectArray = new object[3];
+
             Array.Copy(sourceIntArray, destObjectArray, 3);
 
             bool passed = (int)destObjectArray[0] == 10 &&
@@ -513,6 +518,53 @@ namespace Cosmos.Kernel.Tests.Memory
                 if (buffer[i] != (byte)(i - 8 + 1)) passed = false;
             }
             True(passed, "MemMove: overlapping regions");
+        }
+
+        // ==================== Array.Copy Tests ====================
+
+        private static void TestArrayCopyIntArray()
+        {
+            int[] source = new int[] { 1, 2, 3, 4, 5 };
+            int[] dest = new int[5];
+
+            Array.Copy(source, dest, 5);
+
+            bool passed = dest[0] == 1 && dest[1] == 2 && dest[2] == 3 && dest[3] == 4 && dest[4] == 5;
+            True(passed, "Array.Copy: int[] copy");
+        }
+
+        private static void TestArrayCopyByteArray()
+        {
+            byte[] source = new byte[64];
+            byte[] dest = new byte[64];
+
+            for (int i = 0; i < 64; i++) source[i] = (byte)(i + 1);
+
+            Array.Copy(source, dest, 64);
+
+            bool passed = true;
+            for (int i = 0; i < 64; i++)
+            {
+                if (dest[i] != (byte)(i + 1)) passed = false;
+            }
+            True(passed, "Array.Copy: byte[] 64 bytes");
+        }
+
+        private static void TestArrayCopyLargeArray()
+        {
+            byte[] source = new byte[256];
+            byte[] dest = new byte[256];
+
+            for (int i = 0; i < 256; i++) source[i] = (byte)(i & 0xFF);
+
+            Array.Copy(source, dest, 256);
+
+            bool passed = true;
+            for (int i = 0; i < 256; i++)
+            {
+                if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            }
+            True(passed, "Array.Copy: byte[] 256 bytes (large SIMD)");
         }
     }
 

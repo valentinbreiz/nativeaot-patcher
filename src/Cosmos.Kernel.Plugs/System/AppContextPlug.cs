@@ -13,6 +13,7 @@ namespace Cosmos.Kernel.Plugs.System;
 public static partial class AppContextPlug
 {
     [LibraryImport("*", EntryPoint = "RhGetKnobValues")]
+    [SuppressGCTransition]
     private static unsafe partial uint RhGetKnobValues(out byte** keys, out byte** values);
     private static SimpleDictionary<string, object?>? dataStore;
     private static SimpleDictionary<string, bool>? switches;

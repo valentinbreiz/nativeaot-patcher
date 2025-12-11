@@ -95,8 +95,9 @@ internal static unsafe class Casting
                 if (interfaceImpl != interfaceType)
                     continue;
 
-                if (interfaceType->GenericParameterCount == 0)
-                    return true; // No generics, so it's an exact match
+                // Only check generics if the interface is actually generic
+                if (!interfaceType->IsGeneric)
+                    return true; // Not generic, exact match is sufficient
 
                 return AreGenericsAssignable(interfaceImpl, interfaceType);
             }
@@ -117,8 +118,10 @@ internal static unsafe class Casting
                 continue;
             }
 
-            if (classType->GenericParameterCount == 0)
-                return true; // No generics, so it's an exact match
+            // Types match - check if we need to verify generics
+            // Only check generics if classType is actually a generic type
+            if (!classType->IsGeneric)
+                return true; // Not generic, exact match is sufficient
 
             return AreGenericsAssignable(type, classType); // Check generics
         }
@@ -128,7 +131,9 @@ internal static unsafe class Casting
 
     private static bool AreGenericsAssignable(MethodTable* sourceType, MethodTable* targetType)
     {
-        for (int i = 0; i < targetType->GenericParameterCount; i++)
+        // Get arity from GenericArity (for instantiated generics) not GenericParameterCount (for definitions)
+        int arity = (int)targetType->GenericArity;
+        for (int i = 0; i < arity; i++)
         {
             MethodTable* sourceGeneric = sourceType->GenericArguments[i]; // Generic of the cast target
             MethodTable* targetGeneric = targetType->GenericArguments[i]; // Generic of the cast type;

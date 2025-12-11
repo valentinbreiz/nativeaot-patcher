@@ -14,21 +14,27 @@ public static unsafe partial class MemoryOp
     #region Native SIMD Imports
 
     [LibraryImport("*", EntryPoint = "_simd_copy_16")]
+    [SuppressGCTransition]
     private static partial void SimdCopy16(byte* dest, byte* src);
 
     [LibraryImport("*", EntryPoint = "_simd_copy_32")]
+    [SuppressGCTransition]
     private static partial void SimdCopy32(byte* dest, byte* src);
 
     [LibraryImport("*", EntryPoint = "_simd_copy_64")]
+    [SuppressGCTransition]
     private static partial void SimdCopy64(byte* dest, byte* src);
 
     [LibraryImport("*", EntryPoint = "_simd_copy_128")]
+    [SuppressGCTransition]
     private static partial void SimdCopy128(byte* dest, byte* src);
 
     [LibraryImport("*", EntryPoint = "_simd_copy_128_blocks")]
+    [SuppressGCTransition]
     private static partial void SimdCopy128Blocks(byte* dest, byte* src, int blockCount);
 
     [LibraryImport("*", EntryPoint = "_simd_fill_16_blocks")]
+    [SuppressGCTransition]
     private static partial void SimdFill16Blocks(byte* dest, int value, int blockCount);
 
     #endregion
