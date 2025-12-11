@@ -11,17 +11,31 @@ public static partial class PL011Uart
     private const ulong UART0_BASE = 0x09000000;
 
     // PL011 Register offsets
-    private const ulong UARTDR = 0x00;     // Data Register
-    private const ulong UARTFR = 0x18;     // Flag Register
-    private const ulong UARTIBRD = 0x24;   // Integer Baud Rate Divisor
-    private const ulong UARTFBRD = 0x28;   // Fractional Baud Rate Divisor
-    private const ulong UARTLCR_H = 0x2C;  // Line Control Register
-    private const ulong UARTCR = 0x30;     // Control Register
-    private const ulong UARTIMSC = 0x38;   // Interrupt Mask Set/Clear
+    private const ulong UARTDR = 0x00;                        // Data Register
+    private const ulong UARTFR = 0x18;                        // Flag Register
+    private const ulong UARTIBRD = 0x24;                      // Integer Baud Rate Divisor
+    private const ulong UARTFBRD = 0x28;                      // Fractional Baud Rate Divisor
+    private const ulong UARTLCR_H = 0x2C;                     // Line Control Register
+    private const ulong UARTCR = 0x30;                        // Control Register
+    private const ulong UARTIMSC = 0x38;                      // Interrupt Mask Set/Clear
 
     // Flag Register bits
-    private const byte UART_FR_TXFF = 1 << 5;  // Transmit FIFO full
-    private const byte UART_FR_BUSY = 1 << 3;  // UART busy
+    private const uint UARTFR_TXFF = 1 << 5;                  // Transmit FIFO full
+    private const uint UARTFR_BUSY = 1 << 3;                  // UART busy
+
+    // Line Control Register bits
+    private const uint UARTLCR_H_FEN = 1 << 4;                // FIFO Enable
+    private const uint UARTLCR_H_WLEN_8 = 3 << 5;             // 8-bit word length
+
+    // Control Register bits
+    private const uint UARTCR_UARTEN = 1 << 0;                // UART Enable
+    private const uint UARTCR_TXE = 1 << 8;                   // Transmit Enable
+    private const uint UARTCR_RXE = 1 << 9;                   // Receive Enable
+
+    // Baud rate divisor for 115200 baud (24MHz clock)
+    // Divisor = 24000000 / (16 * 115200) = 13.02
+    private const uint UART_IBRD_115200 = 13;
+    private const uint UART_FBRD_115200 = 1;
 
     [LibraryImport("*", EntryPoint = "_native_arm64_mmio_read_byte")]
     [SuppressGCTransition]
@@ -50,19 +64,15 @@ public static partial class PL011Uart
         // Clear all interrupts
         NativeWriteDWord(UART0_BASE + UARTIMSC, 0);
 
-        // Set baud rate to 115200
-        // Assuming UART clock is 24MHz (QEMU default)
-        // Baud rate divisor = UART_CLK / (16 * baud_rate)
-        // = 24000000 / (16 * 115200) = 13.02
-        // Integer part: 13, Fractional part: 0.02 * 64 = 1
-        NativeWriteDWord(UART0_BASE + UARTIBRD, 13);
-        NativeWriteDWord(UART0_BASE + UARTFBRD, 1);
+        // Set baud rate to 115200 (24MHz clock)
+        NativeWriteDWord(UART0_BASE + UARTIBRD, UART_IBRD_115200);
+        NativeWriteDWord(UART0_BASE + UARTFBRD, UART_FBRD_115200);
 
         // Enable FIFO, 8-bit data, no parity, 1 stop bit
-        NativeWriteDWord(UART0_BASE + UARTLCR_H, (1 << 4) | (3 << 5));
+        NativeWriteDWord(UART0_BASE + UARTLCR_H, UARTLCR_H_FEN | UARTLCR_H_WLEN_8);
 
         // Enable UART, TX, and RX
-        NativeWriteDWord(UART0_BASE + UARTCR, (1 << 0) | (1 << 8) | (1 << 9));
+        NativeWriteDWord(UART0_BASE + UARTCR, UARTCR_UARTEN | UARTCR_TXE | UARTCR_RXE);
     }
 
     /// <summary>
@@ -70,7 +80,7 @@ public static partial class PL011Uart
     /// </summary>
     private static bool IsTransmitFull()
     {
-        return (NativeReadDWord(UART0_BASE + UARTFR) & UART_FR_TXFF) != 0;
+        return (NativeReadDWord(UART0_BASE + UARTFR) & UARTFR_TXFF) != 0;
     }
 
     /// <summary>

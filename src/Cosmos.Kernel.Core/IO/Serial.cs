@@ -5,11 +5,35 @@ namespace Cosmos.Kernel.Core.IO;
 
 public static class Serial
 {
-    private static readonly ushort COM1 = 0x3F8;
+    // x86-64 COM1 Serial Port Constants
+    private const ushort COM1_BASE = 0x3F8;
+    private const ushort COM1_DATA = COM1_BASE + 0;           // Data register (R/W)
+    private const ushort COM1_IER = COM1_BASE + 1;            // Interrupt Enable Register
+    private const ushort COM1_FCR = COM1_BASE + 2;            // FIFO Control Register
+    private const ushort COM1_LCR = COM1_BASE + 3;            // Line Control Register
+    private const ushort COM1_MCR = COM1_BASE + 4;            // Modem Control Register
+    private const ushort COM1_LSR = COM1_BASE + 5;            // Line Status Register
+
+    // Line Status Register bits
+    private const byte LSR_TX_EMPTY = 0x20;                   // Transmit buffer empty
+
+    // Line Control Register values
+    private const byte LCR_DLAB_ENABLE = 0x80;                // Divisor Latch Access Bit
+    private const byte LCR_8N1 = 0x03;                        // 8 data bits, no parity, 1 stop bit
+
+    // FIFO Control Register values
+    private const byte FCR_ENABLE_FIFO = 0xC7;                // Enable FIFO, clear, 14-byte threshold
+
+    // Modem Control Register values
+    private const byte MCR_RTS_DSR = 0x0B;                    // RTS/DSR set, IRQs enabled
+
+    // Baud rate divisor (115200 baud)
+    private const byte BAUD_DIVISOR_LO = 0x01;
+    private const byte BAUD_DIVISOR_HI = 0x00;
 
     private static void WaitForTransmitBufferEmpty()
     {
-        while ((Native.IO.Read8((ushort)(COM1 + 5)) & 0x20) == 0) ;
+        while ((Native.IO.Read8(COM1_LSR) & LSR_TX_EMPTY) == 0) ;
     }
 
     public static void ComWrite(byte value)
@@ -22,15 +46,14 @@ public static class Serial
         WaitForTransmitBufferEmpty();
 #endif
         // Write the byte to the COM port
-        Native.IO.Write8(COM1, value);
+        Native.IO.Write8(COM1_DATA, value);
     }
 
 #if ARCH_ARM64
     private static void WaitForARM64TransmitReady()
     {
-        // PL011 UARTFR (Flag Register) at offset 0x18
-        // Bit 5 (TXFF) = TX FIFO Full flag (1 = full, 0 = not full)
-        while ((Native.IO.ReadDWord(UART0_BASE + UARTFR) & (1 << 5)) != 0) ;
+        // Wait until TX FIFO is not full
+        while ((Native.IO.ReadDWord(UART0_BASE + UARTFR) & UARTFR_TXFF) != 0) ;
     }
 #endif
 
@@ -49,15 +72,32 @@ public static class Serial
     }
 
 #if ARCH_ARM64
-    // ARM64 PL011 UART constants
-    private const ulong UART0_BASE = 0x09000000;
-    private const ulong UARTDR = 0x00;
-    private const ulong UARTFR = 0x18;
-    private const ulong UARTIBRD = 0x24;
-    private const ulong UARTFBRD = 0x28;
-    private const ulong UARTLCR_H = 0x2C;
-    private const ulong UARTCR = 0x30;
-    private const ulong UARTIMSC = 0x38;
+    // ARM64 PL011 UART Register Addresses (QEMU virt machine)
+    private const ulong UART0_BASE = 0x09000000;              // PL011 UART0 base address
+    private const ulong UARTDR = 0x00;                        // Data Register
+    private const ulong UARTFR = 0x18;                        // Flag Register
+    private const ulong UARTIBRD = 0x24;                      // Integer Baud Rate Divisor
+    private const ulong UARTFBRD = 0x28;                      // Fractional Baud Rate Divisor
+    private const ulong UARTLCR_H = 0x2C;                     // Line Control Register
+    private const ulong UARTCR = 0x30;                        // Control Register
+    private const ulong UARTIMSC = 0x38;                      // Interrupt Mask Set/Clear
+
+    // PL011 Flag Register bits
+    private const uint UARTFR_TXFF = 1 << 5;                  // TX FIFO Full
+
+    // PL011 Line Control Register bits
+    private const uint UARTLCR_H_FEN = 1 << 4;                // FIFO Enable
+    private const uint UARTLCR_H_WLEN_8 = 3 << 5;             // 8-bit word length
+
+    // PL011 Control Register bits
+    private const uint UARTCR_UARTEN = 1 << 0;                // UART Enable
+    private const uint UARTCR_TXE = 1 << 8;                   // Transmit Enable
+    private const uint UARTCR_RXE = 1 << 9;                   // Receive Enable
+
+    // Baud rate divisor for 115200 baud (24MHz clock)
+    // Divisor = 24000000 / (16 * 115200) = 13.02
+    private const uint UART_IBRD_115200 = 13;
+    private const uint UART_FBRD_115200 = 1;
 
     private static void InitializeARM64Serial()
     {
@@ -68,39 +108,36 @@ public static class Serial
         Native.IO.WriteDWord(UART0_BASE + UARTIMSC, 0);
 
         // Set baud rate to 115200 (24MHz clock)
-        // Divisor = 24000000 / (16 * 115200) = 13.02
-        Native.IO.WriteDWord(UART0_BASE + UARTIBRD, 13);
-        Native.IO.WriteDWord(UART0_BASE + UARTFBRD, 1);
+        Native.IO.WriteDWord(UART0_BASE + UARTIBRD, UART_IBRD_115200);
+        Native.IO.WriteDWord(UART0_BASE + UARTFBRD, UART_FBRD_115200);
 
         // Enable FIFO, 8-bit data, no parity, 1 stop bit
-        Native.IO.WriteDWord(UART0_BASE + UARTLCR_H, (1 << 4) | (3 << 5));
+        Native.IO.WriteDWord(UART0_BASE + UARTLCR_H, UARTLCR_H_FEN | UARTLCR_H_WLEN_8);
 
         // Enable UART, TX, and RX
-        Native.IO.WriteDWord(UART0_BASE + UARTCR, (1 << 0) | (1 << 8) | (1 << 9));
+        Native.IO.WriteDWord(UART0_BASE + UARTCR, UARTCR_UARTEN | UARTCR_TXE | UARTCR_RXE);
     }
 #else
     private static void InitializeX64Serial()
     {
         // Disable all interrupts
-        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
+        Native.IO.Write8(COM1_IER, 0x00);
 
         // Enable DLAB (set baud rate divisor)
-        Native.IO.Write8((ushort)(COM1 + 3), 0x80);
+        Native.IO.Write8(COM1_LCR, LCR_DLAB_ENABLE);
 
-        // Set divisor to 1 (lo byte) 115200 baud
-        Native.IO.Write8(COM1, 0x01);
-
-        // Set divisor to 1 (hi byte)
-        Native.IO.Write8((ushort)(COM1 + 1), 0x00);
+        // Set divisor for 115200 baud
+        Native.IO.Write8(COM1_DATA, BAUD_DIVISOR_LO);
+        Native.IO.Write8(COM1_IER, BAUD_DIVISOR_HI);
 
         // 8 bits, no parity, one stop bit
-        Native.IO.Write8((ushort)(COM1 + 3), 0x03);
+        Native.IO.Write8(COM1_LCR, LCR_8N1);
 
         // Enable FIFO, clear them, with 14-byte threshold
-        Native.IO.Write8((ushort)(COM1 + 2), 0xC7);
+        Native.IO.Write8(COM1_FCR, FCR_ENABLE_FIFO);
 
         // IRQs enabled, RTS/DSR set
-        Native.IO.Write8((ushort)(COM1 + 4), 0x0B);
+        Native.IO.Write8(COM1_MCR, MCR_RTS_DSR);
     }
 #endif
 
