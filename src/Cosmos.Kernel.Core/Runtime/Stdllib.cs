@@ -309,6 +309,13 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhSetThreadExitCallback")]
         static void RhSetThreadExitCallback(IntPtr callback) { }
 
+        [RuntimeExport("RhCompatibleReentrantWaitAny")]
+        static uint RhCompatibleReentrantWaitAny(int alertable, uint timeout, uint handleCount, IntPtr pHandles)
+        {
+            // Single-threaded kernel: always return success immediately
+            return 0x00000000; // WAIT_OBJECT_0 (SUCCESS)
+        }
+
         [RuntimeExport("RhYield")]
         static int RhYield()
         {
