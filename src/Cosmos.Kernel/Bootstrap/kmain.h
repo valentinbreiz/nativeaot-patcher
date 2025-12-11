@@ -5,6 +5,10 @@
 
 typedef unsigned int size_t;
 
+// Linker-defined symbols for module section
+extern void* __Modules_start[];
+extern void* __Modules_end[];
+
 // Managed code entry points
 extern void __Initialize_Kernel(void);
 extern void __managed__Startup(void);

@@ -7,15 +7,12 @@ global get_eh_frame_start
 global get_eh_frame_end
 global get_dotnet_eh_table_start
 global get_dotnet_eh_table_end
-global GetModules
 
 extern g_compilerEmbeddedKnobsBlob
 extern __eh_frame_start
 extern __eh_frame_end
 extern __dotnet_eh_table_start
 extern __dotnet_eh_table_end
-extern __Modules_start
-extern __Modules_end
 
 section .data
 align 8
@@ -79,21 +76,4 @@ get_dotnet_eh_table_start:
 ; Returns pointer to end of .dotnet_eh_table section
 get_dotnet_eh_table_end:
     lea rax, [rel __dotnet_eh_table_end]
-    ret
-
-; size_t GetModules(void** modules)
-; Returns the size of the __modules section and populates 'modules' with pointer to start
-;
-; Parameters:
-;   rcx - pointer to receive modules start address
-;
-; Returns:
-;   rax - size of modules section (end - start)
-GetModules:
-    lea rax, [rel __Modules_start]
-    mov qword [rcx], rax            ; *modules = __Modules_start
-
-    lea rax, [rel __Modules_end]
-    lea r8, [rel __Modules_start]
-    sub rax, r8                     ; rax = end - start
     ret

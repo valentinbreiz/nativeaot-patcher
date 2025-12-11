@@ -13,7 +13,6 @@
 .global get_eh_frame_end
 .global get_dotnet_eh_table_start
 .global get_dotnet_eh_table_end
-.global GetModules
 
 .data
 .align 8
@@ -138,22 +137,4 @@ get_dotnet_eh_table_start:
 get_dotnet_eh_table_end:
     adrp    x0, __dotnet_eh_table_end
     add     x0, x0, :lo12:__dotnet_eh_table_end
-    ret
-
-// size_t GetModules(void** modules)
-// Returns the size of the __modules section and populates 'modules' with pointer to start
-//
-// Parameters:
-//   x0 - pointer to receive modules start address
-//
-// Returns:
-//   x0 - size of modules section (end - start)
-GetModules:
-    adrp    x1, __Modules_start
-    add     x1, x1, :lo12:__Modules_start
-    str     x1, [x0]                // *modules = __Modules_start
-
-    adrp    x2, __Modules_end
-    add     x2, x2, :lo12:__Modules_end
-    sub     x0, x2, x1              // return end - start
     ret

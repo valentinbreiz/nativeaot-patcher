@@ -42,3 +42,11 @@ void kmain()
     __managed__Startup();
     __managed__Main();
 }
+
+// Return the size of the '__modules' section and
+// populates 'modules' with a pointer to the start of the section.
+size_t GetModules(void** modules)
+{
+    *modules = __Modules_start;
+    return __Modules_end - __Modules_start;
+}
