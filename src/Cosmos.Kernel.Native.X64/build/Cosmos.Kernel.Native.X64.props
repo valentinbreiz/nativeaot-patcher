@@ -13,10 +13,10 @@
   <!-- Add C source directories for ACPI/LAI -->
   <ItemGroup>
     <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/core/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/helpers/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/lai/drivers/" />
-    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/lai/include/" />
-    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/lai/core/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/core/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/helpers/" />
+    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/drivers/" />
+    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/ACPI/lai/include/" />
+    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/ACPI/lai/core/" />
   </ItemGroup>
 </Project>
