@@ -1,76 +1,9 @@
-using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Runtime;
 
 namespace Cosmos.Kernel.Core.IO;
 
 public static class Serial
 {
-    // x86-64 COM1 Serial Port Constants
-    private const ushort COM1_BASE = 0x3F8;
-    private const ushort COM1_DATA = COM1_BASE + 0;           // Data register (R/W)
-    private const ushort COM1_IER = COM1_BASE + 1;            // Interrupt Enable Register
-    private const ushort COM1_FCR = COM1_BASE + 2;            // FIFO Control Register
-    private const ushort COM1_LCR = COM1_BASE + 3;            // Line Control Register
-    private const ushort COM1_MCR = COM1_BASE + 4;            // Modem Control Register
-    private const ushort COM1_LSR = COM1_BASE + 5;            // Line Status Register
-
-    // Line Status Register bits
-    private const byte LSR_TX_EMPTY = 0x20;                   // Transmit buffer empty
-
-    // Line Control Register values
-    private const byte LCR_DLAB_ENABLE = 0x80;                // Divisor Latch Access Bit
-    private const byte LCR_8N1 = 0x03;                        // 8 data bits, no parity, 1 stop bit
-
-    // FIFO Control Register values
-    private const byte FCR_ENABLE_FIFO = 0xC7;                // Enable FIFO, clear, 14-byte threshold
-
-    // Modem Control Register values
-    private const byte MCR_RTS_DSR = 0x0B;                    // RTS/DSR set, IRQs enabled
-
-    // Baud rate divisor (115200 baud)
-    private const byte BAUD_DIVISOR_LO = 0x01;
-    private const byte BAUD_DIVISOR_HI = 0x00;
-
-    private static void WaitForTransmitBufferEmpty()
-    {
-        while ((Native.IO.Read8(COM1_LSR) & LSR_TX_EMPTY) == 0) ;
-    }
-
-    public static void ComWrite(byte value)
-    {
-#if ARCH_ARM64
-        // Wait for the PL011 TX FIFO to have space
-        WaitForARM64TransmitReady();
-#else
-        // Wait for the transmit buffer to be empty (x86)
-        WaitForTransmitBufferEmpty();
-#endif
-        // Write the byte to the COM port
-        Native.IO.Write8(COM1_DATA, value);
-    }
-
-#if ARCH_ARM64
-    private static void WaitForARM64TransmitReady()
-    {
-        // Wait until TX FIFO is not full
-        while ((Native.IO.ReadDWord(UART0_BASE + UARTFR) & UARTFR_TXFF) != 0) ;
-    }
-#endif
-
-    /// <summary>
-    /// Initialize serial port - called from managed Kernel.Initialize()
-    /// </summary>
-    public static void ComInit()
-    {
-#if ARCH_ARM64
-        // ARM64: Initialize PL011 UART
-        InitializeARM64Serial();
-#else
-        // x86-64: Initialize COM1 serial port
-        InitializeX64Serial();
-#endif
-    }
-
 #if ARCH_ARM64
     // ARM64 PL011 UART Register Addresses (QEMU virt machine)
     private const ulong UART0_BASE = 0x09000000;              // PL011 UART0 base address
@@ -98,9 +31,58 @@ public static class Serial
     // Divisor = 24000000 / (16 * 115200) = 13.02
     private const uint UART_IBRD_115200 = 13;
     private const uint UART_FBRD_115200 = 1;
+#else
+    // x86-64 COM1 Serial Port Constants (16550 UART)
+    private const ushort COM1_BASE = 0x3F8;
+    private const ushort COM1_DATA = COM1_BASE + 0;           // Data register (R/W)
+    private const ushort COM1_IER = COM1_BASE + 1;            // Interrupt Enable Register
+    private const ushort COM1_FCR = COM1_BASE + 2;            // FIFO Control Register
+    private const ushort COM1_LCR = COM1_BASE + 3;            // Line Control Register
+    private const ushort COM1_MCR = COM1_BASE + 4;            // Modem Control Register
+    private const ushort COM1_LSR = COM1_BASE + 5;            // Line Status Register
 
-    private static void InitializeARM64Serial()
+    // Line Status Register bits
+    private const byte LSR_TX_EMPTY = 0x20;                   // Transmit buffer empty
+
+    // Line Control Register values
+    private const byte LCR_DLAB_ENABLE = 0x80;                // Divisor Latch Access Bit
+    private const byte LCR_8N1 = 0x03;                        // 8 data bits, no parity, 1 stop bit
+
+    // FIFO Control Register values
+    private const byte FCR_ENABLE_FIFO = 0xC7;                // Enable FIFO, clear, 14-byte threshold
+
+    // Modem Control Register values
+    private const byte MCR_RTS_DSR = 0x0B;                    // RTS/DSR set, IRQs enabled
+
+    // Baud rate divisor (115200 baud)
+    private const byte BAUD_DIVISOR_LO = 0x01;
+    private const byte BAUD_DIVISOR_HI = 0x00;
+#endif
+
+    // String constants
+    private const string NULL = "null";
+    private const string TRUE = "TRUE";
+    private const string FALSE = "FALSE";
+
+    public static void ComWrite(byte value)
     {
+#if ARCH_ARM64
+        // Wait until TX FIFO is not full
+        while ((Native.IO.ReadDWord(UART0_BASE + UARTFR) & UARTFR_TXFF) != 0) ;
+        Native.IO.WriteByte(UART0_BASE + UARTDR, value);
+#else
+        // Wait for the transmit buffer to be empty
+        while ((Native.IO.Read8(COM1_LSR) & LSR_TX_EMPTY) == 0) ;
+        Native.IO.Write8(COM1_DATA, value);
+#endif
+    }
+
+    /// <summary>
+    /// Initialize serial port - called from managed Kernel.Initialize()
+    /// </summary>
+    public static void ComInit()
+    {
+#if ARCH_ARM64
         // Disable UART
         Native.IO.WriteDWord(UART0_BASE + UARTCR, 0);
 
@@ -116,10 +98,7 @@ public static class Serial
 
         // Enable UART, TX, and RX
         Native.IO.WriteDWord(UART0_BASE + UARTCR, UARTCR_UARTEN | UARTCR_TXE | UARTCR_RXE);
-    }
 #else
-    private static void InitializeX64Serial()
-    {
         // Disable all interrupts
         Native.IO.Write8(COM1_IER, 0x00);
 
@@ -138,8 +117,8 @@ public static class Serial
 
         // IRQs enabled, RTS/DSR set
         Native.IO.Write8(COM1_MCR, MCR_RTS_DSR);
-    }
 #endif
+    }
 
     public static unsafe void WriteString(string str)
     {
@@ -240,9 +219,6 @@ public static class Serial
         WriteNumber((ulong)number, true);
     }
 
-    private const string NULL = "null";
-    private const string TRUE = "TRUE";
-    private const string FALSE = "FALSE";
     public static void Write(params object?[] args)
     {
         for (int i = 0; i < args.Length; i++)
@@ -285,7 +261,7 @@ public static class Serial
                 case byte[] @byteArray:
                     for (int j = 0; j < @byteArray.Length; j++)
                     {
-                        WriteNumber((ulong)@byteArray[i], true);
+                        WriteNumber((ulong)@byteArray[j], true);
                     }
                     break;
                 default:
