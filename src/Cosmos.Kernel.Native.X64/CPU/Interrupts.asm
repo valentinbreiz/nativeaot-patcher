@@ -592,12 +592,47 @@ irq%1_stub:
     push r14
     push r15
 
-    ; At this point: RSP points to r15 (start of struct)
-    ; Stack layout: [RSP] = r15, [RSP+8] = r14, ..., [RSP+128] = interrupt, [RSP+136] = cpu_flags, [RSP+144] = RIP, [RSP+152] = CS, [RSP+160] = RFLAGS
+    ; Save XMM registers (SSE/SIMD state) - 16 registers * 16 bytes = 256 bytes
+    sub rsp, 256
+    movdqu [rsp + 0], xmm0
+    movdqu [rsp + 16], xmm1
+    movdqu [rsp + 32], xmm2
+    movdqu [rsp + 48], xmm3
+    movdqu [rsp + 64], xmm4
+    movdqu [rsp + 80], xmm5
+    movdqu [rsp + 96], xmm6
+    movdqu [rsp + 112], xmm7
+    movdqu [rsp + 128], xmm8
+    movdqu [rsp + 144], xmm9
+    movdqu [rsp + 160], xmm10
+    movdqu [rsp + 176], xmm11
+    movdqu [rsp + 192], xmm12
+    movdqu [rsp + 208], xmm13
+    movdqu [rsp + 224], xmm14
+    movdqu [rsp + 240], xmm15
 
-    ; Call managed handler with pointer to context
-    mov rdi, rsp
+    ; Call managed handler with pointer to context (past XMM save area)
+    lea rdi, [rsp + 256]
     call __managed__irq
+
+    ; Restore XMM registers
+    movdqu xmm0, [rsp + 0]
+    movdqu xmm1, [rsp + 16]
+    movdqu xmm2, [rsp + 32]
+    movdqu xmm3, [rsp + 48]
+    movdqu xmm4, [rsp + 64]
+    movdqu xmm5, [rsp + 80]
+    movdqu xmm6, [rsp + 96]
+    movdqu xmm7, [rsp + 112]
+    movdqu xmm8, [rsp + 128]
+    movdqu xmm9, [rsp + 144]
+    movdqu xmm10, [rsp + 160]
+    movdqu xmm11, [rsp + 176]
+    movdqu xmm12, [rsp + 192]
+    movdqu xmm13, [rsp + 208]
+    movdqu xmm14, [rsp + 224]
+    movdqu xmm15, [rsp + 240]
+    add rsp, 256
 
     ; Restore registers in reverse order (last pushed = first popped)
     pop r15
