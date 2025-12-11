@@ -97,6 +97,15 @@ public static partial class InterruptManager
         Serial.Write("[INT] r13 ", ctx.r13, NewLine);
         Serial.Write("[INT] r14 ", ctx.r14, NewLine);
         Serial.Write("[INT] r15 ", ctx.r15, NewLine);
+
+        // x64: Fatal CPU exceptions (0-31) without handler should halt
+        // 0=DE, 6=UD, 8=DF, 13=GP, 14=PF are particularly fatal
+        if (ctx.interrupt <= 31 && s_irqHandlers?[(int)ctx.interrupt] == null)
+        {
+            Serial.Write("[INT] FATAL: Unhandled CPU exception ", ctx.interrupt, NewLine);
+            Serial.Write("[INT] System halted.\n");
+            while (true) { }
+        }
 #endif
 
         // Check if handlers array is initialized and interrupt is in valid range

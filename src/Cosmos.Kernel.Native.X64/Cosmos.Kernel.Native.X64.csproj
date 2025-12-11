@@ -19,7 +19,7 @@
     <Content Include="Debug\*.asm" PackagePath="build\Debug" />
     <Content Include="CPU\*.asm" PackagePath="build\CPU" />
     <Content Include="Memory\*.asm" PackagePath="build\Memory" />
-    <Content Include="C\CPU\*.c" PackagePath="build\C\CPU" />
+    <Content Include="Runtime\*.asm" PackagePath="build\Runtime" />
     <Content Include="ACPI\*.c" PackagePath="build\ACPI" />
     <Content Include="lai\core\*.c" PackagePath="build\lai\core" />
     <Content Include="lai\core\*.h" PackagePath="build\lai\core" />

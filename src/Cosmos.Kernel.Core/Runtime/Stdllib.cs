@@ -55,7 +55,7 @@ namespace Cosmos.Kernel.Core.Runtime
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    internal static unsafe class StartupCodeHelpers
+    internal static unsafe partial class StartupCodeHelpers
     {
         [RuntimeExport("RhpReversePInvoke")]
         private static void RhpReversePInvoke(IntPtr frame) { }
@@ -309,6 +309,13 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhSetThreadExitCallback")]
         static void RhSetThreadExitCallback(IntPtr callback) { }
 
+        [RuntimeExport("RhCompatibleReentrantWaitAny")]
+        static uint RhCompatibleReentrantWaitAny(int alertable, uint timeout, uint handleCount, IntPtr pHandles)
+        {
+            // Single-threaded kernel: always return success immediately
+            return 0x00000000; // WAIT_OBJECT_0 (SUCCESS)
+        }
+
         [RuntimeExport("RhYield")]
         static int RhYield()
         {
@@ -392,16 +399,12 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
                 static void RhpGcPoll() { }
-                [RuntimeExport("__security_cookie")]
-                static void __security_cookie() { }
                 [RuntimeExport("RhSpanHelpers_MemZero")]
                 static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { }
                 [RuntimeExport("RhGetOSModuleFromPointer")]
                 static IntPtr RhGetOSModuleFromPointer(IntPtr ptr) { throw null; }
                 [RuntimeExport("RhGetRuntimeVersion")]
                 static int RhGetRuntimeVersion() { return 0; }
-                [RuntimeExport("RhGetKnobValues")]
-                static unsafe void RhGetKnobValues(int* pKnobValues) { }
                 [RuntimeExport("RhBulkMoveWithWriteBarrier")]
                 static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
                 [RuntimeExport("RhHandleFree")]

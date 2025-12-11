@@ -255,37 +255,37 @@ global irq253_stub
 global irq254_stub
 global irq255_stub
 
-global __irq_table
+global _native_x64_irq_table
 extern __managed__irq
 
 section .text
 
 ; void lidt_native(IdtPointer* ptr)
-global __load_lidt
-__load_lidt:
+global _native_x64_load_idt
+_native_x64_load_idt:
     cli
     lidt [rdi]
     sti
     ret
 
-; uint64_t __get_current_code_selector()
+; uint64_t _native_x64_get_code_selector()
 ; Returns the current CS (code segment selector) value
-global __get_current_code_selector
-__get_current_code_selector:
+global _native_x64_get_code_selector
+_native_x64_get_code_selector:
     xor rax, rax
     mov ax, cs
     ret
 
-; void __test_int32()
+; void _native_x64_test_int32()
 ; Triggers INT 32 to test if interrupt stubs work
-global __test_int32
-__test_int32:
+global _native_x64_test_int32
+_native_x64_test_int32:
     ; Execute INT 32 - should call our stub
     int 32
     ret
 
 section .data
-__irq_table:
+_native_x64_irq_table:
 dq irq0_stub
 dq irq1_stub
 dq irq2_stub
@@ -546,15 +546,15 @@ dq irq255_stub
 
 section .text
 
-; nint __get_irq_table(int index)
+; nint _native_x64_get_irq_stub(int index)
 ; Returns the address of the IRQ stub for the given vector index (0-255)
 ; rdi = index (first argument in x86-64 calling convention)
 ; Returns address in rax
-global __get_irq_table
-__get_irq_table:
-    ; Load the address from the __irq_table lookup array
+global _native_x64_get_irq_stub
+_native_x64_get_irq_stub:
+    ; Load the address from the irq_table lookup array
     ; The table is in .data section and has 256 entries (8 bytes each)
-    lea rax, [rel __irq_table]
+    lea rax, [rel _native_x64_irq_table]
     mov rax, [rax + rdi * 8]  ; Load stub address for vector index
     ret
 

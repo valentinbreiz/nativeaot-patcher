@@ -259,12 +259,20 @@ public static class ExceptionHandler
 
     private static void PageFault(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Page Fault (#PF)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        // Use Serial.WriteString directly - avoid any allocations or complex calls
+        // that could trigger another fault
+        Serial.WriteString("\n========================================\n");
+        Serial.WriteString("EXCEPTION: Page Fault (#PF)\n");
+        Serial.WriteString("========================================\n");
+        Serial.WriteString("Interrupt: ");
+        Serial.WriteNumber(ctx.interrupt);
+        Serial.WriteString("\nRBP: 0x");
+        Serial.WriteHex(ctx.rbp);
+        Serial.WriteString("\nCPU Flags: 0x");
+        Serial.WriteHex(ctx.cpu_flags);
+        Serial.WriteString("\n========================================\n");
+        Serial.WriteString("System halted.\n");
+        while (true) { }
     }
 
     private static void FloatingPointException(ref IRQContext ctx)

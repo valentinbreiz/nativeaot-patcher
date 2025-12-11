@@ -1,8 +1,8 @@
 // ARM64 Exception Vector Table
 // Follows same pattern as x64 Interrupts.asm
 
-.global __arm64_exception_vectors
-.global __arm64_init_exception_vectors
+.global _native_arm64_exception_vectors
+.global _native_arm64_init_exception_vectors
 
 .extern __managed__irq
 
@@ -12,7 +12,7 @@
 // ============================================================================
 .section .text
 .balign 0x800
-__arm64_exception_vectors:
+_native_arm64_exception_vectors:
 
 // Current EL with SP0 (4 vectors)
 .balign 0x80
@@ -209,12 +209,22 @@ __exception_common:
 
 // ============================================================================
 // Initialize exception vectors - set VBAR_EL1
-// void __arm64_init_exception_vectors(void)
+// void _native_arm64_init_exception_vectors(void)
 // ============================================================================
 .balign 4
-__arm64_init_exception_vectors:
-    adrp    x0, __arm64_exception_vectors
-    add     x0, x0, :lo12:__arm64_exception_vectors
+_native_arm64_init_exception_vectors:
+    adrp    x0, _native_arm64_exception_vectors
+    add     x0, x0, :lo12:_native_arm64_exception_vectors
     msr     vbar_el1, x0
     isb
+    ret
+
+// ============================================================================
+// Test interrupt trigger - triggers SVC to test exception handling
+// void _native_arm64_test_svc(void)
+// ============================================================================
+.global _native_arm64_test_svc
+.balign 4
+_native_arm64_test_svc:
+    svc     #0
     ret

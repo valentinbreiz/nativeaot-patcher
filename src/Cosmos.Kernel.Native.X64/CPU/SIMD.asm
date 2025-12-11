@@ -1,9 +1,9 @@
-global EnableSSE
+global _native_enable_simd
 
 section .text
 
-; Enable SSE support for x86-64
-EnableSSE:
+; Enable SSE/AVX support for x86-64
+_native_enable_simd:
     ; Read CR0 register
     mov rax, cr0
     and rax, ~(1 << 2)  ; Clear EM (bit 2) - Emulation
