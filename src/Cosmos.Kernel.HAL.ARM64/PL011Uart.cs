@@ -23,19 +23,19 @@ public static partial class PL011Uart
     private const byte UART_FR_TXFF = 1 << 5;  // Transmit FIFO full
     private const byte UART_FR_BUSY = 1 << 3;  // UART busy
 
-    [LibraryImport("*", EntryPoint = "_native_mmio_read_byte")]
+    [LibraryImport("*", EntryPoint = "_native_arm64_mmio_read_byte")]
     [SuppressGCTransition]
     private static partial byte NativeReadByte(ulong address);
 
-    [LibraryImport("*", EntryPoint = "_native_mmio_read_dword")]
+    [LibraryImport("*", EntryPoint = "_native_arm64_mmio_read_dword")]
     [SuppressGCTransition]
     private static partial uint NativeReadDWord(ulong address);
 
-    [LibraryImport("*", EntryPoint = "_native_mmio_write_byte")]
+    [LibraryImport("*", EntryPoint = "_native_arm64_mmio_write_byte")]
     [SuppressGCTransition]
     private static partial void NativeWriteByte(ulong address, byte value);
 
-    [LibraryImport("*", EntryPoint = "_native_mmio_write_dword")]
+    [LibraryImport("*", EntryPoint = "_native_arm64_mmio_write_dword")]
     [SuppressGCTransition]
     private static partial void NativeWriteDWord(ulong address, uint value);
 

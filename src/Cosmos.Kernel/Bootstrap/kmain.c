@@ -16,15 +16,12 @@ int g_cpuFeatures = 0;
 // This field is defined in the generated code and sets the ISA expectations.
 extern int g_requiredCpuFeatures;
 
-#ifdef __x86_64__
-// Platform-specific initialization for x64 (enabling SSE)
-extern void EnableSSE();
-#endif
+// Cross-platform SIMD enable (same name on both architectures)
+extern void _native_enable_simd(void);
 
 #ifdef __aarch64__
-// Platform-specific initialization for ARM64 (enabling NEON/FP)
-extern void __arm64_enable_neon(void);
-extern void __arm64_disable_alignment_check(void);
+// ARM64-specific: Disable alignment checking (no x64 equivalent)
+extern void _native_arm64_disable_alignment_check(void);
 #endif
 
 extern void* __Modules_start[]; // Start of __modules Section
@@ -48,15 +45,12 @@ extern void __cosmos_serial_write_hex_u64(uint64_t value);  // C# function for h
 // Entry point
 void kmain()
 {
-#ifdef __x86_64__
-    EnableSSE();
-#endif
+    // Enable SIMD (SSE on x64, NEON on ARM64)
+    _native_enable_simd();
 
 #ifdef __aarch64__
-    // ARM64: Enable NEON/FP (SIMD) - must be done before any SIMD instructions
-    __arm64_enable_neon();
     // ARM64: Disable alignment checking - NativeAOT generates unaligned accesses
-    __arm64_disable_alignment_check();
+    _native_arm64_disable_alignment_check();
 #endif
 
     __cosmos_serial_write("[KMAIN] Starting kernel bootstrap...\n");
