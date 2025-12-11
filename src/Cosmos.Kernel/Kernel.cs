@@ -17,6 +17,12 @@ namespace Cosmos.Kernel;
 
 public class Kernel
 {
+    // CosmosOS version - keep in sync with kmain.h
+    public const int VersionMajor = 3;
+    public const int VersionMinor = 0;
+    public const int VersionPatch = 0;
+    public const string VersionString = "3.0.0";
+    public const string Codename = "gen3";
 
     /// <summary>
     /// Gets the current platform HAL, if available.
@@ -26,52 +32,59 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        // Initialize serial port first - this must happen after managed runtime startup
-        Serial.ComInit();
-        Serial.WriteString("UART started.\n");
-        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
+        // === Phase 4: Managed Kernel Initialization ===
+        Serial.WriteString("[KERNEL] Phase 4: Managed kernel initialization\n");
+
+        // Display version banner
+        Serial.WriteString("[KERNEL]   - CosmosOS v");
+        Serial.WriteString(VersionString);
+        Serial.WriteString(" (");
+        Serial.WriteString(Codename);
+        Serial.WriteString(") - Managed runtime active\n");
 
         // Initialize heap for memory allocations
-        // Parameters are ignored - heap initialization uses Limine memory map
+        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
         MemoryOp.InitializeHeap(0, 0);
-        Serial.WriteString("Heap initialized.\n");
 
         // Initialize platform-specific HAL
-        Serial.WriteString("Initializing HAL...\n");
+        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
         PlatformHAL.Initialize();
-        Serial.WriteString("HAL initialized.\n");
 
+        // Display architecture
+        Serial.WriteString("[KERNEL]   - Architecture: ");
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            Serial.WriteString("Architecture: x86-64.\n");
+            Serial.WriteString("x86-64\n");
         }
         else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
         {
-            Serial.WriteString("Architecture: ARM64/AArch64.\n");
+            Serial.WriteString("ARM64/AArch64\n");
         }
         else
         {
-            Serial.WriteString("Architecture: Unknown.\n");
+            Serial.WriteString("Unknown\n");
         }
 
+        // Initialize interrupts
+        Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
         InterruptManager.Initialize();
 
-        // Platform-specific initialization
-        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
-        {
-            PciManager.Setup();
-
 #if ARCH_X64
-            // Retrieve and display ACPI MADT information (initialized during early boot)
-            if (Acpi.DisplayMadtInfo())
-            {
-                Serial.WriteString("\n");
-            }
+        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+        PciManager.Setup();
+
+
+        // Retrieve and display ACPI MADT information (initialized during early boot)
+        Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
+        Acpi.DisplayMadtInfo();
 #endif
-        }
 
         // Initialize managed modules
+        Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
+
+        Serial.WriteString("[KERNEL] Phase 4: Complete\n");
+        Serial.WriteString("========================================\n");
     }
 
     /// <summary>

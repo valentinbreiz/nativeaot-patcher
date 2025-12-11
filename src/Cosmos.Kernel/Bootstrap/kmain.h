@@ -5,6 +5,13 @@
 
 typedef unsigned int size_t;
 
+// CosmosOS version
+#define COSMOS_VERSION_MAJOR 3
+#define COSMOS_VERSION_MINOR 0
+#define COSMOS_VERSION_PATCH 0
+#define COSMOS_VERSION_STRING "3.0.0"
+#define COSMOS_CODENAME "gen3"
+
 // Linker-defined symbols for module section
 extern void* __Modules_start[];
 extern void* __Modules_end[];
