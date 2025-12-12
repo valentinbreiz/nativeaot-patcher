@@ -74,6 +74,7 @@ public struct IRQContext
     public ulong rax;
     public ulong interrupt;
     public ulong cpu_flags;
+    public ulong cr2;  // Page fault linear address (valid for #PF, int 14)
 }
 
 #endif

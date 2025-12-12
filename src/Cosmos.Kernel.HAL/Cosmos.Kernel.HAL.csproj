@@ -16,6 +16,11 @@
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
 
+  <!-- Exclude PS/2 files for ARM64 (PS/2 is x86-specific) -->
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <Compile Remove="Devices\Input\PS2*.cs" />
+  </ItemGroup>
+
   <!-- Exclude architecture-specific files from default compilation -->
   <ItemGroup>
     <Compile Remove="PlatformHAL.*.cs" />

@@ -5,6 +5,9 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.Acpi;
+using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.Services.Keyboard;
 #endif
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -42,14 +45,6 @@ public class Kernel
         Serial.WriteString(Codename);
         Serial.WriteString(") - Managed runtime active\n");
 
-        // Initialize heap for memory allocations
-        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
-        MemoryOp.InitializeHeap(0, 0);
-
-        // Initialize platform-specific HAL
-        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
-        PlatformHAL.Initialize();
-
         // Display architecture
         Serial.WriteString("[KERNEL]   - Architecture: ");
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
@@ -65,6 +60,18 @@ public class Kernel
             Serial.WriteString("Unknown\n");
         }
 
+        // Initialize heap for memory allocations
+        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
+        MemoryOp.InitializeHeap(0, 0);
+
+        // Initialize managed modules
+        Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
+        ManagedModule.InitializeModules();
+
+        // Initialize platform-specific HAL
+        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
+        PlatformHAL.Initialize();
+
         // Initialize interrupts
         Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
         InterruptManager.Initialize();
@@ -73,15 +80,27 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
         PciManager.Setup();
 
-
         // Retrieve and display ACPI MADT information (initialized during early boot)
         Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
         Acpi.DisplayMadtInfo();
-#endif
 
-        // Initialize managed modules
-        Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
-        ManagedModule.InitializeModules();
+        // Initialize APIC (Advanced Programmable Interrupt Controller)
+        Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
+        ApicManager.Initialize();
+
+        // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
+        Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
+        var ps2Controller = new PS2Controller();
+        ps2Controller.Initialize();
+
+        // Initialize Keyboard Manager (sets up KeyCallback)
+        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+        KeyboardManager.Initialize();
+
+        // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
+        Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");
+        PS2Keyboard.RegisterIRQHandler();
+#endif
 
         Serial.WriteString("[KERNEL] Phase 4: Complete\n");
         Serial.WriteString("========================================\n");

@@ -73,7 +73,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
+        "qemu-system-x86_64 -M pc -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -128,6 +128,7 @@
         "-cdrom", "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso",
         "-display", "gtk",
         "-vga", "std",
+        "-device", "i8042",
         "-no-reboot",
         "-no-shutdown"
       ],

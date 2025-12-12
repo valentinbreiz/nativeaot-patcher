@@ -238,8 +238,6 @@ namespace Cosmos.Kernel.Core.Runtime
             ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;
             ref object element = ref Unsafe.Add(ref rawData, index);
 
-            MethodTable* elementType = array.GetMethodTable()->RelatedParameterType;
-
             if (obj == null)
             {
                 element = null!;
@@ -449,8 +447,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]
                 static unsafe void* RhUnbox(object obj) { throw null; }
-                [RuntimeExport("RhpStelemRef")]
-                static unsafe void RhpStelemRef(object array, int index, object value) { }
                 [RuntimeExport("RhTypeCast_CheckArrayStore")]
                 static unsafe void RhTypeCast_CheckArrayStore(object array, object value) { }
                 [RuntimeExport("RhpResolveInterfaceMethod")]

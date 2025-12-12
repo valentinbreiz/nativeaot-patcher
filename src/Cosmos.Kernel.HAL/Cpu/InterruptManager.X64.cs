@@ -18,6 +18,8 @@ public static partial class InterruptManager
     /// </summary>
     public static partial void Initialize()
     {
+        Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
+        s_irqHandlers = new IrqDelegate[256];
         Serial.Write("[InterruptManager.Initialize] Starting IDT initialization...\n");
         Idt.RegisterAllInterrupts();
         Serial.Write("[InterruptManager.Initialize] IDT initialization complete\n");
