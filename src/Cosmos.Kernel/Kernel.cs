@@ -35,9 +35,6 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        // === Phase 4: Managed Kernel Initialization ===
-        Serial.WriteString("[KERNEL] Phase 4: Managed kernel initialization\n");
-
         // Display version banner
         Serial.WriteString("[KERNEL]   - CosmosOS v");
         Serial.WriteString(VersionString);
@@ -102,8 +99,7 @@ public class Kernel
         PS2Keyboard.RegisterIRQHandler();
 #endif
 
-        Serial.WriteString("[KERNEL] Phase 4: Complete\n");
-        Serial.WriteString("========================================\n");
+        Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
 
     /// <summary>
