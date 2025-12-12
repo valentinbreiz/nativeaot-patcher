@@ -1,6 +1,7 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GC;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -16,7 +17,8 @@ public static class Memory
         *result = pArrayEEType;
         *(int*)(result + 1) = (int)numElements;
         pResult = result;
-        // as some point we should set flags
+        // Set initial refcount to 1 (caller has a reference)
+        RefCount.SetInitialRefCount(result, 1);
     }
 
     [RuntimeExport("RhpNewArray")]
@@ -29,6 +31,8 @@ public static class Memory
         MethodTable** result = AllocObject(size);
         *result = pMT;
         *(int*)(result + 1) = length;
+        // Set initial refcount to 1 (caller has a reference)
+        RefCount.SetInitialRefCount(result, 1);
         return result;
     }
 
@@ -42,8 +46,11 @@ public static class Memory
         MethodTable** result = AllocObject(size);
         *result = pMT;
         *(int*)(result + 1) = length;
+        // Set initial refcount to 1 (caller has a reference)
+        RefCount.SetInitialRefCount(result, 1);
         return result;
     }
+
     [RuntimeExport("RhpNewArrayFast")]
     internal static unsafe void* RhpNewArrayFast(MethodTable* pMT, int length)
     {
@@ -54,6 +61,8 @@ public static class Memory
         MethodTable** result = AllocObject(size);
         *result = pMT;
         *(int*)(result + 1) = length;
+        // Set initial refcount to 1 (caller has a reference)
+        RefCount.SetInitialRefCount(result, 1);
         return result;
     }
 
@@ -67,7 +76,6 @@ public static class Memory
     internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags, void* pResult)
     {
         *(void**)pResult = RhpNewFast(pEEType);
-        // as some point we should set flags   
     }
 
     [RuntimeExport("RhpGcSafeZeroMemory")]
@@ -83,6 +91,8 @@ public static class Memory
         // For generic type definitions, BaseSize contains parameter count, not the actual size
         MethodTable** result = AllocObject(pMT->RawBaseSize);
         *result = pMT;
+        // Set initial refcount to 1 (caller has a reference)
+        RefCount.SetInitialRefCount(result, 1);
         return result;
     }
 

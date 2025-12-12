@@ -21,9 +21,5 @@ public class MetaTable
     {
     }
 
-    [RuntimeExport("RhHandleGetDependent")]
-    static void RhHandleGetDependent()
-    {
-    }
-
+    // RhHandleGetDependent moved to Stdllib.cs with proper implementation
 }

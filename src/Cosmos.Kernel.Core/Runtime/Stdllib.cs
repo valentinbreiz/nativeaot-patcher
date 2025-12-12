@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GC;
 using Internal.Runtime;
 
 #region Things needed by ILC
@@ -123,20 +124,25 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpAssignRef")]
         private static unsafe void RhpAssignRef(void** location, void* value)
         {
-            *location = value;
+            // Reference counting: handle old/new reference counts
+            RefCount.AssignRef(location, value);
         }
 
         [RuntimeExport("RhpCheckedAssignRef")]
         private static unsafe void RhpCheckedAssignRef(void** location, void* value)
         {
-            *location = value;
+            // Reference counting: handle old/new reference counts
+            RefCount.AssignRef(location, value);
         }
 
         [RuntimeExport("RhpCheckedXchg")]
         private static void* InterlockedExchange(void** location1, void* value)
         {
             void* original = *location1;
+            // Reference counting for exchange
+            if (value != null) RefCount.IncRef(value);
             *location1 = value;
+            if (original != null) RefCount.DecRef(original);
             return original;
         }
 
@@ -219,14 +225,35 @@ namespace Cosmos.Kernel.Core.Runtime
             return Memory.RhpNewFast(pEEType); // Simplified implementation
         }
 
-        [RuntimeExport("RhHandleSet")]
-        static IntPtr RhHandleSet(object obj)
+        [RuntimeExport("RhHandleGet")]
+        static object? RhHandleGet(IntPtr handle)
         {
-            return IntPtr.Zero;
+            return HandleTable.Get(handle);
+        }
+
+        [RuntimeExport("RhHandleSet")]
+        static void RhHandleSet(IntPtr handle, object? value)
+        {
+            HandleTable.Set(handle, value);
         }
 
         [RuntimeExport("RhHandleFree")]
-        static void RhHandleFree(IntPtr handle) { }
+        static void RhHandleFree(IntPtr handle)
+        {
+            HandleTable.Free(handle);
+        }
+
+        [RuntimeExport("RhHandleGetDependent")]
+        static object? RhHandleGetDependent(IntPtr handle, out object? secondary)
+        {
+            return HandleTable.GetDependent(handle, out secondary);
+        }
+
+        [RuntimeExport("RhHandleSetDependentSecondary")]
+        static void RhHandleSetDependentSecondary(IntPtr handle, object? secondary)
+        {
+            HandleTable.SetDependentSecondary(handle, secondary);
+        }
 
 
         [RuntimeExport("RhpStelemRef")]
@@ -323,15 +350,16 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhpHandleAlloc")]
-        static IntPtr RhpHandleAlloc(object obj, bool fPinned)
+        static IntPtr RhpHandleAlloc(object obj, int type)
         {
-            return IntPtr.Zero;
+            // type maps to GCHandleType: 0=Weak, 1=WeakTrackResurrection, 2=Normal, 3=Pinned
+            return HandleTable.Alloc(obj, (HandleType)type);
         }
 
         [RuntimeExport("RhpHandleAllocDependent")]
-        static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
+        static IntPtr RhpHandleAllocDependent(object? primary, object? secondary)
         {
-            return IntPtr.Zero;
+            return HandleTable.AllocDependent(primary, secondary);
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]

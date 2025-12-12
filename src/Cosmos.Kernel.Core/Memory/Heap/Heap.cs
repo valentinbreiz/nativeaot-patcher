@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Debug;
+using Cosmos.Kernel.Core.Memory.GC;
 
 namespace Cosmos.Kernel.Core.Memory.Heap;
 
@@ -121,8 +122,14 @@ public static unsafe class Heap
     }
 
     /// <summary>
-    /// Collects all unreferenced objects after identifying them first
+    /// Collects all unreferenced objects (refcount = 0).
+    /// Uses reference counting - objects are freed automatically when refcount reaches 0.
+    /// This method cleans up any orphaned objects.
     /// </summary>
     /// <returns>Number of objects freed</returns>
-    public static int Collect() => SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
+    public static int Collect()
+    {
+        // Use the GC Collector to sweep objects with refcount 0
+        return Collector.Collect();
+    }
 }

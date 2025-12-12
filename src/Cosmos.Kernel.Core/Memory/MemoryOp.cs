@@ -1,15 +1,283 @@
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory.GC;
+using Cosmos.Kernel.Core.Memory.Heap;
 
 namespace Cosmos.Kernel.Core.Memory;
 
 public static unsafe partial class MemoryOp
 {
-    public static void InitializeHeap(ulong heapBase, ulong heapSize) =>
+    public static void InitializeHeap(ulong heapBase, ulong heapSize)
+    {
         PageAllocator.InitializeHeap((byte*)heapBase, heapSize);
+
+        // Initialize GC handle table after page allocator is ready
+        HandleTable.Initialize();
+    }
 
     public static void* Alloc(uint size) => Heap.Heap.Alloc(size);
 
     public static void Free(void* ptr) => Heap.Heap.Free(ptr);
+
+    #region Memory Info
+
+    /// <summary>
+    /// Print comprehensive memory and heap information to serial output.
+    /// </summary>
+    public static void PrintMemoryInfo()
+    {
+        Serial.WriteString("\n========== MEMORY INFORMATION ==========\n");
+
+        // Page Allocator Info
+        PrintPageAllocatorInfo();
+
+        // Heap Info
+        PrintHeapInfo();
+
+        // GC Handle Table Info
+        PrintHandleTableInfo();
+
+        Serial.WriteString("=========================================\n\n");
+    }
+
+    /// <summary>
+    /// Print page allocator statistics.
+    /// </summary>
+    public static void PrintPageAllocatorInfo()
+    {
+        Serial.WriteString("\n--- Page Allocator ---\n");
+
+        Serial.WriteString("  RAM Start:      0x");
+        Serial.WriteHex((ulong)PageAllocator.RamStart);
+        Serial.WriteString("\n");
+
+        Serial.WriteString("  RAM Size:       ");
+        Serial.WriteNumber(PageAllocator.RamSize / 1024 / 1024);
+        Serial.WriteString(" MB (");
+        Serial.WriteNumber(PageAllocator.RamSize);
+        Serial.WriteString(" bytes)\n");
+
+        Serial.WriteString("  Page Size:      ");
+        Serial.WriteNumber(PageAllocator.PageSize);
+        Serial.WriteString(" bytes\n");
+
+        Serial.WriteString("  Total Pages:    ");
+        Serial.WriteNumber(PageAllocator.TotalPageCount);
+        Serial.WriteString("\n");
+
+        Serial.WriteString("  Free Pages:     ");
+        Serial.WriteNumber(PageAllocator.FreePageCount);
+        Serial.WriteString("\n");
+
+        ulong usedPages = PageAllocator.TotalPageCount - PageAllocator.FreePageCount;
+        Serial.WriteString("  Used Pages:     ");
+        Serial.WriteNumber(usedPages);
+        Serial.WriteString("\n");
+
+        // Memory usage
+        ulong freeMemory = PageAllocator.FreePageCount * PageAllocator.PageSize;
+        ulong usedMemory = usedPages * PageAllocator.PageSize;
+
+        Serial.WriteString("  Free Memory:    ");
+        Serial.WriteNumber(freeMemory / 1024 / 1024);
+        Serial.WriteString(" MB (");
+        Serial.WriteNumber(freeMemory / 1024);
+        Serial.WriteString(" KB)\n");
+
+        Serial.WriteString("  Used Memory:    ");
+        Serial.WriteNumber(usedMemory / 1024 / 1024);
+        Serial.WriteString(" MB (");
+        Serial.WriteNumber(usedMemory / 1024);
+        Serial.WriteString(" KB)\n");
+
+        // Page type breakdown
+        PrintPageTypeBreakdown();
+    }
+
+    /// <summary>
+    /// Print breakdown of page types in use.
+    /// </summary>
+    private static void PrintPageTypeBreakdown()
+    {
+        Serial.WriteString("\n  Page Type Breakdown:\n");
+
+        ulong emptyCount = 0;
+        ulong smallHeapCount = 0;
+        ulong mediumHeapCount = 0;
+        ulong largeHeapCount = 0;
+        ulong unmanagedCount = 0;
+        ulong smtCount = 0;
+        ulong pageAllocatorCount = 0;
+        ulong extensionCount = 0;
+        ulong otherCount = 0;
+
+        // Count page types by scanning RAT
+        for (ulong i = 0; i < PageAllocator.TotalPageCount; i++)
+        {
+            PageType type = PageAllocator.GetPageType(PageAllocator.RamStart + i * PageAllocator.PageSize);
+            switch (type)
+            {
+                case PageType.Empty:
+                    emptyCount++;
+                    break;
+                case PageType.HeapSmall:
+                    smallHeapCount++;
+                    break;
+                case PageType.HeapMedium:
+                    mediumHeapCount++;
+                    break;
+                case PageType.HeapLarge:
+                    largeHeapCount++;
+                    break;
+                case PageType.Unmanaged:
+                    unmanagedCount++;
+                    break;
+                case PageType.SMT:
+                    smtCount++;
+                    break;
+                case PageType.PageAllocator:
+                    pageAllocatorCount++;
+                    break;
+                case PageType.Extension:
+                    extensionCount++;
+                    break;
+                default:
+                    otherCount++;
+                    break;
+            }
+        }
+
+        Serial.WriteString("    Empty:         ");
+        Serial.WriteNumber(emptyCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    HeapSmall:     ");
+        Serial.WriteNumber(smallHeapCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    HeapMedium:    ");
+        Serial.WriteNumber(mediumHeapCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    HeapLarge:     ");
+        Serial.WriteNumber(largeHeapCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    Unmanaged:     ");
+        Serial.WriteNumber(unmanagedCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    SMT:           ");
+        Serial.WriteNumber(smtCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    PageAllocator: ");
+        Serial.WriteNumber(pageAllocatorCount);
+        Serial.WriteString(" pages\n");
+
+        Serial.WriteString("    Extension:     ");
+        Serial.WriteNumber(extensionCount);
+        Serial.WriteString(" pages\n");
+
+        if (otherCount > 0)
+        {
+            Serial.WriteString("    Other:         ");
+            Serial.WriteNumber(otherCount);
+            Serial.WriteString(" pages\n");
+        }
+    }
+
+    /// <summary>
+    /// Print heap statistics.
+    /// </summary>
+    public static void PrintHeapInfo()
+    {
+        Serial.WriteString("\n--- Heap Statistics ---\n");
+
+        // SmallHeap info
+        Serial.WriteString("  SmallHeap:\n");
+        Serial.WriteString("    Max Item Size:      ");
+        Serial.WriteNumber(SmallHeap.mMaxItemSize);
+        Serial.WriteString(" bytes\n");
+
+        Serial.WriteString("    Prefix Bytes:       ");
+        Serial.WriteNumber(SmallHeap.PrefixBytes);
+        Serial.WriteString(" bytes\n");
+
+        int allocatedObjects = SmallHeap.GetAllocatedObjectCount();
+        Serial.WriteString("    Allocated Objects:  ");
+        Serial.WriteNumber((ulong)allocatedObjects);
+        Serial.WriteString("\n");
+
+        // MediumHeap info
+        Serial.WriteString("  MediumHeap:\n");
+        Serial.WriteString("    Min Size:           ");
+        Serial.WriteNumber(MediumHeap.MinSize);
+        Serial.WriteString(" bytes\n");
+        Serial.WriteString("    Max Size:           ");
+        Serial.WriteNumber(MediumHeap.MaxSize);
+        Serial.WriteString(" bytes\n");
+
+        // LargeHeap info
+        Serial.WriteString("  LargeHeap:\n");
+        Serial.WriteString("    Min Size:           ");
+        Serial.WriteNumber(LargeHeap.MinSize);
+        Serial.WriteString(" bytes\n");
+    }
+
+    /// <summary>
+    /// Print GC handle table statistics.
+    /// </summary>
+    public static void PrintHandleTableInfo()
+    {
+        Serial.WriteString("\n--- GC Handle Table ---\n");
+
+        Serial.WriteString("  Initialized:    ");
+        Serial.WriteString(HandleTable.IsInitialized ? "Yes" : "No");
+        Serial.WriteString("\n");
+
+        if (HandleTable.IsInitialized)
+        {
+            Serial.WriteString("  Capacity:       ");
+            Serial.WriteNumber((ulong)HandleTable.Capacity);
+            Serial.WriteString(" handles\n");
+
+            Serial.WriteString("  In Use:         ");
+            Serial.WriteNumber((ulong)HandleTable.Count);
+            Serial.WriteString(" handles\n");
+
+            Serial.WriteString("  Free:           ");
+            Serial.WriteNumber((ulong)(HandleTable.Capacity - HandleTable.Count));
+            Serial.WriteString(" handles\n");
+        }
+    }
+
+    /// <summary>
+    /// Get total used memory in bytes.
+    /// </summary>
+    public static ulong GetUsedMemory()
+    {
+        ulong usedPages = PageAllocator.TotalPageCount - PageAllocator.FreePageCount;
+        return usedPages * PageAllocator.PageSize;
+    }
+
+    /// <summary>
+    /// Get total free memory in bytes.
+    /// </summary>
+    public static ulong GetFreeMemory()
+    {
+        return PageAllocator.FreePageCount * PageAllocator.PageSize;
+    }
+
+    /// <summary>
+    /// Get total memory in bytes.
+    /// </summary>
+    public static ulong GetTotalMemory()
+    {
+        return PageAllocator.RamSize;
+    }
+
+    #endregion
 
     #region Native SIMD Imports
 
