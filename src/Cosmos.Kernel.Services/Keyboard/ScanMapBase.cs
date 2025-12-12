@@ -52,8 +52,8 @@ public abstract class ScanMapBase
 
         byte scan = scanKey;
 
-        if (alt)   keyEvent.Modifiers |= ConsoleModifiers.Alt;
-        if (ctrl)  keyEvent.Modifiers |= ConsoleModifiers.Control;
+        if (alt) keyEvent.Modifiers |= ConsoleModifiers.Alt;
+        if (ctrl) keyEvent.Modifiers |= ConsoleModifiers.Control;
         if (shift) keyEvent.Modifiers |= ConsoleModifiers.Shift;
 
         keyEvent.Type = (scan & 0x80) != 0 ? KeyEvent.KeyEventType.Break : KeyEvent.KeyEventType.Make;

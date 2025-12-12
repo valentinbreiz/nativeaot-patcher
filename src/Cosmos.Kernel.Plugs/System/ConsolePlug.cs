@@ -1,7 +1,9 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Graphics;
+#if ARCH_X64
 using Cosmos.Kernel.Services.Keyboard;
+#endif
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -23,6 +25,7 @@ public class ConsolePlug
     [PlugMember]
     public static void WriteLine() => KernelConsole.WriteLine();
 
+#if ARCH_X64
     [PlugMember]
     public static bool get_KeyAvailable() => KeyboardManager.KeyAvailable;
 
@@ -165,4 +168,5 @@ public class ConsolePlug
             _ => ConsoleKey.NoName
         };
     }
+#endif
 }

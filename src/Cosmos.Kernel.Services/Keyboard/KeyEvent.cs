@@ -34,7 +34,7 @@ namespace Cosmos.Kernel.Services.Keyboard
         /// <summary>
         /// The modifiers of the key-press event.
         /// </summary>
-        public ConsoleModifiers Modifiers { get; set;}
+        public ConsoleModifiers Modifiers { get; set; }
 
         /// <summary>
         /// The type of the key-press event.
