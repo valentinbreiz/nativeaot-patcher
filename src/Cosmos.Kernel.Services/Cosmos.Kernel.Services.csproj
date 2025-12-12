@@ -16,4 +16,9 @@
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
   </ItemGroup>
+
+  <!-- Exclude x64-specific keyboard code on ARM64 -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+    <Compile Remove="Keyboard\**\*" />
+  </ItemGroup>
 </Project>
