@@ -79,6 +79,7 @@ public static partial class InterruptManager
             Serial.Write("[INT] FATAL: Unhandled ARM64 exception type ", ctx.interrupt, NewLine);
             Serial.Write("[INT] ESR_EL1: 0x", ctx.cpu_flags.ToString("X"), NewLine);
             Serial.Write("[INT] ELR_EL1: 0x", ctx.elr.ToString("X"), NewLine);
+            Serial.Write("[INT] FAR_EL1: 0x", ctx.far.ToString("X"), NewLine);
             Serial.Write("[INT] System halted.\n");
             while (true) { }
         }

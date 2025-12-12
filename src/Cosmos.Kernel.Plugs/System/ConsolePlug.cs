@@ -79,7 +79,30 @@ public class ConsolePlug
 
         return sb.ToString();
     }
+#elif ARCH_ARM64
+    // ARM64 stubs - keyboard not yet implemented
+    [PlugMember]
+    public static bool get_KeyAvailable() => false;
 
+    [PlugMember]
+    public static ConsoleKeyInfo ReadKey() => ReadKey(false);
+
+    [PlugMember]
+    public static ConsoleKeyInfo ReadKey(bool intercept)
+    {
+        // Block forever - no keyboard input on ARM64 yet
+        while (true) { }
+    }
+
+    [PlugMember]
+    public static string? ReadLine()
+    {
+        // Block forever - no keyboard input on ARM64 yet
+        while (true) { }
+    }
+#endif
+
+#if ARCH_X64
     /// <summary>
     /// Converts a KeyEvent to ConsoleKeyInfo.
     /// </summary>

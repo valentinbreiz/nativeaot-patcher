@@ -20,6 +20,9 @@ public static partial class InterruptManager
     /// </summary>
     public static partial void Initialize()
     {
+        Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
+        s_irqHandlers = new IrqDelegate[256];
+
         Serial.Write("[InterruptManager.Initialize] Starting ARM64 exception vector initialization...\n");
 
         // Initialize exception vectors (VBAR_EL1)

@@ -140,10 +140,16 @@ public static unsafe class KernelBridge
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
     public static void CosmosSerialWrite(byte* str)
     {
+        if (str == null)
+            return;
+
         // C strings are null-terminated, write char by char
-        for (int i = 0; str[i] != 0; i++)
+        // Use while loop with explicit pointer arithmetic to avoid potential codegen issues
+        byte* p = str;
+        while (*p != 0)
         {
-            Serial.ComWrite(str[i]);
+            Serial.ComWrite(*p);
+            p++;
         }
     }
 
