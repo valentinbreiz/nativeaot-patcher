@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.HAL.Pci;
+namespace Cosmos.Kernel.HAL.X64.Pci;
 
 public class PciBaseAddressBar
 {

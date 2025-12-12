@@ -3,8 +3,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Cosmos.Kernel.HAL</PackageId>
     <Title>Cosmos Kernel HAL</Title>
-    <Description>Hardware abstraction layer interfaces for multi-architecture kernel development supporting x64, ARM64, and RISC-V architectures.</Description>
-    <PackageTags>cosmos;kernel;hal;abstraction;architecture;x64;arm64;riscv;hardware;graphics</PackageTags>
+    <Description>Hardware abstraction layer base for multi-architecture kernel development.</Description>
+    <PackageTags>cosmos;kernel;hal;abstraction;architecture;hardware</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,38 +15,5 @@
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
-
-  <!-- Exclude PS/2 files for ARM64 (PS/2 is x86-specific) -->
-  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <Compile Remove="Devices\Input\PS2*.cs" />
-  </ItemGroup>
-
-  <!-- Exclude architecture-specific files from default compilation -->
-  <ItemGroup>
-    <Compile Remove="PlatformHAL.*.cs" />
-    <Compile Remove="Cpu\InterruptManager.*.cs" />
-  </ItemGroup>
-
-  <!-- Architecture-specific DefineConstants -->
-  <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
-    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
-  </PropertyGroup>
-
-  <!-- Architecture-specific HAL references and files -->
-  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
-    <Compile Include="PlatformHAL.X64.cs" />
-    <Compile Include="Cpu\InterruptManager.X64.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
-    <Compile Include="PlatformHAL.ARM64.cs" />
-    <Compile Include="Cpu\InterruptManager.ARM64.cs" />
-  </ItemGroup>
-  
 </Project>
 

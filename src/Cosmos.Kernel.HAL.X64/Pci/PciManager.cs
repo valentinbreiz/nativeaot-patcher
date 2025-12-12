@@ -1,9 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.HAL.Pci.Enums;
+using Cosmos.Kernel.HAL.X64.Pci.Enums;
 
-namespace Cosmos.Kernel.HAL.Pci;
+namespace Cosmos.Kernel.HAL.X64.Pci;
 
 public class PciManager
 {

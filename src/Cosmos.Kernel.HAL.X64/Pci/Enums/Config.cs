@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.HAL.Pci.Enums;
+namespace Cosmos.Kernel.HAL.X64.Pci.Enums;
 
 public enum Config : byte
 {

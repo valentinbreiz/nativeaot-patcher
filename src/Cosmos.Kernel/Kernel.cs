@@ -3,18 +3,23 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.Acpi;
-using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.X64.Cpu;
-using Cosmos.Kernel.Services.Keyboard;
-#endif
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.Core.Runtime;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.Acpi;
+using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL.X64;
+using Cosmos.Kernel.HAL.X64.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.HAL.X64.Pci;
+using Cosmos.Kernel.Services.Keyboard;
+#elif ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+using Cosmos.Kernel.HAL.ARM64.Cpu;
+#endif
 
 namespace Cosmos.Kernel;
 
@@ -67,11 +72,19 @@ public class Kernel
 
         // Initialize platform-specific HAL
         Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
-        PlatformHAL.Initialize();
+#if ARCH_X64
+        PlatformHAL.Initialize(new X64PlatformInitializer());
+#elif ARCH_ARM64
+        PlatformHAL.Initialize(new ARM64PlatformInitializer());
+#endif
 
         // Initialize interrupts
         Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
-        InterruptManager.Initialize();
+#if ARCH_X64
+        InterruptManager.Initialize(new X64InterruptController());
+#elif ARCH_ARM64
+        InterruptManager.Initialize(new ARM64InterruptController());
+#endif
 
 #if ARCH_X64
         Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
@@ -90,9 +103,19 @@ public class Kernel
         var ps2Controller = new PS2Controller();
         ps2Controller.Initialize();
 
-        // Initialize Keyboard Manager (sets up KeyCallback)
+        // Initialize Keyboard Manager
         Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
         KeyboardManager.Initialize();
+
+        // Register keyboards with KeyboardManager
+        var keyboards = PS2Controller.GetKeyboardDevices();
+        foreach (var keyboard in keyboards)
+        {
+            KeyboardManager.RegisterKeyboard(keyboard);
+        }
+
+        // Set static callback for PS2 keyboard IRQ handler
+        PS2Keyboard.KeyCallback = KeyboardManager.HandleScanCode;
 
         // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
         Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");

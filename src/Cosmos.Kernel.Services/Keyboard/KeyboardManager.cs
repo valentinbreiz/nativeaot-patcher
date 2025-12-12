@@ -1,7 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyboardManager.cs
 
-using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.Services.Keyboard.ScanMaps;
 
 namespace Cosmos.Kernel.Services.Keyboard;
@@ -11,7 +12,7 @@ namespace Cosmos.Kernel.Services.Keyboard;
 /// </summary>
 public static class KeyboardManager
 {
-    private static List<KeyboardBase>? _keyboards;
+    private static List<IKeyboardDevice>? _keyboards;
     private static Queue<KeyEvent>? _queuedKeys;
     private static ScanMapBase? _scanMap;
     private static bool _initialized;
@@ -52,26 +53,31 @@ public static class KeyboardManager
     public static bool KeyAvailable => _queuedKeys != null && _queuedKeys.Count > 0;
 
     /// <summary>
-    /// Initializes the keyboard manager with all detected keyboards.
+    /// Initializes the keyboard manager.
+    /// Call RegisterKeyboard() after this to add keyboards.
     /// </summary>
     public static void Initialize()
     {
         if (_initialized)
             return;
 
-        _keyboards = new List<KeyboardBase>();
+        _keyboards = new List<IKeyboardDevice>();
         _queuedKeys = new Queue<KeyEvent>();
         _scanMap = new USStandardLayout();
 
-        PS2Keyboard.KeyCallback = HandleScanCode;
-
-        var keyboards = PS2Controller.GetKeyboardDevices();
-        foreach (var keyboard in keyboards)
-        {
-            AddKeyboard(keyboard);
-        }
-
         _initialized = true;
+    }
+
+    /// <summary>
+    /// Registers a keyboard device with the manager.
+    /// </summary>
+    public static void RegisterKeyboard(IKeyboardDevice keyboard)
+    {
+        if (_keyboards == null || keyboard == null)
+            return;
+
+        keyboard.OnKeyPressed = HandleScanCode;
+        _keyboards.Add(keyboard);
     }
 
     /// <summary>
@@ -85,7 +91,7 @@ public static class KeyboardManager
     /// <summary>
     /// Handles a key-press by its physical key scan-code.
     /// </summary>
-    private static void HandleScanCode(byte scanCode, bool released)
+    public static void HandleScanCode(byte scanCode, bool released)
     {
         if (_scanMap == null)
             return;
@@ -139,7 +145,7 @@ public static class KeyboardManager
         if (_keyboards == null)
             return;
 
-        foreach (var keyboard in _keyboards)
+        foreach (IKeyboardDevice keyboard in _keyboards)
         {
             keyboard.UpdateLeds();
         }
@@ -181,7 +187,8 @@ public static class KeyboardManager
     {
         while (_queuedKeys == null || _queuedKeys.Count == 0)
         {
-            KeyboardBase.WaitForKey();
+            // Halt CPU until interrupt (key press)
+            HAL.PlatformHAL.CpuOps?.Halt();
         }
 
         return _queuedKeys.Dequeue();
@@ -203,14 +210,4 @@ public static class KeyboardManager
         }
     }
 
-    /// <summary>
-    /// Registers a physical keyboard device.
-    /// </summary>
-    private static void AddKeyboard(KeyboardBase keyboard)
-    {
-        if (_keyboards == null || keyboard == null)
-            return;
-
-        _keyboards.Add(keyboard);
-    }
 }

@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.HAL.Pci;
+namespace Cosmos.Kernel.HAL.X64.Pci;
 
 public static class DeviceString
 {

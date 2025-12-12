@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.HAL.Pci.Enums;
+namespace Cosmos.Kernel.HAL.X64.Pci.Enums;
 
 public enum PciHeaderType : byte
 {

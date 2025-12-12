@@ -2,10 +2,12 @@
 // Ported from Cosmos.HAL2/PS2Controller.cs
 
 using System;
+using Cosmos.Kernel.HAL.Devices;
+using Cosmos.Kernel.HAL.Devices.Input;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime;
 
-namespace Cosmos.Kernel.HAL.Devices.Input;
+namespace Cosmos.Kernel.HAL.X64.Devices.Input;
 
 /// <summary>
 /// PS/2 Controller driver for managing keyboard and mouse devices.
@@ -490,33 +492,33 @@ public class PS2Controller : Device
     /// <summary>
     /// Gets all keyboard devices connected to this controller.
     /// </summary>
-    public static KeyboardBase[] GetKeyboardDevices()
+    public static KeyboardDevice[] GetKeyboardDevices()
     {
         if (Instance == null)
         {
-            return Array.Empty<KeyboardBase>();
+            return Array.Empty<KeyboardDevice>();
         }
 
-        bool hasFirst = Instance.FirstDevice is KeyboardBase;
-        bool hasSecond = Instance.SecondDevice is KeyboardBase;
+        bool hasFirst = Instance.FirstDevice is KeyboardDevice;
+        bool hasSecond = Instance.SecondDevice is KeyboardDevice;
 
         if (!hasFirst && !hasSecond)
         {
-            return Array.Empty<KeyboardBase>();
+            return Array.Empty<KeyboardDevice>();
         }
 
         int count = (hasFirst ? 1 : 0) + (hasSecond ? 1 : 0);
-        var keyboards = new KeyboardBase[count];
+        var keyboards = new KeyboardDevice[count];
         int index = 0;
 
         if (hasFirst)
         {
-            keyboards[index++] = (KeyboardBase)Instance.FirstDevice!;
+            keyboards[index++] = (KeyboardDevice)Instance.FirstDevice!;
         }
 
         if (hasSecond)
         {
-            keyboards[index++] = (KeyboardBase)Instance.SecondDevice!;
+            keyboards[index++] = (KeyboardDevice)Instance.SecondDevice!;
         }
 
         return keyboards;

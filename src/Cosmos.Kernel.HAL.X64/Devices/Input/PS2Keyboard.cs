@@ -5,13 +5,15 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 
-namespace Cosmos.Kernel.HAL.Devices.Input;
+namespace Cosmos.Kernel.HAL.X64.Devices.Input;
 
 /// <summary>
 /// PS/2 Keyboard driver.
 /// </summary>
-public class PS2Keyboard : KeyboardBase
+public class PS2Keyboard : KeyboardDevice
 {
     private enum Command : byte
     {
@@ -23,7 +25,7 @@ public class PS2Keyboard : KeyboardBase
     }
 
     // Static callback for key events (set by KeyboardManager)
-    public static KeyboardBase.KeyPressedEventHandler? KeyCallback;
+    public static KeyPressedHandler? KeyCallback;
 
     /// <summary>
     /// Registers IRQ handler for keyboard interrupts.
@@ -156,6 +158,31 @@ public class PS2Keyboard : KeyboardBase
         // TODO: Implement LED update
         // var ledStatus = (scrollLock ? 1 : 0) | ((numLock ? 1 : 0) << 1) | ((capsLock ? 1 : 0) << 2);
         // SendCommand(Command.SetLEDs, (byte)ledStatus);
+    }
+
+    /// <summary>
+    /// Check if a key is available in the buffer.
+    /// </summary>
+    public override bool KeyAvailable => (Native.IO.Read8(PS2Ports.Status) & 0x01) != 0;
+
+    /// <summary>
+    /// Enable keyboard scanning.
+    /// </summary>
+    public override void Enable()
+    {
+        _controller.WaitToWrite();
+        Native.IO.Write8(PS2Ports.Data, (byte)Command.EnableScanning);
+        _controller.WaitForAck();
+    }
+
+    /// <summary>
+    /// Disable keyboard scanning.
+    /// </summary>
+    public override void Disable()
+    {
+        _controller.WaitToWrite();
+        Native.IO.Write8(PS2Ports.Data, (byte)Command.DisableScanning);
+        _controller.WaitForAck();
     }
 
     /// <summary>

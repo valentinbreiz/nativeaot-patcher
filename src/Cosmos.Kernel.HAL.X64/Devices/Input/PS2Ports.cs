@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.HAL.Devices.Input;
+namespace Cosmos.Kernel.HAL.X64.Devices.Input;
 
 /// <summary>
 /// PS/2 controller IO port definitions.

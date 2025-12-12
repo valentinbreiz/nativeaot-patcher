@@ -1,19 +1,15 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Cpu.Data;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.X64.Cpu;
-#endif
+using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL.Cpu;
 
 /// <summary>
-/// Provides interrupt registration and dispatch for all architectures.
+/// Interrupt manager - provides interrupt registration and dispatch for all architectures.
 /// </summary>
-public static partial class InterruptManager
+public static class InterruptManager
 {
     /// <summary>
     /// Interrupt delegate signature.
@@ -22,11 +18,24 @@ public static partial class InterruptManager
     public delegate void IrqDelegate(ref IRQContext context);
 
     internal static IrqDelegate[]? s_irqHandlers;
+    private static IInterruptController? s_controller;
+
+    private const string NewLine = "\n";
 
     /// <summary>
-    /// Initializes the platform interrupt system (IDT for x86, GIC for ARM).
+    /// Initializes the interrupt manager with a platform-specific controller.
     /// </summary>
-    public static partial void Initialize();
+    /// <param name="controller">Platform-specific interrupt controller (X64 or ARM64).</param>
+    public static void Initialize(IInterruptController controller)
+    {
+        Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
+        s_irqHandlers = new IrqDelegate[256];
+        s_controller = controller;
+
+        Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
+        controller.Initialize();
+        Serial.Write("[InterruptManager.Initialize] Interrupt system ready\n");
+    }
 
     /// <summary>
     /// Registers a handler for an interrupt vector.
@@ -54,17 +63,13 @@ public static partial class InterruptManager
         byte vector = (byte)(0x20 + irqNo);
         SetHandler(vector, handler);
 
-        // Route the IRQ through the APIC
-#if ARCH_X64
-        if (ApicManager.IsInitialized)
+        // Route the IRQ through the platform-specific controller
+        if (s_controller != null && s_controller.IsInitialized)
         {
             Serial.Write("[InterruptManager] Routing IRQ ", irqNo, " -> vector 0x", vector.ToString("X"), NewLine);
-            ApicManager.RouteIrq(irqNo, vector, startMasked);
+            s_controller.RouteIrq(irqNo, vector, startMasked);
         }
-#endif
     }
-
-    private const string NewLine = "\n";
 
     /// <summary>
     /// Called by native bridge from ASM stubs to invoke the proper handler.
@@ -72,30 +77,17 @@ public static partial class InterruptManager
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
-#if ARCH_ARM64
-        // During early boot, halt on sync exceptions to prevent infinite recursion
-        if (ctx.interrupt == 0 || ctx.interrupt == 3)
+        // Check for fatal exceptions (handled by platform-specific controller)
+        if (s_controller != null && ctx.interrupt <= 31)
         {
-            Serial.Write("[INT] FATAL: Unhandled ARM64 exception type ", ctx.interrupt, NewLine);
-            Serial.Write("[INT] ESR_EL1: 0x", ctx.cpu_flags.ToString("X"), NewLine);
-            Serial.Write("[INT] ELR_EL1: 0x", ctx.elr.ToString("X"), NewLine);
-            Serial.Write("[INT] FAR_EL1: 0x", ctx.far.ToString("X"), NewLine);
-            Serial.Write("[INT] System halted.\n");
-            while (true) { }
+            if (s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags))
+            {
+                // Controller handled it (likely halted)
+                return;
+            }
         }
-#else
-        // x64: Fatal CPU exceptions (0-31) - halt immediately
-        if (ctx.interrupt <= 31)
-        {
-            Serial.Write("[INT] FATAL: Exception ", ctx.interrupt, NewLine);
-            Serial.Write("[INT] cr2=0x");
-            Serial.WriteHex(ctx.cr2);
-            Serial.Write(NewLine);
-            while (true) { }
-        }
-#endif
 
-        // For hardware IRQs (vector >= 32), call handler immediately without debug spam
+        // For hardware IRQs (vector >= 32), call handler immediately
         if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
         {
             IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
@@ -104,22 +96,18 @@ public static partial class InterruptManager
                 handler(ref ctx);
 
                 // Send EOI for hardware IRQs (vector >= 32)
-#if ARCH_X64
-                if (ctx.interrupt >= 32 && ApicManager.IsInitialized)
+                if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
                 {
-                    ApicManager.SendEOI();
+                    s_controller.SendEOI();
                 }
-#endif
                 return;
             }
         }
 
         // Send EOI even for unhandled hardware interrupts to prevent lockup
-#if ARCH_X64
-        if (ctx.interrupt >= 32 && ApicManager.IsInitialized)
+        if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
         {
-            ApicManager.SendEOI();
+            s_controller.SendEOI();
         }
-#endif
     }
 }
