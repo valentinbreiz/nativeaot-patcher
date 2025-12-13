@@ -7,6 +7,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Pci;
 
@@ -50,6 +51,7 @@ public class E1000E : PciDevice, INetworkDevice
     private const uint REG_TDH = 0x3810;         // TX Descriptor Head
     private const uint REG_TDT = 0x3818;         // TX Descriptor Tail
     private const uint REG_MTA = 0x5200;         // Multicast Table Array
+    private const uint REG_TIPG = 0x0410;        // Transmit Inter Packet Gap
     private const uint REG_RAL0 = 0x5400;        // Receive Address Low
     private const uint REG_RAH0 = 0x5404;        // Receive Address High
 
@@ -130,6 +132,7 @@ public class E1000E : PciDevice, INetworkDevice
 
     string INetworkDevice.Name => "Intel E1000E";
     public byte[] MacAddress => _macAddress;
+    public MACAddress MACAddressObj => new MACAddress(_macAddress);
     public bool LinkUp => _linkUp;
     public bool Ready => _networkInitialized;
 
@@ -440,9 +443,13 @@ public class E1000E : PciDevice, INetworkDevice
     {
         Serial.Write("[E1000E] Initializing RX...\n");
 
-        // Allocate descriptor ring (16 bytes per descriptor, 16-byte aligned)
+        // Allocate descriptor ring (16-byte aligned required by E1000)
+        // Allocate extra space to ensure we can align to 16 bytes
         int descSize = RX_DESC_COUNT * sizeof(RxDescriptor);
-        _rxDescriptors = (RxDescriptor*)MemoryOp.Alloc((uint)descSize);
+        byte* rawRxDesc = (byte*)MemoryOp.Alloc((uint)(descSize + 16));
+        // Align to 16 bytes
+        ulong aligned = ((ulong)rawRxDesc + 15) & ~15UL;
+        _rxDescriptors = (RxDescriptor*)aligned;
         MemoryOp.MemSet((byte*)_rxDescriptors, 0, descSize);
 
         // Allocate buffer pointers array
@@ -452,12 +459,13 @@ public class E1000E : PciDevice, INetworkDevice
         for (int i = 0; i < RX_DESC_COUNT; i++)
         {
             _rxBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
-            _rxDescriptors[i].BufferAddress = (ulong)_rxBuffers[i];
+            // E1000 needs physical addresses for DMA
+            _rxDescriptors[i].BufferAddress = VirtToPhys((ulong)_rxBuffers[i]);
             _rxDescriptors[i].Status = 0;
         }
 
-        // Set descriptor base address
-        ulong descPhysAddr = (ulong)_rxDescriptors;
+        // Set descriptor base address (physical)
+        ulong descPhysAddr = VirtToPhys((ulong)_rxDescriptors);
         WriteMmio(REG_RDBAL, (uint)(descPhysAddr & 0xFFFFFFFF));
         WriteMmio(REG_RDBAH, (uint)(descPhysAddr >> 32));
 
@@ -483,9 +491,13 @@ public class E1000E : PciDevice, INetworkDevice
     {
         Serial.Write("[E1000E] Initializing TX...\n");
 
-        // Allocate descriptor ring
+        // Allocate descriptor ring (16-byte aligned required by E1000)
+        // Allocate extra space to ensure we can align to 16 bytes
         int descSize = TX_DESC_COUNT * sizeof(TxDescriptor);
-        _txDescriptors = (TxDescriptor*)MemoryOp.Alloc((uint)descSize);
+        byte* rawTxDesc = (byte*)MemoryOp.Alloc((uint)(descSize + 16));
+        // Align to 16 bytes
+        ulong aligned = ((ulong)rawTxDesc + 15) & ~15UL;
+        _txDescriptors = (TxDescriptor*)aligned;
         MemoryOp.MemSet((byte*)_txDescriptors, 0, descSize);
 
         // Allocate buffer pointers array
@@ -497,8 +509,8 @@ public class E1000E : PciDevice, INetworkDevice
             _txBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
         }
 
-        // Set descriptor base address
-        ulong descPhysAddr = (ulong)_txDescriptors;
+        // Set descriptor base address (physical)
+        ulong descPhysAddr = VirtToPhys((ulong)_txDescriptors);
         WriteMmio(REG_TDBAL, (uint)(descPhysAddr & 0xFFFFFFFF));
         WriteMmio(REG_TDBAH, (uint)(descPhysAddr >> 32));
 
@@ -509,6 +521,11 @@ public class E1000E : PciDevice, INetworkDevice
         WriteMmio(REG_TDH, 0);
         WriteMmio(REG_TDT, 0);
         _txTail = 0;
+
+        // Set Transmit Inter Packet Gap (required for E1000)
+        // IPGT = 10, IPGR1 = 8, IPGR2 = 6 (default values for IEEE 802.3)
+        uint tipg = 10 | (8 << 10) | (6 << 20);
+        WriteMmio(REG_TIPG, tipg);
 
         // Enable transmitter
         // CT = 15, COLD = 64 bytes for full duplex
@@ -634,9 +651,9 @@ public class E1000E : PciDevice, INetworkDevice
             dst[i] = data[i];
         }
 
-        // Set up descriptor
+        // Set up descriptor (use physical address for DMA)
         TxDescriptor* desc = &_txDescriptors[_txTail];
-        desc->BufferAddress = (ulong)dst;
+        desc->BufferAddress = VirtToPhys((ulong)dst);
         desc->Length = (ushort)length;
         desc->CMD = TX_CMD_EOP | TX_CMD_IFCS | TX_CMD_RS;
         desc->Status = 0;
@@ -700,6 +717,17 @@ public class E1000E : PciDevice, INetworkDevice
     /// Gets whether MSI-X is supported.
     /// </summary>
     public bool HasMsix => _hasMsix;
+
+    /// <summary>
+    /// Convert virtual address to physical address for DMA.
+    /// </summary>
+    private static ulong VirtToPhys(ulong virtualAddress)
+    {
+        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
+        if (virtualAddress >= HigherHalfOffset)
+            return virtualAddress - HigherHalfOffset;
+        return virtualAddress;
+    }
 
     /// <summary>
     /// Prints a MAC address to serial output.
