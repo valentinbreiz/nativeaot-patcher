@@ -119,8 +119,9 @@ public class PciManager
     /// <returns></returns>
     public static PciDevice? GetDevice(VendorId aVendorID, DeviceId aDeviceID)
     {
-        foreach (PciDevice xDevice in Devices)
+        for (uint i = 0; i < Count; i++)
         {
+            PciDevice xDevice = Devices[i];
             if ((VendorId)xDevice.VendorId == aVendorID &&
                 (DeviceId)xDevice.DeviceId == aDeviceID)
             {
@@ -140,8 +141,9 @@ public class PciManager
     /// <returns></returns>
     public static PciDevice? GetDevice(uint bus, uint slot, uint function)
     {
-        foreach (PciDevice xDevice in Devices)
+        for (uint i = 0; i < Count; i++)
         {
+            PciDevice xDevice = Devices[i];
             if (xDevice.Bus == bus &&
                 xDevice.Slot == slot &&
                 xDevice.Function == function)
@@ -155,8 +157,9 @@ public class PciManager
 
     public static PciDevice? GetDeviceClass(ClassId Class, SubclassId SubClass)
     {
-        foreach (PciDevice xDevice in Devices)
+        for (uint i = 0; i < Count; i++)
         {
+            PciDevice xDevice = Devices[i];
             if ((ClassId)xDevice.ClassCode == Class &&
                 (SubclassId)xDevice.Subclass == SubClass)
             {
@@ -169,8 +172,9 @@ public class PciManager
 
     public static PciDevice? GetDeviceClass(ClassId aClass, SubclassId aSubClass, ProgramIf aProgIF)
     {
-        foreach (PciDevice xDevice in Devices)
+        for (uint i = 0; i < Count; i++)
         {
+            PciDevice xDevice = Devices[i];
             if ((ClassId)xDevice.ClassCode == aClass &&
                 (SubclassId)xDevice.Subclass == aSubClass &&
                 (ProgramIf)xDevice.ProgIf == aProgIF)
