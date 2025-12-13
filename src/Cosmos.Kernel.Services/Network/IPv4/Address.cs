@@ -69,7 +69,8 @@ public class Address : IComparable
     /// <exception cref="ArgumentException">Thrown if buffer is invalid or null.</exception>
     public Address(byte[] buffer, int offset)
     {
-        if (buffer == null || buffer.Length < offset + 4) {
+        if (buffer == null || buffer.Length < offset + 4)
+        {
             throw new ArgumentException("The buffer does not contain enough data starting at 'offset'.", nameof(buffer));
         }
 
@@ -251,4 +252,8 @@ public class Address : IComparable
 
     }
 
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
