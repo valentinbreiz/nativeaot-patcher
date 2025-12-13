@@ -27,7 +27,7 @@ public class QemuARM64Host : IQemuHost
         _memoryMb = memoryMb;
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false)
     {
         if (!File.Exists(isoPath))
         {

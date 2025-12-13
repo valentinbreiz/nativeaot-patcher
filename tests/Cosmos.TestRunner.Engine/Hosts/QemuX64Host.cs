@@ -22,7 +22,7 @@ public class QemuX64Host : IQemuHost
         _memoryMb = memoryMb;
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false)
     {
         if (!File.Exists(isoPath))
         {
@@ -48,14 +48,21 @@ public class QemuX64Host : IQemuHost
 
         // Build QEMU arguments
         // Note: Always write UART to file for parsing, display mode only affects GUI
+        // Use -display none instead of -nographic to avoid conflicts with -serial file:
         string displayArgs = showDisplay
             ? $"-display gtk -vga std -serial file:\"{uartLogPath}\""
-            : $"-serial file:\"{uartLogPath}\" -nographic";
+            : $"-display none -serial file:\"{uartLogPath}\"";
+
+        // Network configuration: E1000E device with user-mode networking
+        // Guest IP: 10.0.2.15, Gateway: 10.0.2.2
+        // Port 5555: UdpTestServer binds to receive kernel's outgoing packets (no hostfwd needed)
+        // Port 5556: hostfwd forwards test runner packets to kernel
+        string networkArgs = "-netdev user,id=net0,hostfwd=udp::5556-:5556 -device e1000e,netdev=net0";
 
         var startInfo = new ProcessStartInfo
         {
             FileName = _qemuBinary,
-            Arguments = $"-cdrom \"{isoPath}\" -m {_memoryMb}M -boot d -no-reboot {displayArgs}",
+            Arguments = $"-cdrom \"{isoPath}\" -m {_memoryMb}M -boot d -no-reboot {displayArgs} {networkArgs}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -65,10 +72,20 @@ public class QemuX64Host : IQemuHost
         using var process = new Process { StartInfo = startInfo };
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
+        // Only create UDP server for network tests
+        UdpTestServer? udpServer = null;
+        if (enableNetworkTesting)
+        {
+            udpServer = new UdpTestServer();
+        }
+
         bool testSuiteCompleted = false;
 
         try
         {
+            // Start UDP test server for network tests
+            udpServer?.Start();
+
             process.Start();
 
             // Monitor UART log for TestSuiteEnd while waiting for process
@@ -99,6 +116,10 @@ public class QemuX64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
+            // Stop UDP server if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+
             // Read UART log
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -125,6 +146,10 @@ public class QemuX64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
+            // Stop UDP server if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+
             // Read whatever UART output we got
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -142,6 +167,10 @@ public class QemuX64Host : IQemuHost
         }
         catch (Exception ex)
         {
+            // Stop UDP server on error if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+
             return new QemuRunResult
             {
                 ExitCode = -1,
