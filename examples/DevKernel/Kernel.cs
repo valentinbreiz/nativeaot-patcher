@@ -6,8 +6,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.Services.Timer;
 
 internal static partial class Program
 {
@@ -35,43 +34,8 @@ internal static partial class Program
 
         Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
 
-        // Register and test interrupt handler
-#if ARCH_X64
-        const int testInterrupt = 32;
-#elif ARCH_ARM64
-        const int testInterrupt = 0;  // SVC
-#endif
-        Serial.WriteString("[Main] Registering test interrupt handler...\n");
-        InterruptManager.SetHandler(testInterrupt, TestInterruptHandler);
-        Serial.WriteString("[Main] Handler registered!\n");
-
-        Serial.WriteString("[Main] Triggering test interrupt...\n");
-        TriggerTestInterrupt();
-        Serial.WriteString("[Main] Test complete!\n");
-
         // Start simple shell
         RunShell();
-    }
-
-#if ARCH_X64
-    [LibraryImport("*", EntryPoint = "_native_x64_test_int32")]
-    private static partial void TriggerTestInterrupt();
-#elif ARCH_ARM64
-    [LibraryImport("*", EntryPoint = "_native_arm64_test_svc")]
-    private static partial void TriggerTestInterrupt();
-#endif
-
-    // Handler for test interrupt - this will be called when the interrupt fires
-    private static void TestInterruptHandler(ref IRQContext context)
-    {
-        Serial.WriteString("[Test Interrupt] Interrupt received!\n");
-        Serial.WriteString("[Test Interrupt] Interrupt number: ");
-        Serial.WriteString(context.interrupt.ToString());
-        Serial.WriteString("\n");
-        Serial.WriteString("[Test Interrupt] CPU Flags: 0x");
-        Serial.WriteString(context.cpu_flags.ToString("X16"));
-        Serial.WriteString("\n");
-        Serial.WriteString("[Test Interrupt] Handler execution complete\n");
     }
 
     private static void RunShell()
@@ -100,6 +64,7 @@ internal static partial class Program
                     Console.WriteLine("  clear  - Clear the screen");
                     Console.WriteLine("  echo   - Echo back input");
                     Console.WriteLine("  info   - Show system info");
+                    Console.WriteLine("  timer  - Test 10 second timer");
                     Console.WriteLine("  halt   - Halt the system");
                     break;
 
@@ -111,6 +76,17 @@ internal static partial class Program
                     Console.WriteLine("CosmosOS v3.0.0 (gen3)");
                     Console.WriteLine("Architecture: x86-64");
                     Console.WriteLine("Runtime: NativeAOT");
+                    break;
+
+                case "timer":
+                    Console.WriteLine("Testing 10 second timer...");
+                    Console.WriteLine("Waiting 10 seconds...");
+                    for (int i = 10; i > 0; i--)
+                    {
+                        Console.WriteLine(i + "...");
+                        TimerManager.Wait(1000);
+                    }
+                    Console.WriteLine("Timer test complete!");
                     break;
 
                 case "halt":
