@@ -34,8 +34,9 @@ internal static partial class Program
         Serial.WriteString("[Main] SUCCESS - GCC string: ");
         Serial.WriteString(gccString);
         Serial.WriteString("\n");
-        KernelConsole.Write("GCC interop: PASS - ");
-        KernelConsole.WriteLine(gccString);
+
+        PrintSuccess("GCC interop: ");
+        Console.WriteLine(gccString);
 
         DebugInfo.Print();
 
@@ -48,56 +49,70 @@ internal static partial class Program
     private static void RunShell()
     {
         Serial.WriteString("[Shell] Starting shell...\n");
+        Console.Clear();
+
+        // Print banner
+        Console.WriteLine("========================================");
+        Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
+        Console.WriteLine("========================================");
         Console.WriteLine();
-        Console.WriteLine("=== CosmosOS Shell ===");
-        Console.WriteLine("Type 'help' for available commands.");
+        PrintInfo("Type 'help' for available commands.");
         Console.WriteLine();
 
         while (true)
         {
-            Console.Write("> ");
+            // Print prompt
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("cosmos");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(":");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.Write("~");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("$ ");
+            Console.ResetColor();
+
             string? input = Console.ReadLine();
 
             if (string.IsNullOrEmpty(input))
                 continue;
 
-            string command = input.Trim().ToLower();
+            string trimmed = input.Trim();
+            string command = trimmed.ToLower();
 
-            switch (command)
+            // Handle commands with arguments
+            string[] parts = trimmed.Split(' ');
+            string cmd = parts[0].ToLower();
+
+            switch (cmd)
             {
                 case "help":
-                    Console.WriteLine("Available commands:");
-                    Console.WriteLine("  help      - Show this help");
-                    Console.WriteLine("  clear     - Clear the screen");
-                    Console.WriteLine("  echo      - Echo back input");
-                    Console.WriteLine("  info      - Show system info");
-                    Console.WriteLine("  timer     - Test 10 second timer");
-                    Console.WriteLine("  netconfig - Configure network stack");
-                    Console.WriteLine("  netinfo   - Show network info");
-                    Console.WriteLine("  netsend   - Send UDP test packet");
-                    Console.WriteLine("  netlisten - Listen for packets");
-                    Console.WriteLine("  halt      - Halt the system");
+                    PrintHelp();
                     break;
 
                 case "clear":
-                    //KernelConsole.Clear();
+                case "cls":
+                    Console.Clear();
+                    break;
+
+                case "echo":
+                    if (parts.Length > 1)
+                    {
+                        Console.WriteLine(trimmed.Substring(5));
+                    }
                     break;
 
                 case "info":
-                    Console.WriteLine("CosmosOS v3.0.0 (gen3)");
-                    Console.WriteLine("Architecture: x86-64");
-                    Console.WriteLine("Runtime: NativeAOT");
+                case "sysinfo":
+                    PrintSystemInfo();
                     break;
 
                 case "timer":
-                    Console.WriteLine("Testing 10 second timer...");
-                    Console.WriteLine("Waiting 10 seconds...");
-                    for (int i = 10; i > 0; i--)
-                    {
-                        Console.WriteLine(i + "...");
-                        TimerManager.Wait(1000);
-                    }
-                    Console.WriteLine("Timer test complete!");
+                    RunTimerTest();
+                    break;
+
+                case "colors":
+                    ShowColors();
                     break;
 
 #if ARCH_X64
@@ -119,23 +134,126 @@ internal static partial class Program
 #endif
 
                 case "halt":
-                    Console.WriteLine("Halting system...");
+                case "shutdown":
+                    PrintWarning("Halting system...");
                     Cosmos.Kernel.Kernel.Halt();
                     break;
 
                 default:
-                    if (command.StartsWith("echo "))
-                    {
-                        Console.WriteLine(input.Substring(5));
-                    }
-                    else
-                    {
-                        Console.WriteLine("Unknown command: " + command);
-                        Console.WriteLine("Type 'help' for available commands.");
-                    }
+                    PrintError("Unknown command: " + cmd);
+                    PrintInfo("Type 'help' for available commands.");
                     break;
             }
         }
+    }
+
+    private static void PrintHelp()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Available Commands:");
+        Console.ResetColor();
+
+        PrintCommand("help", "Show this help message");
+        PrintCommand("clear", "Clear the screen");
+        PrintCommand("echo <text>", "Echo back text");
+        PrintCommand("info", "Show system information");
+        PrintCommand("timer", "Test 10 second countdown timer");
+        PrintCommand("colors", "Display color palette");
+#if ARCH_X64
+        PrintCommand("netconfig", "Configure network stack");
+        PrintCommand("netinfo", "Show network device info");
+        PrintCommand("netsend", "Send UDP test packet");
+        PrintCommand("netlisten", "Listen for UDP packets");
+#endif
+        PrintCommand("halt", "Halt the system");
+    }
+
+    private static void PrintCommand(string cmd, string description)
+    {
+        Console.Write("  ");
+        Console.Write(cmd.PadRight(14));
+        Console.WriteLine(description);
+    }
+
+    private static void PrintSystemInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("System Information:");
+        Console.ResetColor();
+
+        PrintInfoLine("OS", "CosmosOS v3.0.0 (gen3)");
+        PrintInfoLine("Runtime", "NativeAOT");
+#if ARCH_X64
+        PrintInfoLine("Architecture", "x86-64");
+#elif ARCH_ARM64
+        PrintInfoLine("Architecture", "ARM64");
+#endif
+        PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
+    }
+
+    private static void PrintInfoLine(string label, string value)
+    {
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(label.PadRight(14));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(value);
+        Console.ResetColor();
+    }
+
+    private static void RunTimerTest()
+    {
+        PrintInfo("Starting 10 second countdown...");
+        for (int i = 10; i > 0; i--)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(i.ToString());
+            Console.ResetColor();
+            Console.WriteLine("...");
+            TimerManager.Wait(1000);
+        }
+        PrintSuccess("Timer test complete!");
+    }
+
+    private static void ShowColors()
+    {
+        Console.WriteLine("Color palette:");
+        for (int i = 0; i < 16; i++)
+        {
+            Console.ForegroundColor = (ConsoleColor)i;
+            Console.Write("  " + ((ConsoleColor)i).ToString().PadRight(14));
+            if (i == 7)
+                Console.WriteLine();
+        }
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+
+    // Helper methods for colored output
+    private static void PrintError(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private static void PrintSuccess(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(message);
+        Console.ResetColor();
+    }
+
+    private static void PrintWarning(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private static void PrintInfo(string message)
+    {
+        Console.WriteLine(message);
     }
 
     [ModuleInitializer]
@@ -155,7 +273,7 @@ internal static partial class Program
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
         {
-            Console.WriteLine("No network device found");
+            PrintError("No network device found");
             return;
         }
 
@@ -171,9 +289,10 @@ internal static partial class Program
         UDPPacket.OnUDPDataReceived = OnUDPDataReceived;
 
         _networkConfigured = true;
-        Console.WriteLine("Network configured:");
-        Console.WriteLine("  IP: " + _localIP.ToString());
-        Console.WriteLine("  Gateway: " + _gatewayIP.ToString());
+
+        PrintSuccess("Network configured!\n");
+        PrintInfoLine("IP", _localIP.ToString());
+        PrintInfoLine("Gateway", _gatewayIP.ToString());
     }
 
     private static void ShowNetworkInfo()
@@ -181,18 +300,39 @@ internal static partial class Program
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
         {
-            Console.WriteLine("No network device found");
+            PrintError("No network device found");
             return;
         }
 
-        Console.WriteLine("Network Device: " + device.Name);
-        Console.WriteLine("MAC Address: " + device.MacAddress.ToString());
-        Console.WriteLine("Link: " + (device.LinkUp ? "UP" : "DOWN"));
-        Console.WriteLine("Ready: " + (device.Ready ? "YES" : "NO"));
-        Console.WriteLine("IP Configured: " + (_networkConfigured ? "YES" : "NO"));
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Network Information:");
+        Console.ResetColor();
+
+        PrintInfoLine("Device", device.Name);
+        PrintInfoLine("MAC", device.MacAddress.ToString());
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Link".PadRight(14));
+        Console.ForegroundColor = device.LinkUp ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(device.LinkUp ? "UP" : "DOWN");
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Ready".PadRight(14));
+        Console.ForegroundColor = device.Ready ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(device.Ready ? "YES" : "NO");
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Configured".PadRight(14));
+        Console.ForegroundColor = _networkConfigured ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(_networkConfigured ? "YES" : "NO");
+        Console.ResetColor();
+
         if (_networkConfigured && _localIP != null)
         {
-            Console.WriteLine("IP Address: " + _localIP.ToString());
+            PrintInfoLine("IP Address", _localIP.ToString());
         }
     }
 
@@ -201,13 +341,13 @@ internal static partial class Program
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
         {
-            Console.WriteLine("No network device found");
+            PrintError("No network device found");
             return;
         }
 
         if (!device.Ready)
         {
-            Console.WriteLine("Network device not ready");
+            PrintError("Network device not ready");
             return;
         }
 
@@ -233,9 +373,13 @@ internal static partial class Program
             MACAddress.Broadcast                 // Destination MAC (broadcast)
         );
 
-        Console.WriteLine("Sending UDP packet to " + _gatewayIP!.ToString() + ":5555...");
+        PrintInfo("Sending UDP packet to " + _gatewayIP!.ToString() + ":5555...");
         bool sent = device.Send(udpPacket.RawData, udpPacket.RawData.Length);
-        Console.WriteLine(sent ? "Packet sent!" : "Failed to send packet");
+
+        if (sent)
+            PrintSuccess("Packet sent!\n");
+        else
+            PrintError("Failed to send packet");
     }
 
     private static void StartListening()
@@ -243,7 +387,7 @@ internal static partial class Program
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
         {
-            Console.WriteLine("No network device found");
+            PrintError("No network device found");
             return;
         }
 
@@ -253,8 +397,10 @@ internal static partial class Program
             ConfigureNetwork();
         }
 
-        Console.WriteLine("Listening for UDP packets on port 5555...");
-        Console.WriteLine("Send from host with: echo 'test' | nc -u localhost 5555");
+        PrintInfo("Listening for UDP packets on port 5555...");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Send from host: echo 'test' | nc -u localhost 5555");
+        Console.ResetColor();
     }
 
     private static void OnUDPDataReceived(UDPPacket packet)
@@ -281,12 +427,15 @@ internal static partial class Program
         }
         Serial.Write("\n");
 
-        // Also print to console
-        Console.Write("UDP from ");
-        Console.Write(packet.SourceIP.ToString());
-        Console.Write(":");
-        Console.Write(packet.SourcePort.ToString());
-        Console.Write(" - ");
+        // Also print to console with colors
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.Write("[UDP] ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(packet.SourceIP.ToString() + ":" + packet.SourcePort.ToString());
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(" -> ");
+        Console.ResetColor();
+
         for (int i = 0; i < data.Length && i < 64; i++)
         {
             char c = (char)data[i];

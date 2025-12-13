@@ -80,7 +80,12 @@ public static class InterruptManager
         // Check for fatal exceptions (handled by platform-specific controller)
         if (s_controller != null && ctx.interrupt <= 31)
         {
-            if (s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags))
+#if ARCH_ARM64
+            ulong faultAddress = ctx.far;
+#else
+            ulong faultAddress = ctx.cr2;
+#endif
+            if (s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, faultAddress))
             {
                 // Controller handled it (likely halted)
                 return;

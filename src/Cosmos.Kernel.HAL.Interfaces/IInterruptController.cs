@@ -32,5 +32,8 @@ public interface IInterruptController
     /// Handle fatal exception (arch-specific behavior).
     /// Returns true if handled (halts), false to continue.
     /// </summary>
-    bool HandleFatalException(ulong interrupt, ulong cpuFlags);
+    /// <param name="interrupt">Interrupt/exception number</param>
+    /// <param name="cpuFlags">Error code (x64) or ESR (ARM64)</param>
+    /// <param name="faultAddress">CR2 (x64) or FAR (ARM64) - page fault address</param>
+    bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress);
 }

@@ -35,7 +35,7 @@ public class X64InterruptController : IInterruptController
         }
     }
 
-    public bool HandleFatalException(ulong interrupt, ulong cpuFlags)
+    public bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
         // x64: Fatal CPU exceptions (0-31) - halt immediately
         if (interrupt <= 31)
@@ -44,6 +44,15 @@ public class X64InterruptController : IInterruptController
             Serial.Write("[INT] Error code: 0x");
             Serial.WriteHex(cpuFlags);
             Serial.Write("\n");
+
+            // For page faults (#PF = 14), show the faulting address
+            if (interrupt == 14)
+            {
+                Serial.Write("[INT] Fault address (CR2): 0x");
+                Serial.WriteHex(faultAddress);
+                Serial.Write("\n");
+            }
+
             while (true) { }
         }
         return false;

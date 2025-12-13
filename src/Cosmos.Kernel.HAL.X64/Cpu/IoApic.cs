@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Acpi;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
