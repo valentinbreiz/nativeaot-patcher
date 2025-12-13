@@ -14,10 +14,12 @@ using Cosmos.Kernel.HAL.Devices.Input;
 using Cosmos.Kernel.HAL.X64;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Devices.Network;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Pci;
 using Cosmos.Kernel.Services.Keyboard;
+using Cosmos.Kernel.Services.Network;
 using Cosmos.Kernel.Services.Timer;
 #elif ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
@@ -143,6 +145,25 @@ public class Kernel
         // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
         Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");
         PS2Keyboard.RegisterIRQHandler();
+
+        // Initialize Network Manager
+        Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
+        NetworkManager.Initialize();
+
+        // Try to find and initialize E1000E network device
+        Serial.WriteString("[KERNEL]   - Looking for E1000E network device...\n");
+        var e1000e = E1000E.FindAndCreate();
+        if (e1000e != null)
+        {
+            Serial.WriteString("[KERNEL]   - E1000E device found, initializing...\n");
+            e1000e.InitializeNetwork();
+            NetworkManager.RegisterDevice(e1000e);
+            e1000e.RegisterIRQHandler();
+        }
+        else
+        {
+            Serial.WriteString("[KERNEL]   - No E1000E device found\n");
+        }
 #endif
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");

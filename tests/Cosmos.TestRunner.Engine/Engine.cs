@@ -154,8 +154,11 @@ public partial class Engine
             );
         }
 
+        // Detect if this is a network test kernel
+        bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
+
         // Launch QEMU and capture UART
-        return await _qemuHost.RunKernelAsync(isoPath, uartLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay);
+        return await _qemuHost.RunKernelAsync(isoPath, uartLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting);
     }
 
     private TestResults ParseResults(QemuRunResult qemuResult)

@@ -221,6 +221,40 @@
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Network x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Network",
+        "x64",
+        "120",
+        "${workspaceFolder}/test-results-network-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Network ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Network",
+        "arm64",
+        "180",
+        "${workspaceFolder}/test-results-network-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
     }
   ]
 }

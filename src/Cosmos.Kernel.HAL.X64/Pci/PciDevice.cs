@@ -1,11 +1,12 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Devices;
 using Cosmos.Kernel.HAL.X64.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.X64.Pci;
 
-public class PciDevice
+public class PciDevice : Device
 {
     public readonly uint Bus;
     public readonly uint Slot;
