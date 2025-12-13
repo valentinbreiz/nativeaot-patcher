@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
@@ -7,6 +8,7 @@ using static Cosmos.TestRunner.Framework.TestRunner;
 using static Cosmos.TestRunner.Framework.Assert;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 #endif
 
@@ -22,8 +24,8 @@ namespace Cosmos.Kernel.Tests.Timer
             Serial.WriteString("[Timer Tests] Starting test suite\n");
 
 #if ARCH_X64
-            // x64: Stopwatch tests (2) + PIT tests (3) + TimerManager (2) + LAPIC (3) = 10
-            Start("Timer Tests", expectedTests: 10);
+            // x64: Stopwatch (2) + PIT (3) + TimerManager (2) + LAPIC (3) + DateTime (4) = 14
+            Start("Timer Tests", expectedTests: 14);
 
             // Stopwatch/TSC Tests - must run first to verify timing source
             Run("Stopwatch_Incrementing", TestStopwatchIncrementing);
@@ -42,6 +44,12 @@ namespace Cosmos.Kernel.Tests.Timer
             Run("LAPIC_Initialized", TestLAPICInitialized);
             Run("LAPIC_Wait_100ms", TestLAPICWait100ms);
             Run("LAPIC_Wait_Proportional", TestLAPICWaitProportional);
+
+            // DateTime/RTC Tests
+            Run("RTC_Initialized", TestRTCInitialized);
+            Run("DateTime_Now_Valid", TestDateTimeNowValid);
+            Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
+            Run("DateTime_UtcNow", TestDateTimeUtcNow);
 #else
             // ARM64: No PIT or LAPIC, just basic timer manager tests
             Start("Timer Tests", expectedTests: 2);
@@ -233,6 +241,86 @@ namespace Cosmos.Kernel.Tests.Timer
 
             bool proportional = ratio100 >= 150 && ratio100 <= 250;
             True(proportional, "LAPIC: 200ms should take ~2x ticks of 100ms");
+        }
+
+        // ==================== DateTime/RTC Tests ====================
+
+        private static void TestRTCInitialized()
+        {
+            True(RTC.Instance != null, "RTC: Instance should be initialized");
+            True(RTC.Instance!.IsInitialized, "RTC: Should be initialized");
+
+            Serial.WriteString("[Timer Tests] RTC boot time ticks: ");
+            Serial.WriteNumber((ulong)RTC.Instance.BootTimeTicks);
+            Serial.WriteString("\n");
+        }
+
+        private static void TestDateTimeNowValid()
+        {
+            DateTime now = DateTime.Now;
+
+            Serial.WriteString("[Timer Tests] DateTime.Now: ");
+            Serial.WriteNumber((ulong)now.Year);
+            Serial.WriteString("-");
+            Serial.WriteNumber((ulong)now.Month);
+            Serial.WriteString("-");
+            Serial.WriteNumber((ulong)now.Day);
+            Serial.WriteString(" ");
+            Serial.WriteNumber((ulong)now.Hour);
+            Serial.WriteString(":");
+            Serial.WriteNumber((ulong)now.Minute);
+            Serial.WriteString(":");
+            Serial.WriteNumber((ulong)now.Second);
+            Serial.WriteString("\n");
+
+            // Year should be >= 2020 (reasonable minimum for RTC)
+            True(now.Year >= 2020, "DateTime: Year should be >= 2020");
+            // Month should be 1-12
+            True(now.Month >= 1 && now.Month <= 12, "DateTime: Month should be 1-12");
+            // Day should be 1-31
+            True(now.Day >= 1 && now.Day <= 31, "DateTime: Day should be 1-31");
+        }
+
+        private static void TestDateTimeNowIncrementing()
+        {
+            DateTime dt1 = DateTime.Now;
+
+            // Wait a bit using LAPIC timer
+            LocalApic.Wait(100);
+
+            DateTime dt2 = DateTime.Now;
+
+            Serial.WriteString("[Timer Tests] DateTime dt1 ticks: ");
+            Serial.WriteNumber((ulong)dt1.Ticks);
+            Serial.WriteString(", dt2 ticks: ");
+            Serial.WriteNumber((ulong)dt2.Ticks);
+            Serial.WriteString("\n");
+
+            True(dt2 > dt1, "DateTime: Now should increment over time");
+
+            // The difference should be roughly 100ms (1,000,000 ticks = 100ms)
+            long tickDiff = dt2.Ticks - dt1.Ticks;
+            // Allow 50ms to 200ms range (500,000 to 2,000,000 ticks)
+            bool inRange = tickDiff >= 500_000 && tickDiff <= 2_000_000;
+            True(inRange, "DateTime: 100ms wait should show ~100ms elapsed");
+        }
+
+        private static void TestDateTimeUtcNow()
+        {
+            DateTime utcNow = DateTime.UtcNow;
+
+            Serial.WriteString("[Timer Tests] DateTime.UtcNow: ");
+            Serial.WriteNumber((ulong)utcNow.Year);
+            Serial.WriteString("-");
+            Serial.WriteNumber((ulong)utcNow.Month);
+            Serial.WriteString("-");
+            Serial.WriteNumber((ulong)utcNow.Day);
+            Serial.WriteString("\n");
+
+            // Should have Utc kind
+            True(utcNow.Kind == DateTimeKind.Utc, "DateTime: UtcNow should have Utc kind");
+            // Year should be valid
+            True(utcNow.Year >= 2020, "DateTime: UtcNow year should be >= 2020");
         }
 
 #else

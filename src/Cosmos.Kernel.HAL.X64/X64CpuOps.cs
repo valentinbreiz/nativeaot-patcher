@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL.X64;
@@ -48,39 +48,25 @@ public partial class X64CpuOps : ICpuOps
     public static ulong ReadTSC() => NativeReadTSC();
 
     /// <summary>
-    /// Calibrates the TSC frequency using PIT as a reference timer.
-    /// Uses PIT channel 0 in one-shot mode for ~10ms measurement.
+    /// Calibrates the TSC frequency using LAPIC timer as a reference.
+    /// Must be called after LAPIC timer is calibrated.
     /// Must be called before any code accesses Stopwatch.Frequency.
     /// </summary>
     public static void CalibrateTsc()
     {
-        // PIT frequency is 1193180 Hz, so 11932 ticks = ~10ms
-        const ushort pitCount = 11932;
-        const uint calibrationMs = 10;
+        if (!Cpu.LocalApic.IsTimerCalibrated)
+        {
+            Serial.Write("[TSC] ERROR: LAPIC timer not calibrated\n");
+            return;
+        }
 
-        // PIT command: channel 0, lobyte/hibyte, one-shot mode, binary
-        Native.IO.Write8(0x43, 0x30);
-        Native.IO.Write8(0x40, (byte)(pitCount & 0xFF));
-        Native.IO.Write8(0x40, (byte)(pitCount >> 8));
+        const uint calibrationMs = 10;
 
         // Read TSC before
         ulong tscStart = NativeReadTSC();
 
-        // Wait for PIT to count down by polling
-        ushort lastCount = pitCount;
-        while (true)
-        {
-            // Latch count for channel 0
-            Native.IO.Write8(0x43, 0x00);
-            byte lo = Native.IO.Read8(0x40);
-            byte hi = Native.IO.Read8(0x40);
-            ushort currentCount = (ushort)(lo | (hi << 8));
-
-            // PIT counts down, check if we've wrapped or reached near zero
-            if (currentCount > lastCount || currentCount == 0)
-                break;
-            lastCount = currentCount;
-        }
+        // Wait using calibrated LAPIC timer
+        Cpu.LocalApic.Wait(calibrationMs);
 
         // Read TSC after
         ulong tscEnd = NativeReadTSC();

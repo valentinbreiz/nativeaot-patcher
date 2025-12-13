@@ -12,6 +12,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Acpi;
 using Cosmos.Kernel.HAL.Devices.Input;
 using Cosmos.Kernel.HAL.X64;
+using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Cpu;
@@ -100,6 +101,18 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
         ApicManager.Initialize();
 
+        // Calibrate TSC frequency using LAPIC timer (already calibrated during APIC init)
+        Serial.WriteString("[KERNEL]   - Calibrating TSC frequency...\n");
+        X64CpuOps.CalibrateTsc();
+        Serial.WriteString("[KERNEL]   - TSC frequency: ");
+        Serial.WriteNumber((ulong)X64CpuOps.TscFrequency);
+        Serial.WriteString(" Hz\n");
+
+        // Initialize RTC for DateTime support (after TSC calibration)
+        Serial.WriteString("[KERNEL]   - Initializing RTC...\n");
+        var rtc = new RTC();
+        rtc.Initialize();
+
         // Initialize PIT (Programmable Interval Timer)
         Serial.WriteString("[KERNEL]   - Initializing PIT...\n");
         var pit = new PIT();
@@ -107,13 +120,6 @@ public class Kernel
         pit.RegisterIRQHandler();
         TimerManager.Initialize();
         TimerManager.RegisterTimer(pit);
-
-        // Calibrate TSC frequency for Stopwatch using PIT
-        Serial.WriteString("[KERNEL]   - Calibrating TSC frequency...\n");
-        X64CpuOps.CalibrateTsc();
-        Serial.WriteString("[KERNEL]   - TSC frequency: ");
-        Serial.WriteNumber((ulong)X64CpuOps.TscFrequency);
-        Serial.WriteString(" Hz\n");
 
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
         Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
