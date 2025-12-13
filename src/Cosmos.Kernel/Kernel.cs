@@ -3,15 +3,23 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.Acpi;
-#endif
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.Core.Runtime;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.Acpi;
+using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL.X64;
+using Cosmos.Kernel.HAL.X64.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.HAL.X64.Pci;
+using Cosmos.Kernel.Services.Keyboard;
+#elif ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+using Cosmos.Kernel.HAL.ARM64.Cpu;
+#endif
 
 namespace Cosmos.Kernel;
 
@@ -32,23 +40,12 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        // === Phase 4: Managed Kernel Initialization ===
-        Serial.WriteString("[KERNEL] Phase 4: Managed kernel initialization\n");
-
         // Display version banner
         Serial.WriteString("[KERNEL]   - CosmosOS v");
         Serial.WriteString(VersionString);
         Serial.WriteString(" (");
         Serial.WriteString(Codename);
         Serial.WriteString(") - Managed runtime active\n");
-
-        // Initialize heap for memory allocations
-        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
-        MemoryOp.InitializeHeap(0, 0);
-
-        // Initialize platform-specific HAL
-        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
-        PlatformHAL.Initialize();
 
         // Display architecture
         Serial.WriteString("[KERNEL]   - Architecture: ");
@@ -65,26 +62,67 @@ public class Kernel
             Serial.WriteString("Unknown\n");
         }
 
-        // Initialize interrupts
-        Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
-        InterruptManager.Initialize();
-
-#if ARCH_X64
-        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
-        PciManager.Setup();
-
-
-        // Retrieve and display ACPI MADT information (initialized during early boot)
-        Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
-        Acpi.DisplayMadtInfo();
-#endif
+        // Initialize heap for memory allocations
+        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
+        MemoryOp.InitializeHeap(0, 0);
 
         // Initialize managed modules
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
 
-        Serial.WriteString("[KERNEL] Phase 4: Complete\n");
-        Serial.WriteString("========================================\n");
+        // Initialize platform-specific HAL
+        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
+#if ARCH_X64
+        PlatformHAL.Initialize(new X64PlatformInitializer());
+#elif ARCH_ARM64
+        PlatformHAL.Initialize(new ARM64PlatformInitializer());
+#endif
+
+        // Initialize interrupts
+        Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
+#if ARCH_X64
+        InterruptManager.Initialize(new X64InterruptController());
+#elif ARCH_ARM64
+        InterruptManager.Initialize(new ARM64InterruptController());
+#endif
+
+#if ARCH_X64
+        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+        PciManager.Setup();
+
+        // Retrieve and display ACPI MADT information (initialized during early boot)
+        Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
+        Acpi.DisplayMadtInfo();
+
+        // Initialize APIC (Advanced Programmable Interrupt Controller)
+        Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
+        ApicManager.Initialize();
+
+        // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
+        Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
+        var ps2Controller = new PS2Controller();
+        ps2Controller.Initialize();
+
+        // Initialize Keyboard Manager
+        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+        KeyboardManager.Initialize();
+
+        // Register keyboards with KeyboardManager
+        var keyboards = PS2Controller.GetKeyboardDevices();
+        foreach (var keyboard in keyboards)
+        {
+            KeyboardManager.RegisterKeyboard(keyboard);
+        }
+
+        // Set static callback for PS2 keyboard IRQ handler
+        PS2Keyboard.KeyCallback = KeyboardManager.HandleScanCode;
+
+        // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
+        Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");
+        PS2Keyboard.RegisterIRQHandler();
+#endif
+
+        Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
 
     /// <summary>
@@ -125,10 +163,16 @@ public static unsafe class KernelBridge
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
     public static void CosmosSerialWrite(byte* str)
     {
+        if (str == null)
+            return;
+
         // C strings are null-terminated, write char by char
-        for (int i = 0; str[i] != 0; i++)
+        // Use while loop with explicit pointer arithmetic to avoid potential codegen issues
+        byte* p = str;
+        while (*p != 0)
         {
-            Serial.ComWrite(str[i]);
+            Serial.ComWrite(*p);
+            p++;
         }
     }
 

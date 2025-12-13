@@ -1,15 +1,15 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL.Cpu;
 
 /// <summary>
-/// Provides interrupt registration and dispatch for all architectures.
+/// Interrupt manager - provides interrupt registration and dispatch for all architectures.
 /// </summary>
-public static partial class InterruptManager
+public static class InterruptManager
 {
     /// <summary>
     /// Interrupt delegate signature.
@@ -17,12 +17,25 @@ public static partial class InterruptManager
     /// <param name="context">The interrupt context captured by the CPU.</param>
     public delegate void IrqDelegate(ref IRQContext context);
 
-    internal static IrqDelegate[] s_irqHandlers = new IrqDelegate[256];
+    internal static IrqDelegate[]? s_irqHandlers;
+    private static IInterruptController? s_controller;
+
+    private const string NewLine = "\n";
 
     /// <summary>
-    /// Initializes the platform interrupt system (IDT for x86, GIC for ARM).
+    /// Initializes the interrupt manager with a platform-specific controller.
     /// </summary>
-    public static partial void Initialize();
+    /// <param name="controller">Platform-specific interrupt controller (X64 or ARM64).</param>
+    public static void Initialize(IInterruptController controller)
+    {
+        Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
+        s_irqHandlers = new IrqDelegate[256];
+        s_controller = controller;
+
+        Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
+        controller.Initialize();
+        Serial.Write("[InterruptManager.Initialize] Interrupt system ready\n");
+    }
 
     /// <summary>
     /// Registers a handler for an interrupt vector.
@@ -40,14 +53,23 @@ public static partial class InterruptManager
     }
 
     /// <summary>
-    /// Registers a handler for a hardware IRQ.
+    /// Registers a handler for a hardware IRQ and routes it through the interrupt controller.
     /// </summary>
-    /// <param name="irqNo">IRQ index.</param>
+    /// <param name="irqNo">IRQ index (0-15 for ISA IRQs).</param>
     /// <param name="handler">IRQ handler delegate.</param>
-    public static void SetIrqHandler(byte irqNo, IrqDelegate handler)
-        => SetHandler((byte)(0x20 + irqNo), handler);
+    /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
+    public static void SetIrqHandler(byte irqNo, IrqDelegate handler, bool startMasked = false)
+    {
+        byte vector = (byte)(0x20 + irqNo);
+        SetHandler(vector, handler);
 
-    private const string NewLine = "\n";
+        // Route the IRQ through the platform-specific controller
+        if (s_controller != null && s_controller.IsInitialized)
+        {
+            Serial.Write("[InterruptManager] Routing IRQ ", irqNo, " -> vector 0x", vector.ToString("X"), NewLine);
+            s_controller.RouteIrq(irqNo, vector, startMasked);
+        }
+    }
 
     /// <summary>
     /// Called by native bridge from ASM stubs to invoke the proper handler.
@@ -55,92 +77,37 @@ public static partial class InterruptManager
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
-        Serial.Write("[INT] ", ctx.interrupt, " START", NewLine);
-        Serial.Write("[INT] cpu_flags ", ctx.cpu_flags, NewLine);
-        Serial.Write("[INT] interrupt ", ctx.interrupt, NewLine);
-
-#if ARCH_ARM64
-        Serial.Write("[INT] x0  ", ctx.x0, NewLine);
-        Serial.Write("[INT] x1  ", ctx.x1, NewLine);
-        Serial.Write("[INT] x2  ", ctx.x2, NewLine);
-        Serial.Write("[INT] x3  ", ctx.x3, NewLine);
-        Serial.Write("[INT] x29 ", ctx.x29, NewLine);
-        Serial.Write("[INT] x30 ", ctx.x30, NewLine);
-        Serial.Write("[INT] sp  ", ctx.sp, NewLine);
-        Serial.Write("[INT] elr ", ctx.elr, NewLine);
-        Serial.Write("[INT] About to check handlers\n");
-
-        // During early boot, halt on sync exceptions to prevent infinite recursion
-        // The static array access may cause another exception if memory isn't ready
-        if (ctx.interrupt == 0)
+        // Check for fatal exceptions (handled by platform-specific controller)
+        if (s_controller != null && ctx.interrupt <= 31)
         {
-            Serial.Write("[INT] FATAL: Sync exception during early boot\n");
-            Serial.Write("[INT] ESR: 0x", ctx.cpu_flags.ToString("X"), NewLine);
-            Serial.Write("[INT] ELR: 0x", ctx.elr.ToString("X"), NewLine);
-            Serial.Write("[INT] FAR: 0x", ctx.far.ToString("X"), NewLine);
-            Serial.Write("[INT] Halting.\n");
-            while (true) { }
+            if (s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags))
+            {
+                // Controller handled it (likely halted)
+                return;
+            }
         }
-#else
-        Serial.Write("[INT] rax ", ctx.rax, NewLine);
-        Serial.Write("[INT] rcx ", ctx.rcx, NewLine);
-        Serial.Write("[INT] rdx ", ctx.rdx, NewLine);
-        Serial.Write("[INT] rbx ", ctx.rbx, NewLine);
-        Serial.Write("[INT] rbp ", ctx.rbp, NewLine);
-        Serial.Write("[INT] rsi ", ctx.rsi, NewLine);
-        Serial.Write("[INT] rdi ", ctx.rdi, NewLine);
-        Serial.Write("[INT] r8  ", ctx.r8, NewLine);
-        Serial.Write("[INT] r9  ", ctx.r9, NewLine);
-        Serial.Write("[INT] r10 ", ctx.r10, NewLine);
-        Serial.Write("[INT] r11 ", ctx.r11, NewLine);
-        Serial.Write("[INT] r12 ", ctx.r12, NewLine);
-        Serial.Write("[INT] r13 ", ctx.r13, NewLine);
-        Serial.Write("[INT] r14 ", ctx.r14, NewLine);
-        Serial.Write("[INT] r15 ", ctx.r15, NewLine);
 
-        // x64: Fatal CPU exceptions (0-31) without handler should halt
-        // 0=DE, 6=UD, 8=DF, 13=GP, 14=PF are particularly fatal
-        if (ctx.interrupt <= 31 && s_irqHandlers?[(int)ctx.interrupt] == null)
-        {
-            Serial.Write("[INT] FATAL: Unhandled CPU exception ", ctx.interrupt, NewLine);
-            Serial.Write("[INT] System halted.\n");
-            while (true) { }
-        }
-#endif
-
-        // Check if handlers array is initialized and interrupt is in valid range
+        // For hardware IRQs (vector >= 32), call handler immediately
         if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
         {
             IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
             if (handler != null)
             {
-                Serial.Write("[INT] Calling registered handler\n");
                 handler(ref ctx);
-                Serial.Write("[INT] Handler returned\n");
+
+                // Send EOI for hardware IRQs (vector >= 32)
+                if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
+                {
+                    s_controller.SendEOI();
+                }
                 return;
             }
-            else
-            {
-                Serial.Write("[INT] No handler for vector ", ctx.interrupt, NewLine);
-            }
-        }
-        else
-        {
-            Serial.Write("[INT] Handler array null or vector out of range\n");
         }
 
-#if ARCH_ARM64
-        Serial.Write("[INT] ARM64 unhandled exception path\n");
-        // ARM64: Unhandled synchronous exceptions (type 0) are fatal - halt
-        // Also halt on SError (type 3) as these are typically hardware errors
-        if (ctx.interrupt == 0 || ctx.interrupt == 3)
+        // Send EOI even for unhandled hardware interrupts to prevent lockup
+        if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
         {
-            Serial.Write("[INT] FATAL: Unhandled ARM64 exception type ", ctx.interrupt, NewLine);
-            Serial.Write("[INT] ESR_EL1: 0x", ctx.cpu_flags.ToString("X"), NewLine);
-            Serial.Write("[INT] ELR_EL1: 0x", ctx.elr.ToString("X"), NewLine);
-            Serial.Write("[INT] System halted.\n");
-            while (true) { }
+            s_controller.SendEOI();
         }
-#endif
     }
 }

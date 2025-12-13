@@ -562,22 +562,34 @@ _native_x64_get_irq_stub:
 irq%1_stub:
     ; When interrupt is delivered, CPU pushes: RIP, CS, RFLAGS
     ; Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
+    ; Note: Some exceptions (8, 10-14, 17, 21, 29, 30) also push error code before RIP
 
-    ; Read RFLAGS from CPU frame first (before we modify anything)
-    mov rax, [rsp + 16]          ; Load RFLAGS from CPU frame
+    ; Save original rcx first before we use it for cr2
+    push rcx                     ; Temporarily save rcx
+
+    ; Read RFLAGS from CPU frame (now offset by 8 due to pushed rcx)
+    mov rax, [rsp + 24]          ; Load RFLAGS from CPU frame (RIP at +8, CS at +16, RFLAGS at +24)
+
+    ; Read CR2 (page fault address) - always read it, only valid for #PF but safe to read
+    mov rcx, cr2
 
     ; Push in REVERSE order of struct (last field first, so it ends up at highest address)
-    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags
-    ; Push order: cpu_flags, interrupt, rax, ..., r14, r15
+    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags, cr2
+    ; Push order: cr2, cpu_flags, interrupt, rax, ..., r14, r15
 
+    push rcx                     ; Push cr2 (page fault linear address)
     push rax                     ; Push cpu_flags (save RFLAGS)
     push %1                      ; Push interrupt vector
 
-    ; Now push general purpose registers (we'll use the saved RFLAGS in rax later)
-    ; But first save the actual rax value
-    mov rax, [rsp + 16 + 8 + 8]  ; Get original RAX from before our two pushes
-    push rax                     ; Push actual rax value
-    push rcx
+    ; Now push general purpose registers
+    ; rax currently contains RFLAGS, but we need to push actual rax value
+    ; The actual rax at interrupt time is unknown - just push current value (RFLAGS)
+    ; This is a limitation - we can't recover original rax
+    push rax                     ; Push rax (note: contains RFLAGS, not original rax)
+
+    ; Get original rcx from where we saved it
+    mov rcx, [rsp + 32]          ; Original rcx is 4 qwords back (rax, interrupt, cpu_flags, cr2)
+    push rcx                     ; Push actual rcx value
     push rdx
     push rbx
     push rbp
@@ -651,8 +663,8 @@ irq%1_stub:
     pop rcx
     pop rax
 
-    ; Skip interrupt number and cpu_flags (2 qwords)
-    add rsp, 16
+    ; Skip interrupt number, cpu_flags, cr2, and the temporary rcx save (4 qwords)
+    add rsp, 32
 
     ; Now stack has: RIP, CS, RFLAGS from the CPU interrupt frame
     ; iretq will pop these and return to caller

@@ -31,12 +31,14 @@ _native_io_write_dword:
 ; byte in_byte(ushort port)
 _native_io_read_byte:
     mov     dx, di
+    xor     eax, eax    ; Clear rax (xor eax,eax also zeros upper 32 bits)
     in      al, dx
     ret
 
 ; ushort in_word(ushort port)
 _native_io_read_word:
     mov     dx, di
+    xor     eax, eax    ; Clear rax
     in      ax, dx
     ret
 

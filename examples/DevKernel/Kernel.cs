@@ -49,7 +49,8 @@ internal static partial class Program
         TriggerTestInterrupt();
         Serial.WriteString("[Main] Test complete!\n");
 
-        while (true) ;
+        // Start simple shell
+        RunShell();
     }
 
 #if ARCH_X64
@@ -71,6 +72,65 @@ internal static partial class Program
         Serial.WriteString(context.cpu_flags.ToString("X16"));
         Serial.WriteString("\n");
         Serial.WriteString("[Test Interrupt] Handler execution complete\n");
+    }
+
+    private static void RunShell()
+    {
+        Serial.WriteString("[Shell] Starting shell...\n");
+        Console.WriteLine();
+        Console.WriteLine("=== CosmosOS Shell ===");
+        Console.WriteLine("Type 'help' for available commands.");
+        Console.WriteLine();
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? input = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(input))
+                continue;
+
+            string command = input.Trim().ToLower();
+
+            switch (command)
+            {
+                case "help":
+                    Console.WriteLine("Available commands:");
+                    Console.WriteLine("  help   - Show this help");
+                    Console.WriteLine("  clear  - Clear the screen");
+                    Console.WriteLine("  echo   - Echo back input");
+                    Console.WriteLine("  info   - Show system info");
+                    Console.WriteLine("  halt   - Halt the system");
+                    break;
+
+                case "clear":
+                    //KernelConsole.Clear();
+                    break;
+
+                case "info":
+                    Console.WriteLine("CosmosOS v3.0.0 (gen3)");
+                    Console.WriteLine("Architecture: x86-64");
+                    Console.WriteLine("Runtime: NativeAOT");
+                    break;
+
+                case "halt":
+                    Console.WriteLine("Halting system...");
+                    Cosmos.Kernel.Kernel.Halt();
+                    break;
+
+                default:
+                    if (command.StartsWith("echo "))
+                    {
+                        Console.WriteLine(input.Substring(5));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unknown command: " + command);
+                        Console.WriteLine("Type 'help' for available commands.");
+                    }
+                    break;
+            }
+        }
     }
 
     [ModuleInitializer]

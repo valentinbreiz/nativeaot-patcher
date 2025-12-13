@@ -27,6 +27,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
+
         *result = pMT;
         *(int*)(result + 1) = length;
         return result;
@@ -40,6 +41,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
+
         *result = pMT;
         *(int*)(result + 1) = length;
         return result;
@@ -52,6 +54,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
+
         *result = pMT;
         *(int*)(result + 1) = length;
         return result;

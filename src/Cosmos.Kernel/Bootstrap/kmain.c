@@ -6,7 +6,7 @@ int g_cpuFeatures = 0;
 // Entry point
 void kmain()
 {
-    // === Phase 1: Architecture Detection ===
+    // === Boot Banner ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("========================================\n");
     __cosmos_serial_write("  CosmosOS v" COSMOS_VERSION_STRING " (" COSMOS_CODENAME ")\n");
@@ -16,8 +16,9 @@ void kmain()
     __cosmos_serial_write("  Architecture: x86-64\n");
 #endif
     __cosmos_serial_write("========================================\n");
+    __cosmos_serial_write("\n");
 
-    // === Phase 2: CPU Initialization ===
+    // === Phase 1: CPU Initialization ===
     __cosmos_serial_write("[KMAIN] Phase 1: CPU initialization\n");
 
 #ifdef __aarch64__
@@ -34,7 +35,8 @@ void kmain()
     __cosmos_serial_write("[KMAIN]   - Alignment check disabled\n");
 #endif
 
-    // === Phase 3: Platform-specific early init ===
+    // === Phase 2: Platform-specific early init ===
+    __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 2: Platform initialization\n");
 
 #ifdef ARCH_X64
@@ -59,16 +61,19 @@ void kmain()
     __cosmos_serial_write("[KMAIN]   - ARM64: No ACPI early init required\n");
 #endif
 
-    // === Phase 4: Managed Runtime ===
-    __cosmos_serial_write("[KMAIN] Phase 3: Managed runtime startup\n");
-
-    __cosmos_serial_write("[KMAIN]   - Calling __Initialize_Kernel()...\n");
+    // === Phase 3: Managed Kernel Initialization ===
+    __cosmos_serial_write("\n");
+    __cosmos_serial_write("[KMAIN] Phase 3: Managed kernel initialization\n");
     __Initialize_Kernel();
 
-    __cosmos_serial_write("[KMAIN]   - Calling __managed__Startup()...\n");
+    // === Phase 4: Module Initialization ===
+    __cosmos_serial_write("\n");
+    __cosmos_serial_write("[KMAIN] Phase 4: Module initialization\n");
     __managed__Startup();
 
-    __cosmos_serial_write("[KMAIN]   - Calling __managed__Main()...\n");
+    // === Phase 5: User Kernel ===
+    __cosmos_serial_write("\n");
+    __cosmos_serial_write("[KMAIN] Phase 5: User kernel\n");
     __managed__Main();
 
     // Should never reach here
