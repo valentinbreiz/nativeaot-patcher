@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
+
+    <!-- Cosmos.Sdk is not compatible with Global Package management -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+
+    <!-- Disable stack trace metadata -->
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <StackTraceSupport>false</StackTraceSupport>
+  </PropertyGroup>
+
+  <!-- Add bootstrap folder -->
+  <ItemGroup>
+    <GCCProject Include="../../../src/Cosmos.Kernel/Bootstrap/" />
+  </ItemGroup>
+
+  <!-- X64-specific compiler flags -->
+  <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
+    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
+  </PropertyGroup>
+
+  <!-- ARM64-specific compiler flags -->
+  <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
+    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/aarch64-linux-gnu/13/include -fno-builtin -ffreestanding</GCCCompilerFlags>
+  </PropertyGroup>
+
+  <!-- PInvokes to be resolved -->
+  <ItemGroup>
+    <DirectPInvoke Include="test" />
+    <IlcArg Include="--verbose" />
+    <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
+  </ItemGroup>
+
+  <!-- Include Plugs -->
+  <ItemGroup>
+    <PlugReference Include="Cosmos.Kernel.Plugs" />
+  </ItemGroup>
+
+  <!-- Direct project references -->
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Cosmos.Kernel\Cosmos.Kernel.csproj" />
+    <ProjectReference Include="../../../src/Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
+    <ProjectReference Include="../../Cosmos.TestRunner.Framework/Cosmos.TestRunner.Framework.csproj" />
+  </ItemGroup>
+
+  <!-- Architecture-specific HAL references -->
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
+    <ProjectReference Include="../../../src/Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
+    <ProjectReference Include="../../../src/Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>

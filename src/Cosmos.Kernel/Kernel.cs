@@ -108,6 +108,13 @@ public class Kernel
         TimerManager.Initialize();
         TimerManager.RegisterTimer(pit);
 
+        // Calibrate TSC frequency for Stopwatch using PIT
+        Serial.WriteString("[KERNEL]   - Calibrating TSC frequency...\n");
+        X64CpuOps.CalibrateTsc();
+        Serial.WriteString("[KERNEL]   - TSC frequency: ");
+        Serial.WriteNumber((ulong)X64CpuOps.TscFrequency);
+        Serial.WriteString(" Hz\n");
+
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
         Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
         var ps2Controller = new PS2Controller();
