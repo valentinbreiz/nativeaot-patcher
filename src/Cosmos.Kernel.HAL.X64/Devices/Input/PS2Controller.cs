@@ -2,8 +2,8 @@
 // Ported from Cosmos.HAL2/PS2Controller.cs
 
 using System;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Devices;
 using Cosmos.Kernel.HAL.Devices.Input;
 

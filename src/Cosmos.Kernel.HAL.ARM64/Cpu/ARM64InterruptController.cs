@@ -43,7 +43,7 @@ public partial class ARM64InterruptController : IInterruptController
         // TODO: Implement GIC IRQ routing when GIC is supported
     }
 
-    public bool HandleFatalException(ulong interrupt, ulong cpuFlags)
+    public bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
         // ARM64: During early boot, halt on sync exceptions to prevent infinite recursion
         // interrupt 0 = sync exception from current EL with SP_EL0
@@ -52,6 +52,7 @@ public partial class ARM64InterruptController : IInterruptController
         {
             Serial.Write("[INT] FATAL: Unhandled ARM64 exception type ", interrupt, "\n");
             Serial.Write("[INT] ESR_EL1: 0x", cpuFlags.ToString("X"), "\n");
+            Serial.Write("[INT] FAR_EL1: 0x", faultAddress.ToString("X"), "\n");
             Serial.Write("[INT] System halted.\n");
             while (true) { }
         }

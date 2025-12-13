@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.HAL2/PS2Keyboard.cs
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;

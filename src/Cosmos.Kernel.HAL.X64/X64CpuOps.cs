@@ -19,6 +19,7 @@ public partial class X64CpuOps : ICpuOps
     [SuppressGCTransition]
     private static partial ulong NativeReadTSC();
 
+
     /// <summary>
     /// TSC (Time Stamp Counter) frequency in Hz.
     /// Default is 1 GHz as a reasonable estimate for modern CPUs.
@@ -40,6 +41,10 @@ public partial class X64CpuOps : ICpuOps
     }
 
     public void MemoryBarrier() => NativeMemoryBarrier();
+
+    public void DisableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.DisableInterrupts();
+
+    public void EnableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.EnableInterrupts();
 
     /// <summary>
     /// Reads the Time Stamp Counter (TSC).

@@ -2,9 +2,9 @@
 // Intel 82574 (E1000E) Gigabit Ethernet Controller Driver
 
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Network;

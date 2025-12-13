@@ -1,6 +1,9 @@
+// This code is licensed under MIT license (see LICENSE for details)
+
 using System.Runtime;
 using System.Runtime.CompilerServices;
-namespace Cosmos.Kernel.Core.Runtime;
+
+namespace Cosmos.Kernel.Core;
 
 /// <summary>
 /// Native low-level hardware access primitives.

@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
