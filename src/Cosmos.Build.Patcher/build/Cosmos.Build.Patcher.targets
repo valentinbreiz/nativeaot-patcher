@@ -121,9 +121,7 @@
       </AssembliesToPatch>
 
       <!-- Add filtered assemblies; place them under ref/ by filename -->
-      <!-- Exclude System.Private.CoreLib from patching - it should be copied unchanged -->
-      <AssembliesToPatch Include="@(FilteredAssembliesToPatch)"
-                         Condition="'%(FilteredAssembliesToPatch.Filename)' != 'System.Private.CoreLib'">
+      <AssembliesToPatch Include="@(FilteredAssembliesToPatch)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </AssembliesToPatch>
     </ItemGroup>
