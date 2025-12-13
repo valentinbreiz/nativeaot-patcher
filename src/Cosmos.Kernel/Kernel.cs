@@ -13,9 +13,11 @@ using Cosmos.Kernel.HAL.Acpi;
 using Cosmos.Kernel.HAL.Devices.Input;
 using Cosmos.Kernel.HAL.X64;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Pci;
 using Cosmos.Kernel.Services.Keyboard;
+using Cosmos.Kernel.Services.Timer;
 #elif ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
@@ -97,6 +99,14 @@ public class Kernel
         // Initialize APIC (Advanced Programmable Interrupt Controller)
         Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
         ApicManager.Initialize();
+
+        // Initialize PIT (Programmable Interval Timer)
+        Serial.WriteString("[KERNEL]   - Initializing PIT...\n");
+        var pit = new PIT();
+        pit.Initialize();
+        pit.RegisterIRQHandler();
+        TimerManager.Initialize();
+        TimerManager.RegisterTimer(pit);
 
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
         Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");

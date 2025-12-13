@@ -21,9 +21,28 @@ public static class LocalApic
     private const uint LAPIC_ICR_LOW = 0x300;     // Interrupt Command Register (low)
     private const uint LAPIC_ICR_HIGH = 0x310;    // Interrupt Command Register (high)
     private const uint LAPIC_TIMER_LVT = 0x320;   // LVT Timer Register
+    private const uint LAPIC_THERMAL_LVT = 0x330; // LVT Thermal Sensor Register
+    private const uint LAPIC_PERF_LVT = 0x340;    // LVT Performance Counter Register
     private const uint LAPIC_LINT0 = 0x350;       // LVT LINT0 Register
     private const uint LAPIC_LINT1 = 0x360;       // LVT LINT1 Register
     private const uint LAPIC_ERROR_LVT = 0x370;   // LVT Error Register
+    private const uint LAPIC_TIMER_INIT = 0x380;  // Timer Initial Count Register
+    private const uint LAPIC_TIMER_CURRENT = 0x390; // Timer Current Count Register
+    private const uint LAPIC_TIMER_DIVIDE = 0x3E0;  // Timer Divide Configuration Register
+
+    // Timer LVT bits
+    private const uint TIMER_MASKED = 0x10000;    // Timer interrupt masked
+    private const uint TIMER_PERIODIC = 0x20000;  // Periodic mode (vs one-shot)
+    private const byte TIMER_VECTOR = 0x20;       // Timer interrupt vector (32)
+
+    // Timer divide values (divide by 1, 2, 4, 8, 16, 32, 64, 128)
+    private const uint TIMER_DIVIDE_BY_1 = 0xB;
+    private const uint TIMER_DIVIDE_BY_16 = 0x3;
+
+    // PIT ports for calibration
+    private const ushort PIT_CHANNEL0_DATA = 0x40;
+    private const ushort PIT_COMMAND = 0x43;
+    private const uint PIT_FREQUENCY = 1193182;   // PIT base frequency in Hz
 
     // SVR bits
     private const uint SVR_ENABLE = 0x100;        // APIC Software Enable
@@ -31,6 +50,8 @@ public static class LocalApic
 
     private static ulong _baseAddress;
     private static bool _initialized;
+    private static uint _ticksPerMs;
+    private static bool _timerCalibrated;
 
     /// <summary>
     /// Gets the base address of the Local APIC.
@@ -140,5 +161,145 @@ public static class LocalApic
     private static void Write(uint offset, uint value)
     {
         Native.MMIO.Write32(_baseAddress + offset, value);
+    }
+
+    /// <summary>
+    /// Gets whether the LAPIC timer has been calibrated.
+    /// </summary>
+    public static bool IsTimerCalibrated => _timerCalibrated;
+
+    /// <summary>
+    /// Gets the calibrated ticks per millisecond.
+    /// </summary>
+    public static uint TicksPerMs => _ticksPerMs;
+
+    /// <summary>
+    /// Calibrates the LAPIC timer using the PIT as a reference.
+    /// Must be called after Initialize() and before using timer functions.
+    /// </summary>
+    public static void CalibrateTimer()
+    {
+        if (!_initialized)
+        {
+            Serial.Write("[LocalAPIC] ERROR: Cannot calibrate timer - APIC not initialized\n");
+            return;
+        }
+
+        Serial.Write("[LocalAPIC] Calibrating timer using PIT...\n");
+
+        // Set timer divide to 16
+        Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);
+
+        // Configure PIT channel 0 for one-shot mode, ~10ms delay
+        // 10ms = 11932 ticks at 1193182 Hz
+        const ushort pitCount = 11932;
+
+        // PIT command: channel 0, lobyte/hibyte, one-shot mode, binary
+        Native.IO.Write8(PIT_COMMAND, 0x30);
+        Native.IO.Write8(PIT_CHANNEL0_DATA, (byte)(pitCount & 0xFF));
+        Native.IO.Write8(PIT_CHANNEL0_DATA, (byte)(pitCount >> 8));
+
+        // Set LAPIC timer to max initial count (one-shot, masked)
+        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_INIT, 0xFFFFFFFF);
+
+        // Wait for PIT to count down by polling
+        // Read back current count until it wraps or reaches near zero
+        ushort lastCount = pitCount;
+        while (true)
+        {
+            // Latch count for channel 0
+            Native.IO.Write8(PIT_COMMAND, 0x00);
+            byte lo = Native.IO.Read8(PIT_CHANNEL0_DATA);
+            byte hi = Native.IO.Read8(PIT_CHANNEL0_DATA);
+            ushort currentCount = (ushort)(lo | (hi << 8));
+
+            // PIT counts down, check if we've passed our target
+            if (currentCount > lastCount || currentCount == 0)
+                break;
+            lastCount = currentCount;
+        }
+
+        // Read how many LAPIC ticks elapsed
+        uint lapicTicksElapsed = 0xFFFFFFFF - Read(LAPIC_TIMER_CURRENT);
+
+        // Stop the timer
+        Write(LAPIC_TIMER_INIT, 0);
+
+        // Calculate ticks per ms (we waited ~10ms)
+        // Account for divide by 16
+        _ticksPerMs = lapicTicksElapsed / 10;
+
+        _timerCalibrated = true;
+        Serial.Write("[LocalAPIC] Timer calibrated: ", _ticksPerMs, " ticks/ms\n");
+    }
+
+    /// <summary>
+    /// Blocks for the specified number of milliseconds using the LAPIC timer.
+    /// </summary>
+    /// <param name="ms">Number of milliseconds to wait.</param>
+    public static void Wait(uint ms)
+    {
+        if (!_timerCalibrated)
+        {
+            Serial.Write("[LocalAPIC] ERROR: Timer not calibrated\n");
+            return;
+        }
+
+        if (ms == 0)
+            return;
+
+        // Set timer divide to 16 (same as calibration)
+        Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);
+
+        // Calculate ticks needed
+        uint ticks = _ticksPerMs * ms;
+
+        // Set up one-shot timer (masked - we poll instead of interrupt)
+        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_INIT, ticks);
+
+        // Poll until timer reaches zero
+        while (Read(LAPIC_TIMER_CURRENT) > 0)
+        {
+            // Busy wait
+        }
+    }
+
+    /// <summary>
+    /// Starts the LAPIC timer in periodic mode with the given interval.
+    /// Will fire interrupt on TIMER_VECTOR (0x20 = 32).
+    /// </summary>
+    /// <param name="intervalMs">Interval in milliseconds between interrupts.</param>
+    public static void StartPeriodicTimer(uint intervalMs)
+    {
+        if (!_timerCalibrated)
+        {
+            Serial.Write("[LocalAPIC] ERROR: Timer not calibrated\n");
+            return;
+        }
+
+        uint ticks = _ticksPerMs * intervalMs;
+
+        Serial.Write("[LocalAPIC] Starting periodic timer: ", intervalMs, "ms (", ticks, " ticks)\n");
+
+        // Set timer divide to 16
+        Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);
+
+        // Configure timer: periodic mode, unmasked, vector 0x20
+        Write(LAPIC_TIMER_LVT, TIMER_PERIODIC | TIMER_VECTOR);
+
+        // Set initial count to start the timer
+        Write(LAPIC_TIMER_INIT, ticks);
+    }
+
+    /// <summary>
+    /// Stops the LAPIC timer.
+    /// </summary>
+    public static void StopTimer()
+    {
+        // Mask the timer and set count to 0
+        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_INIT, 0);
     }
 }

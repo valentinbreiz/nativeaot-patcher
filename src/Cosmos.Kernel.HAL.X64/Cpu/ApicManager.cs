@@ -41,6 +41,10 @@ public static class ApicManager
         Serial.Write("[ApicManager] Initializing Local APIC...\n");
         LocalApic.Initialize(madt.LocalApicAddress);
 
+        // Calibrate LAPIC timer
+        Serial.Write("[ApicManager] Calibrating LAPIC timer...\n");
+        LocalApic.CalibrateTimer();
+
         // Initialize I/O APIC(s)
         var ioApics = madt.IoApics;
         if (ioApics.Length > 0)
@@ -118,4 +122,18 @@ public static class ApicManager
     {
         IoApic.UnmaskIrq(irq);
     }
+
+    /// <summary>
+    /// Blocks for the specified number of milliseconds using the LAPIC timer.
+    /// </summary>
+    /// <param name="ms">Number of milliseconds to wait.</param>
+    public static void Wait(uint ms)
+    {
+        LocalApic.Wait(ms);
+    }
+
+    /// <summary>
+    /// Gets whether the LAPIC timer is calibrated.
+    /// </summary>
+    public static bool IsTimerCalibrated => LocalApic.IsTimerCalibrated;
 }
