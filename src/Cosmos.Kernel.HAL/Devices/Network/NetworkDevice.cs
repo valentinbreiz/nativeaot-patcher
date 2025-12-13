@@ -22,7 +22,7 @@ public abstract class NetworkDevice : Device, INetworkDevice
     /// <summary>
     /// Gets the MAC address of the device.
     /// </summary>
-    public abstract byte[] MacAddress { get; }
+    public abstract MACAddress MacAddress { get; }
 
     /// <summary>
     /// Gets whether the link is up.

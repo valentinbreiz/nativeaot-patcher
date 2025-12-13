@@ -109,7 +109,7 @@ public class E1000E : PciDevice, INetworkDevice
     public static E1000E? Instance { get; private set; }
 
     private readonly ulong _mmioBase;
-    private readonly byte[] _macAddress;
+    private MACAddress _macAddress;
     private bool _networkInitialized;
     private bool _linkUp;
 
@@ -131,8 +131,7 @@ public class E1000E : PciDevice, INetworkDevice
     private ulong _msixTableBase;
 
     string INetworkDevice.Name => "Intel E1000E";
-    public byte[] MacAddress => _macAddress;
-    public MACAddress MACAddressObj => new MACAddress(_macAddress);
+    public MACAddress MacAddress => _macAddress;
     public bool LinkUp => _linkUp;
     public bool Ready => _networkInitialized;
 
@@ -182,8 +181,6 @@ public class E1000E : PciDevice, INetworkDevice
     /// <param name="function">PCI function number.</param>
     public E1000E(uint bus, uint slot, uint function) : base(bus, slot, function)
     {
-        _macAddress = new byte[6];
-
         // Get MMIO base address from BAR0
         if (BaseAddressBar != null && BaseAddressBar.Length > 0)
         {
@@ -259,7 +256,7 @@ public class E1000E : PciDevice, INetworkDevice
         // Read MAC address
         ReadMacAddress();
         Serial.Write("[E1000E] MAC Address: ");
-        PrintMacAddress(_macAddress);
+        Serial.WriteString(_macAddress.ToString());
         Serial.Write("\n");
 
         // Detect MSI-X capability
@@ -335,18 +332,21 @@ public class E1000E : PciDevice, INetworkDevice
     /// </summary>
     private void ReadMacAddress()
     {
+        byte[] mac = new byte[6];
+
         // Try reading from RAL/RAH first (might already be programmed)
         uint ral = ReadMmio(REG_RAL0);
         uint rah = ReadMmio(REG_RAH0);
 
         if (ral != 0 || (rah & 0xFFFF) != 0)
         {
-            _macAddress[0] = (byte)(ral & 0xFF);
-            _macAddress[1] = (byte)((ral >> 8) & 0xFF);
-            _macAddress[2] = (byte)((ral >> 16) & 0xFF);
-            _macAddress[3] = (byte)((ral >> 24) & 0xFF);
-            _macAddress[4] = (byte)(rah & 0xFF);
-            _macAddress[5] = (byte)((rah >> 8) & 0xFF);
+            mac[0] = (byte)(ral & 0xFF);
+            mac[1] = (byte)((ral >> 8) & 0xFF);
+            mac[2] = (byte)((ral >> 16) & 0xFF);
+            mac[3] = (byte)((ral >> 24) & 0xFF);
+            mac[4] = (byte)(rah & 0xFF);
+            mac[5] = (byte)((rah >> 8) & 0xFF);
+            _macAddress = new MACAddress(mac);
             return;
         }
 
@@ -354,14 +354,17 @@ public class E1000E : PciDevice, INetworkDevice
         for (int i = 0; i < 3; i++)
         {
             ushort word = ReadEeprom((ushort)i);
-            _macAddress[i * 2] = (byte)(word & 0xFF);
-            _macAddress[i * 2 + 1] = (byte)((word >> 8) & 0xFF);
+            mac[i * 2] = (byte)(word & 0xFF);
+            mac[i * 2 + 1] = (byte)((word >> 8) & 0xFF);
         }
 
+        // Create MACAddress object
+        _macAddress = new MACAddress(mac);
+
         // Program MAC address into RAL/RAH
-        ral = (uint)_macAddress[0] | ((uint)_macAddress[1] << 8) |
-              ((uint)_macAddress[2] << 16) | ((uint)_macAddress[3] << 24);
-        rah = (uint)_macAddress[4] | ((uint)_macAddress[5] << 8) | (1u << 31); // AV bit
+        ral = (uint)mac[0] | ((uint)mac[1] << 8) |
+              ((uint)mac[2] << 16) | ((uint)mac[3] << 24);
+        rah = (uint)mac[4] | ((uint)mac[5] << 8) | (1u << 31); // AV bit
 
         WriteMmio(REG_RAL0, ral);
         WriteMmio(REG_RAH0, rah);
@@ -729,22 +732,4 @@ public class E1000E : PciDevice, INetworkDevice
         return virtualAddress;
     }
 
-    /// <summary>
-    /// Prints a MAC address to serial output.
-    /// </summary>
-    private static void PrintMacAddress(byte[] mac)
-    {
-        if (mac == null || mac.Length != 6)
-        {
-            Serial.Write("00:00:00:00:00:00");
-            return;
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            if (i > 0)
-                Serial.Write(":");
-            Serial.WriteHex(mac[i]);
-        }
-    }
 }

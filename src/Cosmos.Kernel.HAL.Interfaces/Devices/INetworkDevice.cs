@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.HAL.Devices.Network;
+
 namespace Cosmos.Kernel.HAL.Interfaces.Devices;
 
 /// <summary>
@@ -22,7 +24,7 @@ public interface INetworkDevice
     /// <summary>
     /// Gets the MAC address of the device.
     /// </summary>
-    byte[] MacAddress { get; }
+    MACAddress MacAddress { get; }
 
     /// <summary>
     /// Gets whether the link is up.

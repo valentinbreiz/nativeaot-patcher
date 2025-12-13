@@ -138,7 +138,7 @@ public class IPPacket : EthernetPacket
         if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
         {
             var device = NetworkStack.AddressMap[sourceIP.Hash];
-            return new MACAddress(device.MacAddress);
+            return device.MacAddress;
         }
         return MACAddress.None;
     }

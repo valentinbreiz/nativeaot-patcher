@@ -186,14 +186,7 @@ internal static partial class Program
         }
 
         Console.WriteLine("Network Device: " + device.Name);
-        Console.Write("MAC Address: ");
-        var mac = device.MacAddress;
-        for (int i = 0; i < 6; i++)
-        {
-            if (i > 0) Console.Write(":");
-            Console.Write(mac[i].ToString("X2"));
-        }
-        Console.WriteLine();
+        Console.WriteLine("MAC Address: " + device.MacAddress.ToString());
         Console.WriteLine("Link: " + (device.LinkUp ? "UP" : "DOWN"));
         Console.WriteLine("Ready: " + (device.Ready ? "YES" : "NO"));
         Console.WriteLine("IP Configured: " + (_networkConfigured ? "YES" : "NO"));

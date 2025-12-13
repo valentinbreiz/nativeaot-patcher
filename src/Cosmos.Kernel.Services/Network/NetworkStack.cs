@@ -43,7 +43,7 @@ public static class NetworkStack
             Initialize();
         }
 
-        var mac = new MACAddress(device.MacAddress);
+        var mac = device.MacAddress;
 
         // Remove old config if exists
         if (MACMap!.ContainsKey(mac.Hash))
