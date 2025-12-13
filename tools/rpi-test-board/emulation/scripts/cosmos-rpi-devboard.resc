@@ -1,0 +1,214 @@
+# Renode Script for Cosmos-RPi-Dev-Board Emulation
+#
+# Based on KiCad schematic: CosmosRpiDevBoard.kicad_sch
+# and STM32CubeMX config: MainController/MainController.ioc
+#
+# Hardware Configuration (from schematic):
+# - ESP32-S3 (U5): WiFi module, SPI master to STM32
+# - STM32H563RGT6: Main controller, SPI slave from ESP32
+#
+# SPI Connections (from KiCad):
+#   ESP32 SPI1 <-> STM32 SPI1 (slave):
+#     ESP32 GPIO9 (CS) -> STM32 PA3 (SPI1_NSS)
+#     ESP32 GPIO10 (MOSI) -> STM32 PB5 (SPI1_MOSI)
+#     ESP32 GPIO11 (CLK) -> STM32 PB3 (SPI1_SCK)
+#     ESP32 GPIO12 (MISO) <- STM32 PA6 (SPI1_MISO)
+#
+#   ESP32 SPI2 <-> STM32 SPI2 (slave):
+#     ESP32 GPIO5 (CS) -> STM32 PA4 (SPI2_NSS)
+#     ESP32 GPIO6 (MOSI) -> STM32 PC3 (SPI2_MOSI)
+#     ESP32 GPIO7 (CLK) -> STM32 PB13 (SPI2_SCK)
+#     ESP32 GPIO8 (MISO) <- STM32 PC2 (SPI2_MISO)
+#
+# UART Connections:
+#   STM32 USART1 (PA9/PA10) -> Raspberry Pi UART
+#   STM32 USART6 (PC6/PC7) -> Debug console
+#   ESP32 UART0 (GPIO17/GPIO18) -> Debug console
+#
+# GPIO Connections:
+#   STM32 PB6 -> STATUS_LED
+#   STM32 PB7 -> EXT_RST (RPi reset)
+#   STM32 PB8 -> EXT_BOOT (RPi boot mode)
+#   ESP32 GPIO1 -> ESP32_LED
+#   ESP32 GPIO2 -> STM32_WKUP (wake-up signal)
+#
+# Usage:
+#   renode cosmos-rpi-devboard.resc
+#   (cosmos-rpi-devboard) start
+#
+# Or with ISO injection:
+#   renode -e "$iso_path = '/path/to/kernel.iso'; include @cosmos-rpi-devboard.resc; start"
+
+# Configuration variables (can be overridden from command line)
+$iso_path ?= ""
+$esp32_firmware ?= ""
+$stm32_firmware ?= ""
+$uart_log_path ?= "uart-output.log"
+$timeout_seconds ?= 120
+
+# Log configuration
+logLevel 3  # Warning level
+
+# ============================================================================
+# Machine 1: ESP32-S3 (WiFi Module - U5)
+# ============================================================================
+
+mach create "esp32"
+machine LoadPlatformDescription @platforms/esp32s3.repl
+
+# Create analyzer for ESP32 debug UART (GPIO17=TX, GPIO18=RX)
+# Note: showAnalyzer requires GUI, skip in headless mode
+# showAnalyzer uart0
+
+# Firmware loading (when provided via command line)
+# Usage: renode -e "$esp32_firmware = 'path/to/esp32.elf'; include @..."
+# Note: Firmware loading is optional - platforms work without it for testing
+
+# ============================================================================
+# Machine 2: STM32H563 (Main Controller)
+# ============================================================================
+
+mach create "stm32"
+machine LoadPlatformDescription @platforms/stm32h563.repl
+
+# Create analyzer for RPi UART (USART1 - PA9=TX, PA10=RX)
+# Note: showAnalyzer requires GUI, skip in headless mode
+# showAnalyzer usart1
+
+# Create analyzer for debug UART (USART6 - PC6=TX, PC7=RX)
+# showAnalyzer usart6
+
+# Log USART1 output to file (this is the RPi UART connection)
+# Note: CreateFileBackend requires valid path, commented for now
+# usart1 CreateFileBackend $uart_log_path true
+
+# STM32 firmware loading (when provided via command line)
+# Usage: renode -e "$stm32_firmware = 'path/to/stm32.elf'; include @..."
+
+# ============================================================================
+# Inter-MCU SPI Connections (from KiCad schematic)
+# ============================================================================
+
+echo "Configuring SPI bus connections..."
+
+# ESP32 is SPI Master, STM32 is SPI Slave
+# Connection: ESP32 SPI2 (HSPI) <-> STM32 SPI1
+
+# In Renode, SPI master-slave connection can be done via connector
+# Note: Actual protocol handled by firmware
+
+# Create connector for SPI1 bus (ESP32 master -> STM32 slave)
+# spi2@esp32 -> spi1@stm32  (ESP32 GPIO9-12 -> STM32 PA3/PA6/PB3/PB5)
+
+# Create connector for SPI2 bus (ESP32 master -> STM32 slave)
+# spi3@esp32 -> spi2@stm32  (ESP32 GPIO5-8 -> STM32 PA4/PB13/PC2/PC3)
+
+# ============================================================================
+# GPIO Signal Routing (from KiCad schematic)
+# ============================================================================
+
+echo "Configuring GPIO signal routing..."
+
+# ESP32 GPIO2 (STM32_WKUP) -> STM32 wake-up input
+# This allows ESP32 to wake STM32 from low-power mode
+
+# STM32 PB7 (EXT_RST) -> RPi reset control
+# STM32 PB8 (EXT_BOOT) -> RPi boot mode control
+
+# ============================================================================
+# ISO Injection (Simulates WiFi download from GitHub Actions)
+# ============================================================================
+
+# ISO Injection (Simulates WiFi download from GitHub Actions)
+# Usage: renode -e "$iso_path = '/path/to/kernel.iso'; include @..."
+# When ISO is provided, it can be loaded into ESP32 memory for testing
+
+# ============================================================================
+# Virtual MicroSD Card (from STM32 SDMMC1 - PC8-12, PD2)
+# ============================================================================
+
+# Note: SDMMC emulation requires firmware to write received ISO to virtual SD
+# The STM32 receives ISO via SPI from ESP32, then writes to SDMMC
+
+# ============================================================================
+# QEMU ARM64 Bridge (Simulates Raspberry Pi 4B)
+# ============================================================================
+
+# The STM32's USART1 connects to RPi UART for test result collection
+# In full emulation, QEMU ARM64 is started as external process
+# UART traffic captured to file for post-processing
+
+echo ""
+echo "=============================================="
+echo "Cosmos-RPi-Dev-Board Emulation Ready"
+echo "=============================================="
+echo ""
+echo "Hardware Configuration (from KiCad schematic):"
+echo ""
+echo "  ESP32-S3 (U5) - WiFi Module:"
+echo "    - SPI1: GPIO9(CS), GPIO10(MOSI), GPIO11(CLK), GPIO12(MISO)"
+echo "    - SPI2: GPIO5(CS), GPIO6(MOSI), GPIO7(CLK), GPIO8(MISO)"
+echo "    - UART: GPIO17(TX), GPIO18(RX)"
+echo "    - LED: GPIO1"
+echo ""
+echo "  STM32H563 - Main Controller:"
+echo "    - SPI1 (slave): PA3(NSS), PA6(MISO), PB3(SCK), PB5(MOSI)"
+echo "    - SPI2 (slave): PA4(NSS), PB13(SCK), PC2(MISO), PC3(MOSI)"
+echo "    - USART1 (RPi): PA9(TX), PA10(RX)"
+echo "    - USART6 (debug): PC6(TX), PC7(RX)"
+echo "    - SDMMC1: PC8-12, PD2"
+echo "    - STATUS_LED: PB6"
+echo "    - EXT_RST: PB7, EXT_BOOT: PB8"
+echo ""
+echo "Usage:"
+echo "  renode -e \"\$iso_path = '/path/to/kernel.iso'; include @scripts/cosmos-rpi-devboard.resc\""
+echo ""
+echo "Commands:"
+echo "  mach set 'esp32'  - Switch to ESP32 context"
+echo "  mach set 'stm32'  - Switch to STM32 context"
+echo "  start             - Start emulation"
+echo "  pause             - Pause emulation"
+echo "  quit              - Exit Renode"
+echo ""
+
+# ============================================================================
+# Test Automation Macros
+# ============================================================================
+
+# Wait for test completion marker in UART output
+# Binary protocol end marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
+macro TestComplete
+"""
+    echo "Waiting for test completion marker..."
+    echo "End marker: 0xDEADBEEFCAFEBABE"
+"""
+
+# Set emulation timeout
+macro SetTimeout
+"""
+    echo "Setting test timeout to $timeout_seconds seconds"
+    machine SetTimeSourceForEmulation "stm32"
+    emulation RunFor @$timeout_seconds
+"""
+
+# Debug: Log SPI traffic
+macro EnableSPILogging
+"""
+    mach set "stm32"
+    sysbus LogPeripheralAccess spi1 true
+    sysbus LogPeripheralAccess spi2 true
+    mach set "esp32"
+    sysbus LogPeripheralAccess spi2 true
+    sysbus LogPeripheralAccess spi3 true
+    echo "SPI logging enabled for both machines"
+"""
+
+# Debug: Show LED states
+macro ShowLEDs
+"""
+    echo "LED States:"
+    mach set "stm32"
+    echo "  STM32 STATUS_LED (PB6): [check gpioPortB]"
+    mach set "esp32"
+    echo "  ESP32 LED (GPIO1): [check gpio]"
+"""

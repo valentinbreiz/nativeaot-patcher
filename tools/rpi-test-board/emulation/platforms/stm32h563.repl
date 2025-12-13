@@ -1,0 +1,116 @@
+// Renode Platform Definition for STM32H563RGT6
+// Cosmos-RPi-Dev-Board Main Controller
+//
+// Pin configuration from MainController.ioc (CubeMX)
+//
+// SPI1 (to ESP32 - Slave mode):
+//   PA3  - SPI1_NSS  (Chip Select)
+//   PA6  - SPI1_MISO
+//   PB3  - SPI1_SCK
+//   PB5  - SPI1_MOSI
+//
+// SPI2 (to ESP32 - Slave mode):
+//   PA4  - SPI2_NSS  (Chip Select)
+//   PB13 - SPI2_SCK
+//   PC2  - SPI2_MISO
+//   PC3  - SPI2_MOSI
+//
+// USART1 (to Raspberry Pi):
+//   PA9  - USART1_TX
+//   PA10 - USART1_RX
+//
+// USART6 (Debug):
+//   PC6  - USART6_TX
+//   PC7  - USART6_RX
+//
+// SDMMC1 (MicroSD):
+//   PC8  - SDMMC1_D0
+//   PC9  - SDMMC1_D1
+//   PC10 - SDMMC1_D2
+//   PC11 - SDMMC1_D3
+//   PC12 - SDMMC1_CK
+//   PD2  - SDMMC1_CMD
+//   PA15 - SDMMC_CD (Card Detect)
+//
+// Ethernet RMII:
+//   PA1  - ETH_REF_CLK
+//   PA2  - ETH_MDIO
+//   PA5  - ETH_TX_EN
+//   PA7  - ETH_CRS_DV
+//   PB12 - ETH_TXD0
+//   PB15 - ETH_TXD1
+//   PC1  - ETH_MDC
+//   PC4  - ETH_RXD0
+//   PC5  - ETH_RXD1
+//   PB10 - ETH_INT
+//
+// GPIO:
+//   PB2  - ETH_LED_Y (Yellow LED)
+//   PB6  - STATUS_LED
+//   PB7  - EXT_RST (External Reset - RPi?)
+//   PB8  - EXT_BOOT (External Boot - RPi?)
+//
+// USB:
+//   PA11 - USB_DM
+//   PA12 - USB_DP
+
+// Memory
+flash: Memory.MappedMemory @ sysbus 0x08000000
+    size: 0x200000  // 2MB Flash
+
+sram1: Memory.MappedMemory @ sysbus 0x20000000
+    size: 0x50000   // 320KB SRAM
+
+// CPU and Interrupt Controller
+nvic: IRQControllers.NVIC @ sysbus 0xE000E000
+    priorityMask: 0xF0
+    systickFrequency: 250000000
+    IRQ -> cpu@0
+
+cpu: CPU.CortexM @ sysbus
+    cpuType: "cortex-m33"
+    nvic: nvic
+
+// USART1 - Connected to Raspberry Pi UART (PA9=TX, PA10=RX)
+usart1: UART.STM32_UART @ sysbus <0x40013800, +0x100>
+    -> nvic@37
+
+// USART6 - Debug output (PC6=TX, PC7=RX)
+usart6: UART.STM32_UART @ sysbus <0x40006400, +0x100>
+    -> nvic@71
+
+// GPIO Ports - H5 series addresses
+gpioPortA: GPIOPort.STM32_GPIOPort @ sysbus <0x42020000, +0x400>
+    numberOfAFs: 16
+
+gpioPortB: GPIOPort.STM32_GPIOPort @ sysbus <0x42020400, +0x400>
+    numberOfAFs: 16
+
+gpioPortC: GPIOPort.STM32_GPIOPort @ sysbus <0x42020800, +0x400>
+    numberOfAFs: 16
+
+gpioPortD: GPIOPort.STM32_GPIOPort @ sysbus <0x42020C00, +0x400>
+    numberOfAFs: 16
+
+// Status LED (PB6)
+statusLed: Miscellaneous.LED @ gpioPortB 6
+
+// Ethernet Yellow LED (PB2)
+ethLedYellow: Miscellaneous.LED @ gpioPortB 2
+
+// External Reset Button simulation (PB7 - EXT_RST)
+extReset: Miscellaneous.Button @ gpioPortB 7
+
+// External Boot Button simulation (PB8 - EXT_BOOT)
+extBoot: Miscellaneous.Button @ gpioPortB 8
+
+// SDMMC Card Detect (PA15)
+sdCardDetect: Miscellaneous.Button @ gpioPortA 15
+
+// CRC Unit
+crc: CRC.STM32_CRC @ sysbus 0x40023000
+    series: STM32Series.F4  // Compatible mode
+
+// DWT for timing
+dwt: Miscellaneous.DWT @ sysbus 0xE0001000
+    frequency: 250000000
