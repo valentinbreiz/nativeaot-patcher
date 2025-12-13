@@ -10,6 +10,10 @@ namespace Cosmos.Kernel.Plugs.System;
 [Plug(typeof(Console))]
 public class ConsolePlug
 {
+    // Track the start position for current input line (for proper backspace/delete handling)
+    private static int _inputStartX;
+    private static int _inputStartY;
+
     [PlugMember]
     public static void Write(string value) => KernelConsole.Write(value);
 
@@ -24,6 +28,107 @@ public class ConsolePlug
 
     [PlugMember]
     public static void WriteLine() => KernelConsole.WriteLine();
+
+    [PlugMember]
+    public static void Clear() => KernelConsole.Clear();
+
+    [PlugMember]
+    public static ConsoleColor get_ForegroundColor()
+    {
+        // Return white as default - we don't track the reverse mapping
+        return ConsoleColor.White;
+    }
+
+    [PlugMember]
+    public static void set_ForegroundColor(ConsoleColor value)
+    {
+        KernelConsole.SetForegroundColor(value);
+    }
+
+    [PlugMember]
+    public static ConsoleColor get_BackgroundColor()
+    {
+        // Return black as default - we don't track the reverse mapping
+        return ConsoleColor.Black;
+    }
+
+    [PlugMember]
+    public static void set_BackgroundColor(ConsoleColor value)
+    {
+        KernelConsole.SetBackgroundColor(value);
+    }
+
+    [PlugMember]
+    public static void ResetColor()
+    {
+        KernelConsole.ResetColors();
+    }
+
+    [PlugMember]
+    public static int get_CursorLeft()
+    {
+        return KernelConsole.CursorX;
+    }
+
+    [PlugMember]
+    public static void set_CursorLeft(int value)
+    {
+        KernelConsole.CursorX = value;
+    }
+
+    [PlugMember]
+    public static int get_CursorTop()
+    {
+        return KernelConsole.CursorY;
+    }
+
+    [PlugMember]
+    public static void set_CursorTop(int value)
+    {
+        KernelConsole.CursorY = value;
+    }
+
+    [PlugMember]
+    public static void SetCursorPosition(int left, int top)
+    {
+        KernelConsole.SetCursorPosition(left, top);
+    }
+
+    [PlugMember]
+    public static bool get_CursorVisible()
+    {
+        return KernelConsole.CursorVisible;
+    }
+
+    [PlugMember]
+    public static void set_CursorVisible(bool value)
+    {
+        KernelConsole.CursorVisible = value;
+    }
+
+    [PlugMember]
+    public static int get_WindowWidth()
+    {
+        return KernelConsole.Cols;
+    }
+
+    [PlugMember]
+    public static int get_WindowHeight()
+    {
+        return KernelConsole.Rows;
+    }
+
+    [PlugMember]
+    public static int get_BufferWidth()
+    {
+        return KernelConsole.Cols;
+    }
+
+    [PlugMember]
+    public static int get_BufferHeight()
+    {
+        return KernelConsole.Rows;
+    }
 
 #if ARCH_X64
     [PlugMember]
@@ -50,34 +155,150 @@ public class ConsolePlug
     {
         var sb = new StringBuilder();
 
+        // Track cursor position within input string
+        int cursorPos = 0;
+
+        // Save the starting position for this input
+        _inputStartX = KernelConsole.CursorX;
+        _inputStartY = KernelConsole.CursorY;
+
         while (true)
         {
             var keyEvent = KeyboardManager.ReadKey();
 
-            if (keyEvent.Key == ConsoleKeyEx.Enter)
+            switch (keyEvent.Key)
             {
-                KernelConsole.WriteLine();
-                break;
-            }
-            else if (keyEvent.Key == ConsoleKeyEx.Backspace)
-            {
-                if (sb.Length > 0)
-                {
-                    sb.Remove(sb.Length - 1, 1);
-                    // Move cursor back, print space, move cursor back again
-                    KernelConsole.Write('\b');
-                    KernelConsole.Write(' ');
-                    KernelConsole.Write('\b');
-                }
-            }
-            else if (keyEvent.KeyChar != '\0')
-            {
-                sb.Append(keyEvent.KeyChar);
-                KernelConsole.Write(keyEvent.KeyChar);
+                case ConsoleKeyEx.Enter:
+                    KernelConsole.WriteLine();
+                    return sb.ToString();
+
+                case ConsoleKeyEx.Backspace:
+                    if (cursorPos > 0)
+                    {
+                        // Remove character from string at cursor position
+                        sb.Remove(cursorPos - 1, 1);
+                        cursorPos--;
+
+                        // Move cursor back
+                        KernelConsole.MoveCursorLeft();
+
+                        // If we're not at the end, shift remaining chars left
+                        if (cursorPos < sb.Length)
+                        {
+                            // Save current position
+                            int savedX = KernelConsole.CursorX;
+                            int savedY = KernelConsole.CursorY;
+
+                            // Redraw remaining characters
+                            for (int i = cursorPos; i < sb.Length; i++)
+                            {
+                                KernelConsole.Write(sb[i]);
+                            }
+                            // Clear the last position (now empty)
+                            KernelConsole.Write(' ');
+
+                            // Restore cursor position
+                            KernelConsole.SetCursorPosition(savedX, savedY);
+                        }
+                        else
+                        {
+                            // Simple case: at end of string
+                            KernelConsole.Write(' ');
+                            KernelConsole.MoveCursorLeft();
+                        }
+                    }
+                    break;
+
+                case ConsoleKeyEx.Delete:
+                    if (cursorPos < sb.Length)
+                    {
+                        // Remove character at cursor position
+                        sb.Remove(cursorPos, 1);
+
+                        // Save current position
+                        int savedX = KernelConsole.CursorX;
+                        int savedY = KernelConsole.CursorY;
+
+                        // Redraw remaining characters
+                        for (int i = cursorPos; i < sb.Length; i++)
+                        {
+                            KernelConsole.Write(sb[i]);
+                        }
+                        // Clear the last position (now empty)
+                        KernelConsole.Write(' ');
+
+                        // Restore cursor position
+                        KernelConsole.SetCursorPosition(savedX, savedY);
+                    }
+                    break;
+
+                case ConsoleKeyEx.LeftArrow:
+                    if (cursorPos > 0)
+                    {
+                        cursorPos--;
+                        KernelConsole.MoveCursorLeft();
+                    }
+                    break;
+
+                case ConsoleKeyEx.RightArrow:
+                    if (cursorPos < sb.Length)
+                    {
+                        cursorPos++;
+                        KernelConsole.MoveCursorRight();
+                    }
+                    break;
+
+                case ConsoleKeyEx.Home:
+                    // Move cursor to start of input
+                    while (cursorPos > 0)
+                    {
+                        cursorPos--;
+                        KernelConsole.MoveCursorLeft();
+                    }
+                    break;
+
+                case ConsoleKeyEx.End:
+                    // Move cursor to end of input
+                    while (cursorPos < sb.Length)
+                    {
+                        cursorPos++;
+                        KernelConsole.MoveCursorRight();
+                    }
+                    break;
+
+                default:
+                    if (keyEvent.KeyChar != '\0')
+                    {
+                        if (cursorPos < sb.Length)
+                        {
+                            // Insert character in the middle
+                            sb.Insert(cursorPos, keyEvent.KeyChar);
+                            cursorPos++;
+
+                            // Save current position after typing the new char
+                            int afterTyping = KernelConsole.CursorX + 1;
+                            int savedY = KernelConsole.CursorY;
+
+                            // Redraw from current position
+                            for (int i = cursorPos - 1; i < sb.Length; i++)
+                            {
+                                KernelConsole.Write(sb[i]);
+                            }
+
+                            // Move cursor to correct position
+                            KernelConsole.SetCursorPosition(afterTyping, savedY);
+                        }
+                        else
+                        {
+                            // Append character at end
+                            sb.Append(keyEvent.KeyChar);
+                            cursorPos++;
+                            KernelConsole.Write(keyEvent.KeyChar);
+                        }
+                    }
+                    break;
             }
         }
-
-        return sb.ToString();
     }
 #elif ARCH_ARM64
     // ARM64 stubs - keyboard not yet implemented
