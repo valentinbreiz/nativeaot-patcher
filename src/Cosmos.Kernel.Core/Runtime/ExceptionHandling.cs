@@ -460,6 +460,22 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteHex((nuint)pLSDA);
         Serial.WriteString("\n");
 
+        if (StackTraceMetadata.IsSupported)
+        {
+            if (StackTraceMetadata.TryGetMethodNameFromStartAddress(methodStart, out string methodName))
+            {
+                ref string? stackTraceString = ref StackTraceMetadata.GetStackTraceString(ex);
+                if (stackTraceString == null)
+                {
+                    stackTraceString = methodName;
+                }
+                else
+                {
+                    stackTraceString += Environment.NewLine + "at " + methodName;
+                }
+            }
+        }
+
         // Calculate offset within method
         uint codeOffset = (uint)(instructionPointer - methodStart);
         Serial.WriteString("[EH] Code offset: 0x");
