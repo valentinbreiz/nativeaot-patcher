@@ -29,6 +29,15 @@
     <Compile Include="$(ToolCommonPath)Internal\NativeFormat\*.cs">
       <Link>Runtime\Internal\NativeFormat\%(Filename).cs</Link>
     </Compile>
+    <Compile Include="$(ToolCommonPath)Internal\Metadata\NativeFormat\*.cs">
+      <Link>Runtime\Internal\NativeFormat\Metadata\%(Filename).cs</Link>
+    </Compile>
+    <Compile Include="$(AotCommonPath)..\..\System.Private.StackTraceMetadata\src\Internal\StackTraceMetadata\MethodNameFormatter.cs">
+      <Link>System.Private.StackTraceMetadata\Internal\StackTraceMetadata\MethodNameFormatter.cs</Link>
+    </Compile>
+    <Compile Include="$(ToolCommonPath)TypeSystem\Common\TypeHashingAlgorithms.cs">
+      <Link>TypeSystem\Common\TypeHashingAlgorithms.cs</Link>
+    </Compile>
     <Compile Include="$(ToolCommonPath)Internal\Runtime\MetadataBlob.cs">
       <Link>Runtime\Internal\Runtime\MetadataBlob.cs</Link>
     </Compile>

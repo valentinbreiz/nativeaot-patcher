@@ -122,6 +122,7 @@
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'"/>
       <IlcArg Include="--preinitstatics"/> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')"/>
+      <IlcArg Condition="'$(StackTraceSupport)' != 'false'" Include="--stacktracedata"/>
 
       <!-- The managed debugging support in libraries is unused - trim it -->
       <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false"/>

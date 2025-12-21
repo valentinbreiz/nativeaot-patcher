@@ -28,6 +28,8 @@ public static unsafe partial class ManagedModule
     internal static TypeManagerHandle[] s_modules;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     internal static int s_moduleCount = 0;
+    public static TypeManagerHandle[] Modules => s_modules;
+    public static int ModuleCount => s_moduleCount;
 
     [LibraryImport("*", EntryPoint = "GetModules")]
     [SuppressGCTransition]
