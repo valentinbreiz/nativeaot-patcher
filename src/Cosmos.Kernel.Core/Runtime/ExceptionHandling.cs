@@ -1,7 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Cosmos.Kernel.Core.IO;
+using Internal.Metadata.NativeFormat;
+using Internal.NativeFormat;
+using Internal.Runtime;
+using Internal.StackTraceMetadata;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -202,7 +208,7 @@ public static unsafe partial class ExceptionHelper
         if (ex == null)
         {
             Serial.WriteString("[EH] Null exception thrown\n");
-            FailFast("Null exception");
+            FailFast("Null exception", ex);
             return;
         }
 
@@ -210,7 +216,7 @@ public static unsafe partial class ExceptionHelper
         if (s_isHandlingException)
         {
             Serial.WriteString("[EH] ERROR: Recursive exception detected!\n");
-            FailFast("Recursive exception");
+            FailFast("Recursive exception", ex);
             return;
         }
 
@@ -238,7 +244,7 @@ public static unsafe partial class ExceptionHelper
         {
             Serial.WriteString("\n*** UNHANDLED EXCEPTION ***\n");
             Serial.WriteString("No catch handler found. System halting...\n");
-            FailFast("Unhandled exception");
+            FailFast("Unhandled exception", ex);
         }
 
         // Clear guard (only reached if exception was handled)
@@ -459,6 +465,22 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteString(", LSDA at 0x");
         Serial.WriteHex((nuint)pLSDA);
         Serial.WriteString("\n");
+
+        if (StackTraceMetadata.IsSupported)
+        {
+            if (StackTraceMetadata.TryGetMethodNameFromStartAddress(methodStart, out string methodName))
+            {
+                ref string? stackTraceString = ref StackTraceMetadata.GetStackTraceString(ex);
+                if (stackTraceString == null)
+                {
+                    stackTraceString = methodName;
+                }
+                else
+                {
+                    stackTraceString += Environment.NewLine + "at " + methodName;
+                }
+            }
+        }
 
         // Calculate offset within method
         uint codeOffset = (uint)(instructionPointer - methodStart);
@@ -907,17 +929,30 @@ public static unsafe partial class ExceptionHelper
 
         // Should not reach here - RhpCallCatchFunclet never returns
         Serial.WriteString("[EH] ERROR: No valid context for funclet call\n");
-        FailFast("Invalid exception context");
+        FailFast("Invalid exception context", ex);
     }
 
     /// <summary>
     /// Fail fast - terminate the system
     /// </summary>
-    public static void FailFast(string message)
+    public static void FailFast(string message, Exception? exception = null)
     {
         Serial.WriteString("[FAILFAST] ");
         Serial.WriteString(message);
         Serial.WriteString("\n");
+
+        if (exception is not null)
+        {
+            Serial.WriteString("Exception: ");
+            Serial.WriteString(exception.Message);
+            Serial.WriteString("\n");
+            if (exception.StackTrace is not null)
+            {
+                Serial.WriteString("Stack Trace:\n");
+                Serial.WriteString(exception.StackTrace);
+                Serial.WriteString("\n");
+            }
+        }
 
         // Halt the system - infinite loop
         while (true) { }

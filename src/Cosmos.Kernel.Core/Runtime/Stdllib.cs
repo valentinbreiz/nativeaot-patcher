@@ -147,12 +147,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpGcPoll")]
         static void RhpGcPoll() { }
 
-        [RuntimeExport("RhGetOSModuleFromPointer")]
-        static IntPtr RhGetOSModuleFromPointer(IntPtr ptr)
-        {
-            return IntPtr.Zero;
-        }
-
         [RuntimeExport("RhpStackProbe")]
         static void RhpStackProbe()
         {
