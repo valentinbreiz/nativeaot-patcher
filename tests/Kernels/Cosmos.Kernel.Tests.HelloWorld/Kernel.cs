@@ -10,12 +10,6 @@ namespace Cosmos.Kernel.Tests.HelloWorld
     internal unsafe static partial class Program
     {
         /// <summary>
-        /// Unmanaged entry point called by the bootloader
-        /// </summary>
-        [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-        private static void KernelMain() => Main();
-
-        /// <summary>
         /// Main test kernel entry point
         /// </summary>
         private static void Main()

@@ -16,9 +16,6 @@ namespace Cosmos.Kernel.Tests.Timer
 {
     internal static partial class Program
     {
-        [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-        private static void KernelMain() => Main();
-
         private static void Main()
         {
             Serial.WriteString("[Timer Tests] Starting test suite\n");

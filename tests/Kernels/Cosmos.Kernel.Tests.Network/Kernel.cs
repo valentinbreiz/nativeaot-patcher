@@ -28,9 +28,6 @@ namespace Cosmos.Kernel.Tests.Network
         private const ushort TestPort = 5555;
         private const ushort EchoPort = 5556;
 
-        [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-        private static void KernelMain() => Main();
-
         private static void Main()
         {
             Serial.WriteString("[Network Tests] Starting test suite\n");
