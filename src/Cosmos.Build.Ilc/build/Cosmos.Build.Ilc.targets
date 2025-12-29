@@ -113,6 +113,7 @@
       <IlcArg Include="--systemmodule:$(IlcSystemModule)"/>
       <IlcArg Include="@(DirectPInvoke->'--directpinvoke:%(Identity)')"/>
       <IlcArg Include="@(DirectPInvokeList->'--directpinvokelist:%(Identity)')"/>
+      <IlcArg Include="--splitinit"/>
       <IlcArg Include="--nativelib"/>
       <IlcArg Include="--noinlinetls"/>
       <IlcArg Include="-g"/>

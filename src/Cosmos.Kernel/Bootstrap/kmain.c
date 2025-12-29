@@ -64,6 +64,7 @@ void kmain()
     // === Phase 3: Managed Kernel Initialization ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 3: Managed kernel initialization\n");
+    RhpRegisterOsModule(__kernel_start);
     __Initialize_Kernel();
 
     // === Phase 4: Module Initialization ===
@@ -74,7 +75,8 @@ void kmain()
     // === Phase 5: User Kernel ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 5: User kernel\n");
-    __managed__Main();
+    char *argv[] = {"COSMOS", NULL};
+    __managed__Main(1, argv);
 
     // Should never reach here
     __cosmos_serial_write("[KMAIN] ERROR: Main() returned unexpectedly!\n");
