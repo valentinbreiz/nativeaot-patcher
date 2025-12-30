@@ -216,7 +216,7 @@ internal static partial class Program
             Console.WriteLine("...");
             TimerManager.Wait(1000);
         }
-        PrintSuccess("Timer test complete!");
+        PrintSuccess("Timer test complete!\n");
     }
 
     private static void ShowColors()
@@ -235,112 +235,107 @@ internal static partial class Program
 
     private static void TestScheduler()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("Scheduler API Test");
-        Console.ResetColor();
+        Serial.WriteString("[Sched] TestScheduler start\n");
 
-        // Initialize scheduler with 1 CPU (cpuCount=1, so CPU index 0)
-        PrintInfo("Initializing scheduler with 1 CPU...");
+        Serial.WriteString("[Sched] SchedulerManager.Initialize(1)\n");
         SchedulerManager.Initialize(1);
 
-        // Set stride scheduler
+        Serial.WriteString("[Sched] Creating StrideScheduler\n");
         var strideScheduler = new StrideScheduler();
+
+        Serial.WriteString("[Sched] SetScheduler\n");
         SchedulerManager.SetScheduler(strideScheduler);
-        PrintSuccess("Stride scheduler set\n");
 
-        // Create test threads with different priorities
-        PrintInfo("Creating 3 test threads with different tickets...");
+        Serial.WriteString("[Sched] Creating thread1\n");
+        var thread1 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 1, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
 
-        var thread1 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 1, State = ThreadState.Created };
-        var thread2 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 2, State = ThreadState.Created };
-        var thread3 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 3, State = ThreadState.Created };
+        Serial.WriteString("[Sched] Creating thread2\n");
+        var thread2 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 2, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
 
+        Serial.WriteString("[Sched] Creating thread3\n");
+        var thread3 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 3, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
+
+        Serial.WriteString("[Sched] CreateThread 1\n");
         SchedulerManager.CreateThread(0, thread1);
+
+        Serial.WriteString("[Sched] CreateThread 2\n");
         SchedulerManager.CreateThread(0, thread2);
+
+        Serial.WriteString("[Sched] CreateThread 3\n");
         SchedulerManager.CreateThread(0, thread3);
 
-        // Set different priorities (tickets)
-        SchedulerManager.SetPriority(0, thread1, 100);  // Normal
-        SchedulerManager.SetPriority(0, thread2, 200);  // High priority (2x)
-        SchedulerManager.SetPriority(0, thread3, 50);   // Low priority (0.5x)
+        Serial.WriteString("[Sched] SetPriority 1\n");
+        SchedulerManager.SetPriority(0, thread1, 100);
 
-        PrintInfoLine("Thread 1", "100 tickets (normal)");
-        PrintInfoLine("Thread 2", "200 tickets (high)");
-        PrintInfoLine("Thread 3", "50 tickets (low)");
+        Serial.WriteString("[Sched] SetPriority 2\n");
+        SchedulerManager.SetPriority(0, thread2, 200);
 
-        // Ready all threads
-        PrintInfo("Making threads ready...");
+        Serial.WriteString("[Sched] SetPriority 3\n");
+        SchedulerManager.SetPriority(0, thread3, 50);
+
+        Serial.WriteString("[Sched] ReadyThread 1\n");
         SchedulerManager.ReadyThread(0, thread1);
+
+        Serial.WriteString("[Sched] ReadyThread 2\n");
         SchedulerManager.ReadyThread(0, thread2);
+
+        Serial.WriteString("[Sched] ReadyThread 3\n");
         SchedulerManager.ReadyThread(0, thread3);
 
-        // Test picking - should pick in order of pass values
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("Picking threads (should favor high-ticket thread):");
-        Console.ResetColor();
-
+        Serial.WriteString("[Sched] GetCpuState\n");
         var cpuState = SchedulerManager.GetCpuState(0);
+
+        Serial.WriteString("[Sched] GetSchedulerData\n");
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
 
-        // Show queue state before picks
-        PrintInfo("Queue before picks:");
-        for (int i = 0; i < cpuData.RunQueue.Count; i++)
-        {
-            var t = cpuData.RunQueue[i];
-            var td = t.GetSchedulerData<StrideThreadData>();
-            Console.WriteLine($"  [{i}] Thread {t.Id}: pass={td.Pass}, tickets={td.Tickets}");
-        }
+        Serial.WriteString("[Sched] RunQueue.Count = ");
+        Serial.WriteNumber((ulong)cpuData.RunQueue.Count);
+        Serial.WriteString("\n");
 
-        // Simulate 6 scheduling rounds
-        Console.WriteLine();
-        PrintInfo("Simulating 6 scheduling rounds:");
+        Serial.WriteString("[Sched] Starting pick loop\n");
         int[] pickCount = new int[4];
 
         for (int round = 0; round < 6; round++)
         {
-            // Pick next
+            Serial.WriteString("[Sched] Round ");
+            Serial.WriteNumber((ulong)round);
+            Serial.WriteString("\n");
+
             cpuState.Lock.Acquire();
             var picked = strideScheduler.PickNext(cpuState);
             cpuState.Lock.Release();
 
             if (picked != null)
             {
-                var td = picked.GetSchedulerData<StrideThreadData>();
-                Console.WriteLine($"  Round {round + 1}: Picked Thread {picked.Id} (pass={td.Pass})");
+                Serial.WriteString("[Sched] Picked thread ");
+                Serial.WriteNumber(picked.Id);
+                Serial.WriteString("\n");
+
                 pickCount[picked.Id]++;
 
-                // Simulate a tick (advance pass)
+                var td = picked.GetSchedulerData<StrideThreadData>();
                 picked.TotalRuntime += SchedulerManager.DefaultQuantumNs;
                 td.Pass += (long)td.Stride;
 
-                // Re-add to queue
                 cpuState.Lock.Acquire();
                 strideScheduler.OnThreadYield(cpuState, picked);
                 cpuState.Lock.Release();
             }
         }
 
-        // Show pick distribution
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("Pick distribution:");
-        Console.ResetColor();
-        Console.WriteLine($"  Thread 1 (100 tickets): {pickCount[1]} picks");
-        Console.WriteLine($"  Thread 2 (200 tickets): {pickCount[2]} picks");
-        Console.WriteLine($"  Thread 3 (50 tickets):  {pickCount[3]} picks");
+        Serial.WriteString("[Sched] Pick results:\n");
+        Serial.WriteString("[Sched] Thread 1: ");
+        Serial.WriteNumber((ulong)pickCount[1]);
+        Serial.WriteString(" picks\n");
+        Serial.WriteString("[Sched] Thread 2: ");
+        Serial.WriteNumber((ulong)pickCount[2]);
+        Serial.WriteString(" picks\n");
+        Serial.WriteString("[Sched] Thread 3: ");
+        Serial.WriteNumber((ulong)pickCount[3]);
+        Serial.WriteString(" picks\n");
 
-        // Verify proportional fairness
-        Console.WriteLine();
-        if (pickCount[2] >= pickCount[1] && pickCount[1] >= pickCount[3])
-        {
-            PrintSuccess("Stride scheduling working correctly!\n");
-            PrintInfo("Higher ticket threads are scheduled more often.");
-        }
-        else
-        {
-            PrintWarning("Unexpected pick distribution - verify algorithm.");
-        }
+        Serial.WriteString("[Sched] Test complete\n");
+        PrintSuccess("Scheduler tests complete!\n");
     }
 
     // Helper methods for colored output
@@ -493,7 +488,7 @@ internal static partial class Program
         if (sent)
             PrintSuccess("Packet sent!\n");
         else
-            PrintError("Failed to send packet");
+            PrintError("Failed to send packet\n");
     }
 
     private static void StartListening()

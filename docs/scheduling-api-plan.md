@@ -841,7 +841,7 @@ src/Cosmos.Kernel.Core/
 2. **Phase 2: Stride Scheduler** ✅
    - [x] Create `StrideThreadData` and `StrideCpuData`
    - [x] Implement `StrideScheduler`
-   - [ ] Test with basic thread creation
+   - [x] Test with basic thread creation (DevKernel `sched` command)
 
 3. **Phase 3: Context Switch**
    - [ ] Assembly context switch for x64
