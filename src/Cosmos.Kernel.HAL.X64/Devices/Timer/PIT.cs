@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -304,7 +306,7 @@ public class PIT : TimerDevice
         }
     }
 
-    private static void HandleIRQ(ref IRQContext aContext)
+    private static unsafe void HandleIRQ(ref IRQContext aContext)
     {
         if (Instance == null)
             return;
@@ -342,6 +344,12 @@ public class PIT : TimerDevice
 
         // Invoke OnTick handler
         Instance.OnTick?.Invoke();
+
+        // Call scheduler for preemptive multitasking
+        // The context pointer is at rsp + 256 in the IRQ stub, so subtract 256 to get actual RSP
+        nuint contextPtr = (nuint)Unsafe.AsPointer(ref aContext);
+        nuint currentRsp = contextPtr - 256;  // RSP points to start of XMM save area
+        SchedulerManager.OnTimerInterrupt(0, currentRsp, T0Delay);
     }
 
     /// <summary>

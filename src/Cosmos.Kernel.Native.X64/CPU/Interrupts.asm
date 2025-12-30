@@ -284,6 +284,35 @@ _native_x64_test_int32:
     int 32
     ret
 
+; void _native_x64_set_context_switch_rsp(nuint newRsp)
+; Sets the target RSP for context switch. Called from managed code
+; during timer interrupt to request a context switch.
+; rdi = new RSP to switch to (pointing to saved context)
+global _native_x64_set_context_switch_rsp
+_native_x64_set_context_switch_rsp:
+    mov [rel _context_switch_target_rsp], rdi
+    ret
+
+; nuint _native_x64_get_context_switch_rsp()
+; Gets the current context switch target RSP (for debugging)
+global _native_x64_get_context_switch_rsp
+_native_x64_get_context_switch_rsp:
+    mov rax, [rel _context_switch_target_rsp]
+    ret
+
+; nuint _native_x64_get_rsp()
+; Gets the current RSP value
+global _native_x64_get_rsp
+_native_x64_get_rsp:
+    mov rax, rsp
+    ret
+
+section .bss
+; Per-CPU context switch target RSP (0 = no switch, non-zero = switch to this RSP)
+; For SMP, this would be per-CPU, but for now single-CPU
+global _context_switch_target_rsp
+_context_switch_target_rsp: resq 1
+
 section .data
 _native_x64_irq_table:
 dq irq0_stub
@@ -627,6 +656,22 @@ irq%1_stub:
     lea rdi, [rsp + 256]
     call __managed__irq
 
+    ; Check for context switch request
+    ; If _context_switch_target_rsp is non-zero, switch to that stack
+    mov rax, [rel _context_switch_target_rsp]
+    test rax, rax
+    jz .no_context_switch%1
+
+    ; Context switch requested!
+    ; Clear the target to prevent repeated switches
+    xor rcx, rcx
+    mov [rel _context_switch_target_rsp], rcx
+
+    ; Switch to the new stack (rax contains the new RSP)
+    ; The new RSP points to a saved context in the same format
+    mov rsp, rax
+
+.no_context_switch%1:
     ; Restore XMM registers
     movdqu xmm0, [rsp + 0]
     movdqu xmm1, [rsp + 16]

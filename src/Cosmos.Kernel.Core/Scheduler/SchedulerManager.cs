@@ -1,3 +1,5 @@
+using Cosmos.Kernel.Core.IO;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
@@ -9,6 +11,8 @@ public static class SchedulerManager
     private static PerCpuState[] _cpuStates;
     private static uint _cpuCount;
     private static SpinLock _globalLock;
+    private static bool _enabled;
+    private static uint _nextThreadId;
 
     /// <summary>
     /// Default time slice in nanoseconds (10ms).
@@ -56,6 +60,20 @@ public static class SchedulerManager
     public static uint CpuCount => _cpuCount;
     public static PerCpuState GetCpuState(uint cpuId) => _cpuStates[cpuId];
     public static PerCpuState[] GetAllCpuStates() => _cpuStates;
+
+    /// <summary>
+    /// Whether the scheduler is enabled and processing timer ticks.
+    /// </summary>
+    public static bool Enabled
+    {
+        get => _enabled;
+        set => _enabled = value;
+    }
+
+    /// <summary>
+    /// Allocates a new unique thread ID.
+    /// </summary>
+    public static uint AllocateThreadId() => _nextThreadId++;
 
     // ========== Thread Operations ==========
 
@@ -155,7 +173,7 @@ public static class SchedulerManager
             next.LastScheduledAt = GetTimestamp();
 
             state.Lock.Release();
-            ContextSwitch(prev, next);
+            DoContextSwitch(prev, next);
         }
         else
         {
@@ -195,13 +213,86 @@ public static class SchedulerManager
         _currentScheduler.Balance(state, _cpuStates);
     }
 
-    // ========== Platform-specific (to be implemented) ==========
+    // ========== Timer Interrupt Handling ==========
 
-    private static void ContextSwitch(Thread prev, Thread next)
+    /// <summary>
+    /// Called from timer interrupt handler to process scheduling.
+    /// This is the main entry point for preemptive scheduling.
+    /// </summary>
+    /// <param name="cpuId">Current CPU ID.</param>
+    /// <param name="currentRsp">Current RSP from IRQ context (pointer to saved context).</param>
+    /// <param name="elapsedNs">Nanoseconds since last tick.</param>
+    public static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
-        // TODO: Implement via assembly
-        // Save prev context (registers, stack pointer)
-        // Restore next context
+        if (!_enabled || _currentScheduler == null)
+            return;
+
+        var state = _cpuStates[cpuId];
+
+        // Update timing and check if preemption needed
+        bool needsReschedule = _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
+
+        if (needsReschedule)
+        {
+            ScheduleFromInterrupt(cpuId, currentRsp);
+        }
+    }
+
+    /// <summary>
+    /// Performs scheduling from within an interrupt context.
+    /// Picks next thread and sets up context switch if needed.
+    /// </summary>
+    /// <param name="cpuId">Current CPU ID.</param>
+    /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
+    public static void ScheduleFromInterrupt(uint cpuId, nuint currentRsp)
+    {
+        var state = _cpuStates[cpuId];
+
+        // No need for lock - we're in interrupt context
+        var prev = state.CurrentThread;
+        var next = _currentScheduler.PickNext(state) ?? state.IdleThread;
+
+        if (next == null)
+        {
+            // No thread to run - shouldn't happen if idle thread exists
+            return;
+        }
+
+        if (next != prev)
+        {
+            // Save current thread's stack pointer
+            if (prev != null)
+            {
+                prev.StackPointer = currentRsp;
+                if (prev.State == ThreadState.Running)
+                    prev.State = ThreadState.Ready;
+
+                // Put previous thread back in run queue if still runnable
+                if (prev.State == ThreadState.Ready)
+                    _currentScheduler.OnThreadYield(state, prev);
+            }
+
+            // Switch to next thread
+            state.CurrentThread = next;
+            next.State = ThreadState.Running;
+            next.LastScheduledAt = GetTimestamp();
+
+            // Request context switch - the IRQ stub will swap RSP
+            ContextSwitch.SetContextSwitchRsp(next.StackPointer);
+        }
+    }
+
+    // ========== Platform-specific ==========
+
+    private static void DoContextSwitch(Thread prev, Thread next)
+    {
+        // This is for non-interrupt context switches (e.g., voluntary yield)
+        // Not fully implemented - use ScheduleFromInterrupt for preemptive switching
+        if (prev != null)
+            prev.State = ThreadState.Ready;
+
+        next.State = ThreadState.Running;
+        ContextSwitch.SetContextSwitchRsp(next.StackPointer);
     }
 
     private static ulong GetTimestamp()

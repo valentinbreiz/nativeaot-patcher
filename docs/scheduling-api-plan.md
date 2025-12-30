@@ -843,10 +843,13 @@ src/Cosmos.Kernel.Core/
    - [x] Implement `StrideScheduler`
    - [x] Test with basic thread creation (DevKernel `sched` command)
 
-3. **Phase 3: Context Switch**
-   - [ ] Assembly context switch for x64
-   - [ ] Assembly context switch for ARM64
-   - [ ] Hook into timer interrupt
+3. **Phase 3: Context Switch** ✅
+   - [x] Assembly context switch for x64 (modified IRQ stub to check `_context_switch_target_rsp`)
+   - [ ] Assembly context switch for ARM64 (pending)
+   - [x] Hook into timer interrupt (PIT.HandleIRQ calls SchedulerManager.OnTimerInterrupt)
+   - [x] Created `ContextSwitch.cs` with native P/Invoke for RSP manipulation
+   - [x] Created `ThreadContext.cs` struct matching full IRQ stack layout
+   - [x] Updated `Thread.cs` with `InitializeStack` method for new threads
 
 4. **Phase 4: Integration**
    - [ ] Initialize scheduler from kernel main
