@@ -8,6 +8,8 @@ using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.CPU;
+
 #if ARCH_X64
 using Cosmos.Kernel.HAL.Acpi;
 using Cosmos.Kernel.HAL.Devices.Input;
@@ -129,6 +131,8 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
         InitializeScheduler();
 
+        InternalCpu.DisableInterrupts();
+
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
         Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
         var ps2Controller = new PS2Controller();
@@ -204,31 +208,33 @@ public class Kernel
         ushort cs = (ushort)Idt.GetCurrentCodeSelector();
 
         // Create idle thread for each CPU
+        // The idle thread represents the main kernel - no separate stack needed
+        // When the shell is preempted, its context is saved to this thread
         for (uint cpu = 0; cpu < cpuCount; cpu++)
         {
             var idleThread = new Core.Scheduler.Thread
             {
                 Id = SchedulerManager.AllocateThreadId(),
                 CpuId = cpu,
-                State = Core.Scheduler.ThreadState.Ready,
+                State = Core.Scheduler.ThreadState.Running,  // Already running (it's the current code!)
                 Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
             };
 
-            // Initialize idle thread stack with idle loop entry point
-            nuint idleEntry = (nuint)(delegate* unmanaged<void>)&IdleLoop;
-            idleThread.InitializeStack(idleEntry, cs);
+            // DON'T initialize a separate stack - the idle thread IS the current execution
+            // When preempted, the IRQ stub saves context to the current stack
+            // and we store that RSP in StackPointer
 
-            // Register with scheduler
+            // Register with scheduler (but don't add to run queue)
             SchedulerManager.CreateThread(cpu, idleThread);
 
-            // Set as CPU's idle thread
+            // Set as CPU's idle and current thread
             var cpuState = SchedulerManager.GetCpuState(cpu);
             cpuState.IdleThread = idleThread;
             cpuState.CurrentThread = idleThread;
 
-            Serial.WriteString("[SCHED] Created idle thread ");
+            Serial.WriteString("[SCHED] Idle thread ");
             Serial.WriteNumber(idleThread.Id);
-            Serial.WriteString(" for CPU ");
+            Serial.WriteString(" (main kernel) for CPU ");
             Serial.WriteNumber(cpu);
             Serial.WriteString("\n");
         }

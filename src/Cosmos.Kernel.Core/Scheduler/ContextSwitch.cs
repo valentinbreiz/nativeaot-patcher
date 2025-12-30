@@ -32,11 +32,20 @@ public static partial class ContextSwitch
     [LibraryImport("*", EntryPoint = "_native_x64_get_rsp")]
     [SuppressGCTransition]
     public static partial nuint GetRsp();
+
+    /// <summary>
+    /// Sets whether the target thread is NEW (1) or RESUMED (0).
+    /// NEW threads need RSP loaded from context, RESUMED threads use iretq.
+    /// </summary>
+    [LibraryImport("*", EntryPoint = "_native_x64_set_context_switch_new_thread")]
+    [SuppressGCTransition]
+    public static partial void SetContextSwitchNewThread(int isNew);
 #elif ARCH_ARM64
     // ARM64 implementation will be added later
     public static void SetContextSwitchRsp(nuint newRsp) { }
     public static nuint GetContextSwitchRsp() => 0;
     public static nuint GetRsp() => 0;
+    public static void SetContextSwitchNewThread(int isNew) { }
 #endif
 
     /// <summary>
@@ -55,8 +64,12 @@ public static partial class ContextSwitch
             current.State = ThreadState.Ready;
         }
 
+        // Determine if this is a NEW thread (never run before) or RESUMED
+        bool isNewThread = next.State == ThreadState.Created;
+
         // Load next thread's stack pointer
         next.State = ThreadState.Running;
+        SetContextSwitchNewThread(isNewThread ? 1 : 0);
         SetContextSwitchRsp(next.StackPointer);
     }
 }

@@ -122,7 +122,6 @@ public class PIT : TimerDevice
     private ushort t0Countdown = 65535;
     private ushort t2Countdown = 65535;
     private int timerCounter;
-    private volatile bool waitSignaled;
 
     /// <summary>
     /// Channel 0 data port.
@@ -269,22 +268,17 @@ public class PIT : TimerDevice
         }
     }
 
-    private void SignalWait(ref IRQContext irqContext)
-    {
-        waitSignaled = true;
-    }
-
     /// <summary>
     /// Halts the CPU for the specified amount of milliseconds.
     /// </summary>
     /// <param name="timeoutMs">The amount of milliseconds to halt the CPU for.</param>
     public override void Wait(uint timeoutMs)
     {
-        waitSignaled = false;
+        // Register timer and wait for THIS specific timer to complete
+        int timerId = RegisterTimer(new PITTimer((ref IRQContext _) => { }, timeoutMs * 1000000UL, false));
 
-        RegisterTimer(new PITTimer(SignalWait, timeoutMs * 1000000UL, false));
-
-        while (!waitSignaled)
+        // Wait until our timer is removed from the list (fires and gets cleaned up)
+        while (IsTimerActive(timerId))
         {
             PlatformHAL.CpuOps?.Halt();
         }
@@ -296,14 +290,25 @@ public class PIT : TimerDevice
     /// <param name="timeoutNs">The amount of nanoseconds to halt the CPU for.</param>
     public void WaitNS(ulong timeoutNs)
     {
-        waitSignaled = false;
+        int timerId = RegisterTimer(new PITTimer((ref IRQContext _) => { }, timeoutNs, false));
 
-        RegisterTimer(new PITTimer(SignalWait, timeoutNs, false));
-
-        while (!waitSignaled)
+        while (IsTimerActive(timerId))
         {
             PlatformHAL.CpuOps?.Halt();
         }
+    }
+
+    /// <summary>
+    /// Check if a timer with the given ID is still active.
+    /// </summary>
+    private bool IsTimerActive(int timerId)
+    {
+        for (int i = 0; i < activeHandlers.Count; i++)
+        {
+            if (activeHandlers[i].ID == timerId)
+                return true;
+        }
+        return false;
     }
 
     private static unsafe void HandleIRQ(ref IRQContext aContext)
@@ -313,10 +318,9 @@ public class PIT : TimerDevice
 
         ulong T0Delay = Instance.T0DelayNS;
 
-        if (Instance.activeHandlers.Count > 0)
-        {
-            Instance.T0Countdown = 65535;
-        }
+        // In one-shot mode, must reload after each interrupt
+        if (!Instance.T0RateGen)
+            Instance.T0Countdown = Instance.t0Countdown;
 
         for (int i = Instance.activeHandlers.Count - 1; i >= 0; i--)
         {
@@ -367,7 +371,8 @@ public class PIT : TimerDevice
 
         timer.ID = timerCounter++;
         activeHandlers.Add(timer);
-        T0Countdown = 65535;
+        // Reprogram the PIT to ensure it's running
+        T0Countdown = t0Countdown;
         return timer.ID;
     }
 

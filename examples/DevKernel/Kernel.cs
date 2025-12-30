@@ -114,8 +114,16 @@ internal static partial class Program
                     ShowColors();
                     break;
 
-                case "sched":
-                    TestScheduler();
+                case "schedinfo":
+                    ShowSchedulerInfo();
+                    break;
+
+                case "thread":
+                    TestThread();
+                    break;
+
+                case "gfx":
+                    StartGraphicsThread();
                     break;
 
 #if ARCH_X64
@@ -162,7 +170,9 @@ internal static partial class Program
         PrintCommand("info", "Show system information");
         PrintCommand("timer", "Test 10 second countdown timer");
         PrintCommand("colors", "Display color palette");
-        PrintCommand("sched", "Test scheduler API");
+        PrintCommand("schedinfo", "Show scheduler status and threads");
+        PrintCommand("thread", "Test System.Threading.Thread");
+        PrintCommand("gfx", "Start graphics thread (draws square)");
 #if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
@@ -233,109 +243,255 @@ internal static partial class Program
         Console.WriteLine();
     }
 
-    private static void TestScheduler()
+    private static void ShowSchedulerInfo()
     {
-        Serial.WriteString("[Sched] TestScheduler start\n");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Scheduler Information:");
+        Console.ResetColor();
 
-        Serial.WriteString("[Sched] SchedulerManager.Initialize(1)\n");
-        SchedulerManager.Initialize(1);
-
-        Serial.WriteString("[Sched] Creating StrideScheduler\n");
-        var strideScheduler = new StrideScheduler();
-
-        Serial.WriteString("[Sched] SetScheduler\n");
-        SchedulerManager.SetScheduler(strideScheduler);
-
-        Serial.WriteString("[Sched] Creating thread1\n");
-        var thread1 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 1, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
-
-        Serial.WriteString("[Sched] Creating thread2\n");
-        var thread2 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 2, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
-
-        Serial.WriteString("[Sched] Creating thread3\n");
-        var thread3 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 3, State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created };
-
-        Serial.WriteString("[Sched] CreateThread 1\n");
-        SchedulerManager.CreateThread(0, thread1);
-
-        Serial.WriteString("[Sched] CreateThread 2\n");
-        SchedulerManager.CreateThread(0, thread2);
-
-        Serial.WriteString("[Sched] CreateThread 3\n");
-        SchedulerManager.CreateThread(0, thread3);
-
-        Serial.WriteString("[Sched] SetPriority 1\n");
-        SchedulerManager.SetPriority(0, thread1, 100);
-
-        Serial.WriteString("[Sched] SetPriority 2\n");
-        SchedulerManager.SetPriority(0, thread2, 200);
-
-        Serial.WriteString("[Sched] SetPriority 3\n");
-        SchedulerManager.SetPriority(0, thread3, 50);
-
-        Serial.WriteString("[Sched] ReadyThread 1\n");
-        SchedulerManager.ReadyThread(0, thread1);
-
-        Serial.WriteString("[Sched] ReadyThread 2\n");
-        SchedulerManager.ReadyThread(0, thread2);
-
-        Serial.WriteString("[Sched] ReadyThread 3\n");
-        SchedulerManager.ReadyThread(0, thread3);
-
-        Serial.WriteString("[Sched] GetCpuState\n");
-        var cpuState = SchedulerManager.GetCpuState(0);
-
-        Serial.WriteString("[Sched] GetSchedulerData\n");
-        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
-
-        Serial.WriteString("[Sched] RunQueue.Count = ");
-        Serial.WriteNumber((ulong)cpuData.RunQueue.Count);
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[Sched] Starting pick loop\n");
-        int[] pickCount = new int[4];
-
-        for (int round = 0; round < 6; round++)
+        // Check if scheduler is initialized
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
         {
-            Serial.WriteString("[Sched] Round ");
-            Serial.WriteNumber((ulong)round);
-            Serial.WriteString("\n");
+            PrintInfoLine("Status", "Not initialized");
+            PrintInfo("Run 'sched' or 'thread' first to initialize the scheduler.");
+            return;
+        }
 
-            cpuState.Lock.Acquire();
-            var picked = strideScheduler.PickNext(cpuState);
-            cpuState.Lock.Release();
+        // Basic scheduler info
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Status".PadRight(14));
+        Console.ForegroundColor = SchedulerManager.Enabled ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(SchedulerManager.Enabled ? "ENABLED" : "DISABLED");
+        Console.ResetColor();
 
-            if (picked != null)
+        PrintInfoLine("Scheduler", scheduler.Name);
+        PrintInfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
+        PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / 1_000_000).ToString() + " ms");
+
+        Console.WriteLine();
+
+        // Per-CPU information
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  CPU " + cpuId + ":");
+            Console.ResetColor();
+
+            // Current thread (running)
+            var currentThread = cpuState.CurrentThread;
+            if (currentThread != null)
             {
-                Serial.WriteString("[Sched] Picked thread ");
-                Serial.WriteNumber(picked.Id);
-                Serial.WriteString("\n");
+                PrintThreadInfo(scheduler, currentThread);
+            }
 
-                pickCount[picked.Id]++;
-
-                var td = picked.GetSchedulerData<StrideThreadData>();
-                picked.TotalRuntime += SchedulerManager.DefaultQuantumNs;
-                td.Pass += (long)td.Stride;
-
-                cpuState.Lock.Acquire();
-                strideScheduler.OnThreadYield(cpuState, picked);
-                cpuState.Lock.Release();
+            // Run queue threads (waiting)
+            int runQueueCount = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < runQueueCount; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread != null)
+                {
+                    PrintThreadInfo(scheduler, thread);
+                }
             }
         }
 
-        Serial.WriteString("[Sched] Pick results:\n");
-        Serial.WriteString("[Sched] Thread 1: ");
-        Serial.WriteNumber((ulong)pickCount[1]);
-        Serial.WriteString(" picks\n");
-        Serial.WriteString("[Sched] Thread 2: ");
-        Serial.WriteNumber((ulong)pickCount[2]);
-        Serial.WriteString(" picks\n");
-        Serial.WriteString("[Sched] Thread 3: ");
-        Serial.WriteNumber((ulong)pickCount[3]);
-        Serial.WriteString(" picks\n");
+        Console.WriteLine();
+    }
 
-        Serial.WriteString("[Sched] Test complete\n");
-        PrintSuccess("Scheduler tests complete!\n");
+    private static void PrintThreadInfo(IScheduler scheduler, Cosmos.Kernel.Core.Scheduler.Thread thread)
+    {
+        Console.Write("    ");
+
+        // Thread ID
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("Thread " + thread.Id);
+
+        // State with color coding - avoid ToString() on enum (not AOT friendly)
+        Console.Write(" ");
+        switch (thread.State)
+        {
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Running:
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("Running");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Ready:
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("Ready");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked:
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("Blocked");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping:
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("Sleeping");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Dead:
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("Dead");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Created:
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("Created");
+                break;
+            default:
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("Unknown");
+                break;
+        }
+
+        // Priority (generic via IScheduler.GetPriority) - only if scheduler data is set
+        if (thread.SchedulerData != null)
+        {
+            long priority = scheduler.GetPriority(thread);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write(" Pri=" + priority);
+        }
+
+        // Runtime
+        ulong runtimeMs = thread.TotalRuntime / 1_000_000;
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" Run=" + runtimeMs + "ms");
+
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+
+    private static void TestThread()
+    {
+        Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
+
+        // Check scheduler state
+        Serial.WriteString("[Thread] Scheduler enabled: ");
+        Serial.WriteString(SchedulerManager.Enabled ? "true" : "false");
+        Serial.WriteString("\n");
+
+        PrintInfo("Creating and starting a thread...");
+
+        var thread = new System.Threading.Thread(() =>
+        {
+            Serial.WriteString("[Thread] Hello from thread delegate!\n");
+            Console.WriteLine("Hello from thread!");
+        });
+
+        thread.Start();
+
+        PrintSuccess("Thread started!\n");
+
+        // Wait for a bit to allow scheduler ticks and context switch
+        Serial.WriteString("[Thread] Waiting 2 seconds for context switch...\n");
+        TimerManager.Wait(2000);
+
+        Serial.WriteString("[Thread] Test complete\n");
+    }
+
+    private static void StartGraphicsThread()
+    {
+        Serial.WriteString("[GfxThread] Starting graphics thread\n");
+        PrintInfo("Starting graphics thread (draws color-cycling square)...");
+
+        var thread = new System.Threading.Thread(GraphicsWorker);
+        thread.Start();
+
+        PrintSuccess("Graphics thread started!\n");
+        PrintInfo("Watch the bottom-right corner of the screen.");
+    }
+
+    private static void GraphicsWorker()
+    {
+        Serial.WriteString("[GfxWorker] Graphics thread started!\n");
+
+        const int squareSize = 80;
+        const int margin = 20;
+
+        // Position in bottom-right corner
+        int x = (int)Canvas.Width - squareSize - margin;
+        int y = (int)Canvas.Height - squareSize - margin;
+
+        int frame = 0;
+
+        // Run forever drawing color-changing gradient squares
+        while (true)
+        {
+            // Create gradient color based on frame
+            int phase = frame % 60;
+            byte r, g, b;
+
+            if (phase < 10)
+            {
+                // Red to Yellow
+                r = 255;
+                g = (byte)(phase * 25);
+                b = 0;
+            }
+            else if (phase < 20)
+            {
+                // Yellow to Green
+                r = (byte)(255 - (phase - 10) * 25);
+                g = 255;
+                b = 0;
+            }
+            else if (phase < 30)
+            {
+                // Green to Cyan
+                r = 0;
+                g = 255;
+                b = (byte)((phase - 20) * 25);
+            }
+            else if (phase < 40)
+            {
+                // Cyan to Blue
+                r = 0;
+                g = (byte)(255 - (phase - 30) * 25);
+                b = 255;
+            }
+            else if (phase < 50)
+            {
+                // Blue to Magenta
+                r = (byte)((phase - 40) * 25);
+                g = 0;
+                b = 255;
+            }
+            else
+            {
+                // Magenta to Red
+                r = 255;
+                g = 0;
+                b = (byte)(255 - (phase - 50) * 25);
+            }
+
+            // Draw gradient square - lighter in center, darker at edges
+            for (int dy = 0; dy < squareSize; dy++)
+            {
+                for (int dx = 0; dx < squareSize; dx++)
+                {
+                    // Calculate distance from center for gradient
+                    int cx = dx - squareSize / 2;
+                    int cy = dy - squareSize / 2;
+                    int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
+                    if (dist > 255) dist = 255;
+
+                    // Blend color with gradient (brighter in center)
+                    int factor = 255 - dist / 2;
+                    byte pr = (byte)((r * factor) / 255);
+                    byte pg = (byte)((g * factor) / 255);
+                    byte pb = (byte)((b * factor) / 255);
+                    uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
+
+                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                }
+            }
+
+            frame++;
+
+            // Sleep to slow down animation (allows preemption)
+            System.Threading.Thread.Sleep(100);
+        }
     }
 
     // Helper methods for colored output

@@ -44,20 +44,30 @@ public unsafe class Thread : SchedulerExtensible
         StackSize = stackSize;
         StackBase = (nuint)Memory.MemoryOp.Alloc((uint)stackSize);
 
-        // Stack grows downward - start at top
+        // Stack layout (growing downward from top):
+        // [StackBase + stackSize] = Top of usable stack
+        // ... usable stack space for function calls ...
+        // [contextAddr + ThreadContext.Size] = End of context
+        // [contextAddr] = Start of ThreadContext (where StackPointer points)
+        // [StackBase] = Bottom of stack
+
         nuint stackTop = StackBase + stackSize;
 
-        // Reserve space for ThreadContext at top of stack
-        nuint contextAddr = stackTop - (nuint)ThreadContext.Size;
+        // Place ThreadContext at the BOTTOM of the stack
+        // The usable stack space is above it
+        nuint contextAddr = StackBase;
 
-        // Align to 16 bytes (required for XMM operations)
-        contextAddr &= ~(nuint)0xF;
+        // Align context to 16 bytes (required for XMM operations)
+        contextAddr = (contextAddr + 0xF) & ~(nuint)0xF;
 
-        // Initialize the context
+        // Calculate usable stack top (above the context)
+        nuint usableStackTop = stackTop;
+
+        // Initialize the context with the usable stack top
         ThreadContext* context = (ThreadContext*)contextAddr;
-        context->Initialize(entryPoint, codeSegment, arg);
+        context->Initialize(entryPoint, codeSegment, arg, usableStackTop);
 
-        // The stack pointer points to the start of the context
+        // The StackPointer points to the start of the context
         // (where XMM registers are, as expected by the IRQ stub)
         StackPointer = contextAddr;
         InstructionPointer = entryPoint;

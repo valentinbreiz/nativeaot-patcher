@@ -113,23 +113,38 @@ public class StrideScheduler : IScheduler
         threadData.Remain = threadData.Pass - (long)cpuData.GlobalPass;
         threadData.SleepCount++;
 
-        cpuData.RunQueue.Remove(thread);
+        RemoveThreadFromQueue(cpuData.RunQueue, thread);
         cpuData.TotalTickets -= threadData.Tickets;
     }
 
     public void OnThreadExit(PerCpuState cpuState, Thread thread)
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        if (cpuData == null)
+            return;
+
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
-        cpuData.RunQueue.Remove(thread);
-        cpuData.TotalTickets -= threadData.Tickets;
+        // Remove from run queue using ReferenceEquals + RemoveAt
+        // Note: List<T>.Remove/Contains crash due to EqualityComparer<T>.Default requiring broken runtime helpers
+        RemoveThreadFromQueue(cpuData.RunQueue, thread);
+
+        if (threadData != null)
+            cpuData.TotalTickets -= threadData.Tickets;
         thread.SchedulerData = null;
     }
 
     public void OnThreadYield(PerCpuState cpuState, Thread thread)
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        var threadData = thread.GetSchedulerData<StrideThreadData>();
+
+        // Ensure thread's pass is at least GlobalPass to prevent starvation of newer threads.
+        // Without this, a thread that started with Pass=0 (like the idle thread) would
+        // perpetually have lower pass than threads added later with Pass=GlobalPass.
+        if (threadData.Pass < (long)cpuData.GlobalPass)
+            threadData.Pass = (long)cpuData.GlobalPass;
+
         InsertByPass(cpuData, thread);
     }
 
@@ -154,13 +169,22 @@ public class StrideScheduler : IScheduler
         InsertByPass(cpuData, thread);
     }
 
+    // Debug counter for OnTick logging
+    private static uint _onTickLogCount;
+
     public bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs)
     {
+        _onTickLogCount++;
+
         if (current == null)
             return false;
 
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
         var threadData = current.GetSchedulerData<StrideThreadData>();
+
+        // Thread may have exited - its SchedulerData would be null
+        if (threadData == null)
+            return cpuData.RunQueue.Count > 0;
 
         current.TotalRuntime += elapsedNs;
 
@@ -176,6 +200,16 @@ public class StrideScheduler : IScheduler
         }
 
         UpdateGlobalPass(cpuData);
+
+        // Log every 100 ticks
+        if (_onTickLogCount % 100 == 0)
+        {
+            Cosmos.Kernel.Core.IO.Serial.WriteString("[STRIDE] OnTick: current=");
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber(current.Id);
+            Cosmos.Kernel.Core.IO.Serial.WriteString(" runQ=");
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)cpuData.RunQueue.Count);
+            Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+        }
 
         // Check for preemption
         if (cpuData.RunQueue.Count > 0)
@@ -220,7 +254,7 @@ public class StrideScheduler : IScheduler
         var toData = toState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
-        fromData.RunQueue.Remove(thread);
+        RemoveThreadFromQueue(fromData.RunQueue, thread);
         fromData.TotalTickets -= threadData.Tickets;
 
         threadData.Pass = (long)toData.GlobalPass + threadData.Remain;
@@ -287,7 +321,7 @@ public class StrideScheduler : IScheduler
 
         if (thread.State == ThreadState.Ready)
         {
-            cpuData.RunQueue.Remove(thread);
+            RemoveThreadFromQueue(cpuData.RunQueue, thread);
             InsertByPass(cpuData, thread);
         }
     }
@@ -335,5 +369,37 @@ public class StrideScheduler : IScheduler
     private ulong GetTimestamp()
     {
         return (ulong)Stopwatch.GetTimestamp();
+    }
+
+    /// <summary>
+    /// Removes a thread from the queue using ReferenceEquals + RemoveAt.
+    /// TODO: List.Remove/Contains crash due to EqualityComparer requiring broken runtime helpers.
+    /// </summary>
+    private void RemoveThreadFromQueue(System.Collections.Generic.List<Thread> queue, Thread thread)
+    {
+        for (int i = 0; i < queue.Count; i++)
+        {
+            if (object.ReferenceEquals(queue[i], thread))
+            {
+                queue.RemoveAt(i);
+                return;
+            }
+        }
+    }
+
+    // ========== Diagnostics ==========
+
+    public int GetRunQueueCount(PerCpuState cpuState)
+    {
+        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        return cpuData?.RunQueue.Count ?? 0;
+    }
+
+    public Thread GetRunQueueThread(PerCpuState cpuState, int index)
+    {
+        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        if (cpuData == null || index < 0 || index >= cpuData.RunQueue.Count)
+            return null;
+        return cpuData.RunQueue[index];
     }
 }

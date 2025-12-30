@@ -1,3 +1,4 @@
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Debug;
 
 namespace Cosmos.Kernel.Core.Memory.Heap;
@@ -17,23 +18,30 @@ public static unsafe class Heap
     /// <returns>New pointer with specified size while maintaining old data.</returns>
     public static byte* Realloc(byte* aPtr, uint newSize)
     {
+        InternalCpu.DisableInterrupts();
+
         PageType currentType = PageAllocator.GetPageType(aPtr);
 
 #if COSMOSDEBUG
         if (currentType != PageType.HeapSmall && currentType != PageType.HeapMedium &&
             currentType != PageType.HeapLarge)
         {
+            InternalCpu.EnableInterrupts();
             Debugger.DoSendNumber(newSize);
             Debugger.DoSendNumber((uint)aPtr);
             Debugger.SendKernelPanic(Panics.NonManagedPage);
         }
 #endif
 
+        byte* result;
+
         if (newSize > MediumHeap.MinSize && newSize <= MediumHeap.MaxSize)
         {
             if (currentType == PageType.HeapMedium)
             {
-                return MediumHeap.Realloc(aPtr, newSize);
+                result = MediumHeap.Realloc(aPtr, newSize);
+                InternalCpu.EnableInterrupts();
+                return result;
             }
 
             int oldSize = 0;
@@ -49,22 +57,24 @@ public static unsafe class Heap
             }
             else
             {
+                InternalCpu.EnableInterrupts();
                 throw new Exception();
             }
 
             byte* newPtr = MediumHeap.Alloc(newSize);
             MemoryOp.MemCopy(newPtr, aPtr, (int)newSize);
-            // {!} Span
-            // Span<byte> span = new(aPtr, oldSize);
-            // span.CopyTo(new Span<byte>(newPtr, (int)newSize));
+            InternalCpu.EnableInterrupts();
             return newPtr;
         }
 
         if (newSize >= LargeHeap.MinSize)
         {
-            return LargeHeap.Alloc(newSize);
+            result = LargeHeap.Alloc(newSize);
+            InternalCpu.EnableInterrupts();
+            return result;
         }
 
+        InternalCpu.EnableInterrupts();
         return (byte*)0;
     }
 
@@ -75,17 +85,26 @@ public static unsafe class Heap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
+        byte* result;
+
+        InternalCpu.DisableInterrupts();
+
         if (aSize > MediumHeap.MinSize && aSize <= MediumHeap.MaxSize)
         {
-            return MediumHeap.Alloc(aSize);
+            result = MediumHeap.Alloc(aSize);
         }
-
-        if (aSize > LargeHeap.MinSize)
+        else if (aSize > LargeHeap.MinSize)
         {
-            return LargeHeap.Alloc(aSize);
+            result = LargeHeap.Alloc(aSize);
+        }
+        else
+        {
+            result = SmallHeap.Alloc(aSize);
         }
 
-        return SmallHeap.Alloc(aSize);
+        InternalCpu.EnableInterrupts();
+
+        return result;
     }
 
     // Keep as void* and not byte* or other. Reduces typecasting from callers
@@ -102,6 +121,8 @@ public static unsafe class Heap
     /// </exception>
     public static void Free(void* aPtr)
     {
+        InternalCpu.DisableInterrupts();
+
         PageType currentType = PageAllocator.GetPageType(aPtr);
         switch (currentType)
         {
@@ -115,14 +136,23 @@ public static unsafe class Heap
                 SmallHeap.Free(aPtr);
                 break;
             default:
+                InternalCpu.EnableInterrupts();
                 Debugger.SendKernelPanic(Panics.NonManagedPage);
                 throw new NotSupportedException("This is not a managed page");
         }
+
+        InternalCpu.EnableInterrupts();
     }
 
     /// <summary>
     /// Collects all unreferenced objects after identifying them first
     /// </summary>
     /// <returns>Number of objects freed</returns>
-    public static int Collect() => SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
+    public static int Collect()
+    {
+        InternalCpu.DisableInterrupts();
+        int result = SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
+        InternalCpu.EnableInterrupts();
+        return result;
+    }
 }

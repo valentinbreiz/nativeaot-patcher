@@ -40,15 +40,19 @@ public unsafe struct ThreadContext
     // Temp storage (skipped during restore with add rsp, 32)
     public ulong TempRcx;
 
-    // CPU interrupt frame (pushed by CPU on interrupt)
-    public ulong Rip;     // Return address
+    // CPU interrupt frame / Thread entry point setup
+    // For resumed threads: RIP, CS, RFLAGS come from iretq
+    // For new threads: RIP = entry point, RFLAGS = initial flags, RSP = thread stack
+    public ulong Rip;     // Return address / entry point
     public ulong Cs;      // Code segment
     public ulong Rflags;  // Flags register
+    public ulong Rsp;     // Stack pointer for new threads (loaded before jump)
+    public ulong Ss;      // Unused (kept for alignment)
 
     /// <summary>
     /// Size of the complete context in bytes.
     /// </summary>
-    public const int Size = 256 + (15 * 8) + (3 * 8) + 8 + (3 * 8);  // XMM + GPRs + info + temp + CPU frame
+    public const int Size = 256 + (15 * 8) + (3 * 8) + 8 + (5 * 8);  // XMM + GPRs + info + temp + full CPU frame
 
     /// <summary>
     /// Sets up initial context for a new thread.
@@ -56,21 +60,30 @@ public unsafe struct ThreadContext
     /// <param name="entryPoint">Thread entry point address.</param>
     /// <param name="codeSegment">Code segment selector.</param>
     /// <param name="arg">Optional argument passed in RDI.</param>
-    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0)
+    /// <param name="stackTop">Top of the usable stack (for RSP after iretq).</param>
+    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackTop = 0)
     {
         // Clear everything
         R15 = R14 = R13 = R12 = R11 = R10 = R9 = R8 = 0;
         Rdi = arg;  // First argument in x64 calling convention
-        Rsi = Rbp = Rbx = Rdx = Rcx = Rax = 0;
+        Rsi = Rbx = Rdx = Rcx = Rax = 0;
         Interrupt = 0;
         CpuFlags = 0;
         Cr2 = 0;
         TempRcx = 0;
 
-        // Set up CPU interrupt frame
+        // Set up entry point and flags
         Rip = entryPoint;
         Cs = codeSegment;
         Rflags = 0x202;  // IF=1 (interrupts enabled), bit 1 always set
+
+        // Set up stack for the new thread
+        // RSP should be 16-byte aligned, then 8 off for call convention
+        Rsp = (stackTop & ~(nuint)0xF) - 8;  // Align and subtract 8 for call ABI
+        Ss = 0;  // Unused
+
+        // Set RBP to 0 (clean frame pointer for new thread)
+        Rbp = 0;
 
         // XMM registers are zeroed by default (uninitialized)
         fixed (byte* xmm = Xmm)

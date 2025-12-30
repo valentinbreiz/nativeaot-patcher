@@ -105,4 +105,17 @@ public interface IScheduler
     /// Get thread's current priority/weight.
     /// </summary>
     long GetPriority(Thread thread);
+
+    // ========== Diagnostics ==========
+
+    /// <summary>
+    /// Get the number of threads in the run queue.
+    /// </summary>
+    int GetRunQueueCount(PerCpuState cpuState);
+
+    /// <summary>
+    /// Get a thread from the run queue by index.
+    /// Returns null if index is out of range.
+    /// </summary>
+    Thread GetRunQueueThread(PerCpuState cpuState, int index);
 }

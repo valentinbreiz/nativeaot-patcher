@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Core.Scheduler;
@@ -80,8 +81,12 @@ public static class SchedulerManager
 
     public static void CreateThread(uint cpuId, Thread thread)
     {
+        Serial.WriteString("[SCHED] CreateThread: entering\n");
         var state = _cpuStates[cpuId];
+        InternalCpu.DisableInterrupts();
+        Serial.WriteString("[SCHED] CreateThread: acquiring lock\n");
         state.Lock.Acquire();
+        Serial.WriteString("[SCHED] CreateThread: lock acquired\n");
         try
         {
             _currentScheduler.OnThreadCreate(state, thread);
@@ -89,27 +94,38 @@ public static class SchedulerManager
         finally
         {
             state.Lock.Release();
+            InternalCpu.EnableInterrupts();
         }
+        Serial.WriteString("[SCHED] CreateThread: done\n");
     }
 
     public static void ReadyThread(uint cpuId, Thread thread)
     {
         var state = _cpuStates[cpuId];
+        InternalCpu.DisableInterrupts();
         state.Lock.Acquire();
         try
         {
             thread.State = ThreadState.Ready;
             _currentScheduler.OnThreadReady(state, thread);
+
+            Serial.WriteString("[SCHED] Thread ");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString(" is now ready, RSP=");
+            Serial.WriteHexWithPrefix((ulong)thread.StackPointer);
+            Serial.WriteString("\n");
         }
         finally
         {
             state.Lock.Release();
+            InternalCpu.EnableInterrupts();
         }
     }
 
     public static void BlockThread(uint cpuId, Thread thread)
     {
         var state = _cpuStates[cpuId];
+        InternalCpu.DisableInterrupts();
         state.Lock.Acquire();
         try
         {
@@ -119,27 +135,39 @@ public static class SchedulerManager
         finally
         {
             state.Lock.Release();
+            InternalCpu.EnableInterrupts();
         }
     }
 
     public static void ExitThread(uint cpuId, Thread thread)
     {
+        Serial.WriteString("[SCHED] ExitThread: entering\n");
         var state = _cpuStates[cpuId];
+        Serial.WriteString("[SCHED] ExitThread: disabling interrupts\n");
+        InternalCpu.DisableInterrupts();
+        Serial.WriteString("[SCHED] ExitThread: acquiring lock\n");
         state.Lock.Acquire();
+        Serial.WriteString("[SCHED] ExitThread: lock acquired\n");
         try
         {
+            Serial.WriteString("[SCHED] ExitThread: setting state to Dead\n");
             thread.State = ThreadState.Dead;
+            Serial.WriteString("[SCHED] ExitThread: calling OnThreadExit\n");
             _currentScheduler.OnThreadExit(state, thread);
+            Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
         }
         finally
         {
             state.Lock.Release();
+            InternalCpu.EnableInterrupts();
         }
+        Serial.WriteString("[SCHED] ExitThread: done\n");
     }
 
     public static void YieldThread(uint cpuId, Thread thread)
     {
         var state = _cpuStates[cpuId];
+        InternalCpu.DisableInterrupts();
         state.Lock.Acquire();
         try
         {
@@ -148,6 +176,7 @@ public static class SchedulerManager
         finally
         {
             state.Lock.Release();
+            InternalCpu.EnableInterrupts();
         }
     }
 
@@ -216,6 +245,9 @@ public static class SchedulerManager
 
     // ========== Timer Interrupt Handling ==========
 
+    // Debug counter to avoid flooding serial output
+    private static uint _tickCount;
+
     /// <summary>
     /// Called from timer interrupt handler to process scheduling.
     /// This is the main entry point for preemptive scheduling.
@@ -225,6 +257,18 @@ public static class SchedulerManager
     /// <param name="elapsedNs">Nanoseconds since last tick.</param>
     public static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
+        _tickCount++;
+
+        // Log first 10 ticks and then every 50 ticks
+        if (_tickCount <= 10 || _tickCount % 50 == 0)
+        {
+            Serial.WriteString("[SCHED] Tick ");
+            Serial.WriteNumber(_tickCount);
+            Serial.WriteString(" enabled=");
+            Serial.WriteString(_enabled ? "1" : "0");
+            Serial.WriteString("\n");
+        }
+
         if (!_enabled || _currentScheduler == null)
             return;
 
@@ -255,12 +299,21 @@ public static class SchedulerManager
 
         if (next == null)
         {
-            // No thread to run - shouldn't happen if idle thread exists
+            // No thread to switch to - just continue with current
+            // This happens when all threads have exited
             return;
         }
 
         if (next != prev)
         {
+            Serial.WriteString("[SCHED] Context switch: thread ");
+            Serial.WriteNumber(prev?.Id ?? 0);
+            Serial.WriteString(" -> ");
+            Serial.WriteNumber(next.Id);
+            Serial.WriteString(" RSP=");
+            Serial.WriteHexWithPrefix((ulong)next.StackPointer);
+            Serial.WriteString("\n");
+
             // Save current thread's stack pointer
             if (prev != null)
             {
@@ -275,10 +328,15 @@ public static class SchedulerManager
 
             // Switch to next thread
             state.CurrentThread = next;
+
+            // Check if this is a NEW thread (never run before) or RESUMED
+            bool isNewThread = next.State == ThreadState.Created;
+
             next.State = ThreadState.Running;
             next.LastScheduledAt = GetTimestamp();
 
-            // Request context switch - the IRQ stub will swap RSP
+            // Request context switch - set new thread flag and target RSP
+            ContextSwitch.SetContextSwitchNewThread(isNewThread ? 1 : 0);
             ContextSwitch.SetContextSwitchRsp(next.StackPointer);
         }
     }

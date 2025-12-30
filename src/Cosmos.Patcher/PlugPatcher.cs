@@ -370,6 +370,18 @@ public sealed class PlugPatcher
 
         if ((isInstance && !targetMethod.IsStatic) || targetMethod.IsConstructor)
         {
+            // Clear existing variables and exception handlers before copying plug's
+            targetMethod.Body.Variables.Clear();
+            targetMethod.Body.ExceptionHandlers.Clear();
+
+            // Copy variables with imported types
+            foreach (VariableDefinition? variable in plugMethod.Body.Variables)
+            {
+                targetMethod.Body.Variables.Add(
+                    new VariableDefinition(targetMethod.Module.ImportReference(variable.VariableType))
+                );
+            }
+
             _log.Debug($"Cloning {plugMethod.Body.Instructions.Count} instructions");
             foreach (Instruction instruction in plugMethod.Body.Instructions)
             {
@@ -393,6 +405,10 @@ public sealed class PlugPatcher
                     throw;
                 }
             }
+
+            // Copy method body properties
+            targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
+            targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
         }
         else
         {
