@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Network;
@@ -112,6 +114,10 @@ internal static partial class Program
                     ShowColors();
                     break;
 
+                case "sched":
+                    TestScheduler();
+                    break;
+
 #if ARCH_X64
                 case "netconfig":
                     ConfigureNetwork();
@@ -156,6 +162,7 @@ internal static partial class Program
         PrintCommand("info", "Show system information");
         PrintCommand("timer", "Test 10 second countdown timer");
         PrintCommand("colors", "Display color palette");
+        PrintCommand("sched", "Test scheduler API");
 #if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
@@ -224,6 +231,116 @@ internal static partial class Program
         }
         Console.ResetColor();
         Console.WriteLine();
+    }
+
+    private static void TestScheduler()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Scheduler API Test");
+        Console.ResetColor();
+
+        // Initialize scheduler with 1 CPU (cpuCount=1, so CPU index 0)
+        PrintInfo("Initializing scheduler with 1 CPU...");
+        SchedulerManager.Initialize(1);
+
+        // Set stride scheduler
+        var strideScheduler = new StrideScheduler();
+        SchedulerManager.SetScheduler(strideScheduler);
+        PrintSuccess("Stride scheduler set\n");
+
+        // Create test threads with different priorities
+        PrintInfo("Creating 3 test threads with different tickets...");
+
+        var thread1 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 1, State = ThreadState.Created };
+        var thread2 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 2, State = ThreadState.Created };
+        var thread3 = new Cosmos.Kernel.Core.Scheduler.Thread { Id = 3, State = ThreadState.Created };
+
+        SchedulerManager.CreateThread(0, thread1);
+        SchedulerManager.CreateThread(0, thread2);
+        SchedulerManager.CreateThread(0, thread3);
+
+        // Set different priorities (tickets)
+        SchedulerManager.SetPriority(0, thread1, 100);  // Normal
+        SchedulerManager.SetPriority(0, thread2, 200);  // High priority (2x)
+        SchedulerManager.SetPriority(0, thread3, 50);   // Low priority (0.5x)
+
+        PrintInfoLine("Thread 1", "100 tickets (normal)");
+        PrintInfoLine("Thread 2", "200 tickets (high)");
+        PrintInfoLine("Thread 3", "50 tickets (low)");
+
+        // Ready all threads
+        PrintInfo("Making threads ready...");
+        SchedulerManager.ReadyThread(0, thread1);
+        SchedulerManager.ReadyThread(0, thread2);
+        SchedulerManager.ReadyThread(0, thread3);
+
+        // Test picking - should pick in order of pass values
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Picking threads (should favor high-ticket thread):");
+        Console.ResetColor();
+
+        var cpuState = SchedulerManager.GetCpuState(0);
+        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+
+        // Show queue state before picks
+        PrintInfo("Queue before picks:");
+        for (int i = 0; i < cpuData.RunQueue.Count; i++)
+        {
+            var t = cpuData.RunQueue[i];
+            var td = t.GetSchedulerData<StrideThreadData>();
+            Console.WriteLine($"  [{i}] Thread {t.Id}: pass={td.Pass}, tickets={td.Tickets}");
+        }
+
+        // Simulate 6 scheduling rounds
+        Console.WriteLine();
+        PrintInfo("Simulating 6 scheduling rounds:");
+        int[] pickCount = new int[4];
+
+        for (int round = 0; round < 6; round++)
+        {
+            // Pick next
+            cpuState.Lock.Acquire();
+            var picked = strideScheduler.PickNext(cpuState);
+            cpuState.Lock.Release();
+
+            if (picked != null)
+            {
+                var td = picked.GetSchedulerData<StrideThreadData>();
+                Console.WriteLine($"  Round {round + 1}: Picked Thread {picked.Id} (pass={td.Pass})");
+                pickCount[picked.Id]++;
+
+                // Simulate a tick (advance pass)
+                picked.TotalRuntime += SchedulerManager.DefaultQuantumNs;
+                td.Pass += (long)td.Stride;
+
+                // Re-add to queue
+                cpuState.Lock.Acquire();
+                strideScheduler.OnThreadYield(cpuState, picked);
+                cpuState.Lock.Release();
+            }
+        }
+
+        // Show pick distribution
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Pick distribution:");
+        Console.ResetColor();
+        Console.WriteLine($"  Thread 1 (100 tickets): {pickCount[1]} picks");
+        Console.WriteLine($"  Thread 2 (200 tickets): {pickCount[2]} picks");
+        Console.WriteLine($"  Thread 3 (50 tickets):  {pickCount[3]} picks");
+
+        // Verify proportional fairness
+        Console.WriteLine();
+        if (pickCount[2] >= pickCount[1] && pickCount[1] >= pickCount[3])
+        {
+            PrintSuccess("Stride scheduling working correctly!\n");
+            PrintInfo("Higher ticket threads are scheduled more often.");
+        }
+        else
+        {
+            PrintWarning("Unexpected pick distribution - verify algorithm.");
+        }
     }
 
     // Helper methods for colored output

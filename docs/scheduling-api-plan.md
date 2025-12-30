@@ -838,9 +838,9 @@ src/Cosmos.Kernel.Core/
    - [x] Create `IScheduler` interface
    - [x] Create `SchedulerManager` static class
 
-2. **Phase 2: Stride Scheduler**
-   - [ ] Create `StrideThreadData` and `StrideCpuData`
-   - [ ] Implement `StrideScheduler`
+2. **Phase 2: Stride Scheduler** ✅
+   - [x] Create `StrideThreadData` and `StrideCpuData`
+   - [x] Implement `StrideScheduler`
    - [ ] Test with basic thread creation
 
 3. **Phase 3: Context Switch**
