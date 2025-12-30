@@ -851,10 +851,10 @@ src/Cosmos.Kernel.Core/
    - [x] Created `ThreadContext.cs` struct matching full IRQ stack layout
    - [x] Updated `Thread.cs` with `InitializeStack` method for new threads
 
-4. **Phase 4: Integration**
-   - [ ] Initialize scheduler from kernel main
-   - [ ] Create idle thread per CPU
-   - [ ] Integrate with existing PIT/LAPIC timer
+4. **Phase 4: Integration** ✅
+   - [x] Initialize scheduler from kernel main (`Kernel.InitializeScheduler()`)
+   - [x] Create idle thread per CPU (pinned to each CPU, with `IdleLoop` entry point)
+   - [x] Integrate with existing PIT/LAPIC timer (already done in Phase 3)
 
 5. **Phase 5: Polish**
    - [ ] Load balancing

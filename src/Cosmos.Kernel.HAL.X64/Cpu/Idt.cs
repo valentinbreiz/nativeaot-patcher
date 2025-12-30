@@ -21,7 +21,7 @@ public static unsafe partial class Idt
 
     [LibraryImport("*", EntryPoint = "_native_x64_get_code_selector")]
     [SuppressGCTransition]
-    private static partial ulong GetCurrentCodeSelector();
+    public static partial ulong GetCurrentCodeSelector();
 
     private static IdtEntry[] IdtEntries = new IdtEntry[256];
 

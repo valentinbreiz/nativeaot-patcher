@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Core.Scheduler;
@@ -297,7 +298,6 @@ public static class SchedulerManager
 
     private static ulong GetTimestamp()
     {
-        // TODO: Use rdtsc or platform timer
-        return 0;
+        return (ulong)Stopwatch.GetTimestamp();
     }
 }

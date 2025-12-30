@@ -21,6 +21,8 @@ using Cosmos.Kernel.HAL.X64.Pci;
 using Cosmos.Kernel.Services.Keyboard;
 using Cosmos.Kernel.Services.Network;
 using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.Core.Scheduler.Stride;
 #elif ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
@@ -123,6 +125,10 @@ public class Kernel
         TimerManager.Initialize();
         TimerManager.RegisterTimer(pit);
 
+        // Initialize Scheduler
+        Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
+        InitializeScheduler();
+
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
         Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
         var ps2Controller = new PS2Controller();
@@ -168,6 +174,86 @@ public class Kernel
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
+
+#if ARCH_X64
+    /// <summary>
+    /// Initializes the scheduler subsystem with idle threads for each CPU.
+    /// </summary>
+    private static unsafe void InitializeScheduler()
+    {
+        // Get CPU count from ACPI MADT
+        var madtInfo = Acpi.GetMadtInfoPtr();
+        uint cpuCount = madtInfo != null ? madtInfo->CpuCount : 1;
+
+        Serial.WriteString("[SCHED] Detected ");
+        Serial.WriteNumber(cpuCount);
+        Serial.WriteString(" CPU(s)\n");
+
+        // Initialize scheduler manager
+        SchedulerManager.Initialize(cpuCount);
+
+        // Set up stride scheduler
+        var scheduler = new StrideScheduler();
+        SchedulerManager.SetScheduler(scheduler);
+
+        Serial.WriteString("[SCHED] Using ");
+        Serial.WriteString(scheduler.Name);
+        Serial.WriteString(" scheduler\n");
+
+        // Get code selector for thread initialization
+        ushort cs = (ushort)Idt.GetCurrentCodeSelector();
+
+        // Create idle thread for each CPU
+        for (uint cpu = 0; cpu < cpuCount; cpu++)
+        {
+            var idleThread = new Core.Scheduler.Thread
+            {
+                Id = SchedulerManager.AllocateThreadId(),
+                CpuId = cpu,
+                State = Core.Scheduler.ThreadState.Ready,
+                Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
+            };
+
+            // Initialize idle thread stack with idle loop entry point
+            nuint idleEntry = (nuint)(delegate* unmanaged<void>)&IdleLoop;
+            idleThread.InitializeStack(idleEntry, cs);
+
+            // Register with scheduler
+            SchedulerManager.CreateThread(cpu, idleThread);
+
+            // Set as CPU's idle thread
+            var cpuState = SchedulerManager.GetCpuState(cpu);
+            cpuState.IdleThread = idleThread;
+            cpuState.CurrentThread = idleThread;
+
+            Serial.WriteString("[SCHED] Created idle thread ");
+            Serial.WriteNumber(idleThread.Id);
+            Serial.WriteString(" for CPU ");
+            Serial.WriteNumber(cpu);
+            Serial.WriteString("\n");
+        }
+
+        // Enable scheduler (timer will start invoking it)
+        SchedulerManager.Enabled = true;
+        Serial.WriteString("[SCHED] Scheduler enabled\n");
+    }
+
+    /// <summary>
+    /// Idle thread entry point - runs when no other threads are ready.
+    /// </summary>
+    [UnmanagedCallersOnly]
+    private static void IdleLoop()
+    {
+        while (true)
+        {
+            // Halt until next interrupt
+            if (PlatformHAL.CpuOps != null)
+            {
+                PlatformHAL.CpuOps.Halt();
+            }
+        }
+    }
+#endif
 
     /// <summary>
     /// Halt the CPU using platform-specific implementation.

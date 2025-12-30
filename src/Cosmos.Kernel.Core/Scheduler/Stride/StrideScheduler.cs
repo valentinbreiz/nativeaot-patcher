@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace Cosmos.Kernel.Core.Scheduler.Stride;
 
@@ -333,7 +334,6 @@ public class StrideScheduler : IScheduler
 
     private ulong GetTimestamp()
     {
-        // TODO: Use platform-specific timestamp (rdtsc, etc.)
-        return 0;
+        return (ulong)Stopwatch.GetTimestamp();
     }
 }
