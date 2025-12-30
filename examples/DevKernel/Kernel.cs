@@ -21,9 +21,6 @@ internal static partial class Program
     [return: MarshalUsing(typeof(SimpleStringMarshaler))]
     public static unsafe partial string testGCC();
 
-    [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-    private static void KernelMain() => Main();
-
     private static void Main()
     {
         Serial.WriteString("[Main] Starting Main function\n");

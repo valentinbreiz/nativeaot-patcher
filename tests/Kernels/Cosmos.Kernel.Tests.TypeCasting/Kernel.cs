@@ -10,9 +10,6 @@ namespace Cosmos.Kernel.Tests.TypeCasting
 {
     internal unsafe static partial class Program
     {
-        [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-        private static void KernelMain() => Main();
-
         private static void Main()
         {
             Serial.WriteString("[TypeCasting Tests] Starting test suite\n");

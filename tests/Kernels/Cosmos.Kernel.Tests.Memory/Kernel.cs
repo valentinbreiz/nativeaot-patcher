@@ -13,9 +13,6 @@ namespace Cosmos.Kernel.Tests.Memory
 {
     internal unsafe static partial class Program
     {
-        [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-        private static void KernelMain() => Main();
-
         private static void Main()
         {
             Serial.WriteString("[Memory Tests] Starting test suite\n");

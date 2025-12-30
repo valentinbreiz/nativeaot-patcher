@@ -11,15 +11,18 @@ typedef unsigned int size_t;
 #define COSMOS_VERSION_PATCH 0
 #define COSMOS_VERSION_STRING "3.0.0"
 #define COSMOS_CODENAME "gen3"
+#define NULL (void*)0
 
 // Linker-defined symbols for module section
 extern void* __Modules_start[];
 extern void* __Modules_end[];
+extern char* __kernel_start;
 
 // Managed code entry points
 extern void __Initialize_Kernel(void);
 extern void __managed__Startup(void);
-extern void __managed__Main(void);
+extern int __managed__Main(int argc, char* argv[]);
+extern void* RhpRegisterOsModule(void* osmodule);
 
 // CPU features (inspected by generated code)
 extern int g_cpuFeatures;
