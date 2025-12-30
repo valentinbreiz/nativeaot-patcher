@@ -808,30 +808,35 @@ The priority boost is temporary (5ms), preventing an "interactive" thread that s
 ```
 src/Cosmos.Kernel.Core/
   Scheduler/
-    IScheduler.cs              # Interface definition
-    SchedulerManager.cs        # Global scheduler management
+    ThreadState.cs             # ThreadState and ThreadFlags enums
+    SchedulerExtensible.cs     # Base class for extension pattern
     Thread.cs                  # Thread class
     PerCpuState.cs             # Per-CPU state class
-    ThreadState.cs             # Enums
+    SpinLock.cs                # Simple spinlock for SMP
+    IScheduler.cs              # Interface definition
+    SchedulerManager.cs        # Global scheduler management
 
-  Scheduler/Implementations/
-    StrideScheduler.cs         # Stride scheduling
-    StrideThreadData.cs        # Extension data
-    StrideCpuData.cs           # Extension data
+  Scheduler/Stride/
+    StrideThreadData.cs        # Per-thread extension data
+    StrideCpuData.cs           # Per-CPU extension data
+    StrideScheduler.cs         # Stride scheduling implementation
 
-    RoundRobinScheduler.cs     # (Future)
-    CFSScheduler.cs            # (Future)
+  Scheduler/RoundRobin/        # (Future)
+  Scheduler/CFS/               # (Future)
 ```
 
 ---
 
 ## Part 6: Implementation Order
 
-1. **Phase 1: Foundation**
-   - [ ] Create `Thread` class
-   - [ ] Create `PerCpuState` class
-   - [ ] Create `IScheduler` interface
-   - [ ] Create `SchedulerManager` static class
+1. **Phase 1: Foundation** ✅
+   - [x] Create `ThreadState.cs` enums
+   - [x] Create `SchedulerExtensible` base class
+   - [x] Create `Thread` class
+   - [x] Create `PerCpuState` class
+   - [x] Create `SpinLock` struct
+   - [x] Create `IScheduler` interface
+   - [x] Create `SchedulerManager` static class
 
 2. **Phase 2: Stride Scheduler**
    - [ ] Create `StrideThreadData` and `StrideCpuData`
