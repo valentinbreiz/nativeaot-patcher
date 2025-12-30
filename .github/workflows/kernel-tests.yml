@@ -192,6 +192,7 @@ jobs:
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
@@ -414,6 +415,7 @@ jobs:
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
@@ -636,6 +638,7 @@ jobs:
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
@@ -858,6 +861,7 @@ jobs:
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
@@ -1080,6 +1084,7 @@ jobs:
       - name: 💬 Post PR Comment
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
