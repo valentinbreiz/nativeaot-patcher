@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.Graphics;
 public static class KernelConsole
 {
     // Lock for thread-safe console access
-    private static SpinLock _lock;
+    private static Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
 
     // Cursor position in character coordinates (column, row)
     private static int _cursorX;
@@ -494,6 +494,7 @@ public static class KernelConsole
         try
         {
             WriteInternal(c);
+            EraseCursor();
             DoLineFeed();
             DrawCursor();
         }
@@ -521,6 +522,7 @@ public static class KernelConsole
             {
                 WriteInternal(c);
             }
+            EraseCursor();
             DoLineFeed();
             DrawCursor();
         }

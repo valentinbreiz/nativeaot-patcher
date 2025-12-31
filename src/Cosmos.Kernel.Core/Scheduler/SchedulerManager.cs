@@ -83,7 +83,6 @@ public static class SchedulerManager
     {
         Serial.WriteString("[SCHED] CreateThread: entering\n");
         var state = _cpuStates[cpuId];
-        InternalCpu.DisableInterrupts();
         Serial.WriteString("[SCHED] CreateThread: acquiring lock\n");
         state.Lock.Acquire();
         Serial.WriteString("[SCHED] CreateThread: lock acquired\n");
@@ -94,7 +93,6 @@ public static class SchedulerManager
         finally
         {
             state.Lock.Release();
-            InternalCpu.EnableInterrupts();
         }
         Serial.WriteString("[SCHED] CreateThread: done\n");
     }
@@ -102,7 +100,6 @@ public static class SchedulerManager
     public static void ReadyThread(uint cpuId, Thread thread)
     {
         var state = _cpuStates[cpuId];
-        InternalCpu.DisableInterrupts();
         state.Lock.Acquire();
         try
         {
@@ -122,7 +119,6 @@ public static class SchedulerManager
         finally
         {
             state.Lock.Release();
-            InternalCpu.EnableInterrupts();
         }
     }
 
