@@ -117,14 +117,28 @@ public static class ThreadPlug
         Serial.WriteNumber(threadId);
         Serial.WriteString("\n");
 
+        int exitCode = 0;
+
         // Get and invoke the delegate
         if (_threadDelegates.TryGetValue(threadId, out var start))
         {
             _threadDelegates.Remove(threadId);
 
-            Serial.WriteString("[ThreadPlug] Invoking delegate\n");
-            start.Invoke();
-            Serial.WriteString("[ThreadPlug] Delegate completed\n");
+            try
+            {
+                Serial.WriteString("[ThreadPlug] Invoking delegate\n");
+                start.Invoke();
+                Serial.WriteString("[ThreadPlug] Delegate completed\n");
+            }
+            catch (Exception ex)
+            {
+                exitCode = 1;
+                Serial.WriteString("[ThreadPlug] Thread ");
+                Serial.WriteNumber(threadId);
+                Serial.WriteString(" threw exception: ");
+                Serial.WriteString(ex.Message ?? "Unknown error");
+                Serial.WriteString("\n");
+            }
         }
         else
         {
@@ -133,7 +147,11 @@ public static class ThreadPlug
             Serial.WriteString("\n");
         }
 
-        Serial.WriteString("[ThreadPlug] Thread done, exiting\n");
+        Serial.WriteString("[ThreadPlug] Thread ");
+        Serial.WriteNumber(threadId);
+        Serial.WriteString(" exiting with code ");
+        Serial.WriteNumber((uint)exitCode);
+        Serial.WriteString("\n");
 
         // Mark thread as exited so scheduler won't re-queue it
         SchedulerManager.ExitThread(0, currentThread);
