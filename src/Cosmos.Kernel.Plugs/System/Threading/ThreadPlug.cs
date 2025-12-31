@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Cosmos.Build.API.Attributes;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Services.Timer;
@@ -65,6 +66,10 @@ public static class ThreadPlug
         Serial.WriteString(" - setting up stack\n");
 
 #if ARCH_X64
+        // Disable interrupts during critical thread setup to prevent
+        // timer interrupt from firing during initialization
+        InternalCpu.DisableInterrupts();
+
         // Get code selector
         ushort cs = (ushort)Idt.GetCurrentCodeSelector();
 
@@ -73,11 +78,18 @@ public static class ThreadPlug
         thread.InitializeStack(entryPoint, cs, thread.Id);
 
         Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
-#endif
 
         // Register with scheduler
         SchedulerManager.CreateThread(0, thread);
         SchedulerManager.ReadyThread(0, thread);
+
+        // Re-enable interrupts after thread is fully registered
+        InternalCpu.EnableInterrupts();
+#else
+        // Register with scheduler
+        SchedulerManager.CreateThread(0, thread);
+        SchedulerManager.ReadyThread(0, thread);
+#endif
 
         Serial.WriteString("[ThreadPlug] Thread ");
         Serial.WriteNumber(thread.Id);

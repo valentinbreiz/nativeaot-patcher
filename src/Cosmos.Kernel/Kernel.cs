@@ -131,6 +131,10 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
         InitializeScheduler();
 
+        // Register LAPIC timer handler (but don't start yet - wait for all init to complete)
+        Serial.WriteString("[KERNEL]   - Registering LAPIC timer handler...\n");
+        LocalApic.RegisterTimerHandler();
+
         InternalCpu.DisableInterrupts();
 
         // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
@@ -174,6 +178,10 @@ public class Kernel
         {
             Serial.WriteString("[KERNEL]   - No E1000E device found\n");
         }
+
+        // Start LAPIC timer for preemptive scheduling (after all init is complete)
+        Serial.WriteString("[KERNEL]   - Starting LAPIC timer for scheduling...\n");
+        LocalApic.StartPeriodicTimer(10);  // 10ms quantum
 #endif
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");

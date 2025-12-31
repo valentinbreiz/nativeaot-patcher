@@ -621,6 +621,7 @@ irq%1_stub:
     ; Push GPRs
     push rax                     ; rax (contains RFLAGS - limitation)
     mov rcx, [rsp + 32]          ; Original rcx
+    mov qword [rsp + 32], 0      ; Clear TempRcx slot (0 = normal return, not new thread)
     push rcx
     push rdx
     push rbx
