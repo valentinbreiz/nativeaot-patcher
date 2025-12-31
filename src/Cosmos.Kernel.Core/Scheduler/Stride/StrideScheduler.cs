@@ -61,6 +61,9 @@ public class StrideScheduler : IScheduler
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
+        if (cpuData == null || threadData == null)
+            return;
+
         UpdateGlobalPass(cpuData);
 
         ulong now = GetTimestamp();
@@ -108,6 +111,9 @@ public class StrideScheduler : IScheduler
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
+        if (cpuData == null || threadData == null)
+            return;
+
         UpdateGlobalPass(cpuData);
 
         threadData.Remain = threadData.Pass - (long)cpuData.GlobalPass;
@@ -139,6 +145,9 @@ public class StrideScheduler : IScheduler
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
+        if (cpuData == null || threadData == null)
+            return;
+
         // Ensure thread's pass is at least GlobalPass to prevent starvation of newer threads.
         // Without this, a thread that started with Pass=0 (like the idle thread) would
         // perpetually have lower pass than threads added later with Pass=GlobalPass.
@@ -154,7 +163,7 @@ public class StrideScheduler : IScheduler
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
 
-        if (cpuData.RunQueue.Count == 0)
+        if (cpuData == null || cpuData.RunQueue.Count == 0)
             return null;
 
         var selected = cpuData.RunQueue[0];
@@ -166,6 +175,8 @@ public class StrideScheduler : IScheduler
     public void OnPickFailed(PerCpuState cpuState, Thread thread)
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        if (cpuData == null)
+            return;
         InsertByPass(cpuData, thread);
     }
 
@@ -180,6 +191,9 @@ public class StrideScheduler : IScheduler
             return false;
 
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+        if (cpuData == null)
+            return false;
+
         var threadData = current.GetSchedulerData<StrideThreadData>();
 
         // Thread may have exited - its SchedulerData would be null
@@ -215,7 +229,7 @@ public class StrideScheduler : IScheduler
         if (cpuData.RunQueue.Count > 0)
         {
             var nextData = cpuData.RunQueue[0].GetSchedulerData<StrideThreadData>();
-            if (nextData.Pass < threadData.Pass)
+            if (nextData != null && nextData.Pass < threadData.Pass)
                 return true;
         }
 
@@ -254,6 +268,9 @@ public class StrideScheduler : IScheduler
         var toData = toState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
+        if (fromData == null || toData == null || threadData == null)
+            return;
+
         RemoveThreadFromQueue(fromData.RunQueue, thread);
         fromData.TotalTickets -= threadData.Tickets;
 
@@ -266,7 +283,7 @@ public class StrideScheduler : IScheduler
     public void Balance(PerCpuState cpuState, PerCpuState[] allCpuStates)
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
-        if (cpuData.RunQueue.Count > 0)
+        if (cpuData == null || cpuData.RunQueue.Count > 0)
             return;
 
         PerCpuState busiest = null;
@@ -278,7 +295,7 @@ public class StrideScheduler : IScheduler
                 continue;
 
             var data = state.GetSchedulerData<StrideCpuData>();
-            if (data.RunQueue.Count > maxCount)
+            if (data != null && data.RunQueue.Count > maxCount)
             {
                 maxCount = data.RunQueue.Count;
                 busiest = state;
@@ -289,6 +306,9 @@ public class StrideScheduler : IScheduler
             return;
 
         var busiestData = busiest.GetSchedulerData<StrideCpuData>();
+        if (busiestData == null || busiestData.RunQueue.Count == 0)
+            return;
+
         var victim = busiestData.RunQueue[busiestData.RunQueue.Count - 1];
 
         if ((victim.Flags & ThreadFlags.Pinned) == 0)
@@ -304,6 +324,9 @@ public class StrideScheduler : IScheduler
 
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
         var threadData = thread.GetSchedulerData<StrideThreadData>();
+
+        if (cpuData == null || threadData == null)
+            return;
 
         UpdateGlobalPass(cpuData);
 
@@ -328,7 +351,8 @@ public class StrideScheduler : IScheduler
 
     public long GetPriority(Thread thread)
     {
-        return (long)thread.GetSchedulerData<StrideThreadData>().Tickets;
+        var data = thread.GetSchedulerData<StrideThreadData>();
+        return data != null ? (long)data.Tickets : 0;
     }
 
     // ========== Private Helpers ==========
@@ -348,11 +372,16 @@ public class StrideScheduler : IScheduler
     private void InsertByPass(StrideCpuData cpuData, Thread thread)
     {
         var threadData = thread.GetSchedulerData<StrideThreadData>();
+        if (threadData == null)
+            return;
+
         int index = 0;
 
         for (; index < cpuData.RunQueue.Count; index++)
         {
             var otherData = cpuData.RunQueue[index].GetSchedulerData<StrideThreadData>();
+            if (otherData == null)
+                continue;
             if (threadData.Pass <= otherData.Pass)
                 break;
         }
@@ -363,7 +392,8 @@ public class StrideScheduler : IScheduler
     private ulong GetCpuLoad(uint cpuId)
     {
         var state = SchedulerManager.GetCpuState(cpuId);
-        return state.GetSchedulerData<StrideCpuData>().TotalTickets;
+        var data = state?.GetSchedulerData<StrideCpuData>();
+        return data?.TotalTickets ?? 0;
     }
 
     private ulong GetTimestamp()

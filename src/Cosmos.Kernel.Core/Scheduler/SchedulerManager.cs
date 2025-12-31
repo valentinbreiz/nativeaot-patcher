@@ -200,6 +200,12 @@ public static class SchedulerManager
         var prev = state.CurrentThread;
         var next = _currentScheduler.PickNext(state) ?? state.IdleThread;
 
+        if (next == null)
+        {
+            state.Lock.Release();
+            return;
+        }
+
         if (next != prev)
         {
             state.CurrentThread = next;
@@ -273,10 +279,15 @@ public static class SchedulerManager
             Serial.WriteString("\n");
         }
 
-        if (!_enabled || _currentScheduler == null)
+        if (!_enabled || _currentScheduler == null || _cpuStates == null)
+            return;
+
+        if (cpuId >= _cpuCount)
             return;
 
         var state = _cpuStates[cpuId];
+        if (state == null || state.CurrentThread == null)
+            return;
 
         // Update timing and check if preemption needed
         bool needsReschedule = _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
@@ -353,6 +364,9 @@ public static class SchedulerManager
     {
         // This is for non-interrupt context switches (e.g., voluntary yield)
         // Not fully implemented - use ScheduleFromInterrupt for preemptive switching
+        if (next == null)
+            return;
+
         if (prev != null)
             prev.State = ThreadState.Ready;
 

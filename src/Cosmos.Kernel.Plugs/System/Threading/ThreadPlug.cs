@@ -19,21 +19,33 @@ public static class ThreadPlug
     // Store delegates indexed by thread ID
     private static readonly Dictionary<uint, ThreadStart> _threadDelegates = new();
 
-    // Store the last delegate from constructor (for linking to thread ID in StartCore)
-    private static ThreadStart? _pendingDelegate;
+    // Queue of pending delegates (to handle multiple thread creations)
+    private static readonly Queue<ThreadStart> _pendingDelegates = new();
 
     [PlugMember(".ctor")]
     public static void Ctor(SysThread aThis, ThreadStart start)
     {
         Serial.WriteString("[ThreadPlug] Ctor(ThreadStart)\n");
-        _pendingDelegate = start;
+        // Only disable interrupts if scheduler is running (to avoid issues during early boot)
+        bool needsProtection = SchedulerManager.Enabled;
+        if (needsProtection)
+            InternalCpu.DisableInterrupts();
+        _pendingDelegates.Enqueue(start);
+        if (needsProtection)
+            InternalCpu.EnableInterrupts();
     }
 
     [PlugMember(".ctor")]
     public static void Ctor(SysThread aThis, ThreadStart start, int maxStackSize)
     {
         Serial.WriteString("[ThreadPlug] Ctor(ThreadStart, maxStackSize)\n");
-        _pendingDelegate = start;
+        // Only disable interrupts if scheduler is running (to avoid issues during early boot)
+        bool needsProtection = SchedulerManager.Enabled;
+        if (needsProtection)
+            InternalCpu.DisableInterrupts();
+        _pendingDelegates.Enqueue(start);
+        if (needsProtection)
+            InternalCpu.EnableInterrupts();
     }
 
     [PlugMember("StartCore")]
@@ -41,14 +53,20 @@ public static class ThreadPlug
     {
         Serial.WriteString("[ThreadPlug] StartCore()\n");
 
-        if (_pendingDelegate == null)
+        // Disable interrupts for thread-safe queue/dictionary access
+        bool needsProtection = SchedulerManager.Enabled;
+        if (needsProtection)
+            InternalCpu.DisableInterrupts();
+
+        if (_pendingDelegates.Count == 0)
         {
+            if (needsProtection)
+                InternalCpu.EnableInterrupts();
             Serial.WriteString("[ThreadPlug] No delegate found\n");
             return;
         }
 
-        var start = _pendingDelegate;
-        _pendingDelegate = null;
+        var start = _pendingDelegates.Dequeue();
 
         // Create scheduler thread
         var thread = new SchedThread
@@ -66,10 +84,6 @@ public static class ThreadPlug
         Serial.WriteString(" - setting up stack\n");
 
 #if ARCH_X64
-        // Disable interrupts during critical thread setup to prevent
-        // timer interrupt from firing during initialization
-        InternalCpu.DisableInterrupts();
-
         // Get code selector
         ushort cs = (ushort)Idt.GetCurrentCodeSelector();
 
@@ -84,11 +98,14 @@ public static class ThreadPlug
         SchedulerManager.ReadyThread(0, thread);
 
         // Re-enable interrupts after thread is fully registered
-        InternalCpu.EnableInterrupts();
+        if (needsProtection)
+            InternalCpu.EnableInterrupts();
 #else
         // Register with scheduler
         SchedulerManager.CreateThread(0, thread);
         SchedulerManager.ReadyThread(0, thread);
+        if (needsProtection)
+            InternalCpu.EnableInterrupts();
 #endif
 
         Serial.WriteString("[ThreadPlug] Thread ");
@@ -119,11 +136,16 @@ public static class ThreadPlug
 
         int exitCode = 0;
 
-        // Get and invoke the delegate
-        if (_threadDelegates.TryGetValue(threadId, out var start))
-        {
+        // Get the delegate with interrupts disabled
+        InternalCpu.DisableInterrupts();
+        bool hasDelegate = _threadDelegates.TryGetValue(threadId, out var start);
+        if (hasDelegate)
             _threadDelegates.Remove(threadId);
+        InternalCpu.EnableInterrupts();
 
+        // Invoke the delegate
+        if (hasDelegate && start != null)
+        {
             try
             {
                 Serial.WriteString("[ThreadPlug] Invoking delegate\n");
@@ -133,8 +155,11 @@ public static class ThreadPlug
             catch (Exception ex)
             {
                 exitCode = 1;
+                // Re-query thread ID - local variables may not be accessible in catch funclet
+                var exCpuState = SchedulerManager.GetCpuState(0);
+                uint exThreadId = exCpuState?.CurrentThread?.Id ?? 0;
                 Serial.WriteString("[ThreadPlug] Thread ");
-                Serial.WriteNumber(threadId);
+                Serial.WriteNumber(exThreadId);
                 Serial.WriteString(" threw exception: ");
                 Serial.WriteString(ex.Message ?? "Unknown error");
                 Serial.WriteString("\n");
@@ -147,14 +172,22 @@ public static class ThreadPlug
             Serial.WriteString("\n");
         }
 
+        // Re-query current thread for exit (local vars may be corrupted after exception)
+        var exitCpuState = SchedulerManager.GetCpuState(0);
+        var exitThread = exitCpuState?.CurrentThread;
+        uint exitThreadId = exitThread?.Id ?? 0;
+
         Serial.WriteString("[ThreadPlug] Thread ");
-        Serial.WriteNumber(threadId);
+        Serial.WriteNumber(exitThreadId);
         Serial.WriteString(" exiting with code ");
         Serial.WriteNumber((uint)exitCode);
         Serial.WriteString("\n");
 
         // Mark thread as exited so scheduler won't re-queue it
-        SchedulerManager.ExitThread(0, currentThread);
+        if (exitThread != null)
+        {
+            SchedulerManager.ExitThread(0, exitThread);
+        }
 
         // Halt forever - scheduler should not pick this thread again
         while (true)
