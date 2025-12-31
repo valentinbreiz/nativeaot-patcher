@@ -158,6 +158,13 @@ public interface IFileSystem
     public void DeleteFile(IDirectoryEntry directoryEntry);
 
     /// <summary>
+    ///
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public IDirectoryEntry? Get(string path);
+
+    /// <summary>
     /// Get Partition.
     /// </summary>
     public Partition Partition { get; }

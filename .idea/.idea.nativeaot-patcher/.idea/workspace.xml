@@ -10,10 +10,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/BlockDeviceStream.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/BlockDevice/BlockDeviceStream.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/VFS/BaseFileSystem.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/VFS/FAT/FAT.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/VFS/Partition.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Partition.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatFileSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatFileSystem.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IDirectoryEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IDirectoryEntry.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileSystem.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/VfsManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/VfsManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +32,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/59e69cdfed13efa8a6d7821335c5f5d1dd7e4dc2d09a23eec71b142e6f9967/Dictionary.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/98ecf4ebd1d9a35e95cb73d6be798c135d5783d7e5ace5ac3b778bf15fed1a/Span.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e744562ef42dc5e29efed36f99fad0bd8896f768f06a144364a62cb95d92813/Console.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/.mcp.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
@@ -64,6 +66,7 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Enums/DirectoryEntryType.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatFileSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///mnt/data/projects/gitlab/liquip/nativeaot-patcher/src/Cosmos.Kernel.Services/VFS/FAT/FatFileSystem.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatIsFileSystem.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IDirectoryEntry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileSystem.cs" root0="FORCE_HIGHLIGHTING" />
@@ -88,31 +91,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "zarlo/blockdevice/0",
-    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;zarlo/blockdevice/0&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="DevKernel" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="PTY_MODE" value="Auto" />
       <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
@@ -145,6 +146,11 @@
       <workItem from="1760943148128" duration="511000" />
       <workItem from="1760961777018" duration="3965000" />
       <workItem from="1761088397686" duration="10056000" />
+      <workItem from="1762043355047" duration="2176000" />
+      <workItem from="1762165469779" duration="14041000" />
+      <workItem from="1762329594303" duration="4870000" />
+      <workItem from="1762923167740" duration="204000" />
+      <workItem from="1764369102154" duration="2305000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -154,7 +160,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760872061508</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="work on VFS">
+      <option name="closed" value="true" />
+      <created>1761898886530</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1761898886530</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -169,7 +183,8 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="work" />
     <MESSAGE value="start work on block device" />
-    <option name="LAST_COMMIT_MESSAGE" value="start work on block device" />
+    <MESSAGE value="work on VFS" />
+    <option name="LAST_COMMIT_MESSAGE" value="work on VFS" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -17,6 +17,28 @@ public class FatFileSystem : IFileSystem
 
     public List<IDirectoryEntry> GetDirectoryListing(IDirectoryEntry directoryEntry) => throw new NotImplementedException();
 
+    public IDirectoryEntry? Get(string path)
+    {
+        string localPath = path[RootPath.Length..];
+        string[] parts = localPath.Split('/');
+        IDirectoryEntry? current = GetRootDirectory();
+        foreach (string part in parts)
+        {
+            if (current == null) break;
+            List<IDirectoryEntry> nodes = GetDirectoryListing(current);
+            current = null;
+            foreach (IDirectoryEntry node in nodes)
+            {
+                if (node.Name == part)
+                {
+                    current = node;
+                }
+            }
+        }
+
+        return current;
+    }
+
     public IDirectoryEntry GetRootDirectory() => throw new NotImplementedException();
 
     public IDirectoryEntry CreateDirectory(IDirectoryEntry directoryEntry, string aNewDirectory) => throw new NotImplementedException();

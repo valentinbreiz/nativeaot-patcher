@@ -22,6 +22,8 @@ public interface IDirectoryEntry
     /// </summary>
     public string Path { get; }
 
+    public string Name { get; }
+
     /// <summary>
     /// Set entry name.
     /// </summary>

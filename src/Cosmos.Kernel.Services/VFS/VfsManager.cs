@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Services.VFS.FAT;
 using Cosmos.Kernel.Services.VFS.Interfaces;
 
@@ -53,6 +54,30 @@ public static class VfsManager
     {
         fileSystem.Flags = flags;
         s_mountPoints.Add(fileSystem.RootPath, fileSystem);
+    }
+
+    [SuppressMessage("ReSharper", "UseNullPropagation")]
+    public static Stream? GetStream(string path)
+    {
+        IFileSystem? fs = GetFileSystem(path);
+        if (fs == null)
+        {
+            return null;
+        }
+
+        IDirectoryEntry? node = fs.Get(path);
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node is IFileEntry file)
+        {
+            return file.GetFileStream();
+        }
+
+        return null;
+
     }
 
 }
