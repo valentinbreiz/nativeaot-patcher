@@ -106,7 +106,11 @@ public static class SchedulerManager
         state.Lock.Acquire();
         try
         {
-            thread.State = ThreadState.Ready;
+            // Only set to Ready if not a new thread (Created).
+            // New threads stay Created until they actually start running.
+            // This allows ScheduleFromInterrupt to detect first-time execution.
+            if (thread.State != ThreadState.Created)
+                thread.State = ThreadState.Ready;
             _currentScheduler.OnThreadReady(state, thread);
 
             Serial.WriteString("[SCHED] Thread ");
@@ -306,6 +310,7 @@ public static class SchedulerManager
 
         if (next != prev)
         {
+            /*
             Serial.WriteString("[SCHED] Context switch: thread ");
             Serial.WriteNumber(prev?.Id ?? 0);
             Serial.WriteString(" -> ");
@@ -313,6 +318,7 @@ public static class SchedulerManager
             Serial.WriteString(" RSP=");
             Serial.WriteHexWithPrefix((ulong)next.StackPointer);
             Serial.WriteString("\n");
+            */
 
             // Save current thread's stack pointer
             if (prev != null)

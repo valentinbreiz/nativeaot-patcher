@@ -126,6 +126,13 @@ internal static partial class Program
                     StartGraphicsThread();
                     break;
 
+                case "kill":
+                    if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                        KillThread(killId);
+                    else
+                        PrintError("Usage: kill <thread_id>");
+                    break;
+
 #if ARCH_X64
                 case "netconfig":
                     ConfigureNetwork();
@@ -173,6 +180,7 @@ internal static partial class Program
         PrintCommand("schedinfo", "Show scheduler status and threads");
         PrintCommand("thread", "Test System.Threading.Thread");
         PrintCommand("gfx", "Start graphics thread (draws square)");
+        PrintCommand("kill <id>", "Kill a thread by ID");
 #if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
@@ -400,6 +408,57 @@ internal static partial class Program
 
         PrintSuccess("Graphics thread started!\n");
         PrintInfo("Watch the bottom-right corner of the screen.");
+    }
+
+    private static void KillThread(uint threadId)
+    {
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
+        {
+            PrintError("Scheduler not initialized");
+            return;
+        }
+
+        // Don't allow killing thread 0 (idle/main thread)
+        if (threadId == 0)
+        {
+            PrintError("Cannot kill idle thread (ID 0)");
+            return;
+        }
+
+        // Search for the thread across all CPUs
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            // Check if it's the current thread
+            if (cpuState.CurrentThread?.Id == threadId)
+            {
+                PrintWarning("Cannot kill currently running thread");
+                PrintInfo("Thread will be terminated when it yields");
+                cpuState.CurrentThread.State = Cosmos.Kernel.Core.Scheduler.ThreadState.Dead;
+                return;
+            }
+
+            // Search in run queue
+            int count = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < count; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread?.Id == threadId)
+                {
+                    Serial.WriteString("[Kill] Killing thread ");
+                    Serial.WriteNumber(threadId);
+                    Serial.WriteString("\n");
+
+                    SchedulerManager.ExitThread(cpuId, thread);
+                    PrintSuccess("Thread " + threadId + " killed\n");
+                    return;
+                }
+            }
+        }
+
+        PrintError("Thread " + threadId + " not found");
     }
 
     private static void GraphicsWorker()

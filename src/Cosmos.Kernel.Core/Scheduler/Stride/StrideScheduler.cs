@@ -391,15 +391,33 @@ public class StrideScheduler : IScheduler
 
     public int GetRunQueueCount(PerCpuState cpuState)
     {
-        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
-        return cpuData?.RunQueue.Count ?? 0;
+        // Disable interrupts to prevent timer from modifying RunQueue while we read
+        CPU.InternalCpu.DisableInterrupts();
+        try
+        {
+            var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+            return cpuData?.RunQueue.Count ?? 0;
+        }
+        finally
+        {
+            CPU.InternalCpu.EnableInterrupts();
+        }
     }
 
     public Thread GetRunQueueThread(PerCpuState cpuState, int index)
     {
-        var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
-        if (cpuData == null || index < 0 || index >= cpuData.RunQueue.Count)
-            return null;
-        return cpuData.RunQueue[index];
+        // Disable interrupts to prevent timer from modifying RunQueue while we read
+        CPU.InternalCpu.DisableInterrupts();
+        try
+        {
+            var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
+            if (cpuData == null || index < 0 || index >= cpuData.RunQueue.Count)
+                return null;
+            return cpuData.RunQueue[index];
+        }
+        finally
+        {
+            CPU.InternalCpu.EnableInterrupts();
+        }
     }
 }
