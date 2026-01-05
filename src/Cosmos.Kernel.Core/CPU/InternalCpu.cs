@@ -17,4 +17,8 @@ public static partial class InternalCpu
     [LibraryImport("*", EntryPoint = "_native_cpu_enable_interrupts")]
     [SuppressGCTransition]
     public static partial void EnableInterrupts();
+
+    [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
+    [SuppressGCTransition]
+    public static partial void Halt();
 }

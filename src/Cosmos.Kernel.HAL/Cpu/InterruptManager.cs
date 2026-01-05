@@ -77,22 +77,7 @@ public static class InterruptManager
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
-        // Check for fatal exceptions (handled by platform-specific controller)
-        if (s_controller != null && ctx.interrupt <= 31)
-        {
-#if ARCH_ARM64
-            ulong faultAddress = ctx.far;
-#else
-            ulong faultAddress = ctx.cr2;
-#endif
-            if (s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, faultAddress))
-            {
-                // Controller handled it (likely halted)
-                return;
-            }
-        }
-
-        // For hardware IRQs (vector >= 32), call handler immediately
+        // First check if there's a registered managed handler
         if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
         {
             IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
@@ -107,6 +92,19 @@ public static class InterruptManager
                 }
                 return;
             }
+        }
+
+        // No managed handler - for CPU exceptions (0-31), use fallback fatal handler
+        if (s_controller != null && ctx.interrupt <= 31)
+        {
+#if ARCH_ARM64
+            ulong faultAddress = ctx.far;
+#else
+            ulong faultAddress = ctx.cr2;
+#endif
+            s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, faultAddress);
+            // HandleFatalException halts, so we won't reach here
+            return;
         }
 
         // Send EOI even for unhandled hardware interrupts to prevent lockup

@@ -7,6 +7,7 @@ using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Services.Timer;
 using SysThread = System.Threading.Thread;
 using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
+using Cosmos.Kernel.Core;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Cpu;
 #endif
@@ -125,8 +126,7 @@ public static class ThreadPlug
 
         if (currentThread == null)
         {
-            Serial.WriteString("[ThreadPlug] No current thread!\n");
-            while (true) { }
+            Panic.Halt("No current thread in ThreadEntryPoint");
         }
 
         uint threadId = currentThread.Id;
@@ -192,7 +192,7 @@ public static class ThreadPlug
         // Halt forever - scheduler should not pick this thread again
         while (true)
         {
-            Cosmos.Kernel.HAL.PlatformHAL.CpuOps?.Halt();
+            InternalCpu.Halt();
         }
     }
 

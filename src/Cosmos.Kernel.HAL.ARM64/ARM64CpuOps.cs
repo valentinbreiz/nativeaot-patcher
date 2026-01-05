@@ -1,32 +1,15 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Interfaces;
+using Cosmos.Kernel.Core.CPU;
 
 namespace Cosmos.Kernel.HAL.ARM64;
 
 public partial class ARM64CpuOps : ICpuOps
 {
-    [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
-    [SuppressGCTransition]
-    private static partial void NativeHalt();
+    public void Halt() => InternalCpu.Halt();
 
-    [LibraryImport("*", EntryPoint = "_native_cpu_memory_barrier")]
-    [SuppressGCTransition]
-    private static partial void NativeMemoryBarrier();
+    public void DisableInterrupts() => InternalCpu.DisableInterrupts();
 
-
-    public void Halt() => NativeHalt();
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public void Nop()
-    {
-        // NOP instruction
-    }
-
-    public void MemoryBarrier() => NativeMemoryBarrier();
-
-    public void DisableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.DisableInterrupts();
-
-    public void EnableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.EnableInterrupts();
+    public void EnableInterrupts() => InternalCpu.EnableInterrupts();
 }

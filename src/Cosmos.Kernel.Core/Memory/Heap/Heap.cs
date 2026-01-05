@@ -62,7 +62,20 @@ public static unsafe class Heap
             }
 
             byte* newPtr = MediumHeap.Alloc(newSize);
-            MemoryOp.MemCopy(newPtr, aPtr, (int)newSize);
+            // Copy the smaller of oldSize and newSize to avoid buffer overread
+            int copySize = oldSize < (int)newSize ? oldSize : (int)newSize;
+            MemoryOp.MemCopy(newPtr, aPtr, copySize);
+
+            // Free the old allocation
+            if (currentType == PageType.HeapLarge)
+            {
+                LargeHeap.Free(aPtr);
+            }
+            else if (currentType == PageType.HeapSmall)
+            {
+                SmallHeap.Free(aPtr);
+            }
+
             InternalCpu.EnableInterrupts();
             return newPtr;
         }

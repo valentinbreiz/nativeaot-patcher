@@ -95,6 +95,10 @@ public class Kernel
         InterruptManager.Initialize(new ARM64InterruptController());
 #endif
 
+        // Initialize exception handlers (must be after InterruptManager)
+        Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
+        ExceptionHandler.Initialize();
+
 #if ARCH_X64
         Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
         PciManager.Setup();

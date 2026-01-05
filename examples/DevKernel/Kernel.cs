@@ -13,6 +13,8 @@ using Cosmos.Kernel.Services.Network;
 using Cosmos.Kernel.Services.Network.IPv4;
 using Cosmos.Kernel.Services.Network.IPv4.UDP;
 using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.Core.CPU;
+
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Devices.Network;
 #endif
@@ -25,6 +27,9 @@ internal static partial class Program
 
     private static void Main()
     {
+        //Re-enable interrupts right before user kernel
+        InternalCpu.EnableInterrupts();
+
         Serial.WriteString("[Main] Starting Main function\n");
 
         // GCC interop test (DevKernel-specific)

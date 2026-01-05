@@ -20,8 +20,5 @@ public unsafe partial class StartupCodeHelpersPlug
         Cosmos.Kernel.Core.IO.Serial.WriteString("[StartupCodeHelpers] RunModuleInitializers - Starting\n");
         ManagedModule.RunModuleInitializers();
         Cosmos.Kernel.Core.IO.Serial.WriteString("[StartupCodeHelpers] RunModuleInitializers - Complete\n");
-
-        //Re-enable interrupts right before user kernel
-        InternalCpu.EnableInterrupts();
     }
 }
