@@ -2,8 +2,8 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 

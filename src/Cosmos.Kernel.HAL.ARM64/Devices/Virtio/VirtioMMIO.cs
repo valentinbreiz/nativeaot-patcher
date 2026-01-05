@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 
