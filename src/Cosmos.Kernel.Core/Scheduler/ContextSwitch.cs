@@ -41,11 +41,37 @@ public static partial class ContextSwitch
     [SuppressGCTransition]
     public static partial void SetContextSwitchNewThread(int isNew);
 #elif ARCH_ARM64
-    // ARM64 implementation will be added later
-    public static void SetContextSwitchRsp(nuint newRsp) { }
-    public static nuint GetContextSwitchRsp() => 0;
-    public static nuint GetRsp() => 0;
-    public static void SetContextSwitchNewThread(int isNew) { }
+    /// <summary>
+    /// Sets the target SP for context switch. The IRQ stub will switch
+    /// to this stack after the managed handler returns.
+    /// </summary>
+    /// <param name="newSp">New SP pointing to a saved context.</param>
+    [LibraryImport("*", EntryPoint = "_native_arm64_set_context_switch_sp")]
+    [SuppressGCTransition]
+    public static partial void SetContextSwitchRsp(nuint newSp);
+
+    /// <summary>
+    /// Gets the current context switch target SP (for debugging).
+    /// </summary>
+    [LibraryImport("*", EntryPoint = "_native_arm64_get_context_switch_sp")]
+    [SuppressGCTransition]
+    public static partial nuint GetContextSwitchRsp();
+
+    /// <summary>
+    /// Gets the current SP value.
+    /// </summary>
+    [LibraryImport("*", EntryPoint = "_native_arm64_get_sp")]
+    [SuppressGCTransition]
+    public static partial nuint GetRsp();
+
+    /// <summary>
+    /// Sets whether the target thread is NEW (1) or RESUMED (0).
+    /// NEW threads need SP loaded from context and branch to entry point.
+    /// RESUMED threads use eret to return.
+    /// </summary>
+    [LibraryImport("*", EntryPoint = "_native_arm64_set_context_switch_new_thread")]
+    [SuppressGCTransition]
+    public static partial void SetContextSwitchNewThread(int isNew);
 #endif
 
     /// <summary>

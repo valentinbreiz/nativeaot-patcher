@@ -28,6 +28,10 @@ using Cosmos.Kernel.Core.Scheduler.Stride;
 #elif ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
+using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
+using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.Core.Scheduler.Stride;
 #endif
 
 namespace Cosmos.Kernel;
@@ -186,6 +190,28 @@ public class Kernel
         // Start LAPIC timer for preemptive scheduling (after all init is complete)
         Serial.WriteString("[KERNEL]   - Starting LAPIC timer for scheduling...\n");
         LocalApic.StartPeriodicTimer(10);  // 10ms quantum
+#elif ARCH_ARM64
+        // Initialize Generic Timer (ARM64 architected timer)
+        Serial.WriteString("[KERNEL]   - Initializing Generic Timer...\n");
+        var timer = new GenericTimer();
+        timer.Initialize();
+        TimerManager.Initialize();
+        TimerManager.RegisterTimer(timer);
+
+        // Initialize Scheduler
+        Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
+        InitializeSchedulerARM64();
+
+        // Register timer interrupt handler
+        Serial.WriteString("[KERNEL]   - Registering timer interrupt handler...\n");
+        timer.RegisterIRQHandler();
+
+        // Disable interrupts during final init
+        InternalCpu.DisableInterrupts();
+
+        // Start the timer for preemptive scheduling
+        Serial.WriteString("[KERNEL]   - Starting Generic Timer for scheduling...\n");
+        timer.Start();
 #endif
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
@@ -268,6 +294,59 @@ public class Kernel
                 PlatformHAL.CpuOps.Halt();
             }
         }
+    }
+#elif ARCH_ARM64
+    /// <summary>
+    /// Initializes the scheduler subsystem for ARM64 with idle threads.
+    /// </summary>
+    private static unsafe void InitializeSchedulerARM64()
+    {
+        // For now, single CPU
+        uint cpuCount = 1;
+
+        Serial.WriteString("[SCHED] ARM64: Using ");
+        Serial.WriteNumber(cpuCount);
+        Serial.WriteString(" CPU(s)\n");
+
+        // Initialize scheduler manager
+        SchedulerManager.Initialize(cpuCount);
+
+        // Set up stride scheduler
+        var scheduler = new StrideScheduler();
+        SchedulerManager.SetScheduler(scheduler);
+
+        Serial.WriteString("[SCHED] Using ");
+        Serial.WriteString(scheduler.Name);
+        Serial.WriteString(" scheduler\n");
+
+        // Create idle thread for each CPU
+        // The idle thread represents the main kernel - no separate stack needed
+        for (uint cpu = 0; cpu < cpuCount; cpu++)
+        {
+            var idleThread = new Core.Scheduler.Thread
+            {
+                Id = SchedulerManager.AllocateThreadId(),
+                CpuId = cpu,
+                State = Core.Scheduler.ThreadState.Running,  // Already running
+                Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
+            };
+
+            // Register with scheduler (but don't add to run queue)
+            SchedulerManager.CreateThread(cpu, idleThread);
+
+            // Set as CPU's idle and current thread
+            SchedulerManager.SetupIdleThread(cpu, idleThread);
+
+            Serial.WriteString("[SCHED] Idle thread ");
+            Serial.WriteNumber(idleThread.Id);
+            Serial.WriteString(" for CPU ");
+            Serial.WriteNumber(cpu);
+            Serial.WriteString("\n");
+        }
+
+        // Enable scheduler
+        SchedulerManager.Enabled = true;
+        Serial.WriteString("[SCHED] Scheduler enabled\n");
     }
 #endif
 

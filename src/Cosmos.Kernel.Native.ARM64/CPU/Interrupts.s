@@ -154,9 +154,51 @@ __exception_common:
     mov     x0, x10
     bl      __managed__irq
 
-    // Restore using x10 as base (recalculate it)
+    // =====================================================
+    // CHECK FOR CONTEXT SWITCH
+    // =====================================================
+    adrp    x11, _context_switch_target_sp
+    add     x11, x11, :lo12:_context_switch_target_sp
+    ldr     x12, [x11]
+    cbz     x12, __restore_context    // No context switch requested
+
+    // Context switch requested - clear the flag
+    str     xzr, [x11]
+
+    // Save the is_new_thread flag (we need it after stack switch)
+    adrp    x11, _context_switch_is_new_thread
+    add     x11, x11, :lo12:_context_switch_is_new_thread
+    ldr     x13, [x11]
+    str     xzr, [x11]               // Clear the flag
+
+    // Save is_new_thread to temp location
+    adrp    x11, _temp_is_new_thread
+    add     x11, x11, :lo12:_temp_is_new_thread
+    str     x13, [x11]
+
+    // Switch to new context's stack
+    // x12 = new SP (points to start of saved context)
+    mov     sp, x12
+
+__restore_context:
+    // Restore using sp as base (context is at sp)
+    // NEON registers are at [sp+0..511]
+    // IRQContext is at [sp+512..807]
+
+    // Calculate base pointer for IRQContext
     add     x10, sp, #512
 
+    // Load is_new_thread flag to check exit path
+    adrp    x11, _temp_is_new_thread
+    add     x11, x11, :lo12:_temp_is_new_thread
+    ldr     x13, [x11]
+
+    // Check if this is a new thread
+    cbnz    x13, __new_thread_start
+
+    // =====================================================
+    // RESUMED THREAD - use eret
+    // =====================================================
     // Restore elr_el1 and spsr_el1
     ldr     x0, [x10, #256]
     msr     elr_el1, x0
@@ -181,7 +223,7 @@ __exception_common:
     ldp     x27, x28, [x10, #216]
     ldp     x29, x30, [x10, #232]
 
-    // Restore x0
+    // Restore x0 last
     ldr     x0, [x10, #0]
 
     // Restore NEON/SIMD registers Q0-Q31
@@ -206,6 +248,67 @@ __exception_common:
     add     sp, sp, #816
 
     eret
+
+__new_thread_start:
+    // =====================================================
+    // NEW THREAD - load SP from context and branch to entry
+    // =====================================================
+    // Clear the temp flag
+    adrp    x11, _temp_is_new_thread
+    add     x11, x11, :lo12:_temp_is_new_thread
+    str     xzr, [x11]
+
+    // ThreadContext layout (at sp+512):
+    //   x0 at offset 0
+    //   ...
+    //   x30 at offset 240
+    //   sp at offset 248 (this is the thread's stack pointer)
+    //   elr at offset 256 (this is the entry point)
+    //   spsr at offset 264
+
+    // Load the entry point (ELR)
+    ldr     x11, [x10, #256]
+
+    // Load the thread's stack pointer
+    ldr     x12, [x10, #248]
+
+    // Load SPSR for the new thread
+    ldr     x13, [x10, #264]
+    msr     spsr_el1, x13
+
+    // Load x0 (first argument for the thread function)
+    ldr     x0, [x10, #0]
+
+    // Restore NEON/SIMD registers for the new thread
+    ldp     q0, q1, [sp, #0]
+    ldp     q2, q3, [sp, #32]
+    ldp     q4, q5, [sp, #64]
+    ldp     q6, q7, [sp, #96]
+    ldp     q8, q9, [sp, #128]
+    ldp     q10, q11, [sp, #160]
+    ldp     q12, q13, [sp, #192]
+    ldp     q14, q15, [sp, #224]
+    ldp     q16, q17, [sp, #256]
+    ldp     q18, q19, [sp, #288]
+    ldp     q20, q21, [sp, #320]
+    ldp     q22, q23, [sp, #352]
+    ldp     q24, q25, [sp, #384]
+    ldp     q26, q27, [sp, #416]
+    ldp     q28, q29, [sp, #448]
+    ldp     q30, q31, [sp, #480]
+
+    // Set up the new thread's stack pointer
+    mov     sp, x12
+
+    // Clear frame pointer for new thread
+    mov     x29, #0
+    mov     x30, #0
+
+    // Enable interrupts (clear DAIF.I and DAIF.F)
+    msr     daifclr, #3
+
+    // Branch to the entry point
+    br      x11
 
 // ============================================================================
 // Initialize exception vectors - set VBAR_EL1

@@ -77,6 +77,74 @@ public static class InterruptManager
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
+#if ARCH_ARM64
+        // ARM64: Handle different exception types
+        // interrupt 0 = Synchronous exception (faults, SVC, etc.)
+        // interrupt 1 = IRQ (hardware interrupts via GIC)
+        // interrupt 2 = FIQ (fast interrupts, not used)
+        // interrupt 3 = SError (system error)
+
+        if (ctx.interrupt == 1)  // IRQ from GIC
+        {
+            // Acknowledge the interrupt from GIC to get the actual interrupt ID
+            if (s_controller != null)
+            {
+                uint intId = s_controller.AcknowledgeInterrupt();
+
+                // Check for spurious interrupt
+                if (intId >= 1020)
+                {
+                    // Spurious interrupt - no EOI needed
+                    return;
+                }
+
+                // Dispatch to handler based on GIC interrupt ID
+                if (s_irqHandlers != null && intId < (uint)s_irqHandlers.Length)
+                {
+                    IrqDelegate handler = s_irqHandlers[(int)intId];
+                    if (handler != null)
+                    {
+                        handler(ref ctx);
+                    }
+                }
+
+                // Send EOI
+                s_controller.SendEOI();
+            }
+            return;
+        }
+        else if (ctx.interrupt == 0)  // Synchronous exception
+        {
+            // Check for managed handler (for SVC, etc.)
+            if (s_irqHandlers != null)
+            {
+                IrqDelegate handler = s_irqHandlers[0];
+                if (handler != null)
+                {
+                    handler(ref ctx);
+                    return;
+                }
+            }
+
+            // No handler - use fatal exception handler
+            if (s_controller != null)
+            {
+                s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
+            }
+            return;
+        }
+        else
+        {
+            // FIQ or SError - log and halt
+            Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, NewLine);
+            if (s_controller != null)
+            {
+                s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
+            }
+            return;
+        }
+#else
+        // x64: Original behavior
         // First check if there's a registered managed handler
         if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
         {
@@ -97,11 +165,7 @@ public static class InterruptManager
         // No managed handler - for CPU exceptions (0-31), use fallback fatal handler
         if (s_controller != null && ctx.interrupt <= 31)
         {
-#if ARCH_ARM64
-            ulong faultAddress = ctx.far;
-#else
             ulong faultAddress = ctx.cr2;
-#endif
             s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, faultAddress);
             // HandleFatalException halts, so we won't reach here
             return;
@@ -112,5 +176,6 @@ public static class InterruptManager
         {
             s_controller.SendEOI();
         }
+#endif
     }
 }
