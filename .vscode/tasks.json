@@ -98,7 +98,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
+        "qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -153,6 +153,7 @@
         "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso",
         "-device", "virtio-scsi-pci",
         "-device", "scsi-cd,drive=cd,bootindex=0",
+        "-device", "virtio-keyboard-device",
         "-device", "ramfb",
         "-display", "gtk,show-cursor=on",
         "-serial", "stdio"
