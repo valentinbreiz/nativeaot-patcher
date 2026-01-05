@@ -240,9 +240,7 @@ public class Kernel
             SchedulerManager.CreateThread(cpu, idleThread);
 
             // Set as CPU's idle and current thread
-            var cpuState = SchedulerManager.GetCpuState(cpu);
-            cpuState.IdleThread = idleThread;
-            cpuState.CurrentThread = idleThread;
+            SchedulerManager.SetupIdleThread(cpu, idleThread);
 
             Serial.WriteString("[SCHED] Idle thread ");
             Serial.WriteNumber(idleThread.Id);

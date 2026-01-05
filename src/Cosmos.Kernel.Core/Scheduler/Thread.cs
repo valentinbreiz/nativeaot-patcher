@@ -14,10 +14,10 @@ public unsafe class Thread : SchedulerExtensible
     public ThreadFlags Flags { get; set; }
 
     // ===== Context (architecture-specific values) =====
-    public nuint StackPointer { get; set; }
-    public nuint InstructionPointer { get; set; }
-    public nuint StackBase { get; set; }
-    public nuint StackSize { get; set; }
+    public nuint StackPointer { get; internal set; }
+    public nuint InstructionPointer { get; internal set; }
+    public nuint StackBase { get; internal set; }
+    public nuint StackSize { get; internal set; }
 
     // ===== Generic Timing =====
     public ulong CreatedAt { get; set; }

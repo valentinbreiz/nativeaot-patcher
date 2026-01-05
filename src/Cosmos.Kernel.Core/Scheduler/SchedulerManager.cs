@@ -64,6 +64,16 @@ public static class SchedulerManager
     public static PerCpuState[] GetAllCpuStates() => _cpuStates;
 
     /// <summary>
+    /// Sets up the idle thread for a CPU. Should only be called during initialization.
+    /// </summary>
+    public static void SetupIdleThread(uint cpuId, Thread idleThread)
+    {
+        var state = _cpuStates[cpuId];
+        state.IdleThread = idleThread;
+        state.CurrentThread = idleThread;
+    }
+
+    /// <summary>
     /// Whether the scheduler is enabled and processing timer ticks.
     /// </summary>
     public static bool Enabled
