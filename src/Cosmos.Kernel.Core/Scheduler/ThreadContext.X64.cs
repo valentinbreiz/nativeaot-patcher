@@ -2,8 +2,6 @@ using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
-#if ARCH_X64
-
 /// <summary>
 /// Complete thread context saved on stack during interrupt.
 /// This represents the full stack layout after IRQ stub saves all registers.
@@ -93,32 +91,3 @@ public unsafe struct ThreadContext
         }
     }
 }
-
-#elif ARCH_ARM64
-
-/// <summary>
-/// ARM64 thread context - placeholder.
-/// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct ThreadContext
-{
-    // ARM64 registers
-    public ulong X0, X1, X2, X3, X4, X5, X6, X7;
-    public ulong X8, X9, X10, X11, X12, X13, X14, X15;
-    public ulong X16, X17, X18, X19, X20, X21, X22, X23;
-    public ulong X24, X25, X26, X27, X28, X29, X30;
-    public ulong Sp;
-    public ulong Elr;   // Exception link register
-    public ulong Spsr;  // Saved program status
-
-    public const int Size = 34 * 8;
-
-    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0)
-    {
-        X0 = arg;
-        Elr = entryPoint;
-        Spsr = 0x3C5;  // EL1h, interrupts enabled
-    }
-}
-
-#endif
