@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL.ARM64;
 
