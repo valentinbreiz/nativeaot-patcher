@@ -78,6 +78,10 @@ public static class KeyboardManager
 
         keyboard.OnKeyPressed = HandleScanCode;
         _keyboards.Add(keyboard);
+
+        Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] Registered keyboard, total: ");
+        Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
+        Cosmos.Kernel.Core.IO.Serial.Write("\n");
     }
 
     /// <summary>
@@ -180,18 +184,63 @@ public static class KeyboardManager
         return false;
     }
 
+    private static bool _readKeyEntered = false;
+
     /// <summary>
     /// Reads the next key from the pending key-press buffer, blocking until available.
     /// </summary>
     public static KeyEvent ReadKey()
     {
+        if (!_readKeyEntered)
+        {
+            _readKeyEntered = true;
+            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] ReadKey() entered\n");
+        }
+
         while (_queuedKeys == null || _queuedKeys.Count == 0)
         {
+            // Poll all keyboards for events (in case interrupts aren't working)
+            PollKeyboards();
+
             // Halt CPU until interrupt (key press)
             HAL.PlatformHAL.CpuOps?.Halt();
         }
 
         return _queuedKeys.Dequeue();
+    }
+
+    private static uint _pollCallCount = 0;
+
+    private static bool _pollEntered = false;
+
+    /// <summary>
+    /// Polls all registered keyboards for events.
+    /// </summary>
+    private static void PollKeyboards()
+    {
+        if (!_pollEntered)
+        {
+            _pollEntered = true;
+            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards() first call\n");
+        }
+
+        if (_keyboards == null)
+            return;
+
+        _pollCallCount++;
+        if (_pollCallCount % 100 == 0)
+        {
+            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards #");
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber(_pollCallCount);
+            Cosmos.Kernel.Core.IO.Serial.Write(" keyboards=");
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
+            Cosmos.Kernel.Core.IO.Serial.Write("\n");
+        }
+
+        foreach (var keyboard in _keyboards)
+        {
+            keyboard.Poll();
+        }
     }
 
     /// <summary>

@@ -29,7 +29,10 @@ using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL.ARM64;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
+using Cosmos.Kernel.HAL.ARM64.Devices.Input;
+using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.Services.Keyboard;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 #endif
@@ -208,6 +211,39 @@ public class Kernel
 
         // Disable interrupts during final init
         InternalCpu.DisableInterrupts();
+
+        // Scan for virtio devices
+        Serial.WriteString("[KERNEL]   - Scanning for virtio devices...\n");
+        VirtioMMIO.ScanDevices();
+
+        // Initialize Keyboard Manager
+        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+        KeyboardManager.Initialize();
+
+        // Initialize virtio keyboard
+        Serial.WriteString("[KERNEL]   - Initializing virtio keyboard...\n");
+        var virtioKeyboard = VirtioKeyboard.FindAndCreate();
+        if (virtioKeyboard != null)
+        {
+            if (virtioKeyboard.Initialize())
+            {
+                KeyboardManager.RegisterKeyboard(virtioKeyboard);
+
+                // Set static callback (mirrors x64 PS2Keyboard pattern)
+                VirtioKeyboard.KeyCallback = KeyboardManager.HandleScanCode;
+
+                virtioKeyboard.RegisterIRQHandler();
+                Serial.WriteString("[KERNEL]   - Virtio keyboard initialized\n");
+            }
+            else
+            {
+                Serial.WriteString("[KERNEL]   - Virtio keyboard initialization failed\n");
+            }
+        }
+        else
+        {
+            Serial.WriteString("[KERNEL]   - No virtio keyboard found\n");
+        }
 
         // Start the timer for preemptive scheduling
         Serial.WriteString("[KERNEL]   - Starting Generic Timer for scheduling...\n");

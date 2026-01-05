@@ -1,9 +1,7 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Graphics;
-#if ARCH_X64
 using Cosmos.Kernel.Services.Keyboard;
-#endif
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -130,7 +128,6 @@ public class ConsolePlug
         return KernelConsole.Rows;
     }
 
-#if ARCH_X64
     [PlugMember]
     public static bool get_KeyAvailable() => KeyboardManager.KeyAvailable;
 
@@ -300,30 +297,7 @@ public class ConsolePlug
             }
         }
     }
-#elif ARCH_ARM64
-    // ARM64 stubs - keyboard not yet implemented
-    [PlugMember]
-    public static bool get_KeyAvailable() => false;
 
-    [PlugMember]
-    public static ConsoleKeyInfo ReadKey() => ReadKey(false);
-
-    [PlugMember]
-    public static ConsoleKeyInfo ReadKey(bool intercept)
-    {
-        // Block forever - no keyboard input on ARM64 yet
-        while (true) { }
-    }
-
-    [PlugMember]
-    public static string? ReadLine()
-    {
-        // Block forever - no keyboard input on ARM64 yet
-        while (true) { }
-    }
-#endif
-
-#if ARCH_X64
     /// <summary>
     /// Converts a KeyEvent to ConsoleKeyInfo.
     /// </summary>
@@ -412,5 +386,4 @@ public class ConsolePlug
             _ => ConsoleKey.NoName
         };
     }
-#endif
 }

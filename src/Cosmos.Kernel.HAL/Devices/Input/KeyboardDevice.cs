@@ -40,6 +40,14 @@ public abstract class KeyboardDevice : Device, IKeyboardDevice
     public abstract void UpdateLeds();
 
     /// <summary>
+    /// Poll for keyboard events (default: no-op for interrupt-driven keyboards).
+    /// </summary>
+    public virtual void Poll()
+    {
+        // Default implementation does nothing - interrupt-driven keyboards don't need polling
+    }
+
+    /// <summary>
     /// Wait for a key to be pressed by halting the CPU.
     /// </summary>
     public static void WaitForKey()
