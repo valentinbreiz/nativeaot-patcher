@@ -469,13 +469,37 @@ internal static partial class Program
     private static void GraphicsWorker()
     {
         Serial.WriteString("[GfxWorker] Graphics thread started!\n");
+        Serial.WriteString("[GfxWorker] Canvas: ");
+        Serial.WriteNumber(Canvas.Width);
+        Serial.WriteString("x");
+        Serial.WriteNumber(Canvas.Height);
+        Serial.WriteString(" Pitch=");
+        Serial.WriteNumber(Canvas.Pitch);
+        Serial.WriteString("\n");
+
+        // Check if canvas is valid
+        if (Canvas.Width == 0 || Canvas.Height == 0)
+        {
+            Serial.WriteString("[GfxWorker] ERROR: Canvas not initialized!\n");
+            return;
+        }
 
         const int squareSize = 80;
         const int margin = 20;
 
-        // Position in bottom-right corner
-        int x = (int)Canvas.Width - squareSize - margin;
-        int y = (int)Canvas.Height - squareSize - margin;
+        // Position in bottom-right corner (or top-left if screen too small)
+        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Width - squareSize - margin
+            : margin;
+        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Height - squareSize - margin
+            : margin;
+
+        Serial.WriteString("[GfxWorker] Drawing at x=");
+        Serial.WriteNumber((uint)x);
+        Serial.WriteString(" y=");
+        Serial.WriteNumber((uint)y);
+        Serial.WriteString("\n");
 
         int frame = 0;
 
@@ -552,6 +576,14 @@ internal static partial class Program
             }
 
             frame++;
+
+            // Log every 10 frames
+            if (frame % 10 == 0)
+            {
+                Serial.WriteString("[GfxWorker] Frame ");
+                Serial.WriteNumber((uint)frame);
+                Serial.WriteString("\n");
+            }
 
             // Sleep to slow down animation (allows preemption)
             System.Threading.Thread.Sleep(100);

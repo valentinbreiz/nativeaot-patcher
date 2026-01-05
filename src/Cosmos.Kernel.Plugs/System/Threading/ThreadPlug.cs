@@ -93,6 +93,13 @@ public static class ThreadPlug
         thread.InitializeStack(entryPoint, cs, thread.Id);
 
         Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
+#elif ARCH_ARM64
+        // ARM64: no code selector needed, use 0
+        nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
+        thread.InitializeStack(entryPoint, 0, thread.Id);
+
+        Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
+#endif
 
         // Register with scheduler
         SchedulerManager.CreateThread(0, thread);
@@ -101,13 +108,6 @@ public static class ThreadPlug
         // Re-enable interrupts after thread is fully registered
         if (needsProtection)
             InternalCpu.EnableInterrupts();
-#else
-        // Register with scheduler
-        SchedulerManager.CreateThread(0, thread);
-        SchedulerManager.ReadyThread(0, thread);
-        if (needsProtection)
-            InternalCpu.EnableInterrupts();
-#endif
 
         Serial.WriteString("[ThreadPlug] Thread ");
         Serial.WriteNumber(thread.Id);
