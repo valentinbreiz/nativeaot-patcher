@@ -7,6 +7,7 @@ using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Devices.Input;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
@@ -15,7 +16,7 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 /// Virtio-input keyboard driver for ARM64.
 /// Provides keyboard input via virtio-input device on QEMU virt machine.
 /// </summary>
-public unsafe class VirtioKeyboard : IKeyboardDevice
+public unsafe class VirtioKeyboard : KeyboardDevice
 {
     // Linux input event types
     private const ushort EV_SYN = 0x00;
@@ -46,11 +47,12 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
     // Static callback for key events (set by KeyboardManager) - mirrors x64 PS2Keyboard
     public static KeyPressedHandler? KeyCallback;
 
-    public string Name => "Virtio Keyboard";
+    /// <summary>
+    /// Returns true if the device was successfully initialized.
+    /// </summary>
+    public bool IsInitialized => _initialized;
 
-    public KeyPressedHandler? OnKeyPressed { get; set; }
-
-    public bool KeyAvailable => false;  // Events are pushed via interrupt
+    public override bool KeyAvailable => false;  // Events are pushed via interrupt
 
     private VirtioKeyboard(ulong baseAddress, uint irq, uint mmioVersion)
     {
@@ -91,7 +93,7 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
     /// <summary>
     /// Initializes the virtio keyboard device.
     /// </summary>
-    public bool Initialize()
+    public override void Initialize()
     {
         Serial.Write("[VirtioKeyboard] Initializing (MMIO version ");
         Serial.WriteNumber(_mmioVersion);
@@ -137,7 +139,7 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
             {
                 Serial.Write("[VirtioKeyboard] ERROR: Device did not accept features\n");
                 VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
-                return false;
+                return;
             }
         }
 
@@ -146,7 +148,7 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
         {
             Serial.Write("[VirtioKeyboard] ERROR: Failed to setup event queue\n");
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
-            return false;
+            return;
         }
 
         // Allocate event buffers and add to queue
@@ -165,8 +167,6 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
 
         _initialized = true;
         Serial.Write("[VirtioKeyboard] Initialization complete\n");
-
-        return true;
     }
 
     private bool SetupQueue(int queueIndex)
@@ -365,7 +365,7 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
     /// <summary>
     /// Polls for keyboard events (for non-interrupt mode).
     /// </summary>
-    public void Poll()
+    public override void Poll()
     {
         if (!_pollFirstCall)
         {
@@ -439,25 +439,19 @@ public unsafe class VirtioKeyboard : IKeyboardDevice
         Serial.Write("\n");
     }
 
-    public void UpdateLeds()
+    public override void UpdateLeds()
     {
         // LED updates via status queue not implemented yet
     }
 
-    public void Enable()
+    public override void Enable()
     {
         // Already enabled after Initialize
     }
 
-    public void Disable()
+    public override void Disable()
     {
         // Not implemented - would need to disable IRQ
-    }
-
-    // IKeyboardDevice.Initialize (void version)
-    void IKeyboardDevice.Initialize()
-    {
-        Initialize();
     }
 
     /// <summary>

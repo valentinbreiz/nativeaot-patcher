@@ -225,7 +225,8 @@ public class Kernel
         var virtioKeyboard = VirtioKeyboard.FindAndCreate();
         if (virtioKeyboard != null)
         {
-            if (virtioKeyboard.Initialize())
+            virtioKeyboard.Initialize();
+            if (virtioKeyboard.IsInitialized)
             {
                 KeyboardManager.RegisterKeyboard(virtioKeyboard);
 
