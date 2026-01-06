@@ -15,44 +15,57 @@
 _native_arm64_exception_vectors:
 
 // Current EL with SP0 (4 vectors)
+// Each vector saves x0 first, then sets interrupt type
 .balign 0x80
+    stp     x0, x1, [sp, #-16]! // Save x0, x1 to stack (we'll restore x1 in common)
     mov     x0, #0              // interrupt = SYNC (0)
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #1              // interrupt = IRQ (1)
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #2              // interrupt = FIQ (2)
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #3              // interrupt = SERROR (3)
     b       __exception_common
 
 // Current EL with SPx (kernel mode - this is what we use)
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #0
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #1
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #2
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #3
     b       __exception_common
 
 // Lower EL using AArch64
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #0
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #1
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #2
     b       __exception_common
 .balign 0x80
+    stp     x0, x1, [sp, #-16]!
     mov     x0, #3
     b       __exception_common
 
@@ -74,8 +87,13 @@ _native_arm64_exception_vectors:
 //   Total: 37 fields × 8 = 296 bytes
 // ============================================================================
 __exception_common:
+    // On entry: x0 = interrupt type, original x0/x1 saved at [sp] by vector entry
     // Save interrupt type in x9 (callee-saved)
     mov     x9, x0
+
+    // Load original x0, x1 from where vector entry saved them
+    // They're at current sp (the vector did stp x0, x1, [sp, #-16]!)
+    ldp     x11, x12, [sp], #16     // x11 = original x0, x12 = original x1, and pop
 
     // Allocate stack for NEON registers Q0-Q31 (32 * 16 = 512 bytes)
     // Plus IRQContext (296 bytes) = 816 bytes total (aligned)
@@ -104,14 +122,17 @@ __exception_common:
     add     x10, sp, #512
 
     // Save x0-x30 using x10 as base (offsets 0-240 relative to x10)
-    // x0 will be saved later with correct value (it was clobbered for interrupt type)
-    str     x1, [x10, #8]           // x1 at offset 8
+    // x11 has original x0, x12 has original x1
+    str     x11, [x10, #0]          // x0 (original) at offset 0
+    str     x12, [x10, #8]          // x1 (original) at offset 8
     stp     x2, x3, [x10, #16]      // x2,x3 at offset 16,24
     stp     x4, x5, [x10, #32]      // x4,x5 at offset 32,40
     stp     x6, x7, [x10, #48]      // x6,x7 at offset 48,56
     stp     x8, x9, [x10, #64]      // x8,x9 at offset 64,72 (x9 has interrupt type)
-    // x10 is our base pointer, we'll save a placeholder
-    stp     x11, x12, [x10, #88]    // x11,x12 at offset 88,96
+    // x10 is our base pointer, x11/x12 were used for original x0/x1 - store 0
+    str     xzr, [x10, #80]         // x10 at offset 80 (clobbered)
+    str     xzr, [x10, #88]         // x11 at offset 88 (clobbered)
+    str     xzr, [x10, #96]         // x12 at offset 96 (clobbered)
     stp     x13, x14, [x10, #104]   // x13,x14 at offset 104,112
     stp     x15, x16, [x10, #120]   // x15,x16 at offset 120,128
     stp     x17, x18, [x10, #136]   // x17,x18 at offset 136,144
@@ -121,11 +142,6 @@ __exception_common:
     stp     x25, x26, [x10, #200]   // x25,x26 at offset 200,208
     stp     x27, x28, [x10, #216]   // x27,x28 at offset 216,224
     stp     x29, x30, [x10, #232]   // x29,x30 at offset 232,240
-
-    // x0 was clobbered, store 0 (we don't have original x0)
-    str     xzr, [x10, #0]          // x0 at offset 0
-    // x10 was clobbered for base pointer, store 0
-    str     xzr, [x10, #80]         // x10 at offset 80
 
     // Save sp (original sp before we modified it)
     add     x0, sp, #816
