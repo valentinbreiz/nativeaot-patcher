@@ -4,7 +4,7 @@ using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.System.Timer;
 using SysThread = System.Threading.Thread;
 using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using Cosmos.Kernel.Core;

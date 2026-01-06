@@ -1,7 +1,7 @@
 ﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 
-namespace Cosmos.Kernel.Services.Network.ARP;
+namespace Cosmos.Kernel.System.Network.ARP;
 
 /// <summary>
 /// Represents an ARP (Address Resolution Protocol) packet.

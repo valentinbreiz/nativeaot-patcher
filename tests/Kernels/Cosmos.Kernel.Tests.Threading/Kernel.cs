@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using static Cosmos.TestRunner.Framework.TestRunner;
 using static Cosmos.TestRunner.Framework.Assert;

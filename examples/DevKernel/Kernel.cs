@@ -1,183 +1,155 @@
 using System;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Network;
-using Cosmos.Kernel.Services.Network;
-using Cosmos.Kernel.Services.Network.IPv4;
-using Cosmos.Kernel.Services.Network.IPv4.UDP;
-using Cosmos.Kernel.Services.Timer;
-using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Timer;
+using Sys = Cosmos.Kernel.System;
 
-#if ARCH_X64
-using Cosmos.Kernel.HAL.X64.Devices.Network;
-#endif
+namespace DevKernel;
 
-internal static partial class Program
+/// <summary>
+/// DevKernel - Test kernel for Cosmos gen3 development.
+/// </summary>
+public class Kernel : Sys.Kernel
 {
-    [LibraryImport("test", EntryPoint = "testGCC")]
-    [return: MarshalUsing(typeof(SimpleStringMarshaler))]
-    public static unsafe partial string testGCC();
+    private string _prompt = "cosmos";
 
-    private static void Main()
+    protected override void BeforeRun()
     {
-        //Re-enable interrupts right before user kernel
-        InternalCpu.EnableInterrupts();
+        Serial.WriteString("[DevKernel] BeforeRun() called\n");
 
-        Serial.WriteString("[Main] Starting Main function\n");
-
-        // GCC interop test (DevKernel-specific)
-        Serial.WriteString("[Main] Testing GCC interop...\n");
-        var gccString = testGCC();
-        Serial.WriteString("[Main] SUCCESS - GCC string: ");
-        Serial.WriteString(gccString);
-        Serial.WriteString("\n");
-
-        PrintSuccess("GCC interop: ");
-        Console.WriteLine(gccString);
-
-        DebugInfo.Print();
-
-        Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
-
-        // Start simple shell
-        RunShell();
-    }
-
-    private static void RunShell()
-    {
-        Serial.WriteString("[Shell] Starting shell...\n");
         Console.Clear();
-
-        // Print banner
         Console.WriteLine("========================================");
         Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
-        PrintInfo("Type 'help' for available commands.");
+
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Cosmos booted successfully!");
+        Console.ResetColor();
+        Console.WriteLine("Type 'help' for available commands.");
         Console.WriteLine();
+    }
 
-        while (true)
+    protected override void Run()
+    {
+        // Print prompt
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(_prompt);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(":");
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.Write("~");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("$ ");
+        Console.ResetColor();
+
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(input))
+            return;
+
+        string trimmed = input.Trim();
+        string[] parts = trimmed.Split(' ');
+        string cmd = parts[0].ToLower();
+
+        switch (cmd)
         {
-            // Print prompt
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("cosmos");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(":");
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("~");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("$ ");
-            Console.ResetColor();
+            case "help":
+                PrintHelp();
+                break;
 
-            string? input = Console.ReadLine();
+            case "clear":
+            case "cls":
+                Console.Clear();
+                break;
 
-            if (string.IsNullOrEmpty(input))
-                continue;
+            case "echo":
+                if (parts.Length > 1)
+                    Console.WriteLine(trimmed.Substring(5));
+                break;
 
-            string trimmed = input.Trim();
-            string command = trimmed.ToLower();
+            case "info":
+            case "sysinfo":
+                PrintSystemInfo();
+                break;
 
-            // Handle commands with arguments
-            string[] parts = trimmed.Split(' ');
-            string cmd = parts[0].ToLower();
+            case "timer":
+                RunTimerTest();
+                break;
 
-            switch (cmd)
-            {
-                case "help":
-                    PrintHelp();
-                    break;
+            case "schedinfo":
+                ShowSchedulerInfo();
+                break;
 
-                case "clear":
-                case "cls":
-                    Console.Clear();
-                    break;
+            case "thread":
+                TestThread();
+                break;
 
-                case "echo":
-                    if (parts.Length > 1)
-                    {
-                        Console.WriteLine(trimmed.Substring(5));
-                    }
-                    break;
+            case "gfx":
+                StartGraphicsThread();
+                break;
 
-                case "info":
-                case "sysinfo":
-                    PrintSystemInfo();
-                    break;
+            case "kill":
+                if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                    KillThread(killId);
+                else
+                    PrintError("Usage: kill <thread_id>");
+                break;
 
-                case "timer":
-                    RunTimerTest();
-                    break;
+            case "halt":
+            case "shutdown":
+                PrintWarning("Halting system...");
+                Stop();
+                break;
 
-                case "colors":
-                    ShowColors();
-                    break;
+        #if ARCH_X64
+            case "netconfig":
+                ConfigureNetwork();
+                break;
 
-                case "schedinfo":
-                    ShowSchedulerInfo();
-                    break;
+            case "netinfo":
+                ShowNetworkInfo();
+                break;
 
-                case "meminfo":
-                    ShowMemoryInfo();
-                    break;
+            case "netsend":
+                SendTestPacket();
+                break;
 
-                case "thread":
-                    TestThread();
-                    break;
+            case "netlisten":
+                StartListening();
+                break;
 
-                case "gfx":
-                    StartGraphicsThread();
-                    break;
+        #endif
 
-                case "kill":
-                    if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
-                        KillThread(killId);
-                    else
-                        PrintError("Usage: kill <thread_id>");
-                    break;
 
-#if ARCH_X64
-                case "netconfig":
-                    ConfigureNetwork();
-                    break;
+            case "meminfo":
+                ShowMemoryInfo();
+                break;
 
-                case "netinfo":
-                    ShowNetworkInfo();
-                    break;
-
-                case "netsend":
-                    SendTestPacket();
-                    break;
-
-                case "netlisten":
-                    StartListening();
-                    break;
-#endif
-
-                case "halt":
-                case "shutdown":
-                    PrintWarning("Halting system...");
-                    Cosmos.Kernel.Kernel.Halt();
-                    break;
-
-                default:
-                    PrintError("Unknown command: " + cmd);
-                    PrintInfo("Type 'help' for available commands.");
-                    break;
-            }
+            default:
+                PrintError($"\"{cmd}\" is not a command");
+                Console.WriteLine("Type 'help' for available commands.");
+                break;
         }
     }
 
-    private static void PrintHelp()
+    protected override void AfterRun()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Serial.WriteString("[DevKernel] AfterRun() called\n");
+        Console.WriteLine("Goodbye!");
+        Cosmos.Kernel.Kernel.Halt();
+    }
+
+    private void PrintHelp()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Available Commands:");
         Console.ResetColor();
 
@@ -186,31 +158,30 @@ internal static partial class Program
         PrintCommand("echo <text>", "Echo back text");
         PrintCommand("info", "Show system information");
         PrintCommand("timer", "Test 10 second countdown timer");
-        PrintCommand("colors", "Display color palette");
         PrintCommand("schedinfo", "Show scheduler status and threads");
         PrintCommand("meminfo", "Show memory allocator state");
         PrintCommand("thread", "Test System.Threading.Thread");
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
-#if ARCH_X64
+        PrintCommand("halt", "Halt the system");
+        #if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
-#endif
-        PrintCommand("halt", "Halt the system");
+        #endif
     }
 
-    private static void PrintCommand(string cmd, string description)
+    private void PrintCommand(string cmd, string description)
     {
         Console.Write("  ");
         Console.Write(cmd.PadRight(14));
         Console.WriteLine(description);
     }
 
-    private static void PrintSystemInfo()
+    private void PrintSystemInfo()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
@@ -224,7 +195,7 @@ internal static partial class Program
         PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
     }
 
-    private static void PrintInfoLine(string label, string value)
+    private void PrintInfoLine(string label, string value)
     {
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -234,9 +205,9 @@ internal static partial class Program
         Console.ResetColor();
     }
 
-    private static void RunTimerTest()
+    private void RunTimerTest()
     {
-        PrintInfo("Starting 10 second countdown...");
+        Console.WriteLine("Starting 10 second countdown...");
         for (int i = 10; i > 0; i--)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -245,24 +216,11 @@ internal static partial class Program
             Console.WriteLine("...");
             TimerManager.Wait(1000);
         }
-        PrintSuccess("Timer test complete!\n");
-    }
-
-    private static void ShowColors()
-    {
-        Console.WriteLine("Color palette:");
-        for (int i = 0; i < 16; i++)
-        {
-            Console.ForegroundColor = (ConsoleColor)i;
-            Console.Write("  " + ((ConsoleColor)i).ToString().PadRight(14));
-            if (i == 7)
-                Console.WriteLine();
-        }
-        Console.ResetColor();
+        PrintSuccess("Timer test complete!");
         Console.WriteLine();
     }
 
-    private static void ShowMemoryInfo()
+    private void ShowMemoryInfo()
     {
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Memory Information:");
@@ -310,22 +268,19 @@ internal static partial class Program
         Console.ResetColor();
     }
 
-    private static void ShowSchedulerInfo()
+    private void ShowSchedulerInfo()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Scheduler Information:");
         Console.ResetColor();
 
-        // Check if scheduler is initialized
         var scheduler = SchedulerManager.Current;
         if (scheduler == null)
         {
             PrintInfoLine("Status", "Not initialized");
-            PrintInfo("Run 'sched' or 'thread' first to initialize the scheduler.");
             return;
         }
 
-        // Basic scheduler info
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.Write("Status".PadRight(14));
@@ -336,10 +291,8 @@ internal static partial class Program
         PrintInfoLine("Scheduler", scheduler.Name);
         PrintInfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
         PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / 1_000_000).ToString() + " ms");
-
         Console.WriteLine();
 
-        // Per-CPU information
         for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
         {
             var cpuState = SchedulerManager.GetCpuState(cpuId);
@@ -348,14 +301,12 @@ internal static partial class Program
             Console.WriteLine("  CPU " + cpuId + ":");
             Console.ResetColor();
 
-            // Current thread (running)
             var currentThread = cpuState.CurrentThread;
             if (currentThread != null)
             {
                 PrintThreadInfo(scheduler, currentThread);
             }
 
-            // Run queue threads (waiting)
             int runQueueCount = scheduler.GetRunQueueCount(cpuState);
             for (int i = 0; i < runQueueCount; i++)
             {
@@ -366,19 +317,15 @@ internal static partial class Program
                 }
             }
         }
-
         Console.WriteLine();
     }
 
-    private static void PrintThreadInfo(IScheduler scheduler, Cosmos.Kernel.Core.Scheduler.Thread thread)
+    private void PrintThreadInfo(IScheduler scheduler, Cosmos.Kernel.Core.Scheduler.Thread thread)
     {
         Console.Write("    ");
-
-        // Thread ID
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write("Thread " + thread.Id);
 
-        // State with color coding - avoid ToString() on enum (not AOT friendly)
         Console.Write(" ");
         switch (thread.State)
         {
@@ -391,20 +338,13 @@ internal static partial class Program
                 Console.Write("Ready");
                 break;
             case Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked:
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("Blocked");
-                break;
             case Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping:
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("Sleeping");
+                Console.Write(thread.State == Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked ? "Blocked" : "Sleeping");
                 break;
             case Cosmos.Kernel.Core.Scheduler.ThreadState.Dead:
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("Dead");
-                break;
-            case Cosmos.Kernel.Core.Scheduler.ThreadState.Created:
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write("Created");
                 break;
             default:
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -412,7 +352,6 @@ internal static partial class Program
                 break;
         }
 
-        // Priority (generic via IScheduler.GetPriority) - only if scheduler data is set
         if (thread.SchedulerData != null)
         {
             long priority = scheduler.GetPriority(thread);
@@ -420,7 +359,6 @@ internal static partial class Program
             Console.Write(" Pri=" + priority);
         }
 
-        // Runtime
         ulong runtimeMs = thread.TotalRuntime / 1_000_000;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write(" Run=" + runtimeMs + "ms");
@@ -429,16 +367,10 @@ internal static partial class Program
         Console.WriteLine();
     }
 
-    private static void TestThread()
+    private void TestThread()
     {
         Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
-
-        // Check scheduler state
-        Serial.WriteString("[Thread] Scheduler enabled: ");
-        Serial.WriteString(SchedulerManager.Enabled ? "true" : "false");
-        Serial.WriteString("\n");
-
-        PrintInfo("Creating and starting a thread...");
+        Console.WriteLine("Creating and starting a thread...");
 
         var thread = new System.Threading.Thread(() =>
         {
@@ -447,29 +379,25 @@ internal static partial class Program
         });
 
         thread.Start();
+        PrintSuccess("Thread started!");
+        Console.WriteLine();
 
-        PrintSuccess("Thread started!\n");
-
-        // Wait for a bit to allow scheduler ticks and context switch
-        Serial.WriteString("[Thread] Waiting 2 seconds for context switch...\n");
         TimerManager.Wait(2000);
-
-        Serial.WriteString("[Thread] Test complete\n");
     }
 
-    private static void StartGraphicsThread()
+    private void StartGraphicsThread()
     {
         Serial.WriteString("[GfxThread] Starting graphics thread\n");
-        PrintInfo("Starting graphics thread (draws color-cycling square)...");
+        Console.WriteLine("Starting graphics thread (draws color-cycling square)...");
 
         var thread = new System.Threading.Thread(GraphicsWorker);
         thread.Start();
 
-        PrintSuccess("Graphics thread started!\n");
-        PrintInfo("Watch the bottom-right corner of the screen.");
+        PrintSuccess("Graphics thread started!");
+        Console.WriteLine();
     }
 
-    private static void KillThread(uint threadId)
+    private void KillThread(uint threadId)
     {
         var scheduler = SchedulerManager.Current;
         if (scheduler == null)
@@ -478,40 +406,32 @@ internal static partial class Program
             return;
         }
 
-        // Don't allow killing thread 0 (idle/main thread)
         if (threadId == 0)
         {
             PrintError("Cannot kill idle thread (ID 0)");
             return;
         }
 
-        // Search for the thread across all CPUs
         for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
         {
             var cpuState = SchedulerManager.GetCpuState(cpuId);
 
-            // Check if it's the current thread
             if (cpuState.CurrentThread?.Id == threadId)
             {
                 PrintWarning("Cannot kill currently running thread");
-                PrintInfo("Thread will be terminated when it yields");
                 cpuState.CurrentThread.State = Cosmos.Kernel.Core.Scheduler.ThreadState.Dead;
                 return;
             }
 
-            // Search in run queue
             int count = scheduler.GetRunQueueCount(cpuState);
             for (int i = 0; i < count; i++)
             {
                 var thread = scheduler.GetRunQueueThread(cpuState, i);
                 if (thread?.Id == threadId)
                 {
-                    Serial.WriteString("[Kill] Killing thread ");
-                    Serial.WriteNumber(threadId);
-                    Serial.WriteString("\n");
-
                     SchedulerManager.ExitThread(cpuId, thread);
-                    PrintSuccess("Thread " + threadId + " killed\n");
+                    PrintSuccess("Thread " + threadId + " killed");
+                    Console.WriteLine();
                     return;
                 }
             }
@@ -522,26 +442,12 @@ internal static partial class Program
 
     private static void GraphicsWorker()
     {
-        Serial.WriteString("[GfxWorker] Graphics thread started!\n");
-        Serial.WriteString("[GfxWorker] Canvas: ");
-        Serial.WriteNumber(Canvas.Width);
-        Serial.WriteString("x");
-        Serial.WriteNumber(Canvas.Height);
-        Serial.WriteString(" Pitch=");
-        Serial.WriteNumber(Canvas.Pitch);
-        Serial.WriteString("\n");
-
-        // Check if canvas is valid
         if (Canvas.Width == 0 || Canvas.Height == 0)
-        {
-            Serial.WriteString("[GfxWorker] ERROR: Canvas not initialized!\n");
             return;
-        }
 
         const int squareSize = 80;
         const int margin = 20;
 
-        // Position in bottom-right corner (or top-left if screen too small)
         int x = Canvas.Width >= (uint)(squareSize + margin * 2)
             ? (int)Canvas.Width - squareSize - margin
             : margin;
@@ -549,76 +455,29 @@ internal static partial class Program
             ? (int)Canvas.Height - squareSize - margin
             : margin;
 
-        Serial.WriteString("[GfxWorker] Drawing at x=");
-        Serial.WriteNumber((uint)x);
-        Serial.WriteString(" y=");
-        Serial.WriteNumber((uint)y);
-        Serial.WriteString("\n");
-
         int frame = 0;
 
-        // Run forever drawing color-changing gradient squares
         while (true)
         {
-            // Create gradient color based on frame
             int phase = frame % 60;
             byte r, g, b;
 
-            if (phase < 10)
-            {
-                // Red to Yellow
-                r = 255;
-                g = (byte)(phase * 25);
-                b = 0;
-            }
-            else if (phase < 20)
-            {
-                // Yellow to Green
-                r = (byte)(255 - (phase - 10) * 25);
-                g = 255;
-                b = 0;
-            }
-            else if (phase < 30)
-            {
-                // Green to Cyan
-                r = 0;
-                g = 255;
-                b = (byte)((phase - 20) * 25);
-            }
-            else if (phase < 40)
-            {
-                // Cyan to Blue
-                r = 0;
-                g = (byte)(255 - (phase - 30) * 25);
-                b = 255;
-            }
-            else if (phase < 50)
-            {
-                // Blue to Magenta
-                r = (byte)((phase - 40) * 25);
-                g = 0;
-                b = 255;
-            }
-            else
-            {
-                // Magenta to Red
-                r = 255;
-                g = 0;
-                b = (byte)(255 - (phase - 50) * 25);
-            }
+            if (phase < 10) { r = 255; g = (byte)(phase * 25); b = 0; }
+            else if (phase < 20) { r = (byte)(255 - (phase - 10) * 25); g = 255; b = 0; }
+            else if (phase < 30) { r = 0; g = 255; b = (byte)((phase - 20) * 25); }
+            else if (phase < 40) { r = 0; g = (byte)(255 - (phase - 30) * 25); b = 255; }
+            else if (phase < 50) { r = (byte)((phase - 40) * 25); g = 0; b = 255; }
+            else { r = 255; g = 0; b = (byte)(255 - (phase - 50) * 25); }
 
-            // Draw gradient square - lighter in center, darker at edges
             for (int dy = 0; dy < squareSize; dy++)
             {
                 for (int dx = 0; dx < squareSize; dx++)
                 {
-                    // Calculate distance from center for gradient
                     int cx = dx - squareSize / 2;
                     int cy = dy - squareSize / 2;
                     int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
                     if (dist > 255) dist = 255;
 
-                    // Blend color with gradient (brighter in center)
                     int factor = 255 - dist / 2;
                     byte pr = (byte)((r * factor) / 255);
                     byte pg = (byte)((g * factor) / 255);
@@ -630,60 +489,17 @@ internal static partial class Program
             }
 
             frame++;
-
-            // Log every 10 frames
-            if (frame % 10 == 0)
-            {
-                Serial.WriteString("[GfxWorker] Frame ");
-                Serial.WriteNumber((uint)frame);
-                Serial.WriteString("\n");
-            }
-
-            // Sleep to slow down animation (allows preemption)
             System.Threading.Thread.Sleep(100);
         }
     }
 
-    // Helper methods for colored output
-    private static void PrintError(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(message);
-        Console.ResetColor();
-    }
-
-    private static void PrintSuccess(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write(message);
-        Console.ResetColor();
-    }
-
-    private static void PrintWarning(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(message);
-        Console.ResetColor();
-    }
-
-    private static void PrintInfo(string message)
-    {
-        Console.WriteLine(message);
-    }
-
-    [ModuleInitializer]
-    public static void Init()
-    {
-        Serial.WriteString("Kernel Init\n");
-    }
-
-#if ARCH_X64
+    #if ARCH_X64
     // Network configuration
-    private static Address? _localIP;
-    private static Address? _gatewayIP;
-    private static bool _networkConfigured = false;
+    private Address? _localIP;
+    private Address? _gatewayIP;
+    private bool _networkConfigured = false;
 
-    private static void ConfigureNetwork()
+    private void ConfigureNetwork()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -710,7 +526,7 @@ internal static partial class Program
         PrintInfoLine("Gateway", _gatewayIP.ToString());
     }
 
-    private static void ShowNetworkInfo()
+    private void ShowNetworkInfo()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -719,7 +535,7 @@ internal static partial class Program
             return;
         }
 
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Network Information:");
         Console.ResetColor();
 
@@ -751,7 +567,7 @@ internal static partial class Program
         }
     }
 
-    private static void SendTestPacket()
+    private void SendTestPacket()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -797,7 +613,7 @@ internal static partial class Program
             PrintError("Failed to send packet\n");
     }
 
-    private static void StartListening()
+    private void StartListening()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -818,7 +634,7 @@ internal static partial class Program
         Console.ResetColor();
     }
 
-    private static void OnUDPDataReceived(UDPPacket packet)
+    private void OnUDPDataReceived(UDPPacket packet)
     {
         Serial.Write("[UDP] Received packet from ");
         Serial.WriteString(packet.SourceIP.ToString());
@@ -860,31 +676,30 @@ internal static partial class Program
         Console.WriteLine();
     }
 #endif
-}
 
-[CustomMarshaller(typeof(string), MarshalMode.Default, typeof(SimpleStringMarshaler))]
-internal static unsafe class SimpleStringMarshaler
-{
-    public static string ConvertToManaged(char* unmanaged)
+    private void PrintInfo(string message)
     {
-        // Count the length of the null-terminated UTF-16 string
-        int length = 0;
-        char* p = unmanaged;
-        while (*p != '\0')
-        {
-            length++;
-            p++;
-        }
-
-        // Create a new string from the character span
-        return new string(unmanaged, 0, length);
+        Console.WriteLine(message);
     }
 
-    public static char* ConvertToUnmanaged(string managed)
+    private void PrintError(string message)
     {
-        fixed (char* p = managed)
-        {
-            return p;
-        }
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintSuccess(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintWarning(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(message);
+        Console.ResetColor();
     }
 }

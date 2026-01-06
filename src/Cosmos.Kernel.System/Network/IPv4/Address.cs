@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Cosmos.Kernel.Services.Network.IPv4;
+namespace Cosmos.Kernel.System.Network.IPv4;
 
 /// <summary>
 /// Represents a IPv4 address.

@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
-namespace Cosmos.Kernel.Services.Network;
+namespace Cosmos.Kernel.System.Network;
 
 /// <summary>
 /// Manages network devices.

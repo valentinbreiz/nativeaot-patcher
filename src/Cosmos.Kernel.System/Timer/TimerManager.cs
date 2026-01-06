@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
-namespace Cosmos.Kernel.Services.Timer;
+namespace Cosmos.Kernel.System.Timer;
 
 /// <summary>
 /// Manages system timers.

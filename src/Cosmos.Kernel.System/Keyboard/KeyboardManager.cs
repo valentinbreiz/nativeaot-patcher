@@ -3,9 +3,9 @@
 
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.Services.Keyboard.ScanMaps;
+using Cosmos.Kernel.System.Keyboard.ScanMaps;
 
-namespace Cosmos.Kernel.Services.Keyboard;
+namespace Cosmos.Kernel.System.Keyboard;
 
 /// <summary>
 /// Manages keyboard input from physical keyboards.

@@ -1,9 +1,9 @@
 ﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
-using Cosmos.Kernel.Services.Network.ARP;
-using Cosmos.Kernel.Services.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Network.ARP;
+using Cosmos.Kernel.System.Network.IPv4.UDP;
 
-namespace Cosmos.Kernel.Services.Network.IPv4;
+namespace Cosmos.Kernel.System.Network.IPv4;
 
 /// <summary>
 /// Represents an IP (Internet Protocol) packet.

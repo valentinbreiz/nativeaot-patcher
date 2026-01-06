@@ -20,9 +20,9 @@ using Cosmos.Kernel.HAL.X64.Devices.Network;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Pci;
-using Cosmos.Kernel.Services.Keyboard;
-using Cosmos.Kernel.Services.Network;
-using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.System.Keyboard;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Timer;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 #elif ARCH_ARM64
@@ -31,8 +31,8 @@ using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.ARM64.Devices.Input;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.Services.Timer;
-using Cosmos.Kernel.Services.Keyboard;
+using Cosmos.Kernel.System.Timer;
+using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 #endif

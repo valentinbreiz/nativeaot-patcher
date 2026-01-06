@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/ConsoleKeyEx.cs
 
-namespace Cosmos.Kernel.Services.Keyboard
+namespace Cosmos.Kernel.System.Keyboard
 {
     /// <summary>
     /// Specifies the recognized virtual console keys, that are independent

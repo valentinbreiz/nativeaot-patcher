@@ -1,7 +1,7 @@
 ﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 
-namespace Cosmos.Kernel.Services.Network.IPv4.UDP;
+namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 
 /// <summary>
 /// Delegate for UDP data received events.

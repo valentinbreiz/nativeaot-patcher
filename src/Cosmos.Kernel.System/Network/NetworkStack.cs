@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.Services.Network.ARP;
-using Cosmos.Kernel.Services.Network.IPv4;
+using Cosmos.Kernel.System.Network.ARP;
+using Cosmos.Kernel.System.Network.IPv4;
 
-namespace Cosmos.Kernel.Services.Network;
+namespace Cosmos.Kernel.System.Network;
 
 /// <summary>
 /// Manages the Cosmos networking stack.

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Services.Timer;
+using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using static Cosmos.TestRunner.Framework.TestRunner;
 using static Cosmos.TestRunner.Framework.Assert;

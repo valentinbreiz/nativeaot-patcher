@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Cosmos.Kernel.Services.Keyboard
+namespace Cosmos.Kernel.System.Keyboard
 {
     /// <summary>
     /// Represents a key-press event.

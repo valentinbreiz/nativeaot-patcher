@@ -1,7 +1,7 @@
 ﻿using Cosmos.Kernel.HAL.Devices.Network;
-using Cosmos.Kernel.Services.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv4;
 
-namespace Cosmos.Kernel.Services.Network.ARP;
+namespace Cosmos.Kernel.System.Network.ARP;
 
 /// <summary>
 /// Represents an ARP Ethernet packet.

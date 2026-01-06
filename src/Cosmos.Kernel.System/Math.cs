@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.Services;
+namespace Cosmos.Kernel.System;
 
 public static class Math
 {

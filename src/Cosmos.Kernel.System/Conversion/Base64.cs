@@ -1,6 +1,6 @@
 using Cosmos.Kernel.Core.Memory;
 
-namespace Cosmos.Kernel.Services.Conversion;
+namespace Cosmos.Kernel.System.Conversion;
 
 public static unsafe class Base64
 {

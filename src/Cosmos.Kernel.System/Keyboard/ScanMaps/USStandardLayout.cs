@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Cosmos.Kernel.Services.Keyboard.ScanMaps;
+namespace Cosmos.Kernel.System.Keyboard.ScanMaps;
 
 /// <summary>
 /// Represents the standard English (US) keyboard layout.

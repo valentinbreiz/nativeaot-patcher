@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Cosmos.Kernel.Services.Keyboard;
+namespace Cosmos.Kernel.System.Keyboard;
 
 /// <summary>
 /// Represents the base class for keyboard layout scan-maps.

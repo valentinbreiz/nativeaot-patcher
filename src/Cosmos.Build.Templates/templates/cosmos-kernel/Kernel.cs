@@ -1,26 +1,48 @@
 using System;
-using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.IO;
+using Sys = Cosmos.Kernel.System;
 
-internal static partial class Program
+namespace KernelName;
+
+/// <summary>
+/// Main kernel class - inherits from Cosmos.Kernel.System.Kernel.
+/// </summary>
+public class Kernel : Sys.Kernel
 {
-    /// <summary>
-    /// Unmanaged entry point called by the bootloader.
-    /// </summary>
-    [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-    private static void KernelMain() => Main();
-
-    /// <summary>
-    /// Kernel main entry point.
-    /// </summary>
-    private static void Main()
+    protected override void BeforeRun()
     {
-        Serial.WriteString("Hello from KernelName!\n");
-        Console.WriteLine("CosmosOS Kernel Started");
+        Console.WriteLine("Cosmos booted successfully!");
+        Console.WriteLine("Type a command to get it executed.");
+    }
 
-        // Your kernel code goes here
+    protected override void Run()
+    {
+        Console.Write("> ");
+        var input = Console.ReadLine();
 
-        // Halt the system
-        while (true) ;
+        if (string.IsNullOrEmpty(input))
+            return;
+
+        switch (input.ToLower())
+        {
+            case "help":
+                Console.WriteLine("Available commands:");
+                Console.WriteLine("  help     - Show this help message");
+                Console.WriteLine("  clear    - Clear the screen");
+                Console.WriteLine("  halt     - Halt the system");
+                break;
+
+            case "clear":
+                Console.Clear();
+                break;
+
+            case "halt":
+                Console.WriteLine("Halting system...");
+                Stop();
+                break;
+
+            default:
+                Console.WriteLine($"\"{input}\" is not a command");
+                break;
+        }
     }
 }

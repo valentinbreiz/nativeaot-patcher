@@ -1,6 +1,6 @@
 ﻿using Cosmos.Kernel.HAL.Devices.Network;
 
-namespace Cosmos.Kernel.Services.Network;
+namespace Cosmos.Kernel.System.Network;
 
 /// <summary>
 /// Represents an Ethernet packet.

@@ -3,7 +3,7 @@
 
 #pragma warning disable IDE0049 // Use framework type
 
-namespace Cosmos.Kernel.Services.Keyboard
+namespace Cosmos.Kernel.System.Keyboard
 {
     /// <summary>
     /// Represents a physical to virtual key mapping.

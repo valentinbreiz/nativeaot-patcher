@@ -1,7 +1,7 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.Services.Keyboard;
+using Cosmos.Kernel.System.Keyboard;
 
 namespace Cosmos.Kernel.Plugs.System;
 
