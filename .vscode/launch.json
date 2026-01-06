@@ -255,6 +255,40 @@
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Threading x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
+        "x64",
+        "120",
+        "${workspaceFolder}/test-results-threading-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Threading ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
+        "arm64",
+        "180",
+        "${workspaceFolder}/test-results-threading-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
     }
   ]
 }
