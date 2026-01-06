@@ -22,7 +22,7 @@ public static unsafe class Heap
         {
             PageType currentType = PageAllocator.GetPageType(aPtr);
 
-        #if COSMOSDEBUG
+#if COSMOSDEBUG
             if (currentType != PageType.HeapSmall && currentType != PageType.HeapMedium &&
                 currentType != PageType.HeapLarge)
             {
@@ -30,7 +30,7 @@ public static unsafe class Heap
                 Debugger.DoSendNumber((uint)aPtr);
                 Debugger.SendKernelPanic(Panics.NonManagedPage);
             }
-        #endif
+#endif
 
             byte* result;
 
@@ -162,7 +162,7 @@ public static unsafe class Heap
         {
             result = SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
         }
-        
+
         return result;
     }
 }

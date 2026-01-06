@@ -109,7 +109,7 @@ public class Kernel : Sys.Kernel
                 Stop();
                 break;
 
-        #if ARCH_X64
+#if ARCH_X64
             case "netconfig":
                 ConfigureNetwork();
                 break;
@@ -126,7 +126,7 @@ public class Kernel : Sys.Kernel
                 StartListening();
                 break;
 
-        #endif
+#endif
 
 
             case "meminfo":
@@ -164,12 +164,12 @@ public class Kernel : Sys.Kernel
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
         PrintCommand("halt", "Halt the system");
-        #if ARCH_X64
+#if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
-        #endif
+#endif
     }
 
     private void PrintCommand(string cmd, string description)
@@ -493,7 +493,7 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    #if ARCH_X64
+#if ARCH_X64
     // Network configuration
     private Address? _localIP;
     private Address? _gatewayIP;

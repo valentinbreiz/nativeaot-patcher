@@ -335,7 +335,7 @@ public static class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
-            return;
+                return;
 
             _lock.Acquire();
             try
@@ -481,7 +481,7 @@ public static class KernelConsole
             {
                 _lock.Release();
             }
-        }  
+        }
     }
 
     /// <summary>
@@ -537,7 +537,7 @@ public static class KernelConsole
                 _lock.Release();
             }
         }
-        
+
     }
 
     /// <summary>
@@ -560,7 +560,7 @@ public static class KernelConsole
             }
             finally
             {
-                _lock.Release();            
+                _lock.Release();
             }
         }
     }
@@ -717,7 +717,7 @@ public static class KernelConsole
             finally
             {
                 _lock.Release();
-        }
+            }
         }
     }
 

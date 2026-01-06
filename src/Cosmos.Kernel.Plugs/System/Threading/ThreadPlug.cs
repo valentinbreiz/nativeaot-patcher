@@ -88,7 +88,7 @@ public static class ThreadPlug
                 Serial.WriteNumber(thread.Id);
                 Serial.WriteString(" - setting up stack\n");
 
-                #if ARCH_X64
+#if ARCH_X64
                 // Get code selector
                 ushort cs = (ushort)Idt.GetCurrentCodeSelector();
 
@@ -97,13 +97,13 @@ public static class ThreadPlug
                 thread.InitializeStack(entryPoint, cs, thread.Id);
 
                 Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
-        #elif ARCH_ARM64
+#elif ARCH_ARM64
                 // ARM64: no code selector needed, use 0
                 nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
                 thread.InitializeStack(entryPoint, 0, thread.Id);
 
                 Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
-        #endif
+#endif
 
                 // Register with scheduler
                 SchedulerManager.CreateThread(0, thread);
@@ -138,7 +138,7 @@ public static class ThreadPlug
 
         int exitCode = 0;
         bool hasDelegate;
-        ThreadStart ?start;
+        ThreadStart? start;
 
         // Get the delegate with interrupts disabled
         using (InternalCpu.DisableInterruptsScope())
