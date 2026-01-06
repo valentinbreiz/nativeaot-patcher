@@ -240,21 +240,22 @@ public static class KernelConsole
     /// </summary>
     public static void SetCursorPosition(int x, int y)
     {
-        if (x >= 0 && x < _cols && y >= 0 && y < _rows)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            InternalCpu.DisableInterrupts();
-            _lock.Acquire();
-            try
+            if (x >= 0 && x < _cols && y >= 0 && y < _rows)
             {
-                EraseCursor();
-                _cursorX = x;
-                _cursorY = y;
-                DrawCursor();
-            }
-            finally
-            {
-                _lock.Release();
-                InternalCpu.EnableInterrupts();
+                _lock.Acquire();
+                try
+                {
+                    EraseCursor();
+                    _cursorX = x;
+                    _cursorY = y;
+                    DrawCursor();
+                }
+                finally
+                {
+                    _lock.Release();
+                }
             }
         }
     }
@@ -331,19 +332,20 @@ public static class KernelConsole
     /// </summary>
     public static void Redraw()
     {
-        if (!IsAvailable || _cells == null)
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
             return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            RedrawInternal();
-        }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
+            _lock.Acquire();
+            try
+            {
+                RedrawInternal();
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
     }
 
@@ -386,19 +388,20 @@ public static class KernelConsole
     /// </summary>
     public static void Write(char c)
     {
-        if (!IsAvailable || _cells == null)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            WriteInternal(c);
-        }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
+            _lock.Acquire();
+            try
+            {
+                WriteInternal(c);
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
     }
 
@@ -461,23 +464,24 @@ public static class KernelConsole
     /// </summary>
     public static void Write(string text)
     {
-        if (!IsAvailable || _cells == null)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            foreach (char c in text)
+            _lock.Acquire();
+            try
             {
-                WriteInternal(c);
+                foreach (char c in text)
+                {
+                    WriteInternal(c);
+                }
             }
-        }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
-        }
+            finally
+            {
+                _lock.Release();
+            }
+        }  
     }
 
     /// <summary>
@@ -486,22 +490,23 @@ public static class KernelConsole
     /// </summary>
     public static void WriteLine(char c)
     {
-        if (!IsAvailable || _cells == null)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            WriteInternal(c);
-            EraseCursor();
-            DoLineFeed();
-            DrawCursor();
-        }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
+            _lock.Acquire();
+            try
+            {
+                WriteInternal(c);
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
     }
 
@@ -511,26 +516,28 @@ public static class KernelConsole
     /// </summary>
     public static void WriteLine(string text)
     {
-        if (!IsAvailable || _cells == null)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            foreach (char c in text)
+            _lock.Acquire();
+            try
             {
-                WriteInternal(c);
+                foreach (char c in text)
+                {
+                    WriteInternal(c);
+                }
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
             }
-            EraseCursor();
-            DoLineFeed();
-            DrawCursor();
+            finally
+            {
+                _lock.Release();
+            }
         }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
-        }
+        
     }
 
     /// <summary>
@@ -539,21 +546,22 @@ public static class KernelConsole
     /// </summary>
     public static void WriteLine()
     {
-        if (!IsAvailable)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable)
+                return;
 
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
-        {
-            EraseCursor();
-            DoLineFeed();
-            DrawCursor();
-        }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
+            _lock.Acquire();
+            try
+            {
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();            
+            }
         }
     }
 
@@ -600,34 +608,6 @@ public static class KernelConsole
         int index = GetIndex(_cursorY, _cursorX);
         _cells![index] = Cell.Empty(_foregroundColor, _backgroundColor);
         DrawCharAt(_cursorX, _cursorY);
-    }
-
-    /// <summary>
-    /// Deletes the character at the cursor position and shifts remaining characters left.
-    /// </summary>
-    public static void Delete()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        // Shift all characters on the current line left by one
-        int row = _cursorY;
-        for (int col = _cursorX; col < _cols - 1; col++)
-        {
-            int currentIndex = GetIndex(row, col);
-            int nextIndex = GetIndex(row, col + 1);
-            _cells[currentIndex] = _cells[nextIndex];
-            DrawCharAt(col, row);
-        }
-
-        // Clear the last cell in the row
-        int lastIndex = GetIndex(row, _cols - 1);
-        _cells[lastIndex] = Cell.Empty(_foregroundColor, _backgroundColor);
-        DrawCharAt(_cols - 1, row);
-
-        DrawCursor();
     }
 
     /// <summary>
@@ -683,40 +663,6 @@ public static class KernelConsole
     }
 
     /// <summary>
-    /// Moves the cursor to the beginning of the current line.
-    /// </summary>
-    public static void MoveCursorHome()
-    {
-        EraseCursor();
-        _cursorX = 0;
-        DrawCursor();
-    }
-
-    /// <summary>
-    /// Moves the cursor to the end of the current line (last non-empty character).
-    /// </summary>
-    public static void MoveCursorEnd()
-    {
-        if (_cells == null) return;
-
-        EraseCursor();
-
-        // Find the last non-empty character on the current line
-        int lastNonEmpty = 0;
-        for (int col = 0; col < _cols; col++)
-        {
-            int index = GetIndex(_cursorY, col);
-            if (_cells[index].Char != '\0')
-            {
-                lastNonEmpty = col + 1;
-            }
-        }
-
-        _cursorX = Math.Min(lastNonEmpty, _cols - 1);
-        DrawCursor();
-    }
-
-    /// <summary>
     /// Scrolls the terminal up by one line.
     /// Must be called with lock held.
     /// </summary>
@@ -753,66 +699,26 @@ public static class KernelConsole
     /// </summary>
     public static void Clear()
     {
-        if (!IsAvailable)
-            return;
-
-        InternalCpu.DisableInterrupts();
-        _lock.Acquire();
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
-            EraseCursor();
-            ClearCells();
-            Canvas.ClearScreen(_backgroundColor);
-            _cursorX = 0;
-            _cursorY = 0;
-            DrawCursor();
+            if (!IsAvailable)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                EraseCursor();
+                ClearCells();
+                Canvas.ClearScreen(_backgroundColor);
+                _cursorX = 0;
+                _cursorY = 0;
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
         }
-        finally
-        {
-            _lock.Release();
-            InternalCpu.EnableInterrupts();
         }
-    }
-
-    /// <summary>
-    /// Clears from the cursor to the end of the current line.
-    /// </summary>
-    public static void ClearToEndOfLine()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        for (int col = _cursorX; col < _cols; col++)
-        {
-            int index = GetIndex(_cursorY, col);
-            _cells[index] = Cell.Empty(_foregroundColor, _backgroundColor);
-            DrawCharAt(col, _cursorY);
-        }
-
-        DrawCursor();
-    }
-
-    /// <summary>
-    /// Clears the current line entirely.
-    /// </summary>
-    public static void ClearLine()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        for (int col = 0; col < _cols; col++)
-        {
-            int index = GetIndex(_cursorY, col);
-            _cells[index] = Cell.Empty(_foregroundColor, _backgroundColor);
-            DrawCharAt(col, _cursorY);
-        }
-
-        _cursorX = 0;
-        DrawCursor();
     }
 
     /// <summary>

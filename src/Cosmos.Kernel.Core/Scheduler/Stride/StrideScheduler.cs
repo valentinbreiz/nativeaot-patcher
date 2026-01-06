@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Cosmos.Kernel.Core.CPU;
 
 namespace Cosmos.Kernel.Core.Scheduler.Stride;
 
@@ -407,12 +408,15 @@ public class StrideScheduler : IScheduler
     /// </summary>
     private void RemoveThreadFromQueue(System.Collections.Generic.List<Thread> queue, Thread thread)
     {
-        for (int i = 0; i < queue.Count; i++)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            if (object.ReferenceEquals(queue[i], thread))
+            for (int i = 0; i < queue.Count; i++)
             {
-                queue.RemoveAt(i);
-                return;
+                if (object.ReferenceEquals(queue[i], thread))
+                {
+                    queue.RemoveAt(i);
+                    return;
+                }
             }
         }
     }
@@ -422,32 +426,22 @@ public class StrideScheduler : IScheduler
     public int GetRunQueueCount(PerCpuState cpuState)
     {
         // Disable interrupts to prevent timer from modifying RunQueue while we read
-        CPU.InternalCpu.DisableInterrupts();
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
             var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
             return cpuData?.RunQueue.Count ?? 0;
-        }
-        finally
-        {
-            CPU.InternalCpu.EnableInterrupts();
         }
     }
 
     public Thread GetRunQueueThread(PerCpuState cpuState, int index)
     {
         // Disable interrupts to prevent timer from modifying RunQueue while we read
-        CPU.InternalCpu.DisableInterrupts();
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
             var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
             if (cpuData == null || index < 0 || index >= cpuData.RunQueue.Count)
                 return null;
             return cpuData.RunQueue[index];
-        }
-        finally
-        {
-            CPU.InternalCpu.EnableInterrupts();
         }
     }
 }

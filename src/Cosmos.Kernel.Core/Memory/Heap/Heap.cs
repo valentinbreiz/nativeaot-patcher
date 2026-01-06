@@ -18,76 +18,71 @@ public static unsafe class Heap
     /// <returns>New pointer with specified size while maintaining old data.</returns>
     public static byte* Realloc(byte* aPtr, uint newSize)
     {
-        InternalCpu.DisableInterrupts();
-
-        PageType currentType = PageAllocator.GetPageType(aPtr);
-
-#if COSMOSDEBUG
-        if (currentType != PageType.HeapSmall && currentType != PageType.HeapMedium &&
-            currentType != PageType.HeapLarge)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            InternalCpu.EnableInterrupts();
-            Debugger.DoSendNumber(newSize);
-            Debugger.DoSendNumber((uint)aPtr);
-            Debugger.SendKernelPanic(Panics.NonManagedPage);
-        }
-#endif
+            PageType currentType = PageAllocator.GetPageType(aPtr);
 
-        byte* result;
-
-        if (newSize > MediumHeap.MinSize && newSize <= MediumHeap.MaxSize)
-        {
-            if (currentType == PageType.HeapMedium)
+        #if COSMOSDEBUG
+            if (currentType != PageType.HeapSmall && currentType != PageType.HeapMedium &&
+                currentType != PageType.HeapLarge)
             {
-                result = MediumHeap.Realloc(aPtr, newSize);
-                InternalCpu.EnableInterrupts();
+                Debugger.DoSendNumber(newSize);
+                Debugger.DoSendNumber((uint)aPtr);
+                Debugger.SendKernelPanic(Panics.NonManagedPage);
+            }
+        #endif
+
+            byte* result;
+
+            if (newSize > MediumHeap.MinSize && newSize <= MediumHeap.MaxSize)
+            {
+                if (currentType == PageType.HeapMedium)
+                {
+                    result = MediumHeap.Realloc(aPtr, newSize);
+                    return result;
+                }
+
+                int oldSize = 0;
+                if (currentType == PageType.HeapLarge)
+                {
+                    LargeHeapHeader* header = LargeHeap.GetHeader(aPtr);
+                    oldSize = (int)header->Size;
+                }
+                else if (currentType == PageType.HeapSmall)
+                {
+                    SmallHeapHeader* header = SmallHeap.GetHeader(aPtr);
+                    oldSize = (int)header->Size;
+                }
+                else
+                {
+                    throw new Exception();
+                }
+
+                byte* newPtr = MediumHeap.Alloc(newSize);
+                // Copy the smaller of oldSize and newSize to avoid buffer overread
+                int copySize = oldSize < (int)newSize ? oldSize : (int)newSize;
+                MemoryOp.MemCopy(newPtr, aPtr, copySize);
+
+                // Free the old allocation
+                if (currentType == PageType.HeapLarge)
+                {
+                    LargeHeap.Free(aPtr);
+                }
+                else if (currentType == PageType.HeapSmall)
+                {
+                    SmallHeap.Free(aPtr);
+                }
+
+                return newPtr;
+            }
+
+            if (newSize >= LargeHeap.MinSize)
+            {
+                result = LargeHeap.Alloc(newSize);
                 return result;
             }
-
-            int oldSize = 0;
-            if (currentType == PageType.HeapLarge)
-            {
-                LargeHeapHeader* header = LargeHeap.GetHeader(aPtr);
-                oldSize = (int)header->Size;
-            }
-            else if (currentType == PageType.HeapSmall)
-            {
-                SmallHeapHeader* header = SmallHeap.GetHeader(aPtr);
-                oldSize = (int)header->Size;
-            }
-            else
-            {
-                InternalCpu.EnableInterrupts();
-                throw new Exception();
-            }
-
-            byte* newPtr = MediumHeap.Alloc(newSize);
-            // Copy the smaller of oldSize and newSize to avoid buffer overread
-            int copySize = oldSize < (int)newSize ? oldSize : (int)newSize;
-            MemoryOp.MemCopy(newPtr, aPtr, copySize);
-
-            // Free the old allocation
-            if (currentType == PageType.HeapLarge)
-            {
-                LargeHeap.Free(aPtr);
-            }
-            else if (currentType == PageType.HeapSmall)
-            {
-                SmallHeap.Free(aPtr);
-            }
-
-            InternalCpu.EnableInterrupts();
-            return newPtr;
         }
 
-        if (newSize >= LargeHeap.MinSize)
-        {
-            result = LargeHeap.Alloc(newSize);
-            InternalCpu.EnableInterrupts();
-            return result;
-        }
-
-        InternalCpu.EnableInterrupts();
         return (byte*)0;
     }
 
@@ -100,22 +95,21 @@ public static unsafe class Heap
     {
         byte* result;
 
-        InternalCpu.DisableInterrupts();
-
-        if (aSize > MediumHeap.MinSize && aSize <= MediumHeap.MaxSize)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            result = MediumHeap.Alloc(aSize);
+            if (aSize > MediumHeap.MinSize && aSize <= MediumHeap.MaxSize)
+            {
+                result = MediumHeap.Alloc(aSize);
+            }
+            else if (aSize > LargeHeap.MinSize)
+            {
+                result = LargeHeap.Alloc(aSize);
+            }
+            else
+            {
+                result = SmallHeap.Alloc(aSize);
+            }
         }
-        else if (aSize > LargeHeap.MinSize)
-        {
-            result = LargeHeap.Alloc(aSize);
-        }
-        else
-        {
-            result = SmallHeap.Alloc(aSize);
-        }
-
-        InternalCpu.EnableInterrupts();
 
         return result;
     }
@@ -134,27 +128,26 @@ public static unsafe class Heap
     /// </exception>
     public static void Free(void* aPtr)
     {
-        InternalCpu.DisableInterrupts();
-
-        PageType currentType = PageAllocator.GetPageType(aPtr);
-        switch (currentType)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            case PageType.HeapLarge:
-                LargeHeap.Free(aPtr);
-                break;
-            case PageType.HeapMedium:
-                MediumHeap.Free(aPtr);
-                break;
-            case PageType.HeapSmall:
-                SmallHeap.Free(aPtr);
-                break;
-            default:
-                InternalCpu.EnableInterrupts();
-                Debugger.SendKernelPanic(Panics.NonManagedPage);
-                throw new NotSupportedException("This is not a managed page");
-        }
+            PageType currentType = PageAllocator.GetPageType(aPtr);
 
-        InternalCpu.EnableInterrupts();
+            switch (currentType)
+            {
+                case PageType.HeapLarge:
+                    LargeHeap.Free(aPtr);
+                    break;
+                case PageType.HeapMedium:
+                    MediumHeap.Free(aPtr);
+                    break;
+                case PageType.HeapSmall:
+                    SmallHeap.Free(aPtr);
+                    break;
+                default:
+                    Debugger.SendKernelPanic(Panics.NonManagedPage);
+                    throw new NotSupportedException("This is not a managed page");
+            }
+        }
     }
 
     /// <summary>
@@ -163,9 +156,13 @@ public static unsafe class Heap
     /// <returns>Number of objects freed</returns>
     public static int Collect()
     {
-        InternalCpu.DisableInterrupts();
-        int result = SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
-        InternalCpu.EnableInterrupts();
+        int result;
+
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            result = SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
+        }
+        
         return result;
     }
 }

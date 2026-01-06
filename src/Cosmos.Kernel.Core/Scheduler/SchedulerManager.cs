@@ -134,59 +134,58 @@ public static class SchedulerManager
 
     public static void BlockThread(uint cpuId, Thread thread)
     {
-        var state = _cpuStates[cpuId];
-        InternalCpu.DisableInterrupts();
-        state.Lock.Acquire();
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
-            thread.State = ThreadState.Blocked;
-            _currentScheduler.OnThreadBlocked(state, thread);
-        }
-        finally
-        {
-            state.Lock.Release();
-            InternalCpu.EnableInterrupts();
+            PerCpuState state = _cpuStates[cpuId];
+
+            state.Lock.Acquire();
+            try
+            {
+                thread.State = ThreadState.Blocked;
+                _currentScheduler.OnThreadBlocked(state, thread);
+            }
+            finally
+            {
+                state.Lock.Release();
+            }
         }
     }
 
     public static void ExitThread(uint cpuId, Thread thread)
     {
-        Serial.WriteString("[SCHED] ExitThread: entering\n");
-        var state = _cpuStates[cpuId];
-        Serial.WriteString("[SCHED] ExitThread: disabling interrupts\n");
-        InternalCpu.DisableInterrupts();
-        Serial.WriteString("[SCHED] ExitThread: acquiring lock\n");
-        state.Lock.Acquire();
-        Serial.WriteString("[SCHED] ExitThread: lock acquired\n");
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
-            Serial.WriteString("[SCHED] ExitThread: setting state to Dead\n");
-            thread.State = ThreadState.Dead;
-            Serial.WriteString("[SCHED] ExitThread: calling OnThreadExit\n");
-            _currentScheduler.OnThreadExit(state, thread);
-            Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
+            PerCpuState state = _cpuStates[cpuId];
+
+            state.Lock.Acquire();
+            try
+            {
+                thread.State = ThreadState.Dead;
+                _currentScheduler.OnThreadExit(state, thread);
+                Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
+            }
+            finally
+            {
+                state.Lock.Release();
+            }
         }
-        finally
-        {
-            state.Lock.Release();
-            InternalCpu.EnableInterrupts();
-        }
-        Serial.WriteString("[SCHED] ExitThread: done\n");
     }
 
     public static void YieldThread(uint cpuId, Thread thread)
     {
-        var state = _cpuStates[cpuId];
-        InternalCpu.DisableInterrupts();
-        state.Lock.Acquire();
-        try
+        using (InternalCpu.DisableInterruptsScope())
         {
-            _currentScheduler.OnThreadYield(state, thread);
-        }
-        finally
-        {
-            state.Lock.Release();
-            InternalCpu.EnableInterrupts();
+            PerCpuState state = _cpuStates[cpuId];
+
+            state.Lock.Acquire();
+            try
+            {
+                _currentScheduler.OnThreadYield(state, thread);
+            }
+            finally
+            {
+                state.Lock.Release();
+            }
         }
     }
 

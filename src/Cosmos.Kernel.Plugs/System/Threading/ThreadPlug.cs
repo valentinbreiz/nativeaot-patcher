@@ -27,26 +27,30 @@ public static class ThreadPlug
     public static void Ctor(SysThread aThis, ThreadStart start)
     {
         Serial.WriteString("[ThreadPlug] Ctor(ThreadStart)\n");
+
         // Only disable interrupts if scheduler is running (to avoid issues during early boot)
-        bool needsProtection = SchedulerManager.Enabled;
-        if (needsProtection)
-            InternalCpu.DisableInterrupts();
-        _pendingDelegates.Enqueue(start);
-        if (needsProtection)
-            InternalCpu.EnableInterrupts();
+        if (SchedulerManager.Enabled)
+        {
+            using (InternalCpu.DisableInterruptsScope())
+            {
+                _pendingDelegates.Enqueue(start);
+            }
+        }
     }
 
     [PlugMember(".ctor")]
     public static void Ctor(SysThread aThis, ThreadStart start, int maxStackSize)
     {
         Serial.WriteString("[ThreadPlug] Ctor(ThreadStart, maxStackSize)\n");
+
         // Only disable interrupts if scheduler is running (to avoid issues during early boot)
-        bool needsProtection = SchedulerManager.Enabled;
-        if (needsProtection)
-            InternalCpu.DisableInterrupts();
-        _pendingDelegates.Enqueue(start);
-        if (needsProtection)
-            InternalCpu.EnableInterrupts();
+        if (SchedulerManager.Enabled)
+        {
+            using (InternalCpu.DisableInterruptsScope())
+            {
+                _pendingDelegates.Enqueue(start);
+            }
+        }
     }
 
     [PlugMember("StartCore")]
@@ -56,62 +60,60 @@ public static class ThreadPlug
 
         // Disable interrupts for thread-safe queue/dictionary access
         bool needsProtection = SchedulerManager.Enabled;
-        if (needsProtection)
-            InternalCpu.DisableInterrupts();
 
-        if (_pendingDelegates.Count == 0)
+        if (SchedulerManager.Enabled)
         {
-            if (needsProtection)
-                InternalCpu.EnableInterrupts();
-            Serial.WriteString("[ThreadPlug] No delegate found\n");
-            return;
+            using (InternalCpu.DisableInterruptsScope())
+            {
+                if (_pendingDelegates.Count == 0)
+                {
+                    Serial.WriteString("[ThreadPlug] No delegate found\n");
+                    return;
+                }
+
+                var start = _pendingDelegates.Dequeue();
+
+                // Create scheduler thread
+                var thread = new SchedThread
+                {
+                    Id = SchedulerManager.AllocateThreadId(),
+                    CpuId = 0,
+                    State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created
+                };
+
+                // Store delegate for this thread
+                _threadDelegates[thread.Id] = start;
+
+                Serial.WriteString("[ThreadPlug] Thread ");
+                Serial.WriteNumber(thread.Id);
+                Serial.WriteString(" - setting up stack\n");
+
+                #if ARCH_X64
+                // Get code selector
+                ushort cs = (ushort)Idt.GetCurrentCodeSelector();
+
+                // Initialize stack with our entry point, passing thread ID as argument
+                nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
+                thread.InitializeStack(entryPoint, cs, thread.Id);
+
+                Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
+        #elif ARCH_ARM64
+                // ARM64: no code selector needed, use 0
+                nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
+                thread.InitializeStack(entryPoint, 0, thread.Id);
+
+                Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
+        #endif
+
+                // Register with scheduler
+                SchedulerManager.CreateThread(0, thread);
+                SchedulerManager.ReadyThread(0, thread);
+
+                Serial.WriteString("[ThreadPlug] Thread ");
+                Serial.WriteNumber(thread.Id);
+                Serial.WriteString(" scheduled for execution\n");
+            }
         }
-
-        var start = _pendingDelegates.Dequeue();
-
-        // Create scheduler thread
-        var thread = new SchedThread
-        {
-            Id = SchedulerManager.AllocateThreadId(),
-            CpuId = 0,
-            State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created
-        };
-
-        // Store delegate for this thread
-        _threadDelegates[thread.Id] = start;
-
-        Serial.WriteString("[ThreadPlug] Thread ");
-        Serial.WriteNumber(thread.Id);
-        Serial.WriteString(" - setting up stack\n");
-
-#if ARCH_X64
-        // Get code selector
-        ushort cs = (ushort)Idt.GetCurrentCodeSelector();
-
-        // Initialize stack with our entry point, passing thread ID as argument
-        nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
-        thread.InitializeStack(entryPoint, cs, thread.Id);
-
-        Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
-#elif ARCH_ARM64
-        // ARM64: no code selector needed, use 0
-        nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadEntryPoint;
-        thread.InitializeStack(entryPoint, 0, thread.Id);
-
-        Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
-#endif
-
-        // Register with scheduler
-        SchedulerManager.CreateThread(0, thread);
-        SchedulerManager.ReadyThread(0, thread);
-
-        // Re-enable interrupts after thread is fully registered
-        if (needsProtection)
-            InternalCpu.EnableInterrupts();
-
-        Serial.WriteString("[ThreadPlug] Thread ");
-        Serial.WriteNumber(thread.Id);
-        Serial.WriteString(" scheduled for execution\n");
     }
 
     /// <summary>
@@ -135,13 +137,16 @@ public static class ThreadPlug
         Serial.WriteString("\n");
 
         int exitCode = 0;
+        bool hasDelegate;
+        ThreadStart ?start;
 
         // Get the delegate with interrupts disabled
-        InternalCpu.DisableInterrupts();
-        bool hasDelegate = _threadDelegates.TryGetValue(threadId, out var start);
-        if (hasDelegate)
-            _threadDelegates.Remove(threadId);
-        InternalCpu.EnableInterrupts();
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            hasDelegate = _threadDelegates.TryGetValue(threadId, out start);
+            if (hasDelegate)
+                _threadDelegates.Remove(threadId);
+        }
 
         // Invoke the delegate
         if (hasDelegate && start != null)
