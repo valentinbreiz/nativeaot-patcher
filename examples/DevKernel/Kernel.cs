@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
@@ -123,6 +124,10 @@ internal static partial class Program
                     ShowSchedulerInfo();
                     break;
 
+                case "meminfo":
+                    ShowMemoryInfo();
+                    break;
+
                 case "thread":
                     TestThread();
                     break;
@@ -183,6 +188,7 @@ internal static partial class Program
         PrintCommand("timer", "Test 10 second countdown timer");
         PrintCommand("colors", "Display color palette");
         PrintCommand("schedinfo", "Show scheduler status and threads");
+        PrintCommand("meminfo", "Show memory allocator state");
         PrintCommand("thread", "Test System.Threading.Thread");
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
@@ -254,6 +260,54 @@ internal static partial class Program
         }
         Console.ResetColor();
         Console.WriteLine();
+    }
+
+    private static void ShowMemoryInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Memory Information:");
+        Console.ResetColor();
+
+        // Page allocator stats
+        ulong totalPages = PageAllocator.TotalPageCount;
+        ulong freePages = PageAllocator.FreePageCount;
+        ulong usedPages = totalPages - freePages;
+        ulong pageSize = PageAllocator.PageSize;
+
+        ulong totalBytes = totalPages * pageSize;
+        ulong freeBytes = freePages * pageSize;
+        ulong usedBytes = usedPages * pageSize;
+
+        PrintInfoLine("Page Size", (pageSize / 1024).ToString() + " KB");
+        PrintInfoLine("Total Pages", totalPages.ToString());
+        PrintInfoLine("Used Pages", usedPages.ToString());
+        PrintInfoLine("Free Pages", freePages.ToString());
+
+        Console.WriteLine();
+
+        // Memory in MB
+        PrintInfoLine("Total Memory", (totalBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Used Memory", (usedBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Free Memory", (freeBytes / 1024 / 1024).ToString() + " MB");
+
+        // Usage percentage
+        ulong usagePercent = totalPages > 0 ? (usedPages * 100) / totalPages : 0;
+
+        Console.WriteLine();
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Usage".PadRight(14));
+
+        // Color based on usage
+        if (usagePercent < 50)
+            Console.ForegroundColor = ConsoleColor.Green;
+        else if (usagePercent < 80)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+        else
+            Console.ForegroundColor = ConsoleColor.Red;
+
+        Console.WriteLine(usagePercent.ToString() + "%");
+        Console.ResetColor();
     }
 
     private static void ShowSchedulerInfo()
