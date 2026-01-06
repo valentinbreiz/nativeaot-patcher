@@ -420,7 +420,6 @@ dev-debug.log
 .env
 # Editor directories and files
 .idea
-.vscode
 *.ntvs*
 *.njsproj
 *.sln

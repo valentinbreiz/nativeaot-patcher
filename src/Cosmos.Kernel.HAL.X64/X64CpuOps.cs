@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces;
 
@@ -7,18 +8,15 @@ namespace Cosmos.Kernel.HAL.X64;
 
 public partial class X64CpuOps : ICpuOps
 {
-    [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
-    [SuppressGCTransition]
-    private static partial void NativeHalt();
+    public void Halt() => InternalCpu.Halt();
 
-    [LibraryImport("*", EntryPoint = "_native_cpu_memory_barrier")]
-    [SuppressGCTransition]
-    private static partial void NativeMemoryBarrier();
+    public void DisableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.DisableInterrupts();
+
+    public void EnableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.EnableInterrupts();
 
     [LibraryImport("*", EntryPoint = "_native_cpu_rdtsc")]
     [SuppressGCTransition]
     private static partial ulong NativeReadTSC();
-
 
     /// <summary>
     /// TSC (Time Stamp Counter) frequency in Hz.
@@ -31,20 +29,6 @@ public partial class X64CpuOps : ICpuOps
     /// Gets whether the TSC frequency has been calibrated.
     /// </summary>
     public static bool IsTscCalibrated { get; private set; }
-
-    public void Halt() => NativeHalt();
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public void Nop()
-    {
-        // NOP instruction will be inlined by compiler
-    }
-
-    public void MemoryBarrier() => NativeMemoryBarrier();
-
-    public void DisableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.DisableInterrupts();
-
-    public void EnableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.EnableInterrupts();
 
     /// <summary>
     /// Reads the Time Stamp Counter (TSC).

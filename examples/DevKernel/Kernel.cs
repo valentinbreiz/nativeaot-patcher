@@ -1,152 +1,155 @@
 using System;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Network;
-using Cosmos.Kernel.Services.Network;
-using Cosmos.Kernel.Services.Network.IPv4;
-using Cosmos.Kernel.Services.Network.IPv4.UDP;
-using Cosmos.Kernel.Services.Timer;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.X64.Devices.Network;
-#endif
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Timer;
+using Sys = Cosmos.Kernel.System;
 
-internal static partial class Program
+namespace DevKernel;
+
+/// <summary>
+/// DevKernel - Test kernel for Cosmos gen3 development.
+/// </summary>
+public class Kernel : Sys.Kernel
 {
-    [LibraryImport("test", EntryPoint = "testGCC")]
-    [return: MarshalUsing(typeof(SimpleStringMarshaler))]
-    public static unsafe partial string testGCC();
+    private string _prompt = "cosmos";
 
-    private static void Main()
+    protected override void BeforeRun()
     {
-        Serial.WriteString("[Main] Starting Main function\n");
+        Serial.WriteString("[DevKernel] BeforeRun() called\n");
 
-        // GCC interop test (DevKernel-specific)
-        Serial.WriteString("[Main] Testing GCC interop...\n");
-        var gccString = testGCC();
-        Serial.WriteString("[Main] SUCCESS - GCC string: ");
-        Serial.WriteString(gccString);
-        Serial.WriteString("\n");
-
-        PrintSuccess("GCC interop: ");
-        Console.WriteLine(gccString);
-
-        DebugInfo.Print();
-
-        Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
-
-        // Start simple shell
-        RunShell();
-    }
-
-    private static void RunShell()
-    {
-        Serial.WriteString("[Shell] Starting shell...\n");
         Console.Clear();
-
-        // Print banner
         Console.WriteLine("========================================");
         Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
-        PrintInfo("Type 'help' for available commands.");
+
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Cosmos booted successfully!");
+        Console.ResetColor();
+        Console.WriteLine("Type 'help' for available commands.");
         Console.WriteLine();
+    }
 
-        while (true)
+    protected override void Run()
+    {
+        // Print prompt
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(_prompt);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(":");
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.Write("~");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("$ ");
+        Console.ResetColor();
+
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(input))
+            return;
+
+        string trimmed = input.Trim();
+        string[] parts = trimmed.Split(' ');
+        string cmd = parts[0].ToLower();
+
+        switch (cmd)
         {
-            // Print prompt
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("cosmos");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(":");
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("~");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("$ ");
-            Console.ResetColor();
+            case "help":
+                PrintHelp();
+                break;
 
-            string? input = Console.ReadLine();
+            case "clear":
+            case "cls":
+                Console.Clear();
+                break;
 
-            if (string.IsNullOrEmpty(input))
-                continue;
+            case "echo":
+                if (parts.Length > 1)
+                    Console.WriteLine(trimmed.Substring(5));
+                break;
 
-            string trimmed = input.Trim();
-            string command = trimmed.ToLower();
+            case "info":
+            case "sysinfo":
+                PrintSystemInfo();
+                break;
 
-            // Handle commands with arguments
-            string[] parts = trimmed.Split(' ');
-            string cmd = parts[0].ToLower();
+            case "timer":
+                RunTimerTest();
+                break;
 
-            switch (cmd)
-            {
-                case "help":
-                    PrintHelp();
-                    break;
+            case "schedinfo":
+                ShowSchedulerInfo();
+                break;
 
-                case "clear":
-                case "cls":
-                    Console.Clear();
-                    break;
+            case "thread":
+                TestThread();
+                break;
 
-                case "echo":
-                    if (parts.Length > 1)
-                    {
-                        Console.WriteLine(trimmed.Substring(5));
-                    }
-                    break;
+            case "gfx":
+                StartGraphicsThread();
+                break;
 
-                case "info":
-                case "sysinfo":
-                    PrintSystemInfo();
-                    break;
+            case "kill":
+                if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                    KillThread(killId);
+                else
+                    PrintError("Usage: kill <thread_id>");
+                break;
 
-                case "timer":
-                    RunTimerTest();
-                    break;
-
-                case "colors":
-                    ShowColors();
-                    break;
+            case "halt":
+            case "shutdown":
+                PrintWarning("Halting system...");
+                Stop();
+                break;
 
 #if ARCH_X64
-                case "netconfig":
-                    ConfigureNetwork();
-                    break;
+            case "netconfig":
+                ConfigureNetwork();
+                break;
 
-                case "netinfo":
-                    ShowNetworkInfo();
-                    break;
+            case "netinfo":
+                ShowNetworkInfo();
+                break;
 
-                case "netsend":
-                    SendTestPacket();
-                    break;
+            case "netsend":
+                SendTestPacket();
+                break;
 
-                case "netlisten":
-                    StartListening();
-                    break;
+            case "netlisten":
+                StartListening();
+                break;
+
 #endif
 
-                case "halt":
-                case "shutdown":
-                    PrintWarning("Halting system...");
-                    Cosmos.Kernel.Kernel.Halt();
-                    break;
 
-                default:
-                    PrintError("Unknown command: " + cmd);
-                    PrintInfo("Type 'help' for available commands.");
-                    break;
-            }
+            case "meminfo":
+                ShowMemoryInfo();
+                break;
+
+            default:
+                PrintError($"\"{cmd}\" is not a command");
+                Console.WriteLine("Type 'help' for available commands.");
+                break;
         }
     }
 
-    private static void PrintHelp()
+    protected override void AfterRun()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Serial.WriteString("[DevKernel] AfterRun() called\n");
+        Console.WriteLine("Goodbye!");
+        Cosmos.Kernel.Kernel.Halt();
+    }
+
+    private void PrintHelp()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Available Commands:");
         Console.ResetColor();
 
@@ -155,26 +158,30 @@ internal static partial class Program
         PrintCommand("echo <text>", "Echo back text");
         PrintCommand("info", "Show system information");
         PrintCommand("timer", "Test 10 second countdown timer");
-        PrintCommand("colors", "Display color palette");
+        PrintCommand("schedinfo", "Show scheduler status and threads");
+        PrintCommand("meminfo", "Show memory allocator state");
+        PrintCommand("thread", "Test System.Threading.Thread");
+        PrintCommand("gfx", "Start graphics thread (draws square)");
+        PrintCommand("kill <id>", "Kill a thread by ID");
+        PrintCommand("halt", "Halt the system");
 #if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
 #endif
-        PrintCommand("halt", "Halt the system");
     }
 
-    private static void PrintCommand(string cmd, string description)
+    private void PrintCommand(string cmd, string description)
     {
         Console.Write("  ");
         Console.Write(cmd.PadRight(14));
         Console.WriteLine(description);
     }
 
-    private static void PrintSystemInfo()
+    private void PrintSystemInfo()
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
@@ -188,7 +195,7 @@ internal static partial class Program
         PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
     }
 
-    private static void PrintInfoLine(string label, string value)
+    private void PrintInfoLine(string label, string value)
     {
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -198,9 +205,9 @@ internal static partial class Program
         Console.ResetColor();
     }
 
-    private static void RunTimerTest()
+    private void RunTimerTest()
     {
-        PrintInfo("Starting 10 second countdown...");
+        Console.WriteLine("Starting 10 second countdown...");
         for (int i = 10; i > 0; i--)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -210,62 +217,289 @@ internal static partial class Program
             TimerManager.Wait(1000);
         }
         PrintSuccess("Timer test complete!");
+        Console.WriteLine();
     }
 
-    private static void ShowColors()
+    private void ShowMemoryInfo()
     {
-        Console.WriteLine("Color palette:");
-        for (int i = 0; i < 16; i++)
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Memory Information:");
+        Console.ResetColor();
+
+        // Page allocator stats
+        ulong totalPages = PageAllocator.TotalPageCount;
+        ulong freePages = PageAllocator.FreePageCount;
+        ulong usedPages = totalPages - freePages;
+        ulong pageSize = PageAllocator.PageSize;
+
+        ulong totalBytes = totalPages * pageSize;
+        ulong freeBytes = freePages * pageSize;
+        ulong usedBytes = usedPages * pageSize;
+
+        PrintInfoLine("Page Size", (pageSize / 1024).ToString() + " KB");
+        PrintInfoLine("Total Pages", totalPages.ToString());
+        PrintInfoLine("Used Pages", usedPages.ToString());
+        PrintInfoLine("Free Pages", freePages.ToString());
+
+        Console.WriteLine();
+
+        // Memory in MB
+        PrintInfoLine("Total Memory", (totalBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Used Memory", (usedBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Free Memory", (freeBytes / 1024 / 1024).ToString() + " MB");
+
+        // Usage percentage
+        ulong usagePercent = totalPages > 0 ? (usedPages * 100) / totalPages : 0;
+
+        Console.WriteLine();
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Usage".PadRight(14));
+
+        // Color based on usage
+        if (usagePercent < 50)
+            Console.ForegroundColor = ConsoleColor.Green;
+        else if (usagePercent < 80)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+        else
+            Console.ForegroundColor = ConsoleColor.Red;
+
+        Console.WriteLine(usagePercent.ToString() + "%");
+        Console.ResetColor();
+    }
+
+    private void ShowSchedulerInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Scheduler Information:");
+        Console.ResetColor();
+
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
         {
-            Console.ForegroundColor = (ConsoleColor)i;
-            Console.Write("  " + ((ConsoleColor)i).ToString().PadRight(14));
-            if (i == 7)
-                Console.WriteLine();
+            PrintInfoLine("Status", "Not initialized");
+            return;
         }
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Status".PadRight(14));
+        Console.ForegroundColor = SchedulerManager.Enabled ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(SchedulerManager.Enabled ? "ENABLED" : "DISABLED");
+        Console.ResetColor();
+
+        PrintInfoLine("Scheduler", scheduler.Name);
+        PrintInfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
+        PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / 1_000_000).ToString() + " ms");
+        Console.WriteLine();
+
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  CPU " + cpuId + ":");
+            Console.ResetColor();
+
+            var currentThread = cpuState.CurrentThread;
+            if (currentThread != null)
+            {
+                PrintThreadInfo(scheduler, currentThread);
+            }
+
+            int runQueueCount = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < runQueueCount; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread != null)
+                {
+                    PrintThreadInfo(scheduler, thread);
+                }
+            }
+        }
+        Console.WriteLine();
+    }
+
+    private void PrintThreadInfo(IScheduler scheduler, Cosmos.Kernel.Core.Scheduler.Thread thread)
+    {
+        Console.Write("    ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("Thread " + thread.Id);
+
+        Console.Write(" ");
+        switch (thread.State)
+        {
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Running:
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("Running");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Ready:
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("Ready");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked:
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping:
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(thread.State == Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked ? "Blocked" : "Sleeping");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Dead:
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("Dead");
+                break;
+            default:
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("Unknown");
+                break;
+        }
+
+        if (thread.SchedulerData != null)
+        {
+            long priority = scheduler.GetPriority(thread);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write(" Pri=" + priority);
+        }
+
+        ulong runtimeMs = thread.TotalRuntime / 1_000_000;
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" Run=" + runtimeMs + "ms");
+
         Console.ResetColor();
         Console.WriteLine();
     }
 
-    // Helper methods for colored output
-    private static void PrintError(string message)
+    private void TestThread()
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(message);
-        Console.ResetColor();
+        Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
+        Console.WriteLine("Creating and starting a thread...");
+
+        var thread = new System.Threading.Thread(() =>
+        {
+            Serial.WriteString("[Thread] Hello from thread delegate!\n");
+            Console.WriteLine("Hello from thread!");
+        });
+
+        thread.Start();
+        PrintSuccess("Thread started!");
+        Console.WriteLine();
+
+        TimerManager.Wait(2000);
     }
 
-    private static void PrintSuccess(string message)
+    private void StartGraphicsThread()
     {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write(message);
-        Console.ResetColor();
+        Serial.WriteString("[GfxThread] Starting graphics thread\n");
+        Console.WriteLine("Starting graphics thread (draws color-cycling square)...");
+
+        var thread = new System.Threading.Thread(GraphicsWorker);
+        thread.Start();
+
+        PrintSuccess("Graphics thread started!");
+        Console.WriteLine();
     }
 
-    private static void PrintWarning(string message)
+    private void KillThread(uint threadId)
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(message);
-        Console.ResetColor();
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
+        {
+            PrintError("Scheduler not initialized");
+            return;
+        }
+
+        if (threadId == 0)
+        {
+            PrintError("Cannot kill idle thread (ID 0)");
+            return;
+        }
+
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            if (cpuState.CurrentThread?.Id == threadId)
+            {
+                PrintWarning("Cannot kill currently running thread");
+                cpuState.CurrentThread.State = Cosmos.Kernel.Core.Scheduler.ThreadState.Dead;
+                return;
+            }
+
+            int count = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < count; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread?.Id == threadId)
+                {
+                    SchedulerManager.ExitThread(cpuId, thread);
+                    PrintSuccess("Thread " + threadId + " killed");
+                    Console.WriteLine();
+                    return;
+                }
+            }
+        }
+
+        PrintError("Thread " + threadId + " not found");
     }
 
-    private static void PrintInfo(string message)
+    private static void GraphicsWorker()
     {
-        Console.WriteLine(message);
-    }
+        if (Canvas.Width == 0 || Canvas.Height == 0)
+            return;
 
-    [ModuleInitializer]
-    public static void Init()
-    {
-        Serial.WriteString("Kernel Init\n");
+        const int squareSize = 80;
+        const int margin = 20;
+
+        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Width - squareSize - margin
+            : margin;
+        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Height - squareSize - margin
+            : margin;
+
+        int frame = 0;
+
+        while (true)
+        {
+            int phase = frame % 60;
+            byte r, g, b;
+
+            if (phase < 10) { r = 255; g = (byte)(phase * 25); b = 0; }
+            else if (phase < 20) { r = (byte)(255 - (phase - 10) * 25); g = 255; b = 0; }
+            else if (phase < 30) { r = 0; g = 255; b = (byte)((phase - 20) * 25); }
+            else if (phase < 40) { r = 0; g = (byte)(255 - (phase - 30) * 25); b = 255; }
+            else if (phase < 50) { r = (byte)((phase - 40) * 25); g = 0; b = 255; }
+            else { r = 255; g = 0; b = (byte)(255 - (phase - 50) * 25); }
+
+            for (int dy = 0; dy < squareSize; dy++)
+            {
+                for (int dx = 0; dx < squareSize; dx++)
+                {
+                    int cx = dx - squareSize / 2;
+                    int cy = dy - squareSize / 2;
+                    int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
+                    if (dist > 255) dist = 255;
+
+                    int factor = 255 - dist / 2;
+                    byte pr = (byte)((r * factor) / 255);
+                    byte pg = (byte)((g * factor) / 255);
+                    byte pb = (byte)((b * factor) / 255);
+                    uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
+
+                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                }
+            }
+
+            frame++;
+            System.Threading.Thread.Sleep(100);
+        }
     }
 
 #if ARCH_X64
     // Network configuration
-    private static Address? _localIP;
-    private static Address? _gatewayIP;
-    private static bool _networkConfigured = false;
+    private Address? _localIP;
+    private Address? _gatewayIP;
+    private bool _networkConfigured = false;
 
-    private static void ConfigureNetwork()
+    private void ConfigureNetwork()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -292,7 +526,7 @@ internal static partial class Program
         PrintInfoLine("Gateway", _gatewayIP.ToString());
     }
 
-    private static void ShowNetworkInfo()
+    private void ShowNetworkInfo()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -301,7 +535,7 @@ internal static partial class Program
             return;
         }
 
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Network Information:");
         Console.ResetColor();
 
@@ -333,7 +567,7 @@ internal static partial class Program
         }
     }
 
-    private static void SendTestPacket()
+    private void SendTestPacket()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -376,10 +610,10 @@ internal static partial class Program
         if (sent)
             PrintSuccess("Packet sent!\n");
         else
-            PrintError("Failed to send packet");
+            PrintError("Failed to send packet\n");
     }
 
-    private static void StartListening()
+    private void StartListening()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -400,7 +634,7 @@ internal static partial class Program
         Console.ResetColor();
     }
 
-    private static void OnUDPDataReceived(UDPPacket packet)
+    private void OnUDPDataReceived(UDPPacket packet)
     {
         Serial.Write("[UDP] Received packet from ");
         Serial.WriteString(packet.SourceIP.ToString());
@@ -442,31 +676,30 @@ internal static partial class Program
         Console.WriteLine();
     }
 #endif
-}
 
-[CustomMarshaller(typeof(string), MarshalMode.Default, typeof(SimpleStringMarshaler))]
-internal static unsafe class SimpleStringMarshaler
-{
-    public static string ConvertToManaged(char* unmanaged)
+    private void PrintInfo(string message)
     {
-        // Count the length of the null-terminated UTF-16 string
-        int length = 0;
-        char* p = unmanaged;
-        while (*p != '\0')
-        {
-            length++;
-            p++;
-        }
-
-        // Create a new string from the character span
-        return new string(unmanaged, 0, length);
+        Console.WriteLine(message);
     }
 
-    public static char* ConvertToUnmanaged(string managed)
+    private void PrintError(string message)
     {
-        fixed (char* p = managed)
-        {
-            return p;
-        }
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintSuccess(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintWarning(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(message);
+        Console.ResetColor();
     }
 }

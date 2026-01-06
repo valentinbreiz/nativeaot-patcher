@@ -57,4 +57,10 @@ public class X64InterruptController : IInterruptController
         }
         return false;
     }
+
+    public uint AcknowledgeInterrupt()
+    {
+        // x64 doesn't use this - interrupt vector comes from IDT directly
+        throw new System.NotSupportedException("AcknowledgeInterrupt is not supported on x64. Use IDT vector directly.");
+    }
 }

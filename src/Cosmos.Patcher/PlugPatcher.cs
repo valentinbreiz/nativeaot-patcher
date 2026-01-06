@@ -370,7 +370,23 @@ public sealed class PlugPatcher
 
         if ((isInstance && !targetMethod.IsStatic) || targetMethod.IsConstructor)
         {
+            // Clear existing variables and exception handlers before copying plug's
+            targetMethod.Body.Variables.Clear();
+            targetMethod.Body.ExceptionHandlers.Clear();
+
+            // Copy variables with imported types
+            foreach (VariableDefinition? variable in plugMethod.Body.Variables)
+            {
+                targetMethod.Body.Variables.Add(
+                    new VariableDefinition(targetMethod.Module.ImportReference(variable.VariableType))
+                );
+            }
+
             _log.Debug($"Cloning {plugMethod.Body.Instructions.Count} instructions");
+
+            // Build instruction mapping for branch target remapping
+            var instructionMap = new Dictionary<Instruction, Instruction>();
+
             foreach (Instruction instruction in plugMethod.Body.Instructions)
             {
                 try
@@ -385,6 +401,7 @@ public sealed class PlugPatcher
                         _ => instruction.Operand
                     };
                     processor.Append(clone);
+                    instructionMap[instruction] = clone;
                     _log.Debug($"Cloned instruction {instruction} -> {clone}");
                 }
                 catch (Exception ex)
@@ -393,6 +410,13 @@ public sealed class PlugPatcher
                     throw;
                 }
             }
+
+            // Fix branch targets to point to cloned instructions
+            FixBranchTargets(instructionMap);
+
+            // Copy method body properties
+            targetMethod.Body.InitLocals = plugMethod.Body.InitLocals;
+            targetMethod.Body.MaxStackSize = plugMethod.Body.MaxStackSize;
         }
         else
         {
@@ -411,6 +435,8 @@ public sealed class PlugPatcher
                 }
 
                 // Clone and import all instructions
+                var instructionMap = new Dictionary<Instruction, Instruction>();
+
                 foreach (Instruction instruction in plugMethod.Body.Instructions)
                 {
                     Instruction clone = instruction.Clone();
@@ -426,8 +452,12 @@ public sealed class PlugPatcher
                     };
 
                     processor.Append(clone);
+                    instructionMap[instruction] = clone;
                     _log.Debug($"Cloned instruction {instruction} -> {clone}");
                 }
+
+                // Fix branch targets to point to cloned instructions
+                FixBranchTargets(instructionMap);
 
                 // Copy exception handlers if any
                 if (plugMethod.Body.HasExceptionHandlers)
@@ -753,6 +783,31 @@ public sealed class PlugPatcher
         }
     }
 
+
+    /// <summary>
+    /// Fix branch instruction targets to point to cloned instructions instead of original source instructions.
+    /// </summary>
+    private static void FixBranchTargets(Dictionary<Instruction, Instruction> instructionMap)
+    {
+        foreach (var kvp in instructionMap)
+        {
+            Instruction clone = kvp.Value;
+            if (clone.Operand is Instruction branchTarget && instructionMap.TryGetValue(branchTarget, out Instruction? mappedTarget))
+            {
+                clone.Operand = mappedTarget;
+            }
+            else if (clone.Operand is Instruction[] switchTargets)
+            {
+                for (int i = 0; i < switchTargets.Length; i++)
+                {
+                    if (instructionMap.TryGetValue(switchTargets[i], out Instruction? mapped))
+                    {
+                        switchTargets[i] = mapped;
+                    }
+                }
+            }
+        }
+    }
 
     // ---------- DEBUG HELPERS ----------
     private static string FmtParams(IEnumerable<ParameterDefinition> ps)

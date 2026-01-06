@@ -40,6 +40,11 @@ public interface IKeyboardDevice
     void UpdateLeds();
 
     /// <summary>
+    /// Poll for keyboard events (for devices that don't use interrupts reliably).
+    /// </summary>
+    void Poll();
+
+    /// <summary>
     /// Event handler for key press/release events.
     /// </summary>
     KeyPressedHandler? OnKeyPressed { get; set; }

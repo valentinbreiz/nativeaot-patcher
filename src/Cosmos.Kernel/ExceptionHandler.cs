@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Cpu;
@@ -13,9 +12,8 @@ public static class ExceptionHandler
 {
     /// <summary>
     /// Initializes CPU exception handlers.
-    /// Called automatically via ModuleInitializer after runtime is ready.
+    /// Must be called explicitly after InterruptManager is initialized.
     /// </summary>
-    [ModuleInitializer]
     public static void Initialize()
     {
 #if ARCH_ARM64
@@ -91,16 +89,12 @@ public static class ExceptionHandler
 #if ARCH_ARM64
     private static void SynchronousException(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("ARM64 EXCEPTION: Synchronous");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Synchronous", ref ctx);
     }
 
     private static void IrqException(ref IRQContext ctx)
     {
+        // IRQ is not a fatal exception - just log it
         WriteDebugLine("");
         WriteDebugLine("========================================");
         WriteDebugLine("ARM64 EXCEPTION: IRQ");
@@ -110,6 +104,7 @@ public static class ExceptionHandler
 
     private static void FiqException(ref IRQContext ctx)
     {
+        // FIQ is not a fatal exception - just log it
         WriteDebugLine("");
         WriteDebugLine("========================================");
         WriteDebugLine("ARM64 EXCEPTION: FIQ");
@@ -119,200 +114,99 @@ public static class ExceptionHandler
 
     private static void SErrorException(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("ARM64 EXCEPTION: SError");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("SError", ref ctx);
     }
 #endif
 
 #if ARCH_X64
     private static void DivideByZero(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Divide by Zero (#DE)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Divide by Zero (#DE)", ref ctx);
     }
 
     private static void Debug(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Debug (#DB)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
+        Panic.CpuException("Debug (#DB)", ref ctx);
     }
 
     private static void NonMaskableInterrupt(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Non-Maskable Interrupt (NMI)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Non-Maskable Interrupt (NMI)", ref ctx);
     }
 
     private static void Breakpoint(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Breakpoint (#BP)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
+        Panic.CpuException("Breakpoint (#BP)", ref ctx);
     }
 
     private static void Overflow(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Overflow (#OF)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Overflow (#OF)", ref ctx);
     }
 
     private static void BoundsCheck(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Bounds Check (#BR)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Bounds Check (#BR)", ref ctx);
     }
 
     private static void InvalidOpcode(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Invalid Opcode (#UD)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Invalid Opcode (#UD)", ref ctx);
     }
 
     private static void DeviceNotAvailable(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Device Not Available (#NM)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Device Not Available (#NM)", ref ctx);
     }
 
     private static void DoubleFault(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Double Fault (#DF)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Double Fault (#DF)", ref ctx);
     }
 
     private static void InvalidTss(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Invalid TSS (#TS)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Invalid TSS (#TS)", ref ctx);
     }
 
     private static void SegmentNotPresent(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Segment Not Present (#NP)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Segment Not Present (#NP)", ref ctx);
     }
 
     private static void StackSegmentFault(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Stack Segment Fault (#SS)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Stack Segment Fault (#SS)", ref ctx);
     }
 
     private static void GeneralProtectionFault(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: General Protection Fault (#GP)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("General Protection Fault (#GP)", ref ctx);
     }
 
     private static void PageFault(ref IRQContext ctx)
     {
-        // Use Serial.WriteString directly - avoid any allocations or complex calls
-        // that could trigger another fault
-        Serial.WriteString("\n========================================\n");
-        Serial.WriteString("EXCEPTION: Page Fault (#PF)\n");
-        Serial.WriteString("========================================\n");
-        Serial.WriteString("Interrupt: ");
-        Serial.WriteNumber(ctx.interrupt);
-        Serial.WriteString("\nRBP: 0x");
-        Serial.WriteHex(ctx.rbp);
-        Serial.WriteString("\nCPU Flags: 0x");
-        Serial.WriteHex(ctx.cpu_flags);
-        Serial.WriteString("\n========================================\n");
-        Serial.WriteString("System halted.\n");
-        while (true) { }
+        Panic.CpuException("Page Fault (#PF)", ref ctx);
     }
 
     private static void FloatingPointException(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Floating Point Exception (#MF)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Floating Point Exception (#MF)", ref ctx);
     }
 
     private static void AlignmentCheck(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Alignment Check (#AC)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Alignment Check (#AC)", ref ctx);
     }
 
     private static void MachineCheck(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Machine Check (#MC)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("Machine Check (#MC)", ref ctx);
     }
 
     private static void SimdFloatingPoint(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: SIMD Floating Point Exception (#XM)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        Panic.CpuException("SIMD Floating Point Exception (#XM)", ref ctx);
     }
 #endif
 
@@ -354,12 +248,5 @@ public static class ExceptionHandler
 
         // Write to screen
         KernelConsole.WriteLine(message);
-    }
-
-    private static void Halt()
-    {
-        WriteDebugLine("");
-        WriteDebugLine("System halted.");
-        while (true) { }
     }
 }

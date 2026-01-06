@@ -17,4 +17,44 @@ public static partial class InternalCpu
     [LibraryImport("*", EntryPoint = "_native_cpu_enable_interrupts")]
     [SuppressGCTransition]
     public static partial void EnableInterrupts();
+
+    [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
+    [SuppressGCTransition]
+    public static partial void Halt();
+
+    /// <summary>
+    /// Creates a scope that disables interrupts and automatically re-enables them on dispose.
+    /// Usage: using (InternalCpu.DisableInterruptsScope()) { ... }
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static InterruptScope DisableInterruptsScope()
+    {
+        return new InterruptScope();
+    }
+
+    /// <summary>
+    /// A disposable scope that disables interrupts on creation and re-enables them on dispose.
+    /// This ensures interrupts are always re-enabled, even if an exception occurs.
+    /// </summary>
+    public ref struct InterruptScope
+    {
+        private bool _disposed;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InterruptScope()
+        {
+            _disposed = false;
+            InternalCpu.DisableInterrupts();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                InternalCpu.EnableInterrupts();
+            }
+        }
+    }
 }

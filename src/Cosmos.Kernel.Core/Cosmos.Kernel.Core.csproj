@@ -25,6 +25,14 @@
     <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
   </PropertyGroup>
 
+  <!-- Architecture-specific source files -->
+  <ItemGroup Condition="'$(CosmosArch)' != 'arm64'">
+    <Compile Remove="Scheduler\ThreadContext.ARM64.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <Compile Remove="Scheduler\ThreadContext.X64.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="$(ToolCommonPath)Internal\NativeFormat\*.cs">
       <Link>Runtime\Internal\NativeFormat\%(Filename).cs</Link>

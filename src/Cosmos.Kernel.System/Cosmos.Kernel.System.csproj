@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Package Metadata -->
+    <PackageId>Cosmos.Kernel.System</PackageId>
+    <Title>Cosmos Kernel System</Title>
+    <Description>System utilities for Cosmos kernel development including keyboard, network, timer, and conversion utilities.</Description>
+    <PackageTags>cosmos;kernel;system;utilities;keyboard;network;timer;conversion</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
+  </ItemGroup>
+</Project>
