@@ -1,61 +1,65 @@
 using System;
-using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.TestRunner.Framework;
-using static Cosmos.TestRunner.Framework.TestRunner;
-using static Cosmos.TestRunner.Framework.Assert;
+using Sys = Cosmos.Kernel.System;
+using TR = Cosmos.TestRunner.Framework.TestRunner;
 
-namespace Cosmos.Kernel.Tests.HelloWorld
+namespace Cosmos.Kernel.Tests.HelloWorld;
+
+public class Kernel : Sys.Kernel
 {
-    internal unsafe static partial class Program
+    protected override void BeforeRun()
     {
-        /// <summary>
-        /// Main test kernel entry point
-        /// </summary>
-        private static void Main()
+        Serial.WriteString("[HelloWorld] BeforeRun() reached!\n");
+        Serial.WriteString("[HelloWorld] Starting tests...\n");
+
+        // Initialize test suite
+        TR.Start("HelloWorld Basic Tests", expectedTests: 3);
+
+        // Test 1: Basic arithmetic
+        TR.Run("Test_BasicArithmetic", () =>
         {
-            // Test that we can reach Main() at all
-            Serial.WriteString("[HelloWorld] Main() reached!\n");
-            Serial.WriteString("[HelloWorld] Starting tests...\n");
+            int result = 2 + 2;
+            Assert.Equal(4, result);
+        });
 
-            // Initialize test suite
-            Start("HelloWorld Basic Tests", expectedTests: 3);
+        // Test 2: Boolean logic
+        TR.Run("Test_BooleanLogic", () =>
+        {
+            bool isTrue = true;
+            Assert.True(isTrue);
+            Assert.False(!isTrue);
+        });
 
-            // Test 1: Basic arithmetic
-            Run("Test_BasicArithmetic", () =>
-            {
-                int result = 2 + 2;
-                Equal(4, result);
-            });
+        // Test 3: Integer comparison
+        TR.Run("Test_IntegerComparison", () =>
+        {
+            int a = 10;
+            int b = 10;
+            int c = 20;
 
-            // Test 2: Boolean logic
-            Run("Test_BooleanLogic", () =>
-            {
-                bool isTrue = true;
-                True(isTrue);
-                False(!isTrue);
-            });
+            Assert.Equal(a, b);
+            Assert.True(a < c);
+            Assert.False(a > c);
+        });
 
-            // Test 3: Integer comparison
-            Run("Test_IntegerComparison", () =>
-            {
-                int a = 10;
-                int b = 10;
-                int c = 20;
+        // Finish test suite
+        TR.Finish();
 
-                Equal(a, b);
-                True(a < c);
-                False(a > c);
-            });
+        // Output completion message
+        Serial.WriteString("\n[Tests Complete - System Halting]\n");
 
-            // Finish test suite
-            Finish();
+        // Stop the kernel loop
+        Stop();
+    }
 
-            // Output completion message
-            Serial.WriteString("\n[Tests Complete - System Halting]\n");
+    protected override void Run()
+    {
+        // Tests completed in BeforeRun, nothing to do here
+    }
 
-            // Halt the system with infinite loop
-            while (true) ;
-        }
+    protected override void AfterRun()
+    {
+        Cosmos.Kernel.Kernel.Halt();
     }
 }
