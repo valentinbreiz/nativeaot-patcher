@@ -3,6 +3,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.ARP;
+using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network;
@@ -72,6 +73,56 @@ public static class NetworkStack
         Serial.WriteString(" on device ");
         Serial.WriteString(device.Name);
         Serial.WriteString("\n");
+    }
+
+    /// <summary>
+    /// Configures an IP address on the given network device using IPConfig.
+    /// </summary>
+    /// <param name="device">The target network device.</param>
+    /// <param name="config">The IP configuration to apply.</param>
+    public static void ConfigIP(INetworkDevice device, IPConfig config)
+    {
+        if (AddressMap == null || MACMap == null)
+        {
+            Initialize();
+        }
+
+        ConfigIP(device, config.IPAddress);
+        IPConfig.Add(config);
+        NetworkConfigManager.AddConfig(device, config);
+        NetworkConfigManager.SetCurrentConfig(device, config);
+    }
+
+    /// <summary>
+    /// Removes all IP configurations.
+    /// </summary>
+    public static void RemoveAllConfigIP()
+    {
+        AddressMap?.Clear();
+        MACMap?.Clear();
+        NetworkConfigManager.ClearConfigs();
+        IPConfig.RemoveAll();
+    }
+
+    /// <summary>
+    /// Flag to prevent recursive Update calls.
+    /// </summary>
+    private static bool _updating = false;
+
+    /// <summary>
+    /// Updates the network stack (sends pending packets).
+    /// </summary>
+    public static void Update()
+    {
+        // Prevent recursive calls
+        if (_updating)
+        {
+            return;
+        }
+
+        _updating = true;
+        OutgoingBuffer.Send();
+        _updating = false;
     }
 
     /// <summary>

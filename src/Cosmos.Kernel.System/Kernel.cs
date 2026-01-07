@@ -31,13 +31,13 @@ public abstract class Kernel
         Serial.WriteString("[Kernel] Calling OnBoot()...\n");
         OnBoot();
 
+        Serial.WriteString("[Kernel] Enabling interrupts...\n");
+        InternalCpu.EnableInterrupts();
+
         Serial.WriteString("[Kernel] Calling BeforeRun()...\n");
         BeforeRun();
 
         mStarted = true;
-
-        Serial.WriteString("[Kernel] Enabling interrupts...\n");
-        InternalCpu.EnableInterrupts();
 
         Serial.WriteString("[Kernel] Entering main loop...\n");
         while (!mStopped)

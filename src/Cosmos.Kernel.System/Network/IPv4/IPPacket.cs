@@ -1,6 +1,7 @@
 ﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.ARP;
+using Cosmos.Kernel.System.Network.IPv4.TCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
 
 namespace Cosmos.Kernel.System.Network.IPv4;
@@ -51,6 +52,9 @@ public class IPPacket : EthernetPacket
         {
             switch (ipPacket.Protocol)
             {
+                case 6: // TCP
+                    TCPPacket.TCPHandler(packetData);
+                    break;
                 case 17: // UDP
                     UDPPacket.UDPHandler(packetData);
                     break;
