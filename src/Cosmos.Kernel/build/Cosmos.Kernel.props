@@ -1,7 +1,6 @@
 <Project>
   <ItemGroup>
     <PlugReference Include="Cosmos.Kernel.Plugs" />
-    <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
     <!-- For NuGet package: Bootstrap is in build/Bootstrap/ -->
     <GCCProject Include="$(MSBuildThisFileDirectory)Bootstrap/" Condition="Exists('$(MSBuildThisFileDirectory)Bootstrap/')"/>
     <!-- For project reference: Bootstrap is in ../Bootstrap/ relative to build/ -->
