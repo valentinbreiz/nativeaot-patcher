@@ -4,6 +4,29 @@
 
 ---
 
+## Architecture
+
+The patcher is organized into specialized components:
+
+```
+Cosmos.Patcher/
+├── PlugPatcher.cs           # Main orchestrator
+├── PlugScanner.cs           # Discovers plug types
+├── IL/
+│   ├── TypeImporter.cs      # Safe type/method/field importing (fixes self-references)
+│   └── ILCloner.cs          # IL instruction cloning and branch target fixing
+├── Resolution/
+│   └── MethodResolver.cs    # Method/constructor signature matching
+├── Patching/
+│   ├── MethodPatcher.cs     # Method body patching
+│   ├── PropertyPatcher.cs   # Property patching
+│   └── FieldPatcher.cs      # Field patching
+└── Debug/
+    └── DebugHelpers.cs      # Debug utilities
+```
+
+---
+
 ## Flow chart
 
 ```mermaid
@@ -16,13 +39,15 @@ flowchart TD
     F --> G[PlugScanner.LoadPlugs]
     G --> H[PlugPatcher.PatchAssembly]
     H --> I[ProcessPlugMembers]
-    I --> J[ResolveAndPatchMethod]
-    J --> K[PatchMethod]
-    I --> L[PatchProperty]
-    I --> M[PatchField]
-    K --> N[Patched assemblies]
-    L --> N
-    M --> N
+    I --> J[MethodResolver.ResolveMethod]
+    J --> K[MethodPatcher.PatchMethod]
+    K --> L[ILCloner.CloneInstructions]
+    L --> M[TypeImporter.SafeImport*]
+    I --> N[PropertyPatcher.PatchProperty]
+    I --> O[FieldPatcher.PatchField]
+    K --> P[Patched assemblies]
+    N --> P
+    O --> P
     A --> X[CleanPatcher]
 ```
 
@@ -33,7 +58,7 @@ flowchart TD
 | Name | Description | Default |
 | --- | --- | --- |
 | `EnablePatching` | Enables or disables patching. | `true` |
-| `CosmosPatcherExe` | Path to the `Cosmos.Patcher` executable. | `%USERPROFILE%\\.dotnet\\tools\\cosmos.patcher.exe` on Windows, `cosmos.patcher` on Unix |
+| `CosmosPatcherExe` | Path to the `Cosmos.Patcher` executable. | `%USERPROFILE%\.dotnet\tools\cosmos.patcher.exe` on Windows, `cosmos.patcher` on Unix |
 | `PatcherOutputPath` | Directory where patched assemblies are written. | `$(IntermediateOutputPath)/cosmos/ref/` |
 | `PlugReference` | Names of plug assemblies to include. | none |
 
@@ -54,17 +79,23 @@ flowchart TD
 ## Detailed workflow
 
 1. **SetupPatcher** gathers output and reference assemblies, resolves plug references, and stores them in `$(IntermediateOutputPath)/cosmos`.
+
 2. **FindPluggedAssembliesTask** uses [`PlugScanner.FindPluggedAssemblies`](../../../src/Cosmos.Patcher/PlugScanner.cs) to cross-reference plug targets against the candidate assemblies and produces `AssembliesToPatch`.
+
 3. **RunPatcher** iterates over `AssembliesToPatch` and, for each assembly, the [`PatcherTask`](../../../src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs) launches the [`Cosmos.Patcher`](../../../src/Cosmos.Patcher) CLI ([`Program`](../../../src/Cosmos.Patcher/Program.cs) → [`PatchCommand.Execute`](../../../src/Cosmos.Patcher/PatchCommand.cs)). Inside `Execute`:
    - The target assembly is loaded with `AssemblyDefinition.ReadAssembly` and plug assemblies are gathered.
    - [`PlugScanner.LoadPlugs`](../../../src/Cosmos.Patcher/PlugScanner.cs) discovers plug types in those assemblies.
-   - [`PlugPatcher.PatchAssembly`](../../../src/Cosmos.Patcher/PlugPatcher.cs) groups plugs by their `[Plug]` target and patches each target type. Internally it calls:
-       - [`ProcessPlugMembers`](../../../src/Cosmos.Patcher/PlugPatcher.cs) to walk each plug type.
-       - [`ResolveAndPatchMethod`](../../../src/Cosmos.Patcher/PlugPatcher.cs) matches plug signatures (including constructors and `aThis` parameters) and delegates to [`PatchMethod`](../../../src/Cosmos.Patcher/PlugPatcher.cs) which swaps or clones IL and strips P/Invoke metadata.
-       - [`PatchProperty`](../../../src/Cosmos.Patcher/PlugPatcher.cs) wires getters and setters to plug implementations.
-       - [`PatchField`](../../../src/Cosmos.Patcher/PlugPatcher.cs) copies constant values and redirects field accesses.
+   - [`PlugPatcher.PatchAssembly`](../../../src/Cosmos.Patcher/PlugPatcher.cs) groups plugs by their `[Plug]` target and patches each target type using:
+       - [`MethodResolver`](../../../src/Cosmos.Patcher/Resolution/MethodResolver.cs) matches plug signatures (including constructors and `aThis` parameters) by name and parameter types.
+       - [`MethodPatcher`](../../../src/Cosmos.Patcher/Patching/MethodPatcher.cs) swaps or clones IL and strips P/Invoke metadata.
+       - [`ILCloner`](../../../src/Cosmos.Patcher/IL/ILCloner.cs) clones instructions, remaps parameters, and fixes branch targets.
+       - [`TypeImporter`](../../../src/Cosmos.Patcher/IL/TypeImporter.cs) safely imports type/method/field references, fixing self-references that would cause invalid IL metadata.
+       - [`PropertyPatcher`](../../../src/Cosmos.Patcher/Patching/PropertyPatcher.cs) wires getters and setters to plug implementations.
+       - [`FieldPatcher`](../../../src/Cosmos.Patcher/Patching/FieldPatcher.cs) copies constant values and redirects field accesses.
    - The patched assembly is written to `PatcherOutputPath`.
+
 4. **CleanPatcher** deletes the patched output when the project is cleaned.
+
 5. [`Cosmos.Patcher.Analyzer`](../../../src/Cosmos.Build.Analyzer.Patcher) validates plug rules during compilation to catch errors before patching.
 
 ---
