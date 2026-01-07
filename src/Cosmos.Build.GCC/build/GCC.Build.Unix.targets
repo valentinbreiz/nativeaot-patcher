@@ -2,16 +2,28 @@
   <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
-      <!-- Use architecture-specific GCC cross-compiler -->
+      
+      <!-- x64 targets -->
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
-      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">gcc</GCCPath>
-      <!-- Prefer Homebrew aarch64 cross (elf) on macOS, then generic aarch64-elf, and only then the gnu prefix. -->
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">x86_64-linux-gnu-gcc</GCCPath>
+      
+      <!-- ARM64 targets - MUST use aarch64 compiler, never generic gcc -->
       <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">/opt/homebrew/bin/aarch64-elf-gcc</GCCPath>
       <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == ''">aarch64-elf-gcc</GCCPath>
       <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == ''">aarch64-linux-gnu-gcc</GCCPath>
-      <!-- Default fallback -->
+      
+      <!-- Default fallback (only if no architecture-specific compiler found) -->
       <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
+      
+      <!-- Validate we have an ARM64 compiler for ARM64 targets -->
+      <GCCPathIsX64>$(GCCPath.Contains('x86_64') OR GCCPath.EndsWith('gcc'))</GCCPathIsX64>
+      <IsARM64Target>$(TargetArchitecture.Equals('arm64'))</IsARM64Target>
     </PropertyGroup>
+    
+    <Error Condition="'$(IsARM64Target)' == 'true' AND '$(GCCPathIsX64)' == 'true'" 
+             Text="WARNING: Building for ARM64 but GCC compiler '$(GCCPath)' appears to be x64. This will fail. Install aarch64-linux-gnu-gcc or aarch64-elf-gcc." />
+    
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
   </Target>
 </Project>
