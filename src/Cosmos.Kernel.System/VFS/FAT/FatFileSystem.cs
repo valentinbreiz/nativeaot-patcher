@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.Services.VFS.Interfaces;
+using Cosmos.Kernel.System.VFS.Interfaces;
 
-namespace Cosmos.Kernel.Services.VFS.FAT;
+namespace Cosmos.Kernel.System.VFS.FAT;
 
 public class FatFileSystem : IFileSystem
 {

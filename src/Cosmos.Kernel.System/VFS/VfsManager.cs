@@ -1,10 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Diagnostics.CodeAnalysis;
-using Cosmos.Kernel.Services.VFS.FAT;
-using Cosmos.Kernel.Services.VFS.Interfaces;
+using Cosmos.Kernel.System.VFS.FAT;
+using Cosmos.Kernel.System.VFS.Interfaces;
 
-namespace Cosmos.Kernel.Services.VFS;
+namespace Cosmos.Kernel.System.VFS;
 
 public static class VfsManager
 {

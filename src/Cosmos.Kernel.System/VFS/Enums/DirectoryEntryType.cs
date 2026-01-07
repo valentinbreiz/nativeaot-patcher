@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.Services.VFS.Enums;
+namespace Cosmos.Kernel.System.VFS.Enums;
 
 public enum DirectoryEntryType : byte
 {

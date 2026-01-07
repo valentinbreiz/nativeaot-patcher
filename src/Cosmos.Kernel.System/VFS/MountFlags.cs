@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.Services.VFS;
+namespace Cosmos.Kernel.System.VFS;
 
 [Flags]
 public enum MountFlags : uint

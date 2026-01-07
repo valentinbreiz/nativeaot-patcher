@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.Services.VFS.Interfaces;
+namespace Cosmos.Kernel.System.VFS.Interfaces;
 
 public interface IFileEntry : IDirectoryEntry
 {

@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.Services.VFS.Enums;
+using Cosmos.Kernel.System.VFS.Enums;
 
-namespace Cosmos.Kernel.Services.VFS.Interfaces;
+namespace Cosmos.Kernel.System.VFS.Interfaces;
 
 public interface IDirectoryEntry
 {

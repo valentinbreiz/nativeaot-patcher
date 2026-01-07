@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.HAL.BlockDevice;
 
-namespace Cosmos.Kernel.Services.VFS;
+namespace Cosmos.Kernel.System.VFS;
 
 public class PartitionStream : Stream
 {
