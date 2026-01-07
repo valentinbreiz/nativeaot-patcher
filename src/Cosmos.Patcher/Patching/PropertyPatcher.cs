@@ -12,11 +12,13 @@ public class PropertyPatcher
 {
     private readonly IBuildLogger _log;
     private readonly MethodPatcher _methodPatcher;
+    private readonly FieldPatcher _fieldPatcher;
 
-    public PropertyPatcher(IBuildLogger log, MethodPatcher methodPatcher)
+    public PropertyPatcher(IBuildLogger log, MethodPatcher methodPatcher, FieldPatcher fieldPatcher)
     {
         _log = log;
         _methodPatcher = methodPatcher;
+        _fieldPatcher = fieldPatcher;
     }
 
     /// <summary>
@@ -68,6 +70,9 @@ public class PropertyPatcher
         // Update backing field
         FieldReference targetFieldRef = (FieldReference)targetBackingField.Instruction.Operand;
         FieldReference plugFieldRef = (FieldReference)plugBackingField.Instruction.Operand;
+
+        // Patch the backing field itself
+        _fieldPatcher.PatchField(targetType, plugFieldRef.Resolve(), targetFieldRef.Name);
 
         // Replace field access in accessors
         if (targetProperty.SetMethod != null)

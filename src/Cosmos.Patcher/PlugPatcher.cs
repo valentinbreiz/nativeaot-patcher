@@ -33,8 +33,8 @@ public sealed class PlugPatcher
         // Initialize components
         _methodResolver = new MethodResolver(_log);
         _methodPatcher = new MethodPatcher(_log);
-        _propertyPatcher = new PropertyPatcher(_log, _methodPatcher);
         _fieldPatcher = new FieldPatcher(_log);
+        _propertyPatcher = new PropertyPatcher(_log, _methodPatcher, _fieldPatcher);
 
         _log.Debug($"PlugPatcher initialized with scanner: {scanner.GetType().FullName}");
         MonoCecilExtensions.Logger = _log;
