@@ -6,8 +6,11 @@ using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Sys = Cosmos.Kernel.System;
 
@@ -126,6 +129,17 @@ public class Kernel : Sys.Kernel
                 StartListening();
                 break;
 
+            case "dhcp":
+                RunDHCP();
+                break;
+
+            case "dns":
+                if (parts.Length > 1)
+                    ResolveDNS(parts[1]);
+                else
+                    PrintError("Usage: dns <domain>");
+                break;
+
 #endif
 
 
@@ -169,6 +183,8 @@ public class Kernel : Sys.Kernel
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
+        PrintCommand("dhcp", "Auto-configure network via DHCP");
+        PrintCommand("dns <domain>", "Resolve domain name to IP");
 #endif
     }
 
@@ -673,6 +689,102 @@ public class Kernel : Sys.Kernel
             if (c >= 32 && c < 127)
                 Console.Write(c.ToString());
         }
+        Console.WriteLine();
+    }
+
+    private void RunDHCP()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        if (!device.Ready)
+        {
+            PrintError("Network device not ready");
+            return;
+        }
+
+        PrintInfo("Starting DHCP auto-configuration...");
+
+        // Initialize network stack first
+        NetworkStack.Initialize();
+
+        // Create DHCP client and send discover
+        var dhcpClient = new DHCPClient();
+        int result = dhcpClient.SendDiscoverPacket();
+
+        if (result == -1)
+        {
+            PrintError("DHCP timeout - no response from server");
+            return;
+        }
+
+        // Get the assigned configuration
+        var netConfig = NetworkConfigManager.Get(device);
+        if (netConfig == null)
+        {
+            PrintError("No network configuration after DHCP");
+            return;
+        }
+
+        _localIP = netConfig.IPAddress;
+        _gatewayIP = netConfig.DefaultGateway;
+        _networkConfigured = true;
+
+        // Register UDP callback
+        UDPPacket.OnUDPDataReceived = OnUDPDataReceived;
+
+        PrintSuccess("DHCP configuration successful!");
+        PrintInfoLine("IP Address", _localIP.ToString());
+        PrintInfoLine("Subnet", netConfig.SubnetMask.ToString());
+        PrintInfoLine("Gateway", _gatewayIP.ToString());
+        Console.WriteLine();
+    }
+
+    private void ResolveDNS(string domain)
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            PrintError("Network not configured. Run 'dhcp' or 'netconfig' first.");
+            return;
+        }
+
+        PrintInfo("Resolving " + domain + "...");
+
+        // Configure DNS server (Cloudflare)
+        var dnsServer = new Address(1, 1, 1, 1);
+        DNSConfig.Add(dnsServer);
+
+        // Create DNS client and connect
+        var dnsClient = new DnsClient();
+        dnsClient.Connect(dnsServer);
+
+        // Send query
+        dnsClient.SendAsk(domain);
+
+        // Wait for response (5 second timeout)
+        Address resolvedIP = dnsClient.Receive(5000);
+
+        if (resolvedIP != null && resolvedIP.Hash != 0)
+        {
+            PrintSuccess(domain + " -> " + resolvedIP.ToString());
+        }
+        else
+        {
+            PrintError("DNS resolution failed or timed out");
+        }
+
+        dnsClient.Close();
         Console.WriteLine();
     }
 #endif
