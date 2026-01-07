@@ -311,7 +311,7 @@ public static class SocketPlug
 
         sm.RemoteEndPoint.Address = Address.Parse(address.ToString());
         sm.RemoteEndPoint.Port = (ushort)port;
-        sm.LocalEndPoint.Address = NetworkConfiguration.CurrentAddress;
+        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress;
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);

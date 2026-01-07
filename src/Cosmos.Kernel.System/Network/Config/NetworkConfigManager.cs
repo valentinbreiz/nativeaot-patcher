@@ -5,19 +5,19 @@ using Cosmos.Kernel.System.Network.IPv4;
 namespace Cosmos.Kernel.System.Network.Config;
 
 /// <summary>
-/// Represents the global network stack configuration.
+/// Manages the global network stack configuration.
 /// </summary>
-public static class NetworkConfiguration
+public static class NetworkConfigManager
 {
     /// <summary>
     /// The current network configuration used by the network stack.
     /// </summary>
-    public static NetworkConfig CurrentNetworkConfig { get; set; }
+    public static NetworkConfigEntry CurrentNetworkConfig { get; set; }
 
     /// <summary>
     /// The current network configuration list used by the network stack.
     /// </summary>
-    public static readonly List<NetworkConfig> NetworkConfigs = new();
+    public static readonly List<NetworkConfigEntry> NetworkConfigs = new();
 
     /// <summary>
     /// Gets the amount of available network configurations.
@@ -36,7 +36,7 @@ public static class NetworkConfiguration
     /// <param name="config">The IPv4 configuration associated with the device to use.</param>
     public static void SetCurrentConfig(INetworkDevice device, IPConfig config)
     {
-        CurrentNetworkConfig = new NetworkConfig(device, config);
+        CurrentNetworkConfig = new NetworkConfigEntry(device, config);
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public static class NetworkConfiguration
     /// <param name="config">The IPv4 configuration associated with the device to use.</param>
     public static void AddConfig(INetworkDevice device, IPConfig config)
     {
-        NetworkConfigs.Add(new NetworkConfig(device, config));
+        NetworkConfigs.Add(new NetworkConfigEntry(device, config));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public static class NetworkConfiguration
     /// <param name="key">The target network device.</param>
     public static void Remove(INetworkDevice key)
     {
-        NetworkConfig toRemove = null;
+        NetworkConfigEntry toRemove = null;
         foreach (var networkConfig in NetworkConfigs)
         {
             if (key == networkConfig.Device)

@@ -29,7 +29,7 @@ public class DHCPClient : UdpClient
     /// </summary>
     public static Address DHCPServerAddress(INetworkDevice networkDevice)
     {
-        return NetworkConfiguration.Get(networkDevice)?.DefaultGateway;
+        return NetworkConfigManager.Get(networkDevice)?.DefaultGateway;
     }
 
     /// <summary>
