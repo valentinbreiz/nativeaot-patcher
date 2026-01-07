@@ -4,26 +4,109 @@
 
 ---
 
-## Architecture
+## .NET Assembly Structure
 
-The patcher is organized into specialized components:
+A .NET assembly (`.dll` or `.exe`) is a portable executable containing metadata and IL code. The patcher manipulates these structures using Mono.Cecil.
 
 ```
-Cosmos.Patcher/
-├── PlugPatcher.cs           # Main orchestrator
-├── PlugScanner.cs           # Discovers plug types
-├── IL/
-│   ├── TypeImporter.cs      # Safe type/method/field importing (fixes self-references)
-│   └── ILCloner.cs          # IL instruction cloning and branch target fixing
-├── Resolution/
-│   └── MethodResolver.cs    # Method/constructor signature matching
-├── Patching/
-│   ├── MethodPatcher.cs     # Method body patching
-│   ├── PropertyPatcher.cs   # Property patching
-│   └── FieldPatcher.cs      # Field patching
-└── Debug/
-    └── DebugHelpers.cs      # Debug utilities
+┌─────────────────────────────────────────────────────────────────────┐
+│                        AssemblyDefinition                           │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │ Name: "MyAssembly"                                            │  │
+│  │ Version: 1.0.0.0                                              │  │
+│  │ CustomAttributes: [AssemblyInfo, ...]                         │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                              │                                      │
+│                              ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                   ModuleDefinition[0]                         │  │
+│  │  ┌─────────────────────────────────────────────────────────┐  │  │
+│  │  │ Name: "MyAssembly.dll"                                  │  │  │
+│  │  │ AssemblyReferences: [mscorlib, System.Runtime, ...]     │  │  │
+│  │  │ TypeReferences: [external type tokens]                  │  │  │
+│  │  └─────────────────────────────────────────────────────────┘  │  │
+│  │                           │                                   │  │
+│  │                           ▼                                   │  │
+│  │  ┌─────────────────────────────────────────────────────────┐  │  │
+│  │  │                  TypeDefinition[0]                      │  │  │
+│  │  │  ┌───────────────────────────────────────────────────┐  │  │  │
+│  │  │  │ FullName: "MyNamespace.MyClass"                   │  │  │  │
+│  │  │  │ BaseType: System.Object                           │  │  │  │
+│  │  │  │ Interfaces: [IDisposable, ...]                    │  │  │  │
+│  │  │  │ CustomAttributes: [Plug, Serializable, ...]       │  │  │  │
+│  │  │  │                                                   │  │  │  │
+│  │  │  │  ┌─────────────────────────────────────────────┐  │  │  │  │
+│  │  │  │  │            FieldDefinition[0]               │  │  │  │  │
+│  │  │  │  │  Name, FieldType, Attributes, Constant      │  │  │  │  │
+│  │  │  │  ├─────────────────────────────────────────────┤  │  │  │  │
+│  │  │  │  │            FieldDefinition[n]               │  │  │  │  │
+│  │  │  │  └─────────────────────────────────────────────┘  │  │  │  │
+│  │  │  │                                                   │  │  │  │
+│  │  │  │  ┌─────────────────────────────────────────────┐  │  │  │  │
+│  │  │  │  │          PropertyDefinition[0]              │  │  │  │  │
+│  │  │  │  │  Name, PropertyType, GetMethod, SetMethod   │  │  │  │  │
+│  │  │  │  ├─────────────────────────────────────────────┤  │  │  │  │
+│  │  │  │  │          PropertyDefinition[n]              │  │  │  │  │
+│  │  │  │  └─────────────────────────────────────────────┘  │  │  │  │
+│  │  │  │                                                   │  │  │  │
+│  │  │  │  ┌─────────────────────────────────────────────┐  │  │  │  │
+│  │  │  │  │           MethodDefinition[0]               │  │  │  │  │
+│  │  │  │  │  Name, ReturnType, Parameters, Attributes   │  │  │  │  │
+│  │  │  │  │                                             │  │  │  │  │
+│  │  │  │  │  ┌───────────────────────────────────────┐  │  │  │  │  │
+│  │  │  │  │  │           MethodBody                  │  │  │  │  │  │
+│  │  │  │  │  │  Variables: [local0, local1, ...]     │  │  │  │  │  │
+│  │  │  │  │  │  MaxStackSize: 8                      │  │  │  │  │  │
+│  │  │  │  │  │  InitLocals: true                     │  │  │  │  │  │
+│  │  │  │  │  │                                       │  │  │  │  │  │
+│  │  │  │  │  │  Instructions:                        │  │  │  │  │  │
+│  │  │  │  │  │   IL_0000: ldarg.0                    │  │  │  │  │  │
+│  │  │  │  │  │   IL_0001: call .ctor                 │  │  │  │  │  │
+│  │  │  │  │  │   IL_0006: ldstr "Hello"              │  │  │  │  │  │
+│  │  │  │  │  │   IL_000B: call Console.WriteLine     │  │  │  │  │  │
+│  │  │  │  │  │   IL_0010: ret                        │  │  │  │  │  │
+│  │  │  │  │  │                                       │  │  │  │  │  │
+│  │  │  │  │  │  ExceptionHandlers:                   │  │  │  │  │  │
+│  │  │  │  │  │   [try/catch/finally blocks]          │  │  │  │  │  │
+│  │  │  │  │  └───────────────────────────────────────┘  │  │  │  │  │
+│  │  │  │  ├─────────────────────────────────────────────┤  │  │  │  │
+│  │  │  │  │           MethodDefinition[n]               │  │  │  │  │
+│  │  │  │  └─────────────────────────────────────────────┘  │  │  │  │
+│  │  │  └───────────────────────────────────────────────────┘  │  │  │
+│  │  ├─────────────────────────────────────────────────────────┤  │  │
+│  │  │                  TypeDefinition[n]                      │  │  │
+│  │  └─────────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                   ModuleDefinition[n]                         │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
+
+### Key Components
+
+| Component | Description | Patcher Action |
+| --- | --- | --- |
+| **AssemblyDefinition** | Root container for the entire assembly | Entry point for patching |
+| **ModuleDefinition** | Contains types and references | Imports references from plugs |
+| **TypeDefinition** | Class, struct, interface, or enum | Target for `[Plug]` attribute |
+| **MethodDefinition** | Method with signature and body | Body replaced by plug implementation |
+| **MethodBody** | IL instructions and local variables | Cloned from plug method |
+| **Instruction** | Single IL opcode with operand | Cloned and operands remapped |
+| **FieldDefinition** | Field with type and attributes | Type and value patched |
+| **PropertyDefinition** | Property with get/set accessors | Accessors patched |
+| **CustomAttribute** | Metadata attribute | Used to identify plugs |
+| **TypeReference** | Reference to a type (may be external) | Imported into target module |
+| **MethodReference** | Reference to a method (may be external) | Imported into target module |
+
+### TypeRef vs TypeDef
+
+A common patching issue occurs with self-references:
+
+- **TypeDef** (TypeDefinition): A type defined in the current assembly
+- **TypeRef** (TypeReference): A reference to a type, potentially in another assembly
+
+When patching, if a plug method references a type from the target assembly, Mono.Cecil may import it as a TypeRef pointing back to the same assembly. This causes "Invalid TypeRef token" errors at runtime. The `TypeImporter` component fixes this by converting self-referencing TypeRefs back to TypeDefs.
 
 ---
 
