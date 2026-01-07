@@ -43,6 +43,7 @@ extern void* __get_limine_rsdp_address(void);
 #endif
 
 // Serial logging (C# functions)
+extern void __cosmos_serial_init(void);
 extern void __cosmos_serial_write(const char* message);
 extern void __cosmos_serial_write_hex_u64(uint64_t value);
 

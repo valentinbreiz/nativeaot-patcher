@@ -420,6 +420,16 @@ public static unsafe class InterruptBridge
 public static unsafe class KernelBridge
 {
     /// <summary>
+    /// Initialize serial port (COM1 at 115200 baud, 8N1)
+    /// Must be called before any serial output
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_init")]
+    public static void CosmosSerialInit()
+    {
+        Serial.ComInit();
+    }
+
+    /// <summary>
     /// Write string to serial port for C library code logging
     /// </summary>
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
