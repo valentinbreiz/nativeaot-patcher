@@ -9,6 +9,7 @@ using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.TCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
@@ -52,7 +53,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
         TR.Run("Network_DeviceReady", TestNetworkDeviceReady);
         TR.Run("Network_StackInitialize", TestNetworkStackInitialize);
-        TR.Run("Network_IPConfiguration", TestIPConfiguration);
+        TR.Run("DHCP_AutoConfigure", TestDHCPConfiguration);
 
         // UDP tests
         TR.Run("UDP_SendPacket", TestUDPSendPacket);
@@ -75,7 +76,7 @@ public class Kernel : Sys.Kernel
         TR.Skip("Network_DeviceDetected", "ARM64 network driver not implemented");
         TR.Skip("Network_DeviceReady", "ARM64 network driver not implemented");
         TR.Skip("Network_StackInitialize", "ARM64 network driver not implemented");
-        TR.Skip("Network_IPConfiguration", "ARM64 network driver not implemented");
+        TR.Skip("DHCP_AutoConfigure", "ARM64 network driver not implemented");
         TR.Skip("UDP_SendPacket", "ARM64 network driver not implemented");
         TR.Skip("UDP_ReceivePacket", "ARM64 network driver not implemented");
         TR.Skip("TCP_ClientConnect", "ARM64 network driver not implemented");
@@ -151,7 +152,7 @@ public class Kernel : Sys.Kernel
         Assert.True(true, "NetworkStack initialized successfully");
     }
 
-    private static void TestIPConfiguration()
+    private static void TestDHCPConfiguration()
     {
         var device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -160,22 +161,50 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        // Configure IP (10.0.2.15 for QEMU user networking)
-        _localIP = new Address(10, 0, 2, 15);
-        _gatewayIP = new Address(10, 0, 2, 2);
-        var subnet = new Address(255, 255, 255, 0);
+        Serial.WriteString("[Test] Starting DHCP auto-configuration...\n");
 
-        // Use full IPConfig to ensure IPConfig.FindNetwork works
-        var config = new IPConfig(_localIP, subnet, _gatewayIP);
-        NetworkStack.ConfigIP(device, config);
+        // Use DHCP to auto-assign IP address
+        var dhcpClient = new DHCPClient();
+
+        Serial.WriteString("[Test] Sending DHCP Discover packet...\n");
+        int result = dhcpClient.SendDiscoverPacket();
+
+        if (result == -1)
+        {
+            Serial.WriteString("[Test] DHCP timeout - no response from server\n");
+            Assert.True(false, "DHCP should receive response from QEMU DHCP server");
+            return;
+        }
+
+        Serial.WriteString("[Test] DHCP completed in ");
+        Serial.WriteNumber((ulong)result);
+        Serial.WriteString(" ms\n");
+
+        // Verify we got an IP configuration
+        var netConfig = NetworkConfigManager.Get(device);
+        if (netConfig == null)
+        {
+            Serial.WriteString("[Test] No network configuration after DHCP\n");
+            Assert.True(false, "Network should be configured after DHCP");
+            return;
+        }
+
+        _localIP = netConfig.IPAddress;
+        _gatewayIP = netConfig.DefaultGateway;
         _networkConfigured = true;
 
-        // Verify configuration succeeded by checking device has packet handler registered
-        Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after ConfigIP");
-
-        Serial.WriteString("[Test] IP configured: ");
+        Serial.WriteString("[Test] DHCP assigned IP: ");
         Serial.WriteString(_localIP.ToString());
         Serial.WriteString("\n");
+        Serial.WriteString("[Test] Gateway: ");
+        Serial.WriteString(_gatewayIP.ToString());
+        Serial.WriteString("\n");
+
+        // Verify device has packet handler registered
+        Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after DHCP");
+
+        // Verify we got a valid IP (not 0.0.0.0)
+        Assert.True(_localIP.Hash != 0, "DHCP should assign a non-zero IP address");
     }
 
     // ==================== UDP Tests ====================
@@ -191,7 +220,7 @@ public class Kernel : Sys.Kernel
 
         if (!_networkConfigured)
         {
-            TestIPConfiguration();
+            TestDHCPConfiguration();
         }
 
         Serial.WriteString("[Test] Creating .NET UdpClient...\n");
@@ -294,7 +323,7 @@ public class Kernel : Sys.Kernel
 
         if (!_networkConfigured)
         {
-            TestIPConfiguration();
+            TestDHCPConfiguration();
         }
 
         Serial.WriteString("[Test] Creating .NET UdpClient on port ");
@@ -379,7 +408,7 @@ public class Kernel : Sys.Kernel
 
         if (!_networkConfigured)
         {
-            TestIPConfiguration();
+            TestDHCPConfiguration();
         }
 
         Serial.WriteString("[Test] Creating .NET TcpClient...\n");
@@ -477,7 +506,7 @@ public class Kernel : Sys.Kernel
 
         if (!_networkConfigured)
         {
-            TestIPConfiguration();
+            TestDHCPConfiguration();
         }
 
         Serial.WriteString("[Test] Creating .NET TcpListener on port ");
@@ -633,7 +662,7 @@ public class Kernel : Sys.Kernel
 
         if (!_networkConfigured)
         {
-            TestIPConfiguration();
+            TestDHCPConfiguration();
         }
 
         Serial.WriteString("[Test] Resolving valentin.bzh via DNS...\n");

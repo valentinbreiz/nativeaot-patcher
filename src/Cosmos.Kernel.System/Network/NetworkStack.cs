@@ -101,6 +101,7 @@ public static class NetworkStack
         AddressMap?.Clear();
         MACMap?.Clear();
         NetworkConfigManager.ClearConfigs();
+        IPConfig.RemoveAll();
     }
 
     /// <summary>
