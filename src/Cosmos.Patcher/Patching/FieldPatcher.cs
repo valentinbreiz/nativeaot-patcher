@@ -1,3 +1,4 @@
+using Cosmos.Patcher.IL;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -34,7 +35,7 @@ public class FieldPatcher
         ModuleDefinition module = targetField.Module;
 
         // Patch field type
-        targetField.FieldType = module.ImportReference(plugField.FieldType);
+        targetField.FieldType = TypeImporter.SafeImportType(module, plugField.FieldType);
         _log.Debug($"Type patched: {plugField.FieldType.FullName}");
 
         // Patch attributes
@@ -91,9 +92,9 @@ public class FieldPatcher
                 // Import references in the operand
                 clone.Operand = plugFieldValue.Operand switch
                 {
-                    MethodReference m => module.ImportReference(m),
-                    FieldReference f => module.ImportReference(f),
-                    TypeReference t => module.ImportReference(t),
+                    MethodReference m => TypeImporter.SafeImportMethod(module, m),
+                    FieldReference f => TypeImporter.SafeImportField(module, f),
+                    TypeReference t => TypeImporter.SafeImportType(module, t),
                     MemberReference mr => module.ImportReference(mr),
                     _ => plugFieldValue.Operand
                 };
