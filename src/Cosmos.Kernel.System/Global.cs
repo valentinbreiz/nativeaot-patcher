@@ -1,6 +1,10 @@
 using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.VFS;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.X64.Devices.Storage;
+#endif
 
 namespace Cosmos.Kernel.System;
 
@@ -56,6 +60,18 @@ public static class Global
         {
             Serial.WriteString("[Global] WARNING: KernelConsole initialization failed!\n");
         }
+
+#if ARCH_X64
+        // Scan storage devices for partitions
+        Serial.WriteString("[Global] Scanning storage devices for partitions...\n");
+        foreach (var port in AHCI.Ports)
+        {
+            StorageManager.ScanAndInitPartitions(port);
+        }
+        Serial.WriteString("[Global] Found ");
+        Serial.WriteNumber((uint)Partition.Partitions.Count);
+        Serial.WriteString(" partition(s)\n");
+#endif
     }
 
     /// <summary>

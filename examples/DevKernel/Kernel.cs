@@ -12,6 +12,11 @@ using Cosmos.Kernel.System.Network.IPv4.UDP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
+using Cosmos.Kernel.System.VFS;
+using Cosmos.Kernel.System.VFS.FAT;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.X64.Devices.Storage;
+#endif
 using Sys = Cosmos.Kernel.System;
 
 namespace DevKernel;
@@ -140,6 +145,44 @@ public class Kernel : Sys.Kernel
                     PrintError("Usage: dns <domain>");
                 break;
 
+            case "partitions":
+            case "lspart":
+                ListPartitions();
+                break;
+
+            case "disks":
+            case "listdisks":
+                ListDisks();
+                break;
+
+            case "creatembr":
+                if (parts.Length > 1 && int.TryParse(parts[1], out int mbrDiskNum))
+                    CreateMBRPartition(mbrDiskNum);
+                else
+                    PrintError("Usage: creatembr <disk_number>");
+                break;
+
+            case "creategpt":
+                if (parts.Length > 1 && int.TryParse(parts[1], out int gptDiskNum))
+                    CreateGPTPartition(gptDiskNum);
+                else
+                    PrintError("Usage: creategpt <disk_number>");
+                break;
+
+            case "mkpart":
+                if (parts.Length >= 3 && int.TryParse(parts[1], out int mkDiskNum) && int.TryParse(parts[2], out int mkSizeMB))
+                    CreatePartitionEntry(mkDiskNum, mkSizeMB);
+                else
+                    PrintError("Usage: mkpart <disk_number> <size_mb>");
+                break;
+
+            case "format":
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int fmtPartNum))
+                    FormatPartition(fmtPartNum);
+                else
+                    PrintError("Usage: format <partition_number>");
+                break;
+
 #endif
 
 
@@ -185,6 +228,12 @@ public class Kernel : Sys.Kernel
         PrintCommand("netlisten", "Listen for UDP packets");
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
+        PrintCommand("disks", "List storage devices");
+        PrintCommand("partitions", "List disk partitions");
+        PrintCommand("creatembr <n>", "Create MBR on disk n");
+        PrintCommand("creategpt <n>", "Create GPT on disk n");
+        PrintCommand("mkpart <n> <mb>", "Create partition on disk n");
+        PrintCommand("format <n>", "Format partition n as FAT32");
 #endif
     }
 
@@ -785,6 +834,428 @@ public class Kernel : Sys.Kernel
         }
 
         dnsClient.Close();
+        Console.WriteLine();
+    }
+
+    private void ListPartitions()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Disk Partitions:");
+        Console.ResetColor();
+
+        var partitions = Partition.Partitions;
+        if (partitions.Count == 0)
+        {
+            PrintWarning("No partitions found.");
+            Console.WriteLine();
+            return;
+        }
+
+        for (int i = 0; i < partitions.Count; i++)
+        {
+            var part = partitions[i];
+
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("[" + i + "] ");
+            Console.ResetColor();
+
+            // Name
+            if (!string.IsNullOrEmpty(part.Name))
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(part.Name);
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.Write("Partition " + i);
+            }
+
+            Console.WriteLine();
+
+            // Details
+            Console.Write("      ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("Start: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(part.StartingSector.ToString());
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("  Sectors: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(part.BlockCount.ToString());
+            Console.ResetColor();
+
+            // Size in MB
+            ulong sizeBytes = part.BlockCount * part.BlockSize;
+            ulong sizeMB = sizeBytes / 1024 / 1024;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("  Size: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(sizeMB.ToString() + " MB");
+            Console.ResetColor();
+            Console.WriteLine();
+
+            // Filesystem type
+            Console.Write("      ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("FS: ");
+            var fsChecker = VfsManager.GetFileSystem(part);
+            if (fsChecker != null)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var fs = fsChecker.GetFileSystem(part, "/");
+                Console.Write(fs.Type);
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write("Unknown/Unformatted");
+            }
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+        Console.WriteLine();
+    }
+
+    private void ListDisks()
+    {
+        Serial.WriteString("[ListDisks] Listing storage devices...\n");
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Storage Devices:");
+        Console.ResetColor();
+
+        var ports = AHCI.Ports;
+        Serial.WriteString("[ListDisks] AHCI.Ports.Count = ");
+        Serial.WriteNumber((uint)ports.Count);
+        Serial.WriteString("\n");
+
+        if (ports.Count == 0)
+        {
+            PrintWarning("No storage devices found.");
+            Console.WriteLine();
+            return;
+        }
+
+        for (int i = 0; i < ports.Count; i++)
+        {
+            var port = ports[i];
+
+            Serial.WriteString("[ListDisks] Disk ");
+            Serial.WriteNumber((uint)i);
+            Serial.WriteString(": ");
+            Serial.WriteString(port.PortName);
+            Serial.WriteString(" Port=");
+            Serial.WriteNumber(port.PortNumber);
+            Serial.WriteString(" Sectors=");
+            Serial.WriteNumber(port.BlockCount);
+            Serial.WriteString("\n");
+
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("[" + i + "] ");
+            Console.ResetColor();
+
+            // Port type and name
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(port.PortName);
+            Console.ResetColor();
+            Console.Write(" (Port " + port.PortNumber + ")");
+            Console.WriteLine();
+
+            // Size info
+            Console.Write("      ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("Sectors: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(port.BlockCount.ToString());
+
+            ulong sizeBytes = port.BlockCount * port.BlockSize;
+            ulong sizeMB = sizeBytes / 1024 / 1024;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("  Size: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(sizeMB.ToString() + " MB");
+            Console.ResetColor();
+            Console.WriteLine();
+
+            // Partition table type
+            Console.Write("      ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("Table: ");
+
+            Serial.WriteString("[ListDisks] Checking partition table type...\n");
+            bool isGPT = GPT.IsGPTPartition(port);
+            Serial.WriteString("[ListDisks] IsGPT = ");
+            Serial.WriteString(isGPT ? "true" : "false");
+            Serial.WriteString("\n");
+
+            if (isGPT)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("GPT");
+            }
+            else
+            {
+                bool isMBR = MBR.IsMBR(port);
+                Serial.WriteString("[ListDisks] IsMBR = ");
+                Serial.WriteString(isMBR ? "true" : "false");
+                Serial.WriteString("\n");
+
+                if (isMBR)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("MBR");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("None");
+                }
+            }
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+        Console.WriteLine();
+        Serial.WriteString("[ListDisks] Done.\n");
+    }
+
+    private void CreateMBRPartition(int diskNum)
+    {
+        Serial.WriteString("[CreateMBR] Creating MBR on disk ");
+        Serial.WriteNumber((uint)diskNum);
+        Serial.WriteString("\n");
+
+        var ports = AHCI.Ports;
+        if (diskNum < 0 || diskNum >= ports.Count)
+        {
+            Serial.WriteString("[CreateMBR] ERROR: Invalid disk number\n");
+            PrintError("Invalid disk number. Use 'disks' to list available disks.");
+            return;
+        }
+
+        var port = ports[diskNum];
+        Serial.WriteString("[CreateMBR] Selected port: ");
+        Serial.WriteString(port.PortName);
+        Serial.WriteString(" BlockCount=");
+        Serial.WriteNumber(port.BlockCount);
+        Serial.WriteString("\n");
+
+        PrintInfo("Creating MBR partition table on disk " + diskNum + "...");
+
+        Serial.WriteString("[CreateMBR] Reading existing MBR...\n");
+        var mbr = new MBR(port);
+
+        Serial.WriteString("[CreateMBR] Writing new MBR...\n");
+        mbr.CreateMBR(port);
+
+        Serial.WriteString("[CreateMBR] MBR created successfully\n");
+        PrintSuccess("MBR partition table created!");
+
+        // Re-scan for partitions
+        Serial.WriteString("[CreateMBR] Re-scanning partitions...\n");
+        Partition.Partitions.Clear();
+        foreach (var p in AHCI.Ports)
+        {
+            StorageManager.ScanAndInitPartitions(p);
+        }
+
+        Serial.WriteString("[CreateMBR] Found ");
+        Serial.WriteNumber((uint)Partition.Partitions.Count);
+        Serial.WriteString(" partition(s)\n");
+
+        PrintInfo("Found " + Partition.Partitions.Count + " partition(s).");
+        Console.WriteLine();
+    }
+
+    private void CreateGPTPartition(int diskNum)
+    {
+        Serial.WriteString("[CreateGPT] Creating GPT on disk ");
+        Serial.WriteNumber((uint)diskNum);
+        Serial.WriteString("\n");
+
+        var ports = AHCI.Ports;
+        if (diskNum < 0 || diskNum >= ports.Count)
+        {
+            Serial.WriteString("[CreateGPT] ERROR: Invalid disk number\n");
+            PrintError("Invalid disk number. Use 'disks' to list available disks.");
+            return;
+        }
+
+        var port = ports[diskNum];
+        Serial.WriteString("[CreateGPT] Selected port: ");
+        Serial.WriteString(port.PortName);
+        Serial.WriteString(" BlockCount=");
+        Serial.WriteNumber(port.BlockCount);
+        Serial.WriteString("\n");
+
+        PrintInfo("Creating GPT partition table on disk " + diskNum + "...");
+
+        Serial.WriteString("[CreateGPT] Writing protective MBR...\n");
+        Serial.WriteString("[CreateGPT] Writing GPT header at LBA 1...\n");
+        Serial.WriteString("[CreateGPT] Clearing partition entries (LBA 2-33)...\n");
+        GPT.CreateGPT(port);
+
+        Serial.WriteString("[CreateGPT] GPT created successfully\n");
+        PrintSuccess("GPT partition table created!");
+
+        // Re-scan for partitions
+        Serial.WriteString("[CreateGPT] Re-scanning partitions...\n");
+        Partition.Partitions.Clear();
+        foreach (var p in AHCI.Ports)
+        {
+            StorageManager.ScanAndInitPartitions(p);
+        }
+
+        Serial.WriteString("[CreateGPT] Found ");
+        Serial.WriteNumber((uint)Partition.Partitions.Count);
+        Serial.WriteString(" partition(s)\n");
+
+        PrintInfo("Found " + Partition.Partitions.Count + " partition(s).");
+        Console.WriteLine();
+    }
+
+    private void CreatePartitionEntry(int diskNum, int sizeMB)
+    {
+        Serial.WriteString("[mkpart] Creating partition on disk ");
+        Serial.WriteNumber((uint)diskNum);
+        Serial.WriteString(" size ");
+        Serial.WriteNumber((uint)sizeMB);
+        Serial.WriteString(" MB\n");
+
+        var ports = AHCI.Ports;
+        if (diskNum < 0 || diskNum >= ports.Count)
+        {
+            PrintError("Invalid disk number. Use 'disks' to list available disks.");
+            return;
+        }
+
+        var port = ports[diskNum];
+
+        // Check if disk has MBR
+        if (!MBR.IsMBR(port))
+        {
+            PrintError("Disk has no MBR. Run 'creatembr " + diskNum + "' first.");
+            return;
+        }
+
+        // Calculate sectors from MB
+        uint sectorsPerMB = 1024 * 1024 / 512;
+        uint sectorCount = (uint)sizeMB * sectorsPerMB;
+
+        // Start after first MB (2048 sectors) for alignment
+        uint startSector = 2048;
+
+        // Check if partition fits
+        if (startSector + sectorCount > port.BlockCount)
+        {
+            PrintError("Partition too large for disk.");
+            return;
+        }
+
+        Serial.WriteString("[mkpart] Start: ");
+        Serial.WriteNumber(startSector);
+        Serial.WriteString(" Sectors: ");
+        Serial.WriteNumber(sectorCount);
+        Serial.WriteString("\n");
+
+        PrintInfo("Creating partition: start=" + startSector + ", sectors=" + sectorCount);
+
+        // Read MBR
+        Span<byte> mbr = new byte[512];
+        port.ReadBlock(0, 1, mbr);
+
+        // Find free partition slot
+        int slot = -1;
+        for (int i = 0; i < 4; i++)
+        {
+            int offset = 446 + i * 16;
+            if (mbr[offset + 4] == 0) // System ID = 0 means empty
+            {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot == -1)
+        {
+            PrintError("No free partition slot in MBR.");
+            return;
+        }
+
+        Serial.WriteString("[mkpart] Using slot ");
+        Serial.WriteNumber((uint)slot);
+        Serial.WriteString("\n");
+
+        int slotOffset = 446 + slot * 16;
+
+        // Write partition entry
+        mbr[slotOffset + 0] = 0x00;  // Boot indicator
+        mbr[slotOffset + 1] = 0xFE;  // CHS start head
+        mbr[slotOffset + 2] = 0xFF;  // CHS start sector/cylinder
+        mbr[slotOffset + 3] = 0xFF;  // CHS start cylinder
+        mbr[slotOffset + 4] = 0x0B;  // System ID: FAT32
+        mbr[slotOffset + 5] = 0xFE;  // CHS end head
+        mbr[slotOffset + 6] = 0xFF;  // CHS end sector/cylinder
+        mbr[slotOffset + 7] = 0xFF;  // CHS end cylinder
+
+        BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 8, 4), startSector);
+        BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 12, 4), sectorCount);
+
+        Serial.WriteString("[mkpart] Writing MBR...\n");
+        port.WriteBlock(0, 1, mbr);
+
+        PrintSuccess("Partition created in slot " + slot);
+
+        // Re-scan partitions
+        Serial.WriteString("[mkpart] Re-scanning partitions...\n");
+        Partition.Partitions.Clear();
+        foreach (var p in AHCI.Ports)
+        {
+            StorageManager.ScanAndInitPartitions(p);
+        }
+
+        PrintInfo("Found " + Partition.Partitions.Count + " partition(s).");
+        Console.WriteLine();
+    }
+
+    private void FormatPartition(int partNum)
+    {
+        Serial.WriteString("[format] Formatting partition ");
+        Serial.WriteNumber((uint)partNum);
+        Serial.WriteString("\n");
+
+        var partitions = Partition.Partitions;
+        if (partNum < 0 || partNum >= partitions.Count)
+        {
+            PrintError("Invalid partition number. Use 'partitions' to list.");
+            return;
+        }
+
+        var partition = partitions[partNum];
+
+        Serial.WriteString("[format] Partition start: ");
+        Serial.WriteNumber(partition.StartingSector);
+        Serial.WriteString(" blocks: ");
+        Serial.WriteNumber(partition.BlockCount);
+        Serial.WriteString("\n");
+
+        PrintInfo("Formatting partition " + partNum + " as FAT32...");
+
+        try
+        {
+            FatFileSystem.CreateFormatted(partition, "/" + partNum + ":/", true);
+            PrintSuccess("Partition formatted as FAT32!");
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[format] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Format failed: " + ex.Message);
+        }
+
         Console.WriteLine();
     }
 #endif

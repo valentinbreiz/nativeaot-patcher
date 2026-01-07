@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
+  </ItemGroup>
 </Project>

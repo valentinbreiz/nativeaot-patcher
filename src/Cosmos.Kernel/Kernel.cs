@@ -17,6 +17,7 @@ using Cosmos.Kernel.HAL.X64;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Network;
+using Cosmos.Kernel.HAL.X64.Devices.Storage;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Pci;
@@ -109,6 +110,10 @@ public class Kernel
 #if ARCH_X64
         Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
         PciManager.Setup();
+
+        // Initialize AHCI (SATA storage)
+        Serial.WriteString("[KERNEL]   - Initializing AHCI...\n");
+        AHCI.InitDriver();
 
         // Retrieve and display ACPI MADT information (initialized during early boot)
         Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
