@@ -34,7 +34,6 @@ public static partial class InternalCpu
 
     /// <summary>
     /// A disposable scope that disables interrupts on creation and re-enables them on dispose.
-    /// This ensures interrupts are always re-enabled, even if an exception occurs.
     /// </summary>
     public ref struct InterruptScope
     {

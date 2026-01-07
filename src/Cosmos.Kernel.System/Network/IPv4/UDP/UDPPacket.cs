@@ -1,5 +1,7 @@
 ﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 
@@ -37,6 +39,31 @@ public class UDPPacket : IPPacket
         Serial.WriteString(" len=");
         Serial.WriteNumber((ulong)udpPacket.UDPDataLength);
         Serial.WriteString("\n");
+
+        // Route to specific protocol handlers based on port
+        if (udpPacket.DestinationPort == 68) // DHCP client
+        {
+            DHCPPacket.DHCPHandler(packetData);
+        }
+        else if (udpPacket.SourcePort == 53 || udpPacket.DestinationPort == 53) // DNS
+        {
+            DNSPacket.DNSHandler(packetData);
+            // Also route to UdpClient (DnsClient) if listening on the destination port
+            var client = UdpClient.GetClient(udpPacket.DestinationPort);
+            if (client != null)
+            {
+                client.ReceiveData(udpPacket);
+            }
+        }
+        else
+        {
+            // Route to UdpClient if available
+            var client = UdpClient.GetClient(udpPacket.DestinationPort);
+            if (client != null)
+            {
+                client.ReceiveData(udpPacket);
+            }
+        }
 
         // Call the registered callback if any
         OnUDPDataReceived?.Invoke(udpPacket);
