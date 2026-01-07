@@ -83,33 +83,6 @@ A .NET assembly (`.dll` or `.exe`) is a portable executable containing metadata 
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Components
-
-| Component | Description | Patcher Action |
-| --- | --- | --- |
-| **AssemblyDefinition** | Root container for the entire assembly | Entry point for patching |
-| **ModuleDefinition** | Contains types and references | Imports references from plugs |
-| **TypeDefinition** | Class, struct, interface, or enum | Target for `[Plug]` attribute |
-| **MethodDefinition** | Method with signature and body | Body replaced by plug implementation |
-| **MethodBody** | IL instructions and local variables | Cloned from plug method |
-| **Instruction** | Single IL opcode with operand | Cloned and operands remapped |
-| **FieldDefinition** | Field with type and attributes | Type and value patched |
-| **PropertyDefinition** | Property with get/set accessors | Accessors patched |
-| **CustomAttribute** | Metadata attribute | Used to identify plugs |
-| **TypeReference** | Reference to a type (may be external) | Imported into target module |
-| **MethodReference** | Reference to a method (may be external) | Imported into target module |
-
-### TypeRef vs TypeDef
-
-A common patching issue occurs with self-references:
-
-- **TypeDef** (TypeDefinition): A type defined in the current assembly
-- **TypeRef** (TypeReference): A reference to a type, potentially in another assembly
-
-When patching, if a plug method references a type from the target assembly, Mono.Cecil may import it as a TypeRef pointing back to the same assembly. This causes "Invalid TypeRef token" errors at runtime. The `TypeImporter` component fixes this by converting self-referencing TypeRefs back to TypeDefs.
-
----
-
 ## Flow chart
 
 ```mermaid
