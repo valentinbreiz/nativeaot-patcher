@@ -9,8 +9,6 @@
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-    <!-- Cosmos.Sdk is not compatible with Central Package Management -->
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <!-- ILC and build dependencies -->
@@ -33,12 +31,12 @@
 
   <!-- GCC compiler flags for x64 -->
   <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
+    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -target x86_64-unknown-linux-gnu -nostdinc</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- GCC compiler flags for ARM64 -->
   <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/aarch64-linux-gnu/13/include -fno-builtin -ffreestanding</GCCCompilerFlags>
+    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -ffreestanding -target aarch64-unknown-linux-gnu -nostdinc</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- ILC arguments -->
@@ -57,26 +55,32 @@
 
   <!-- Ensure AOT Reference and ILCompiler are present in nuget cache -->
   <ItemGroup>
-    <PackageDownload Include="Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)" Version="[$(BundledNETCoreAppPackageVersion)]" />
-    <PackageDownload Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler" Version="[$(BundledNETCoreAppPackageVersion)]" />
+    <PackageDownload Include="Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)"
+                     Version="[$(BundledNETCoreAppPackageVersion)]"
+                     Condition="'$(RuntimeIdentifier)' != ''" />
+    <PackageDownload Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
+                     Version="[$(BundledNETCoreAppPackageVersion)]"
+                     Condition="'$(RuntimeIdentifier)' != ''" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref"
+             Version="[$(BundledNETCoreAppPackageVersion)]" />
   </ItemGroup>
 
   <!-- Build tools -->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Build.Common" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.3" />
-    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.1" />
-    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Common" />
+    <PackageReference Include="Cosmos.Build.Ilc" />
+    <PackageReference Include="Cosmos.Build.Asm" />
+    <PackageReference Include="Cosmos.Build.Patcher" />
+    <PackageReference Include="Cosmos.Build.GCC" />
   </ItemGroup>
 
   <!-- Architecture-specific packages for x64 -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" />
   </ItemGroup>
 
   <!-- Architecture-specific packages for ARM64 -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" />
   </ItemGroup>
 </Project>

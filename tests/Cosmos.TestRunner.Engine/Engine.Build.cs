@@ -38,10 +38,28 @@ public partial class Engine
         }
 
         // Setup dotnet publish command
+        string osPrefix;
+        if (OperatingSystem.IsMacOS())
+        {
+            osPrefix = "osx";
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            osPrefix = "linux";
+        }
+        else if (OperatingSystem.IsWindows())
+        {
+            osPrefix = "win";
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Unsupported host OS for building test kernels.");
+        }
+
         string runtime = _config.Architecture.ToLowerInvariant() switch
         {
-            "x64" => "linux-x64",
-            "arm64" => "linux-arm64",
+            "x64" => $"{osPrefix}-x64",
+            "arm64" => $"{osPrefix}-arm64",
             _ => throw new ArgumentException($"Unsupported architecture: {_config.Architecture}")
         };
 

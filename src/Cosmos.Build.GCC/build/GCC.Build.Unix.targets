@@ -3,8 +3,12 @@
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
       <!-- Use architecture-specific GCC cross-compiler -->
-      <GCCPath Condition="'$(TargetArchitecture)' == 'x64'">gcc</GCCPath>
-      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64'">aarch64-linux-gnu-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">gcc</GCCPath>
+      <!-- Prefer Homebrew aarch64 cross (elf) on macOS, then generic aarch64-elf, and only then the gnu prefix. -->
+      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">/opt/homebrew/bin/aarch64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == ''">aarch64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == ''">aarch64-linux-gnu-gcc</GCCPath>
       <!-- Default fallback -->
       <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
     </PropertyGroup>

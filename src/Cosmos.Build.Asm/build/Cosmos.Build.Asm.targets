@@ -70,6 +70,7 @@
   <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
   <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm; GetYasm">
     <PropertyGroup>
+      <YasmPath Condition="$(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
       <YasmPath Condition="$(YasmPath) == ''">/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
