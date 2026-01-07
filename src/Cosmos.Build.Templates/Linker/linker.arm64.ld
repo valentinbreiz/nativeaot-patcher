@@ -28,6 +28,25 @@ SECTIONS
     .rodata : {
         __rodata_start = .;
         *(.rodata .rodata.*)
+
+        /* .NET NativeAOT EH table - needed for exception handling */
+        . = ALIGN(8);
+        __dotnet_eh_table_start = .;
+        *(.dotnet_eh_table)
+        __dotnet_eh_table_end = .;
+
+        /* eh_frame for DWARF CFI - needed to find method boundaries */
+        . = ALIGN(8);
+        __eh_frame_start = .;
+        *(.eh_frame .eh_frame.*)
+        __eh_frame_end = .;
+
+        /* eh_frame_hdr for fast lookup */
+        . = ALIGN(8);
+        __eh_frame_hdr_start = .;
+        *(.eh_frame_hdr)
+        __eh_frame_hdr_end = .;
+
         __rodata_end = .;
     } :rodata
 
@@ -67,7 +86,6 @@ SECTIONS
     __kernel_end = .;
 
     /DISCARD/ : {
-        *(.eh_frame*)
         *(.note .note.*)
         *(.comment)
     }

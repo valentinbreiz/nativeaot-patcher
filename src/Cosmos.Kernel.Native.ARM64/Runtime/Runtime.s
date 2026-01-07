@@ -1,5 +1,5 @@
-// ARM64 NativeAOT Write Barriers
-// Standard implementation for object reference assignments
+// ARM64 NativeAOT Runtime Stubs
+// Write barriers and EH section accessors
 
 .global RhpAssignRefArm64
 .global RhpCheckedAssignRefArm64
@@ -7,6 +7,10 @@
 .global RhpAssignRefAVLocation
 .global RhpCheckedAssignRefAVLocation
 .global RhpByRefAssignRefAVLocation1
+.global get_eh_frame_start
+.global get_eh_frame_end
+.global get_dotnet_eh_table_start
+.global get_dotnet_eh_table_end
 
 .text
 .align 4
@@ -65,3 +69,31 @@ RhpAssignRefAVLocation:
         dmb     ish                 // Inner shareable domain barrier (sufficient for ARM64)
 
         ret
+
+// void* get_eh_frame_start(void)
+// Returns pointer to start of .eh_frame section
+get_eh_frame_start:
+    adrp    x0, __eh_frame_start
+    add     x0, x0, :lo12:__eh_frame_start
+    ret
+
+// void* get_eh_frame_end(void)
+// Returns pointer to end of .eh_frame section
+get_eh_frame_end:
+    adrp    x0, __eh_frame_end
+    add     x0, x0, :lo12:__eh_frame_end
+    ret
+
+// void* get_dotnet_eh_table_start(void)
+// Returns pointer to start of .dotnet_eh_table section
+get_dotnet_eh_table_start:
+    adrp    x0, __dotnet_eh_table_start
+    add     x0, x0, :lo12:__dotnet_eh_table_start
+    ret
+
+// void* get_dotnet_eh_table_end(void)
+// Returns pointer to end of .dotnet_eh_table section
+get_dotnet_eh_table_end:
+    adrp    x0, __dotnet_eh_table_end
+    add     x0, x0, :lo12:__dotnet_eh_table_end
+    ret

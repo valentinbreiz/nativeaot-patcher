@@ -1,523 +1,817 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
-using Cosmos.Build.API.Attributes;
-using Cosmos.Build.API.Enum;
-using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.HAL;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
-using PlatformArchitecture = Cosmos.Build.API.Enum.PlatformArchitecture;
+using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.Config;
+using Cosmos.Kernel.System.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv4.UDP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
+using Cosmos.Kernel.System.Timer;
+using Sys = Cosmos.Kernel.System;
 
-internal unsafe static partial class Program
+namespace DevKernel;
+
+/// <summary>
+/// DevKernel - Test kernel for Cosmos gen3 development.
+/// </summary>
+public class Kernel : Sys.Kernel
 {
+    private string _prompt = "cosmos";
 
-
-    [LibraryImport("test", EntryPoint = "testGCC")]
-    [return: MarshalUsing(typeof(SimpleStringMarshaler))]
-    public static unsafe partial string testGCC();
-
-    [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-    private static void KernelMain() => Main();
-
-    private static void Main()
+    protected override void BeforeRun()
     {
-        Serial.WriteString("[Main] Starting Main function\n");
+        Serial.WriteString("[DevKernel] BeforeRun() called\n");
 
-        // Test memory allocator with various allocations
-        Serial.WriteString("[Main] Testing memory allocator...\n");
+        Console.Clear();
+        Console.WriteLine("========================================");
+        Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
+        Console.WriteLine("========================================");
+        Console.WriteLine();
 
-        // Test 1: Small allocation (char array)
-        Serial.WriteString("[Main] Test 1: Allocating char array...\n");
-        char[] testChars = new char[] { 'R', 'h', 'p' };
-        Serial.WriteString("[Main] Test 1: SUCCESS - char array allocated\n");
-        KernelConsole.WriteLine("Test 1: PASS");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Cosmos booted successfully!");
+        Console.ResetColor();
+        Console.WriteLine("Type 'help' for available commands.");
+        Console.WriteLine();
+    }
 
-        // Test 2: String allocation
-        Serial.WriteString("[Main] Test 2: Allocating string...\n");
-        string testString = new string(testChars);
-        Serial.WriteString("[Main] Test 2: SUCCESS - string allocated: ");
-        Serial.WriteString(testString);
-        Serial.WriteString("\n");
-        KernelConsole.Write("Test 2: PASS - ");
-        KernelConsole.WriteLine(testString);
+    protected override void Run()
+    {
+        // Print prompt
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(_prompt);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(":");
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.Write("~");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("$ ");
+        Console.ResetColor();
 
-        // Test 3: Larger allocation (int array)
-        Serial.WriteString("[Main] Test 3: Allocating int array (100 elements)...\n");
-        int[] intArray = new int[100];
-        for (int i = 0; i < 10; i++)
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(input))
+            return;
+
+        string trimmed = input.Trim();
+        string[] parts = trimmed.Split(' ');
+        string cmd = parts[0].ToLower();
+
+        switch (cmd)
         {
-            intArray[i] = i * 10;
-        }
-        Serial.WriteString("[Main] Test 3: SUCCESS - int array allocated and populated\n");
-        Serial.WriteString("[Main] Test 3: First 3 values: ");
-        Serial.WriteNumber((uint)intArray[0], false);
-        Serial.WriteString(", ");
-        Serial.WriteNumber((uint)intArray[1], false);
-        Serial.WriteString(", ");
-        Serial.WriteNumber((uint)intArray[2], false);
-        Serial.WriteString("\n");
-        KernelConsole.WriteLine("Test 3: PASS");
+            case "help":
+                PrintHelp();
+                break;
 
-        // Test 4: Multiple string allocations
-        Serial.WriteString("[Main] Test 4: Multiple string allocations...\n");
-        string str1 = "Hello";
-        string str2 = "World";
-        string str3 = str1 + " " + str2;
-        Serial.WriteString("[Main] Test 4: SUCCESS - concatenated string: ");
-        Serial.WriteString(str3);
-        Serial.WriteString("\n");
-        KernelConsole.Write("Test 4: PASS - ");
-        KernelConsole.WriteLine(str3);
+            case "clear":
+            case "cls":
+                Console.Clear();
+                break;
 
-        // Test 5: GCC interop
-        Serial.WriteString("[Main] Test 5: Testing GCC interop...\n");
-        var gccString = testGCC();
-        Serial.WriteString("[Main] Test 5: SUCCESS - GCC string: ");
-        Serial.WriteString(gccString);
-        Serial.WriteString("\n");
-        KernelConsole.Write("Test 5: PASS - ");
-        KernelConsole.WriteLine(gccString);
+            case "echo":
+                if (parts.Length > 1)
+                    Console.WriteLine(trimmed.Substring(5));
+                break;
 
-        // Test 6: StringBuilder
-        Serial.WriteString("[Main] Test 6: Testing StringBuilder...\n");
-        StringBuilder sb = new StringBuilder();
-        sb.Append("Hello");
-        sb.Append(" ");
-        sb.Append("StringBuilder");
-        sb.Append(" from ");
-        sb.Append("Cosmos!");
-        string sbResult = sb.ToString();
-        Serial.WriteString("[Main] Test 6: SUCCESS - StringBuilder result: ");
-        Serial.WriteString(sbResult);
-        Serial.WriteString("\n");
-        KernelConsole.Write("Test 6: PASS - ");
-        KernelConsole.WriteLine(sbResult);
+            case "info":
+            case "sysinfo":
+                PrintSystemInfo();
+                break;
 
-        // Test 7: Basic boxing - int to object
-        Serial.WriteString("[Main] Test 7: Testing basic boxing (int to object)...\n");
-        int valueInt = 42;
-        object boxedInt = valueInt;
-        Serial.WriteString("[Main] Test 7: SUCCESS - boxed int value: ");
-        Serial.WriteNumber((uint)(int)boxedInt, false);
-        Serial.WriteString("\n");
-        KernelConsole.WriteLine("Test 7: PASS - boxing works");
+            case "timer":
+                RunTimerTest();
+                break;
 
-        // Test 8: Unboxing - object to int
-        Serial.WriteString("[Main] Test 8: Testing unboxing (object to int)...\n");
-        int unboxedInt = (int)boxedInt;
-        if (unboxedInt == 42)
-        {
-            Serial.WriteString("[Main] Test 8: SUCCESS - unboxed value matches: ");
-            Serial.WriteNumber((uint)unboxedInt, false);
-            Serial.WriteString("\n");
-            KernelConsole.WriteLine("Test 8: PASS - unboxed correctly");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 8: FAILED - values don't match\n");
-            KernelConsole.WriteLine("Test 8: FAILED");
-        }
+            case "schedinfo":
+                ShowSchedulerInfo();
+                break;
 
-        // Test 9: Boxing different value types
-        Serial.WriteString("[Main] Test 9: Testing boxing multiple value types...\n");
-        byte valueByte = 255;
-        short valueShort = -1234;
-        long valueLong = 9876543210L;
-        object boxedByte = valueByte;
-        object boxedShort = valueShort;
-        object boxedLong = valueLong;
-        Serial.WriteString("[Main] Test 9: SUCCESS - boxed byte, short, long\n");
-        KernelConsole.WriteLine("Test 9: PASS - multiple types boxed");
+            case "thread":
+                TestThread();
+                break;
 
-        // Test 10: Boxing to interface (IComparable)
-        Serial.WriteString("[Main] Test 10: Testing boxing to interface...\n");
-        int compareValue = 100;
-        IComparable comparable = compareValue;
-        Serial.WriteString("[Main] Test 10: SUCCESS - interface boxing works\n");
-        KernelConsole.WriteLine("Test 10: PASS - interface boxing works");
+            case "gfx":
+                StartGraphicsThread();
+                break;
 
-        // Test 11: Nullable boxing (null case)
-        Serial.WriteString("[Main] Test 11: Testing Nullable<T> boxing (null)...\n");
-        int? nullableNull = null;
-        object boxedNull = nullableNull;
-        if (boxedNull == null)
-        {
-            Serial.WriteString("[Main] Test 11: SUCCESS - null Nullable<T> boxes to null\n");
-            KernelConsole.WriteLine("Test 11: PASS - nullable null boxing works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 11: FAILED - null Nullable<T> did not box to null\n");
-            KernelConsole.WriteLine("Test 11: FAILED");
-        }
+            case "kill":
+                if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                    KillThread(killId);
+                else
+                    PrintError("Usage: kill <thread_id>");
+                break;
 
-        // Test 12: Nullable boxing (value case)
-        Serial.WriteString("[Main] Test 12: Testing Nullable<T> boxing (with value)...\n");
-        int? nullableValue = 777;
-        object boxedNullable = nullableValue;
-        if (boxedNullable != null && (int)boxedNullable == 777)
-        {
-            Serial.WriteString("[Main] Test 12: SUCCESS - Nullable<T> with value boxes correctly: ");
-            Serial.WriteNumber((uint)(int)boxedNullable, false);
-            Serial.WriteString("\n");
-            KernelConsole.WriteLine("Test 12: PASS - nullable value boxing works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 12: FAILED - Nullable<T> boxing incorrect\n");
-            KernelConsole.WriteLine("Test 12: FAILED");
-        }
-
-        // Test 13: Array.Copy with boxing
-        Serial.WriteString("[Main] Test 13: Testing Array.Copy with boxing...\n");
-        int[] sourceIntArray = new int[] { 10, 20, 30 };
-        object[] destObjectArray = new object[3];
-        Array.Copy(sourceIntArray, destObjectArray, 3);
-        if ((int)destObjectArray[0] == 10 && (int)destObjectArray[1] == 20 && (int)destObjectArray[2] == 30)
-        {
-            Serial.WriteString("[Main] Test 13: SUCCESS - Array.Copy boxed correctly\n");
-            KernelConsole.WriteLine("Test 13: PASS - Array.Copy with boxing works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 13: FAILED - Array.Copy boxing failed\n");
-            KernelConsole.WriteLine("Test 13: FAILED");
-        }
-
-        // Test 14: Custom struct boxing
-        Serial.WriteString("[Main] Test 14: Testing custom struct boxing...\n");
-        TestPoint point = new TestPoint { X = 10, Y = 20 };
-        object boxedPoint = point;
-        TestPoint unboxedPoint = (TestPoint)boxedPoint;
-        if (unboxedPoint.X == 10 && unboxedPoint.Y == 20)
-        {
-            Serial.WriteString("[Main] Test 14: SUCCESS - custom struct boxed/unboxed correctly\n");
-            KernelConsole.WriteLine("Test 14: PASS - custom struct boxing works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 14: FAILED - struct boxing/unboxing incorrect\n");
-            KernelConsole.WriteLine("Test 14: FAILED");
-        }
-
-        // Test 15: List<int> - value types
-        Serial.WriteString("[Main] Test 15: Testing List<int>...\n");
-        List<int> intList = new List<int>();
-        intList.Add(100);
-        intList.Add(200);
-        intList.Add(300);
-        if (intList.Count == 3 && intList[0] == 100 && intList[1] == 200 && intList[2] == 300)
-        {
-            Serial.WriteString("[Main] Test 15: SUCCESS - List<int> works correctly\n");
-            KernelConsole.WriteLine("Test 15: PASS - List<int> works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 15: FAILED - List<int> incorrect\n");
-            KernelConsole.WriteLine("Test 15: FAILED");
-        }
-
-        // Test 16: Simple boxing/unboxing
-        Serial.WriteString("[Main] Test 16: Testing simple box/unbox...\n");
-        object simpleBoxed = (object)999;
-        int simpleUnboxed = (int)simpleBoxed;
-        if (simpleUnboxed == 999)
-        {
-            Serial.WriteString("[Main] Test 16: SUCCESS - simple boxing works\n");
-            KernelConsole.WriteLine("Test 16: PASS - simple boxing works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 16: FAILED - simple boxing incorrect\n");
-            KernelConsole.WriteLine("Test 16: FAILED");
-        }
-
-        // Test 17: List.Contains with value types
-        Serial.WriteString("[Main] Test 17: Testing List<int>.Contains...\n");
-        List<int> searchList = new List<int>();
-        searchList.Add(10);
-        searchList.Add(20);
-        searchList.Add(30);
-
-        bool found20 = searchList.Contains(20);
-        bool found99 = searchList.Contains(99);
-
-        if (found20 && !found99)
-        {
-            Serial.WriteString("[Main] Test 17: SUCCESS - List.Contains works correctly\n");
-            KernelConsole.WriteLine("Test 17: PASS - List.Contains works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 17: FAILED - Contains returned wrong values (found20=");
-            Serial.WriteNumber((uint)(found20 ? 1 : 0), false);
-            Serial.WriteString(", found99=");
-            Serial.WriteNumber((uint)(found99 ? 1 : 0), false);
-            Serial.WriteString(")\n");
-            KernelConsole.WriteLine("Test 17: FAILED");
-        }
-
-        // Test 18: List.IndexOf with value types
-        Serial.WriteString("[Main] Test 18: Testing List<int>.IndexOf...\n");
-        int index20 = searchList.IndexOf(20);
-        int index99 = searchList.IndexOf(99);
-
-        if (index20 == 1 && index99 == -1)
-        {
-            Serial.WriteString("[Main] Test 18: SUCCESS - List.IndexOf works correctly\n");
-            KernelConsole.WriteLine("Test 18: PASS - List.IndexOf works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 18: FAILED - IndexOf incorrect (index20=");
-            Serial.WriteNumber((uint)index20, false);
-            Serial.WriteString(", index99=");
-            Serial.WriteNumber((uint)index99, false);
-            Serial.WriteString(")\n");
-            KernelConsole.WriteLine("Test 18: FAILED");
-        }
-
-        // Test 19: List.Count property
-        Serial.WriteString("[Main] Test 19: Testing List<int>.Count...\n");
-        if (searchList.Count == 3)
-        {
-            Serial.WriteString("[Main] Test 19: SUCCESS - List.Count is correct (3)\n");
-            KernelConsole.WriteLine("Test 19: PASS - List.Count works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 19: FAILED - List.Count incorrect (");
-            Serial.WriteNumber((uint)searchList.Count, false);
-            Serial.WriteString(")\n");
-            KernelConsole.WriteLine("Test 19: FAILED");
-        }
-
-        // Test 20: List<string> - Test WITHOUT pre-allocation (triggers resize)
-        Serial.WriteString("[Main] Test 20: Testing List<string> WITHOUT pre-allocation...\n");
-
-        List<string> stringList = new List<string>(); // Capacity 0 - will trigger resize
-        stringList.Add("First");
-        stringList.Add("Second");
-        stringList.Add("Third");
-        stringList.Add("Fourth");
-        stringList.Add("Fifth");
-
-        if (stringList.Count == 5 &&
-            stringList[0] == "First" &&
-            stringList[1] == "Second" &&
-            stringList[2] == "Third" &&
-            stringList[3] == "Fourth" &&
-            stringList[4] == "Fifth")
-        {
-            Serial.WriteString("[Main] Test 20: PASSED - List<string> works without pre-allocation!\n");
-            KernelConsole.WriteLine("Test 20: PASS - List<string> works!");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 20: FAILED - Count=");
-            Serial.WriteNumber((uint)stringList.Count, false);
-            Serial.WriteString(", [0]='");
-            Serial.WriteString(stringList[0]);
-            Serial.WriteString("'\n");
-            KernelConsole.WriteLine("Test 20: FAILED - List<string> broken");
-        }
-
-        // Test 21: List<byte> - small value type
-        Serial.WriteString("[Main] Test 21: Testing List<byte>...\n");
-        List<byte> byteList = new List<byte>();
-        byteList.Add(0xFF);
-        byteList.Add(0x00);
-        byteList.Add(0xAB);
-        byteList.Add(0x12);
-        if (byteList.Count == 4 && byteList[0] == 0xFF && byteList[1] == 0x00 &&
-            byteList[2] == 0xAB && byteList[3] == 0x12)
-        {
-            Serial.WriteString("[Main] Test 21: SUCCESS - List<byte> works\n");
-            KernelConsole.WriteLine("Test 21: PASS - List<byte> works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 21: FAILED\n");
-            KernelConsole.WriteLine("Test 21: FAILED");
-        }
-
-        // Test 22: List<long> - 64-bit value type
-        Serial.WriteString("[Main] Test 22: Testing List<long>...\n");
-        List<long> longList = new List<long>();
-        longList.Add(0x123456789ABCDEF0);
-        longList.Add(-9999999999999);
-        longList.Add(42);
-        if (longList.Count == 3 && longList[0] == 0x123456789ABCDEF0 &&
-            longList[1] == -9999999999999 && longList[2] == 42)
-        {
-            Serial.WriteString("[Main] Test 22: SUCCESS - List<long> works\n");
-            KernelConsole.WriteLine("Test 22: PASS - List<long> works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 22: FAILED\n");
-            KernelConsole.WriteLine("Test 22: FAILED");
-        }
-
-        // Test 23: List<struct> - custom struct
-        Serial.WriteString("[Main] Test 23: Testing List<TestPoint>...\n");
-        List<TestPoint> pointList = new List<TestPoint>();
-        pointList.Add(new TestPoint { X = 1, Y = 2 });
-        pointList.Add(new TestPoint { X = 3, Y = 4 });
-        pointList.Add(new TestPoint { X = 5, Y = 6 });
-        if (pointList.Count == 3 &&
-            pointList[0].X == 1 && pointList[0].Y == 2 &&
-            pointList[1].X == 3 && pointList[1].Y == 4 &&
-            pointList[2].X == 5 && pointList[2].Y == 6)
-        {
-            Serial.WriteString("[Main] Test 23: SUCCESS - List<TestPoint> works\n");
-            KernelConsole.WriteLine("Test 23: PASS - List<struct> works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 23: FAILED\n");
-            KernelConsole.WriteLine("Test 23: FAILED");
-        }
-
-        // Test 24: List.RemoveAt
-        Serial.WriteString("[Main] Test 24: Testing List.RemoveAt...\n");
-        List<int> removeList24 = new List<int>();
-        removeList24.Add(10);
-        removeList24.Add(20);
-        removeList24.Add(30);
-        removeList24.Add(40);
-        removeList24.Add(50);
-        Serial.WriteString("[Main] Test 24: List created with 5 items\n");
-        Serial.WriteString("[Main] Test 24: Calling IndexOf(30)...\n");
-        int idx24 = removeList24.IndexOf(30);
-        Serial.WriteString("[Main] Test 24: IndexOf returned ");
-        Serial.WriteString(idx24.ToString());
-        Serial.WriteString("\n");
-        Serial.WriteString("[Main] Test 24: Calling RemoveAt(");
-        Serial.WriteString(idx24.ToString());
-        Serial.WriteString(")...\n");
-        removeList24.RemoveAt(idx24);
-        Serial.WriteString("[Main] Test 24: RemoveAt completed\n");
-        bool removed24 = true;
-        if (removed24 && removeList24.Count == 4 && removeList24[2] == 40)
-        {
-            Serial.WriteString("[Main] Test 24: SUCCESS - List.RemoveAt works\n");
-            KernelConsole.WriteLine("Test 24: PASS - List.RemoveAt works");
-        }
-        else
-        {
-            Serial.WriteString("[Main] Test 24: FAILED\n");
-            KernelConsole.WriteLine("Test 24: FAILED");
-        }
-
-        KernelConsole.WriteLine("All core tests PASSED!");
-
-        DebugInfo.Print();
-
-        Serial.WriteString("DevKernel: Changes to src/ will be reflected here!\n");
+            case "halt":
+            case "shutdown":
+                PrintWarning("Halting system...");
+                Stop();
+                break;
 
 #if ARCH_X64
-        // Register a handler for INT 32 to test interrupt handling
-        Serial.WriteString("[Main] Registering INT 32 handler...\n");
-        Cosmos.Kernel.HAL.Cpu.InterruptManager.SetHandler(32, TestInt32Handler);
-        Serial.WriteString("[Main] INT 32 handler registered!\n");
+            case "netconfig":
+                ConfigureNetwork();
+                break;
 
-        // Test triggering INT 32
-        Serial.WriteString("[Main] Triggering INT 32...\n");
-        TriggerInt32Test();
-        Serial.WriteString("[Main] INT 32 test complete!\n");
-#else
-        Serial.WriteString("[Main] Interrupt test skipped (ARM64 platform)\n");
+            case "netinfo":
+                ShowNetworkInfo();
+                break;
+
+            case "netsend":
+                SendTestPacket();
+                break;
+
+            case "netlisten":
+                StartListening();
+                break;
+
+            case "dhcp":
+                RunDHCP();
+                break;
+
+            case "dns":
+                if (parts.Length > 1)
+                    ResolveDNS(parts[1]);
+                else
+                    PrintError("Usage: dns <domain>");
+                break;
+
 #endif
 
-        // Test exception handling
-        TestExceptionHandling();
 
-        while (true) ;
+            case "meminfo":
+                ShowMemoryInfo();
+                break;
+
+            default:
+                PrintError($"\"{cmd}\" is not a command");
+                Console.WriteLine("Type 'help' for available commands.");
+                break;
+        }
     }
 
-    private static void TestExceptionHandling()
+    protected override void AfterRun()
     {
-        Console.WriteLine("Testing throw statement...");
-        Serial.WriteString("[Main] Testing throw statement...\n");
+        Serial.WriteString("[DevKernel] AfterRun() called\n");
+        Console.WriteLine("Goodbye!");
+        Cosmos.Kernel.Kernel.Halt();
+    }
 
-        // This will throw an exception
-        // Expected: System will print exception info and halt gracefully
-        throw new InvalidOperationException("This is a test exception!");
+    private void PrintHelp()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Available Commands:");
+        Console.ResetColor();
 
-        // Should not reach here
-        Console.WriteLine("  ✗ ERROR: Should not reach here\n");
+        PrintCommand("help", "Show this help message");
+        PrintCommand("clear", "Clear the screen");
+        PrintCommand("echo <text>", "Echo back text");
+        PrintCommand("info", "Show system information");
+        PrintCommand("timer", "Test 10 second countdown timer");
+        PrintCommand("schedinfo", "Show scheduler status and threads");
+        PrintCommand("meminfo", "Show memory allocator state");
+        PrintCommand("thread", "Test System.Threading.Thread");
+        PrintCommand("gfx", "Start graphics thread (draws square)");
+        PrintCommand("kill <id>", "Kill a thread by ID");
+        PrintCommand("halt", "Halt the system");
+#if ARCH_X64
+        PrintCommand("netconfig", "Configure network stack");
+        PrintCommand("netinfo", "Show network device info");
+        PrintCommand("netsend", "Send UDP test packet");
+        PrintCommand("netlisten", "Listen for UDP packets");
+        PrintCommand("dhcp", "Auto-configure network via DHCP");
+        PrintCommand("dns <domain>", "Resolve domain name to IP");
+#endif
+    }
+
+    private void PrintCommand(string cmd, string description)
+    {
+        Console.Write("  ");
+        Console.Write(cmd.PadRight(14));
+        Console.WriteLine(description);
+    }
+
+    private void PrintSystemInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("System Information:");
+        Console.ResetColor();
+
+        PrintInfoLine("OS", "CosmosOS v3.0.0 (gen3)");
+        PrintInfoLine("Runtime", "NativeAOT");
+#if ARCH_X64
+        PrintInfoLine("Architecture", "x86-64");
+#elif ARCH_ARM64
+        PrintInfoLine("Architecture", "ARM64");
+#endif
+        PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
+    }
+
+    private void PrintInfoLine(string label, string value)
+    {
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(label.PadRight(14));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(value);
+        Console.ResetColor();
+    }
+
+    private void RunTimerTest()
+    {
+        Console.WriteLine("Starting 10 second countdown...");
+        for (int i = 10; i > 0; i--)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(i.ToString());
+            Console.ResetColor();
+            Console.WriteLine("...");
+            TimerManager.Wait(1000);
+        }
+        PrintSuccess("Timer test complete!");
+        Console.WriteLine();
+    }
+
+    private void ShowMemoryInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Memory Information:");
+        Console.ResetColor();
+
+        // Page allocator stats
+        ulong totalPages = PageAllocator.TotalPageCount;
+        ulong freePages = PageAllocator.FreePageCount;
+        ulong usedPages = totalPages - freePages;
+        ulong pageSize = PageAllocator.PageSize;
+
+        ulong totalBytes = totalPages * pageSize;
+        ulong freeBytes = freePages * pageSize;
+        ulong usedBytes = usedPages * pageSize;
+
+        PrintInfoLine("Page Size", (pageSize / 1024).ToString() + " KB");
+        PrintInfoLine("Total Pages", totalPages.ToString());
+        PrintInfoLine("Used Pages", usedPages.ToString());
+        PrintInfoLine("Free Pages", freePages.ToString());
+
+        Console.WriteLine();
+
+        // Memory in MB
+        PrintInfoLine("Total Memory", (totalBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Used Memory", (usedBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Free Memory", (freeBytes / 1024 / 1024).ToString() + " MB");
+
+        // Usage percentage
+        ulong usagePercent = totalPages > 0 ? (usedPages * 100) / totalPages : 0;
+
+        Console.WriteLine();
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Usage".PadRight(14));
+
+        // Color based on usage
+        if (usagePercent < 50)
+            Console.ForegroundColor = ConsoleColor.Green;
+        else if (usagePercent < 80)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+        else
+            Console.ForegroundColor = ConsoleColor.Red;
+
+        Console.WriteLine(usagePercent.ToString() + "%");
+        Console.ResetColor();
+    }
+
+    private void ShowSchedulerInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Scheduler Information:");
+        Console.ResetColor();
+
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
+        {
+            PrintInfoLine("Status", "Not initialized");
+            return;
+        }
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Status".PadRight(14));
+        Console.ForegroundColor = SchedulerManager.Enabled ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(SchedulerManager.Enabled ? "ENABLED" : "DISABLED");
+        Console.ResetColor();
+
+        PrintInfoLine("Scheduler", scheduler.Name);
+        PrintInfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
+        PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / 1_000_000).ToString() + " ms");
+        Console.WriteLine();
+
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("  CPU " + cpuId + ":");
+            Console.ResetColor();
+
+            var currentThread = cpuState.CurrentThread;
+            if (currentThread != null)
+            {
+                PrintThreadInfo(scheduler, currentThread);
+            }
+
+            int runQueueCount = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < runQueueCount; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread != null)
+                {
+                    PrintThreadInfo(scheduler, thread);
+                }
+            }
+        }
+        Console.WriteLine();
+    }
+
+    private void PrintThreadInfo(IScheduler scheduler, Cosmos.Kernel.Core.Scheduler.Thread thread)
+    {
+        Console.Write("    ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("Thread " + thread.Id);
+
+        Console.Write(" ");
+        switch (thread.State)
+        {
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Running:
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("Running");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Ready:
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("Ready");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked:
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping:
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(thread.State == Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked ? "Blocked" : "Sleeping");
+                break;
+            case Cosmos.Kernel.Core.Scheduler.ThreadState.Dead:
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("Dead");
+                break;
+            default:
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("Unknown");
+                break;
+        }
+
+        if (thread.SchedulerData != null)
+        {
+            long priority = scheduler.GetPriority(thread);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write(" Pri=" + priority);
+        }
+
+        ulong runtimeMs = thread.TotalRuntime / 1_000_000;
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" Run=" + runtimeMs + "ms");
+
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+
+    private void TestThread()
+    {
+        Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
+        Console.WriteLine("Creating and starting a thread...");
+
+        var thread = new System.Threading.Thread(() =>
+        {
+            Serial.WriteString("[Thread] Hello from thread delegate!\n");
+            Console.WriteLine("Hello from thread!");
+        });
+
+        thread.Start();
+        PrintSuccess("Thread started!");
+        Console.WriteLine();
+
+        TimerManager.Wait(2000);
+    }
+
+    private void StartGraphicsThread()
+    {
+        Serial.WriteString("[GfxThread] Starting graphics thread\n");
+        Console.WriteLine("Starting graphics thread (draws color-cycling square)...");
+
+        var thread = new System.Threading.Thread(GraphicsWorker);
+        thread.Start();
+
+        PrintSuccess("Graphics thread started!");
+        Console.WriteLine();
+    }
+
+    private void KillThread(uint threadId)
+    {
+        var scheduler = SchedulerManager.Current;
+        if (scheduler == null)
+        {
+            PrintError("Scheduler not initialized");
+            return;
+        }
+
+        if (threadId == 0)
+        {
+            PrintError("Cannot kill idle thread (ID 0)");
+            return;
+        }
+
+        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        {
+            var cpuState = SchedulerManager.GetCpuState(cpuId);
+
+            if (cpuState.CurrentThread?.Id == threadId)
+            {
+                PrintWarning("Cannot kill currently running thread");
+                cpuState.CurrentThread.State = Cosmos.Kernel.Core.Scheduler.ThreadState.Dead;
+                return;
+            }
+
+            int count = scheduler.GetRunQueueCount(cpuState);
+            for (int i = 0; i < count; i++)
+            {
+                var thread = scheduler.GetRunQueueThread(cpuState, i);
+                if (thread?.Id == threadId)
+                {
+                    SchedulerManager.ExitThread(cpuId, thread);
+                    PrintSuccess("Thread " + threadId + " killed");
+                    Console.WriteLine();
+                    return;
+                }
+            }
+        }
+
+        PrintError("Thread " + threadId + " not found");
+    }
+
+    private static void GraphicsWorker()
+    {
+        if (Canvas.Width == 0 || Canvas.Height == 0)
+            return;
+
+        const int squareSize = 80;
+        const int margin = 20;
+
+        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Width - squareSize - margin
+            : margin;
+        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
+            ? (int)Canvas.Height - squareSize - margin
+            : margin;
+
+        int frame = 0;
+
+        while (true)
+        {
+            int phase = frame % 60;
+            byte r, g, b;
+
+            if (phase < 10) { r = 255; g = (byte)(phase * 25); b = 0; }
+            else if (phase < 20) { r = (byte)(255 - (phase - 10) * 25); g = 255; b = 0; }
+            else if (phase < 30) { r = 0; g = 255; b = (byte)((phase - 20) * 25); }
+            else if (phase < 40) { r = 0; g = (byte)(255 - (phase - 30) * 25); b = 255; }
+            else if (phase < 50) { r = (byte)((phase - 40) * 25); g = 0; b = 255; }
+            else { r = 255; g = 0; b = (byte)(255 - (phase - 50) * 25); }
+
+            for (int dy = 0; dy < squareSize; dy++)
+            {
+                for (int dx = 0; dx < squareSize; dx++)
+                {
+                    int cx = dx - squareSize / 2;
+                    int cy = dy - squareSize / 2;
+                    int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
+                    if (dist > 255) dist = 255;
+
+                    int factor = 255 - dist / 2;
+                    byte pr = (byte)((r * factor) / 255);
+                    byte pg = (byte)((g * factor) / 255);
+                    byte pb = (byte)((b * factor) / 255);
+                    uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
+
+                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                }
+            }
+
+            frame++;
+            System.Threading.Thread.Sleep(100);
+        }
     }
 
 #if ARCH_X64
-    [LibraryImport("*", EntryPoint = "__test_int32")]
-    private static partial void TriggerInt32Test();
+    // Network configuration
+    private Address? _localIP;
+    private Address? _gatewayIP;
+    private bool _networkConfigured = false;
 
-    // Handler for INT 32 - this will be called when the interrupt fires
-    private static void TestInt32Handler(ref IRQContext context)
+    private void ConfigureNetwork()
     {
-        Serial.WriteString("[INT 32 Handler] Interrupt 32 received!\n");
-        Serial.WriteString("[INT 32 Handler] RIP: 0x");
-        Serial.WriteString(context.rax.ToString("X16"));
-        Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] Interrupt number: ");
-        Serial.WriteString(context.interrupt.ToString());
-        Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] CPU Flags: 0x");
-        Serial.WriteString(context.cpu_flags.ToString("X16"));
-        Serial.WriteString("\n");
-        Serial.WriteString("[INT 32 Handler] Handler execution complete\n");
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        // Configure IP address (10.0.2.15 for QEMU user networking)
+        _localIP = new Address(10, 0, 2, 15);
+        _gatewayIP = new Address(10, 0, 2, 2);
+
+        // Initialize network stack and configure IP
+        NetworkStack.Initialize();
+        NetworkStack.ConfigIP(device, _localIP);
+
+        // Register UDP callback
+        UDPPacket.OnUDPDataReceived = OnUDPDataReceived;
+
+        _networkConfigured = true;
+
+        PrintSuccess("Network configured!\n");
+        PrintInfoLine("IP", _localIP.ToString());
+        PrintInfoLine("Gateway", _gatewayIP.ToString());
+    }
+
+    private void ShowNetworkInfo()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Network Information:");
+        Console.ResetColor();
+
+        PrintInfoLine("Device", device.Name);
+        PrintInfoLine("MAC", device.MacAddress.ToString());
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Link".PadRight(14));
+        Console.ForegroundColor = device.LinkUp ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(device.LinkUp ? "UP" : "DOWN");
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Ready".PadRight(14));
+        Console.ForegroundColor = device.Ready ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(device.Ready ? "YES" : "NO");
+
+        Console.Write("  ");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Configured".PadRight(14));
+        Console.ForegroundColor = _networkConfigured ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(_networkConfigured ? "YES" : "NO");
+        Console.ResetColor();
+
+        if (_networkConfigured && _localIP != null)
+        {
+            PrintInfoLine("IP Address", _localIP.ToString());
+        }
+    }
+
+    private void SendTestPacket()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        if (!device.Ready)
+        {
+            PrintError("Network device not ready");
+            return;
+        }
+
+        // Ensure network is configured
+        if (!_networkConfigured)
+        {
+            ConfigureNetwork();
+        }
+
+        // Create UDP packet using the packet classes
+        string message = "Hello from CosmosOS!";
+        byte[] payload = new byte[message.Length];
+        for (int i = 0; i < message.Length; i++)
+            payload[i] = (byte)message[i];
+
+        // Create UDP packet (using broadcast MAC for now since we don't have full ARP)
+        var udpPacket = new UDPPacket(
+            _localIP!,                           // Source IP
+            _gatewayIP!,                         // Destination IP
+            5555,                                // Source port
+            5555,                                // Destination port
+            payload,                             // Data
+            MACAddress.Broadcast                 // Destination MAC (broadcast)
+        );
+
+        PrintInfo("Sending UDP packet to " + _gatewayIP!.ToString() + ":5555...");
+        bool sent = device.Send(udpPacket.RawData, udpPacket.RawData.Length);
+
+        if (sent)
+            PrintSuccess("Packet sent!\n");
+        else
+            PrintError("Failed to send packet\n");
+    }
+
+    private void StartListening()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        // Ensure network is configured
+        if (!_networkConfigured)
+        {
+            ConfigureNetwork();
+        }
+
+        PrintInfo("Listening for UDP packets on port 5555...");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Send from host: echo 'test' | nc -u localhost 5555");
+        Console.ResetColor();
+    }
+
+    private void OnUDPDataReceived(UDPPacket packet)
+    {
+        Serial.Write("[UDP] Received packet from ");
+        Serial.WriteString(packet.SourceIP.ToString());
+        Serial.Write(":");
+        Serial.WriteNumber((ulong)packet.SourcePort);
+        Serial.Write(" -> port ");
+        Serial.WriteNumber((ulong)packet.DestinationPort);
+        Serial.Write("\n");
+
+        // Get the UDP payload
+        byte[] data = packet.UDPData;
+        Serial.Write("[UDP] Payload (");
+        Serial.WriteNumber((ulong)data.Length);
+        Serial.Write(" bytes): ");
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            char c = (char)data[i];
+            if (c >= 32 && c < 127)
+                Serial.Write(c.ToString());
+        }
+        Serial.Write("\n");
+
+        // Also print to console with colors
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.Write("[UDP] ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(packet.SourceIP.ToString() + ":" + packet.SourcePort.ToString());
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(" -> ");
+        Console.ResetColor();
+
+        for (int i = 0; i < data.Length && i < 64; i++)
+        {
+            char c = (char)data[i];
+            if (c >= 32 && c < 127)
+                Console.Write(c.ToString());
+        }
+        Console.WriteLine();
+    }
+
+    private void RunDHCP()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        if (!device.Ready)
+        {
+            PrintError("Network device not ready");
+            return;
+        }
+
+        PrintInfo("Starting DHCP auto-configuration...");
+
+        // Initialize network stack first
+        NetworkStack.Initialize();
+
+        // Create DHCP client and send discover
+        var dhcpClient = new DHCPClient();
+        int result = dhcpClient.SendDiscoverPacket();
+
+        if (result == -1)
+        {
+            PrintError("DHCP timeout - no response from server");
+            return;
+        }
+
+        // Get the assigned configuration
+        var netConfig = NetworkConfigManager.Get(device);
+        if (netConfig == null)
+        {
+            PrintError("No network configuration after DHCP");
+            return;
+        }
+
+        _localIP = netConfig.IPAddress;
+        _gatewayIP = netConfig.DefaultGateway;
+        _networkConfigured = true;
+
+        // Register UDP callback
+        UDPPacket.OnUDPDataReceived = OnUDPDataReceived;
+
+        PrintSuccess("DHCP configuration successful!");
+        PrintInfoLine("IP Address", _localIP.ToString());
+        PrintInfoLine("Subnet", netConfig.SubnetMask.ToString());
+        PrintInfoLine("Gateway", _gatewayIP.ToString());
+        Console.WriteLine();
+    }
+
+    private void ResolveDNS(string domain)
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            PrintError("No network device found");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            PrintError("Network not configured. Run 'dhcp' or 'netconfig' first.");
+            return;
+        }
+
+        PrintInfo("Resolving " + domain + "...");
+
+        // Configure DNS server (Cloudflare)
+        var dnsServer = new Address(1, 1, 1, 1);
+        DNSConfig.Add(dnsServer);
+
+        // Create DNS client and connect
+        var dnsClient = new DnsClient();
+        dnsClient.Connect(dnsServer);
+
+        // Send query
+        dnsClient.SendAsk(domain);
+
+        // Wait for response (5 second timeout)
+        Address resolvedIP = dnsClient.Receive(5000);
+
+        if (resolvedIP != null && resolvedIP.Hash != 0)
+        {
+            PrintSuccess(domain + " -> " + resolvedIP.ToString());
+        }
+        else
+        {
+            PrintError("DNS resolution failed or timed out");
+        }
+
+        dnsClient.Close();
+        Console.WriteLine();
     }
 #endif
 
-    [ModuleInitializer]
-    public static void Init()
+    private void PrintInfo(string message)
     {
-        Serial.WriteString("Kernel Init\n");
-    }
-}
-
-// Test struct for boxing tests
-internal struct TestPoint
-{
-    public int X;
-    public int Y;
-}
-
-[CustomMarshaller(typeof(string), MarshalMode.Default, typeof(SimpleStringMarshaler))]
-internal static unsafe class SimpleStringMarshaler
-{
-
-    public static string ConvertToManaged(char* unmanaged)
-    {
-        // Count the length of the null-terminated UTF-16 string
-        int length = 0;
-        char* p = unmanaged;
-        while (*p != '\0')
-        {
-            length++;
-            p++;
-        }
-
-        // Create a new string from the character span
-        return new string(unmanaged, 0, length);
+        Console.WriteLine(message);
     }
 
-    public static char* ConvertToUnmanaged(string managed)
+    private void PrintError(string message)
     {
-        fixed (char* p = managed)
-        {
-            return p;
-        }
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintSuccess(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private void PrintWarning(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(message);
+        Console.ResetColor();
     }
 }

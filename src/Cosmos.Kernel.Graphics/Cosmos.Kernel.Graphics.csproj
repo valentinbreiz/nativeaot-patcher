@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="../Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
-    <ProjectReference Include="../Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj" />
   </ItemGroup>
   
   <ItemGroup>

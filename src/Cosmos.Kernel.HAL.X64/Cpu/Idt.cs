@@ -15,11 +15,13 @@ namespace Cosmos.Kernel.HAL.X64.Cpu;
 /// </summary>
 public static unsafe partial class Idt
 {
-    [LibraryImport("*", EntryPoint = "__load_lidt")]
+    [LibraryImport("*", EntryPoint = "_native_x64_load_idt")]
+    [SuppressGCTransition]
     private static partial void LoadIdt(void* ptr);
 
-    [LibraryImport("*", EntryPoint = "__get_current_code_selector")]
-    private static partial ulong GetCurrentCodeSelector();
+    [LibraryImport("*", EntryPoint = "_native_x64_get_code_selector")]
+    [SuppressGCTransition]
+    public static partial ulong GetCurrentCodeSelector();
 
     private static IdtEntry[] IdtEntries = new IdtEntry[256];
 
@@ -60,7 +62,8 @@ public static unsafe partial class Idt
         Serial.Write("[IDT] IDT loaded.\n");
     }
 
-    [LibraryImport("*", EntryPoint = "__get_irq_table")]
+    [LibraryImport("*", EntryPoint = "_native_x64_get_irq_stub")]
+    [SuppressGCTransition]
     private static partial nint GetIrqStub(int index);
 
     public static delegate* unmanaged<void> GetStub(int index)

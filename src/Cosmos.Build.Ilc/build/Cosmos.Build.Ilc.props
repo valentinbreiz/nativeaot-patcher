@@ -3,4 +3,18 @@
   <PropertyGroup>
     <IlcHostPackagePath>@(ResolvedILCompilerPack->'%(PackageDirectory)')</IlcHostPackagePath>
   </PropertyGroup>
+
+  <!-- Debug Options -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <IlcArg Condition= "'$(StackTraceSupport)' != 'false'" Include="--feature:Cosmos.Kernel.Core.Runtime.StackTraceMetadata.IsSupported=true"/>
+    <IlcArg Condition= "'$(StackTraceSupport)' == 'false'" Include="--feature:Cosmos.Kernel.Core.Runtime.StackTraceMetadata.IsSupported=false"/>
+  </ItemGroup>
+
+  <!-- Release Options -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <IlcArg Condition= "'$(StackTraceSupport)' != 'true'" Include="--feature:Cosmos.Kernel.Core.Runtime.StackTraceMetadata.IsSupported=false"/>
+    <IlcArg Condition= "'$(StackTraceSupport)' == 'true'" Include="--feature:Cosmos.Kernel.Core.Runtime.StackTraceMetadata.IsSupported=true"/>
+  </ItemGroup>
+
+  <UsingTask TaskName="Cosmos.Build.Ilc.Tasks.SortAutoInitialedAssemblies" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\netstandard2.0\Cosmos.Build.Ilc.dll"/>
 </Project>

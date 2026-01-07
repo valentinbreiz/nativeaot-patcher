@@ -18,13 +18,14 @@
     <Content Include="IO\*.asm" PackagePath="build\IO" />
     <Content Include="Debug\*.asm" PackagePath="build\Debug" />
     <Content Include="CPU\*.asm" PackagePath="build\CPU" />
-    <Content Include="C\CPU\*.c" PackagePath="build\C\CPU" />
+    <Content Include="Memory\*.asm" PackagePath="build\Memory" />
+    <Content Include="Runtime\*.asm" PackagePath="build\Runtime" />
     <Content Include="ACPI\*.c" PackagePath="build\ACPI" />
-    <Content Include="lai\core\*.c" PackagePath="build\lai\core" />
-    <Content Include="lai\core\*.h" PackagePath="build\lai\core" />
-    <Content Include="lai\helpers\*.c" PackagePath="build\lai\helpers" />
-    <Content Include="lai\drivers\*.c" PackagePath="build\lai\drivers" />
-    <Content Include="lai\include\**\*.h" PackagePath="build\lai\include" />
+    <Content Include="ACPI\lai\core\*.c" PackagePath="build\ACPI\lai\core" />
+    <Content Include="ACPI\lai\core\*.h" PackagePath="build\ACPI\lai\core" />
+    <Content Include="ACPI\lai\helpers\*.c" PackagePath="build\ACPI\lai\helpers" />
+    <Content Include="ACPI\lai\drivers\*.c" PackagePath="build\ACPI\lai\drivers" />
+    <Content Include="ACPI\lai\include\**\*.h" PackagePath="build\ACPI\lai\include" />
   </ItemGroup>
 
 </Project>

@@ -27,9 +27,43 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
+
         *result = pMT;
         *(int*)(result + 1) = length;
         return result;
+    }
+
+    [RuntimeExport("RhpNewPtrArrayFast")]
+    internal static unsafe void* RhpNewPtrArrayFast(MethodTable* pMT, int length)
+    {
+        if (length < 0)
+            return null;
+
+        uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
+        MethodTable** result = AllocObject(size);
+
+        *result = pMT;
+        *(int*)(result + 1) = length;
+        return result;
+    }
+    [RuntimeExport("RhpNewArrayFast")]
+    internal static unsafe void* RhpNewArrayFast(MethodTable* pMT, int length)
+    {
+        if (length < 0)
+            return null;
+
+        uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
+        MethodTable** result = AllocObject(size);
+
+        *result = pMT;
+        *(int*)(result + 1) = length;
+        return result;
+    }
+
+    [RuntimeExport("RhNewVariableSizeObject")]
+    internal static unsafe void* RhNewVariableSizeObject(MethodTable* pEEType, int length)
+    {
+        return RhpNewArray(pEEType, length);
     }
 
     [RuntimeExport("RhAllocateNewObject")]
@@ -37,6 +71,12 @@ public static class Memory
     {
         *(void**)pResult = RhpNewFast(pEEType);
         // as some point we should set flags   
+    }
+
+    [RuntimeExport("RhpGcSafeZeroMemory")]
+    internal static unsafe byte* RhpGcSafeZeroMemory(byte* dmem, nuint size)
+    {
+        return dmem;
     }
 
     [RuntimeExport("RhpNewFast")]

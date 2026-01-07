@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- This may need to change -->
     <DefineConstants>$(DefineConstants);NATIVEAOT;TARGET_64BIT</DefineConstants>
-
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System.Core</PackageId>
     <Title>Cosmos Kernel Core</Title>
@@ -18,9 +17,34 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
+  <!-- Architecture-specific defines -->
+  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CosmosArch)' != 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Architecture-specific source files -->
+  <ItemGroup Condition="'$(CosmosArch)' != 'arm64'">
+    <Compile Remove="Scheduler\ThreadContext.ARM64.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <Compile Remove="Scheduler\ThreadContext.X64.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="$(ToolCommonPath)Internal\NativeFormat\*.cs">
       <Link>Runtime\Internal\NativeFormat\%(Filename).cs</Link>
+    </Compile>
+    <Compile Include="$(ToolCommonPath)Internal\Metadata\NativeFormat\*.cs">
+      <Link>Runtime\Internal\NativeFormat\Metadata\%(Filename).cs</Link>
+    </Compile>
+    <Compile Include="$(AotCommonPath)..\..\System.Private.StackTraceMetadata\src\Internal\StackTraceMetadata\MethodNameFormatter.cs">
+      <Link>System.Private.StackTraceMetadata\Internal\StackTraceMetadata\MethodNameFormatter.cs</Link>
+    </Compile>
+    <Compile Include="$(ToolCommonPath)TypeSystem\Common\TypeHashingAlgorithms.cs">
+      <Link>TypeSystem\Common\TypeHashingAlgorithms.cs</Link>
     </Compile>
     <Compile Include="$(ToolCommonPath)Internal\Runtime\MetadataBlob.cs">
       <Link>Runtime\Internal\Runtime\MetadataBlob.cs</Link>

@@ -407,3 +407,48 @@ output
 output-x64/
 output-arm64/
 uart-arm64.log
+test-results-*.xml
+
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+.env
+# Editor directories and files
+.idea
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+.DS_Store
+
+# Task Master - AI tool configs (keep core task files for test runner project)
+.env.example
+.clinerules/
+.gemini/
+.github/instructions/
+.kilo/
+.kiro/
+.roo/
+.trae/
+.windsurf/
+.zed/
+.taskmaster/AGENT.md
+.taskmaster/templates/
+AGENT.md
+AGENTS.md
+GEMINI.md
+opencode.json
+.rules
+.cursor/
+.vscode/mcp.json 
+output-helloworld/
+
+# Task files
+# tasks.json
+# tasks/ 

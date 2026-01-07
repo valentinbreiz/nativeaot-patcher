@@ -1,0 +1,1426 @@
+name: Kernel Tests
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - 'tests/Cosmos.TestRunner.**'
+      - 'tests/Kernels/**'
+      - '.github/workflows/kernel-tests.yml'
+  pull_request:
+    branches: [ "**" ]
+    paths:
+      - 'src/**'
+      - 'tests/Cosmos.TestRunner.**'
+      - 'tests/Kernels/**'
+      - '.github/workflows/kernel-tests.yml'
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Architecture to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - x64
+          - arm64
+
+permissions:
+  contents: read
+  checks: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  helloworld-tests:
+    name: HelloWorld Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 60
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 90
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run HelloWorld Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running HelloWorld kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-helloworld-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-helloworld-${{ matrix.arch }}
+          path: test-results-helloworld-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-helloworld-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: HelloWorld-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  helloworld-results:
+    name: HelloWorld Results
+    runs-on: ubuntu-latest
+    needs: helloworld-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-helloworld-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-helloworld-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-helloworld-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-helloworld-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 HelloWorld Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-helloworld-x64')}) | [Log](${getArtifactUrl('uart-log-helloworld-x64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-helloworld-arm64')}) | [Log](${getArtifactUrl('uart-log-helloworld-arm64')}) | [ISO](${getArtifactUrl('HelloWorld-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 HelloWorld Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  memory-tests:
+    name: Memory Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run Memory Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running Memory kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.Memory \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-memory-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-memory-${{ matrix.arch }}
+          path: test-results-memory-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-memory-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Memory-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.Memory/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.Memory/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  memory-results:
+    name: Memory Results
+    runs-on: ubuntu-latest
+    needs: memory-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-memory-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-memory-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-memory-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-memory-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 Memory Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-memory-x64')}) | [Log](${getArtifactUrl('uart-log-memory-x64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-memory-arm64')}) | [Log](${getArtifactUrl('uart-log-memory-arm64')}) | [ISO](${getArtifactUrl('Memory-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 Memory Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  typecasting-tests:
+    name: TypeCasting Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run TypeCasting Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running TypeCasting kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.TypeCasting \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-typecasting-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-typecasting-${{ matrix.arch }}
+          path: test-results-typecasting-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-typecasting-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TypeCasting-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  typecasting-results:
+    name: TypeCasting Results
+    runs-on: ubuntu-latest
+    needs: typecasting-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-typecasting-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-typecasting-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-typecasting-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-typecasting-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 TypeCasting Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-typecasting-x64')}) | [Log](${getArtifactUrl('uart-log-typecasting-x64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-typecasting-arm64')}) | [Log](${getArtifactUrl('uart-log-typecasting-arm64')}) | [ISO](${getArtifactUrl('TypeCasting-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 TypeCasting Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  timer-tests:
+    name: Timer Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run Timer Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running Timer kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.Timer \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-timer-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-timer-${{ matrix.arch }}
+          path: test-results-timer-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-timer-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Timer-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.Timer/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.Timer/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  timer-results:
+    name: Timer Results
+    runs-on: ubuntu-latest
+    needs: timer-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-timer-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-timer-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-timer-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-timer-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 Timer Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-timer-x64')}) | [Log](${getArtifactUrl('uart-log-timer-x64')}) | [ISO](${getArtifactUrl('Timer-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-timer-arm64')}) | [Log](${getArtifactUrl('uart-log-timer-arm64')}) | [ISO](${getArtifactUrl('Timer-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 Timer Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  network-tests:
+    name: Network Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run Network Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running Network kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.Network \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-network-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-network-${{ matrix.arch }}
+          path: test-results-network-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-network-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Network-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.Network/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.Network/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  network-results:
+    name: Network Results
+    runs-on: ubuntu-latest
+    needs: network-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-network-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-network-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-network-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-network-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 Network Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-network-x64')}) | [Log](${getArtifactUrl('uart-log-network-x64')}) | [ISO](${getArtifactUrl('Network-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-network-arm64')}) | [Log](${getArtifactUrl('uart-log-network-arm64')}) | [ISO](${getArtifactUrl('Network-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 Network Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  threading-tests:
+    name: Threading Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+            timeout: 120
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+            timeout: 180
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
+        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run Threading Kernel Tests
+        id: run-tests
+        run: |
+          echo "Running Threading kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- tests/Kernels/Cosmos.Kernel.Tests.Threading \
+            ${{ matrix.arch }} \
+            ${{ matrix.timeout }} \
+            test-results-threading-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: 10
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-threading-${{ matrix.arch }}
+          path: test-results-threading-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-threading-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Threading-Test-ISO-${{ matrix.arch }}
+          path: |
+            tests/Kernels/Cosmos.Kernel.Tests.Threading/output-${{ matrix.arch }}/*.iso
+            tests/Kernels/Cosmos.Kernel.Tests.Threading/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
+
+  threading-results:
+    name: Threading Results
+    runs-on: ubuntu-latest
+    needs: threading-tests
+    if: always()
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-threading-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-threading-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              # Count actual test cases that ran (not expected total)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              # Check if all expected tests ran
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-threading-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-threading-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Fetch artifacts for this run
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 Threading Tests
+
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl('test-results-threading-x64')}) | [Log](${getArtifactUrl('uart-log-threading-x64')}) | [ISO](${getArtifactUrl('Threading-Test-ISO-x64')}) |
+            | arm64 | [XML](${getArtifactUrl('test-results-threading-arm64')}) | [Log](${getArtifactUrl('uart-log-threading-arm64')}) | [ISO](${getArtifactUrl('Threading-Test-ISO-arm64')}) |
+
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## 🧪 Threading Tests'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, threading-tests]
+    if: always()
+    steps:
+      - name: 📊 Generate Summary
+        run: |
+          echo "# 🧪 Kernel Test Suite Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.helloworld-tests.result }}" == "success" ]; then
+            echo "| HelloWorld | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| HelloWorld | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.memory-tests.result }}" == "success" ]; then
+            echo "| Memory | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Memory | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.typecasting-tests.result }}" == "success" ]; then
+            echo "| TypeCasting | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| TypeCasting | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.timer-tests.result }}" == "success" ]; then
+            echo "| Timer | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Timer | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.network-tests.result }}" == "success" ]; then
+            echo "| Network | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Network | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.threading-tests.result }}" == "success" ]; then
+            echo "| Threading | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Threading | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

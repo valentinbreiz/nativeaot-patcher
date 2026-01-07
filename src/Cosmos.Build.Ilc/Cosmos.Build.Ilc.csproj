@@ -2,14 +2,50 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>$(AssemblyName)</Title>
-    <Version>1.0.0</Version>
+    <Version>3.0.3</Version>
     <Company>Cosmos</Company>
     <Description>Build tool to run ilc.</Description>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- This target will run when MSBuild is collecting the files to be packaged, and we'll implement it below. This property controls the dependency list for this packaging process, so by adding our custom property we hook ourselves into the process in a supported way. -->
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <!-- This property tells MSBuild where the root folder of the package's build assets should be. Because we are not a library package, we should not pack to 'lib'. Instead, we choose 'tasks' by convention. -->
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Content Include="build\Cosmos.Build.Ilc.props" PackagePath="build\" />
     <Content Include="build\Cosmos.Build.Ilc.targets" PackagePath="build\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil"  Pack="true" PackagePath="build\" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime"/>
+  </ItemGroup>
+
+
+  <!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
+      <BuildOutputInPackage
+          Include="@(ReferenceCopyLocalPaths)"
+          TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- This target adds the generated deps.json file to our package output -->
+  <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
+          BeforeTargets="BuiltProjectOutputGroup"
+          Condition=" '$(GenerateDependencyFile)' == 'true'">
+
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput
+          Include="$(ProjectDepsFilePath)"
+          TargetPath="$(ProjectDepsFileName)"
+          FinalOutputPath="$(ProjectDepsFilePath)" />
+    </ItemGroup>
+  </Target>
 </Project>

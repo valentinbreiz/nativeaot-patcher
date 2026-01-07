@@ -8,9 +8,11 @@
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
   </ItemGroup>
 </Project>
