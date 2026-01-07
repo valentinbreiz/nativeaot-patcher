@@ -31,12 +31,12 @@
 
   <!-- GCC compiler flags for x64 -->
   <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -target x86_64-unknown-linux-gnu -nostdinc</GCCCompilerFlags>
+    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding -nostdinc</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- GCC compiler flags for ARM64 -->
   <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -ffreestanding -target aarch64-unknown-linux-gnu -nostdinc</GCCCompilerFlags>
+    <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -ffreestanding -nostdinc</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- ILC arguments -->
