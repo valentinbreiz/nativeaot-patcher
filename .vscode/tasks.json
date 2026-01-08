@@ -47,6 +47,25 @@
       }
     },
     {
+      "label": "Build macOS x64 DevKernel",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "examples/DevKernel/DevKernel.csproj",
+        "-c", "Debug",
+        "-r", "osx-x64",
+        "-p:DefineConstants=ARCH_X64",
+        "-p:CosmosArch=x64",
+        "--verbosity", "minimal"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Build ARM64 DevKernel",
       "type": "shell",
       "command": "dotnet",
@@ -55,6 +74,25 @@
         "examples/DevKernel/DevKernel.csproj",
         "-c", "Debug",
         "-r", "linux-arm64",
+        "-p:DefineConstants=ARCH_ARM64",
+        "-p:CosmosArch=arm64",
+        "--verbosity", "minimal"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Build macOS ARM64 DevKernel",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "examples/DevKernel/DevKernel.csproj",
+        "-c", "Debug",
+        "-r", "osx-arm64",
         "-p:DefineConstants=ARCH_ARM64",
         "-p:CosmosArch=arm64",
         "--verbosity", "minimal"
@@ -78,6 +116,31 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "qemu-devkernel",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-DEVKERNEL-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Debug macOS x64 DevKernel",
+      "dependsOn": ["Build macOS x64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "qemu-system-x86_64 -M pc -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_osx-x64/cosmos/DevKernel.iso -display gtk -vga std -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-devkernel-osx-x64",
         "fileLocation": ["relative", "${workspaceFolder}"],
         "background": {
           "activeOnStart": true,
@@ -116,6 +179,31 @@
       }
     },
     {
+      "label": "Debug macOS ARM64 DevKernel",
+      "dependsOn": ["Build macOS ARM64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_osx-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-devkernel-osx-arm64",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-DEVKERNEL-ARM64-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Run QEMU x64 DevKernel",
       "type": "shell",
       "dependsOn": "Build x64 DevKernel",
@@ -141,6 +229,31 @@
       }
     },
     {
+      "label": "Run QEMU macOS x64 DevKernel",
+      "type": "shell",
+      "dependsOn": "Build macOS x64 DevKernel",
+      "command": "qemu-system-x86_64",
+      "args": [
+        "-M", "q35",
+        "-cpu", "max",
+        "-m", "512M",
+        "-serial", "stdio",
+        "-cdrom", "${workspaceFolder}/artifacts/bin/DevKernel/debug_osx-x64/cosmos/DevKernel.iso",
+        "-display", "gtk",
+        "-vga", "std",
+        "-device", "i8042",
+        "-netdev", "user,id=net0,hostfwd=udp::5555-:5555",
+        "-device", "e1000,netdev=net0",
+        "-object", "filter-dump,id=dump0,netdev=net0,file=packets.pcap",
+        "-no-reboot",
+        "-no-shutdown"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Run QEMU ARM64 DevKernel",
       "type": "shell",
       "dependsOn": "Build ARM64 DevKernel",
@@ -151,6 +264,29 @@
         "-m", "1G",
         "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
         "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso",
+        "-device", "virtio-scsi-pci",
+        "-device", "scsi-cd,drive=cd,bootindex=0",
+        "-device", "virtio-keyboard-device",
+        "-device", "ramfb",
+        "-display", "gtk,show-cursor=on",
+        "-serial", "stdio"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run QEMU macOS ARM64 DevKernel",
+      "type": "shell",
+      "dependsOn": "Build macOS ARM64 DevKernel",
+      "command": "qemu-system-aarch64",
+      "args": [
+        "-M", "virt",
+        "-cpu", "cortex-a53",
+        "-m", "1G",
+        "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
+        "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_osx-arm64/cosmos/DevKernel.iso",
         "-device", "virtio-scsi-pci",
         "-device", "scsi-cd,drive=cd,bootindex=0",
         "-device", "virtio-keyboard-device",
