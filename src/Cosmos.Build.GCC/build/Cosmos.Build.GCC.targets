@@ -4,7 +4,9 @@
 
   <Target Name="FindCSourceFilesForGCC" BeforeTargets="BuildGCC">
     <PropertyGroup>
-      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <Rid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</Rid>
+      <Rid Condition="'$(Rid)' == '' and '$(NETCoreSdkRuntimeIdentifier)' != ''">$(NETCoreSdkRuntimeIdentifier)</Rid>
+      <TargetArchitecture Condition="'$(Rid)' != ''">$(Rid.Substring($(Rid.LastIndexOf('-') + 1)))</TargetArchitecture>
     </PropertyGroup>
 
     <!-- Exclude Folders/Files that doesn't exists -->
