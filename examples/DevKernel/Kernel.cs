@@ -14,6 +14,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.Kernel.System.VFS;
 using Cosmos.Kernel.System.VFS.FAT;
+using Cosmos.Kernel.System.VFS.Enums;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Devices.Storage;
 #endif
@@ -27,6 +28,13 @@ namespace DevKernel;
 public class Kernel : Sys.Kernel
 {
     private string _prompt = "cosmos";
+    private int _currentDrive = -1; // -1 = no drive selected
+
+    // Pre-allocated drive paths to avoid string concatenation issues
+    private static readonly string[] _drivePaths = new string[]
+    {
+        "0:/", "1:/", "2:/", "3:/", "4:/", "5:/", "6:/", "7:/", "8:/", "9:/"
+    };
 
     protected override void BeforeRun()
     {
@@ -183,6 +191,68 @@ public class Kernel : Sys.Kernel
                     PrintError("Usage: format <partition_number>");
                 break;
 
+            case "mount":
+                if (parts.Length >= 3 && int.TryParse(parts[1], out int mountPartNum) && int.TryParse(parts[2], out int driveNum))
+                    MountPartition(mountPartNum, driveNum);
+                else
+                    PrintError("Usage: mount <partition_number> <drive_number>");
+                break;
+
+            case "ls":
+            case "dir":
+                ListDirectory(parts.Length >= 2 ? parts[1] : "/");
+                break;
+
+            case "cat":
+            case "type":
+                if (parts.Length >= 2)
+                    DisplayFileContents(parts[1]);
+                else
+                    PrintError("Usage: cat <path>");
+                break;
+
+            case "mkdir":
+                if (parts.Length >= 2)
+                    CreateDirectory(parts[1]);
+                else
+                    PrintError("Usage: mkdir <path>");
+                break;
+
+            case "touch":
+                if (parts.Length >= 2)
+                    CreateFile(parts[1]);
+                else
+                    PrintError("Usage: touch <path>");
+                break;
+
+            case "rm":
+            case "del":
+                if (parts.Length >= 2)
+                    DeleteEntry(parts[1]);
+                else
+                    PrintError("Usage: rm <path>");
+                break;
+
+            case "write":
+                if (parts.Length >= 3)
+                {
+                    // Join parts[2..] manually without LINQ
+                    string text = "";
+                    for (int i = 2; i < parts.Length; i++)
+                    {
+                        if (i > 2) text += " ";
+                        text += parts[i];
+                    }
+                    WriteToFile(parts[1], text);
+                }
+                else
+                    PrintError("Usage: write <path> <text>");
+                break;
+
+            case "mounts":
+                ShowMountPoints();
+                break;
+
 #endif
 
 
@@ -191,6 +261,14 @@ public class Kernel : Sys.Kernel
                 break;
 
             default:
+#if ARCH_X64
+                // Check for drive switch command like "0:" or "1:"
+                if (cmd.Length >= 2 && cmd.EndsWith(":") && int.TryParse(cmd[..^1], out int switchDrive))
+                {
+                    SwitchDrive(switchDrive);
+                    break;
+                }
+#endif
                 PrintError($"\"{cmd}\" is not a command");
                 Console.WriteLine("Type 'help' for available commands.");
                 break;
@@ -234,6 +312,15 @@ public class Kernel : Sys.Kernel
         PrintCommand("creategpt <n>", "Create GPT on disk n");
         PrintCommand("mkpart <n> <mb>", "Create partition on disk n");
         PrintCommand("format <n>", "Format partition n as FAT32");
+        PrintCommand("mount <p> <d>", "Mount partition p as drive d");
+        PrintCommand("<d>:", "Switch to drive d (e.g. 0:)");
+        PrintCommand("mounts", "Show mounted filesystems");
+        PrintCommand("ls [path]", "List directory contents");
+        PrintCommand("cat <path>", "Display file contents");
+        PrintCommand("mkdir <path>", "Create directory");
+        PrintCommand("touch <path>", "Create empty file");
+        PrintCommand("rm <path>", "Delete file or directory");
+        PrintCommand("write <path> <txt>", "Write text to file");
 #endif
     }
 
@@ -1254,6 +1341,411 @@ public class Kernel : Sys.Kernel
             Serial.WriteString(ex.Message);
             Serial.WriteString("\n");
             PrintError("Format failed: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void MountPartition(int partNum, int driveNum)
+    {
+        if (driveNum < 0 || driveNum >= _drivePaths.Length)
+        {
+            PrintError("Drive number must be 0-9");
+            Console.WriteLine();
+            return;
+        }
+
+        string mountPath = _drivePaths[driveNum];
+
+        Serial.WriteString("[mount] Mounting partition ");
+        Serial.WriteNumber((uint)partNum);
+        Serial.WriteString(" as drive ");
+        Serial.WriteNumber((uint)driveNum);
+        Serial.WriteString(" at ");
+        Serial.WriteString(mountPath);
+        Serial.WriteString("\n");
+
+        var partitions = Partition.Partitions;
+        if (partNum < 0 || partNum >= partitions.Count)
+        {
+            PrintError("Invalid partition number. Use 'partitions' to list.");
+            return;
+        }
+
+        var partition = partitions[partNum];
+
+        try
+        {
+            Serial.WriteString("[mount] Calling VfsManager.Mount...\n");
+            VfsManager.Mount(partition, mountPath);
+            Serial.WriteString("[mount] Mount succeeded\n");
+
+            Serial.WriteString("[mount] Printing success message...\n");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Partition ");
+            Console.Write(partNum.ToString());
+            Console.Write(" mounted as drive ");
+            Console.WriteLine(driveNum.ToString());
+            Console.ResetColor();
+            Serial.WriteString("[mount] Success message printed\n");
+
+            // Auto-switch to new drive if no drive selected
+            if (_currentDrive < 0)
+            {
+                _currentDrive = driveNum;
+                Serial.WriteString("[mount] Auto-switching to drive\n");
+                Console.Write("Switched to drive ");
+                Console.WriteLine(driveNum.ToString());
+            }
+            Serial.WriteString("[mount] Done\n");
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[mount] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Mount failed: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void SwitchDrive(int driveNum)
+    {
+        if (driveNum < 0 || driveNum >= _drivePaths.Length)
+        {
+            PrintError("Drive number must be 0-9");
+            return;
+        }
+
+        string mountPath = _drivePaths[driveNum];
+
+        if (!VfsManager.IsMounted(mountPath))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("Drive ");
+            Console.Write(driveNum.ToString());
+            Console.WriteLine(" is not mounted.");
+            Console.ResetColor();
+            return;
+        }
+
+        _currentDrive = driveNum;
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("Switched to drive ");
+        Console.WriteLine(driveNum.ToString());
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+
+    private string GetFullPath(string path)
+    {
+        if (_currentDrive < 0 || _currentDrive >= _drivePaths.Length)
+        {
+            return path;
+        }
+
+        string drivePath = _drivePaths[_currentDrive];
+
+        // drivePath is "0:/" and path is "/" -> want "0:/"
+        // drivePath is "0:/" and path is "/test" -> want "0:/test"
+        if (path.StartsWith("/"))
+        {
+            return drivePath + path.Substring(1);
+        }
+
+        return drivePath + path;
+    }
+
+    private void ShowMountPoints()
+    {
+        Serial.WriteString("[mounts] ShowMountPoints called\n");
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Mounted Filesystems:");
+        Console.ResetColor();
+
+        int count = VfsManager.GetMountCount();
+        Serial.WriteString("[mounts] Count: ");
+        Serial.WriteNumber((ulong)count);
+        Serial.WriteString("\n");
+
+        if (count == 0)
+        {
+            PrintWarning("No filesystems mounted.");
+            Console.WriteLine();
+            return;
+        }
+
+        Serial.WriteString("[mounts] Iterating...\n");
+        for (int i = 0; i < count; i++)
+        {
+            var mount = VfsManager.GetMountAt(i);
+            if (mount == null) continue;
+
+            Serial.WriteString("[mounts] Path: ");
+            Serial.WriteString(mount.Value.Path);
+            Serial.WriteString("\n");
+
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(mount.Value.Path);
+            Console.ResetColor();
+            Console.Write(" -> ");
+
+            string fsType = mount.Value.FileSystem.Type;
+            Serial.WriteString("[mounts] Type: ");
+            Serial.WriteString(fsType);
+            Serial.WriteString("\n");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(fsType);
+
+            ulong size = mount.Value.FileSystem.Size;
+            Serial.WriteString("[mounts] Size: ");
+            Serial.WriteNumber(size);
+            Serial.WriteString("\n");
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(" (");
+            Console.Write((size / 1024 / 1024).ToString());
+            Console.Write(" MB)");
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+        Serial.WriteString("[mounts] Done\n");
+        Console.WriteLine();
+    }
+
+    private void ListDirectory(string path)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[ls] Listing: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            var entries = VfsManager.GetDirectoryListing(fullPath);
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine("Contents of " + path + ":");
+            Console.ResetColor();
+
+            if (entries.Count == 0)
+            {
+                PrintWarning("  (empty)");
+            }
+            else
+            {
+                foreach (var entry in entries)
+                {
+                    Console.Write("  ");
+                    if (entry.Type == DirectoryEntryType.Directory)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.Write("[DIR]  ");
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("[FILE] ");
+                    }
+
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(entry.Name.PadRight(20));
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.Write(entry.Size.ToString().PadLeft(10));
+                    Console.Write(" bytes");
+                    Console.ResetColor();
+                    Console.WriteLine();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[ls] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void DisplayFileContents(string path)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[cat] Reading: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            string? contents = VfsManager.ReadAllText(fullPath);
+            if (contents == null)
+            {
+                PrintError("File not found: " + path);
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine("Contents of " + path + ":");
+            Console.ResetColor();
+            Console.WriteLine(contents);
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[cat] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void CreateDirectory(string path)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[mkdir] Creating: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            VfsManager.CreateDirectory(fullPath);
+            PrintSuccess("Directory created: " + path);
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[mkdir] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void CreateFile(string path)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[touch] Creating: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            VfsManager.CreateFile(fullPath);
+            PrintSuccess("File created: " + path);
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[touch] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void DeleteEntry(string path)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[rm] Deleting: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            if (VfsManager.DirectoryExists(fullPath))
+            {
+                VfsManager.DeleteDirectory(fullPath, false);
+                PrintSuccess("Directory deleted: " + path);
+            }
+            else if (VfsManager.FileExists(fullPath))
+            {
+                VfsManager.DeleteFile(fullPath);
+                PrintSuccess("File deleted: " + path);
+            }
+            else
+            {
+                PrintError("Path not found: " + path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[rm] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
+        }
+
+        Console.WriteLine();
+    }
+
+    private void WriteToFile(string path, string text)
+    {
+        if (_currentDrive < 0)
+        {
+            PrintError("No drive mounted. Use 'mount <partition> <drive>' first.");
+            Console.WriteLine();
+            return;
+        }
+
+        string fullPath = GetFullPath(path);
+        Serial.WriteString("[write] Writing to: ");
+        Serial.WriteString(fullPath);
+        Serial.WriteString("\n");
+
+        try
+        {
+            VfsManager.WriteAllText(fullPath, text);
+            PrintSuccess("Written " + text.Length + " bytes to " + path);
+        }
+        catch (Exception ex)
+        {
+            Serial.WriteString("[write] ERROR: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+            PrintError("Error: " + ex.Message);
         }
 
         Console.WriteLine();
