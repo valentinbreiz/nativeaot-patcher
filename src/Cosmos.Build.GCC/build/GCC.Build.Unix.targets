@@ -10,7 +10,8 @@
       </TargetArchitecture>
 
       <!-- x64 -->
-      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">
         /opt/homebrew/bin/x86_64-elf-gcc
       </GCCPath>
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">
@@ -18,18 +19,23 @@
       </GCCPath>
 
       <!-- arm64 -->
-      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">
         /opt/homebrew/bin/aarch64-elf-gcc
       </GCCPath>
-      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-elf-gcc')">
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-elf-gcc')">
         aarch64-elf-gcc
       </GCCPath>
-      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-linux-gnu-gcc')">
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-linux-gnu-gcc')">
         aarch64-linux-gnu-gcc
       </GCCPath>
 
-      <Error Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == 'gcc'"
-       Text="No ARM64 cross-compiler found. Install aarch64-elf-gcc or aarch64-linux-gnu-gcc." />
+      <Error Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == 'gcc'">
+        No ARM64 cross-compiler found. Install aarch64-elf-gcc or aarch64-linux-gnu-gcc.
+      </Error>
+
     </PropertyGroup>
 
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
