@@ -1,0 +1,15 @@
+menu "Cosmos RPi Dev Board Configuration"
+
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "your_wifi_ssid"
+        help
+            WiFi network name to connect to.
+
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "your_wifi_password"
+        help
+            WiFi network password.
+
+endmenu

@@ -397,7 +397,8 @@ out/
 
 *.iso
 *.efi
-main
+# Compiled binary named 'main' (not ESP32/main directory)
+/main
 
 /kernel-deps
 /ovmf
@@ -450,5 +451,5 @@ opencode.json
 output-helloworld/
 
 # Task files
-# tasks.json
-# tasks/ 
+tasks.json
+tasks/ 
