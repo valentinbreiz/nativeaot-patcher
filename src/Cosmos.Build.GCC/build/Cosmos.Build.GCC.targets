@@ -4,7 +4,9 @@
 
   <Target Name="FindCSourceFilesForGCC" BeforeTargets="BuildGCC">
     <PropertyGroup>
-      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <!-- Derive architecture from RID first, then fall back to CosmosArch -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
     </PropertyGroup>
 
     <!-- Exclude Folders/Files that doesn't exists -->

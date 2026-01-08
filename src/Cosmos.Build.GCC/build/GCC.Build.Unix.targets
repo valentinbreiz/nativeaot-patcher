@@ -1,7 +1,9 @@
 <Project>
   <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
     <PropertyGroup>
-      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <!-- Derive architecture from RID first, then fall back to CosmosArch -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
       <!-- Use architecture-specific GCC cross-compiler -->
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">gcc</GCCPath>
