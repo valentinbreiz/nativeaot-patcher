@@ -43,18 +43,84 @@ public class ILCloner
 
     /// <summary>
     /// Remaps an instruction operand to the target method's context.
+    /// Handles generic parameter remapping for generic methods.
     /// </summary>
     public object? RemapOperand(object? operand, MethodDefinition sourceMethod, MethodDefinition targetMethod, bool isInstancePlug)
     {
+        // Check if we need to do generic remapping
+        bool needsGenericRemap = sourceMethod.HasGenericParameters && targetMethod.HasGenericParameters;
+
         return operand switch
         {
-            MethodReference m => TypeImporter.SafeImportMethod(targetMethod.Module, m),
+            MethodReference m => RemapMethodReference(m, sourceMethod, targetMethod, needsGenericRemap),
             FieldReference f => TypeImporter.SafeImportField(targetMethod.Module, f),
-            TypeReference t => TypeImporter.SafeImportType(targetMethod.Module, t),
+            TypeReference t => needsGenericRemap
+                ? TypeImporter.SafeImportTypeWithGenericRemap(targetMethod.Module, t, sourceMethod, targetMethod)
+                : TypeImporter.SafeImportType(targetMethod.Module, t),
             MemberReference mr => targetMethod.Module.ImportReference(mr),
             ParameterDefinition p => RemapParameter(p, sourceMethod, targetMethod, isInstancePlug),
             _ => operand
         };
+    }
+
+    /// <summary>
+    /// Remaps a method reference, handling generic parameter remapping for generic method calls.
+    /// </summary>
+    private MethodReference RemapMethodReference(MethodReference methodRef, MethodDefinition sourceMethod, MethodDefinition targetMethod, bool needsGenericRemap)
+    {
+        if (!needsGenericRemap)
+            return TypeImporter.SafeImportMethod(targetMethod.Module, methodRef);
+
+        // If this is a generic instance method, we need to remap the generic arguments
+        if (methodRef is GenericInstanceMethod gim)
+        {
+            var imported = TypeImporter.SafeImportMethod(targetMethod.Module, gim.ElementMethod);
+
+            // Create new generic instance with remapped arguments
+            var newGim = new GenericInstanceMethod(imported);
+            foreach (var arg in gim.GenericArguments)
+            {
+                var remappedArg = TypeImporter.SafeImportTypeWithGenericRemap(targetMethod.Module, arg, sourceMethod, targetMethod);
+                newGim.GenericArguments.Add(remappedArg);
+            }
+            return newGim;
+        }
+
+        // For non-generic method references, still need to remap parameter/return types that use generics
+        var result = TypeImporter.SafeImportMethod(targetMethod.Module, methodRef);
+
+        // Check if declaring type uses our generic parameters
+        if (result.DeclaringType != null)
+        {
+            var remappedDeclaringType = TypeImporter.SafeImportTypeWithGenericRemap(
+                targetMethod.Module, result.DeclaringType, sourceMethod, targetMethod);
+
+            if (remappedDeclaringType != result.DeclaringType)
+            {
+                // Need to create a new method reference with the remapped declaring type
+                var newRef = new MethodReference(result.Name, result.ReturnType, remappedDeclaringType)
+                {
+                    HasThis = result.HasThis,
+                    ExplicitThis = result.ExplicitThis,
+                    CallingConvention = result.CallingConvention
+                };
+
+                foreach (var param in result.Parameters)
+                {
+                    var remappedParamType = TypeImporter.SafeImportTypeWithGenericRemap(
+                        targetMethod.Module, param.ParameterType, sourceMethod, targetMethod);
+                    newRef.Parameters.Add(new ParameterDefinition(param.Name, param.Attributes, remappedParamType));
+                }
+
+                // Remap return type
+                newRef.ReturnType = TypeImporter.SafeImportTypeWithGenericRemap(
+                    targetMethod.Module, result.ReturnType, sourceMethod, targetMethod);
+
+                return newRef;
+            }
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -124,15 +190,21 @@ public class ILCloner
 
     /// <summary>
     /// Copies variables from source to target method with proper type importing.
+    /// Handles generic parameter remapping for generic methods.
     /// </summary>
     public static void CopyVariables(MethodDefinition sourceMethod, MethodDefinition targetMethod)
     {
         targetMethod.Body.Variables.Clear();
+
+        bool needsGenericRemap = sourceMethod.HasGenericParameters && targetMethod.HasGenericParameters;
+
         foreach (VariableDefinition variable in sourceMethod.Body.Variables)
         {
-            targetMethod.Body.Variables.Add(
-                new VariableDefinition(TypeImporter.SafeImportType(targetMethod.Module, variable.VariableType))
-            );
+            TypeReference varType = needsGenericRemap
+                ? TypeImporter.SafeImportTypeWithGenericRemap(targetMethod.Module, variable.VariableType, sourceMethod, targetMethod)
+                : TypeImporter.SafeImportType(targetMethod.Module, variable.VariableType);
+
+            targetMethod.Body.Variables.Add(new VariableDefinition(varType));
         }
     }
 

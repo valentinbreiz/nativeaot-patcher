@@ -120,7 +120,8 @@ public class StrideScheduler : IScheduler
         threadData.Remain = threadData.Pass - (long)cpuData.GlobalPass;
         threadData.SleepCount++;
 
-        RemoveThreadFromQueue(cpuData.RunQueue, thread);
+        cpuData.RunQueue.Remove(thread);
+
         cpuData.TotalTickets -= threadData.Tickets;
     }
 
@@ -132,9 +133,7 @@ public class StrideScheduler : IScheduler
 
         var threadData = thread.GetSchedulerData<StrideThreadData>();
 
-        // Remove from run queue using ReferenceEquals + RemoveAt
-        // Note: List<T>.Remove/Contains crash due to EqualityComparer<T>.Default requiring broken runtime helpers
-        RemoveThreadFromQueue(cpuData.RunQueue, thread);
+        cpuData.RunQueue.Remove(thread);
 
         if (threadData != null)
             cpuData.TotalTickets -= threadData.Tickets;
@@ -272,7 +271,7 @@ public class StrideScheduler : IScheduler
         if (fromData == null || toData == null || threadData == null)
             return;
 
-        RemoveThreadFromQueue(fromData.RunQueue, thread);
+        fromData.RunQueue.Remove(thread);
         fromData.TotalTickets -= threadData.Tickets;
 
         threadData.Pass = (long)toData.GlobalPass + threadData.Remain;
@@ -345,7 +344,7 @@ public class StrideScheduler : IScheduler
 
         if (thread.State == ThreadState.Ready)
         {
-            RemoveThreadFromQueue(cpuData.RunQueue, thread);
+            cpuData.RunQueue.Remove(thread);
             InsertByPass(cpuData, thread);
         }
     }
@@ -400,25 +399,6 @@ public class StrideScheduler : IScheduler
     private ulong GetTimestamp()
     {
         return (ulong)Stopwatch.GetTimestamp();
-    }
-
-    /// <summary>
-    /// Removes a thread from the queue using ReferenceEquals + RemoveAt.
-    /// TODO: List.Remove/Contains crash due to EqualityComparer requiring broken runtime helpers.
-    /// </summary>
-    private void RemoveThreadFromQueue(System.Collections.Generic.List<Thread> queue, Thread thread)
-    {
-        using (InternalCpu.DisableInterruptsScope())
-        {
-            for (int i = 0; i < queue.Count; i++)
-            {
-                if (object.ReferenceEquals(queue[i], thread))
-                {
-                    queue.RemoveAt(i);
-                    return;
-                }
-            }
-        }
     }
 
     // ========== Diagnostics ==========

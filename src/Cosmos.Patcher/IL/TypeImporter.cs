@@ -25,6 +25,105 @@ public static class TypeImporter
     }
 
     /// <summary>
+    /// Imports a type reference with generic parameter remapping from source to target method.
+    /// This is needed when cloning generic method bodies - the plug's generic parameters must be
+    /// remapped to the target method's generic parameters.
+    /// </summary>
+    public static TypeReference SafeImportTypeWithGenericRemap(
+        ModuleDefinition module,
+        TypeReference typeRef,
+        MethodDefinition sourceMethod,
+        MethodDefinition targetMethod)
+    {
+        if (typeRef == null) return null!;
+
+        // First, remap generic parameters
+        var remapped = RemapGenericParameters(typeRef, sourceMethod, targetMethod);
+
+        var imported = module.ImportReference(remapped);
+
+        if (!MightHaveSelfReference(module, imported))
+            return imported;
+
+        return FixSelfReferences(module, imported);
+    }
+
+    /// <summary>
+    /// Remaps generic parameters from source method to target method.
+    /// </summary>
+    private static TypeReference RemapGenericParameters(
+        TypeReference typeRef,
+        MethodDefinition sourceMethod,
+        MethodDefinition targetMethod)
+    {
+        if (typeRef == null) return null!;
+
+        // Handle method generic parameter (!!T)
+        if (typeRef is GenericParameter gp)
+        {
+            if (gp.Owner is MethodReference && gp.Position < targetMethod.GenericParameters.Count)
+            {
+                // Map source method's generic parameter to target method's by position
+                return targetMethod.GenericParameters[gp.Position];
+            }
+            // Type generic parameters (from declaring type) - return as-is for now
+            return typeRef;
+        }
+
+        // Handle arrays of generic types
+        if (typeRef is ArrayType arrayType)
+        {
+            var remappedElement = RemapGenericParameters(arrayType.ElementType, sourceMethod, targetMethod);
+            if (remappedElement != arrayType.ElementType)
+                return new ArrayType(remappedElement, arrayType.Rank);
+            return typeRef;
+        }
+
+        // Handle by-reference types
+        if (typeRef is ByReferenceType byRefType)
+        {
+            var remappedElement = RemapGenericParameters(byRefType.ElementType, sourceMethod, targetMethod);
+            if (remappedElement != byRefType.ElementType)
+                return new ByReferenceType(remappedElement);
+            return typeRef;
+        }
+
+        // Handle pointer types
+        if (typeRef is PointerType ptrType)
+        {
+            var remappedElement = RemapGenericParameters(ptrType.ElementType, sourceMethod, targetMethod);
+            if (remappedElement != ptrType.ElementType)
+                return new PointerType(remappedElement);
+            return typeRef;
+        }
+
+        // Handle generic instance types
+        if (typeRef is GenericInstanceType git)
+        {
+            bool needsRemap = false;
+            var remappedArgs = new List<TypeReference>();
+
+            foreach (var arg in git.GenericArguments)
+            {
+                var remapped = RemapGenericParameters(arg, sourceMethod, targetMethod);
+                remappedArgs.Add(remapped);
+                if (remapped != arg)
+                    needsRemap = true;
+            }
+
+            if (needsRemap)
+            {
+                var result = new GenericInstanceType(git.ElementType);
+                foreach (var arg in remappedArgs)
+                    result.GenericArguments.Add(arg);
+                return result;
+            }
+        }
+
+        return typeRef;
+    }
+
+    /// <summary>
     /// Imports a method reference, fixing self-references in declaring type and parameters.
     /// </summary>
     public static MethodReference SafeImportMethod(ModuleDefinition module, MethodReference methodRef)
