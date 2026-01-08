@@ -23,6 +23,11 @@
         Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">
         /opt/homebrew/bin/aarch64-elf-gcc
       </GCCPath>
+      <!-- Default to aarch64-elf-gcc on non-Windows hosts when targeting arm64 -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and '$(OS)' != 'Windows_NT'">
+        aarch64-elf-gcc
+      </GCCPath>
       <GCCPath
         Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-elf-gcc')">
         aarch64-elf-gcc
