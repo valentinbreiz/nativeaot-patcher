@@ -11,6 +11,11 @@
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
   </PropertyGroup>
 
+  <!-- Default startup object for Cosmos kernels -->
+  <PropertyGroup>
+    <StartupObject Condition="'$(StartupObject)' == ''">Cosmos.Kernel.System.Internal.CosmosEntryPoint</StartupObject>
+  </PropertyGroup>
+
   <!-- ILC and build dependencies -->
   <PropertyGroup>
     <IlcDependsOn>RunPatcher;$(IlcDependsOn);PrepareForILLink</IlcDependsOn>
@@ -37,6 +42,16 @@
   <!-- GCC compiler flags for ARM64 -->
   <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
     <GCCCompilerFlags Condition="'$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -ffreestanding -nostdinc</GCCCompilerFlags>
+  </PropertyGroup>
+
+  <!-- macOS toolchain preferences (Homebrew) -->
+  <PropertyGroup>
+    <YasmPath Condition="'$(RuntimeIdentifier)' == 'osx-arm64' and Exists('/opt/homebrew/bin/aarch64-elf-as')">/opt/homebrew/bin/aarch64-elf-as</YasmPath>
+    <YasmPath Condition="'$(RuntimeIdentifier)' == 'osx-x64' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
+    <GCCPath Condition="'$(RuntimeIdentifier)' == 'osx-x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
+    <GCCPath Condition="'$(RuntimeIdentifier)' == 'osx-arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">/opt/homebrew/bin/aarch64-elf-gcc</GCCPath>
+    <!-- Drop unsupported -target flag for Homebrew aarch64 GCC on macOS -->
+    <GCCCompilerFlags Condition="'$(RuntimeIdentifier)' == 'osx-arm64' and '$(GCCCompilerFlags)' == ''">-O2 -fno-stack-protector -fno-builtin -ffreestanding -nostdinc -DARCH_ARM64 -march=armv8-a -mcmodel=large -fno-PIC</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- ILC arguments -->

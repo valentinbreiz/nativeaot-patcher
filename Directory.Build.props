@@ -23,6 +23,12 @@
     <VersionPrefix>3.0.0</VersionPrefix>
   </PropertyGroup>
 
+  <!-- Normalize TargetArchitecture early so GCC targets pick the right toolchain -->
+  <PropertyGroup>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
+  </PropertyGroup>
+
   <Target Name="SetDynamicVersion" BeforeTargets="GenerateAssemblyInfo">
     <PropertyGroup>
       <VersionSuffix>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmm"))</VersionSuffix>
@@ -30,5 +36,17 @@
     </PropertyGroup>
     <Message Importance="High" Text="Version: $(Version)" />
   </Target>
+
+  <!-- Prefer Homebrew cross compilers when available to avoid hardcoded /opt/homebrew paths in downstream targets -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/opt/homebrew/bin/brew')">/opt/homebrew</HomebrewPrefix>
+    <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/usr/local/bin/brew')">/usr/local</HomebrewPrefix>
+
+    <!-- GCCPath only if not already set by the caller; mirrors ResolveHomebrewGCC but runs earlier as a safety net -->
+    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc</GCCPath>
+    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/bin/x86_64-elf-gcc</GCCPath>
+    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc</GCCPath>
+    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/bin/aarch64-elf-gcc</GCCPath>
+  </PropertyGroup>
 
 </Project>

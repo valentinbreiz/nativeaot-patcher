@@ -5,16 +5,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <StartupObject>Cosmos.Kernel.System.Internal.CosmosEntryPoint</StartupObject>
-    <!-- Prefer Homebrew-provided assemblers on macOS hosts -->
-    <YasmPath Condition="'$(RuntimeIdentifier)' == 'osx-arm64' and Exists('/opt/homebrew/bin/aarch64-elf-as')">/opt/homebrew/bin/aarch64-elf-as</YasmPath>
-    <YasmPath Condition="'$(RuntimeIdentifier)' == 'osx-x64' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
-    <!-- Prefer Homebrew x86_64 cross-GCC when targeting osx-x64 from an arm64 host -->
-    <GCCPath Condition="'$(RuntimeIdentifier)' == 'osx-x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
-    <!-- Prefer Homebrew aarch64 GCC when building arm64 on macOS -->
-    <GCCPath Condition="'$(RuntimeIdentifier)' == 'osx-arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">/opt/homebrew/bin/aarch64-elf-gcc</GCCPath>
-    <!-- Drop unsupported -target flag for Homebrew aarch64 GCC on macOS -->
-    <GCCCompilerFlags Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">-O2 -fno-stack-protector -fno-builtin -ffreestanding -nostdinc -DARCH_ARM64 -march=armv8-a -mcmodel=large -fno-PIC</GCCCompilerFlags>
   </PropertyGroup>
 
   <!-- Core kernel packages (using project references for development) -->

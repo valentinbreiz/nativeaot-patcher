@@ -124,13 +124,16 @@ public sealed class GCCBuildTask : ToolTask
             Log.LogMessage(MessageImportance.Normal, $"Compiling {file} with args: {commandLineArguments}");
 
             // Validate GCC path exists
-            if (!File.Exists(GenerateFullPathToTool()) && !TestGCCInPath())
+            var toolPath = GenerateFullPathToTool().Trim();
+            GCCPath = toolPath; // normalize for downstream checks
+
+            if (!File.Exists(toolPath) && !TestGCCInPath())
             {
-                Log.LogError($"x86_64-elf-gcc not found at {GenerateFullPathToTool()}. Please install the x86_64-elf cross-compiler.");
+                Log.LogError($"GCC not found at {toolPath}. Ensure the cross-compiler is installed and on PATH.");
                 return false;
             }
 
-            if (!ExecuteCommand(GenerateFullPathToTool(), commandLineArguments))
+            if (!ExecuteCommand(toolPath, commandLineArguments))
             {
                 Log.LogError($"Failed to compile {file}");
                 Log.LogError($"Command: {GenerateFullPathToTool()} {commandLineArguments}");
@@ -180,27 +183,22 @@ public sealed class GCCBuildTask : ToolTask
     {
         try
         {
-            // If GCCPath is just the executable name, test if it's in the PATH
-            if (Path.GetFileName(GCCPath!) == GCCPath)
+            var psi = new System.Diagnostics.ProcessStartInfo
             {
-                var psi = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = GCCPath,
-                    Arguments = "--version",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
+                FileName = GCCPath,
+                Arguments = "--version",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
 
-                using var process = new System.Diagnostics.Process();
-                process.StartInfo = psi;
-                process.Start();
-                process.WaitForExit();
+            using var process = new System.Diagnostics.Process();
+            process.StartInfo = psi;
+            process.Start();
+            process.WaitForExit();
 
-                return process.ExitCode == 0;
-            }
-            return false;
+            return process.ExitCode == 0;
         }
         catch
         {
