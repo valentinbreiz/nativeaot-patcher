@@ -66,7 +66,7 @@ public interface IFileSystem
     /// <exception cref="OverflowException">Thrown when data lenght is greater then Int32.MaxValue.</exception>
     /// <exception cref="Exception">Thrown when data size invalid / invalid directory entry type / memory error.</exception>
     /// <exception cref="ArgumentException">Thrown on memory error.</exception>
-    /// <exception cref="DecoderFallbackException">Thrown on memory error.</exception>
+    /// <exception cref="dDecoderFallbackException">Thrown on memory error.</exception>
     /// <exception cref="RankException">Thrown on fatal error.</exception>
     /// <exception cref="ArrayTypeMismatchException">Thrown on fatal error.</exception>
     /// <exception cref="InvalidCastException">Thrown on memory error.</exception>

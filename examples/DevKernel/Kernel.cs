@@ -1220,80 +1220,116 @@ public class Kernel : Sys.Kernel
 
         var port = ports[diskNum];
 
-        // Check if disk has MBR
-        if (!MBR.IsMBR(port))
-        {
-            PrintError("Disk has no MBR. Run 'creatembr " + diskNum + "' first.");
-            return;
-        }
-
         // Calculate sectors from MB
-        uint sectorsPerMB = 1024 * 1024 / 512;
-        uint sectorCount = (uint)sizeMB * sectorsPerMB;
+        ulong sectorsPerMB = 1024 * 1024 / 512;
+        ulong sectorCount = (ulong)sizeMB * sectorsPerMB;
 
-        // Start after first MB (2048 sectors) for alignment
-        uint startSector = 2048;
+        // Start after first MB (2048 sectors) for alignment, or 34 for GPT
+        ulong startSector;
 
-        // Check if partition fits
-        if (startSector + sectorCount > port.BlockCount)
+        // Check if disk has GPT
+        if (GPT.IsGPTPartition(port))
         {
-            PrintError("Partition too large for disk.");
-            return;
-        }
+            Serial.WriteString("[mkpart] GPT disk detected\n");
 
-        Serial.WriteString("[mkpart] Start: ");
-        Serial.WriteNumber(startSector);
-        Serial.WriteString(" Sectors: ");
-        Serial.WriteNumber(sectorCount);
-        Serial.WriteString("\n");
+            // GPT: first usable LBA is 34
+            startSector = 34;
 
-        PrintInfo("Creating partition: start=" + startSector + ", sectors=" + sectorCount);
-
-        // Read MBR
-        Span<byte> mbr = new byte[512];
-        port.ReadBlock(0, 1, mbr);
-
-        // Find free partition slot
-        int slot = -1;
-        for (int i = 0; i < 4; i++)
-        {
-            int offset = 446 + i * 16;
-            if (mbr[offset + 4] == 0) // System ID = 0 means empty
+            // Check if partition fits
+            if (startSector + sectorCount > port.BlockCount - 34)
             {
-                slot = i;
-                break;
+                PrintError("Partition too large for disk.");
+                return;
             }
-        }
 
-        if (slot == -1)
+            Serial.WriteString("[mkpart] Start: ");
+            Serial.WriteNumber(startSector);
+            Serial.WriteString(" Sectors: ");
+            Serial.WriteNumber(sectorCount);
+            Serial.WriteString("\n");
+
+            PrintInfo("Creating GPT partition: start=" + startSector + ", sectors=" + sectorCount);
+
+            if (!GPT.AddPartition(port, startSector, sectorCount))
+            {
+                PrintError("Failed to create GPT partition.");
+                return;
+            }
+
+            PrintSuccess("GPT partition created!");
+        }
+        else if (MBR.IsMBR(port))
         {
-            PrintError("No free partition slot in MBR.");
+            Serial.WriteString("[mkpart] MBR disk detected\n");
+
+            startSector = 2048;
+
+            // Check if partition fits
+            if (startSector + sectorCount > port.BlockCount)
+            {
+                PrintError("Partition too large for disk.");
+                return;
+            }
+
+            Serial.WriteString("[mkpart] Start: ");
+            Serial.WriteNumber(startSector);
+            Serial.WriteString(" Sectors: ");
+            Serial.WriteNumber(sectorCount);
+            Serial.WriteString("\n");
+
+            PrintInfo("Creating MBR partition: start=" + startSector + ", sectors=" + sectorCount);
+
+            // Read MBR
+            Span<byte> mbr = new byte[512];
+            port.ReadBlock(0, 1, mbr);
+
+            // Find free partition slot
+            int slot = -1;
+            for (int i = 0; i < 4; i++)
+            {
+                int offset = 446 + i * 16;
+                if (mbr[offset + 4] == 0) // System ID = 0 means empty
+                {
+                    slot = i;
+                    break;
+                }
+            }
+
+            if (slot == -1)
+            {
+                PrintError("No free partition slot in MBR.");
+                return;
+            }
+
+            Serial.WriteString("[mkpart] Using slot ");
+            Serial.WriteNumber((uint)slot);
+            Serial.WriteString("\n");
+
+            int slotOffset = 446 + slot * 16;
+
+            // Write partition entry
+            mbr[slotOffset + 0] = 0x00;  // Boot indicator
+            mbr[slotOffset + 1] = 0xFE;  // CHS start head
+            mbr[slotOffset + 2] = 0xFF;  // CHS start sector/cylinder
+            mbr[slotOffset + 3] = 0xFF;  // CHS start cylinder
+            mbr[slotOffset + 4] = 0x0B;  // System ID: FAT32
+            mbr[slotOffset + 5] = 0xFE;  // CHS end head
+            mbr[slotOffset + 6] = 0xFF;  // CHS end sector/cylinder
+            mbr[slotOffset + 7] = 0xFF;  // CHS end cylinder
+
+            BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 8, 4), (uint)startSector);
+            BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 12, 4), (uint)sectorCount);
+
+            Serial.WriteString("[mkpart] Writing MBR...\n");
+            port.WriteBlock(0, 1, mbr);
+
+            PrintSuccess("MBR partition created in slot " + slot);
+        }
+        else
+        {
+            PrintError("Disk has no partition table. Run 'creatembr " + diskNum + "' or 'creategpt " + diskNum + "' first.");
             return;
         }
-
-        Serial.WriteString("[mkpart] Using slot ");
-        Serial.WriteNumber((uint)slot);
-        Serial.WriteString("\n");
-
-        int slotOffset = 446 + slot * 16;
-
-        // Write partition entry
-        mbr[slotOffset + 0] = 0x00;  // Boot indicator
-        mbr[slotOffset + 1] = 0xFE;  // CHS start head
-        mbr[slotOffset + 2] = 0xFF;  // CHS start sector/cylinder
-        mbr[slotOffset + 3] = 0xFF;  // CHS start cylinder
-        mbr[slotOffset + 4] = 0x0B;  // System ID: FAT32
-        mbr[slotOffset + 5] = 0xFE;  // CHS end head
-        mbr[slotOffset + 6] = 0xFF;  // CHS end sector/cylinder
-        mbr[slotOffset + 7] = 0xFF;  // CHS end cylinder
-
-        BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 8, 4), startSector);
-        BitConverter.TryWriteBytes(mbr.Slice(slotOffset + 12, 4), sectorCount);
-
-        Serial.WriteString("[mkpart] Writing MBR...\n");
-        port.WriteBlock(0, 1, mbr);
-
-        PrintSuccess("Partition created in slot " + slot);
 
         // Re-scan partitions
         Serial.WriteString("[mkpart] Re-scanning partitions...\n");

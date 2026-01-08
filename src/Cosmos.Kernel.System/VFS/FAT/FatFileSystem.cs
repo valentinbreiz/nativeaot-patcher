@@ -235,16 +235,40 @@ public class FatFileSystem : IFileSystem, IFileSystemFormatter
     }
 
     public IDirectoryEntry CreateDirectory(IDirectoryEntry directoryEntry, string aNewDirectory)
-        => throw new NotImplementedException();
+    {
+        if (directoryEntry is not FatDirectoryEntry fatDir)
+        {
+            throw new ArgumentException("Invalid directory entry type");
+        }
+        return fatDir.CreateDirectory(aNewDirectory);
+    }
 
     public IDirectoryEntry CreateFile(IDirectoryEntry directoryEntry, string aNewFile)
-        => throw new NotImplementedException();
+    {
+        if (directoryEntry is not FatDirectoryEntry fatDir)
+        {
+            throw new ArgumentException("Invalid directory entry type");
+        }
+        return fatDir.CreateFile(aNewFile);
+    }
 
     public void DeleteDirectory(IDirectoryEntry directoryEntry)
-        => throw new NotImplementedException();
+    {
+        if (directoryEntry is not FatDirectoryEntry fatDir)
+        {
+            throw new ArgumentException("Invalid directory entry type");
+        }
+        fatDir.Delete();
+    }
 
     public void DeleteFile(IDirectoryEntry directoryEntry)
-        => throw new NotImplementedException();
+    {
+        if (directoryEntry is not FatDirectoryEntry fatDir)
+        {
+            throw new ArgumentException("Invalid directory entry type");
+        }
+        fatDir.Delete();
+    }
 
     public Partition Partition { get; }
     public string RootPath { get; }
@@ -428,6 +452,14 @@ public class FatFileSystem : IFileSystem, IFileSystemFormatter
         RootCluster = 2;
         DataSector = ReservedSectorCount + NumberOfFATs * FatSectorCount;
         FatTypeValue = FatType.Fat32;
+
+        // Clear root directory cluster (cluster 2)
+        Serial.WriteString("[FAT] Clearing root directory...\n");
+        Span<byte> emptyCluster = new byte[BytesPerCluster];
+        for (uint i = 0; i < SectorsPerCluster; i++)
+        {
+            partition.WriteBlock(DataSector + i, 1, emptyCluster.Slice((int)(i * BytesPerSector), (int)BytesPerSector));
+        }
 
         Serial.WriteString("[FAT] Format complete!\n");
     }
