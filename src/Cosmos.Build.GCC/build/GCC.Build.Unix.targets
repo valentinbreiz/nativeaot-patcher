@@ -1,9 +1,7 @@
 <Project>
   <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
     <PropertyGroup>
-      <Rid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</Rid>
-      <Rid Condition="'$(Rid)' == '' and '$(NETCoreSdkRuntimeIdentifier)' != ''">$(NETCoreSdkRuntimeIdentifier)</Rid>
-      <TargetArchitecture Condition="'$(Rid)' != ''">$(Rid.Substring($(Rid.LastIndexOf('-') + 1)))</TargetArchitecture>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
       <!-- Use architecture-specific GCC cross-compiler -->
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">/opt/homebrew/bin/x86_64-elf-gcc</GCCPath>
       <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">gcc</GCCPath>
