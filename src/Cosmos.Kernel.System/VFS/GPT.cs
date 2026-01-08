@@ -174,9 +174,9 @@ public class GPT
         // Last usable LBA (before backup partition entries)
         WriteUInt64(gptHeader, 48, device.BlockCount - 34);
 
-        // Disk GUID (use a simple fixed GUID for now)
+        // Disk GUID (generate from device hash)
         Serial.WriteString("[GPT] Writing disk GUID...\n");
-        uint guidPart = (uint)device.BlockCount;
+        uint guidPart = (uint)device.GetHashCode();
         WriteUInt32(gptHeader, 56, guidPart);
         WriteUInt32(gptHeader, 60, guidPart ^ 0x12345678);
         WriteUInt32(gptHeader, 64, guidPart ^ 0x87654321);

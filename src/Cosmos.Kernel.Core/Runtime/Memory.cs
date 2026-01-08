@@ -79,6 +79,9 @@ public static class Memory
         return dmem;
     }
 
+    // Size of the sync block header (4 bytes) that sits before the MethodTable pointer
+    private const int SyncBlockHeaderSize = sizeof(int);
+
     [RuntimeExport("RhpNewFast")]
     internal static unsafe void* RhpNewFast(MethodTable* pMT)
     {
@@ -92,7 +95,16 @@ public static class Memory
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe MethodTable** AllocObject(uint size)
     {
-        return (MethodTable**)MemoryOp.Alloc(size);
+        // .NET object layout requires space for the sync block header BEFORE the object reference
+        // Layout: [sync block header (4 bytes)] [MethodTable* (8 bytes)] [object fields...]
+        //                                       ^ object reference points here
+        byte* memory = (byte*)MemoryOp.Alloc(size + SyncBlockHeaderSize);
+
+        // Zero the sync block header (required for GetHashCode to work correctly)
+        *(int*)memory = 0;
+
+        // Return pointer to the MethodTable slot (after the sync block header)
+        return (MethodTable**)(memory + SyncBlockHeaderSize);
     }
 
     internal static unsafe MethodTable* GetMethodTable(object obj)

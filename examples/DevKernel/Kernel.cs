@@ -1211,6 +1211,12 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((uint)sizeMB);
         Serial.WriteString(" MB\n");
 
+        if (sizeMB <= 0)
+        {
+            PrintError("Partition size must be greater than 0 MB.");
+            return;
+        }
+
         var ports = AHCI.Ports;
         if (diskNum < 0 || diskNum >= ports.Count)
         {
@@ -1409,6 +1415,14 @@ public class Kernel : Sys.Kernel
         }
 
         var partition = partitions[partNum];
+
+        // Check if partition has a recognized filesystem
+        var fs = VfsManager.GetFileSystem(partition);
+        if (fs == null)
+        {
+            PrintError("No filesystem detected on partition. Run 'format " + partNum + "' first.");
+            return;
+        }
 
         try
         {
