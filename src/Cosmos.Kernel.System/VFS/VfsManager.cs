@@ -12,25 +12,22 @@ public static class VfsManager
 {
     private static readonly IIsFileSystem[] s_systemCheckers = [new FatIsFileSystem()];
 
-    // Use simple arrays instead of Dictionary to avoid potential memory issues
-    private static readonly string[] s_mountPaths = new string[10];
-    private static readonly IFileSystem?[] s_mountedFileSystems = new IFileSystem?[10];
-    private static int s_mountCount = 0;
+    // Now using Dictionary since GetHashCode is fixed
+    private static readonly Dictionary<string, IFileSystem> s_mountedFileSystems = new();
 
     private static IFileSystem? GetFileSystemForPath(string path)
     {
         IFileSystem? bestMatch = null;
         int bestMatchLen = 0;
 
-        for (int i = 0; i < s_mountCount; i++)
+        foreach (var kvp in s_mountedFileSystems)
         {
-            string? mountPath = s_mountPaths[i];
-            if (mountPath != null && path.StartsWith(mountPath))
+            if (path.StartsWith(kvp.Key))
             {
-                if (mountPath.Length > bestMatchLen)
+                if (kvp.Key.Length > bestMatchLen)
                 {
-                    bestMatchLen = mountPath.Length;
-                    bestMatch = s_mountedFileSystems[i];
+                    bestMatchLen = kvp.Key.Length;
+                    bestMatch = kvp.Value;
                 }
             }
         }
@@ -75,61 +72,35 @@ public static class VfsManager
 
         fileSystem.Flags = flags;
 
-        if (s_mountCount >= s_mountPaths.Length)
-        {
-            Serial.WriteString("[VfsManager] ERROR: Too many mount points\n");
-            throw new Exception("Too many mount points");
-        }
-
-        Serial.WriteString("[VfsManager] Adding to mount arrays...\n");
-        s_mountPaths[s_mountCount] = fileSystem.RootPath;
-        s_mountedFileSystems[s_mountCount] = fileSystem;
-        s_mountCount++;
+        Serial.WriteString("[VfsManager] Adding to dictionary...\n");
+        s_mountedFileSystems[fileSystem.RootPath] = fileSystem;
         Serial.WriteString("[VfsManager] Added. Count: ");
-        Serial.WriteNumber((ulong)s_mountCount);
+        Serial.WriteNumber((ulong)s_mountedFileSystems.Count);
         Serial.WriteString("\n");
     }
 
     public static void Unmount(string mountPoint)
     {
-        for (int i = 0; i < s_mountCount; i++)
-        {
-            if (s_mountPaths[i] == mountPoint)
-            {
-                // Shift remaining entries
-                for (int j = i; j < s_mountCount - 1; j++)
-                {
-                    s_mountPaths[j] = s_mountPaths[j + 1];
-                    s_mountedFileSystems[j] = s_mountedFileSystems[j + 1];
-                }
-                s_mountPaths[s_mountCount - 1] = null!;
-                s_mountedFileSystems[s_mountCount - 1] = null;
-                s_mountCount--;
-                return;
-            }
-        }
+        s_mountedFileSystems.Remove(mountPoint);
     }
 
-    public static int GetMountCount() => s_mountCount;
+    public static int GetMountCount() => s_mountedFileSystems.Count;
 
     public static (string Path, IFileSystem FileSystem)? GetMountAt(int index)
     {
-        if (index < 0 || index >= s_mountCount)
-            return null;
-        var fs = s_mountedFileSystems[index];
-        if (fs == null)
-            return null;
-        return (s_mountPaths[index], fs);
+        int i = 0;
+        foreach (var kvp in s_mountedFileSystems)
+        {
+            if (i == index)
+                return (kvp.Key, kvp.Value);
+            i++;
+        }
+        return null;
     }
 
     public static bool IsMounted(string mountPoint)
     {
-        for (int i = 0; i < s_mountCount; i++)
-        {
-            if (s_mountPaths[i] == mountPoint)
-                return true;
-        }
-        return false;
+        return s_mountedFileSystems.ContainsKey(mountPoint);
     }
 
     #region File Operations
