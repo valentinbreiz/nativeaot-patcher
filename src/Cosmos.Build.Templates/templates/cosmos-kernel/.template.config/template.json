@@ -26,7 +26,8 @@
         }
       ],
       "defaultValue": "x64",
-      "description": "Target architecture for the kernel"
+      "description": "Target architecture for the kernel",
+      "replaces": "TargetArch"
     },
     "EnableGraphics": {
       "type": "parameter",

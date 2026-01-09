@@ -94,6 +94,13 @@ public static unsafe partial class ManagedModule
         s_modules = modules;
         s_moduleCount = modules.Length;
 
+        // Run module initializers ([ModuleInitializer] methods) - these register HAL platforms
+        Serial.WriteString("[ManagedModule] - Running Module Initializers\n");
+        for (int i = 0; i < modules.Length; i++)
+        {
+            RunInitializers(modules[i], ReadyToRunSectionType.ModuleInitializerList);
+        }
+
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
 

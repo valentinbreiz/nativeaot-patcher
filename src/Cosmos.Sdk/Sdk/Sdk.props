@@ -61,6 +61,9 @@
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
     <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
     <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
+    <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
+    <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
+    <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.HAL.ARM64"/>
   </ItemGroup>
 
   <!-- Plugs -->

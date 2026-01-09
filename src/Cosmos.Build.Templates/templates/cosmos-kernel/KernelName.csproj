@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <!-- Target architecture (x64 or arm64) -->
-    <CosmosArch>x64</CosmosArch>
+    <CosmosArch>TargetArch</CosmosArch>
   </PropertyGroup>
 
   <!-- Core kernel packages -->
