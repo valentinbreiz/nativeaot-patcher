@@ -1,31 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.6" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.10" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Target architecture (x64 or arm64) -->
+    <CosmosArch>x64</CosmosArch>
   </PropertyGroup>
 
   <!-- Core kernel packages -->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel" Version="3.0.9" />
+    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.9" />
   </ItemGroup>
 
   <!--#if (EnableGraphics)-->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.9" />
   </ItemGroup>
   <!--#endif-->
 
   <!-- Architecture-specific HAL packages -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.9" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.9" />
   </ItemGroup>
 
 </Project>

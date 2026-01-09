@@ -36,14 +36,14 @@
     <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
   </PropertyGroup>
 
-  <!-- Architecture-specific HAL and Native references -->
+  <!-- Architecture-specific HAL and Native references (PrivateAssets=all prevents them from becoming package dependencies) -->
   <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Native.X64\Cosmos.Kernel.Native.X64.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Cosmos.Kernel.Native.X64\Cosmos.Kernel.Native.X64.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Native.ARM64\Cosmos.Kernel.Native.ARM64.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Cosmos.Kernel.Native.ARM64\Cosmos.Kernel.Native.ARM64.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>
