@@ -1,0 +1,227 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build x64",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c", "Debug",
+        "-r", "linux-x64",
+        "-p:DefineConstants=ARCH_X64",
+        "-p:CosmosArch=x64",
+        "-o", "${workspaceFolder}/output-x64",
+        "--verbosity", "minimal"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build ARM64",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c", "Debug",
+        "-r", "linux-arm64",
+        "-p:DefineConstants=ARCH_ARM64",
+        "-p:CosmosArch=arm64",
+        "-o", "${workspaceFolder}/output-arm64",
+        "--verbosity", "minimal"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build Release x64",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c", "Release",
+        "-r", "linux-x64",
+        "-p:DefineConstants=ARCH_X64",
+        "-p:CosmosArch=x64",
+        "-o", "${workspaceFolder}/output-x64",
+        "--verbosity", "minimal"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build Release ARM64",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "-c", "Release",
+        "-r", "linux-arm64",
+        "-p:DefineConstants=ARCH_ARM64",
+        "-p:CosmosArch=arm64",
+        "-o", "${workspaceFolder}/output-arm64",
+        "--verbosity", "minimal"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Run QEMU x64",
+      "type": "shell",
+      "dependsOn": "Build x64",
+      "command": "qemu-system-x86_64",
+      "args": [
+        "-M", "q35",
+        "-cpu", "max",
+        "-m", "512M",
+        "-serial", "stdio",
+        "-cdrom", "${workspaceFolder}/output-x64/KernelName.iso",
+        "-display", "gtk",
+        "-vga", "std",
+        "-no-reboot",
+        "-no-shutdown"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run QEMU ARM64",
+      "type": "shell",
+      "dependsOn": "Build ARM64",
+      "command": "qemu-system-aarch64",
+      "args": [
+        "-M", "virt",
+        "-cpu", "cortex-a72",
+        "-m", "1G",
+        "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
+        "-drive", "if=none,id=cd,file=${workspaceFolder}/output-arm64/KernelName.iso",
+        "-device", "virtio-scsi-pci",
+        "-device", "scsi-cd,drive=cd,bootindex=0",
+        "-device", "virtio-keyboard-device",
+        "-device", "ramfb",
+        "-display", "gtk,show-cursor=on",
+        "-serial", "stdio"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Debug QEMU x64",
+      "dependsOn": "Build x64",
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/output-x64/KernelName.iso -display gtk -vga std -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-debug",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Debug QEMU ARM64",
+      "dependsOn": "Build ARM64",
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "qemu-system-aarch64 -M virt -cpu cortex-a72 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/output-arm64/KernelName.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-ARM64-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-arm64-debug",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-ARM64-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Stop QEMU x64",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "qemu-system-x86_64.*KernelName"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "Stop QEMU ARM64",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "qemu-system-aarch64.*KernelName"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "Check Tools",
+      "type": "shell",
+      "command": "cosmos-tools",
+      "args": ["check"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Clean Build",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "${workspaceFolder}/output-x64", "${workspaceFolder}/output-arm64", "${workspaceFolder}/bin", "${workspaceFolder}/obj"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent"
+      }
+    }
+  ]
+}
