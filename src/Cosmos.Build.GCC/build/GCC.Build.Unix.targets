@@ -1,13 +1,48 @@
 <Project>
   <Target Name="GetGCC" Condition="'$(OS)' != 'Windows_NT'">
     <PropertyGroup>
-      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
-      <!-- Use architecture-specific GCC cross-compiler -->
-      <GCCPath Condition="'$(TargetArchitecture)' == 'x64'">gcc</GCCPath>
-      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64'">aarch64-linux-gnu-gcc</GCCPath>
-      <!-- Default fallback -->
-      <GCCPath Condition="'$(GCCPath)' == ''">gcc</GCCPath>
+      <!-- Derive architecture -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">
+        $([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])
+      </TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">
+        $(CosmosArch)
+      </TargetArchitecture>
+
+      <!-- x64 -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'x64' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">
+        /opt/homebrew/bin/x86_64-elf-gcc
+      </GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''">
+        gcc
+      </GCCPath>
+
+      <!-- arm64 -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">
+        /opt/homebrew/bin/aarch64-elf-gcc
+      </GCCPath>
+      <!-- Default to aarch64-elf-gcc on non-Windows hosts when targeting arm64 -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and '$(OS)' != 'Windows_NT'">
+        aarch64-elf-gcc
+      </GCCPath>
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-elf-gcc')">
+        aarch64-elf-gcc
+      </GCCPath>
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('aarch64-linux-gnu-gcc')">
+        aarch64-linux-gnu-gcc
+      </GCCPath>
+
+      <Error Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == 'gcc'">
+        No ARM64 cross-compiler found. Install aarch64-elf-gcc or aarch64-linux-gnu-gcc.
+      </Error>
+
     </PropertyGroup>
+
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
   </Target>
 </Project>

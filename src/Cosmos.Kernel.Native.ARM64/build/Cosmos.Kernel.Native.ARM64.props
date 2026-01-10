@@ -7,6 +7,7 @@
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Debug/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Runtime/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Memory/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Devices/" />
     <!-- You can also do: <AsmFiles Include="/path/to/file.s" /> -->
   </ItemGroup>
 </Project>

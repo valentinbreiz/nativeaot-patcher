@@ -36,4 +36,12 @@ public interface IInterruptController
     /// <param name="cpuFlags">Error code (x64) or ESR (ARM64)</param>
     /// <param name="faultAddress">CR2 (x64) or FAR (ARM64) - page fault address</param>
     bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress);
+
+    /// <summary>
+    /// Acknowledges the current interrupt and returns its ID.
+    /// On ARM64 (GIC), this reads the interrupt acknowledge register and returns the actual interrupt ID.
+    /// On x64, this returns uint.MaxValue (not used - x64 uses vector from IDT directly).
+    /// </summary>
+    /// <returns>Interrupt ID (0-1019 on ARM64 GIC), or uint.MaxValue if not applicable.</returns>
+    uint AcknowledgeInterrupt();
 }

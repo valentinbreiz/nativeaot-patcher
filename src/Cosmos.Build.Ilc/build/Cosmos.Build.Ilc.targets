@@ -14,7 +14,8 @@
     <PropertyGroup>
       <!-- Determine host OS for ILC compiler selection -->
       <IlcHostOs Condition="'$(OS)' == 'Windows_NT'">win</IlcHostOs>
-      <IlcHostOs Condition="'$(OS)' != 'Windows_NT'">linux</IlcHostOs>
+      <IlcHostOs Condition="'$(OS)' != 'Windows_NT' and Exists('/System/Library/CoreServices/SystemVersion.plist')">osx</IlcHostOs>
+      <IlcHostOs Condition="'$(IlcHostOs)' == ''">linux</IlcHostOs>
     </PropertyGroup>
 
     <ItemGroup>

@@ -6,9 +6,9 @@
   <ItemGroup>
     <PackageVersion Include="Cosmos.Build.Asm" Version="3.0.0" />
     <PackageVersion Include="Cosmos.Build.Common" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Build.GCC" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Build.Ilc" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Build.Patcher" Version="3.0.0" />
+    <PackageVersion Include="Cosmos.Build.GCC" Version="3.0.4" />
+    <PackageVersion Include="Cosmos.Build.Ilc" Version="3.0.3" />
+    <PackageVersion Include="Cosmos.Build.Patcher" Version="3.0.1" />
     <PackageVersion Include="Cosmos.Kernel.Native.x64" Version="3.0.0" />
     <PackageVersion Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />

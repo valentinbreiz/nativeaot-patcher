@@ -1,7 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.HAL.Cpu;
+using Cosmos.Kernel.HAL.Cpu.Data;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
 
@@ -33,7 +37,7 @@ public static class LocalApic
     // Timer LVT bits
     private const uint TIMER_MASKED = 0x10000;    // Timer interrupt masked
     private const uint TIMER_PERIODIC = 0x20000;  // Periodic mode (vs one-shot)
-    private const byte TIMER_VECTOR = 0x20;       // Timer interrupt vector (32)
+    public const byte TIMER_VECTOR = 0xEF;        // Timer interrupt vector (239) - separate from IRQ remapping range
 
     // Timer divide values (divide by 1, 2, 4, 8, 16, 32, 64, 128)
     private const uint TIMER_DIVIDE_BY_1 = 0xB;
@@ -52,6 +56,8 @@ public static class LocalApic
     private static bool _initialized;
     private static uint _ticksPerMs;
     private static bool _timerCalibrated;
+    private static uint _timerIntervalMs;
+    private static ulong _timerIntervalNs;
 
     /// <summary>
     /// Gets the base address of the Local APIC.
@@ -174,6 +180,11 @@ public static class LocalApic
     public static uint TicksPerMs => _ticksPerMs;
 
     /// <summary>
+    /// Gets the current timer interval in nanoseconds.
+    /// </summary>
+    public static ulong TimerIntervalNs => _timerIntervalNs;
+
+    /// <summary>
     /// Calibrates the LAPIC timer using the PIT as a reference.
     /// Must be called after Initialize() and before using timer functions.
     /// </summary>
@@ -268,7 +279,7 @@ public static class LocalApic
 
     /// <summary>
     /// Starts the LAPIC timer in periodic mode with the given interval.
-    /// Will fire interrupt on TIMER_VECTOR (0x20 = 32).
+    /// Will fire interrupt on TIMER_VECTOR (0xEF = 239).
     /// </summary>
     /// <param name="intervalMs">Interval in milliseconds between interrupts.</param>
     public static void StartPeriodicTimer(uint intervalMs)
@@ -280,13 +291,19 @@ public static class LocalApic
         }
 
         uint ticks = _ticksPerMs * intervalMs;
+        _timerIntervalMs = intervalMs;
+        _timerIntervalNs = (ulong)intervalMs * 1_000_000UL;  // Convert ms to ns
 
-        Serial.Write("[LocalAPIC] Starting periodic timer: ", intervalMs, "ms (", ticks, " ticks)\n");
+        Serial.Write("[LocalAPIC] Starting periodic timer:\n");
+        Serial.Write("[LocalAPIC]   TicksPerMs: ", _ticksPerMs, "\n");
+        Serial.Write("[LocalAPIC]   Interval: ", intervalMs, "ms\n");
+        Serial.Write("[LocalAPIC]   Ticks: ", ticks, "\n");
+        Serial.Write("[LocalAPIC]   Vector: 0x", TIMER_VECTOR.ToString("X"), "\n");
 
         // Set timer divide to 16
         Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);
 
-        // Configure timer: periodic mode, unmasked, vector 0x20
+        // Configure timer: periodic mode, unmasked, vector 0xEF
         Write(LAPIC_TIMER_LVT, TIMER_PERIODIC | TIMER_VECTOR);
 
         // Set initial count to start the timer
@@ -301,5 +318,53 @@ public static class LocalApic
         // Mask the timer and set count to 0
         Write(LAPIC_TIMER_LVT, TIMER_MASKED);
         Write(LAPIC_TIMER_INIT, 0);
+    }
+
+    /// <summary>
+    /// Registers the LAPIC timer interrupt handler.
+    /// Should be called after InterruptManager is initialized.
+    /// </summary>
+    public static void RegisterTimerHandler()
+    {
+        Serial.Write("[LocalAPIC] Registering timer handler for vector 0x", TIMER_VECTOR.ToString("X"), "\n");
+        InterruptManager.SetHandler(TIMER_VECTOR, HandleTimerInterrupt);
+    }
+
+    /// <summary>
+    /// LAPIC timer interrupt handler - triggers scheduler for preemptive multitasking.
+    /// </summary>
+    private static uint _timerTickCount;
+    private static unsafe void HandleTimerInterrupt(ref IRQContext context)
+    {
+        _timerTickCount++;
+
+        // Get current CPU ID from APIC
+        uint cpuId = (uint)GetId();
+
+        // Calculate RSP pointing to saved context for context switching
+        nuint contextPtr = (nuint)Unsafe.AsPointer(ref context);
+        nuint currentRsp = contextPtr - 256;  // RSP points to start of XMM save area
+
+        // Sanity check RSP - should be in kernel space (0xFFFF800000000000+)
+        if ((currentRsp & 0xFFFF000000000000) != 0xFFFF000000000000)
+        {
+            Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", _timerTickCount, ": ");
+            Serial.WriteHex((ulong)currentRsp);
+            Serial.Write("\n");
+            return;  // Don't call scheduler with bad RSP
+        }
+
+        // Log first few and then periodically
+        if (_timerTickCount <= 5 || _timerTickCount % 100 == 0)
+        {
+            Serial.Write("[LAPIC] Timer tick ", _timerTickCount, " RSP=");
+            Serial.WriteHex((ulong)currentRsp);
+            Serial.Write("\n");
+        }
+
+        // Call scheduler with elapsed time
+        SchedulerManager.OnTimerInterrupt(cpuId, currentRsp, _timerIntervalNs);
+
+        // EOI is sent by InterruptManager.Dispatch after handler returns
     }
 }

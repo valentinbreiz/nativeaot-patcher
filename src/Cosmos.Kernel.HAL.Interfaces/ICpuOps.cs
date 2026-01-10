@@ -5,9 +5,10 @@ namespace Cosmos.Kernel.HAL.Interfaces;
 /// </summary>
 public interface ICpuOps
 {
+    /// <summary>
+    /// Halt CPU
+    /// </summary>
     void Halt();
-    void Nop();
-    void MemoryBarrier();
 
     /// <summary>
     /// Disable interrupts (x64: CLI, ARM64: MSR DAIF)

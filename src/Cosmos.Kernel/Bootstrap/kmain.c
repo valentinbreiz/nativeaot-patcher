@@ -6,6 +6,9 @@ int g_cpuFeatures = 0;
 // Entry point
 void kmain()
 {
+    // Initialize serial port FIRST (115200 baud, 8N1)
+    __cosmos_serial_init();
+
     // === Boot Banner ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("========================================\n");

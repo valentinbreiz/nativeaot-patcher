@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Graphics.Fonts;
 
@@ -10,6 +11,9 @@ namespace Cosmos.Kernel.Graphics;
 /// </summary>
 public static class KernelConsole
 {
+    // Lock for thread-safe console access
+    private static Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
+
     // Cursor position in character coordinates (column, row)
     private static int _cursorX;
     private static int _cursorY;
@@ -232,15 +236,27 @@ public static class KernelConsole
 
     /// <summary>
     /// Sets the cursor position.
+    /// Thread-safe.
     /// </summary>
     public static void SetCursorPosition(int x, int y)
     {
-        if (x >= 0 && x < _cols && y >= 0 && y < _rows)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            EraseCursor();
-            _cursorX = x;
-            _cursorY = y;
-            DrawCursor();
+            if (x >= 0 && x < _cols && y >= 0 && y < _rows)
+            {
+                _lock.Acquire();
+                try
+                {
+                    EraseCursor();
+                    _cursorX = x;
+                    _cursorY = y;
+                    DrawCursor();
+                }
+                finally
+                {
+                    _lock.Release();
+                }
+            }
         }
     }
 
@@ -312,10 +328,33 @@ public static class KernelConsole
 
     /// <summary>
     /// Redraws the entire screen from the cell buffer.
+    /// Thread-safe.
     /// </summary>
     public static void Redraw()
     {
-        if (!IsAvailable || _cells == null)
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                RedrawInternal();
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Internal redraw (must be called with lock held).
+    /// </summary>
+    private static void RedrawInternal()
+    {
+        if (_cells == null)
             return;
 
         EraseCursor();
@@ -345,12 +384,32 @@ public static class KernelConsole
 
     /// <summary>
     /// Writes a character at the current cursor position.
+    /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
     public static void Write(char c)
     {
-        if (!IsAvailable || _cells == null)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
 
+            _lock.Acquire();
+            try
+            {
+                WriteInternal(c);
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Internal write implementation (must be called with lock held).
+    /// </summary>
+    private static void WriteInternal(char c)
+    {
         EraseCursor();
 
         switch (c)
@@ -362,7 +421,7 @@ public static class KernelConsole
                 DoCarriageReturn();
                 break;
             case '\t':
-                DoTab();
+                DoTabInternal();
                 break;
             case '\b':
                 DoBackspace();
@@ -370,7 +429,7 @@ public static class KernelConsole
             default:
                 // Write character to cell buffer
                 int index = GetIndex(_cursorY, _cursorX);
-                _cells[index] = new Cell(c, _foregroundColor, _backgroundColor);
+                _cells![index] = new Cell(c, _foregroundColor, _backgroundColor);
 
                 // Draw the character
                 DrawCharAt(_cursorX, _cursorY);
@@ -388,48 +447,122 @@ public static class KernelConsole
     }
 
     /// <summary>
+    /// Internal tab (called with lock held, avoids recursive Write).
+    /// </summary>
+    private static void DoTabInternal()
+    {
+        int spaces = 4 - (_cursorX % 4);
+        for (int i = 0; i < spaces; i++)
+        {
+            WriteInternal(' ');
+        }
+    }
+
+    /// <summary>
     /// Writes a string at the current cursor position.
+    /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
     public static void Write(string text)
     {
-        if (!IsAvailable)
-            return;
-
-        foreach (char c in text)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            Write(c);
+            if (!IsAvailable || _cells == null)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                foreach (char c in text)
+                {
+                    WriteInternal(c);
+                }
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
     }
 
     /// <summary>
     /// Writes a character followed by a newline.
+    /// Thread-safe.
     /// </summary>
     public static void WriteLine(char c)
     {
-        Write(c);
-        WriteLine();
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                WriteInternal(c);
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
     }
 
     /// <summary>
     /// Writes a string followed by a newline.
+    /// Thread-safe.
     /// </summary>
     public static void WriteLine(string text)
     {
-        Write(text);
-        WriteLine();
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                foreach (char c in text)
+                {
+                    WriteInternal(c);
+                }
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+
     }
 
     /// <summary>
     /// Writes a newline.
+    /// Thread-safe.
     /// </summary>
     public static void WriteLine()
     {
-        if (!IsAvailable)
-            return;
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable)
+                return;
 
-        EraseCursor();
-        DoLineFeed();
-        DrawCursor();
+            _lock.Acquire();
+            try
+            {
+                EraseCursor();
+                DoLineFeed();
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
     }
 
     /// <summary>
@@ -456,18 +589,6 @@ public static class KernelConsole
     }
 
     /// <summary>
-    /// Performs a tab (advance by 4 spaces).
-    /// </summary>
-    private static void DoTab()
-    {
-        int spaces = 4 - (_cursorX % 4);
-        for (int i = 0; i < spaces; i++)
-        {
-            Write(' ');
-        }
-    }
-
-    /// <summary>
     /// Performs a backspace (move cursor back and clear character).
     /// </summary>
     private static void DoBackspace()
@@ -487,34 +608,6 @@ public static class KernelConsole
         int index = GetIndex(_cursorY, _cursorX);
         _cells![index] = Cell.Empty(_foregroundColor, _backgroundColor);
         DrawCharAt(_cursorX, _cursorY);
-    }
-
-    /// <summary>
-    /// Deletes the character at the cursor position and shifts remaining characters left.
-    /// </summary>
-    public static void Delete()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        // Shift all characters on the current line left by one
-        int row = _cursorY;
-        for (int col = _cursorX; col < _cols - 1; col++)
-        {
-            int currentIndex = GetIndex(row, col);
-            int nextIndex = GetIndex(row, col + 1);
-            _cells[currentIndex] = _cells[nextIndex];
-            DrawCharAt(col, row);
-        }
-
-        // Clear the last cell in the row
-        int lastIndex = GetIndex(row, _cols - 1);
-        _cells[lastIndex] = Cell.Empty(_foregroundColor, _backgroundColor);
-        DrawCharAt(_cols - 1, row);
-
-        DrawCursor();
     }
 
     /// <summary>
@@ -570,41 +663,8 @@ public static class KernelConsole
     }
 
     /// <summary>
-    /// Moves the cursor to the beginning of the current line.
-    /// </summary>
-    public static void MoveCursorHome()
-    {
-        EraseCursor();
-        _cursorX = 0;
-        DrawCursor();
-    }
-
-    /// <summary>
-    /// Moves the cursor to the end of the current line (last non-empty character).
-    /// </summary>
-    public static void MoveCursorEnd()
-    {
-        if (_cells == null) return;
-
-        EraseCursor();
-
-        // Find the last non-empty character on the current line
-        int lastNonEmpty = 0;
-        for (int col = 0; col < _cols; col++)
-        {
-            int index = GetIndex(_cursorY, col);
-            if (_cells[index].Char != '\0')
-            {
-                lastNonEmpty = col + 1;
-            }
-        }
-
-        _cursorX = Math.Min(lastNonEmpty, _cols - 1);
-        DrawCursor();
-    }
-
-    /// <summary>
     /// Scrolls the terminal up by one line.
+    /// Must be called with lock held.
     /// </summary>
     private static void Scroll()
     {
@@ -629,65 +689,36 @@ public static class KernelConsole
             _cells[index] = Cell.Empty(_foregroundColor, _backgroundColor);
         }
 
-        // Redraw the entire screen
-        Redraw();
+        // Redraw the entire screen (lock already held)
+        RedrawInternal();
     }
 
     /// <summary>
     /// Clears the entire screen.
+    /// Thread-safe.
     /// </summary>
     public static void Clear()
     {
-        if (!IsAvailable)
-            return;
-
-        EraseCursor();
-        ClearCells();
-        Canvas.ClearScreen(_backgroundColor);
-        _cursorX = 0;
-        _cursorY = 0;
-        DrawCursor();
-    }
-
-    /// <summary>
-    /// Clears from the cursor to the end of the current line.
-    /// </summary>
-    public static void ClearToEndOfLine()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        for (int col = _cursorX; col < _cols; col++)
+        using (InternalCpu.DisableInterruptsScope())
         {
-            int index = GetIndex(_cursorY, col);
-            _cells[index] = Cell.Empty(_foregroundColor, _backgroundColor);
-            DrawCharAt(col, _cursorY);
+            if (!IsAvailable)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                EraseCursor();
+                ClearCells();
+                Canvas.ClearScreen(_backgroundColor);
+                _cursorX = 0;
+                _cursorY = 0;
+                DrawCursor();
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
-
-        DrawCursor();
-    }
-
-    /// <summary>
-    /// Clears the current line entirely.
-    /// </summary>
-    public static void ClearLine()
-    {
-        if (!IsAvailable || _cells == null)
-            return;
-
-        EraseCursor();
-
-        for (int col = 0; col < _cols; col++)
-        {
-            int index = GetIndex(_cursorY, col);
-            _cells[index] = Cell.Empty(_foregroundColor, _backgroundColor);
-            DrawCharAt(col, _cursorY);
-        }
-
-        _cursorX = 0;
-        DrawCursor();
     }
 
     /// <summary>

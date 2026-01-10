@@ -15,7 +15,7 @@ public class PciManager
     {
         Serial.WriteString("[PciManager] Setup .\n");
         Serial.WriteString("[PciManager] Setup Clearing List.\n");
-        Devices = new PciDevice[20];
+        Devices = new PciDevice[64];
         Serial.WriteString("[PciManager] Setup Cleared List.\n");
         if ((PciDevice.GetHeaderType(0x0, 0x0, 0x0) & 0x80) == 0)
         {
@@ -102,6 +102,11 @@ public class PciManager
 
     private static void Add(PciDevice xPciDevice)
     {
+        if (Count >= Devices.Length)
+        {
+            Serial.WriteString("[PciManager] Device array full, cannot add more devices\n");
+            return;
+        }
         Devices[Count] = xPciDevice;
         Count++;
     }

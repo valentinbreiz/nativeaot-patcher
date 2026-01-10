@@ -4,7 +4,9 @@
 
   <Target Name="FindCSourceFilesForGCC" BeforeTargets="BuildGCC">
     <PropertyGroup>
-      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+      <!-- Derive architecture from RID first, then fall back to CosmosArch -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
     </PropertyGroup>
 
     <!-- Exclude Folders/Files that doesn't exists -->
@@ -49,13 +51,19 @@
       Text="⚙️  [GCC] Processing C project: %(GCCProject.Identity)"
       Importance="High" />
 
+    <!-- Strip clang-style target flags (space or equals) to keep GCC happy on macOS cross builds -->
+    <PropertyGroup>
+      <SanitizedGCCCompilerFlags>$([System.Text.RegularExpressions.Regex]::Replace('$(GCCCompilerFlags)', '--?target(=|\s+)[^\s]+', '').Trim())</SanitizedGCCCompilerFlags>
+      <SanitizedGCCCompilerFlags Condition="'$(SanitizedGCCCompilerFlags)' == ''">$(GCCCompilerFlags)</SanitizedGCCCompilerFlags>
+    </PropertyGroup>
+
     <!-- Compile each project to multiple object files -->
     <GCCBuildTask
       GCCPath="$(GCCPath)"
       SourceFiles="%(GCCProject.Identity)"
       OutputPath="$(GCCOutputPath)"
       OutputFile="dummy.o"
-      CompilerFlags="$(GCCCompilerFlags)" />
+      CompilerFlags="$(SanitizedGCCCompilerFlags)" />
 
     <Message Text="✅ [GCC] C files compiled to object files in: $(GCCOutputPath)" Importance="High" />
   </Target>

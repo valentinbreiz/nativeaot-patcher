@@ -55,9 +55,11 @@ public class QemuX64Host : IQemuHost
 
         // Network configuration: E1000E device with user-mode networking
         // Guest IP: 10.0.2.15, Gateway: 10.0.2.2
-        // Port 5555: UdpTestServer binds to receive kernel's outgoing packets (no hostfwd needed)
-        // Port 5556: hostfwd forwards test runner packets to kernel
-        string networkArgs = "-netdev user,id=net0,hostfwd=udp::5556-:5556 -device e1000e,netdev=net0";
+        // UDP Port 5555: UdpTestServer binds to receive kernel's outgoing packets (no hostfwd needed)
+        // UDP Port 5556: hostfwd forwards test runner packets to kernel
+        // TCP Port 5557: kernel connects to host (no hostfwd needed, outgoing from guest)
+        // TCP Port 5558: hostfwd forwards test runner packets to kernel's listening socket
+        string networkArgs = "-netdev user,id=net0,hostfwd=udp::5556-:5556,hostfwd=tcp::5558-:5558 -device e1000e,netdev=net0";
 
         var startInfo = new ProcessStartInfo
         {
@@ -72,19 +74,22 @@ public class QemuX64Host : IQemuHost
         using var process = new Process { StartInfo = startInfo };
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
-        // Only create UDP server for network tests
+        // Only create test servers for network tests
         UdpTestServer? udpServer = null;
+        TcpTestServer? tcpServer = null;
         if (enableNetworkTesting)
         {
             udpServer = new UdpTestServer();
+            tcpServer = new TcpTestServer();
         }
 
         bool testSuiteCompleted = false;
 
         try
         {
-            // Start UDP test server for network tests
+            // Start test servers for network tests
             udpServer?.Start();
+            tcpServer?.Start();
 
             process.Start();
 
@@ -116,9 +121,11 @@ public class QemuX64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
-            // Stop UDP server if running
+            // Stop test servers if running
             if (udpServer != null)
                 await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
 
             // Read UART log
             string uartLog = string.Empty;
@@ -146,9 +153,11 @@ public class QemuX64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
-            // Stop UDP server if running
+            // Stop test servers if running
             if (udpServer != null)
                 await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
 
             // Read whatever UART output we got
             string uartLog = string.Empty;
@@ -167,9 +176,11 @@ public class QemuX64Host : IQemuHost
         }
         catch (Exception ex)
         {
-            // Stop UDP server on error if running
+            // Stop test servers on error if running
             if (udpServer != null)
                 await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
 
             return new QemuRunResult
             {

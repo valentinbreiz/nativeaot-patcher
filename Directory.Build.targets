@@ -18,4 +18,84 @@
            />
   </Target>
 
+  <!-- Pre-flight resolver to locate Homebrew cross-compilers before the SDK's GetGCC target runs -->
+  <Target Name="ResolveHomebrewGCC" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="GetGCC">
+    <PropertyGroup>
+      <!-- Mirror the architecture inference used by the GCC targets -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
+
+      <!-- Detect common Homebrew prefixes (Apple Silicon and Intel) -->
+      <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/opt/homebrew/bin/brew')">/opt/homebrew</HomebrewPrefix>
+      <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/usr/local/bin/brew')">/usr/local</HomebrewPrefix>
+    </PropertyGroup>
+
+    <!-- macOS x64 cross toolchains installed via Homebrew (keg opt + linked bin) -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/bin/x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64'">x86_64-elf-gcc</GCCPath>
+    </PropertyGroup>
+
+    <!-- macOS arm64 cross toolchains installed via Homebrew (keg opt + linked bin) -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/bin/aarch64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-linux-gnu-gcc/bin/aarch64-linux-gnu-gcc')">$(HomebrewPrefix)/opt/aarch64-linux-gnu-gcc/bin/aarch64-linux-gnu-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-linux-gnu-gcc')">$(HomebrewPrefix)/bin/aarch64-linux-gnu-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64'">aarch64-elf-gcc</GCCPath>
+    </PropertyGroup>
+
+    <Message Text="[ResolveHomebrewGCC] TargetArchitecture=$(TargetArchitecture); GCCPath=$(GCCPath)" Importance="Low" Condition="'$(GCCPath)' != ''" />
+  </Target>
+
+  <!-- Stronger cross-compiler selection and validation ahead of BuildGCC -->
+  <Target Name="EnsureCrossCompiler" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="BuildGCC">
+    <PropertyGroup>
+      <!-- Normalize architecture if still unset -->
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
+
+      <!-- Gather Homebrew prefix (Apple Silicon first, then Intel) -->
+      <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/opt/homebrew/bin/brew')">/opt/homebrew</HomebrewPrefix>
+      <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/usr/local/bin/brew')">/usr/local</HomebrewPrefix>
+
+      <!-- Default executable names by architecture -->
+      <GCCExecutableName Condition="'$(TargetArchitecture)' == 'x64'">x86_64-elf-gcc</GCCExecutableName>
+      <GCCExecutableName Condition="'$(TargetArchitecture)' == 'arm64'">aarch64-elf-gcc</GCCExecutableName>
+    </PropertyGroup>
+
+    <!-- Set GCCPath from known Homebrew locations if caller has not set it -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/bin/x86_64-elf-gcc</GCCPath>
+
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/bin/aarch64-elf-gcc</GCCPath>
+    </PropertyGroup>
+
+    <!-- Normalize any whitespace around GCCPath before validating/executing -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(GCCPath)' != ''">$([System.String]::Copy('$(GCCPath)').Trim())</GCCPath>
+    </PropertyGroup>
+
+    <!-- Final fallback to executable name on PATH -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(GCCPath)' == '' and '$(GCCExecutableName)' != ''">$(GCCExecutableName)</GCCPath>
+    </PropertyGroup>
+
+    <!-- Validate existence if GCCPath is an absolute path -->
+    <PropertyGroup>
+      <GCCPathExists Condition="'$(GCCPath)' != '' and $([System.IO.Path]::IsPathRooted('$(GCCPath)')) and Exists('$(GCCPath)')">true</GCCPathExists>
+      <GCCPathExists Condition="'$(GCCPathExists)' == ''">false</GCCPathExists>
+    </PropertyGroup>
+
+    <Message Text="[EnsureCrossCompiler] TargetArchitecture=$(TargetArchitecture); GCCPath=$(GCCPath); Exists=$(GCCPathExists)" Importance="High" />
+
+    <Error Condition="'$(TargetArchitecture)' == ''" Text="Unable to determine TargetArchitecture for GCC. Set CosmosArch or RuntimeIdentifier." />
+    <Error Condition="'$(GCCPath)' == ''" Text="No GCCPath resolved for $(TargetArchitecture). Install the cross-compiler or set -p:GCCPath explicitly." />
+    <Error Condition="'$(GCCPath)' != '' and '$(GCCPathExists)' == 'false' and $([System.IO.Path]::IsPathRooted('$(GCCPath)'))"
+           Text="$(GCCExecutableName) not found at $(GCCPath). Install via Homebrew (brew install $(GCCExecutableName))." />
+  </Target>
+
 </Project>

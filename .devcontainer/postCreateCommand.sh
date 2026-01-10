@@ -72,7 +72,7 @@ dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
 
 dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet build src/Cosmos.Kernel.Services/Cosmos.Kernel.Services.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
+dotnet build src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet build src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
 dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
 

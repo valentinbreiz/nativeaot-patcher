@@ -5,68 +5,27 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-    <!-- Cosmos.Sdk is not compatible with Global Package managment -->
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <SelfContained>true</SelfContained>
-    <PublishTrimmed>true</PublishTrimmed>
-
-    <!-- Disable stack trace metadata to avoid StackTraceMetadata initialization crash -->
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <StackTraceSupport>false</StackTraceSupport>
   </PropertyGroup>
-
-  <!-- Add any folder(s) where *.c files exist -->
-  <ItemGroup>
-    <GCCProject Include="./src/C/" />
-  </ItemGroup>
-
-  <!-- X64-specific compiler flags -->
-  <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -fno-builtin -m64 -mcmodel=kernel -fno-PIC -ffreestanding</GCCCompilerFlags>
-  </PropertyGroup>
-
-  <!-- ARM64-specific compiler flags -->
-  <PropertyGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <GCCCompilerFlags>-O2 -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/aarch64-linux-gnu/13/include -fno-builtin -ffreestanding</GCCCompilerFlags>
-  </PropertyGroup>
-
-  <!-- NativeAOT ILC arguments -->
-  <ItemGroup>
-    <IlcArg Include="--verbose" />
-    <!-- Note: generateunmanagedentrypoints:Cosmos.Kernel is already included via Cosmos.Kernel package -->
-  </ItemGroup>
-
-  <!-- Include Plugs -->
-  <ItemGroup>
-    <PlugReference Include="Cosmos.Kernel.Plugs" />
-  </ItemGroup>
 
   <!-- Core kernel packages -->
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.0" />
   </ItemGroup>
 
   <!--#if (EnableGraphics)-->
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.0" />
-    <AutoInitializedAssemblies Include="Cosmos.Kernel.Graphics" />
   </ItemGroup>
   <!--#endif-->
 
   <!-- Architecture-specific HAL packages -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
     <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
     <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.0" />
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

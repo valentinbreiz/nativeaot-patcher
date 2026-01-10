@@ -22,23 +22,24 @@ public static unsafe class MediumHeap
     /// <returns>New pointer with specified size while maintaining old data.</returns>
     public static byte* Realloc(byte* ptr, uint newSize)
     {
-        LargeHeapHeader* header = (LargeHeapHeader*)(ptr - PrefixBytes);
-        if (header->Used > newSize)
+        MediumHeapHeader* header = (MediumHeapHeader*)(ptr - PrefixBytes);
+        // Note: MediumHeap doesn't have a 'Used' field, just 'Size'
+        // The 'Size' represents both allocated and usable space
+        // So we always need to allocate new memory if size changes
+        if (header->Size >= newSize)
         {
-            header->Size = newSize; // there is space
+            // Current allocation is already large enough
+            return ptr;
         }
         else
         {
             byte* newPtr = Alloc(newSize);
-            MemoryOp.MemCopy(newPtr, ptr, (int)header->Size);
-            // {!} Span
-            // Span<byte> span = new(ptr, (int)header->Size);
-            // span.CopyTo(new Span<byte>(newPtr, (int)newSize));
+            // Copy the smaller of old size or new size to avoid buffer overread
+            int copySize = header->Size < (int)newSize ? header->Size : (int)newSize;
+            MemoryOp.MemCopy(newPtr, ptr, copySize);
             Free(ptr);
             return newPtr;
         }
-
-        return ptr;
     }
 
     public static MediumHeapHeader* GetHeader(byte* ptr) => (MediumHeapHeader*)(ptr - PrefixBytes);
@@ -51,7 +52,7 @@ public static unsafe class MediumHeap
     public static byte* Alloc(uint aSize)
     {
         ulong pages = (aSize + PrefixBytes) / PageAllocator.PageSize + 1;
-        void* ptr = PageAllocator.AllocPages(PageType.HeapLarge, pages, true);
+        void* ptr = PageAllocator.AllocPages(PageType.HeapMedium, pages, true);
         MediumHeapHeader* header = (MediumHeapHeader*)ptr;
         header->Size = (ushort)aSize;
         return (byte*)ptr + PrefixBytes;

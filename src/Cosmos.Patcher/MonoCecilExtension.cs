@@ -1865,5 +1865,33 @@ public static class MonoCecilExtensions
     }
     #endregion
 
+    #region GetCustomAttribute
+
+    /// <summary>
+    /// Gets a custom attribute from a type definition by its full name.
+    /// </summary>
+    public static CustomAttribute? GetCustomAttribute(this TypeDefinition type, string attributeFullName) =>
+        type.CustomAttributes.FirstOrDefault(a => a.AttributeType.FullName == attributeFullName);
+
+    /// <summary>
+    /// Gets a custom attribute from a member definition by its full name.
+    /// </summary>
+    public static CustomAttribute? GetCustomAttribute(this IMemberDefinition member, string attributeFullName) =>
+        member.CustomAttributes.FirstOrDefault(a => a.AttributeType.FullName == attributeFullName);
+
+    /// <summary>
+    /// Checks if a type definition has a custom attribute with the specified full name.
+    /// </summary>
+    public static bool HasCustomAttribute(this TypeDefinition type, string attributeFullName) =>
+        type.CustomAttributes.Any(a => a.AttributeType.FullName == attributeFullName);
+
+    /// <summary>
+    /// Checks if a member definition has a custom attribute with the specified full name.
+    /// </summary>
+    public static bool HasCustomAttribute(this IMemberDefinition member, string attributeFullName) =>
+        member.CustomAttributes.Any(a => a.AttributeType.FullName == attributeFullName);
+
+    #endregion
+
 }
 #endif

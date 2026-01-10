@@ -5,6 +5,12 @@
     <CosmosGCCFrameworkPath>$(IntermediateOutputPath)cosmos-gcc\</CosmosGCCFrameworkPath>
   </PropertyGroup>
 
+  <!-- Prefer arm64 cross toolchains on non-Windows when targeting arm64 before falling back to host gcc -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT' and ($([System.String]::Copy('$(RuntimeIdentifier)').Contains('arm64')) or '$(CosmosArch)' == 'arm64' or '$(TargetArchitecture)' == 'arm64')">
+    <GCCPath Condition="'$(GCCPath)' == '' OR !Exists('$(GCCPath)')">/usr/bin/aarch64-linux-gnu-gcc</GCCPath>
+    <GCCPath Condition="'$(GCCPath)' == '' OR !Exists('$(GCCPath)')">aarch64-elf-gcc</GCCPath>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <GCCPath Condition="'$(GCCPath)' == '' OR !Exists('$(GCCPath)')">/usr/bin/gcc</GCCPath>
   </PropertyGroup>

@@ -20,5 +20,6 @@
     <Content Include="CPU\*.s" PackagePath="build\CPU" />
     <Content Include="Runtime\*.s" PackagePath="build\Runtime" />
     <Content Include="Memory\*.s" PackagePath="build\Memory" />
+    <Content Include="Devices\*.s" PackagePath="build\Devices" />
   </ItemGroup>
 </Project>

@@ -284,6 +284,52 @@ _native_x64_test_int32:
     int 32
     ret
 
+; void _native_x64_set_context_switch_rsp(nuint newRsp)
+; Sets the target RSP for context switch. Called from managed code
+; during timer interrupt to request a context switch.
+; rdi = new RSP to switch to (pointing to saved context)
+global _native_x64_set_context_switch_rsp
+_native_x64_set_context_switch_rsp:
+    mov [rel _context_switch_target_rsp], rdi
+    ret
+
+; nuint _native_x64_get_context_switch_rsp()
+; Gets the current context switch target RSP (for debugging)
+global _native_x64_get_context_switch_rsp
+_native_x64_get_context_switch_rsp:
+    mov rax, [rel _context_switch_target_rsp]
+    ret
+
+; nuint _native_x64_get_rsp()
+; Gets the current RSP value
+global _native_x64_get_rsp
+_native_x64_get_rsp:
+    mov rax, rsp
+    ret
+
+; void _native_x64_set_context_switch_new_thread(int isNew)
+; Sets whether the target thread is NEW (1) or RESUMED (0)
+; rdi = isNew flag
+global _native_x64_set_context_switch_new_thread
+_native_x64_set_context_switch_new_thread:
+    mov [rel _context_switch_is_new_thread], rdi
+    ret
+
+section .bss
+; Per-CPU context switch target RSP (0 = no switch, non-zero = switch to this RSP)
+; For SMP, this would be per-CPU, but for now single-CPU
+global _context_switch_target_rsp
+_context_switch_target_rsp: resq 1
+
+; Flag indicating if the target thread is NEW (1) or RESUMED (0)
+; NEW threads need RSP loaded from context, RESUMED threads use iretq
+global _context_switch_is_new_thread
+_context_switch_is_new_thread: resq 1
+
+; Temporary storage for is_new_thread flag during restore
+; Used to avoid destroying RAX when checking if this is a new thread
+_temp_is_new_thread: resq 1
+
 section .data
 _native_x64_irq_table:
 dq irq0_stub
@@ -560,36 +606,18 @@ _native_x64_get_irq_stub:
 
 %macro IRQ_STUB 1
 irq%1_stub:
-    ; When interrupt is delivered, CPU pushes: RIP, CS, RFLAGS
+    ; === SAVE CONTEXT ===
+    ; CPU pushes: RIP, CS, RFLAGS (and RSP, SS if privilege change)
     ; Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
-    ; Note: Some exceptions (8, 10-14, 17, 21, 29, 30) also push error code before RIP
+    ;
+    ; ThreadContext struct layout (low to high address):
+    ;   XMM[256], R15..RAX (15 regs), Interrupt, CpuFlags, Cr2, TempRcx, RIP, CS, RFLAGS, [RSP, SS]
+    ;
+    ; Strategy: Save all GPRs first, then compute and insert context info
 
-    ; Save original rcx first before we use it for cr2
-    push rcx                     ; Temporarily save rcx
-
-    ; Read RFLAGS from CPU frame (now offset by 8 due to pushed rcx)
-    mov rax, [rsp + 24]          ; Load RFLAGS from CPU frame (RIP at +8, CS at +16, RFLAGS at +24)
-
-    ; Read CR2 (page fault address) - always read it, only valid for #PF but safe to read
-    mov rcx, cr2
-
-    ; Push in REVERSE order of struct (last field first, so it ends up at highest address)
-    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags, cr2
-    ; Push order: cr2, cpu_flags, interrupt, rax, ..., r14, r15
-
-    push rcx                     ; Push cr2 (page fault linear address)
-    push rax                     ; Push cpu_flags (save RFLAGS)
-    push %1                      ; Push interrupt vector
-
-    ; Now push general purpose registers
-    ; rax currently contains RFLAGS, but we need to push actual rax value
-    ; The actual rax at interrupt time is unknown - just push current value (RFLAGS)
-    ; This is a limitation - we can't recover original rax
-    push rax                     ; Push rax (note: contains RFLAGS, not original rax)
-
-    ; Get original rcx from where we saved it
-    mov rcx, [rsp + 32]          ; Original rcx is 4 qwords back (rax, interrupt, cpu_flags, cr2)
-    push rcx                     ; Push actual rcx value
+    ; Save ALL GPRs immediately (in reverse struct order so RAX ends up at correct position)
+    push rax
+    push rcx
     push rdx
     push rbx
     push rbp
@@ -603,6 +631,76 @@ irq%1_stub:
     push r13
     push r14
     push r15
+    ; 15 GPRs = 120 bytes
+    ; Stack: [rsp+0..119] = R15..RAX, [rsp+120] = RIP, [rsp+128] = CS, [rsp+136] = RFLAGS
+
+    ; Now use rax/rcx as scratch (originals are saved on stack)
+    mov rax, [rsp + 136]         ; RFLAGS from CPU frame
+    mov rcx, cr2                 ; Page fault address
+
+    ; We need to insert 32 bytes of context info between GPRs and CPU frame
+    ; Move GPRs down by 32 bytes to make room
+    ; This is done by copying each GPR down
+
+    ; First, push the context info values (they'll be in wrong place temporarily)
+    push 0                       ; TempRcx placeholder
+    push rcx                     ; Cr2
+    push rax                     ; CpuFlags
+    mov rax, %1                  ; Load interrupt number into register
+    push rax                     ; Interrupt
+    ; Added 32 bytes, now rsp is 32 bytes lower
+    ; Stack: [rsp+0..31] = context info (wrong position)
+    ;        [rsp+32..151] = R15..RAX (GPRs)
+    ;        [rsp+152] = RIP...
+
+    ; Now move GPRs down by 32 bytes to their correct position
+    ; Read from [rsp+32+offset] and write to [rsp+offset]
+    mov rax, [rsp + 32]          ; R15
+    mov [rsp + 0], rax
+    mov rax, [rsp + 40]          ; R14
+    mov [rsp + 8], rax
+    mov rax, [rsp + 48]          ; R13
+    mov [rsp + 16], rax
+    mov rax, [rsp + 56]          ; R12
+    mov [rsp + 24], rax
+    mov rax, [rsp + 64]          ; R11
+    mov [rsp + 32], rax
+    mov rax, [rsp + 72]          ; R10
+    mov [rsp + 40], rax
+    mov rax, [rsp + 80]          ; R9
+    mov [rsp + 48], rax
+    mov rax, [rsp + 88]          ; R8
+    mov [rsp + 56], rax
+    mov rax, [rsp + 96]          ; RDI
+    mov [rsp + 64], rax
+    mov rax, [rsp + 104]         ; RSI
+    mov [rsp + 72], rax
+    mov rax, [rsp + 112]         ; RBP
+    mov [rsp + 80], rax
+    mov rax, [rsp + 120]         ; RBX
+    mov [rsp + 88], rax
+    mov rax, [rsp + 128]         ; RDX
+    mov [rsp + 96], rax
+    mov rax, [rsp + 136]         ; RCX
+    mov [rsp + 104], rax
+    mov rax, [rsp + 144]         ; RAX
+    mov [rsp + 112], rax
+
+    ; Now write context info at correct position (after GPRs)
+    ; Context info should be at [rsp+120] to [rsp+151]
+    mov rax, %1                  ; Load interrupt number into register
+    mov [rsp + 120], rax         ; Interrupt
+    mov rax, [rsp + 168]         ; Read RFLAGS again (it moved: was at 136, now at 136+32=168)
+    mov [rsp + 128], rax         ; CpuFlags
+    mov rax, cr2
+    mov [rsp + 136], rax         ; Cr2
+    xor rax, rax
+    mov [rsp + 144], rax         ; TempRcx (zero)
+
+    ; Stack is now correctly laid out:
+    ; [rsp+0..119] = R15..RAX (GPRs, 120 bytes)
+    ; [rsp+120..151] = Interrupt, CpuFlags, Cr2, TempRcx (32 bytes)
+    ; [rsp+152..] = RIP, CS, RFLAGS (CPU frame)
 
     ; Save XMM registers (SSE/SIMD state) - 16 registers * 16 bytes = 256 bytes
     sub rsp, 256
@@ -623,11 +721,43 @@ irq%1_stub:
     movdqu [rsp + 224], xmm14
     movdqu [rsp + 240], xmm15
 
-    ; Call managed handler with pointer to context (past XMM save area)
+    ; === CALL HANDLER ===
     lea rdi, [rsp + 256]
     call __managed__irq
 
-    ; Restore XMM registers
+    ; === CHECK FOR CONTEXT SWITCH ===
+    mov rax, [rel _context_switch_target_rsp]
+    test rax, rax
+    jz .restore%1
+
+    ; Switch to new context - clear flags and switch stack
+    xor rcx, rcx
+    mov [rel _context_switch_target_rsp], rcx
+
+    ; Save the is_new_thread flag before clearing (we need it after restore)
+    mov rdx, [rel _context_switch_is_new_thread]
+    mov [rel _context_switch_is_new_thread], rcx
+
+    ; Switch stack
+    mov rsp, rax
+
+    ; Store flag in a location we can read after GPR restore
+    ; Use the TempRcx slot in the context (offset 400 from start, or after GPRs+info)
+    ; After XMM restore: rsp points to GPRs
+    ; GPRs = 120 bytes, then info section starts
+    ; Interrupt(8) + CpuFlags(8) + Cr2(8) + TempRcx(8)
+    ; So TempRcx is at offset 256 + 120 + 24 = 400 from original RSP
+    ; Or from current RSP (pointing to XMM): 120 + 24 = 144 bytes after XMM area
+    mov [rsp + 256 + 120 + 24], rdx  ; Store in TempRcx slot
+
+.restore%1:
+    ; === RESTORE CONTEXT (single path for all cases) ===
+    ; First, read TempRcx BEFORE restoring GPRs (so we don't destroy RAX)
+    ; TempRcx is at: XMM(256) + GPRs(120) + interrupt(8) + cpuflags(8) + cr2(8) = offset 400
+    mov rax, [rsp + 256 + 120 + 24]  ; Read TempRcx (is_new_thread flag)
+    mov [rel _temp_is_new_thread], rax  ; Save it in a global variable
+
+    ; Restore XMM
     movdqu xmm0, [rsp + 0]
     movdqu xmm1, [rsp + 16]
     movdqu xmm2, [rsp + 32]
@@ -646,7 +776,7 @@ irq%1_stub:
     movdqu xmm15, [rsp + 240]
     add rsp, 256
 
-    ; Restore registers in reverse order (last pushed = first popped)
+    ; Restore GPRs
     pop r15
     pop r14
     pop r13
@@ -663,12 +793,26 @@ irq%1_stub:
     pop rcx
     pop rax
 
-    ; Skip interrupt number, cpu_flags, cr2, and the temporary rcx save (4 qwords)
+    ; Skip all context info: interrupt(8) + cpu_flags(8) + cr2(8) + temprx(8) = 32 bytes
     add rsp, 32
 
-    ; Now stack has: RIP, CS, RFLAGS from the CPU interrupt frame
-    ; iretq will pop these and return to caller
+    ; === EXIT PATH ===
+    ; Stack now: RIP, CS, RFLAGS, [RSP, SS if privilege change]
+    ; Check saved flag for new thread
+    cmp qword [rel _temp_is_new_thread], 0
+    jnz .new_thread%1
+
+    ; RESUMED thread or normal return - use iretq
     iretq
+
+.new_thread%1:
+    ; NEW thread - need to set up RSP from context and jump
+    ; Stack: RIP, CS, RFLAGS, RSP, SS
+    pop r11          ; RIP → r11
+    add rsp, 8       ; skip CS
+    popfq            ; restore RFLAGS (enables interrupts)
+    pop rsp          ; load thread's stack pointer
+    jmp r11          ; jump to entry point
 
 %endmacro
 
