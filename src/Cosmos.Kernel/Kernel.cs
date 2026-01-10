@@ -1,20 +1,20 @@
 using System.Runtime.InteropServices;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.Core.Scheduler.Stride;
+using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.Core.CPU;
-using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Core.Scheduler.Stride;
-using Cosmos.Kernel.System.Keyboard;
-using Cosmos.Kernel.System.Timer;
-using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.System.Keyboard;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Timer;
 
 namespace Cosmos.Kernel;
 
