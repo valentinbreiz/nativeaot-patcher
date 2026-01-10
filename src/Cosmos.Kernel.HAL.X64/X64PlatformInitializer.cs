@@ -67,6 +67,10 @@ public class X64PlatformInitializer : IPlatformInitializer
         _ps2Controller = new PS2Controller();
         _ps2Controller.Initialize();
 
+        // Register keyboard IRQ handler (routes IRQ1 through APIC and enables scanning)
+        Serial.WriteString("[X64HAL] Registering keyboard IRQ handler...\n");
+        PS2Keyboard.RegisterIRQHandler();
+
         // Try to find E1000E network device
         Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");
         _networkDevice = E1000E.FindAndCreate();
