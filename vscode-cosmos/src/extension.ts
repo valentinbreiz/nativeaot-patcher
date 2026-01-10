@@ -2,8 +2,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { execSync, spawn } from 'child_process';
+import { execSync, spawn, ChildProcess } from 'child_process';
 
+let buildChannel: vscode.OutputChannel;
 let outputChannel: vscode.OutputChannel;
 
 // Get PATH with dotnet tools directory included
@@ -34,7 +35,8 @@ let projectTreeProvider: ProjectTreeProvider;
 let toolsTreeProvider: ToolsTreeProvider;
 
 export function activate(context: vscode.ExtensionContext) {
-    outputChannel = vscode.window.createOutputChannel('Cosmos OS');
+    buildChannel = vscode.window.createOutputChannel('Cosmos OS - Build');
+    outputChannel = vscode.window.createOutputChannel('Cosmos OS - Output');
 
     // Initialize tree providers
     projectTreeProvider = new ProjectTreeProvider();
@@ -378,11 +380,11 @@ async function newProjectCommand(context: vscode.ExtensionContext) {
     }
 
     // Create the project
-    outputChannel.show();
-    outputChannel.appendLine(`Creating Cosmos kernel project: ${projectName}`);
-    outputChannel.appendLine(`Architecture: ${arch.label}`);
-    outputChannel.appendLine(`Location: ${projectPath}`);
-    outputChannel.appendLine('');
+    buildChannel.show();
+    buildChannel.appendLine(`Creating Cosmos kernel project: ${projectName}`);
+    buildChannel.appendLine(`Architecture: ${arch.label}`);
+    buildChannel.appendLine(`Location: ${projectPath}`);
+    buildChannel.appendLine('');
 
     try {
         // Create directory if needed
@@ -393,15 +395,15 @@ async function newProjectCommand(context: vscode.ExtensionContext) {
         // Run dotnet new (use -o . when creating in current dir to avoid subdirectory)
         const outputFlag = createInCurrentDir ? '-o .' : '';
         const cmd = `dotnet new cosmos-kernel -n ${projectName} --TargetArch ${arch.label} ${outputFlag} --force`;
-        outputChannel.appendLine(`> ${cmd}`);
+        buildChannel.appendLine(`> ${cmd}`);
 
         const result = execWithPath(cmd, {
             cwd: projectPath,
             encoding: 'utf8'
         });
-        outputChannel.appendLine(result);
-        outputChannel.appendLine('');
-        outputChannel.appendLine('Project created successfully!');
+        buildChannel.appendLine(result);
+        buildChannel.appendLine('');
+        buildChannel.appendLine('Project created successfully!');
 
         // Open the project automatically
         if (createInCurrentDir) {
@@ -415,9 +417,9 @@ async function newProjectCommand(context: vscode.ExtensionContext) {
             await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectPath), false);
         }
     } catch (error: any) {
-        outputChannel.appendLine(`Error: ${error.message}`);
-        if (error.stdout) outputChannel.appendLine(error.stdout);
-        if (error.stderr) outputChannel.appendLine(error.stderr);
+        buildChannel.appendLine(`Error: ${error.message}`);
+        if (error.stdout) buildChannel.appendLine(error.stdout);
+        if (error.stderr) buildChannel.appendLine(error.stderr);
         vscode.window.showErrorMessage(`Failed to create project: ${error.message}`);
     }
 }
@@ -425,16 +427,16 @@ async function newProjectCommand(context: vscode.ExtensionContext) {
 async function checkToolsCommand() {
     toolsTreeProvider.refresh();
 
-    outputChannel.show();
-    outputChannel.appendLine('Checking development tools...');
-    outputChannel.appendLine('');
+    buildChannel.show();
+    buildChannel.appendLine('Checking development tools...');
+    buildChannel.appendLine('');
 
     try {
         const result = execWithPath('cosmos-tools check', { encoding: 'utf8' });
-        outputChannel.appendLine(result);
+        buildChannel.appendLine(result);
     } catch (error: any) {
         if (error.stdout) {
-            outputChannel.appendLine(error.stdout);
+            buildChannel.appendLine(error.stdout);
         }
         vscode.window.showWarningMessage(
             'Some development tools are missing. Run "Install Tools" to install them.',
@@ -484,13 +486,55 @@ async function buildCommand(arch?: string) {
 
     const projectDir = path.dirname(projectInfo.csproj);
     const archUpper = arch.toUpperCase();
-    const terminal = vscode.window.createTerminal('Cosmos Build');
-    terminal.show();
-    terminal.sendText(
-        `cd "${projectDir}" && dotnet publish -c ${config.label} -r linux-${arch} ` +
-        `-p:DefineConstants=ARCH_${archUpper} -p:CosmosArch=${arch} ` +
-        `-o ./output-${arch} --verbosity minimal`
-    );
+
+    // Show output in the build channel
+    buildChannel.show(true);
+    buildChannel.clear();
+    buildChannel.appendLine(`Building ${projectInfo.name} for ${arch} (${config.label})...`);
+    buildChannel.appendLine('');
+
+    const buildArgs = [
+        'publish',
+        '-c', config.label,
+        '-r', `linux-${arch}`,
+        `-p:DefineConstants=ARCH_${archUpper}`,
+        `-p:CosmosArch=${arch}`,
+        '-o', `./output-${arch}`,
+        '--verbosity', 'minimal'
+    ];
+
+    buildChannel.appendLine(`> dotnet ${buildArgs.join(' ')}`);
+    buildChannel.appendLine('');
+
+    const buildProcess = spawn('dotnet', buildArgs, {
+        cwd: projectDir,
+        env: getEnvWithDotnetTools(),
+        shell: true
+    });
+
+    buildProcess.stdout?.on('data', (data: Buffer) => {
+        buildChannel.append(data.toString());
+    });
+
+    buildProcess.stderr?.on('data', (data: Buffer) => {
+        buildChannel.append(data.toString());
+    });
+
+    buildProcess.on('close', (code) => {
+        buildChannel.appendLine('');
+        if (code === 0) {
+            buildChannel.appendLine('Build completed successfully.');
+            vscode.window.showInformationMessage(`Build completed: ${projectInfo.name} (${arch})`);
+        } else {
+            buildChannel.appendLine(`Build failed with exit code ${code}`);
+            vscode.window.showErrorMessage(`Build failed with exit code ${code}`);
+        }
+    });
+
+    buildProcess.on('error', (err) => {
+        buildChannel.appendLine(`Error: ${err.message}`);
+        vscode.window.showErrorMessage(`Build error: ${err.message}`);
+    });
 }
 
 async function runCommand(arch?: string) {
@@ -536,24 +580,59 @@ async function runCommand(arch?: string) {
     const config = vscode.workspace.getConfiguration('cosmos');
     const memory = config.get<string>('qemuMemory') || '512M';
 
-    const terminal = vscode.window.createTerminal('QEMU');
-    terminal.show();
+    let qemuCmd: string;
+    let qemuArgs: string[];
 
     if (arch === 'x64') {
-        terminal.sendText(
-            `qemu-system-x86_64 -M q35 -cpu max -m ${memory} -serial stdio ` +
-            `-cdrom "${isoPath}" -display gtk -vga std -no-reboot -no-shutdown`
-        );
+        qemuCmd = 'qemu-system-x86_64';
+        qemuArgs = [
+            '-M', 'q35', '-cpu', 'max', '-m', memory, '-serial', 'stdio',
+            '-cdrom', isoPath, '-display', 'gtk', '-vga', 'std',
+            '-no-reboot', '-no-shutdown'
+        ];
     } else {
-        terminal.sendText(
-            `qemu-system-aarch64 -M virt -cpu cortex-a72 -m 1G ` +
-            `-bios /usr/share/AAVMF/AAVMF_CODE.fd ` +
-            `-drive if=none,id=cd,file="${isoPath}" ` +
-            `-device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 ` +
-            `-device virtio-keyboard-device -device ramfb ` +
-            `-display gtk,show-cursor=on -serial stdio`
-        );
+        qemuCmd = 'qemu-system-aarch64';
+        qemuArgs = [
+            '-M', 'virt', '-cpu', 'cortex-a72', '-m', '1G',
+            '-bios', '/usr/share/AAVMF/AAVMF_CODE.fd',
+            '-drive', `if=none,id=cd,file=${isoPath}`,
+            '-device', 'virtio-scsi-pci', '-device', 'scsi-cd,drive=cd,bootindex=0',
+            '-device', 'virtio-keyboard-device', '-device', 'ramfb',
+            '-display', 'gtk,show-cursor=on', '-serial', 'stdio'
+        ];
     }
+
+    // Show output in the output channel
+    outputChannel.show(true);
+    outputChannel.clear();
+    outputChannel.appendLine(`Running ${projectInfo.name} (${arch}) in QEMU...`);
+    outputChannel.appendLine('');
+    outputChannel.appendLine(`> ${qemuCmd} ${qemuArgs.join(' ')}`);
+    outputChannel.appendLine('');
+
+    const qemuProcess = spawn(qemuCmd, qemuArgs, {
+        cwd: projectDir,
+        env: getEnvWithDotnetTools(),
+        shell: true
+    });
+
+    qemuProcess.stdout?.on('data', (data: Buffer) => {
+        outputChannel.append(data.toString());
+    });
+
+    qemuProcess.stderr?.on('data', (data: Buffer) => {
+        outputChannel.append(data.toString());
+    });
+
+    qemuProcess.on('close', (code) => {
+        outputChannel.appendLine('');
+        outputChannel.appendLine(`QEMU exited with code ${code}`);
+    });
+
+    qemuProcess.on('error', (err) => {
+        outputChannel.appendLine(`Error: ${err.message}`);
+        vscode.window.showErrorMessage(`QEMU error: ${err.message}`);
+    });
 }
 
 async function debugCommand(arch?: string) {
@@ -635,25 +714,61 @@ async function debugCommand(arch?: string) {
 
     const isoPath = path.join(outputDir, isoFiles[0]);
 
-    // Start QEMU with debug flags in a terminal
-    const qemuTerminal = vscode.window.createTerminal('QEMU Debug');
-    qemuTerminal.show();
+    // Start QEMU with debug flags
+    let qemuCmd: string;
+    let qemuArgs: string[];
 
     if (arch === 'x64') {
-        qemuTerminal.sendText(
-            `qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio ` +
-            `-cdrom "${isoPath}" -display gtk -vga std -s -S -no-reboot -no-shutdown`
-        );
+        qemuCmd = 'qemu-system-x86_64';
+        qemuArgs = [
+            '-M', 'q35', '-cpu', 'max', '-m', '512M', '-serial', 'stdio',
+            '-cdrom', isoPath, '-display', 'gtk', '-vga', 'std',
+            '-s', '-S', '-no-reboot', '-no-shutdown'
+        ];
     } else {
-        qemuTerminal.sendText(
-            `qemu-system-aarch64 -M virt -cpu cortex-a72 -m 1G ` +
-            `-bios /usr/share/AAVMF/AAVMF_CODE.fd ` +
-            `-drive if=none,id=cd,file="${isoPath}" ` +
-            `-device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 ` +
-            `-device virtio-keyboard-device -device ramfb ` +
-            `-display gtk,show-cursor=on -serial stdio -s -S`
-        );
+        qemuCmd = 'qemu-system-aarch64';
+        qemuArgs = [
+            '-M', 'virt', '-cpu', 'cortex-a72', '-m', '1G',
+            '-bios', '/usr/share/AAVMF/AAVMF_CODE.fd',
+            '-drive', `if=none,id=cd,file=${isoPath}`,
+            '-device', 'virtio-scsi-pci', '-device', 'scsi-cd,drive=cd,bootindex=0',
+            '-device', 'virtio-keyboard-device', '-device', 'ramfb',
+            '-display', 'gtk,show-cursor=on', '-serial', 'stdio',
+            '-s', '-S'
+        ];
     }
+
+    // Show output in the output channel
+    outputChannel.show(true);
+    outputChannel.clear();
+    outputChannel.appendLine(`Debugging ${projectInfo.name} (${arch}) - QEMU waiting for GDB on port 1234...`);
+    outputChannel.appendLine('');
+    outputChannel.appendLine(`> ${qemuCmd} ${qemuArgs.join(' ')}`);
+    outputChannel.appendLine('');
+
+    const qemuProcess = spawn(qemuCmd, qemuArgs, {
+        cwd: projectDir,
+        env: getEnvWithDotnetTools(),
+        shell: true
+    });
+
+    qemuProcess.stdout?.on('data', (data: Buffer) => {
+        outputChannel.append(data.toString());
+    });
+
+    qemuProcess.stderr?.on('data', (data: Buffer) => {
+        outputChannel.append(data.toString());
+    });
+
+    qemuProcess.on('close', (code) => {
+        outputChannel.appendLine('');
+        outputChannel.appendLine(`QEMU exited with code ${code}`);
+    });
+
+    qemuProcess.on('error', (err) => {
+        outputChannel.appendLine(`Error: ${err.message}`);
+        vscode.window.showErrorMessage(`QEMU error: ${err.message}`);
+    });
 
     // Wait for QEMU to start
     await new Promise(resolve => setTimeout(resolve, 2000));
