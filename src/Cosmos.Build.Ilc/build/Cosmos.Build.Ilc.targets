@@ -118,7 +118,10 @@
       <IlcArg Include="--nativelib"/>
       <IlcArg Include="--noinlinetls"/>
       <IlcArg Include="-g"/>
+      <IlcArg Include="--gdwarf-5"/>
       <IlcArg Include="-O"/>
+      <!-- Generate map file for debugging symbol resolution -->
+      <IlcArg Include="--map:$(IlcIntermediateOutputPath)$(AssemblyName).map.xml"/>
       <!-- Architecture-specific instruction sets -->
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'x64'"/>
       <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'"/>

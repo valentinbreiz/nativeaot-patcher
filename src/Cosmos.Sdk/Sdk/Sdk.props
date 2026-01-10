@@ -95,11 +95,11 @@
 
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Build.Common" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.13" />
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.17" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Build.Common" />
@@ -111,8 +111,8 @@
 
   <!-- Architecture-specific packages for x64 -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64')) AND '$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.13" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.17" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64')) AND '$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" />
@@ -121,8 +121,8 @@
 
   <!-- Architecture-specific packages for ARM64 -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64')) AND '$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.13" />
-    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.13" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.17" />
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.17" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64')) AND '$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" />

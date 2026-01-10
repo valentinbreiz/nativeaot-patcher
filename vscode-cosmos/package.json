@@ -13,6 +13,7 @@
   },
   "categories": [
     "Programming Languages",
+    "Debuggers",
     "Other"
   ],
   "keywords": [
@@ -20,12 +21,16 @@
     "kernel",
     "os",
     "nativeaot",
-    "bare-metal"
+    "bare-metal",
+    "debugger"
   ],
   "activationEvents": [
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -162,9 +167,13 @@
     "lint": "eslint src --ext ts",
     "package": "vsce package"
   },
+  "dependencies": {
+    "glob": "^10.3.0"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
+    "@types/glob": "^8.1.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "eslint": "^8.54.0",
