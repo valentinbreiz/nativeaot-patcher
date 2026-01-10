@@ -9,17 +9,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core" />
-    <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
-    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics" />
-    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
+    <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core"/>
+    <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false"/>
+    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
+    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <!-- Ensure AOT Reference and ILCompiler are present in nuget cache -->
+    <PackageDownload Include="Microsoft.NETCore.App.Runtime.NativeAOT.$(RuntimeIdentifier)" Version="[$(BundledNETCoreAppPackageVersion)]" />
+    <PackageDownload Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler" Version="[$(BundledNETCoreAppPackageVersion)]" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cosmos.Build.Common"/>
-    <PackageReference Include="Cosmos.Build.Ilc"/>
-    <PackageReference Include="Cosmos.Build.Asm"/>
-    <PackageReference Include="Cosmos.Build.Patcher"/>
-    <PackageReference Include="Cosmos.Build.GCC"/>
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.3" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.0" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.1" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.0" />
   </ItemGroup>
 </Project>

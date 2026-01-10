@@ -12,7 +12,6 @@ internal unsafe partial struct MethodTable
     {
         void* pGetArrayEEType = ModuleHelpers.RhpGetClasslibFunctionFromEEType((MethodTable*)Unsafe.AsPointer(ref this), ClassLibFunctionId.GetSystemArrayEEType);
         return ((delegate*<MethodTable*>)pGetArrayEEType)();
-        return MethodTable.Of<Array>();
     }
     /*
     internal Exception GetClasslibException(ExceptionIDs id)

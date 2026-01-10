@@ -55,7 +55,7 @@ namespace Cosmos.Kernel.Core.Runtime
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    internal static unsafe class StartupCodeHelpers
+    internal static unsafe partial class StartupCodeHelpers
     {
         [RuntimeExport("RhpReversePInvoke")]
         private static void RhpReversePInvoke(IntPtr frame) { }
@@ -75,15 +75,49 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("InitializeModules")]
         private static unsafe void InitializeModules(IntPtr osModule, IntPtr* pModuleHeaders, int count, IntPtr* pClasslibFunctions, int nClasslibFunctions) { }
 
-        [RuntimeExport("RhpThrowEx")]
-        private static void RhpThrowEx(Exception ex)
+        // RhpThrowEx is now implemented in assembly (CPU/ExceptionHandling.asm)
+        // The assembly stub saves register context, creates ExInfo, then calls RhThrowEx
+
+        /// <summary>
+        /// Managed exception dispatcher called from assembly RhpThrowEx.
+        /// This is the entry point for the two-pass exception handling.
+        /// </summary>
+        [RuntimeExport("RhThrowEx")]
+        private static void RhThrowEx(Exception ex, void* pExInfo)
         {
-            // Get the return address (where the exception was thrown from)
-            // This is an approximation - the actual throw site is the caller
-            nuint throwAddress = 0; // Will be populated by assembly helper in real implementation
+            // Get throw address and context from ExInfo
+            nuint throwAddress = 0;
+            nuint throwFp = 0;  // Frame pointer (RBP on x64, FP/x29 on ARM64)
+            nuint throwSp = 0;  // Stack pointer
+
+            if (pExInfo != null)
+            {
+                // ExInfo.m_pExContext points to PAL_LIMITED_CONTEXT
+                void* pContext = *(void**)((byte*)pExInfo + 0x08); // OFFSETOF__ExInfo__m_pExContext
+                if (pContext != null)
+                {
+#if ARCH_X64
+                    // x64 PAL_LIMITED_CONTEXT layout:
+                    // 0x00: IP (instruction pointer / return address)
+                    // 0x08: Rsp
+                    // 0x10: Rbp
+                    throwAddress = *(nuint*)((byte*)pContext + 0x00);
+                    throwSp = *(nuint*)((byte*)pContext + 0x08);
+                    throwFp = *(nuint*)((byte*)pContext + 0x10);
+#elif ARCH_ARM64
+                    // ARM64 PAL_LIMITED_CONTEXT layout:
+                    // 0x00: SP (stack pointer)
+                    // 0x08: IP (instruction pointer / LR)
+                    // 0x10: FP (frame pointer / x29)
+                    throwSp = *(nuint*)((byte*)pContext + 0x00);
+                    throwAddress = *(nuint*)((byte*)pContext + 0x08);
+                    throwFp = *(nuint*)((byte*)pContext + 0x10);
+#endif
+                }
+            }
 
             // Use our exception handling infrastructure
-            ExceptionHelper.ThrowException(ex, throwAddress);
+            ExceptionHelper.ThrowExceptionWithContext(ex, throwAddress, throwFp, throwSp, pExInfo);
         }
 
         [RuntimeExport("RhpAssignRef")]
@@ -106,20 +140,6 @@ namespace Cosmos.Kernel.Core.Runtime
             return original;
         }
 
-        [RuntimeExport("RhTypeCast_CheckCastClass")]
-        static unsafe object RhTypeCast_CheckCastClass(object obj, int typeHandle)
-        {
-            // This is 100% WRONG
-            return obj;
-        }
-
-        // Essential runtime functions needed by the linker
-        [RuntimeExport("RhTypeCast_IsInstanceOfClass")]
-        static unsafe object RhTypeCast_IsInstanceOfClass(object obj, int classTypeHandle)
-        {
-            return obj; // Simplified implementation
-        }
-
 
         [RuntimeExport("RhpTrapThreads")]
         static void RhpTrapThreads() { }
@@ -127,10 +147,10 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpGcPoll")]
         static void RhpGcPoll() { }
 
-        [RuntimeExport("RhGetOSModuleFromPointer")]
-        static IntPtr RhGetOSModuleFromPointer(IntPtr ptr)
+        [RuntimeExport("RhpStackProbe")]
+        static void RhpStackProbe()
         {
-            return IntPtr.Zero;
+
         }
 
         [RuntimeExport("RhGetRuntimeVersion")]
@@ -177,6 +197,16 @@ namespace Cosmos.Kernel.Core.Runtime
             return result;
         }
 
+        /// <summary>
+        /// Returns the MethodTable* for System.Array. This is used by the runtime when
+        /// it needs to determine the base type of array types.
+        /// </summary>
+        [RuntimeExport("GetSystemArrayEEType")]
+        static unsafe MethodTable* GetSystemArrayEEType()
+        {
+            return MethodTable.Of<Array>();
+        }
+
         [RuntimeExport("RhNewObject")]
         static unsafe void* RhNewObject(MethodTable* pEEType)
         {
@@ -192,17 +222,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhHandleFree")]
         static void RhHandleFree(IntPtr handle) { }
 
-        [RuntimeExport("RhTypeCast_AreTypesAssignable")]
-        static bool RhTypeCast_AreTypesAssignable(int typeHandleSrc, int typeHandleDest)
-        {
-            return true; // Simplified implementation
-        }
-
-        [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
-        static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count)
-        {
-            return obj; // Simplified implementation
-        }
 
         [RuntimeExport("RhpStelemRef")]
         static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
@@ -212,8 +231,6 @@ namespace Cosmos.Kernel.Core.Runtime
 
             ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;
             ref object element = ref Unsafe.Add(ref rawData, index);
-
-            MethodTable* elementType = array.GetMethodTable()->RelatedParameterType;
 
             if (obj == null)
             {
@@ -247,18 +264,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhCreateCrashDumpIfEnabled")]
         static void RhCreateCrashDumpIfEnabled(IntPtr exceptionRecord, IntPtr contextRecord) { }
 
-        [RuntimeExport("RhTypeCast_IsInstanceOfInterface")]
-        static bool RhTypeCast_IsInstanceOfInterface(object obj, int interfaceTypeHandle)
-        {
-            return obj != null;
-        }
-
-        [RuntimeExport("RhTypeCast_CheckCastInterface")]
-        static unsafe object RhTypeCast_CheckCastInterface(object obj, int interfaceTypeHandle)
-        {
-            return obj;
-        }
-
         [RuntimeExport("RhpByRefAssignRef")]
         static unsafe void RhpByRefAssignRef(void** location, void* value)
         {
@@ -281,11 +286,7 @@ namespace Cosmos.Kernel.Core.Runtime
             return Memory.RhpNewFast(pEEType); // Simplified implementation (Should set gc flag)
         }
 
-        [RuntimeExport("RhpRethrow")]
-        static void RhpRethrow()
-        {
-            while (true) ;
-        }
+        // RhpRethrow is now implemented in assembly (CPU/ExceptionHandling.asm)
 
         [RuntimeExport("RhSpinWait")]
         static void RhSpinWait(int iterations)
@@ -299,6 +300,13 @@ namespace Cosmos.Kernel.Core.Runtime
 
         [RuntimeExport("RhSetThreadExitCallback")]
         static void RhSetThreadExitCallback(IntPtr callback) { }
+
+        [RuntimeExport("RhCompatibleReentrantWaitAny")]
+        static uint RhCompatibleReentrantWaitAny(int alertable, uint timeout, uint handleCount, IntPtr pHandles)
+        {
+            // Single-threaded kernel: always return success immediately
+            return 0x00000000; // WAIT_OBJECT_0 (SUCCESS)
+        }
 
         [RuntimeExport("RhYield")]
         static int RhYield()
@@ -322,12 +330,6 @@ namespace Cosmos.Kernel.Core.Runtime
         static unsafe void RhBuffer_BulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len)
         {
             memmove((byte*)dest, (byte*)src, len);
-        }
-
-        [RuntimeExport("RhTypeCast_CheckCastClassSpecial")]
-        static unsafe object RhTypeCast_CheckCastClassSpecial(object obj, int typeHandle, byte fThrow)
-        {
-            return obj;
         }
 
         [RuntimeExport("RhFindMethodStartAddress")]
@@ -372,12 +374,6 @@ namespace Cosmos.Kernel.Core.Runtime
             return pCode;
         }
 
-        [RuntimeExport("RhTypeCast_CheckCastAny")]
-        static unsafe object RhTypeCast_CheckCastAny(object obj, int typeHandle)
-        {
-            return obj;
-        }
-
         private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
         {
             MemoryOp.MemMove(dest, src, (int)len);
@@ -395,16 +391,12 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void RhpTrapThreads() { }
                 [RuntimeExport("RhpGcPoll")]
                 static void RhpGcPoll() { }
-                [RuntimeExport("__security_cookie")]
-                static void __security_cookie() { }
                 [RuntimeExport("RhSpanHelpers_MemZero")]
                 static unsafe void RhSpanHelpers_MemZero(byte* dest, int len) { }
                 [RuntimeExport("RhGetOSModuleFromPointer")]
                 static IntPtr RhGetOSModuleFromPointer(IntPtr ptr) { throw null; }
                 [RuntimeExport("RhGetRuntimeVersion")]
                 static int RhGetRuntimeVersion() { return 0; }
-                [RuntimeExport("RhGetKnobValues")]
-                static unsafe void RhGetKnobValues(int* pKnobValues) { }
                 [RuntimeExport("RhBulkMoveWithWriteBarrier")]
                 static unsafe void RhBulkMoveWithWriteBarrier(void* dest, void* src, UIntPtr len) { }
                 [RuntimeExport("RhHandleFree")]
@@ -449,8 +441,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]
                 static unsafe void* RhUnbox(object obj) { throw null; }
-                [RuntimeExport("RhpStelemRef")]
-                static unsafe void RhpStelemRef(object array, int index, object value) { }
                 [RuntimeExport("RhTypeCast_CheckArrayStore")]
                 static unsafe void RhTypeCast_CheckArrayStore(object array, object value) { }
                 [RuntimeExport("RhpResolveInterfaceMethod")]

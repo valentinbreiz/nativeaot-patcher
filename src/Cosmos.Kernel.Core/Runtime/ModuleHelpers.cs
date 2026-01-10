@@ -7,7 +7,8 @@ namespace Cosmos.Kernel.Core.Runtime;
 
 internal static unsafe class ModuleHelpers
 {
-    private static void* _osmodule;
+    internal static nint OsModule { get; private set; }
+
     [RuntimeExport("RhpGetModuleSection")]
     internal static void* RhpGetModuleSection(TypeManagerHandle* module, ReadyToRunSectionType sectionId, int* length)
     {
@@ -17,10 +18,13 @@ internal static unsafe class ModuleHelpers
     }
 
     [RuntimeExport("RhpRegisterOsModule")]
-    internal static void* RhpRegisterOsModule(void* osModule)
+    internal static nint RhpRegisterOsModule(nint osModule)
     {
+        Serial.WriteString("[ModuleHelpers] - RhpRegisterOsModule called for OS Module 0x");
+        Serial.WriteHex((nuint)osModule);
+        Serial.WriteString("\n");
         //TODO: Should be saved on an array or some other struct.
-        _osmodule = osModule;
+        OsModule = osModule;
         return osModule;
     }
 
@@ -52,10 +56,18 @@ internal static unsafe class ModuleHelpers
         return pEEType->TypeManager.AsTypeManager()->GetClassLibFunction(id);
     }
 
+    [RuntimeExport("RhGetOSModuleFromPointer")]
+    static IntPtr RhGetOSModuleFromPointer(IntPtr ptr)
+    {
+        return (nint)OsModule;
+    }
 
     [RuntimeExport("RhFindBlob")]
     internal static unsafe bool RhFindBlob(TypeManagerHandle* typeManagerHandle, uint blobId, byte** ppbBlob, uint* pcbBlob)
     {
+        Serial.WriteString("[ModuleHelpers] - RhFindBlob called for Blob ID ");
+        Serial.WriteNumber(blobId);
+        Serial.WriteString("\n");
         ReadyToRunSectionType sectionId = (ReadyToRunSectionType)((uint)ReadyToRunSectionType.ReadonlyBlobRegionStart + blobId);
 
         TypeManager* pModule = typeManagerHandle->AsTypeManager();
@@ -90,7 +102,7 @@ internal static unsafe class ModuleHelpers
         {
             if (pModuleHeaders[i] != IntPtr.Zero)
             {
-                TypeManagerHandle handle = RhpCreateTypeManager(pModuleHeaders[0], (ReadyToRunHeader*)pModuleHeaders[i], pClasslibFunctions, nClasslibFunctions);
+                TypeManagerHandle handle = RhpCreateTypeManager(OsModule, (ReadyToRunHeader*)pModuleHeaders[i], pClasslibFunctions, nClasslibFunctions);
 
                 IntPtr dehydratedRegion = handle.AsTypeManager()->GetModuleSection(ReadyToRunSectionType.DehydratedData, out int length);
                 if (dehydratedRegion != IntPtr.Zero)

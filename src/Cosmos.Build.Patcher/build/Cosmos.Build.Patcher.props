@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <CosmosPatcherTasksAssembly
-      Condition="'$(CosmosPatcherTasksAssembly)' == '' OR !Exists('$(CosmosPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\..\tasks\net9.0\Cosmos.Build.Patcher.dll</CosmosPatcherTasksAssembly>
+      Condition="'$(CosmosPatcherTasksAssembly)' == '' OR !Exists('$(CosmosPatcherTasksAssembly)')">$(MSBuildThisFileDirectory)\..\tasks\net10.0\Cosmos.Build.Patcher.dll</CosmosPatcherTasksAssembly>
   </PropertyGroup>
 
 </Project>

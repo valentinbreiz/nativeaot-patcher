@@ -1,0 +1,17 @@
+// This code is licensed under MIT license (see LICENSE for details)
+
+namespace Cosmos.Kernel.HAL.X64.Pci.Enums;
+
+public enum PciCommand : short
+{
+    Io = 0x1, /* Enable response in I/O space */
+    Memory = 0x2, /* Enable response in Memory space */
+    Master = 0x4, /* Enable bus mastering */
+    Special = 0x8, /* Enable response to special cycles */
+    Invalidate = 0x10, /* Use memory write and invalidate */
+    VgaPallete = 0x20, /* Enable palette snooping */
+    Parity = 0x40, /* Enable parity checking */
+    Wait = 0x80, /* Enable address/data stepping */
+    Serr = 0x100, /* Enable SERR */
+    FastBack = 0x200 /* Enable back-to-back writes */
+}

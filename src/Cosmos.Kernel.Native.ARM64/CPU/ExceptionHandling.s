@@ -1,0 +1,490 @@
+// Exception Handling Assembly Stubs for ARM64 (AAPCS64)
+// Implements the low-level exception dispatching for NativeAOT
+
+.section .data
+
+// Global exception info stack head (single-threaded kernel, no TLS needed)
+.global __cosmos_exinfo_stack_head
+__cosmos_exinfo_stack_head: .quad 0
+
+.section .text
+
+// External managed functions
+.extern RhThrowEx                    // C# exception dispatcher
+
+//=============================================================================
+// Structure offsets
+//=============================================================================
+
+// ExInfo offsets
+.equ SIZEOF__ExInfo,                  0x190
+.equ OFFSETOF__ExInfo__m_pPrevExInfo, 0x00
+.equ OFFSETOF__ExInfo__m_pExContext,  0x08
+.equ OFFSETOF__ExInfo__m_exception,   0x10
+.equ OFFSETOF__ExInfo__m_kind,        0x18
+.equ OFFSETOF__ExInfo__m_passNumber,  0x19
+.equ OFFSETOF__ExInfo__m_idxCurClause, 0x1c
+
+// PAL_LIMITED_CONTEXT offsets for ARM64
+.equ SIZEOF__PAL_LIMITED_CONTEXT,     0x70
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__SP,  0x00
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__IP,  0x08
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__FP,  0x10
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__LR,  0x18
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X19, 0x20
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X20, 0x28
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X21, 0x30
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X22, 0x38
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X23, 0x40
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X24, 0x48
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X25, 0x50
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X26, 0x58
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X27, 0x60
+.equ OFFSETOF__PAL_LIMITED_CONTEXT__X28, 0x68
+
+// REGDISPLAY offsets for ARM64
+.equ OFFSETOF__REGDISPLAY__SP,        0x00
+.equ OFFSETOF__REGDISPLAY__pFP,       0x08
+.equ OFFSETOF__REGDISPLAY__pX19,      0x10
+.equ OFFSETOF__REGDISPLAY__pX20,      0x18
+.equ OFFSETOF__REGDISPLAY__pX21,      0x20
+.equ OFFSETOF__REGDISPLAY__pX22,      0x28
+.equ OFFSETOF__REGDISPLAY__pX23,      0x30
+.equ OFFSETOF__REGDISPLAY__pX24,      0x38
+.equ OFFSETOF__REGDISPLAY__pX25,      0x40
+.equ OFFSETOF__REGDISPLAY__pX26,      0x48
+.equ OFFSETOF__REGDISPLAY__pX27,      0x50
+.equ OFFSETOF__REGDISPLAY__pX28,      0x58
+
+// ExKind enum
+.equ ExKind_Throw,        1
+
+// Stack size for ExInfo (aligned to 16 bytes)
+.equ STACKSIZEOF_ExInfo,  ((SIZEOF__ExInfo + 15) & ~15)
+
+//=============================================================================
+// RhpThrowEx - Entry point for throwing a managed exception
+//
+// INPUT:  x0 = exception object
+//
+// This is called by the ILC-generated code when a 'throw' statement executes.
+// AAPCS64: x0-x7 = arguments, x19-x28 = callee-saved
+//=============================================================================
+.global RhpThrowEx
+.balign 4
+RhpThrowEx:
+    // Save the SP of the throw site and LR (return address)
+    mov     x9, sp                      // x9 = original SP at throw site
+    mov     x10, lr                     // x10 = return address (throw site IP)
+
+    // Allocate space for PAL_LIMITED_CONTEXT (0x50 bytes, 16-byte aligned)
+    sub     sp, sp, #SIZEOF__PAL_LIMITED_CONTEXT
+
+    // Build PAL_LIMITED_CONTEXT structure on stack
+    str     x9, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__SP]   // SP
+    str     x10, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__IP]  // IP (return address)
+    str     x29, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__FP]  // FP
+    str     x30, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__LR]  // LR
+    str     x19, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X19]
+    str     x20, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X20]
+    str     x21, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X21]
+    str     x22, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X22]
+    str     x23, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X23]
+    str     x24, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X24]
+    str     x25, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X25]
+    str     x26, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X26]
+    str     x27, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X27]
+    str     x28, [sp, #OFFSETOF__PAL_LIMITED_CONTEXT__X28]
+
+    // Save exception object in callee-saved register
+    mov     x19, x0                     // x19 = exception object
+
+    // Allocate space for ExInfo
+    sub     sp, sp, #STACKSIZEOF_ExInfo
+
+    // x1 = ExInfo* (current SP)
+    mov     x1, sp
+
+    // Initialize ExInfo fields
+    str     xzr, [x1, #OFFSETOF__ExInfo__m_exception]      // exception = null
+    mov     w2, #1
+    strb    w2, [x1, #OFFSETOF__ExInfo__m_passNumber]      // passNumber = 1
+    mov     w2, #0xFFFFFFFF
+    str     w2, [x1, #OFFSETOF__ExInfo__m_idxCurClause]    // idxCurClause = -1
+    mov     w2, #ExKind_Throw
+    strb    w2, [x1, #OFFSETOF__ExInfo__m_kind]            // kind = Throw
+
+    // Link ExInfo into the global exception chain
+    adrp    x2, __cosmos_exinfo_stack_head
+    add     x2, x2, :lo12:__cosmos_exinfo_stack_head
+    ldr     x3, [x2]                                        // x3 = current head
+    str     x3, [x1, #OFFSETOF__ExInfo__m_pPrevExInfo]     // pExInfo->m_pPrevExInfo = head
+    str     x1, [x2]                                        // head = pExInfo
+
+    // Set the exception context pointer
+    add     x3, sp, #STACKSIZEOF_ExInfo                    // x3 = PAL_LIMITED_CONTEXT*
+    str     x3, [x1, #OFFSETOF__ExInfo__m_pExContext]
+
+    // Call managed exception handler
+    // x0 = exception object (restore from x19)
+    // x1 = ExInfo* (already set)
+    mov     x0, x19
+    bl      RhThrowEx
+
+    // If we return, something went wrong (should never happen)
+    brk     #0
+    b       .
+
+//=============================================================================
+// RhpCallCatchFunclet - Call a catch handler funclet
+//
+// INPUT:  x0 = exception object
+//         x1 = handler funclet address
+//         x2 = REGDISPLAY*
+//         x3 = ExInfo*
+//
+// OUTPUT: x0 = resume address (where to continue after catch)
+//
+// The catch funclet expects the exception object in x0.
+// After the funclet returns, we resume at the address it returns.
+//=============================================================================
+.global RhpCallCatchFunclet
+.balign 4
+RhpCallCatchFunclet:
+    // Save callee-saved registers and arguments
+    // Allocate 0x80 bytes to have room for all saved data
+    stp     x29, x30, [sp, #-0x80]!
+    mov     x29, sp                     // Set up frame pointer
+    stp     x19, x20, [sp, #0x10]
+    stp     x21, x22, [sp, #0x20]
+    stp     x23, x24, [sp, #0x30]
+    stp     x25, x26, [sp, #0x40]
+    stp     x27, x28, [sp, #0x50]
+
+    // Save all arguments on stack (funclet may clobber callee-saved registers)
+    str     x0, [sp, #0x60]             // Save exception object
+    str     x1, [sp, #0x68]             // Save handler address
+    str     x2, [sp, #0x70]             // Save REGDISPLAY*
+    str     x3, [sp, #0x78]             // Save ExInfo*
+
+    // Restore callee-saved registers from REGDISPLAY BEFORE calling funclet
+    // The funclet expects these registers to have the values from the throwing method
+    // x2 = REGDISPLAY*
+
+    // pFP -> x29 (frame pointer)
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .pre_skip_fp
+    ldr     x29, [x8]
+.pre_skip_fp:
+
+    // pX19 -> x19
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .pre_skip_x19
+    ldr     x19, [x8]
+.pre_skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .pre_skip_x20
+    ldr     x20, [x8]
+.pre_skip_x20:
+
+    // pX21 -> x21
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .pre_skip_x21
+    ldr     x21, [x8]
+.pre_skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .pre_skip_x22
+    ldr     x22, [x8]
+.pre_skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .pre_skip_x23
+    ldr     x23, [x8]
+.pre_skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .pre_skip_x24
+    ldr     x24, [x8]
+.pre_skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .pre_skip_x25
+    ldr     x25, [x8]
+.pre_skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .pre_skip_x26
+    ldr     x26, [x8]
+.pre_skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .pre_skip_x27
+    ldr     x27, [x8]
+.pre_skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .pre_skip_x28
+    ldr     x28, [x8]
+.pre_skip_x28:
+
+    // Call handler funclet
+    // Load exception object and handler address from stack (registers may have been restored)
+    ldr     x0, [sp, #0x60]             // exception object
+    ldr     x8, [sp, #0x68]             // handler address
+    blr     x8                          // Call handler funclet
+
+    // x0 now contains the resume address
+    // Save it in a temp register
+    mov     x9, x0                      // x9 = resume address (temp)
+
+    // Reload REGDISPLAY* from stack (funclet may have clobbered x21)
+    ldr     x10, [sp, #0x70]            // x10 = REGDISPLAY*
+
+    // Now restore ALL callee-saved registers from REGDISPLAY to the values
+    // they had at the throw site. This is critical because when we jump to
+    // the resume point, the code expects these registers to have the values
+    // from before the exception was thrown.
+
+    // pFP -> x29
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .skip_fp_restore
+    ldr     x29, [x8]
+.skip_fp_restore:
+
+    // pX19 -> x19
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .skip_x19
+    ldr     x19, [x8]
+.skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .skip_x20
+    ldr     x20, [x8]
+.skip_x20:
+
+    // pX21 -> x21
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .skip_x21
+    ldr     x21, [x8]
+.skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .skip_x22
+    ldr     x22, [x8]
+.skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .skip_x23
+    ldr     x23, [x8]
+.skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .skip_x24
+    ldr     x24, [x8]
+.skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .skip_x25
+    ldr     x25, [x8]
+.skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .skip_x26
+    ldr     x26, [x8]
+.skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .skip_x27
+    ldr     x27, [x8]
+.skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .skip_x28
+    ldr     x28, [x8]
+.skip_x28:
+
+    // Get resume SP from REGDISPLAY (use x10 which still has REGDISPLAY*)
+    ldr     x11, [x10, #OFFSETOF__REGDISPLAY__SP]   // x11 = resume SP
+
+    // Pop ExInfo entries that are below the resume SP
+    adrp    x8, __cosmos_exinfo_stack_head
+    add     x8, x8, :lo12:__cosmos_exinfo_stack_head
+
+.pop_exinfo_loop:
+    ldr     x12, [x8]                   // current ExInfo (use x12, not x9)
+    cbz     x12, .pop_exinfo_done       // null = done
+    cmp     x12, x11
+    b.ge    .pop_exinfo_done            // >= resume SP = done
+    ldr     x12, [x12, #OFFSETOF__ExInfo__m_pPrevExInfo]
+    str     x12, [x8]                   // pop it
+    b       .pop_exinfo_loop
+
+.pop_exinfo_done:
+    // Reset SP to resume point and jump
+    // x9 = resume address, x11 = resume SP
+    mov     sp, x11
+    br      x9
+
+
+//=============================================================================
+// RhpCallFilterFunclet - Call a filter funclet to evaluate exception filter
+//
+// INPUT:  x0 = exception object
+//         x1 = filter funclet address
+//         x2 = REGDISPLAY*
+//
+// OUTPUT: x0 = 1 if filter matched (should catch), 0 if not
+//
+// The filter funclet expects the exception object in x0.
+// It returns non-zero if the exception should be caught by this handler.
+//=============================================================================
+.global RhpCallFilterFunclet
+.balign 4
+RhpCallFilterFunclet:
+    // Save callee-saved registers and allocate space for arguments
+    stp     x29, x30, [sp, #-0x70]!
+    mov     x29, sp
+    stp     x19, x20, [sp, #0x10]
+    stp     x21, x22, [sp, #0x20]
+    stp     x23, x24, [sp, #0x30]
+    stp     x25, x26, [sp, #0x40]
+    stp     x27, x28, [sp, #0x50]
+
+    // Save arguments on stack (funclet may clobber callee-saved registers)
+    str     x0, [sp, #0x60]             // Save exception object
+    str     x1, [sp, #0x68]             // Save filter address
+
+    // Restore callee-saved registers from REGDISPLAY BEFORE calling funclet
+    // The funclet expects these registers to have the values from the method
+    // x2 = REGDISPLAY*
+
+    // pFP -> x29 (frame pointer)
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
+    cbz     x8, .filter_skip_fp
+    ldr     x29, [x8]
+.filter_skip_fp:
+
+    // pX19 -> x19
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
+    cbz     x8, .filter_skip_x19
+    ldr     x19, [x8]
+.filter_skip_x19:
+
+    // pX20 -> x20
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
+    cbz     x8, .filter_skip_x20
+    ldr     x20, [x8]
+.filter_skip_x20:
+
+    // pX21 -> x21
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
+    cbz     x8, .filter_skip_x21
+    ldr     x21, [x8]
+.filter_skip_x21:
+
+    // pX22 -> x22
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
+    cbz     x8, .filter_skip_x22
+    ldr     x22, [x8]
+.filter_skip_x22:
+
+    // pX23 -> x23
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
+    cbz     x8, .filter_skip_x23
+    ldr     x23, [x8]
+.filter_skip_x23:
+
+    // pX24 -> x24
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
+    cbz     x8, .filter_skip_x24
+    ldr     x24, [x8]
+.filter_skip_x24:
+
+    // pX25 -> x25
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
+    cbz     x8, .filter_skip_x25
+    ldr     x25, [x8]
+.filter_skip_x25:
+
+    // pX26 -> x26
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
+    cbz     x8, .filter_skip_x26
+    ldr     x26, [x8]
+.filter_skip_x26:
+
+    // pX27 -> x27
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
+    cbz     x8, .filter_skip_x27
+    ldr     x27, [x8]
+.filter_skip_x27:
+
+    // pX28 -> x28
+    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
+    cbz     x8, .filter_skip_x28
+    ldr     x28, [x8]
+.filter_skip_x28:
+
+    // Call filter funclet
+    // Load exception object and filter address from stack (registers may have been restored)
+    ldr     x0, [sp, #0x60]             // exception object
+    ldr     x8, [sp, #0x68]             // filter address
+    blr     x8                          // call filter funclet
+
+    // x0 now contains the filter result (0 = no match, non-zero = match)
+    mov     x9, x0                      // save result
+
+    // Restore our callee-saved registers from stack
+    ldp     x27, x28, [sp, #0x50]
+    ldp     x25, x26, [sp, #0x40]
+    ldp     x23, x24, [sp, #0x30]
+    ldp     x21, x22, [sp, #0x20]
+    ldp     x19, x20, [sp, #0x10]
+    ldp     x29, x30, [sp], #0x70
+
+    // Return filter result
+    mov     x0, x9
+    ret
+
+
+//=============================================================================
+// RhpRethrow - Rethrow the current exception
+//
+// Called when a 'throw;' statement (without exception object) is executed.
+//=============================================================================
+.global RhpRethrow
+.balign 4
+RhpRethrow:
+    // Get current exception from ExInfo chain
+    adrp    x0, __cosmos_exinfo_stack_head
+    add     x0, x0, :lo12:__cosmos_exinfo_stack_head
+    ldr     x0, [x0]
+    cbz     x0, .halt
+
+    // Get exception object from ExInfo
+    ldr     x0, [x0, #OFFSETOF__ExInfo__m_exception]
+    cbz     x0, .halt
+
+    // Rethrow using normal throw path
+    b       RhpThrowEx
+
+.halt:
+    brk     #0
+    b       .

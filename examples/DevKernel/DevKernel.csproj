@@ -1,13 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.0" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.6" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
-
     <!-- Cosmos.Sdk is not compatible with Global Package managment -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,10 +14,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
-
-    <!-- Disable stack trace metadata to avoid StackTraceMetadata initialization crash -->
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <StackTraceSupport>false</StackTraceSupport>
   </PropertyGroup>
 
   <!-- Add any folder(s) where *.c files exist -->
@@ -42,6 +37,7 @@
     <DirectPInvoke Include="test" />
     <IlcArg Include="--verbose" />
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.Graphics"/>
   </ItemGroup>
 
   <!-- Include Plugs -->
@@ -66,6 +62,5 @@
     <ProjectReference Include="..\..\src\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
   </ItemGroup>
-
 
 </Project>

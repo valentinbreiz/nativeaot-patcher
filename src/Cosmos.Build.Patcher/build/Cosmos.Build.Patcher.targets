@@ -63,18 +63,18 @@
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </CandidateAssemblies>
     </ItemGroup>
-    
+
     <!-- Filter references to find plug assemblies based on PlugReference assembly names -->
     <ItemGroup>
       <!-- Always include the main assembly as a plug -->
       <PlugRef Include="$(OutputPath)$(AssemblyName).dll" />
-      
+
       <!-- Filter ReferencePath items that match PlugReference assembly names -->
-      <PlugRef Include="@(ReferencePath)" 
+      <PlugRef Include="@(ReferencePath)"
                Condition="'%(ReferencePath.Filename)' != '' and '@(PlugReference)' != '' and $([System.String]::new('@(PlugReference, ';')').Contains('%(ReferencePath.Filename)'))" />
-      
+
       <!-- Also check for references in the output directory that match PlugReference names -->
-      <PlugRef Include="$(OutputPath)%(PlugReference.Identity).dll" 
+      <PlugRef Include="$(OutputPath)%(PlugReference.Identity).dll"
                Condition="Exists('$(OutputPath)%(PlugReference.Identity).dll')" />
     </ItemGroup>
 
@@ -82,14 +82,15 @@
     <RemoveDuplicates Inputs="@(PlugRef)">
       <Output TaskParameter="Filtered" ItemName="UniquePlugRef"/>
     </RemoveDuplicates>
-    
+
     <ItemGroup>
       <PlugRef Remove="@(PlugRef)" />
       <PlugRef Include="@(UniquePlugRef)" />
     </ItemGroup>
-    
-    <!-- Clean Output Path -->
-    <RemoveDir Directories="$(PatcherOutputPath)" />
+
+    <!-- Note: We don't RemoveDir here anymore to enable incremental builds.
+         The Copy task uses SkipUnchangedFiles="true" for efficiency.
+         Use 'dotnet clean' to fully reset the output directory. -->
 
     <!-- Ensure the output directories exist -->
     <MakeDir Directories="$(PatcherOutputPath)" />
@@ -97,7 +98,7 @@
 
     <Message Importance="High" Text="PlugReference Assembly Names:" />
     <Message Importance="High" Text="  %(PlugReference.Identity)" />
-    
+
     <Message Importance="High" Text="Resolved PlugRef DLL Paths:" />
     <Message Importance="High" Text="  %(PlugRef.Identity)" />
 
@@ -123,10 +124,6 @@
       <AssembliesToPatch Include="@(FilteredAssembliesToPatch)">
         <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
       </AssembliesToPatch>
-
-      <!-- Always include System.Private.CoreLib for ILC reference stability -->
-      <AssembliesToPatch Include="@(CandidateAssemblies)"
-                         Condition="'%(CandidateAssemblies.Filename)' == 'System.Private.CoreLib'" />
     </ItemGroup>
 
     <!-- De-dup final patch list -->
@@ -158,7 +155,7 @@
           DestinationFiles="@(AssembliesToCopy->'%(PatcherOutputPath)')"
           SkipUnchangedFiles="true" />
   </Target>
-  
+
   <!-- Clean target to remove the asm folder -->
   <Target Name="CleanPatcher" BeforeTargets="Clean">
     <PropertyGroup>

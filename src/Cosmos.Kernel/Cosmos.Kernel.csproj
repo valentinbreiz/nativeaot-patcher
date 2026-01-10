@@ -3,7 +3,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
-    <DefineConstants>ARCH_X64</DefineConstants>
 
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel</PackageId>
@@ -18,6 +17,7 @@
   <ItemGroup>
     <Content Include="build\Cosmos.Kernel.props" PackagePath="build\" />
     <Content Include="Bootstrap\*.c"  PackagePath="build\Bootstrap\"/>
+    <Content Include="Bootstrap\*.h"  PackagePath="build\Bootstrap\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +27,14 @@
     <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Services\Cosmos.Kernel.Services.csproj" />
   </ItemGroup>
+
+  <!-- Architecture-specific DefineConstants -->
+  <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
+    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
+  </PropertyGroup>
 
   <!-- Architecture-specific HAL and Native references -->
   <ItemGroup Condition="'$(CosmosArch)' == 'x64'">

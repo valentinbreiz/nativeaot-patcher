@@ -8,10 +8,13 @@ namespace Cosmos.Kernel.HAL.ARM64;
 public partial class ARM64CpuOps : ICpuOps
 {
     [LibraryImport("*", EntryPoint = "_native_cpu_halt")]
+    [SuppressGCTransition]
     private static partial void NativeHalt();
 
     [LibraryImport("*", EntryPoint = "_native_cpu_memory_barrier")]
+    [SuppressGCTransition]
     private static partial void NativeMemoryBarrier();
+
 
     public void Halt() => NativeHalt();
 
@@ -22,4 +25,8 @@ public partial class ARM64CpuOps : ICpuOps
     }
 
     public void MemoryBarrier() => NativeMemoryBarrier();
+
+    public void DisableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.DisableInterrupts();
+
+    public void EnableInterrupts() => Cosmos.Kernel.Core.CPU.InternalCpu.EnableInterrupts();
 }

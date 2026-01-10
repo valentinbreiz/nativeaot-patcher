@@ -7,7 +7,7 @@ using Cosmos.Kernel.HAL.Cpu.Data;
 namespace Cosmos.Kernel;
 
 /// <summary>
-/// Handles CPU exceptions for x86-64.
+/// Handles CPU exceptions.
 /// </summary>
 public static class ExceptionHandler
 {
@@ -18,6 +18,15 @@ public static class ExceptionHandler
     [ModuleInitializer]
     public static void Initialize()
     {
+#if ARCH_ARM64
+        // ARM64 exception types: 0=Sync, 1=IRQ, 2=FIQ, 3=SError
+        InterruptManager.SetHandler(0x00, SynchronousException);
+        InterruptManager.SetHandler(0x01, IrqException);
+        InterruptManager.SetHandler(0x02, FiqException);
+        InterruptManager.SetHandler(0x03, SErrorException);
+
+        Serial.WriteString("[ExceptionHandler] ARM64 exception handlers registered\n");
+#elif ARCH_X64
         // Register handlers for common CPU exceptions
         // Vector 0x00: Divide by Zero
         InterruptManager.SetHandler(0x00, DivideByZero);
@@ -74,8 +83,52 @@ public static class ExceptionHandler
         InterruptManager.SetHandler(0x13, SimdFloatingPoint);
 
         Serial.WriteString("[ExceptionHandler] CPU exception handlers registered\n");
+#else
+        Serial.WriteString("[ExceptionHandler] No exception handlers for this architecture\n");
+#endif
     }
 
+#if ARCH_ARM64
+    private static void SynchronousException(ref IRQContext ctx)
+    {
+        WriteDebugLine("");
+        WriteDebugLine("========================================");
+        WriteDebugLine("ARM64 EXCEPTION: Synchronous");
+        WriteDebugLine("========================================");
+        PrintExceptionInfo(ref ctx);
+        Halt();
+    }
+
+    private static void IrqException(ref IRQContext ctx)
+    {
+        WriteDebugLine("");
+        WriteDebugLine("========================================");
+        WriteDebugLine("ARM64 EXCEPTION: IRQ");
+        WriteDebugLine("========================================");
+        PrintExceptionInfo(ref ctx);
+    }
+
+    private static void FiqException(ref IRQContext ctx)
+    {
+        WriteDebugLine("");
+        WriteDebugLine("========================================");
+        WriteDebugLine("ARM64 EXCEPTION: FIQ");
+        WriteDebugLine("========================================");
+        PrintExceptionInfo(ref ctx);
+    }
+
+    private static void SErrorException(ref IRQContext ctx)
+    {
+        WriteDebugLine("");
+        WriteDebugLine("========================================");
+        WriteDebugLine("ARM64 EXCEPTION: SError");
+        WriteDebugLine("========================================");
+        PrintExceptionInfo(ref ctx);
+        Halt();
+    }
+#endif
+
+#if ARCH_X64
     private static void DivideByZero(ref IRQContext ctx)
     {
         WriteDebugLine("");
@@ -206,12 +259,20 @@ public static class ExceptionHandler
 
     private static void PageFault(ref IRQContext ctx)
     {
-        WriteDebugLine("");
-        WriteDebugLine("========================================");
-        WriteDebugLine("EXCEPTION: Page Fault (#PF)");
-        WriteDebugLine("========================================");
-        PrintExceptionInfo(ref ctx);
-        Halt();
+        // Use Serial.WriteString directly - avoid any allocations or complex calls
+        // that could trigger another fault
+        Serial.WriteString("\n========================================\n");
+        Serial.WriteString("EXCEPTION: Page Fault (#PF)\n");
+        Serial.WriteString("========================================\n");
+        Serial.WriteString("Interrupt: ");
+        Serial.WriteNumber(ctx.interrupt);
+        Serial.WriteString("\nRBP: 0x");
+        Serial.WriteHex(ctx.rbp);
+        Serial.WriteString("\nCPU Flags: 0x");
+        Serial.WriteHex(ctx.cpu_flags);
+        Serial.WriteString("\n========================================\n");
+        Serial.WriteString("System halted.\n");
+        while (true) { }
     }
 
     private static void FloatingPointException(ref IRQContext ctx)
@@ -253,14 +314,26 @@ public static class ExceptionHandler
         PrintExceptionInfo(ref ctx);
         Halt();
     }
+#endif
 
     private static void PrintExceptionInfo(ref IRQContext ctx)
     {
         // Output to serial
         WriteDebugLine("Interrupt Vector: " + ctx.interrupt.ToString());
-        WriteDebugLine("CPU Flags: 0x" + ctx.cpu_flags.ToString("X"));
+        WriteDebugLine("CPU Flags (ESR): 0x" + ctx.cpu_flags.ToString("X"));
         WriteDebugLine("");
         WriteDebugLine("Registers:");
+#if ARCH_ARM64
+        WriteDebugLine("  X0:  0x" + ctx.x0.ToString("X16") + "  X1:  0x" + ctx.x1.ToString("X16"));
+        WriteDebugLine("  X2:  0x" + ctx.x2.ToString("X16") + "  X3:  0x" + ctx.x3.ToString("X16"));
+        WriteDebugLine("  X4:  0x" + ctx.x4.ToString("X16") + "  X5:  0x" + ctx.x5.ToString("X16"));
+        WriteDebugLine("  X6:  0x" + ctx.x6.ToString("X16") + "  X7:  0x" + ctx.x7.ToString("X16"));
+        WriteDebugLine("  X8:  0x" + ctx.x8.ToString("X16") + "  X9:  0x" + ctx.x9.ToString("X16"));
+        WriteDebugLine("  X10: 0x" + ctx.x10.ToString("X16") + "  X11: 0x" + ctx.x11.ToString("X16"));
+        WriteDebugLine("  X29: 0x" + ctx.x29.ToString("X16") + "  X30: 0x" + ctx.x30.ToString("X16"));
+        WriteDebugLine("  SP:  0x" + ctx.sp.ToString("X16") + "  ELR: 0x" + ctx.elr.ToString("X16"));
+        WriteDebugLine("  SPSR: 0x" + ctx.spsr.ToString("X16"));
+#else
         WriteDebugLine("  RAX: 0x" + ctx.rax.ToString("X16") + "  RBX: 0x" + ctx.rbx.ToString("X16"));
         WriteDebugLine("  RCX: 0x" + ctx.rcx.ToString("X16") + "  RDX: 0x" + ctx.rdx.ToString("X16"));
         WriteDebugLine("  RSI: 0x" + ctx.rsi.ToString("X16") + "  RDI: 0x" + ctx.rdi.ToString("X16"));
@@ -269,6 +342,7 @@ public static class ExceptionHandler
         WriteDebugLine("  R11: 0x" + ctx.r11.ToString("X16") + "  R12: 0x" + ctx.r12.ToString("X16"));
         WriteDebugLine("  R13: 0x" + ctx.r13.ToString("X16") + "  R14: 0x" + ctx.r14.ToString("X16"));
         WriteDebugLine("  R15: 0x" + ctx.r15.ToString("X16"));
+#endif
         WriteDebugLine("========================================");
     }
 

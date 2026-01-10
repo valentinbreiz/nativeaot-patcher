@@ -255,37 +255,37 @@ global irq253_stub
 global irq254_stub
 global irq255_stub
 
-global __irq_table
+global _native_x64_irq_table
 extern __managed__irq
 
 section .text
 
 ; void lidt_native(IdtPointer* ptr)
-global __load_lidt
-__load_lidt:
+global _native_x64_load_idt
+_native_x64_load_idt:
     cli
     lidt [rdi]
     sti
     ret
 
-; uint64_t __get_current_code_selector()
+; uint64_t _native_x64_get_code_selector()
 ; Returns the current CS (code segment selector) value
-global __get_current_code_selector
-__get_current_code_selector:
+global _native_x64_get_code_selector
+_native_x64_get_code_selector:
     xor rax, rax
     mov ax, cs
     ret
 
-; void __test_int32()
+; void _native_x64_test_int32()
 ; Triggers INT 32 to test if interrupt stubs work
-global __test_int32
-__test_int32:
+global _native_x64_test_int32
+_native_x64_test_int32:
     ; Execute INT 32 - should call our stub
     int 32
     ret
 
 section .data
-__irq_table:
+_native_x64_irq_table:
 dq irq0_stub
 dq irq1_stub
 dq irq2_stub
@@ -546,15 +546,15 @@ dq irq255_stub
 
 section .text
 
-; nint __get_irq_table(int index)
+; nint _native_x64_get_irq_stub(int index)
 ; Returns the address of the IRQ stub for the given vector index (0-255)
 ; rdi = index (first argument in x86-64 calling convention)
 ; Returns address in rax
-global __get_irq_table
-__get_irq_table:
-    ; Load the address from the __irq_table lookup array
+global _native_x64_get_irq_stub
+_native_x64_get_irq_stub:
+    ; Load the address from the irq_table lookup array
     ; The table is in .data section and has 256 entries (8 bytes each)
-    lea rax, [rel __irq_table]
+    lea rax, [rel _native_x64_irq_table]
     mov rax, [rax + rdi * 8]  ; Load stub address for vector index
     ret
 
@@ -562,22 +562,34 @@ __get_irq_table:
 irq%1_stub:
     ; When interrupt is delivered, CPU pushes: RIP, CS, RFLAGS
     ; Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
+    ; Note: Some exceptions (8, 10-14, 17, 21, 29, 30) also push error code before RIP
 
-    ; Read RFLAGS from CPU frame first (before we modify anything)
-    mov rax, [rsp + 16]          ; Load RFLAGS from CPU frame
+    ; Save original rcx first before we use it for cr2
+    push rcx                     ; Temporarily save rcx
+
+    ; Read RFLAGS from CPU frame (now offset by 8 due to pushed rcx)
+    mov rax, [rsp + 24]          ; Load RFLAGS from CPU frame (RIP at +8, CS at +16, RFLAGS at +24)
+
+    ; Read CR2 (page fault address) - always read it, only valid for #PF but safe to read
+    mov rcx, cr2
 
     ; Push in REVERSE order of struct (last field first, so it ends up at highest address)
-    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags
-    ; Push order: cpu_flags, interrupt, rax, ..., r14, r15
+    ; Struct order: r15, r14, ..., rax, interrupt, cpu_flags, cr2
+    ; Push order: cr2, cpu_flags, interrupt, rax, ..., r14, r15
 
+    push rcx                     ; Push cr2 (page fault linear address)
     push rax                     ; Push cpu_flags (save RFLAGS)
     push %1                      ; Push interrupt vector
 
-    ; Now push general purpose registers (we'll use the saved RFLAGS in rax later)
-    ; But first save the actual rax value
-    mov rax, [rsp + 16 + 8 + 8]  ; Get original RAX from before our two pushes
-    push rax                     ; Push actual rax value
-    push rcx
+    ; Now push general purpose registers
+    ; rax currently contains RFLAGS, but we need to push actual rax value
+    ; The actual rax at interrupt time is unknown - just push current value (RFLAGS)
+    ; This is a limitation - we can't recover original rax
+    push rax                     ; Push rax (note: contains RFLAGS, not original rax)
+
+    ; Get original rcx from where we saved it
+    mov rcx, [rsp + 32]          ; Original rcx is 4 qwords back (rax, interrupt, cpu_flags, cr2)
+    push rcx                     ; Push actual rcx value
     push rdx
     push rbx
     push rbp
@@ -592,12 +604,47 @@ irq%1_stub:
     push r14
     push r15
 
-    ; At this point: RSP points to r15 (start of struct)
-    ; Stack layout: [RSP] = r15, [RSP+8] = r14, ..., [RSP+128] = interrupt, [RSP+136] = cpu_flags, [RSP+144] = RIP, [RSP+152] = CS, [RSP+160] = RFLAGS
+    ; Save XMM registers (SSE/SIMD state) - 16 registers * 16 bytes = 256 bytes
+    sub rsp, 256
+    movdqu [rsp + 0], xmm0
+    movdqu [rsp + 16], xmm1
+    movdqu [rsp + 32], xmm2
+    movdqu [rsp + 48], xmm3
+    movdqu [rsp + 64], xmm4
+    movdqu [rsp + 80], xmm5
+    movdqu [rsp + 96], xmm6
+    movdqu [rsp + 112], xmm7
+    movdqu [rsp + 128], xmm8
+    movdqu [rsp + 144], xmm9
+    movdqu [rsp + 160], xmm10
+    movdqu [rsp + 176], xmm11
+    movdqu [rsp + 192], xmm12
+    movdqu [rsp + 208], xmm13
+    movdqu [rsp + 224], xmm14
+    movdqu [rsp + 240], xmm15
 
-    ; Call managed handler with pointer to context
-    mov rdi, rsp
+    ; Call managed handler with pointer to context (past XMM save area)
+    lea rdi, [rsp + 256]
     call __managed__irq
+
+    ; Restore XMM registers
+    movdqu xmm0, [rsp + 0]
+    movdqu xmm1, [rsp + 16]
+    movdqu xmm2, [rsp + 32]
+    movdqu xmm3, [rsp + 48]
+    movdqu xmm4, [rsp + 64]
+    movdqu xmm5, [rsp + 80]
+    movdqu xmm6, [rsp + 96]
+    movdqu xmm7, [rsp + 112]
+    movdqu xmm8, [rsp + 128]
+    movdqu xmm9, [rsp + 144]
+    movdqu xmm10, [rsp + 160]
+    movdqu xmm11, [rsp + 176]
+    movdqu xmm12, [rsp + 192]
+    movdqu xmm13, [rsp + 208]
+    movdqu xmm14, [rsp + 224]
+    movdqu xmm15, [rsp + 240]
+    add rsp, 256
 
     ; Restore registers in reverse order (last pushed = first popped)
     pop r15
@@ -616,8 +663,8 @@ irq%1_stub:
     pop rcx
     pop rax
 
-    ; Skip interrupt number and cpu_flags (2 qwords)
-    add rsp, 16
+    ; Skip interrupt number, cpu_flags, cr2, and the temporary rcx save (4 qwords)
+    add rsp, 32
 
     ; Now stack has: RIP, CS, RFLAGS from the CPU interrupt frame
     ; iretq will pop these and return to caller

@@ -3,20 +3,39 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.Acpi;
-#endif
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.Core.Runtime;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.Acpi;
+using Cosmos.Kernel.HAL.Devices.Input;
+using Cosmos.Kernel.HAL.X64;
+using Cosmos.Kernel.HAL.X64.Devices.Clock;
+using Cosmos.Kernel.HAL.X64.Devices.Input;
+using Cosmos.Kernel.HAL.X64.Devices.Network;
+using Cosmos.Kernel.HAL.X64.Devices.Timer;
+using Cosmos.Kernel.HAL.X64.Cpu;
+using Cosmos.Kernel.HAL.X64.Pci;
+using Cosmos.Kernel.Services.Keyboard;
+using Cosmos.Kernel.Services.Network;
+using Cosmos.Kernel.Services.Timer;
+#elif ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64;
+using Cosmos.Kernel.HAL.ARM64.Cpu;
+#endif
 
 namespace Cosmos.Kernel;
 
 public class Kernel
 {
+    // CosmosOS version - keep in sync with kmain.h
+    public const int VersionMajor = 3;
+    public const int VersionMinor = 0;
+    public const int VersionPatch = 0;
+    public const string VersionString = "3.0.0";
+    public const string Codename = "gen3";
 
     /// <summary>
     /// Gets the current platform HAL, if available.
@@ -26,62 +45,128 @@ public class Kernel
     [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
     public static unsafe void Initialize()
     {
-        // Initialize serial port first - this must happen after managed runtime startup
-        Serial.ComInit();
-        Serial.WriteString("UART started.\n");
-        Serial.WriteString("CosmosOS gen3 v0.1.3 booted.\n");
+        // Display version banner
+        Serial.WriteString("[KERNEL]   - CosmosOS v");
+        Serial.WriteString(VersionString);
+        Serial.WriteString(" (");
+        Serial.WriteString(Codename);
+        Serial.WriteString(") - Managed runtime active\n");
 
-        // Initialize heap for memory allocations
-        // Parameters are ignored - heap initialization uses Limine memory map
-        MemoryOp.InitializeHeap(0, 0);
-        Serial.WriteString("Heap initialized.\n");
-
-        // Initialize platform-specific HAL
-        Serial.WriteString("Initializing HAL...\n");
-        PlatformHAL.Initialize();
-        Serial.WriteString("HAL initialized.\n");
-
-        // Initialize graphics framebuffer
-        Serial.WriteString("Initializing graphics console...\n");
-        if (KernelConsole.Initialize())
-        {
-            Serial.WriteString("Graphics console initialized successfully!\n");
-        }
-        else
-        {
-            Serial.WriteString("Graphics console initialization failed - no framebuffer available\n");
-        }
-
+        // Display architecture
+        Serial.WriteString("[KERNEL]   - Architecture: ");
         if (PlatformHAL.Architecture == PlatformArchitecture.X64)
         {
-            Serial.WriteString("Architecture: x86-64.\n");
+            Serial.WriteString("x86-64\n");
         }
         else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
         {
-            Serial.WriteString("Architecture: ARM64/AArch64.\n");
+            Serial.WriteString("ARM64/AArch64\n");
         }
         else
         {
-            Serial.WriteString("Architecture: Unknown.\n");
+            Serial.WriteString("Unknown\n");
         }
 
-        // Platform-specific initialization
-        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
-        {
-            InterruptManager.Initialize();
-            PciManager.Setup();
-
-#if ARCH_X64
-            // Retrieve and display ACPI MADT information (initialized during early boot)
-            if (Acpi.DisplayMadtInfo())
-            {
-                Serial.WriteString("\n");
-            }
-#endif
-        }
+        // Initialize heap for memory allocations
+        Serial.WriteString("[KERNEL]   - Initializing heap...\n");
+        MemoryOp.InitializeHeap(0, 0);
 
         // Initialize managed modules
+        Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
+
+        // Initialize platform-specific HAL
+        Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
+#if ARCH_X64
+        PlatformHAL.Initialize(new X64PlatformInitializer());
+#elif ARCH_ARM64
+        PlatformHAL.Initialize(new ARM64PlatformInitializer());
+#endif
+
+        // Initialize interrupts
+        Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
+#if ARCH_X64
+        InterruptManager.Initialize(new X64InterruptController());
+#elif ARCH_ARM64
+        InterruptManager.Initialize(new ARM64InterruptController());
+#endif
+
+#if ARCH_X64
+        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+        PciManager.Setup();
+
+        // Retrieve and display ACPI MADT information (initialized during early boot)
+        Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
+        Acpi.DisplayMadtInfo();
+
+        // Initialize APIC (Advanced Programmable Interrupt Controller)
+        Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
+        ApicManager.Initialize();
+
+        // Calibrate TSC frequency using LAPIC timer (already calibrated during APIC init)
+        Serial.WriteString("[KERNEL]   - Calibrating TSC frequency...\n");
+        X64CpuOps.CalibrateTsc();
+        Serial.WriteString("[KERNEL]   - TSC frequency: ");
+        Serial.WriteNumber((ulong)X64CpuOps.TscFrequency);
+        Serial.WriteString(" Hz\n");
+
+        // Initialize RTC for DateTime support (after TSC calibration)
+        Serial.WriteString("[KERNEL]   - Initializing RTC...\n");
+        var rtc = new RTC();
+        rtc.Initialize();
+
+        // Initialize PIT (Programmable Interval Timer)
+        Serial.WriteString("[KERNEL]   - Initializing PIT...\n");
+        var pit = new PIT();
+        pit.Initialize();
+        pit.RegisterIRQHandler();
+        TimerManager.Initialize();
+        TimerManager.RegisterTimer(pit);
+
+        // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
+        Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
+        var ps2Controller = new PS2Controller();
+        ps2Controller.Initialize();
+
+        // Initialize Keyboard Manager
+        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+        KeyboardManager.Initialize();
+
+        // Register keyboards with KeyboardManager
+        var keyboards = PS2Controller.GetKeyboardDevices();
+        foreach (var keyboard in keyboards)
+        {
+            KeyboardManager.RegisterKeyboard(keyboard);
+        }
+
+        // Set static callback for PS2 keyboard IRQ handler
+        PS2Keyboard.KeyCallback = KeyboardManager.HandleScanCode;
+
+        // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
+        Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");
+        PS2Keyboard.RegisterIRQHandler();
+
+        // Initialize Network Manager
+        Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
+        NetworkManager.Initialize();
+
+        // Try to find and initialize E1000E network device
+        Serial.WriteString("[KERNEL]   - Looking for E1000E network device...\n");
+        var e1000e = E1000E.FindAndCreate();
+        if (e1000e != null)
+        {
+            Serial.WriteString("[KERNEL]   - E1000E device found, initializing...\n");
+            e1000e.InitializeNetwork();
+            NetworkManager.RegisterDevice(e1000e);
+            e1000e.RegisterIRQHandler();
+        }
+        else
+        {
+            Serial.WriteString("[KERNEL]   - No E1000E device found\n");
+        }
+#endif
+
+        Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
 
     /// <summary>
@@ -122,10 +207,16 @@ public static unsafe class KernelBridge
     [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
     public static void CosmosSerialWrite(byte* str)
     {
+        if (str == null)
+            return;
+
         // C strings are null-terminated, write char by char
-        for (int i = 0; str[i] != 0; i++)
+        // Use while loop with explicit pointer arithmetic to avoid potential codegen issues
+        byte* p = str;
+        while (*p != 0)
         {
-            Serial.ComWrite(str[i]);
+            Serial.ComWrite(*p);
+            p++;
         }
     }
 

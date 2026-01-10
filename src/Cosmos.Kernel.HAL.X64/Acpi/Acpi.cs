@@ -111,6 +111,7 @@ public static unsafe partial class Acpi
 {
     // Get MADT info (already initialized in C during early boot)
     [LibraryImport("*", EntryPoint = "acpi_get_madt_info")]
+    [SuppressGCTransition]
     private static partial MadtInfo* AcpiGetMadtInfo();
 
     /// <summary>

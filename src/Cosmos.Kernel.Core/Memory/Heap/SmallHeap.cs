@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Debug;
 
 namespace Cosmos.Kernel.Core.Memory.Heap;
@@ -64,9 +65,14 @@ public static unsafe class SmallHeap
 
     /// <summary>
     /// Number of prefix bytes for each item.
-    /// We technically only need 2 but to keep it aligned we have two padding
+    /// We technically only need 2 but to keep it aligned we have two padding.
+    /// ARM64 requires 8-byte alignment for atomic operations, so we use 8 bytes there.
     /// </summary>
-    public const ulong PrefixBytes = 2 * sizeof(ushort);
+#if ARCH_ARM64
+    public const ulong PrefixBytes = 8;  // 8-byte alignment required for ARM64 atomic ops (LDAR/STLR)
+#else
+    public const ulong PrefixBytes = 2 * sizeof(ushort);  // 4 bytes for x64
+#endif
 
     /// <summary>
     /// Max item size in the heap.
@@ -440,6 +446,9 @@ public static unsafe class SmallHeap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
+        // Disable interrupts during heap allocation to prevent race conditions
+        InternalCpu.DisableInterrupts();
+
         // Cosmos.Kernel.Core.IO.Serial.WriteString("[SmallHeap] Alloc - size: ");
         // Cosmos.Kernel.Core.IO.Serial.WriteNumber(aSize);
         // Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
@@ -455,6 +464,7 @@ public static unsafe class SmallHeap
             if (pageBlock == null)
             {
                 //this means that we cant allocate another page
+                InternalCpu.EnableInterrupts();
                 Cosmos.Kernel.Core.IO.Serial.WriteString("[SmallHeap] ERROR: Failed to allocate new page!\n");
                 Debugger.SendKernelPanic(Panics.SmallHeap.AddPage);
             }
@@ -491,19 +501,23 @@ public static unsafe class SmallHeap
                 pageBlock->SpacesLeft--;
 
                 // set info in page
-                ushort* heapObject = &page[i * elementSize / 2];
+                byte* slotPtr = (byte*)&page[i * elementSize / 2];
+                ushort* heapObject = (ushort*)slotPtr;
                 heapObject[0] = (ushort)aSize; // size of actual object being allocated
                 heapObject[1] = 0; // gc status starts as 0
 
-                byte* result = (byte*)&heapObject[2];
+                // Return pointer after prefix bytes (8-byte aligned on ARM64, 4-byte on x64)
+                byte* result = slotPtr + PrefixBytes;
                 // Cosmos.Kernel.Core.IO.Serial.WriteHex((ulong)result);
                 // Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
 
+                InternalCpu.EnableInterrupts();
                 return result;
             }
         }
 
         // if we get here, RAM is corrupted, since we know we had a space but it turns out we didnt
+        InternalCpu.EnableInterrupts();
         Cosmos.Kernel.Core.IO.Serial.WriteString("[SmallHeap] ERROR: RAM corrupted - no free slot found!\n");
         Debugger.DoSendNumber((uint)pageBlock);
         Debugger.DoSendNumber(aSize);
@@ -519,18 +533,25 @@ public static unsafe class SmallHeap
     /// <param name="aPtr">A pointer to the start object.</param>
     public static void Free(void* aPtr)
     {
-        ushort* heapObject = (ushort*)aPtr;
-        ushort size = heapObject[-2];
+        // Disable interrupts during heap free to prevent race conditions
+        InternalCpu.DisableInterrupts();
+
+        // Get header at PrefixBytes offset before the allocation
+        byte* slotPtr = (byte*)aPtr - PrefixBytes;
+        ushort* heapObject = (ushort*)slotPtr;
+        ushort size = heapObject[0];
         if (size == 0)
         {
             // double free, this object has already been freed
+            InternalCpu.EnableInterrupts();
             Debugger.DoBochsBreak();
-            Debugger.DoSendNumber((uint)heapObject);
+            Debugger.DoSendNumber((uint)aPtr);
             Debugger.SendKernelPanic(Panics.SmallHeap.DoubleFree);
         }
 
-        uint* allocated = (uint*)aPtr;
-        allocated[-1] = 0; // zero both size and gc status at once
+        // Zero the header (size and gc status)
+        heapObject[0] = 0;
+        heapObject[1] = 0;
 
         // now zero the object so its ready for next allocation
         if (size < 4) // so we dont actually forget to clean up too small items
@@ -544,6 +565,7 @@ public static unsafe class SmallHeap
             bytes += 1;
         }
 
+        uint* allocated = (uint*)aPtr;
         for (int i = 0; i < bytes; i++)
         {
             allocated[i] = 0;
@@ -562,6 +584,7 @@ public static unsafe class SmallHeap
                 if (blockPtr->PagePtr == allocatedOnPage)
                 {
                     blockPtr->SpacesLeft++;
+                    InternalCpu.EnableInterrupts();
                     return;
                 }
 
@@ -572,6 +595,7 @@ public static unsafe class SmallHeap
         }
 
         // this shouldnt happen
+        InternalCpu.EnableInterrupts();
         Debugger.DoSendNumber((uint)aPtr);
         Debugger.DoSendNumber((uint)SMT);
         Debugger.SendKernelPanic(Panics.SmallHeap.FailedFree);
