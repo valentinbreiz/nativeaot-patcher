@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>3.0.22</Version>
+    <!-- Multi-arch package: built for both x64 and arm64 -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Package Metadata -->
@@ -21,4 +23,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Fonts\DefaultFont.psf" />
   </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

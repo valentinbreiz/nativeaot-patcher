@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>3.0.22</Version>
+    <!-- Multi-arch package: built for both x64 and arm64 -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Package Metadata -->
@@ -18,4 +20,7 @@
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
   </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

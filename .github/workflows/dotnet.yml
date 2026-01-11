@@ -181,8 +181,8 @@ jobs:
       - name: 🧹 Clear NuGet cache before building packages
         run: dotnet nuget locals all --clear
 
-      - name: 🔄 Compile Packages for ${{ matrix.arch }}
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 🔄 Compile Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
 
       - name: 🔗 Install Common Linking Tools
         run: sudo apt-get update && sudo apt-get install -y xorriso lld
@@ -201,16 +201,14 @@ jobs:
       - name: 🔧 Install Patcher
         run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
-      - name:  Build ISO for ${{ matrix.arch }}
+      - name: Build ISO for ${{ matrix.arch }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             ARCH_DEFINE="ARCH_ARM64"
-            COSMOS_ARCH="arm64"
           else
             ARCH_DEFINE="ARCH_X64"
-            COSMOS_ARCH="x64"
           fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch="$COSMOS_ARCH" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         run: |
@@ -252,9 +250,9 @@ jobs:
       - name: 🧹 Clear NuGet cache before building packages
         run: dotnet nuget locals all --clear
 
-      - name: 🔄 Compile Packages for ${{ matrix.arch }}
+      - name: 🔄 Compile Packages (multi-arch)
         shell: pwsh
-        run: ./.devcontainer/postCreateCommand.ps1 -Arch ${{ matrix.arch }}
+        run: ./.devcontainer/postCreateCommand.ps1
 
       - name: 🔗 Install Assembler & Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
@@ -283,17 +281,15 @@ jobs:
       - name: 🔧 Install Patcher
         run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
-      - name:  Build ISO for ${{ matrix.arch }}
+      - name: Build ISO for ${{ matrix.arch }}
         shell: pwsh
         run: |
-         if ("${{ matrix.arch }}" -eq "arm64") {
+          if ("${{ matrix.arch }}" -eq "arm64") {
             $ARCH_DEFINE = "ARCH_ARM64"
-            $COSMOS_ARCH = "arm64"
           } else {
             $ARCH_DEFINE = "ARCH_X64"
-            $COSMOS_ARCH = "x64"
           }
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE -p:CosmosArch=$COSMOS_ARCH --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         shell: pwsh

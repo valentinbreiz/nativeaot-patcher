@@ -2,21 +2,7 @@
 
 set -e
 
-# Parse architecture argument (default to x64)
-ARCH="${1:-x64}"
-echo "=== Starting postCreate setup for architecture: $ARCH ==="
-
-# Set architecture-specific defines
-if [ "$ARCH" = "arm64" ]; then
-    ARCH_DEFINE="ARCH_ARM64"
-    RUNTIME_ID="linux-arm64"
-else
-    ARCH_DEFINE="ARCH_X64"
-    RUNTIME_ID="linux-x64"
-fi
-
-echo "Using define: $ARCH_DEFINE"
-echo "Using runtime: $RUNTIME_ID"
+echo "=== Starting postCreate setup (multi-arch) ==="
 
 # Only clear Cosmos packages from NuGet cache (not everything)
 echo "Clearing Cosmos packages from NuGet cache..."
@@ -28,8 +14,9 @@ rm -rf artifacts/ 2>/dev/null || true
 # Remove local source if it exists (to avoid duplicates)
 dotnet nuget remove source local-packages 2>/dev/null || true
 
-# Create artifacts directory
+# Create artifacts directories
 mkdir -p artifacts/package/release
+mkdir -p artifacts/multiarch
 
 # Add local source FIRST with higher priority
 # The order matters - local-packages will be checked before nuget.org
@@ -56,26 +43,79 @@ echo "Building native packages..."
 dotnet build src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release
 dotnet build src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release
 
-# Build kernel projects with architecture-specific defines
-echo "Building kernel projects with $ARCH_DEFINE..."
-
-# Build interfaces first (no arch dependencies)
+# Build architecture-independent kernel packages
+echo "Building architecture-independent kernel packages..."
 dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release
 dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release
+dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release
 
-dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-
-dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
-
-# Build architecture-specific HAL packages
+# Build architecture-specific HAL packages (needed before multi-arch packages like Plugs)
+echo "Building architecture-specific HAL packages..."
 dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
 
-dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet build src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet build src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE"
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RUNTIME_ID -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=$ARCH
+# Multi-arch packages (have #if ARCH_* conditional code or depend on multi-arch)
+# Build order matters - dependencies first
+MULTIARCH_PROJECTS=(
+    "Cosmos.Kernel.Core"
+    "Cosmos.Kernel.HAL"
+    "Cosmos.Kernel.Graphics"
+    "Cosmos.Kernel.System"
+    "Cosmos.Kernel.Plugs"
+    "Cosmos.Kernel"
+)
+
+# Clean all bin/obj directories for clean multi-arch builds
+echo "Cleaning all kernel project bin/obj..."
+for dir in src/Cosmos.Kernel*/; do
+    rm -rf "${dir}bin" "${dir}obj" 2>/dev/null || true
+done
+
+# Build all multi-arch packages for x64 using top-level package (pulls in all deps)
+echo "Building all multi-arch packages for x64..."
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:DefineConstants="ARCH_X64"
+
+# Stage x64 builds
+echo "Staging x64 builds..."
+for proj in "${MULTIARCH_PROJECTS[@]}"; do
+    mkdir -p "artifacts/multiarch/$proj/x64"
+    # Try both possible output paths
+    cp "src/$proj/bin/Release/net10.0/linux-x64/$proj.dll" "artifacts/multiarch/$proj/x64/" 2>/dev/null || \
+    cp "src/$proj/bin/Release/net10.0/$proj.dll" "artifacts/multiarch/$proj/x64/" 2>/dev/null || true
+done
+
+# Clean bin/obj again before arm64 builds
+echo "Cleaning all kernel project bin/obj before arm64 build..."
+for dir in src/Cosmos.Kernel*/; do
+    rm -rf "${dir}bin" "${dir}obj" 2>/dev/null || true
+done
+
+# Build all multi-arch packages for arm64 using top-level package
+echo "Building all multi-arch packages for arm64..."
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:DefineConstants="ARCH_ARM64"
+
+# Stage arm64 builds
+echo "Staging arm64 builds..."
+for proj in "${MULTIARCH_PROJECTS[@]}"; do
+    mkdir -p "artifacts/multiarch/$proj/arm64"
+    # Try both possible output paths
+    cp "src/$proj/bin/Release/net10.0/linux-arm64/$proj.dll" "artifacts/multiarch/$proj/arm64/" 2>/dev/null || \
+    cp "src/$proj/bin/Release/net10.0/$proj.dll" "artifacts/multiarch/$proj/arm64/" 2>/dev/null || true
+done
+
+# Use x64 as reference assembly
+echo "Setting up reference assemblies..."
+for proj in "${MULTIARCH_PROJECTS[@]}"; do
+    mkdir -p "artifacts/multiarch/$proj/ref"
+    cp "artifacts/multiarch/$proj/x64/$proj.dll" "artifacts/multiarch/$proj/ref/" 2>/dev/null || true
+done
+
+# Pack multi-arch packages
+echo "Packing multi-arch packages..."
+for proj in "${MULTIARCH_PROJECTS[@]}"; do
+    echo "Packing $proj..."
+    dotnet pack "src/$proj/$proj.csproj" -c Release --no-build
+done
 
 # Build SDK - must be built fresh to include updated Sdk.props
 dotnet build src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release
@@ -97,4 +137,4 @@ dotnet tool install -g ilc --add-source artifacts/package/release || dotnet tool
 dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release || dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release || true
 dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release || dotnet tool update -g Cosmos.Tools --add-source artifacts/package/release || true
 
-echo "=== PostCreate setup completed ==="
+echo "=== PostCreate setup completed (multi-arch) ==="

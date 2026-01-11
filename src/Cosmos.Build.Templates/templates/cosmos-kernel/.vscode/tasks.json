@@ -9,8 +9,6 @@
         "publish",
         "-c", "Debug",
         "-r", "linux-x64",
-        "-p:DefineConstants=ARCH_X64",
-        "-p:CosmosArch=x64",
         "-o", "${workspaceFolder}/output-x64",
         "--verbosity", "minimal"
       ],
@@ -32,8 +30,6 @@
         "publish",
         "-c", "Debug",
         "-r", "linux-arm64",
-        "-p:DefineConstants=ARCH_ARM64",
-        "-p:CosmosArch=arm64",
         "-o", "${workspaceFolder}/output-arm64",
         "--verbosity", "minimal"
       ],
@@ -52,8 +48,6 @@
         "publish",
         "-c", "Release",
         "-r", "linux-x64",
-        "-p:DefineConstants=ARCH_X64",
-        "-p:CosmosArch=x64",
         "-o", "${workspaceFolder}/output-x64",
         "--verbosity", "minimal"
       ],
@@ -72,8 +66,6 @@
         "publish",
         "-c", "Release",
         "-r", "linux-arm64",
-        "-p:DefineConstants=ARCH_ARM64",
-        "-p:CosmosArch=arm64",
         "-o", "${workspaceFolder}/output-arm64",
         "--verbosity", "minimal"
       ],

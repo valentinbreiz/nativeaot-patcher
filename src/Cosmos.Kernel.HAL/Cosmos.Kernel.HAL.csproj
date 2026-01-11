@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>3.0.22</Version>
+    <!-- Multi-arch package: contains both x64 and arm64 builds -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Cosmos.Kernel.HAL</PackageId>
     <Title>Cosmos Kernel HAL</Title>
@@ -16,5 +18,8 @@
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
   </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>
 

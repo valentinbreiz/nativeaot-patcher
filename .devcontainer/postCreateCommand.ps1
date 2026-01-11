@@ -1,25 +1,10 @@
 #!/usr/bin/env pwsh
 # PowerShell script to build Cosmos packages (Windows equivalent of postCreateCommand.sh)
-
-param(
-    [string]$Arch = "x64"
-)
+# Builds both x64 and arm64 for multi-arch NuGet packages
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== Starting package setup for architecture: $Arch ===" -ForegroundColor Cyan
-
-# Set architecture-specific defines
-if ($Arch -eq "arm64") {
-    $ArchDefine = "ARCH_ARM64"
-    $RuntimeId = "linux-arm64"
-} else {
-    $ArchDefine = "ARCH_X64"
-    $RuntimeId = "linux-x64"
-}
-
-Write-Host "Using define: $ArchDefine"
-Write-Host "Using runtime: $RuntimeId"
+Write-Host "=== Starting postCreate setup (multi-arch) ===" -ForegroundColor Cyan
 
 # Clear Cosmos packages from NuGet cache
 Write-Host "Clearing Cosmos packages from NuGet cache..."
@@ -31,8 +16,9 @@ Remove-Item -Path "artifacts" -Recurse -Force -ErrorAction SilentlyContinue
 # Remove local source if it exists
 dotnet nuget remove source local-packages 2>$null
 
-# Create artifacts directory
+# Create artifacts directories
 New-Item -ItemType Directory -Force -Path "artifacts/package/release" | Out-Null
+New-Item -ItemType Directory -Force -Path "artifacts/multiarch" | Out-Null
 
 # Add local source
 dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
@@ -57,19 +43,96 @@ Write-Host "Building native packages..." -ForegroundColor Cyan
 dotnet build src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release
 dotnet build src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release
 
-# Kernel projects
-Write-Host "Building kernel projects with $ArchDefine..." -ForegroundColor Cyan
+# Architecture-independent kernel packages
+Write-Host "Building architecture-independent kernel packages..." -ForegroundColor Cyan
 dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release
 dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release
-dotnet build src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine"
-dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine"
-dotnet build src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine" -p:CosmosArch=$Arch
+dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release
+
+# Architecture-specific HAL packages
+Write-Host "Building architecture-specific HAL packages..." -ForegroundColor Cyan
 dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release
 dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release
-dotnet build src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine"
-dotnet build src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine"
-dotnet build src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine"
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r $RuntimeId -p:DefineConstants="$ArchDefine" -p:CosmosArch=$Arch
+
+# Multi-arch packages list
+$MultiArchProjects = @(
+    "Cosmos.Kernel.Core",
+    "Cosmos.Kernel.HAL",
+    "Cosmos.Kernel.Graphics",
+    "Cosmos.Kernel.System",
+    "Cosmos.Kernel.Plugs",
+    "Cosmos.Kernel"
+)
+
+# Clean all kernel project bin/obj directories
+Write-Host "Cleaning all kernel project bin/obj..." -ForegroundColor Cyan
+Get-ChildItem -Path "src" -Directory -Filter "Cosmos.Kernel*" | ForEach-Object {
+    Remove-Item -Path "$($_.FullName)/bin" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($_.FullName)/obj" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Build all multi-arch packages for x64
+Write-Host "Building all multi-arch packages for x64..." -ForegroundColor Cyan
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:DefineConstants="ARCH_X64"
+
+# Stage x64 builds
+Write-Host "Staging x64 builds..." -ForegroundColor Cyan
+foreach ($proj in $MultiArchProjects) {
+    New-Item -ItemType Directory -Force -Path "artifacts/multiarch/$proj/x64" | Out-Null
+    $sourcePath1 = "src/$proj/bin/Release/net10.0/linux-x64/$proj.dll"
+    $sourcePath2 = "src/$proj/bin/Release/net10.0/$proj.dll"
+    $destPath = "artifacts/multiarch/$proj/x64/"
+
+    if (Test-Path $sourcePath1) {
+        Copy-Item $sourcePath1 $destPath -ErrorAction SilentlyContinue
+    } elseif (Test-Path $sourcePath2) {
+        Copy-Item $sourcePath2 $destPath -ErrorAction SilentlyContinue
+    }
+}
+
+# Clean bin/obj again before arm64 builds
+Write-Host "Cleaning all kernel project bin/obj before arm64 build..." -ForegroundColor Cyan
+Get-ChildItem -Path "src" -Directory -Filter "Cosmos.Kernel*" | ForEach-Object {
+    Remove-Item -Path "$($_.FullName)/bin" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($_.FullName)/obj" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Build all multi-arch packages for arm64
+Write-Host "Building all multi-arch packages for arm64..." -ForegroundColor Cyan
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:DefineConstants="ARCH_ARM64"
+
+# Stage arm64 builds
+Write-Host "Staging arm64 builds..." -ForegroundColor Cyan
+foreach ($proj in $MultiArchProjects) {
+    New-Item -ItemType Directory -Force -Path "artifacts/multiarch/$proj/arm64" | Out-Null
+    $sourcePath1 = "src/$proj/bin/Release/net10.0/linux-arm64/$proj.dll"
+    $sourcePath2 = "src/$proj/bin/Release/net10.0/$proj.dll"
+    $destPath = "artifacts/multiarch/$proj/arm64/"
+
+    if (Test-Path $sourcePath1) {
+        Copy-Item $sourcePath1 $destPath -ErrorAction SilentlyContinue
+    } elseif (Test-Path $sourcePath2) {
+        Copy-Item $sourcePath2 $destPath -ErrorAction SilentlyContinue
+    }
+}
+
+# Use x64 as reference assembly
+Write-Host "Setting up reference assemblies..." -ForegroundColor Cyan
+foreach ($proj in $MultiArchProjects) {
+    New-Item -ItemType Directory -Force -Path "artifacts/multiarch/$proj/ref" | Out-Null
+    $sourcePath = "artifacts/multiarch/$proj/x64/$proj.dll"
+    $destPath = "artifacts/multiarch/$proj/ref/"
+    if (Test-Path $sourcePath) {
+        Copy-Item $sourcePath $destPath -ErrorAction SilentlyContinue
+    }
+}
+
+# Pack multi-arch packages
+Write-Host "Packing multi-arch packages..." -ForegroundColor Cyan
+foreach ($proj in $MultiArchProjects) {
+    Write-Host "Packing $proj..." -ForegroundColor Yellow
+    dotnet pack "src/$proj/$proj.csproj" -c Release --no-build
+}
 
 # SDK and Templates
 dotnet build src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release
@@ -92,4 +155,4 @@ dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release 2>$n
 dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release 2>$null
 dotnet tool update -g Cosmos.Tools --add-source artifacts/package/release 2>$null
 
-Write-Host "=== Package setup completed ===" -ForegroundColor Green
+Write-Host "=== PostCreate setup completed (multi-arch) ===" -ForegroundColor Green

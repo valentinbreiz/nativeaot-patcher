@@ -5,8 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <!-- Target architecture (x64 or arm64) -->
-    <CosmosArch>TargetArch</CosmosArch>
+    <!-- Architecture is auto-detected from RuntimeIdentifier (e.g., linux-x64, linux-arm64) -->
   </PropertyGroup>
 
   <!-- Core kernel packages -->

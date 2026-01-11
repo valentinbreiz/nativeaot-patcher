@@ -3,6 +3,8 @@
     <Version>3.0.22</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Multi-arch package: contains both x64 and arm64 builds -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <IsPackable>true</IsPackable>
 
     <!-- Package Metadata -->
@@ -30,4 +32,7 @@
     <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
   </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

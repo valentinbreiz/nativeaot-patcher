@@ -3,8 +3,8 @@
     <LinkTargetDependsOn>GetLinker;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 
-  <!-- Set default RuntimeIdentifier if not specified -->
-  <PropertyGroup>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">linux-x64</RuntimeIdentifier>
-  </PropertyGroup>
+  <!-- Import architecture picker early so CosmosArch and DefineConstants are set -->
+  <!-- Note: Do NOT set default RuntimeIdentifier here - it interferes with multi-arch builds -->
+  <!-- The ArchitecturePicker.props will default CosmosArch to x64 if not specified -->
+  <Import Project="Cosmos.ArchitecturePicker.props" />
 </Project>

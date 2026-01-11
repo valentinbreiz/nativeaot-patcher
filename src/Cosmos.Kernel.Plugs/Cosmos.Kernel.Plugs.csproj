@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>3.0.22</Version>
+    <!-- Multi-arch package: contains both x64 and arm64 builds -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <PackageId>Cosmos.Kernel.Plugs</PackageId>
@@ -12,13 +14,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <!-- Architecture-specific DefineConstants -->
-  <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
-    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
-  </PropertyGroup>
+  <!-- Architecture defines are set by Cosmos.ArchitecturePicker.props -->
 
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
@@ -31,4 +27,10 @@
   <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
     <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
+  </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>
