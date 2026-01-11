@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.FileSystem.MemFs;
 
@@ -9,8 +10,16 @@ namespace Cosmos.Kernel.System.FileSystem.MemFs;
 /// </summary>
 internal class MemFsFileOperations : IFileOperations
 {
+    private static void Log(params object?[] args)
+    {
+        Serial.WriteString("[VFS:MemFs:FileOperations] ");
+        Serial.Write(args);
+        Serial.WriteString("\n");
+    }
+
     public int Read(IInode inode, byte[] buffer, int offset, int count, long position)
     {
+        Log("Read(", inode.InodeNumber, ",", buffer.Length, ",", offset, ",", count, ",", position, ")");
         if (inode is not MemFsInode memInode)
             throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
 
@@ -33,6 +42,7 @@ internal class MemFsFileOperations : IFileOperations
 
     public int Write(IInode inode, byte[] buffer, int offset, int count, long position)
     {
+        Log("Write(", inode.InodeNumber, ",", buffer.Length, ",", offset, ",", count, ",", position, ")");
         if (inode is not MemFsInode memInode)
             throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
 
@@ -60,11 +70,13 @@ internal class MemFsFileOperations : IFileOperations
 
     public void Flush(IInode inode)
     {
+        Log("Flush(", inode.InodeNumber, ")");
         // In-memory file system doesn't need flushing
     }
 
     public void Truncate(IInode inode, long length)
     {
+        Log("Truncate(", inode.InodeNumber, ",", length, ")");
         if (inode is not MemFsInode memInode)
             throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
 
@@ -75,7 +87,11 @@ internal class MemFsFileOperations : IFileOperations
             throw new ArgumentOutOfRangeException(nameof(length));
 
         byte[] data = memInode.Data;
-        if (length < data.Length)
+        if (length == 0)
+        {
+            memInode.SetData([]);
+        }
+        else if (length < data.Length)
         {
             byte[] newData = new byte[length];
             Array.Copy(data, 0, newData, 0, (int)length);

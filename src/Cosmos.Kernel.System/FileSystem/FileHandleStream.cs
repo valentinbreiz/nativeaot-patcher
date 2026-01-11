@@ -16,6 +16,7 @@ public class FileHandleStream : Stream
     public FileHandleStream(IFileHandle fileHandle)
     {
         _fileHandle = fileHandle ?? throw new ArgumentNullException(nameof(fileHandle));
+        _fileHandle.Handle.IncrementReference();
     }
 
     public override bool CanRead => _fileHandle.CanRead;

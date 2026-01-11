@@ -6,6 +6,7 @@ test: build
 	@QEMU_PID=""; \
 	trap 'test -n "$$QEMU_PID" && kill $$QEMU_PID 2>/dev/null || true' EXIT; \
 	qemu-system-x86_64 \
+	  -smp cores=2,sockets=1,threads=1 \
 	  -cdrom ./output-x64/DevKernel.iso \
 	  -boot d \
 	  -m 512M \
@@ -14,8 +15,7 @@ test: build
 	  -no-reboot \
 	  -enable-kvm \
 	  -machine accel=kvm \
-	  -cpu host \
-	  -no-shutdown & \
+	  -cpu host & \
 	QEMU_PID=$$!; \
 	sleep 20; \
 	echo "Stopping QEMU..."; \
@@ -24,6 +24,7 @@ test: build
 run: build
 	@echo "Starting QEMU..."
 	qemu-system-x86_64 \
+	  -smp cores=2,sockets=1,threads=1 \
 	  -cdrom ./output-x64/DevKernel.iso \
 	  -boot d \
 	  -m 512M \
@@ -31,5 +32,4 @@ run: build
 	  -no-reboot \
 	  -enable-kvm \
 	  -machine accel=kvm \
-	  -cpu host \
-	  -no-shutdown
+	  -cpu host

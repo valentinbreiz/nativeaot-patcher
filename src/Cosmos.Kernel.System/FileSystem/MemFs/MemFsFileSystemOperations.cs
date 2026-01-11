@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.FileSystem.MemFs;
 
@@ -18,12 +19,19 @@ internal class MemFsFileSystemOperations : IFileSystemOperations
     private ulong _nextInodeNumber = 1;
     private string _mountPoint;
 
+    private static void Log(params object?[] args)
+    {
+        Serial.WriteString("[VFS:MemFs] ");
+        Serial.Write(args);
+        Serial.WriteString("\n");
+    }
+
     public MemFsFileSystemOperations(string mountPoint)
     {
         _mountPoint = mountPoint;
         _fileOperations = new MemFsFileOperations();
         _inodeOperations = new MemFsInodeOperations(this);
-        
+
         // Create root directory
         _root = new MemFsInode(0, this, "", InodeType.Directory, null);
         _inodes[0] = _root;
@@ -41,6 +49,7 @@ internal class MemFsFileSystemOperations : IFileSystemOperations
 
     public IInode? GetInode(string path)
     {
+        Log("GetInode(", path, ")");
         if (string.IsNullOrEmpty(path))
             return null;
 
@@ -79,6 +88,7 @@ internal class MemFsFileSystemOperations : IFileSystemOperations
 
     public void Sync()
     {
+        Log("Sync()");
         // In-memory file system doesn't need syncing
     }
 

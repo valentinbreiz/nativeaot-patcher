@@ -123,23 +123,3 @@ public interface IVfs
     void Unmount(string mountPoint);
 }
 
-/// <summary>
-/// File access mode for opening files.
-/// </summary>
-public enum FileAccessMode
-{
-    /// <summary>
-    /// Read-only access.
-    /// </summary>
-    Read,
-
-    /// <summary>
-    /// Write-only access.
-    /// </summary>
-    Write,
-
-    /// <summary>
-    /// Read and write access.
-    /// </summary>
-    ReadWrite
-}

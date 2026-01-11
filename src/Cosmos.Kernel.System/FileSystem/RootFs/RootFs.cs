@@ -45,7 +45,7 @@ public static class RootFs
     public static IFileSystemOperations Create()
     {
         // Create a MemFs instance as the underlying storage for rootfs
-        IFileSystemOperations rootFs = Cosmos.Kernel.System.FileSystem.MemFs.MemFs.Create("/");
+        IFileSystemOperations rootFs = MemFs.MemFs.Create("/");
 
         // Initialize standard Linux directory structure
         InitializeDirectoryStructure(rootFs);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.FileSystem.MemFs;
 
@@ -12,6 +13,13 @@ internal class MemFsInodeOperations : IInodeOperations
 {
     private readonly MemFsFileSystemOperations _fileSystem;
 
+    private static void Log(params object?[] args)
+    {
+        Serial.WriteString("[VFS:MemFs:InodeOperations] ");
+        Serial.Write(args);
+        Serial.WriteString("\n");
+    }
+
     public MemFsInodeOperations(MemFsFileSystemOperations fileSystem)
     {
         _fileSystem = fileSystem;
@@ -19,6 +27,7 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public IInode? Lookup(IInode parent, string name)
     {
+        Log("Lookup(", parent.InodeNumber, ",", name, ")");
         if (parent is not MemFsInode memParent)
             return null;
 
@@ -49,6 +58,7 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public IInode CreateFile(IInode parent, string name)
     {
+        Log("CreateFile(", parent.InodeNumber, ",", name, ")");
         if (parent is not MemFsInode memParent)
             throw new ArgumentException("Parent must be a MemFsInode.", nameof(parent));
 
@@ -72,6 +82,7 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public IInode CreateDirectory(IInode parent, string name)
     {
+        Log("CreateDirectory(", parent.InodeNumber, ",", name, ")");
         if (parent is not MemFsInode memParent)
             throw new ArgumentException("Parent must be a MemFsInode.", nameof(parent));
 
@@ -95,6 +106,7 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public void Unlink(IInode inode)
     {
+        Log("Unlink(", inode.InodeNumber, ")");
         if (inode is not MemFsInode memInode)
             throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
 
@@ -117,6 +129,7 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public void Rename(IInode oldInode, IInode newParent, string newName)
     {
+        Log("Rename(", oldInode.InodeNumber, ",", newParent.InodeNumber, ",", newName, ")");
         if (oldInode is not MemFsInode memOldInode)
             throw new ArgumentException("Old inode must be a MemFsInode.", nameof(oldInode));
 
@@ -148,11 +161,20 @@ internal class MemFsInodeOperations : IInodeOperations
 
     public List<IInode> ReadDirectory(IInode directory)
     {
+        Log("ReadDirectory(", directory.InodeNumber, ")");
         if (directory is not MemFsInode memDirectory)
+        {
+            Log("ReadDirectory(", directory.InodeNumber, ") Directory must be a MemFsInode.");
             throw new ArgumentException("Directory must be a MemFsInode.", nameof(directory));
+        }
+
 
         if (!memDirectory.IsDirectory)
+        {
+            Log("ReadDirectory(", directory.InodeNumber, ") Inode must be a directory.");
             throw new InvalidOperationException("Inode must be a directory.");
+        }
+
 
         List<IInode> result = new List<IInode>();
         foreach (MemFsInode child in memDirectory.Children)
@@ -160,11 +182,14 @@ internal class MemFsInodeOperations : IInodeOperations
             result.Add(child);
         }
 
+        Log("ReadDirectory(", directory.InodeNumber, ") result.Count ", result.Count);
+
         return result;
     }
 
     public IFileOperations? GetFileOperations(IInode inode)
     {
+        Log("GetFileOperations(", inode.InodeNumber, ")");
         if (inode is not MemFsInode memInode)
             return null;
 
@@ -179,6 +204,7 @@ internal class MemFsInodeOperations : IInodeOperations
     /// </summary>
     public IInode CreateSymlink(IInode parent, string name, string target)
     {
+        Log("CreateSymlink(", parent.InodeNumber, ",", name, ",", target, ")");
         if (parent is not MemFsInode memParent)
             throw new ArgumentException("Parent must be a MemFsInode.", nameof(parent));
 
@@ -206,11 +232,12 @@ internal class MemFsInodeOperations : IInodeOperations
     /// </summary>
     private IInode? ResolveSymlink(MemFsInode symlink)
     {
+        Log("ResolveSymlink(", symlink.InodeNumber, ")");
         if (!symlink.IsSymlink || symlink.SymlinkTarget == null)
             return null;
 
         string target = symlink.SymlinkTarget;
-        
+
         // Handle absolute paths
         if (target.StartsWith("/"))
         {

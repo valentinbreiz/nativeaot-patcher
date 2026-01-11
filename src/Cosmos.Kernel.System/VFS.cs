@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Utilities;
 using Cosmos.Kernel.System.FileSystem;
 
 namespace Cosmos.Kernel.System;
@@ -14,9 +16,16 @@ namespace Cosmos.Kernel.System;
 /// </summary>
 public static class Vfs
 {
-    private static readonly Dictionary<FileHandle, IFileHandle> s_openHandles = new(FileHandle.IdComparer);
-    private static readonly Dictionary<string, IFileSystemOperations> s_mountPoints = new();
+    private static readonly SimpleDictionary<FileHandle, IFileHandle> s_openHandles = new();
+    private static readonly SimpleDictionary<string, IFileSystemOperations> s_mountPoints = new();
     private static uint s_nextHandleId = 1;
+
+    private static void Log(params object?[] args)
+    {
+        Serial.WriteString("[VFS] ");
+        Serial.Write(args);
+        Serial.WriteString("\n");
+    }
 
     private static uint NextHandleId()
     {
@@ -30,8 +39,9 @@ public static class Vfs
     /// <param name="mode">The file access mode (read, write, read/write).</param>
     /// <param name="create">Whether to create the file if it doesn't exist.</param>
     /// <returns>A file handle, or null if the file cannot be opened.</returns>
-    public static IFileHandle? Open(string path, FileAccessMode mode, bool create = false)
+    public static FileHandle? Open(string path, FileAccessMode mode, bool create = false)
     {
+        Log("Open(", path, ",", mode.AsString(), ",", create, ")");
         if (string.IsNullOrEmpty(path))
             return null;
 
@@ -78,12 +88,21 @@ public static class Vfs
         if (fileOps == null)
             return null;
 
-        // Create file handle
-        FileHandle handle = new FileHandle { Id = NextHandleId() };
-        IFileHandle fileHandle = new VfsFileHandle(handle, inode, fileOps, mode);
-        s_openHandles[handle] = fileHandle;
+        // Create file handle with all file descriptor table data (similar to Linux's struct file)
+        FileHandle handle = new FileHandle
+        {
+            Id = NextHandleId(),
+            Position = 0,
+            AccessMode = mode,
+            Inode = inode,
+            FileOperations = fileOps
+        };
+        // Reference count starts at 0, VfsFileHandle will increment it to 1
 
-        return fileHandle;
+        IFileHandle fileHandle = new VfsFileHandle(handle);
+        s_openHandles.Add(handle, fileHandle);
+
+        return handle;
     }
 
     /// <summary>
@@ -92,10 +111,16 @@ public static class Vfs
     /// <param name="handle">The file handle to close.</param>
     public static void Close(FileHandle handle)
     {
+        Log("Close(", handle.Id, ")");
         if (s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
         {
             fileHandle.Close();
-            s_openHandles.Remove(handle);
+            // If reference count reaches 0, remove from the table
+            // (Close already decrements the reference count)
+            if (handle.ReferenceCount <= 0)
+            {
+                s_openHandles.Remove(handle);
+            }
         }
     }
 
@@ -109,6 +134,7 @@ public static class Vfs
     /// <returns>Number of bytes read.</returns>
     public static int Read(FileHandle handle, byte[] buffer, int offset, int count)
     {
+        Log("Read(", handle.Id, ",", buffer.Length, ",", offset, ",", count, ")");
         if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
@@ -125,6 +151,7 @@ public static class Vfs
     /// <returns>Number of bytes written.</returns>
     public static int Write(FileHandle handle, byte[] buffer, int offset, int count)
     {
+        Log("Write(", handle.Id, ",", buffer.Length, ",", offset, ",", count, ")");
         if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
@@ -141,6 +168,7 @@ public static class Vfs
     /// <returns>New position in the file.</returns>
     public static long Seek(FileHandle handle, long offset, SeekOrigin origin)
     {
+        Log("Seek(", handle.Id, ",", offset, ",", origin, ")");
         if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
@@ -154,6 +182,7 @@ public static class Vfs
     /// <returns>A stream for the file handle.</returns>
     public static Stream GetStream(FileHandle handle)
     {
+        Log("GetStream(", handle.Id, ")");
         if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
@@ -167,6 +196,7 @@ public static class Vfs
     /// <returns>True if the file was created, false otherwise.</returns>
     public static bool CreateFile(string path)
     {
+        Log("CreateFile(", path, ")");
         if (string.IsNullOrEmpty(path))
             return false;
 
@@ -203,6 +233,7 @@ public static class Vfs
     /// <returns>True if the directory was created, false otherwise.</returns>
     public static bool CreateDirectory(string path)
     {
+        Log("CreateDirectory(", path, ")");
         if (string.IsNullOrEmpty(path))
             return false;
 
@@ -239,6 +270,7 @@ public static class Vfs
     /// <returns>True if the file/directory was deleted, false otherwise.</returns>
     public static bool Delete(string path)
     {
+        Log("Delete(", path, ")");
         if (string.IsNullOrEmpty(path))
             return false;
 
@@ -271,6 +303,7 @@ public static class Vfs
     /// <returns>True if the rename was successful, false otherwise.</returns>
     public static bool Rename(string oldPath, string newPath)
     {
+        Log("Rename(", oldPath, ",", newPath, ")");
         if (string.IsNullOrEmpty(oldPath) || string.IsNullOrEmpty(newPath))
             return false;
 
@@ -318,6 +351,7 @@ public static class Vfs
     /// <returns>True if the path exists, false otherwise.</returns>
     public static bool Exists(string path)
     {
+        Log("Exists(", path, ")");
         if (string.IsNullOrEmpty(path))
             return false;
 
@@ -337,6 +371,7 @@ public static class Vfs
     /// <returns>The inode for the path, or null if not found.</returns>
     public static IInode? GetInode(string path)
     {
+        Log("GetInode(", path, ")");
         if (string.IsNullOrEmpty(path))
             return null;
 
@@ -356,13 +391,18 @@ public static class Vfs
     /// <returns>List of inodes in the directory, or an empty list if the path is not a directory or doesn't exist.</returns>
     public static List<IInode> ListDirectory(string path)
     {
+        Log("ListDirectory(", path, ")");
         if (string.IsNullOrEmpty(path))
             return new List<IInode>();
 
         path = NormalizePath(path);
         IFileSystemOperations? fileSystem = GetFileSystem(path);
         if (fileSystem == null)
+        {
+            Log("ListDirectory(", path, ") No FileSystem Found");
             return new List<IInode>();
+        }
+
 
         string relativePath = GetRelativePath(path, fileSystem.MountPoint);
         IInode? inode = fileSystem.GetInode(relativePath);
@@ -379,13 +419,15 @@ public static class Vfs
     /// <param name="mountPoint">The mount point path.</param>
     public static void Mount(IFileSystemOperations fileSystem, string mountPoint)
     {
+        Log("Mount( dummy ,", mountPoint, ")");
         if (fileSystem == null)
             throw new ArgumentNullException(nameof(fileSystem));
         if (string.IsNullOrEmpty(mountPoint))
             throw new ArgumentException("Mount point cannot be null or empty.", nameof(mountPoint));
 
         mountPoint = NormalizePath(mountPoint);
-        s_mountPoints[mountPoint] = fileSystem;
+        Log("Mount( dummy ,", mountPoint, ")", "Mounting ", mountPoint);
+        s_mountPoints.Add(mountPoint,  fileSystem);
     }
 
     /// <summary>
@@ -394,6 +436,7 @@ public static class Vfs
     /// <param name="mountPoint">The mount point path.</param>
     public static void Unmount(string mountPoint)
     {
+        Log("Unmount(", mountPoint, ")");
         if (string.IsNullOrEmpty(mountPoint))
             return;
 
@@ -405,9 +448,16 @@ public static class Vfs
 
     private static IFileSystemOperations? GetFileSystem(string path)
     {
-        string bestMatch = string.Empty;
+        Log("GetFileSystem(", path, ")");
+        string bestMatch = "/";
+        Log("s_mountPoints.Keys ", s_mountPoints.Keys.Count, " s_mountPoints.Count ", s_mountPoints.Count);
         foreach (string mountPoint in s_mountPoints.Keys)
         {
+            if (mountPoint == path)
+            {
+                return s_mountPoints[mountPoint];
+            }
+
             if (path.StartsWith(mountPoint))
             {
                 if (mountPoint.Length > bestMatch.Length)
@@ -416,15 +466,26 @@ public static class Vfs
                 }
             }
         }
-
+        Log("GetFileSystem(", path, ") bestMatch:", bestMatch);
         if (bestMatch == string.Empty)
             return null;
 
-        return s_mountPoints[bestMatch];
+        if (s_mountPoints.TryGetValue(bestMatch, out IFileSystemOperations? fileSystem))
+        {
+            Log("GetFileSystem(", path, ") found FS");
+            return fileSystem;
+        }
+        else
+        {
+            Log("GetFileSystem(", path, ") could not find FS");
+            return null;
+        }
+
     }
 
     private static string NormalizePath(string path)
     {
+        Log("NormalizePath(", path, ")");
         // Remove trailing slashes (except for root)
         path = path.TrimEnd('/');
         if (string.IsNullOrEmpty(path))
@@ -443,6 +504,7 @@ public static class Vfs
 
     private static string GetRelativePath(string path, string mountPoint)
     {
+        Log("GetRelativePath(", path, ",", mountPoint , ")");
         if (path == mountPoint)
             return "/";
 
@@ -454,6 +516,7 @@ public static class Vfs
 
     private static string? GetParentPath(string path)
     {
+        Log("GetParentPath(", path, ")");
         if (path == "/")
             return null;
 
@@ -469,6 +532,7 @@ public static class Vfs
 
     private static string GetFileName(string path)
     {
+        Log("GetFileName(", path, ")");
         if (path == "/")
             return "/";
 
