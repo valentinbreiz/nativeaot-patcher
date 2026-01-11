@@ -1,7 +1,13 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.ARM64.Cpu;
+using Cosmos.Kernel.HAL.ARM64.Devices.Input;
+using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
+using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Interfaces;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64;
 
@@ -10,9 +16,89 @@ namespace Cosmos.Kernel.HAL.ARM64;
 /// </summary>
 public class ARM64PlatformInitializer : IPlatformInitializer
 {
+    private GenericTimer? _timer;
+    private VirtioKeyboard? _virtioKeyboard;
+
     public string PlatformName => "ARM64";
     public PlatformArchitecture Architecture => PlatformArchitecture.ARM64;
 
     public IPortIO CreatePortIO() => new ARM64MemoryIO();
     public ICpuOps CreateCpuOps() => new ARM64CpuOps();
+    public IInterruptController CreateInterruptController() => new ARM64InterruptController();
+
+    public void InitializeHardware()
+    {
+        // Initialize Generic Timer
+        Serial.WriteString("[ARM64HAL] Initializing Generic Timer...\n");
+        _timer = new GenericTimer();
+        _timer.Initialize();
+
+        // Register timer interrupt handler
+        Serial.WriteString("[ARM64HAL] Registering timer interrupt handler...\n");
+        _timer.RegisterIRQHandler();
+
+        // Scan for virtio devices
+        Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
+        VirtioMMIO.ScanDevices();
+
+        // Initialize virtio keyboard
+        Serial.WriteString("[ARM64HAL] Initializing virtio keyboard...\n");
+        _virtioKeyboard = VirtioKeyboard.FindAndCreate();
+        if (_virtioKeyboard != null)
+        {
+            _virtioKeyboard.Initialize();
+            if (_virtioKeyboard.IsInitialized)
+            {
+                _virtioKeyboard.RegisterIRQHandler();
+                Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
+            }
+            else
+            {
+                Serial.WriteString("[ARM64HAL] Virtio keyboard initialization failed\n");
+                _virtioKeyboard = null;
+            }
+        }
+        else
+        {
+            Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
+        }
+    }
+
+    public ITimerDevice CreateTimer()
+    {
+        if (_timer == null)
+        {
+            _timer = new GenericTimer();
+            _timer.Initialize();
+        }
+        return _timer;
+    }
+
+    public IKeyboardDevice[] GetKeyboardDevices()
+    {
+        if (_virtioKeyboard != null && _virtioKeyboard.IsInitialized)
+        {
+            return [_virtioKeyboard];
+        }
+        return [];
+    }
+
+    public INetworkDevice? GetNetworkDevice()
+    {
+        // No network device implemented for ARM64 yet
+        return null;
+    }
+
+    public uint GetCpuCount()
+    {
+        // For now, single CPU on ARM64
+        return 1;
+    }
+
+    public void StartSchedulerTimer(uint quantumMs)
+    {
+        // Start the timer for preemptive scheduling
+        Serial.WriteString("[ARM64HAL] Starting Generic Timer for scheduling...\n");
+        _timer?.Start();
+    }
 }

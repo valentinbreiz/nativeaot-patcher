@@ -153,7 +153,6 @@ jobs:
           path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
   unix-iso-tests:
-    if: false  # Temporarily disabled
     name: Run ISO Build Tests - Unix (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -224,21 +223,17 @@ jobs:
           path: ./output-${{ matrix.arch }}/DevKernel.iso
 
   windows-iso-tests:
-    if: false  # Temporarily disabled
     name: Run ISO Build Tests - Windows (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ windows-latest ]
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
+        arch: [ x64 ]
         include:
           - arch: x64
-            rid: win-x64
+            rid: linux-x64
             assembler: yasm
-          - arch: arm64
-            rid: win-arm64
-            assembler: x86_64-elf
     steps:
       - name: 🛠️ Enable long paths in Git
         run: git config --system core.longpaths true
@@ -259,18 +254,28 @@ jobs:
 
       - name: 🔄 Compile Packages for ${{ matrix.arch }}
         shell: pwsh
-        run: pwsh -File ./install-packages.ps1
+        run: ./.devcontainer/postCreateCommand.ps1 -Arch ${{ matrix.arch }}
 
       - name: 🔗 Install Assembler & Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
         with:
           args: install -y llvm yasm
 
-      - name: 🔗 Install GCC Toolchain
+      - name: 🔗 Install xorriso
+        shell: pwsh
         run: |
-            curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
-            Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
-            echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # Download xorriso for Windows from PeyTy's build
+          curl -LO https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe
+          New-Item -ItemType Directory -Force -Path C:\xorriso | Out-Null
+          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe C:\xorriso\xorriso.exe
+          echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: 🔗 Install GCC Toolchain
+        shell: pwsh
+        run: |
+          curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
+          Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
+          echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release

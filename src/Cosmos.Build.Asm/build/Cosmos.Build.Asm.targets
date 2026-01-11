@@ -7,27 +7,10 @@
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
 
-    <!-- Automatically add native package search paths based on architecture -->
-    <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64'">
-      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.x64/3.0.0/build</CosmosNativePackagePath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetArchitecture)' == 'arm64'">
-      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.arm64/3.0.0/build</CosmosNativePackagePath>
-    </PropertyGroup>
-    
-    <Message Text="🔍 [ASM] CosmosNativePackagePath: $(CosmosNativePackagePath)" Importance="High" />
-    
-    <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64'">
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Runtime/" Condition="Exists('$(CosmosNativePackagePath)/Runtime/')" />
-    </ItemGroup>
+    <!--
+      NOTE: AsmSearchPath items are added by the Cosmos.Kernel.Native.X64.props / ARM64.props
+      files when the NuGet package is imported. We don't add them here to avoid duplicates.
+    -->
 
     <!-- Exclude Folders/Files that doesn't exists -->
     <ItemGroup>

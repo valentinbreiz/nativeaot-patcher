@@ -49,6 +49,7 @@ dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release
 dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release
 dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release
+dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release
 
 # Build native packages for both architectures
 echo "Building native packages..."
@@ -94,5 +95,6 @@ dotnet restore ./nativeaot-patcher.slnx
 echo "Installing global tools..."
 dotnet tool install -g ilc --add-source artifacts/package/release || dotnet tool update -g ilc --add-source artifacts/package/release || true
 dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release || dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release || true
+dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release || dotnet tool update -g Cosmos.Tools --add-source artifacts/package/release || true
 
 echo "=== PostCreate setup completed ==="
