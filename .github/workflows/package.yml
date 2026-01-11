@@ -25,7 +25,7 @@ jobs:
       - name: Check for Bump
         id: bump
         run: |
-          if git log -1 --pretty=%B | grep -q "🔖 Bump"; then
+          if git log -1 --pretty=%B | grep -iq "bump"; then
             echo "found=true" >> $GITHUB_OUTPUT
           fi
 
