@@ -2,20 +2,17 @@ name: Package
 
 on:
   push:
-    branches:
-      - main
-  workflow_call:
+    branches: [ main ]
+  pull_request:
+    branches: [ "**" ]
+
 jobs:
-  pack-patcher:
-    name: Pack Cosmos Patcher
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-        dotnet-version: [ 10.0.x ]
+  package:
+    name: Build and Publish
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -23,15 +20,25 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: 10.0.x
 
-      - name: Pack Cosmos
-        run: dotnet build ./Packages.slnx --configuration Release /p:Version=3.0.0-build.$(date +"%Y%m%d%H%M") --artifacts-path ./out
+      - name: Check for Bump
+        id: bump
+        run: |
+          if git log -1 --pretty=%B | grep -q "🔖 Bump"; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Upload Packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: Cosmos.Patcher.Packages
-          path: ./out/package/release
+      - name: Build Packages
+        if: steps.bump.outputs.found == 'true'
+        run: |
+          export VersionSuffix="build.$(date +%Y%m%d%H%M)"
+          dotnet nuget locals all --clear
+          ./.devcontainer/postCreateCommand.sh
 
-
+      - name: Publish to NuGet
+        if: steps.bump.outputs.found == 'true'
+        run: |
+          for pkg in ./artifacts/package/release/*.nupkg; do
+            dotnet nuget push "$pkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
