@@ -14,6 +14,23 @@ public class SimpleDictionary<TKey, TValue> where TKey : notnull
         _buckets = new Entry[capacity];
     }
 
+    public IReadOnlyList<TKey> Keys
+    {
+        get
+        {
+            var keys = new List<TKey>(_count);
+            foreach (var bucket in _buckets)
+            {
+                Entry? current = bucket;
+                while (current is not null)
+                {
+                    keys.Add(current.Key);
+                    current = current.Next;
+                }
+            }
+            return keys;
+        }
+    }
 
     public int Count => _count;
 

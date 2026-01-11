@@ -1,10 +1,13 @@
 using System;
+using System.Text;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.System.FileSystem;
+using Cosmos.Kernel.System.FileSystem.RootFs;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -23,6 +26,8 @@ public class Kernel : Sys.Kernel
 {
     private string _prompt = "cosmos";
 
+    private FileHandle HistoryFile;
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[DevKernel] BeforeRun() called\n");
@@ -32,6 +37,15 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
+
+        Sys.Vfs.Mount(RootFs.Create(), "/");
+        FileHandle aTestFile = Sys.Vfs.Open("/afile.txt", FileAccessMode.ReadWrite, true);
+        var aTestFileData = Encoding.UTF8.GetBytes("this is a text file");
+        Sys.Vfs.Write(aTestFile, aTestFileData, 0, aTestFileData.Length);
+        Sys.Vfs.Close(aTestFile);
+
+        Sys.Vfs.CreateDirectory("/user");
+        HistoryFile = Sys.Vfs.Open("/user/history.txt", FileAccessMode.ReadWrite, true)!;
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Cosmos booted successfully!");
@@ -57,6 +71,11 @@ public class Kernel : Sys.Kernel
 
         if (string.IsNullOrEmpty(input))
             return;
+
+        var historyFileData = Encoding.UTF8.GetBytes(input);
+        Serial.Write("HistoryFile ", HistoryFile.Id, " ", HistoryFile.Position, " ", historyFileData.Length, '\n');
+        Sys.Vfs.Write(HistoryFile, historyFileData, (int)HistoryFile.Position, historyFileData.Length);
+        // HistoryFile.FileOperations.Flush(HistoryFile.Inode);
 
         string trimmed = input.Trim();
         string[] parts = trimmed.Split(' ');
@@ -142,6 +161,13 @@ public class Kernel : Sys.Kernel
 
 #endif
 
+            case "ls":
+                Fs.Ls(parts);
+                break;
+
+            case "cat":
+                Fs.Cat(parts);
+                break;
 
             case "meminfo":
                 ShowMemoryInfo();
@@ -186,6 +212,8 @@ public class Kernel : Sys.Kernel
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
 #endif
+        PrintCommand("ls <path>", "list directory contents");
+        PrintCommand("cat <path>", "reads a file");
     }
 
     private void PrintCommand(string cmd, string description)

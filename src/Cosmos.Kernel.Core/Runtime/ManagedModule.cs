@@ -159,48 +159,13 @@ public static unsafe partial class ManagedModule
     }
 
 
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "InitializeStatics")]
+    private unsafe static extern object[] RhInitializeStatics([UnsafeAccessorType("Internal.Runtime.CompilerHelpers.StartupCodeHelpers")]object helper, IntPtr gcStaticRegionStart, int length);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
     {
-        byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
-
-        int currentBase = 0;
-        for (byte* block = (byte*)gcStaticRegionStart;
-            block < gcStaticRegionEnd;
-            block += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
-        {
-
-            IntPtr* pBlock = MethodTable.SupportsRelativePointers ? (IntPtr*)ReadRelPtr32(block) : *(IntPtr**)block;
-            nint blockAddr = MethodTable.SupportsRelativePointers ? (nint)ReadRelPtr32(pBlock) : *pBlock;
-
-            if ((blockAddr & GCStaticRegionConstants.Uninitialized) == GCStaticRegionConstants.Uninitialized)
-            {
-                object? obj = null;
-                var pMT = (MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask);
-                Memory.RhAllocateNewObject(pMT, 0, &obj);
-
-                if (obj is null)
-                {
-                    Serial.WriteString("Failed allocating GC static bases\n");
-                    throw new OutOfMemoryException();
-                }
-
-                if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
-                {
-                    void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
-                    var size = pMT->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
-                    byte* destPtr = (byte*)&obj + sizeof(MethodTable*);
-                    MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)size);
-                }
-
-                *pBlock = *(IntPtr*)&obj;
-            }
-
-            currentBase++;
-        }
-
-        static void* ReadRelPtr32(void* address)
-            => (byte*)address + *(int*)address;
+        RhInitializeStatics(null!, gcStaticRegionStart, length);
     }
 }
 

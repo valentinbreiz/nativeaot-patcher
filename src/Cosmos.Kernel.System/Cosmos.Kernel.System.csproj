@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="FileSystem\MemFs\" />
+  </ItemGroup>
 </Project>

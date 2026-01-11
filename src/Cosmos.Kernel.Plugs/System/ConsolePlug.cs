@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Graphics;
@@ -386,4 +387,25 @@ public class ConsolePlug
             _ => ConsoleKey.NoName
         };
     }
+
+    public virtual void WriteLine([StringSyntax("CompositeFormat")] string format, object? arg0)
+    {
+        WriteLine(string.Format(format, arg0));
+    }
+
+    public static void WriteLine([StringSyntax("CompositeFormat")] string format, object? arg0, object? arg1)
+    {
+        WriteLine(string.Format(format, arg0, arg1));
+    }
+
+
+    public static void WriteLine([StringSyntax("CompositeFormat")] string format, object? arg0, object? arg1, object? arg2)
+    {
+        WriteLine(string.Format(format, arg0, arg1, arg2));
+    }
+    public static void WriteLine([StringSyntax("CompositeFormat")] string format, params object?[] arg)
+    {
+        WriteLine(string.Format(format, arg));
+    }
+
 }
