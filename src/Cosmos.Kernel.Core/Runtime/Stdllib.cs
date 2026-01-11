@@ -374,6 +374,24 @@ namespace Cosmos.Kernel.Core.Runtime
             return pCode;
         }
 
+        [RuntimeExport("RhSpanHelpers_MemZero")]
+        static unsafe void RhSpanHelpers_MemZero(byte* dest, nuint len)
+        {
+            MemoryOp.MemSet(dest, 0, (int)len);
+        }
+
+        [RuntimeExport("RhpDbl2Lng")]
+        static long RhpDbl2Lng(double value)
+        {
+            return (long)value;
+        }
+
+        [RuntimeExport("RhpDbl2Int")]
+        static int RhpDbl2Int(double value)
+        {
+            return (int)value;
+        }
+
         private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
         {
             MemoryOp.MemMove(dest, src, (int)len);
