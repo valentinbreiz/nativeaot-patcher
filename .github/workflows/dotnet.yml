@@ -259,13 +259,23 @@ jobs:
       - name: 🔗 Install Assembler & Linking Tools
         uses: crazy-max/ghaction-chocolatey@v3.3.0
         with:
-          args: install -y llvm yasm xorriso
+          args: install -y llvm yasm
+
+      - name: 🔗 Install xorriso
+        shell: pwsh
+        run: |
+          # Download xorriso for Windows from PeyTy's build
+          curl -LO https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe
+          New-Item -ItemType Directory -Force -Path C:\xorriso | Out-Null
+          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe C:\xorriso\xorriso.exe
+          echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: 🔗 Install GCC Toolchain
+        shell: pwsh
         run: |
-            curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
-            Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
-            echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
+          Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
+          echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release
