@@ -25,8 +25,11 @@ class Program
             config.AddCommand<BuildCommand>("build")
                 .WithDescription("Build a Cosmos kernel project");
 
-            config.AddCommand<RunCommand>("run")
-                .WithDescription("Run a Cosmos kernel in QEMU");
+            config.AddCommand<InfoCommand>("info")
+                .WithDescription("Show platform and environment information");
+
+            config.AddCommand<UninstallCommand>("uninstall")
+                .WithDescription("Uninstall Cosmos tools, templates, and VS Code extension");
         });
 
         return app.Run(args);

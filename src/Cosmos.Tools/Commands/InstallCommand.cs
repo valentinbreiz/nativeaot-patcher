@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Text.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Cosmos.Tools.Platform;
@@ -19,6 +21,10 @@ public class InstallSettings : CommandSettings
     [CommandOption("-y|--auto")]
     [Description("Automatically install without prompting")]
     public bool Auto { get; set; }
+
+    [CommandOption("--skip-extension")]
+    [Description("Skip VS Code extension installation")]
+    public bool SkipExtension { get; set; }
 }
 
 public class InstallCommand : AsyncCommand<InstallSettings>
@@ -125,10 +131,17 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         // Install/update Cosmos dotnet tools and templates
         await InstallDotnetToolsAsync();
 
+        // Install VS Code extension by default
+        if (!settings.SkipExtension)
+        {
+            await InstallVSCodeExtensionAsync();
+        }
+
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.MarkupLine("  [green]Installation complete![/]");
         AnsiConsole.MarkupLine("  Run [blue]cosmos check[/] to verify installation.");
+        AnsiConsole.MarkupLine("  Run [blue]cosmos new[/] to create a new kernel project.");
         AnsiConsole.WriteLine();
 
         return 0;
@@ -219,6 +232,150 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         {
             AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
         }
+    }
+
+    private static async Task InstallVSCodeExtensionAsync()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("  [bold]Installing VS Code Extension[/]");
+        AnsiConsole.WriteLine();
+
+        // Check if 'code' command is available
+        var codeCommand = GetVSCodeCommand();
+        if (codeCommand == null)
+        {
+            AnsiConsole.MarkupLine("  [yellow]VS Code not found in PATH.[/]");
+            AnsiConsole.MarkupLine("  [yellow]Please install VS Code and ensure 'code' command is available.[/]");
+            AnsiConsole.MarkupLine("  [dim]On macOS: Open VS Code, Cmd+Shift+P, 'Shell Command: Install code command'[/]");
+            return;
+        }
+
+        AnsiConsole.Markup("  Downloading extension from GitHub... ");
+
+        try
+        {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Cosmos-Tools");
+
+            // Get latest release from GitHub API
+            var releaseUrl = "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest";
+            var releaseResponse = await httpClient.GetStringAsync(releaseUrl);
+            var releaseJson = JsonDocument.Parse(releaseResponse);
+
+            string? vsixUrl = null;
+            string? vsixName = null;
+
+            // Find .vsix asset in release
+            if (releaseJson.RootElement.TryGetProperty("assets", out var assets))
+            {
+                foreach (var asset in assets.EnumerateArray())
+                {
+                    var name = asset.GetProperty("name").GetString();
+                    if (name != null && name.EndsWith(".vsix"))
+                    {
+                        vsixUrl = asset.GetProperty("browser_download_url").GetString();
+                        vsixName = name;
+                        break;
+                    }
+                }
+            }
+
+            if (vsixUrl == null)
+            {
+                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
+                AnsiConsole.MarkupLine("  [yellow]No .vsix file found in latest release.[/]");
+                return;
+            }
+
+            AnsiConsole.MarkupLine("[green]OK[/]");
+
+            // Download the .vsix file
+            AnsiConsole.Markup($"  Downloading {vsixName}... ");
+            var vsixBytes = await httpClient.GetByteArrayAsync(vsixUrl);
+
+            var tempPath = Path.Combine(Path.GetTempPath(), vsixName);
+            await File.WriteAllBytesAsync(tempPath, vsixBytes);
+            AnsiConsole.MarkupLine("[green]OK[/]");
+
+            // Install the extension
+            AnsiConsole.Markup("  Installing extension... ");
+            var psi = new ProcessStartInfo
+            {
+                FileName = codeCommand,
+                Arguments = $"--install-extension \"{tempPath}\" --force",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+            {
+                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
+                return;
+            }
+
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                AnsiConsole.MarkupLine("[green]OK[/]");
+                AnsiConsole.MarkupLine("  [green]VS Code extension installed successfully![/]");
+                AnsiConsole.MarkupLine("  [dim]Reload VS Code to activate the extension.[/]");
+            }
+            else
+            {
+                var error = await process.StandardError.ReadToEndAsync();
+                AnsiConsole.MarkupLine("[red]FAILED[/]");
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
+                }
+            }
+
+            // Clean up temp file
+            try { File.Delete(tempPath); } catch { }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine("[red]FAILED[/]");
+            AnsiConsole.MarkupLine($"  [red]Error: {Markup.Escape(ex.Message)}[/]");
+        }
+    }
+
+    private static string? GetVSCodeCommand()
+    {
+        // Try common VS Code command names
+        var commands = new[] { "code", "code-insiders", "codium" };
+
+        foreach (var cmd in commands)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = cmd,
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process != null)
+                {
+                    process.WaitForExit(3000);
+                    if (process.ExitCode == 0)
+                    {
+                        return cmd;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        return null;
     }
 
     private static string GetInstallAction(InstallInfo? info)

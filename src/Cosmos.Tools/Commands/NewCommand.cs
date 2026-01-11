@@ -98,7 +98,6 @@ public class NewCommand : AsyncCommand<NewSettings>
             AnsiConsole.WriteLine("  Next steps:");
             AnsiConsole.MarkupLine($"    [blue]cd {settings.Name}[/]");
             AnsiConsole.MarkupLine("    [blue]cosmos build[/]");
-            AnsiConsole.MarkupLine("    [blue]cosmos run[/]");
             AnsiConsole.WriteLine();
 
             return 0;
