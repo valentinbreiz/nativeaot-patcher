@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.22" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.23" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,13 +10,13 @@
 
   <!-- Core kernel packages -->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel" Version="3.0.22" />
-    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.22" />
+    <PackageReference Include="Cosmos.Kernel" Version="3.0.23" />
+    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.23" />
   </ItemGroup>
 
   <!--#if (EnableGraphics)-->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.22" />
+    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.23" />
   </ItemGroup>
   <!--#endif-->
 
