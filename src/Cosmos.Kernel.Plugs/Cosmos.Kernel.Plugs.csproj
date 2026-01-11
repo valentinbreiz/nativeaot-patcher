@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.20</Version>
+    <Version>3.0.21</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <PackageId>Cosmos.Kernel.Plugs</PackageId>
