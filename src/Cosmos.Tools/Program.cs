@@ -11,7 +11,7 @@ class Program
 
         app.Configure(config =>
         {
-            config.SetApplicationName("cosmos-tools");
+            config.SetApplicationName("cosmos");
 
             config.AddCommand<CheckCommand>("check")
                 .WithDescription("Check if required development tools are installed");

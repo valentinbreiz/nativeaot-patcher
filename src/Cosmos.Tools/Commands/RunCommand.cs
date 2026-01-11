@@ -64,7 +64,7 @@ public class RunCommand : AsyncCommand<RunSettings>
             }
             else
             {
-                AnsiConsole.MarkupLine("  Run [blue]cosmos-tools build[/] first, or use [blue]--build[/] flag.");
+                AnsiConsole.MarkupLine("  Run [blue]cosmos build[/] first, or use [blue]--build[/] flag.");
             }
             return 1;
         }
@@ -279,7 +279,7 @@ public class RunCommand : AsyncCommand<RunSettings>
             if (process == null)
             {
                 AnsiConsole.MarkupLine($"  [red]Failed to start {command}[/]");
-                AnsiConsole.MarkupLine("  Make sure QEMU is installed: [blue]cosmos-tools check[/]");
+                AnsiConsole.MarkupLine("  Make sure QEMU is installed: [blue]cosmos check[/]");
                 return;
             }
 
@@ -291,7 +291,7 @@ public class RunCommand : AsyncCommand<RunSettings>
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"  [red]Error running QEMU: {Markup.Escape(ex.Message)}[/]");
-            AnsiConsole.MarkupLine("  Make sure QEMU is installed: [blue]cosmos-tools install[/]");
+            AnsiConsole.MarkupLine("  Make sure QEMU is installed: [blue]cosmos install[/]");
         }
     }
 }

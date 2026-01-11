@@ -8,7 +8,7 @@
 
     <!-- Tool configuration -->
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>cosmos-tools</ToolCommandName>
+    <ToolCommandName>cosmos</ToolCommandName>
     <PackageOutputPath>../../artifacts/package/release</PackageOutputPath>
 
     <!-- Package metadata -->

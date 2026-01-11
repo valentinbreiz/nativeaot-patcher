@@ -104,7 +104,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             }
 
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("  Run with: [blue]cosmos-tools run[/]");
+            AnsiConsole.MarkupLine("  Run with: [blue]cosmos run[/]");
         }
         else
         {
@@ -142,7 +142,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         {
             var content = File.ReadAllText(csprojPath);
 
-            // Check for CosmosTargetArch (set by cosmos-tools new)
+            // Check for CosmosTargetArch (set by cosmos new)
             var targetArchMatch = Regex.Match(content, @"<CosmosTargetArch>([^<]+)</CosmosTargetArch>");
             if (targetArchMatch.Success)
             {

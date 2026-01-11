@@ -205,7 +205,7 @@
     {
       "label": "Check Tools",
       "type": "shell",
-      "command": "cosmos-tools",
+      "command": "cosmos",
       "args": ["check"],
       "problemMatcher": [],
       "presentation": {

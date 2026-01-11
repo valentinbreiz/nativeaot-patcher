@@ -91,7 +91,7 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         {
             AnsiConsole.MarkupLine($"  [yellow]Missing {requiredMissing.Count} required tool(s)[/]");
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("  Run [blue]cosmos-tools install[/] to install missing tools");
+            AnsiConsole.MarkupLine("  Run [blue]cosmos install[/] to install missing tools");
         }
 
         if (optionalMissing.Count > 0)

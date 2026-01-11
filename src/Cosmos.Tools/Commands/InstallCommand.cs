@@ -128,7 +128,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.MarkupLine("  [green]Installation complete![/]");
-        AnsiConsole.MarkupLine("  Run [blue]cosmos-tools check[/] to verify installation.");
+        AnsiConsole.MarkupLine("  Run [blue]cosmos check[/] to verify installation.");
         AnsiConsole.WriteLine();
 
         return 0;
