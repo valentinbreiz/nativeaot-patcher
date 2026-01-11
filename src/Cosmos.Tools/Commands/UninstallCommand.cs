@@ -139,14 +139,31 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
 
         try
         {
-            var psi = new ProcessStartInfo
+            ProcessStartInfo psi;
+
+            if (OperatingSystem.IsWindows())
             {
-                FileName = codeCommand,
-                Arguments = "--uninstall-extension cosmosos.cosmos-vscode",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+                psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {codeCommand} --uninstall-extension cosmosos.cosmos-vscode",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+            }
+            else
+            {
+                psi = new ProcessStartInfo
+                {
+                    FileName = codeCommand,
+                    Arguments = "--uninstall-extension cosmosos.cosmos-vscode",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+            }
 
             using var process = Process.Start(psi);
             if (process == null)
@@ -166,21 +183,41 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
 
     private static string? GetVSCodeCommand()
     {
-        var commands = new[] { "code", "code-insiders", "codium" };
+        var isWindows = OperatingSystem.IsWindows();
+        var commands = isWindows
+            ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
+            : new[] { "code", "code-insiders", "codium" };
 
         foreach (var cmd in commands)
         {
             try
             {
-                var psi = new ProcessStartInfo
+                ProcessStartInfo psi;
+
+                if (isWindows)
                 {
-                    FileName = cmd,
-                    Arguments = "--version",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c {cmd} --version",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
+                else
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = cmd,
+                        Arguments = "--version",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
 
                 using var process = Process.Start(psi);
                 if (process != null)

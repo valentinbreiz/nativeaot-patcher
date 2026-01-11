@@ -299,14 +299,31 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
             // Install the extension
             AnsiConsole.Markup("  Installing extension... ");
-            var psi = new ProcessStartInfo
+            ProcessStartInfo psi;
+
+            if (OperatingSystem.IsWindows())
             {
-                FileName = codeCommand,
-                Arguments = $"--install-extension \"{tempPath}\" --force",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+                psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {codeCommand} --install-extension \"{tempPath}\" --force",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+            }
+            else
+            {
+                psi = new ProcessStartInfo
+                {
+                    FileName = codeCommand,
+                    Arguments = $"--install-extension \"{tempPath}\" --force",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+            }
 
             using var process = Process.Start(psi);
             if (process == null)
@@ -345,22 +362,43 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
     private static string? GetVSCodeCommand()
     {
-        // Try common VS Code command names
-        var commands = new[] { "code", "code-insiders", "codium" };
+        // On Windows, VS Code is installed as code.cmd, so we need to check .cmd variants too
+        var isWindows = OperatingSystem.IsWindows();
+        var commands = isWindows
+            ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
+            : new[] { "code", "code-insiders", "codium" };
 
         foreach (var cmd in commands)
         {
             try
             {
-                var psi = new ProcessStartInfo
+                ProcessStartInfo psi;
+
+                if (isWindows)
                 {
-                    FileName = cmd,
-                    Arguments = "--version",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    // On Windows, use cmd /c to properly resolve .cmd files in PATH
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c {cmd} --version",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
+                else
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = cmd,
+                        Arguments = "--version",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
 
                 using var process = Process.Start(psi);
                 if (process != null)
