@@ -5,6 +5,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.System.FileSystem.RootFs;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -32,6 +33,8 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
+
+        Sys.Vfs.Mount(RootFs.Create(), "/");
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Cosmos booted successfully!");
@@ -186,6 +189,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
 #endif
+        PrintCommand("ls <path>", "list directory contents");
     }
 
     private void PrintCommand(string cmd, string description)
