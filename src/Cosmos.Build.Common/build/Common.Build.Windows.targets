@@ -4,8 +4,11 @@
     <!-- Input path passed as a parameter (Correct version [oops])-->
     <IsoRoot Condition="'$(IsoRoot)' == ''">$(DefaultIsoRoot)</IsoRoot>
 
+    <!-- Ensure IsoRoot is an absolute path before converting to Cygwin format -->
+    <IsoRootAbsolute>$([System.IO.Path]::GetFullPath('$(IsoRoot)'))</IsoRootAbsolute>
+
     <!-- Replace ':' with '' (remove colon after drive letter) -->
-    <IsoRootNoColon>$([System.String]::Copy('$(IsoRoot)').Replace(':', ''))</IsoRootNoColon>
+    <IsoRootNoColon>$([System.String]::Copy('$(IsoRootAbsolute)').Replace(':', ''))</IsoRootNoColon>
 
     <!-- Replace backslashes with slashes -->
     <IsoRootSlashes>$([System.String]::Copy('$(IsoRootNoColon)').Replace('\', '/'))</IsoRootSlashes>
