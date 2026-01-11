@@ -13,7 +13,7 @@
 
     <!-- Package metadata -->
     <PackageId>Cosmos.Tools</PackageId>
-    <Version>3.0.19</Version>
+    <Version>3.0.20</Version>
     <Title>Cosmos Development Tools</Title>
     <Description>CLI tools for Cosmos kernel development. Includes tool checking, installation, project creation, building, and QEMU integration.</Description>
     <PackageTags>cosmos;kernel;os;tools;cli;qemu;nativeaot</PackageTags>
