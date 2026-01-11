@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.23</Version>
+    <Version>3.0.24</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Package Metadata -->
