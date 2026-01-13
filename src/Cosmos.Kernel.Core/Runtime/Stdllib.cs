@@ -396,7 +396,7 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             MemoryOp.MemMove(dest, src, (int)len);
         }
-    
+
     }
 }
 
