@@ -109,23 +109,17 @@
     <PackageReference Include="Cosmos.Build.GCC" />
   </ItemGroup>
 
-  <!-- Architecture-specific packages for x64 -->
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64')) AND '$(ManagePackageVersionsCentrally)' != 'true'">
+  <!-- Both arch packages installed; RuntimeIdentifier selects at build time -->
+  <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.24" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.24" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64')) AND '$(ManagePackageVersionsCentrally)' == 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" />
-  </ItemGroup>
-
-  <!-- Architecture-specific packages for ARM64 -->
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64')) AND '$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.24" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.24" />
     <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.24" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64')) AND '$(ManagePackageVersionsCentrally)' == 'true'">
+  <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+    <PackageReference Include="Cosmos.Kernel.Native.X64" />
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" />
     <PackageReference Include="Cosmos.Kernel.HAL.ARM64" />
   </ItemGroup>
 </Project>

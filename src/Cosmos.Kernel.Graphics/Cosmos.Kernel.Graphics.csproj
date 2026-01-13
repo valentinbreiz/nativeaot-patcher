@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" />
-    <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
   </ItemGroup>
   
   <ItemGroup>

@@ -64,6 +64,13 @@
       </CandidateAssemblies>
     </ItemGroup>
 
+    <!-- Include RID-specific assemblies from Cosmos multi-arch packages -->
+    <ItemGroup Condition="'@(CosmosMultiArchReference)' != ''">
+      <CandidateAssemblies Include="@(CosmosMultiArchReference)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </CandidateAssemblies>
+    </ItemGroup>
+
     <!-- Filter references to find plug assemblies based on PlugReference assembly names -->
     <ItemGroup>
       <!-- Always include the main assembly as a plug -->

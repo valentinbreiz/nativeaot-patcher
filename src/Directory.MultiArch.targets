@@ -5,9 +5,9 @@
     Packages with #if ARCH_* code import this to produce multi-arch NuGet packages.
 
     Package structure:
-      ref/{tfm}/Assembly.dll                    - Reference assembly (for compile)
-      runtimes/linux-x64/lib/{tfm}/Assembly.dll - x64 runtime
-      runtimes/linux-arm64/lib/{tfm}/Assembly.dll - arm64 runtime
+      build/{PackageId}.props                      - Adds correct reference based on RID
+      runtimes/linux-x64/lib/{tfm}/Assembly.dll    - x64 assembly
+      runtimes/linux-arm64/lib/{tfm}/Assembly.dll  - arm64 assembly
 
     Usage: Set IsMultiArchPackage=true and import this file.
   -->
@@ -23,42 +23,89 @@
     <!-- Multi-arch staging directory (relative to repo root) -->
     <_RepoRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/</_RepoRoot>
     <MultiArchStagingBase>$(_RepoRoot)artifacts/multiarch/$(MSBuildProjectName)/</MultiArchStagingBase>
+    <_MultiArchTFM>$(TargetFramework)</_MultiArchTFM>
+    <_MultiArchTFM Condition="'$(_MultiArchTFM)' == ''">net10.0</_MultiArchTFM>
   </PropertyGroup>
 
-  <!-- Add staged files to package during pack -->
-  <Target Name="IncludeMultiArchFiles"
-          BeforeTargets="GenerateNuspec"
+  <!-- Static inclusion of staged files - evaluated at project load time -->
+  <!-- These files exist from previous build/staging -->
+  <ItemGroup Condition="'$(IsMultiArchPackage)' == 'true'">
+    <None Include="$(MultiArchStagingBase)build/$(PackageId).props"
+          Condition="Exists('$(MultiArchStagingBase)build/$(PackageId).props')">
+      <Pack>true</Pack>
+      <PackagePath>build/</PackagePath>
+    </None>
+    <None Include="$(MultiArchStagingBase)x64/$(AssemblyName).dll"
+          Condition="Exists('$(MultiArchStagingBase)x64/$(AssemblyName).dll')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-x64/lib/$(_MultiArchTFM)/</PackagePath>
+    </None>
+    <None Include="$(MultiArchStagingBase)arm64/$(AssemblyName).dll"
+          Condition="Exists('$(MultiArchStagingBase)arm64/$(AssemblyName).dll')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-arm64/lib/$(_MultiArchTFM)/</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <!-- Generate props file for compile-time assembly resolution -->
+  <!-- Runs AfterTargets="Build" so file exists when pack evaluates ItemGroups -->
+  <Target Name="GenerateMultiArchProps"
+          AfterTargets="Build"
           Condition="'$(IsMultiArchPackage)' == 'true'">
 
     <PropertyGroup>
       <_TFM>$(TargetFramework)</_TFM>
       <_TFM Condition="'$(_TFM)' == ''">net10.0</_TFM>
+      <!-- Pre-compute property prefix by removing dots from PackageId -->
+      <_PropPrefix>$([System.String]::Copy('$(PackageId)').Replace('.',''))</_PropPrefix>
+      <!-- Check if source props file exists -->
+      <_SourcePropsFile>$(MSBuildProjectDirectory)/build/$(PackageId).props</_SourcePropsFile>
+      <_SourcePropsExists>$([System.IO.File]::Exists('$(_SourcePropsFile)'))</_SourcePropsExists>
+      <!-- Multi-arch content to append/create -->
+      <_MultiArchContent><![CDATA[
+  <!-- Auto-generated props for multi-arch compile-time and patcher resolution -->
+  <PropertyGroup>
+    <_$(_PropPrefix)RidFolder Condition="'%24(RuntimeIdentifier)' == 'linux-arm64'">linux-arm64</_$(_PropPrefix)RidFolder>
+    <_$(_PropPrefix)RidFolder Condition="'%24(_$(_PropPrefix)RidFolder)' == ''">linux-x64</_$(_PropPrefix)RidFolder>
+    <_$(_PropPrefix)AssemblyPath>%24(MSBuildThisFileDirectory)../runtimes/%24(_$(_PropPrefix)RidFolder)/lib/$(_TFM)/$(AssemblyName).dll</_$(_PropPrefix)AssemblyPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(AssemblyName)">
+      <HintPath>%24(_$(_PropPrefix)AssemblyPath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <CosmosMultiArchReference Include="%24(_$(_PropPrefix)AssemblyPath)" />
+  </ItemGroup>
+</Project>]]></_MultiArchContent>
     </PropertyGroup>
 
-    <ItemGroup>
-      <!-- Reference assembly -->
-      <_PackageFiles Include="$(MultiArchStagingBase)ref/$(AssemblyName).dll" Condition="Exists('$(MultiArchStagingBase)ref/$(AssemblyName).dll')">
-        <PackagePath>ref/$(_TFM)/</PackagePath>
-        <BuildAction>None</BuildAction>
-      </_PackageFiles>
+    <MakeDir Directories="$(MultiArchStagingBase)build" />
 
-      <!-- x64 runtime assembly -->
-      <_PackageFiles Include="$(MultiArchStagingBase)x64/$(AssemblyName).dll" Condition="Exists('$(MultiArchStagingBase)x64/$(AssemblyName).dll')">
-        <PackagePath>runtimes/linux-x64/lib/$(_TFM)/</PackagePath>
-        <BuildAction>None</BuildAction>
-      </_PackageFiles>
+    <!-- If source props exists, read it and merge (remove closing tag, append multi-arch, add closing tag) -->
+    <PropertyGroup Condition="'$(_SourcePropsExists)' == 'True'">
+      <_SourcePropsContent>$([System.IO.File]::ReadAllText('$(_SourcePropsFile)'))</_SourcePropsContent>
+      <!-- Remove closing </Project> tag -->
+      <_SourcePropsContent>$(_SourcePropsContent.Replace('&lt;/Project&gt;', ''))</_SourcePropsContent>
+      <_MergedContent>$(_SourcePropsContent)$(_MultiArchContent)</_MergedContent>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(_SourcePropsExists)' != 'True'">
+      <_MergedContent><![CDATA[<Project>]]>$(_MultiArchContent)</_MergedContent>
+    </PropertyGroup>
 
-      <!-- ARM64 runtime assembly -->
-      <_PackageFiles Include="$(MultiArchStagingBase)arm64/$(AssemblyName).dll" Condition="Exists('$(MultiArchStagingBase)arm64/$(AssemblyName).dll')">
-        <PackagePath>runtimes/linux-arm64/lib/$(_TFM)/</PackagePath>
-        <BuildAction>None</BuildAction>
-      </_PackageFiles>
-    </ItemGroup>
+    <WriteLinesToFile File="$(MultiArchStagingBase)build/$(PackageId).props"
+                      Lines="$(_MergedContent)"
+                      Overwrite="true" />
+  </Target>
 
+  <!-- Log multi-arch files being included -->
+  <Target Name="LogMultiArchFiles"
+          BeforeTargets="GenerateNuspec"
+          AfterTargets="GenerateMultiArchProps"
+          Condition="'$(IsMultiArchPackage)' == 'true'">
     <Message Importance="High" Text="Including multi-arch files for $(PackageId):" />
-    <Message Importance="High" Text="  ref: $(MultiArchStagingBase)ref/$(AssemblyName).dll" />
-    <Message Importance="High" Text="  x64: $(MultiArchStagingBase)x64/$(AssemblyName).dll" />
-    <Message Importance="High" Text="  arm64: $(MultiArchStagingBase)arm64/$(AssemblyName).dll" />
+    <Message Importance="High" Text="  props: build/$(PackageId).props" />
+    <Message Importance="High" Text="  x64: runtimes/linux-x64/lib/$(_MultiArchTFM)/$(AssemblyName).dll" />
+    <Message Importance="High" Text="  arm64: runtimes/linux-arm64/lib/$(_MultiArchTFM)/$(AssemblyName).dll" />
   </Target>
 
 </Project>
