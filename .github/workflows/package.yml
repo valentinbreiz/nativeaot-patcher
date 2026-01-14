@@ -3,8 +3,6 @@ name: Package
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ "**" ]
 
 jobs:
   package:
