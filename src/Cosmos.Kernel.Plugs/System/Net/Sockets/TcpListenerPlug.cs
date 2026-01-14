@@ -28,7 +28,7 @@ public static class TcpListenerPlug
             throw new ArgumentNullException(nameof(localEP));
         }
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _serverSocketEPs[id] = localEP;
         _serverSockets[id] = new Socket(localEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
     }
@@ -45,7 +45,7 @@ public static class TcpListenerPlug
         }
 
         Serial.WriteString("[TcpListenerPlug] Getting ID\n");
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         Serial.WriteString("[TcpListenerPlug] ID=");
         Serial.WriteNumber(id);
         Serial.WriteString("\n");
@@ -63,16 +63,16 @@ public static class TcpListenerPlug
     }
 
     [PlugMember("get_Server")]
-    public static Socket get_Server(TcpListener aThis)
+    public static Socket? get_Server(TcpListener aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         return _serverSockets.TryGetValue(id, out var socket) ? socket : null;
     }
 
     [PlugMember("get_LocalEndpoint")]
-    public static EndPoint get_LocalEndpoint(TcpListener aThis)
+    public static EndPoint? get_LocalEndpoint(TcpListener aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_serverSockets.TryGetValue(id, out var socket) && socket.LocalEndPoint != null)
         {
             return socket.LocalEndPoint;
@@ -85,7 +85,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] Start()\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_serverSockets.TryGetValue(id, out var socket) || !_serverSocketEPs.TryGetValue(id, out var ep))
         {
             throw new InvalidOperationException("TcpListener not initialized");
@@ -104,7 +104,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] Start(backlog)\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_serverSockets.TryGetValue(id, out var socket) || !_serverSocketEPs.TryGetValue(id, out var ep))
         {
             throw new InvalidOperationException("TcpListener not initialized");
@@ -123,7 +123,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] Stop()\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_serverSockets.TryGetValue(id, out var socket))
         {
             socket.Close();
@@ -135,7 +135,7 @@ public static class TcpListenerPlug
     [PlugMember]
     public static bool Pending(TcpListener aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_serverSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("TcpListener not started");
@@ -149,7 +149,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] AcceptSocket()\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_serverSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("TcpListener not started");
@@ -163,7 +163,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] AcceptTcpClient()\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_serverSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("TcpListener not started");

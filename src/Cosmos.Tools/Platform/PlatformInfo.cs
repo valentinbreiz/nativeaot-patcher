@@ -62,8 +62,8 @@ public static class PlatformInfo
         {
             if (File.Exists("/etc/os-release"))
             {
-                var lines = File.ReadAllLines("/etc/os-release");
-                var nameLine = lines.FirstOrDefault(l => l.StartsWith("PRETTY_NAME="));
+                string[] lines = File.ReadAllLines("/etc/os-release");
+                string? nameLine = lines.FirstOrDefault(l => l.StartsWith("PRETTY_NAME="));
                 if (nameLine != null)
                 {
                     return nameLine.Split('=')[1].Trim('"');

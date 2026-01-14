@@ -66,7 +66,7 @@ public static partial class AppContextPlug
                 return true;
         }
 
-        var data = GetData(switchName);
+        object? data = GetData(switchName);
 
         if (GetData(switchName) is string value && bool.TryParse(value, out isEnabled))
         {

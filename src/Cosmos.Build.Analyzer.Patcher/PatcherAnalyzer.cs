@@ -51,7 +51,7 @@ namespace Cosmos.Build.Analyzer.Patcher
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var assemblyName = compilationContext.Compilation?.AssemblyName ?? "<unknown>";
+                string assemblyName = compilationContext.Compilation?.AssemblyName ?? "<unknown>";
                 DebugLog($"Starting compilation analysis for {assemblyName}");
                 PlatformArchitecture currentArchitecture = PlatformArchitecture.None;
 

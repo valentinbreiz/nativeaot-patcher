@@ -22,7 +22,7 @@ public static class IPAddressPlug
     [PlugMember(".ctor")]
     public static void Ctor(IPAddress aThis, long address)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _addresses[id] = (uint)address;
     }
 
@@ -41,7 +41,7 @@ public static class IPAddressPlug
     [PlugMember(".ctor")]
     public static void Ctor(IPAddress aThis, byte[] address)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (address.Length == IPv4AddressBytes)
         {
             _addresses[id] = (uint)((address[0] << 0) | (address[1] << 8) | (address[2] << 16) | (address[3] << 24));
@@ -67,8 +67,8 @@ public static class IPAddressPlug
     [PlugMember]
     public static byte[] GetAddressBytes(IPAddress aThis)
     {
-        var id = GetId(aThis);
-        uint addr = _addresses.TryGetValue(id, out var a) ? a : 0;
+        int id = GetId(aThis);
+        uint addr = _addresses.TryGetValue(id, out uint a) ? a : 0;
         return new byte[]
         {
             (byte)(addr & 0xFF),
@@ -81,8 +81,8 @@ public static class IPAddressPlug
     [PlugMember]
     public static string ToString(IPAddress aThis)
     {
-        var id = GetId(aThis);
-        uint addr = _addresses.TryGetValue(id, out var a) ? a : 0;
+        int id = GetId(aThis);
+        uint addr = _addresses.TryGetValue(id, out uint a) ? a : 0;
         // Use simple string concatenation with manual byte conversion to avoid resource loading
         return ByteToString((byte)(addr & 0xFF)) + "." +
                ByteToString((byte)((addr >> 8) & 0xFF)) + "." +
@@ -111,14 +111,14 @@ public static class IPAddressPlug
     }
 
     [PlugMember]
-    public static IPAddress Parse(string ipString)
+    public static IPAddress? Parse(string ipString)
     {
         string[] fragments = ipString.Split('.');
         if (fragments.Length == 4)
         {
             try
             {
-                var addressArray = new byte[4];
+                byte[] addressArray = new byte[4];
                 addressArray[0] = byte.Parse(fragments[0]);
                 addressArray[1] = byte.Parse(fragments[1]);
                 addressArray[2] = byte.Parse(fragments[2]);
@@ -168,7 +168,7 @@ public static class IPAddressPlug
     // Helper to get raw address value (public for cross-assembly access)
     public static uint GetAddress(IPAddress aThis)
     {
-        var id = GetId(aThis);
-        return _addresses.TryGetValue(id, out var a) ? a : 0;
+        int id = GetId(aThis);
+        return _addresses.TryGetValue(id, out uint a) ? a : 0;
     }
 }

@@ -1,9 +1,9 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Cosmos.Tools.Platform;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Cosmos.Tools.Platform;
 
 namespace Cosmos.Tools.Commands;
 
@@ -48,7 +48,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             AnsiConsole.WriteLine("  " + new string('-', 50));
         }
 
-        var csprojPath = FindProjectFile(settings.Project);
+        string? csprojPath = FindProjectFile(settings.Project);
         if (csprojPath == null)
         {
             if (settings.Json)
@@ -63,8 +63,8 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             return 1;
         }
 
-        var projectName = Path.GetFileNameWithoutExtension(csprojPath);
-        var projectDir = Path.GetDirectoryName(csprojPath)!;
+        string projectName = Path.GetFileNameWithoutExtension(csprojPath);
+        string projectDir = Path.GetDirectoryName(csprojPath)!;
 
         if (!settings.Json)
         {
@@ -86,7 +86,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         }
         else
         {
-            var detectedArch = DetectArchitecture(csprojPath);
+            string detectedArch = DetectArchitecture(csprojPath);
             architectures.Add(detectedArch);
             if (!settings.Json) AnsiConsole.MarkupLine($"  Architecture: [blue]{detectedArch}[/] (detected)");
         }
@@ -98,20 +98,20 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         }
 
         var buildResults = new List<BuildResult>();
-        var success = true;
+        bool success = true;
 
-        foreach (var buildArch in architectures)
+        foreach (string buildArch in architectures)
         {
-            var runtimeId = buildArch == "arm64" ? "linux-arm64" : "linux-x64";
-            var outputDir = Path.Combine(projectDir, $"output-{buildArch}");
-            var result = await BuildForArchitectureAsync(csprojPath, projectDir, buildArch, settings.Config, settings.Verbose, settings.Json);
+            string runtimeId = buildArch == "arm64" ? "linux-arm64" : "linux-x64";
+            string outputDir = Path.Combine(projectDir, $"output-{buildArch}");
+            bool result = await BuildForArchitectureAsync(csprojPath, projectDir, buildArch, settings.Config, settings.Verbose, settings.Json);
 
             string? isoPath = null;
             string? elfPath = null;
             if (result)
             {
-                var potentialIso = Path.Combine(outputDir, $"{projectName}.iso");
-                var potentialElf = Path.Combine(outputDir, $"{projectName}.elf");
+                string potentialIso = Path.Combine(outputDir, $"{projectName}.iso");
+                string potentialElf = Path.Combine(outputDir, $"{projectName}.elf");
                 if (File.Exists(potentialIso)) isoPath = potentialIso;
                 if (File.Exists(potentialElf)) elfPath = potentialElf;
             }
@@ -177,7 +177,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         for (int i = 0; i < results.Count; i++)
         {
             var r = results[i];
-            var comma = i < results.Count - 1 ? "," : "";
+            string comma = i < results.Count - 1 ? "," : "";
             Console.WriteLine("    {");
             Console.WriteLine($"      \"arch\": \"{r.Arch}\",");
             Console.WriteLine($"      \"success\": {r.Success.ToString().ToLower()},");
@@ -206,15 +206,15 @@ public class BuildCommand : AsyncCommand<BuildSettings>
 
             if (Directory.Exists(projectPath))
             {
-                var files = Directory.GetFiles(projectPath, "*.csproj");
+                string[] files = Directory.GetFiles(projectPath, "*.csproj");
                 return files.FirstOrDefault();
             }
 
             return null;
         }
 
-        var currentDir = Directory.GetCurrentDirectory();
-        var csprojFiles = Directory.GetFiles(currentDir, "*.csproj");
+        string currentDir = Directory.GetCurrentDirectory();
+        string[] csprojFiles = Directory.GetFiles(currentDir, "*.csproj");
         return csprojFiles.FirstOrDefault();
     }
 
@@ -222,13 +222,13 @@ public class BuildCommand : AsyncCommand<BuildSettings>
     {
         try
         {
-            var content = File.ReadAllText(csprojPath);
+            string content = File.ReadAllText(csprojPath);
 
             // Check for CosmosTargetArch (set by cosmos new)
             var targetArchMatch = Regex.Match(content, @"<CosmosTargetArch>([^<]+)</CosmosTargetArch>");
             if (targetArchMatch.Success)
             {
-                var targetArch = targetArchMatch.Groups[1].Value.Trim().ToLowerInvariant();
+                string targetArch = targetArchMatch.Groups[1].Value.Trim().ToLowerInvariant();
                 if (targetArch == "x64" || targetArch == "arm64")
                 {
                     return targetArch;
@@ -239,7 +239,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             var archMatch = Regex.Match(content, @"<CosmosArchitectures>([^<]+)</CosmosArchitectures>");
             if (archMatch.Success)
             {
-                var archs = archMatch.Groups[1].Value.Split(';');
+                string[] archs = archMatch.Groups[1].Value.Split(';');
                 return archs[0].Trim().ToLowerInvariant();
             }
         }
@@ -253,11 +253,11 @@ public class BuildCommand : AsyncCommand<BuildSettings>
     {
         if (!json) AnsiConsole.Markup($"  Building for [blue]{arch}[/]... ");
 
-        var runtimeId = arch == "arm64" ? "linux-arm64" : "linux-x64";
-        var defineConstants = arch == "arm64" ? "ARCH_ARM64" : "ARCH_X64";
-        var outputDir = Path.Combine(projectDir, $"output-{arch}");
+        string runtimeId = arch == "arm64" ? "linux-arm64" : "linux-x64";
+        string defineConstants = arch == "arm64" ? "ARCH_ARM64" : "ARCH_X64";
+        string outputDir = Path.Combine(projectDir, $"output-{arch}");
 
-        var args = new[]
+        string[] args = new[]
         {
             "publish",
             csprojPath,
@@ -278,7 +278,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                WorkingDirectory = projectDir
+                WorkingDirectory = Environment.CurrentDirectory
             };
 
             using var process = Process.Start(psi);
@@ -340,7 +340,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
                     var errorLines = error.TakeLast(15).ToList();
                     if (errorLines.Count > 0)
                     {
-                        foreach (var line in errorLines)
+                        foreach (string? line in errorLines)
                         {
                             AnsiConsole.MarkupLine($"    [red]{Markup.Escape(line)}[/]");
                         }
@@ -356,7 +356,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
 
                     if (relevantOutput.Count > 0)
                     {
-                        foreach (var line in relevantOutput)
+                        foreach (string? line in relevantOutput)
                         {
                             AnsiConsole.MarkupLine($"    [yellow]{Markup.Escape(line)}[/]");
                         }

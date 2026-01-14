@@ -74,7 +74,7 @@ public class PS2Controller : Device
         // Set the Controller Configuration Byte
         SendCommand(Command.GetConfigurationByte);
 
-        var configByte = ReadData();
+        byte configByte = ReadData();
         // Check if the controller is dual channel
         IsDualChannel = (configByte & (1 << 5)) != 0;
         // Clear bits 0 and 1 (disable interrupts during init)
@@ -154,7 +154,7 @@ public class PS2Controller : Device
             return;
         }
 
-        var secondPort = port == 2;
+        bool secondPort = port == 2;
 
         WaitToWrite();
         SendDeviceCommand(DeviceCommand.DisableScanning, secondPort);
@@ -173,7 +173,7 @@ public class PS2Controller : Device
             // Keyboard identification: 0xAB followed by 0x41, 0xC1, or 0x83
             if (firstByte == 0xAB && ReadDataWithTimeout(ref secondByte))
             {
-                var isKeyboard = secondByte == 0x41 || secondByte == 0xC1 || secondByte == 0x83;
+                bool isKeyboard = secondByte == 0x41 || secondByte == 0xC1 || secondByte == 0x83;
 
                 if (isKeyboard)
                 {
@@ -226,7 +226,7 @@ public class PS2Controller : Device
             return false;
         }
 
-        var testByte = ReadData();
+        byte testByte = ReadData();
 
         if (testByte == 0x00)
         {
@@ -258,7 +258,7 @@ public class PS2Controller : Device
 
         // Read current configuration byte
         SendCommand(Command.GetConfigurationByte);
-        var configByte = ReadData();
+        byte configByte = ReadData();
 
         // Set the interrupt enable bit for the requested port
         if (port == 1)

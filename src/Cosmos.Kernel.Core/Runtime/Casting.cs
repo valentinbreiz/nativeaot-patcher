@@ -16,7 +16,7 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
-    public static object RhTypeCast_IsInstanceOfAny(object obj, MethodTable** pTypeHandles, int count)
+    public static object? RhTypeCast_IsInstanceOfAny(object obj, MethodTable** pTypeHandles, int count)
     {
         if (obj == null)
             return null;
@@ -44,14 +44,14 @@ internal static unsafe class Casting
 
     // Essential runtime functions needed by the linker
     [RuntimeExport("RhTypeCast_IsInstanceOfClass")]
-    public static object RhTypeCast_IsInstanceOfClass(object obj, MethodTable* classTypeHandle)
+    public static object? RhTypeCast_IsInstanceOfClass(object obj, MethodTable* classTypeHandle)
     {
         MethodTable* type = obj.GetMethodTable();
         return IsInstanceOfClass(type, classTypeHandle) ? obj : null;
     }
 
     [RuntimeExport("RhTypeCast_CheckCastInterface")]
-    public static object RhTypeCast_CheckCastInterface(object obj, MethodTable* interfaceTypeHandle)
+    public static object? RhTypeCast_CheckCastInterface(object obj, MethodTable* interfaceTypeHandle)
     {
         if (obj == null)
             return null;
@@ -68,7 +68,7 @@ internal static unsafe class Casting
     }
 
     [RuntimeExport("RhTypeCast_CheckCastClassSpecial")]
-    static object RhTypeCast_CheckCastClassSpecial(object obj, MethodTable* typeHandle, bool fThrow)
+    static object? RhTypeCast_CheckCastClassSpecial(object obj, MethodTable* typeHandle, bool fThrow)
     {
         if (obj == null)
             return null;

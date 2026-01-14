@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Patcher.Debug;

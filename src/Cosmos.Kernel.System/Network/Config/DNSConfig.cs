@@ -42,7 +42,7 @@ public class DNSConfig
     /// <param name="nameserver">The IP address of the target DNS server.</param>
     public static void Remove(Address nameserver)
     {
-        Address toRemove = null;
+        Address? toRemove = null;
         for (int i = 0; i < DNSNameservers.Count; i++)
         {
             if (DNSNameservers[i].Hash == nameserver.Hash)

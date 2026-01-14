@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using Cosmos.Build.API.Enum;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;

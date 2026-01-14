@@ -9,7 +9,7 @@ public abstract class SchedulerExtensible
     /// Scheduler-specific data. Each scheduler defines its own class
     /// and stores an instance here.
     /// </summary>
-    public object SchedulerData { get; internal set; }
+    public object? SchedulerData { get; internal set; }
 
     /// <summary>
     /// Type-safe accessor for extension data.

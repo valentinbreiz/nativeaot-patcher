@@ -39,7 +39,7 @@ public class NewCommand : AsyncCommand<NewSettings>
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.WriteLine();
 
-        var outputDir = settings.Output ?? Path.Combine(Directory.GetCurrentDirectory(), settings.Name);
+        string outputDir = settings.Output ?? Path.Combine(Directory.GetCurrentDirectory(), settings.Name);
 
         var args = new List<string>
         {
@@ -71,13 +71,13 @@ public class NewCommand : AsyncCommand<NewSettings>
                 return 1;
             }
 
-            var outputText = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
+            string outputText = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
             if (!string.IsNullOrWhiteSpace(outputText))
             {
-                foreach (var line in outputText.Split('\n'))
+                foreach (string line in outputText.Split('\n'))
                 {
                     AnsiConsole.WriteLine($"  {line}");
                 }

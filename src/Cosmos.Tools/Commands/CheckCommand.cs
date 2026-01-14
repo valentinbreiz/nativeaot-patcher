@@ -1,7 +1,7 @@
 using System.ComponentModel;
+using Cosmos.Tools.Platform;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Cosmos.Tools.Platform;
 
 namespace Cosmos.Tools.Commands;
 
@@ -53,15 +53,15 @@ public class CheckCommand : AsyncCommand<CheckSettings>
 
     private static void PrintResults(List<ToolStatus> results)
     {
-        var maxNameLen = results.Max(r => r.Tool.DisplayName.Length);
+        int maxNameLen = results.Max(r => r.Tool.DisplayName.Length);
 
         foreach (var result in results)
         {
-            var status = result.Found ? "[green]\u2713[/]" : "[red]\u2717[/]";
-            var required = result.Tool.Required ? "" : " [dim](optional)[/]";
-            var version = result.Version != null ? $" [dim]({result.Version})[/]" : "";
+            string status = result.Found ? "[green]\u2713[/]" : "[red]\u2717[/]";
+            string required = result.Tool.Required ? "" : " [dim](optional)[/]";
+            string version = result.Version != null ? $" [dim]({result.Version})[/]" : "";
 
-            var name = result.Tool.DisplayName.PadRight(maxNameLen);
+            string name = result.Tool.DisplayName.PadRight(maxNameLen);
 
             if (result.Found)
             {
@@ -81,7 +81,7 @@ public class CheckCommand : AsyncCommand<CheckSettings>
 
         var requiredMissing = results.Where(r => r.Tool.Required && !r.Found).ToList();
         var optionalMissing = results.Where(r => !r.Tool.Required && !r.Found).ToList();
-        var allFound = results.All(r => r.Found || !r.Tool.Required);
+        bool allFound = results.All(r => r.Found || !r.Tool.Required);
 
         if (allFound)
         {
@@ -113,7 +113,7 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         for (int i = 0; i < results.Count; i++)
         {
             var r = results[i];
-            var comma = i < results.Count - 1 ? "," : "";
+            string comma = i < results.Count - 1 ? "," : "";
             Console.WriteLine("    {");
             Console.WriteLine($"      \"name\": \"{r.Tool.Name}\",");
             Console.WriteLine($"      \"displayName\": \"{r.Tool.DisplayName}\",");

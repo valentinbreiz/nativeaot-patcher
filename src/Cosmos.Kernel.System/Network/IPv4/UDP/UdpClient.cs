@@ -56,7 +56,7 @@ public class UdpClient : IDisposable
     /// </summary>
     /// <param name="destPort">The destination port.</param>
     /// <returns>If a client is running on the given port, the <see cref="UdpClient"/>; otherwise, <see langword="null"/>.</returns>
-    internal static UdpClient GetClient(ushort destPort)
+    internal static UdpClient? GetClient(ushort destPort)
     {
         if (clients.TryGetValue(destPort, out var client))
         {
@@ -173,7 +173,7 @@ public class UdpClient : IDisposable
     /// Receives data from the given end-point (non-blocking).
     /// </summary>
     /// <param name="source">The source end point.</param>
-    public byte[] NonBlockingReceive(ref EndPoint source)
+    public byte[]? NonBlockingReceive(ref EndPoint source)
     {
         if (rxBuffer.Count < 1)
         {

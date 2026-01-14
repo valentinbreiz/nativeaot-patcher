@@ -12,7 +12,7 @@ internal static class ARPCache
     /// <summary>
     /// The cache map.
     /// </summary>
-    public static Dictionary<uint, MACAddress> Cache;
+    public static Dictionary<uint, MACAddress>? Cache;
 
     /// <summary>
     /// Ensures the cache map exists.
@@ -64,7 +64,7 @@ internal static class ARPCache
     /// </summary>
     /// <param name="ipAddress">IP address.</param>
     /// <returns>The resolved MAC address, or <see langword="null"/> if no cache entry for the given IP address exists.</returns>
-    internal static MACAddress Resolve(Address ipAddress)
+    internal static MACAddress? Resolve(Address ipAddress)
     {
         EnsureCacheExists();
         if (Cache.ContainsKey(ipAddress.Hash) == false)

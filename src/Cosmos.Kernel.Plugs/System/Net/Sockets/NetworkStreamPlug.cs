@@ -55,7 +55,7 @@ public static class NetworkStreamPlug
             throw new IOException("Socket not connected.");
         }
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _streamSockets[id] = socket;
         _ownsSocket[id] = ownsSocket;
 
@@ -80,15 +80,15 @@ public static class NetworkStreamPlug
     [PlugMember("get_CanRead")]
     public static bool get_CanRead(NetworkStream aThis)
     {
-        var id = GetId(aThis);
-        return _readable.TryGetValue(id, out var readable) && readable;
+        int id = GetId(aThis);
+        return _readable.TryGetValue(id, out bool readable) && readable;
     }
 
     [PlugMember("get_CanWrite")]
     public static bool get_CanWrite(NetworkStream aThis)
     {
-        var id = GetId(aThis);
-        return _writeable.TryGetValue(id, out var writeable) && writeable;
+        int id = GetId(aThis);
+        return _writeable.TryGetValue(id, out bool writeable) && writeable;
     }
 
     [PlugMember("get_CanSeek")]
@@ -100,7 +100,7 @@ public static class NetworkStreamPlug
     [PlugMember("get_DataAvailable")]
     public static bool get_DataAvailable(NetworkStream aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_streamSockets.TryGetValue(id, out var socket))
             return false;
         return socket.Available > 0;
@@ -125,16 +125,16 @@ public static class NetworkStreamPlug
     }
 
     [PlugMember("get_Socket")]
-    public static Socket get_Socket(NetworkStream aThis)
+    public static Socket? get_Socket(NetworkStream aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         return _streamSockets.TryGetValue(id, out var socket) ? socket : null;
     }
 
     [PlugMember]
     public static int Read(NetworkStream aThis, byte[] buffer, int offset, int count)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_streamSockets.TryGetValue(id, out var socket))
         {
             throw new ObjectDisposedException(nameof(NetworkStream));
@@ -146,7 +146,7 @@ public static class NetworkStreamPlug
     [PlugMember]
     public static int ReadByte(NetworkStream aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_streamSockets.TryGetValue(id, out var socket))
         {
             throw new ObjectDisposedException(nameof(NetworkStream));
@@ -164,7 +164,7 @@ public static class NetworkStreamPlug
         Serial.WriteNumber((ulong)count);
         Serial.WriteString("\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_streamSockets.TryGetValue(id, out var socket))
         {
             Serial.WriteString("[NetworkStreamPlug] Write: socket disposed\n");
@@ -221,8 +221,8 @@ public static class NetworkStreamPlug
     [PlugMember]
     public static void Dispose(NetworkStream aThis, bool disposing)
     {
-        var id = GetId(aThis);
-        Socket socket = null;
+        int id = GetId(aThis);
+        Socket? socket = null;
         bool owns = false;
 
         if (_streamSockets.TryGetValue(id, out socket))

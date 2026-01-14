@@ -54,7 +54,7 @@ public class TCPOption
 {
     public byte Kind { get; set; }
     public byte Length { get; set; }
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 }
 
 /// <summary>

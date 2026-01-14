@@ -2,9 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
+using Cosmos.Tools.Platform;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Cosmos.Tools.Platform;
 
 namespace Cosmos.Tools.Commands;
 
@@ -64,10 +64,10 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             foreach (var missing in missingTools)
             {
                 var info = missing.Tool.GetInstallInfo(PlatformInfo.CurrentOS);
-                var action = GetInstallAction(info);
+                string action = GetInstallAction(info);
                 installPlan.Add((missing, info, action));
 
-                var required = missing.Tool.Required ? "" : " [dim](optional)[/]";
+                string required = missing.Tool.Required ? "" : " [dim](optional)[/]";
                 AnsiConsole.MarkupLine($"  - [white]{missing.Tool.DisplayName}[/]{required}");
                 AnsiConsole.MarkupLine($"    [cyan]{action}[/]");
             }
@@ -76,7 +76,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
             if (!settings.Auto)
             {
-                var proceed = AnsiConsole.Confirm("  Proceed with installation?", true);
+                bool proceed = AnsiConsole.Confirm("  Proceed with installation?", true);
                 if (!proceed)
                 {
                     AnsiConsole.WriteLine("  Installation cancelled.");
@@ -86,7 +86,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
             AnsiConsole.WriteLine();
 
-            var packageManager = PlatformInfo.GetPackageManager();
+            string packageManager = PlatformInfo.GetPackageManager();
             var packagesToInstall = new List<string>();
 
             foreach (var (status, info, action) in installPlan)
@@ -100,7 +100,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 switch (info.Method)
                 {
                     case "package":
-                        var packages = GetPackagesForManager(info, packageManager);
+                        string[]? packages = GetPackagesForManager(info, packageManager);
                         if (packages != null)
                         {
                             packagesToInstall.AddRange(packages);
@@ -241,7 +241,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         AnsiConsole.WriteLine();
 
         // Check if 'code' command is available
-        var codeCommand = GetVSCodeCommand();
+        string? codeCommand = GetVSCodeCommand();
         if (codeCommand == null)
         {
             AnsiConsole.MarkupLine("  [yellow]VS Code not found in PATH.[/]");
@@ -258,8 +258,8 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Cosmos-Tools");
 
             // Get latest release from GitHub API
-            var releaseUrl = "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest";
-            var releaseResponse = await httpClient.GetStringAsync(releaseUrl);
+            string releaseUrl = "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest";
+            string releaseResponse = await httpClient.GetStringAsync(releaseUrl);
             var releaseJson = JsonDocument.Parse(releaseResponse);
 
             string? vsixUrl = null;
@@ -270,7 +270,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             {
                 foreach (var asset in assets.EnumerateArray())
                 {
-                    var name = asset.GetProperty("name").GetString();
+                    string? name = asset.GetProperty("name").GetString();
                     if (name != null && name.EndsWith(".vsix"))
                     {
                         vsixUrl = asset.GetProperty("browser_download_url").GetString();
@@ -291,9 +291,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
             // Download the .vsix file
             AnsiConsole.Markup($"  Downloading {vsixName}... ");
-            var vsixBytes = await httpClient.GetByteArrayAsync(vsixUrl);
+            byte[] vsixBytes = await httpClient.GetByteArrayAsync(vsixUrl);
 
-            var tempPath = Path.Combine(Path.GetTempPath(), vsixName);
+            string tempPath = Path.Combine(Path.GetTempPath(), vsixName);
             await File.WriteAllBytesAsync(tempPath, vsixBytes);
             AnsiConsole.MarkupLine("[green]OK[/]");
 
@@ -342,7 +342,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
             else
             {
-                var error = await process.StandardError.ReadToEndAsync();
+                string error = await process.StandardError.ReadToEndAsync();
                 AnsiConsole.MarkupLine("[red]FAILED[/]");
                 if (!string.IsNullOrWhiteSpace(error))
                 {
@@ -363,12 +363,12 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     private static string? GetVSCodeCommand()
     {
         // On Windows, VS Code is installed as code.cmd, so we need to check .cmd variants too
-        var isWindows = OperatingSystem.IsWindows();
-        var commands = isWindows
+        bool isWindows = OperatingSystem.IsWindows();
+        string[] commands = isWindows
             ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
             : new[] { "code", "code-insiders", "codium" };
 
-        foreach (var cmd in commands)
+        foreach (string? cmd in commands)
         {
             try
             {
@@ -421,8 +421,8 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         if (info == null)
             return "Manual installation required";
 
-        var packageManager = PlatformInfo.GetPackageManager();
-        var packages = GetPackagesForManager(info, packageManager);
+        string packageManager = PlatformInfo.GetPackageManager();
+        string[]? packages = GetPackagesForManager(info, packageManager);
 
         return info.Method switch
         {
@@ -486,13 +486,13 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 return;
             }
 
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
             if (!string.IsNullOrWhiteSpace(output))
             {
-                foreach (var line in output.Split('\n').Take(20))
+                foreach (string? line in output.Split('\n').Take(20))
                 {
                     AnsiConsole.MarkupLine($"  [dim]{Markup.Escape(line)}[/]");
                 }
@@ -527,7 +527,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             return;
         }
 
-        var toolsPath = ToolChecker.GetCosmosToolsPath();
+        string toolsPath = ToolChecker.GetCosmosToolsPath();
         Directory.CreateDirectory(toolsPath);
 
         AnsiConsole.MarkupLine($"  [cyan]Download from: {info.DownloadUrl}[/]");

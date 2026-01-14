@@ -33,28 +33,28 @@ public static class TcpClientPlug
     {
         // Create socket with specified address family
         var socket = new Socket(family, SocketType.Stream, ProtocolType.Tcp);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = socket;
     }
 
     [PlugMember("set_Client")]
     public static void set_Client(TcpClient aThis, Socket value)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = value;
     }
 
     [PlugMember("get_Client")]
-    public static Socket get_Client(TcpClient aThis)
+    public static Socket? get_Client(TcpClient aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         return _clientSockets.TryGetValue(id, out var socket) ? socket : null;
     }
 
     [PlugMember("get_Connected")]
     public static bool get_Connected(TcpClient aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
             return false;
         return socket.Connected;
@@ -88,7 +88,7 @@ public static class TcpClientPlug
     public static void Connect(TcpClient aThis, string hostname, int port)
     {
         IPAddress address = IPAddress.Parse(hostname);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         // Create socket if not exists
         if (!_clientSockets.TryGetValue(id, out var socket))
@@ -103,7 +103,7 @@ public static class TcpClientPlug
     [PlugMember]
     public static void Connect(TcpClient aThis, IPAddress address, int port)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         // Create socket if not exists
         if (!_clientSockets.TryGetValue(id, out var socket))
@@ -124,7 +124,7 @@ public static class TcpClientPlug
     [PlugMember]
     public static NetworkStream GetStream(TcpClient aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         if (!_clientSockets.TryGetValue(id, out var socket) || socket == null)
         {
@@ -158,9 +158,9 @@ public static class TcpClientPlug
     [PlugMember]
     public static void Dispose(TcpClient aThis, bool disposing)
     {
-        var id = GetId(aThis);
-        NetworkStream stream = null;
-        Socket socket = null;
+        int id = GetId(aThis);
+        NetworkStream? stream = null;
+        Socket? socket = null;
 
         if (_dataStreams.TryGetValue(id, out stream))
         {

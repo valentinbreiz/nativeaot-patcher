@@ -195,7 +195,7 @@ public static class ToolDefinitions
     public static IEnumerable<ToolDefinition> GetToolsForArchitecture(string? arch)
     {
         // Map host architecture to our naming convention
-        var hostArch = PlatformInfo.IsX64 ? "x64" : PlatformInfo.IsArm64 ? "arm64" : "unknown";
+        string hostArch = PlatformInfo.IsX64 ? "x64" : PlatformInfo.IsArm64 ? "arm64" : "unknown";
 
         foreach (var tool in GetAllTools())
         {

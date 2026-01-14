@@ -10,8 +10,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Kernel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.slnx" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.slnx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/LdTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/LdTask.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/YasmBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/YasmBuildTask.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.GCC/Tasks/GCCBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.GCC/Tasks/GCCBuildTask.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Logging/MsBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Logging/MsBuildLogger.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/FindPluggedAssembliesTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/FindPluggedAssembliesTask.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/IPPacket.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/IPPacket.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Debug/DebugHelpers.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Debug/DebugHelpers.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/ILCloner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/ILCloner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/TypeImporter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/TypeImporter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/ConsoleBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/ConsoleBuildLogger.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/IBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/IBuildLogger.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PatchCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PatchCommand.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/FieldPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/FieldPatcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/MethodPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/MethodPatcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/PropertyPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/PropertyPatcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugScanner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugScanner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Resolution/MethodResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Resolution/MethodResolver.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Tools/Commands/BuildCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Tools/Commands/BuildCommand.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,13 +47,13 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="49" />
+    <option name="cachedIndexableFilesCount" value="42" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="feature/multiarch/typecasting" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -73,6 +98,10 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
   </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -88,40 +117,62 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Project.ConsoleApp1.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Project.DevKernel.executor&quot;: &quot;Run&quot;,
-    &quot;Attach to Process.23784:MSBuild.executor&quot;: &quot;Debug&quot;,
-    &quot;MSBuild.Cosmos.Build.Ilc Target.executor&quot;: &quot;Debug&quot;,
-    &quot;MSBuild.Cosmos.Build.Ilc.executor&quot;: &quot;Run&quot;,
-    &quot;MSBuild.DevKernel.executor&quot;: &quot;Debug&quot;,
-    &quot;MSBuild.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/typecasting&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pathVariables&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Project.ConsoleApp1.executor": "Run",
+    ".NET Project.DevKernel.executor": "Run",
+    "Attach to Process.23784:MSBuild.executor": "Debug",
+    "MSBuild.Cosmos.Build.Ilc Target.executor": "Debug",
+    "MSBuild.Cosmos.Build.Ilc.executor": "Run",
+    "MSBuild.DevKernel.executor": "Debug",
+    "MSBuild.Unnamed.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/extension",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pathVariables",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
     </key>
   </component>
   <component name="RunManager" selected=".NET Project.DevKernel">
+    <configuration name="Cosmos.Tools" type="DotNetProject" factoryName=".NET Project">
+      <option name="EXE_PATH" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="PASS_PARENT_ENVS" value="$MSBUILDDEBUGONSTART$" />
+      <option name="ENV_FILE_PATHS" value="" />
+      <option name="REDIRECT_INPUT_PATH" value="" />
+      <option name="MIXED_MODE_DEBUG" value="0" />
+      <option name="USE_MONO" value="0" />
+      <option name="RUNTIME_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
+      <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/Cosmos.Tools/Cosmos.Tools.csproj" />
+      <option name="PROJECT_EXE_PATH_TRACKING" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PROJECT_ARGUMENTS_TRACKING" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PROJECT_KIND" value="DotNetCore" />
+      <option name="PROJECT_TFM" value="" />
+      <method v="2">
+        <option name="Build" />
+      </method>
+    </configuration>
     <configuration name="DevKernel" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="$PROJECT_DIR$/artifacts/bin/Cosmos.Patcher/debug/Cosmos.Patcher.exe" />
       <option name="PROGRAM_PARAMETERS" value="" />
@@ -164,6 +215,7 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue=".NET Project.Cosmos.Tools" />
       <item itemvalue=".NET Project.DevKernel" />
       <item itemvalue="MSBuild.DevKernel" />
     </list>
@@ -204,6 +256,7 @@
       <workItem from="1763696739453" duration="7650000" />
       <workItem from="1764389239006" duration="2473000" />
       <workItem from="1764546021564" duration="319000" />
+      <workItem from="1768352603787" duration="657000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />

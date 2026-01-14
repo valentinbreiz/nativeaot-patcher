@@ -15,7 +15,7 @@ public static class ToolChecker
 {
     public static async Task<ToolStatus> CheckToolAsync(ToolDefinition tool)
     {
-        foreach (var command in tool.Commands)
+        foreach (string command in tool.Commands)
         {
             var (found, version, path) = await TryFindCommandAsync(command, tool.VersionArg);
             if (found)
@@ -57,14 +57,14 @@ public static class ToolChecker
         try
         {
             // First try to find the command using 'which' (Unix) or 'where' (Windows)
-            var whichCommand = PlatformInfo.CurrentOS == OSPlatform.Windows ? "where" : "which";
+            string whichCommand = PlatformInfo.CurrentOS == OSPlatform.Windows ? "where" : "which";
             var whichResult = await RunCommandAsync(whichCommand, command);
 
             if (!whichResult.success || string.IsNullOrWhiteSpace(whichResult.output))
             {
                 // Also check common Cosmos tools paths
-                var cosmosToolsPath = GetCosmosToolsPath();
-                var possiblePaths = new[]
+                string cosmosToolsPath = GetCosmosToolsPath();
+                string[] possiblePaths = new[]
                 {
                     Path.Combine(cosmosToolsPath, command),
                     Path.Combine(cosmosToolsPath, command + ".exe"),
@@ -72,11 +72,11 @@ public static class ToolChecker
                     Path.Combine(cosmosToolsPath, "bin", command + ".exe")
                 };
 
-                foreach (var possiblePath in possiblePaths)
+                foreach (string? possiblePath in possiblePaths)
                 {
                     if (File.Exists(possiblePath))
                     {
-                        var version = await GetVersionAsync(possiblePath, versionArg);
+                        string? version = await GetVersionAsync(possiblePath, versionArg);
                         return (true, version, possiblePath);
                     }
                 }
@@ -84,7 +84,7 @@ public static class ToolChecker
                 return (false, null, null);
             }
 
-            var path = whichResult.output.Split('\n', '\r')[0].Trim();
+            string path = whichResult.output.Split('\n', '\r')[0].Trim();
 
             // Get version if possible
             string? version2 = null;
@@ -112,7 +112,7 @@ public static class ToolChecker
             if (result.success && !string.IsNullOrWhiteSpace(result.output))
             {
                 // Extract version from first line
-                var firstLine = result.output.Split('\n', '\r')[0].Trim();
+                string firstLine = result.output.Split('\n', '\r')[0].Trim();
                 // Try to find version pattern
                 var versionMatch = System.Text.RegularExpressions.Regex.Match(firstLine, @"(\d+\.[\d.]+)");
                 return versionMatch.Success ? versionMatch.Value : firstLine;
@@ -141,12 +141,12 @@ public static class ToolChecker
             if (process == null)
                 return (false, "");
 
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
             // Some tools output version to stderr
-            var combinedOutput = string.IsNullOrEmpty(output) ? error : output;
+            string combinedOutput = string.IsNullOrEmpty(output) ? error : output;
             return (process.ExitCode == 0 || !string.IsNullOrEmpty(combinedOutput), combinedOutput);
         }
         catch
@@ -157,7 +157,7 @@ public static class ToolChecker
 
     public static string GetCosmosToolsPath()
     {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return PlatformInfo.CurrentOS == OSPlatform.Windows
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos", "tools")
             : Path.Combine(home, ".cosmos", "tools");

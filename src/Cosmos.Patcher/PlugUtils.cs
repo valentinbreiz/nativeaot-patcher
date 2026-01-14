@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Mono.Cecil;
 
 namespace Cosmos.Patcher;

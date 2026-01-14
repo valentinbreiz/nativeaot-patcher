@@ -29,7 +29,7 @@ public static class UdpClientPlug
         Serial.WriteString("[UdpClientPlug] Ctor(localEP)\n");
 
         var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = socket;
         _active[id] = false;
 
@@ -42,7 +42,7 @@ public static class UdpClientPlug
         Serial.WriteString("[UdpClientPlug] Ctor(family)\n");
 
         var socket = new Socket(family, SocketType.Dgram, ProtocolType.Udp);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = socket;
         _active[id] = false;
     }
@@ -53,7 +53,7 @@ public static class UdpClientPlug
         Serial.WriteString("[UdpClientPlug] Ctor(port, family)\n");
 
         var socket = new Socket(family, SocketType.Dgram, ProtocolType.Udp);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = socket;
         _active[id] = false;
 
@@ -70,7 +70,7 @@ public static class UdpClientPlug
         Serial.WriteString("[UdpClientPlug] Ctor(hostname, port)\n");
 
         var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = socket;
         _active[id] = false;
 
@@ -81,23 +81,23 @@ public static class UdpClientPlug
     }
 
     [PlugMember("get_Client")]
-    public static Socket get_Client(UdpClient aThis)
+    public static Socket? get_Client(UdpClient aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         return _clientSockets.TryGetValue(id, out var socket) ? socket : null;
     }
 
     [PlugMember("set_Client")]
     public static void set_Client(UdpClient aThis, Socket value)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         _clientSockets[id] = value;
     }
 
     [PlugMember("get_Available")]
     public static int get_Available(UdpClient aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
             return 0;
         return socket.Available;
@@ -107,7 +107,7 @@ public static class UdpClientPlug
     public static void Connect(UdpClient aThis, string hostname, int port)
     {
         IPAddress address = IPAddress.Parse(hostname);
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
             return;
 
@@ -118,7 +118,7 @@ public static class UdpClientPlug
     [PlugMember]
     public static void Connect(UdpClient aThis, IPAddress addr, int port)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
             return;
 
@@ -137,12 +137,12 @@ public static class UdpClientPlug
     {
         Serial.WriteString("[UdpClientPlug] Send(dgram, bytes)\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("UdpClient socket not initialized");
         }
-        if (!_active.TryGetValue(id, out var active) || !active)
+        if (!_active.TryGetValue(id, out bool active) || !active)
         {
             throw new InvalidOperationException("UdpClient not connected - use Send with endpoint");
         }
@@ -155,7 +155,7 @@ public static class UdpClientPlug
     {
         Serial.WriteString("[UdpClientPlug] Send(dgram, bytes, endPoint)\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("UdpClient socket not initialized");
@@ -172,7 +172,7 @@ public static class UdpClientPlug
         IPAddress address = IPAddress.Parse(hostname);
         var endPoint = new IPEndPoint(address, port);
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("UdpClient socket not initialized");
@@ -186,7 +186,7 @@ public static class UdpClientPlug
     {
         Serial.WriteString("[UdpClientPlug] Receive()\n");
 
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
         {
             throw new InvalidOperationException("UdpClient socket not initialized");
@@ -225,7 +225,7 @@ public static class UdpClientPlug
     [PlugMember]
     public static void Dispose(UdpClient aThis, bool disposing)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_clientSockets.TryGetValue(id, out var socket))
         {
             _clientSockets.Remove(id);

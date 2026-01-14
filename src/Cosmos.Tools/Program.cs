@@ -1,5 +1,5 @@
-using Spectre.Console.Cli;
 using Cosmos.Tools.Commands;
+using Spectre.Console.Cli;
 
 namespace Cosmos.Tools;
 

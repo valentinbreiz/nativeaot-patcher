@@ -217,7 +217,7 @@ public class Tcp
     /// <summary>
     /// Gets a TCP connection object that matches the specified local and remote ports and addresses.
     /// </summary>
-    internal static Tcp GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    internal static Tcp? GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
         foreach (var con in Connections)
         {

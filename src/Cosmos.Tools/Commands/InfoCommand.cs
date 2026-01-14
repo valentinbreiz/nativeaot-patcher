@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Cosmos.Tools.Platform;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Cosmos.Tools.Platform;
 using SysOSPlatform = System.Runtime.InteropServices.OSPlatform;
 
 namespace Cosmos.Tools.Commands;
@@ -18,13 +18,13 @@ public class InfoCommand : Command<InfoSettings>
 {
     public override int Execute(CommandContext context, InfoSettings settings)
     {
-        var platform = GetPlatformName();
-        var arch = PlatformInfo.CurrentArch.ToString().ToLower();
-        var packageManager = PlatformInfo.GetPackageManager();
-        var displayBackend = GetDisplayBackend();
-        var cosmosToolsPath = GetCosmosToolsPath();
-        var gdbCommand = GetGdbCommand();
-        var arm64UefiBios = GetArm64UefiBiosPath();
+        string platform = GetPlatformName();
+        string arch = PlatformInfo.CurrentArch.ToString().ToLower();
+        string packageManager = PlatformInfo.GetPackageManager();
+        string displayBackend = GetDisplayBackend();
+        string? cosmosToolsPath = GetCosmosToolsPath();
+        string gdbCommand = GetGdbCommand();
+        string? arm64UefiBios = GetArm64UefiBiosPath();
 
         if (settings.Json)
         {
@@ -89,7 +89,7 @@ public class InfoCommand : Command<InfoSettings>
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Linux))
         {
             // Check if gdb-multiarch exists
-            var gdbMultiarchPath = "/usr/bin/gdb-multiarch";
+            string gdbMultiarchPath = "/usr/bin/gdb-multiarch";
             if (File.Exists(gdbMultiarchPath))
                 return "gdb-multiarch";
         }
@@ -98,7 +98,7 @@ public class InfoCommand : Command<InfoSettings>
         // Windows might need the full path if installed via MinGW
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
         {
-            var mingwPath = @"C:\msys64\mingw64\bin\gdb.exe";
+            string mingwPath = @"C:\msys64\mingw64\bin\gdb.exe";
             if (File.Exists(mingwPath))
                 return mingwPath;
         }
@@ -108,17 +108,17 @@ public class InfoCommand : Command<InfoSettings>
 
     private static string? GetCosmosToolsPath()
     {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var toolsDir = Path.Combine(home, ".dotnet", "tools");
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string toolsDir = Path.Combine(home, ".dotnet", "tools");
 
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
         {
-            var exePath = Path.Combine(toolsDir, "cosmos.exe");
+            string exePath = Path.Combine(toolsDir, "cosmos.exe");
             if (File.Exists(exePath)) return exePath;
         }
         else
         {
-            var path = Path.Combine(toolsDir, "cosmos");
+            string path = Path.Combine(toolsDir, "cosmos");
             if (File.Exists(path)) return path;
         }
 
@@ -148,8 +148,8 @@ public class InfoCommand : Command<InfoSettings>
         // Windows paths
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
         {
-            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 
             paths.AddRange([
                 Path.Combine(programFiles, "qemu", "share", "edk2-aarch64-code.fd"),

@@ -9,8 +9,8 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </summary>
 public static class SchedulerManager
 {
-    private static IScheduler _currentScheduler;
-    private static PerCpuState[] _cpuStates;
+    private static IScheduler? _currentScheduler;
+    private static PerCpuState[]? _cpuStates;
     private static uint _cpuCount;
     private static SpinLock _globalLock;
     private static bool _enabled;

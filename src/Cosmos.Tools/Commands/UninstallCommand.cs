@@ -36,7 +36,7 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
 
         if (!settings.Auto)
         {
-            var proceed = AnsiConsole.Confirm("  Proceed with uninstallation?", false);
+            bool proceed = AnsiConsole.Confirm("  Proceed with uninstallation?", false);
             if (!proceed)
             {
                 AnsiConsole.WriteLine("  Uninstallation cancelled.");
@@ -128,7 +128,7 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
 
     private static async Task UninstallVSCodeExtensionAsync()
     {
-        var codeCommand = GetVSCodeCommand();
+        string? codeCommand = GetVSCodeCommand();
         if (codeCommand == null)
         {
             AnsiConsole.MarkupLine("  [dim]VS Code not found, skipping extension uninstall[/]");
@@ -183,12 +183,12 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
 
     private static string? GetVSCodeCommand()
     {
-        var isWindows = OperatingSystem.IsWindows();
-        var commands = isWindows
+        bool isWindows = OperatingSystem.IsWindows();
+        string[] commands = isWindows
             ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
             : new[] { "code", "code-insiders", "codium" };
 
-        foreach (var cmd in commands)
+        foreach (string? cmd in commands)
         {
             try
             {

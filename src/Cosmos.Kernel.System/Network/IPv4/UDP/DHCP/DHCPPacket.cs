@@ -29,7 +29,7 @@ public class DHCPOption
     /// <summary>
     /// The raw data of the <see cref="DHCPOption"/>.
     /// </summary>
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 }
 
 /// <summary>
