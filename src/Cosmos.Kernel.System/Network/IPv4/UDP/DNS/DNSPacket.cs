@@ -5,7 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using System.Text;
 using Cosmos.Kernel.Core.IO;
 
@@ -29,7 +28,7 @@ public enum ReplyCode
 /// </summary>
 public class DNSQuery
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public ushort Type { get; set; }
     public ushort Class { get; set; }
 }
@@ -44,7 +43,7 @@ public class DNSAnswer
     public ushort Class { get; set; }
     public int TimeToLive { get; set; }
     public ushort DataLength { get; set; }
-    public byte[] Address { get; set; }
+    public byte[]? Address { get; set; }
 }
 
 /// <summary>

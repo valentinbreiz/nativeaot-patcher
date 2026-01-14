@@ -1,10 +1,5 @@
-
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using Cosmos.Kernel.Core.IO;
 using Internal.Metadata.NativeFormat;
 using Internal.NativeFormat;
 using Internal.Runtime;
@@ -65,7 +60,7 @@ namespace Cosmos.Kernel.Core.Runtime
             // return GetMethodNameFromStartAddressIfAvailable(null, (IntPtr)methodStart, out bool isStackTraceHidden);
             s_resolverCache ??= new PerModuleMethodNameResolverCache();
 
-            var rva = (int)(methodStart - (nuint)ModuleHelpers.OsModule);
+            int rva = (int)(methodStart - (nuint)ModuleHelpers.OsModule);
             foreach (var module in ManagedModule.Modules)
             {
                 if (module.AsTypeManager()->OsHandle == ModuleHelpers.OsModule)
@@ -275,7 +270,7 @@ namespace Cosmos.Kernel.Core.Runtime
 
             public unsafe PerModuleMethodNameResolver GetOrCreate(TypeManagerHandle handle)
             {
-                var key = handle.AsTypeManager()->OsHandle;
+                nint key = handle.AsTypeManager()->OsHandle;
 
                 // Fast path: find existing
                 for (int i = 0; i < _keys.Length; i++)

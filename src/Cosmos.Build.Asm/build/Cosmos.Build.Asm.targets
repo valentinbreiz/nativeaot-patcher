@@ -1,33 +1,24 @@
 <Project>
-  <Import Project="Asm.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
-  <Import Project="Asm.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+  <!-- Platform detection -->
+  <PropertyGroup>
+    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
+    <IsMacOS Condition="'$(OS)' != 'Windows_NT' AND $([MSBuild]::IsOSPlatform('OSX'))">true</IsMacOS>
+    <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <Import Project="Asm.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
+  <Import Project="Asm.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
+  <Import Project="Asm.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
 
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
 
-    <!-- Automatically add native package search paths based on architecture -->
-    <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64'">
-      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.x64/3.0.0/build</CosmosNativePackagePath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetArchitecture)' == 'arm64'">
-      <CosmosNativePackagePath>$(NuGetPackageRoot)cosmos.kernel.native.arm64/3.0.0/build</CosmosNativePackagePath>
-    </PropertyGroup>
-    
-    <Message Text="🔍 [ASM] CosmosNativePackagePath: $(CosmosNativePackagePath)" Importance="High" />
-    
-    <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64'">
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/IO/" Condition="Exists('$(CosmosNativePackagePath)/IO/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/CPU/" Condition="Exists('$(CosmosNativePackagePath)/CPU/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Debug/" Condition="Exists('$(CosmosNativePackagePath)/Debug/')" />
-      <AsmSearchPath Include="$(CosmosNativePackagePath)/Runtime/" Condition="Exists('$(CosmosNativePackagePath)/Runtime/')" />
-    </ItemGroup>
+    <!--
+      NOTE: AsmSearchPath items are added by the Cosmos.Kernel.Native.X64.props / ARM64.props
+      files when the NuGet package is imported. We don't add them here to avoid duplicates.
+    -->
 
     <!-- Exclude Folders/Files that doesn't exists -->
     <ItemGroup>
@@ -67,11 +58,12 @@
     <Message Text="✅ [ASM] Number of Asm files found: @(AsmFiles->Count())" Importance="High" />
   </Target>
 
-  <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
+  <!-- Target that invokes the YasmBuildTask to compile assembly source files -->
   <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm; GetYasm">
     <PropertyGroup>
-      <YasmPath Condition="$(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
-      <YasmPath Condition="$(YasmPath) == ''">/usr/bin/yasm</YasmPath>
+      <!-- Yasm fallback paths - ONLY for x64 (yasm doesn't support ARM64) -->
+      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
+      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == ''">/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>

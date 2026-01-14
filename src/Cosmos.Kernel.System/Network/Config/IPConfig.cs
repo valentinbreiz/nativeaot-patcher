@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -42,7 +41,7 @@ public class IPConfig
     /// <param name="destIP">The destination IP address.</param>
     public static Address FindNetwork(Address destIP)
     {
-        Address defaultGw = null;
+        Address? defaultGw = null;
 
         foreach (IPConfig ipConfig in ipConfigs)
         {
@@ -107,7 +106,7 @@ public class IPConfig
     /// Find the interface by the given IP address.
     /// </summary>
     /// <param name="sourceIP">Source IP.</param>
-    internal static INetworkDevice FindInterface(Address sourceIP)
+    internal static INetworkDevice? FindInterface(Address sourceIP)
     {
         if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
         {
@@ -121,7 +120,7 @@ public class IPConfig
     /// </summary>
     /// <param name="destIP">Destination IP.</param>
     /// <returns>Address value.</returns>
-    internal static Address FindRoute(Address destIP)
+    internal static Address? FindRoute(Address destIP)
     {
         for (int c = 0; c < ipConfigs.Count; c++)
         {

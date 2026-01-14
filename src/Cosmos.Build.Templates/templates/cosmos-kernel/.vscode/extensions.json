@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "cosmosos.cosmos-vscode",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
+    "ms-vscode.cpptools"
+  ]
+}

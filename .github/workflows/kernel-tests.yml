@@ -69,8 +69,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -292,8 +292,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -515,8 +515,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -738,8 +738,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -961,8 +961,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -1184,8 +1184,8 @@ jobs:
       - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 📦 Build and Install Cosmos Packages (${{ matrix.arch }})
-        run: ./.devcontainer/postCreateCommand.sh ${{ matrix.arch }}
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1

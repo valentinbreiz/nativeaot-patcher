@@ -1,10 +1,8 @@
 // ACPI subsystem for Cosmos OS
 // C# interop layer for LAI (Lightweight ACPI Implementation)
 
-using System;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.HAL.Acpi;
 

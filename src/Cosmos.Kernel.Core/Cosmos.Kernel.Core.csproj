@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!--pack as nuget-->
+    <Version>3.0.29</Version>
+    <!-- Multi-arch package: contains both x64 and arm64 builds -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- This may need to change -->
@@ -17,15 +18,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <!-- Architecture-specific defines -->
-  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(CosmosArch)' != 'arm64'">
-    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
-  </PropertyGroup>
-
-  <!-- Architecture-specific source files -->
+  <!-- Architecture-specific source files (defines are set by Cosmos.ArchitecturePicker.props) -->
   <ItemGroup Condition="'$(CosmosArch)' != 'arm64'">
     <Compile Remove="Scheduler\ThreadContext.ARM64.cs" />
   </ItemGroup>
@@ -70,4 +63,6 @@
     <None Include="build\**" Pack="true" PackagePath="build\" />
   </ItemGroup>
 
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

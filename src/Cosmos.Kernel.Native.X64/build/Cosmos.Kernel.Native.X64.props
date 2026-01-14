@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Add any folder(s) where *.asm files exist -->
-  <ItemGroup>
+  <!-- Only active when RuntimeIdentifier ends with -x64 (or not set) -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == '' OR $(RuntimeIdentifier.EndsWith('-x64'))">
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/IO/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Debug/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/CPU/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Memory/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Runtime/" />
-    <!-- You can also do: <AsmFiles Include="/path/to/file.asm" /> -->
   </ItemGroup>
 
   <!-- Add C source directories for ACPI/LAI -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == '' OR $(RuntimeIdentifier.EndsWith('-x64'))">
     <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/" />
     <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/core/" />
     <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/helpers/" />

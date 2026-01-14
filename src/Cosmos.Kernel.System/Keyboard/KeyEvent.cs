@@ -1,8 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyEvent.cs
 
-using System;
-
 namespace Cosmos.Kernel.System.Keyboard
 {
     /// <summary>

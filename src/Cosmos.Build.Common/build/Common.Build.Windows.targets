@@ -4,8 +4,11 @@
     <!-- Input path passed as a parameter (Correct version [oops])-->
     <IsoRoot Condition="'$(IsoRoot)' == ''">$(DefaultIsoRoot)</IsoRoot>
 
+    <!-- Ensure IsoRoot is an absolute path before converting to Cygwin format -->
+    <IsoRootAbsolute>$([System.IO.Path]::GetFullPath('$(IsoRoot)'))</IsoRootAbsolute>
+
     <!-- Replace ':' with '' (remove colon after drive letter) -->
-    <IsoRootNoColon>$([System.String]::Copy('$(IsoRoot)').Replace(':', ''))</IsoRootNoColon>
+    <IsoRootNoColon>$([System.String]::Copy('$(IsoRootAbsolute)').Replace(':', ''))</IsoRootNoColon>
 
     <!-- Replace backslashes with slashes -->
     <IsoRootSlashes>$([System.String]::Copy('$(IsoRootNoColon)').Replace('\', '/'))</IsoRootSlashes>
@@ -22,9 +25,12 @@
   </Target>
 
   <Target Name="GetXorriso" BeforeTargets="BuildISO">
-    <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 $(CosmosIntermediateOutputPath)/xorriso" IgnoreExitCode="true"/>
     <PropertyGroup>
-      <XorrisoBinary>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)/xorriso/xorriso.exe'))</XorrisoBinary>
+      <XorrisoDir>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)', 'xorriso'))</XorrisoDir>
+    </PropertyGroup>
+    <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 &quot;$(XorrisoDir)&quot;" IgnoreExitCode="true"/>
+    <PropertyGroup>
+      <XorrisoBinary>$([MSBuild]::NormalizePath('$(XorrisoDir)', 'xorriso.exe'))</XorrisoBinary>
     </PropertyGroup>
   </Target>
 

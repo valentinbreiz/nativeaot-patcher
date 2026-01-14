@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Core.CPU;
 
@@ -160,7 +159,7 @@ public class StrideScheduler : IScheduler
 
     // ========== Scheduling Decisions ==========
 
-    public Thread PickNext(PerCpuState cpuState)
+    public Thread? PickNext(PerCpuState cpuState)
     {
         var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
 
@@ -287,7 +286,7 @@ public class StrideScheduler : IScheduler
         if (cpuData == null || cpuData.RunQueue.Count > 0)
             return;
 
-        PerCpuState busiest = null;
+        PerCpuState? busiest = null;
         int maxCount = 0;
 
         foreach (var state in allCpuStates)
@@ -433,7 +432,7 @@ public class StrideScheduler : IScheduler
         }
     }
 
-    public Thread GetRunQueueThread(PerCpuState cpuState, int index)
+    public Thread? GetRunQueueThread(PerCpuState cpuState, int index)
     {
         // Disable interrupts to prevent timer from modifying RunQueue while we read
         using (InternalCpu.DisableInterruptsScope())

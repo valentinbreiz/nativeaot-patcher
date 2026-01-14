@@ -1,9 +1,5 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Cosmos.Build.Analyzer.Patcher.Extensions;
 using Cosmos.Build.Analyzer.Patcher.Models;
@@ -51,7 +47,7 @@ namespace Cosmos.Build.Analyzer.Patcher
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var assemblyName = compilationContext.Compilation?.AssemblyName ?? "<unknown>";
+                string assemblyName = compilationContext.Compilation?.AssemblyName ?? "<unknown>";
                 DebugLog($"Starting compilation analysis for {assemblyName}");
                 PlatformArchitecture currentArchitecture = PlatformArchitecture.None;
 

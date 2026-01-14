@@ -1,11 +1,8 @@
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
 using System.Text.Unicode;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Utilities;
-using Cosmos.Kernel.Graphics;
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -66,7 +63,7 @@ public static partial class AppContextPlug
                 return true;
         }
 
-        var data = GetData(switchName);
+        object? data = GetData(switchName);
 
         if (GetData(switchName) is string value && bool.TryParse(value, out isEnabled))
         {

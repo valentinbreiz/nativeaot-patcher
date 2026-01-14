@@ -1,13 +1,7 @@
-using System;
-using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Text;
-using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Internal.NativeFormat;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -56,7 +50,7 @@ public static unsafe partial class ManagedModule
     public static void InitializeModules()
     {
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Starting\n");
-        var count = GetModules(out var modulesptr);
+        uint count = GetModules(out var modulesptr);
         Serial.WriteString("[ManagedModule] - Found ");
         Serial.WriteNumber(count);
         Serial.WriteString(" modules\n");
@@ -93,6 +87,13 @@ public static unsafe partial class ManagedModule
 
         s_modules = modules;
         s_moduleCount = modules.Length;
+
+        // Run module initializers ([ModuleInitializer] methods) - these register HAL platforms
+        Serial.WriteString("[ManagedModule] - Running Module Initializers\n");
+        for (int i = 0; i < modules.Length; i++)
+        {
+            RunInitializers(modules[i], ReadyToRunSectionType.ModuleInitializerList);
+        }
 
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
@@ -188,7 +189,7 @@ public static unsafe partial class ManagedModule
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {
                     void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
-                    var size = pMT->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
+                    uint size = pMT->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
                     byte* destPtr = (byte*)&obj + sizeof(MethodTable*);
                     MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)size);
                 }

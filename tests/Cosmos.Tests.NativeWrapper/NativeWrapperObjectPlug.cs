@@ -1,5 +1,4 @@
 ﻿using Cosmos.Build.API.Attributes;
-using Cosmos.Build.API.Enum;
 
 namespace Cosmos.Tests.NativeWrapper;
 

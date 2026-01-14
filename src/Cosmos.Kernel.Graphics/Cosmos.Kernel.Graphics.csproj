@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Version>3.0.29</Version>
+    <!-- Multi-arch package: built for both x64 and arm64 -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Package Metadata -->
@@ -14,10 +17,13 @@
 
   <ItemGroup>
     <ProjectReference Include="../Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" />
-    <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="../Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
   </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Include="Fonts\DefaultFont.psf" />
   </ItemGroup>
+
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

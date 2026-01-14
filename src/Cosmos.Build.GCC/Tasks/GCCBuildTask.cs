@@ -1,5 +1,4 @@
 // This code is licensed under MIT license (see LICENSE for details)
-
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -124,7 +123,7 @@ public sealed class GCCBuildTask : ToolTask
             Log.LogMessage(MessageImportance.Normal, $"Compiling {file} with args: {commandLineArguments}");
 
             // Validate GCC path exists
-            var toolPath = GenerateFullPathToTool().Trim();
+            string toolPath = GenerateFullPathToTool().Trim();
             GCCPath = toolPath; // normalize for downstream checks
 
             if (!File.Exists(toolPath) && !TestGCCInPath())

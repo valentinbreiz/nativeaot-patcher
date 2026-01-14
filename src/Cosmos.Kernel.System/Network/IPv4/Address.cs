@@ -5,8 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System;
-
 namespace Cosmos.Kernel.System.Network.IPv4;
 
 /// <summary>
@@ -89,7 +87,7 @@ public class Address : IComparable
     /// <exception cref="ArgumentNullException">Thrown if addr is null.</exception>
     /// <exception cref="FormatException">Thrown if addr is not in the right format.</exception>
     /// <exception cref="OverflowException">Thrown if addr represents a number less than Byte.MinValue or greater than <see cref="Byte.MaxValue"/>.</exception>
-    public static Address Parse(string addr)
+    public static Address? Parse(string addr)
     {
         string[] fragments = addr.Split('.');
         if (fragments.Length == 4)
@@ -117,7 +115,7 @@ public class Address : IComparable
     /// Convert a CIDR number to an IPv4 address.
     /// </summary>
     /// <param name="cidr">The CIDR number.</param>
-    public static Address CIDRToAddress(int cidr)
+    public static Address? CIDRToAddress(int cidr)
     {
         try
         {

@@ -1,4 +1,3 @@
-using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Graphics;
 

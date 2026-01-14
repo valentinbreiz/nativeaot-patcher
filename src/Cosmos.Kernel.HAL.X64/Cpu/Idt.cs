@@ -1,11 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory.Heap;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.X64.Cpu.Data;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
@@ -23,7 +19,7 @@ public static unsafe partial class Idt
     [SuppressGCTransition]
     public static partial ulong GetCurrentCodeSelector();
 
-    private static IdtEntry[] IdtEntries = new IdtEntry[256];
+    private static IdtEntry[]? IdtEntries;
 
     /// <summary>
     /// Registers all IRQ stubs in the IDT.
@@ -34,9 +30,25 @@ public static unsafe partial class Idt
         ulong cs = GetCurrentCodeSelector();
         Serial.Write("[IDT] Initializing with CS=0x", cs.ToString("X"), "\n");
 
+        // Allocate IDT entries array if not already done
+        if (IdtEntries == null)
+        {
+            Serial.WriteString("[IDT] Allocating IdtEntries array...\n");
+            IdtEntries = new IdtEntry[256];
+        }
+        Serial.WriteString("[IDT] IdtEntries length: ");
+        Serial.WriteNumber((ulong)IdtEntries.Length);
+        Serial.WriteString("\n");
+
         // Initialize all 256 IDT entries
         for (int i = 0; i < 256; i++)
         {
+            if (i == 0 || i == 255)
+            {
+                Serial.WriteString("[IDT] Setting entry ");
+                Serial.WriteNumber((ulong)i);
+                Serial.WriteString("\n");
+            }
             IdtEntries[i].Selector = (ushort)cs;
             IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate
             IdtEntries[i].Offset = (ulong)GetStub(i);

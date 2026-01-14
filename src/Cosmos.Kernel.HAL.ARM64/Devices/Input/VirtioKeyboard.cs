@@ -8,7 +8,6 @@ using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 
@@ -45,7 +44,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     public static VirtioKeyboard? Instance { get; private set; }
 
     // Static callback for key events (set by KeyboardManager) - mirrors x64 PS2Keyboard
-    public static KeyPressedHandler? KeyCallback;
+    // Note: OnKeyPressed (from base class) is set by KeyboardManager.RegisterKeyboard()
 
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -346,8 +345,8 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 Serial.WriteHex(scanCode);
                 Serial.Write(released ? " released\n" : " pressed\n");
 
-                // Invoke static callback (mirrors x64 PS2Keyboard pattern)
-                KeyCallback?.Invoke(scanCode, released);
+                // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
+                Instance?.OnKeyPressed?.Invoke(scanCode, released);
             }
 
             // Re-add buffer to queue

@@ -1,6 +1,5 @@
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
-using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Graphics.Fonts;
 
 namespace Cosmos.Kernel.Graphics;

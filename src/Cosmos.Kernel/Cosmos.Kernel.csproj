@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Version>3.0.29</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Multi-arch package: contains both x64 and arm64 builds -->
+    <IsMultiArchPackage>true</IsMultiArchPackage>
     <IsPackable>true</IsPackable>
 
     <!-- Package Metadata -->
@@ -15,35 +18,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="build\Cosmos.Kernel.props" PackagePath="build\" />
+    <!-- Note: Cosmos.Kernel.props is auto-generated and included by Directory.MultiArch.targets -->
     <Content Include="Bootstrap\*.c"  PackagePath="build\Bootstrap\"/>
     <Content Include="Bootstrap\*.h"  PackagePath="build\Bootstrap\"/>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" PrivateAssets="none" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" PrivateAssets="none" />
+    <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" PrivateAssets="none" />
   </ItemGroup>
 
-  <!-- Architecture-specific DefineConstants -->
-  <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
-    <DefineConstants>$(DefineConstants);ARCH_X64</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <DefineConstants>$(DefineConstants);ARCH_ARM64</DefineConstants>
-  </PropertyGroup>
-
-  <!-- Architecture-specific HAL and Native references -->
-  <ItemGroup Condition="'$(CosmosArch)' == 'x64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.X64\Cosmos.Kernel.HAL.X64.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Native.X64\Cosmos.Kernel.Native.X64.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <ProjectReference Include="..\Cosmos.Kernel.HAL.ARM64\Cosmos.Kernel.HAL.ARM64.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Native.ARM64\Cosmos.Kernel.Native.ARM64.csproj" />
-  </ItemGroup>
+  <!-- Multi-arch packaging support -->
+  <Import Project="../Directory.MultiArch.targets" />
 </Project>

@@ -9,8 +9,8 @@ public class PerCpuState : SchedulerExtensible
     public uint CpuId { get; set; }
 
     // ===== Current Execution =====
-    public Thread CurrentThread { get; internal set; }
-    public Thread IdleThread { get; internal set; }
+    public Thread? CurrentThread { get; internal set; }
+    public Thread? IdleThread { get; internal set; }
 
     // ===== Timing =====
     public ulong LastTickAt { get; internal set; }

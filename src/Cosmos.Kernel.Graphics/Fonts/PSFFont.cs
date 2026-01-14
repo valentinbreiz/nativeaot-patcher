@@ -23,7 +23,7 @@ public static unsafe class PCScreenFont
     {
         if (!Initialized)
         {
-            var embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
+            string embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
             var resourceSpan = ResourceManager.GetResourceAsSpan(embeddedResourceName);
             Serial.WriteString("Loading default PSF font from resources...\n");
             Serial.WriteString($"Font Key: {embeddedResourceName}");

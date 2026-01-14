@@ -58,7 +58,8 @@ public static partial class StopwatchPlug
 
 #else
     // ARM64 fallback - simple incrementing counter
-    private static long s_counter;
+    // Must be internal for patcher access (patched IL references this from another assembly)
+    internal static long s_counter;
 
     /// <summary>
     /// Gets the current timestamp (fallback counter for ARM64).

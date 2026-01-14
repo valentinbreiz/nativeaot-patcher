@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.ARP;
 using Cosmos.Kernel.System.Network.Config;

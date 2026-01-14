@@ -1,0 +1,85 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug x64 Kernel",
+      "type": "cppdbg",
+      "request": "launch",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "targetArchitecture": "x64",
+      "program": "${workspaceFolder}/output-x64/KernelName.elf",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "miDebuggerServerAddress": "localhost:1234",
+      "preLaunchTask": "Debug QEMU x64",
+      "postDebugTask": "Stop QEMU x64",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set disassembly flavor",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set pagination off",
+          "text": "set pagination off",
+          "ignoreFailures": true
+        }
+      ],
+      "launchCompleteCommand": "None"
+    },
+    {
+      "name": "Debug ARM64 Kernel",
+      "type": "cppdbg",
+      "request": "launch",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb-multiarch",
+      "targetArchitecture": "arm64",
+      "program": "${workspaceFolder}/output-arm64/KernelName.elf",
+      "args": [],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "miDebuggerServerAddress": "localhost:1234",
+      "preLaunchTask": "Debug QEMU ARM64",
+      "postDebugTask": "Stop QEMU ARM64",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set pagination off",
+          "text": "set pagination off",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set step mode",
+          "text": "set step-mode on",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set architecture",
+          "text": "set architecture aarch64",
+          "ignoreFailures": false
+        },
+        {
+          "description": "Set target endian",
+          "text": "set endian little",
+          "ignoreFailures": true
+        }
+      ],
+      "launchCompleteCommand": "None"
+    }
+  ]
+}

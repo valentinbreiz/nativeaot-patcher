@@ -157,7 +157,7 @@ public class IPPacket : EthernetPacket
     /// <param name="source">Source address.</param>
     /// <param name="dest">Destionation address.</param>
     /// <param name="Flags">Flags.</param>
-    /// <exception cref="sys.ArgumentException">Thrown if RawData is invalid or null.</exception>
+    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
     public IPPacket(MACAddress srcMAC, MACAddress destMAC, ushort dataLength, byte protocol,
         Address source, Address dest, byte Flags)
         : base(destMAC, srcMAC, 0x0800, dataLength + 14 + 20)

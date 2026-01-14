@@ -1556,7 +1556,7 @@ public static class MonoCecilExtensions
                 StackBehaviour popBehaviour = instruction.OpCode.StackBehaviourPop;
 
                 // Fullname of any type extracted from the instruction
-                string extractedFullName = null;
+                string? extractedFullName = null;
 
                 // This is an exhaustive check for control flow change instructions. These instructions will cause a jump
                 // in execution or a termination of the function, thus ending our analysis.
