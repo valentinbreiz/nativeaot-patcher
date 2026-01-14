@@ -26,6 +26,9 @@ public class PS2Keyboard : KeyboardDevice
     // Static reference to the first keyboard instance (for IRQ handler)
     private static PS2Keyboard? _instance;
 
+    // Flag to prevent multiple IRQ registrations
+    private static bool _irqRegistered;
+
     /// <summary>
     /// Registers IRQ handler for keyboard interrupts.
     /// Called explicitly from Kernel.Initialize to ensure proper initialization order.
@@ -172,10 +175,19 @@ public class PS2Keyboard : KeyboardDevice
     public override bool KeyAvailable => (Native.IO.Read8(PS2Ports.Status) & 0x01) != 0;
 
     /// <summary>
-    /// Enable keyboard scanning.
+    /// Enable keyboard scanning and register IRQ handler if not already done.
+    /// Called by KeyboardManager after OnKeyPressed callback is set.
     /// </summary>
     public override void Enable()
     {
+        // Register IRQ handler on first Enable() call (after callback is set)
+        if (!_irqRegistered)
+        {
+            RegisterIRQHandler();
+            _irqRegistered = true;
+            return;
+        }
+
         _controller.WaitToWrite();
         Native.IO.Write8(PS2Ports.Data, (byte)Command.EnableScanning);
         _controller.WaitForAck();

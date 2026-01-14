@@ -299,9 +299,8 @@ public class PS2Controller : Device
 
         byte irq = (byte)(port == 1 ? 1 : 12);
 
-#if ARCH_X64
+        // Unmask at I/O APIC
         Cosmos.Kernel.HAL.X64.Cpu.ApicManager.UnmaskIrq(irq);
-#endif
     }
 
     /// <summary>

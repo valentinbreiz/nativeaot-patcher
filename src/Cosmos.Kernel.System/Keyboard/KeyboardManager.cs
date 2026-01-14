@@ -78,6 +78,9 @@ public static class KeyboardManager
         keyboard.OnKeyPressed = HandleScanCode;
         _keyboards.Add(keyboard);
 
+        // Enable keyboard after callback is set (this registers IRQ handler)
+        keyboard.Enable();
+
         Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] Registered keyboard, total: ");
         Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
         Cosmos.Kernel.Core.IO.Serial.Write("\n");

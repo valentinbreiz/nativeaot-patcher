@@ -42,14 +42,12 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         VirtioMMIO.ScanDevices();
 
         // Initialize virtio keyboard
-        Serial.WriteString("[ARM64HAL] Initializing virtio keyboard...\n");
         _virtioKeyboard = VirtioKeyboard.FindAndCreate();
         if (_virtioKeyboard != null)
         {
             _virtioKeyboard.Initialize();
             if (_virtioKeyboard.IsInitialized)
             {
-                _virtioKeyboard.RegisterIRQHandler();
                 Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
             }
             else

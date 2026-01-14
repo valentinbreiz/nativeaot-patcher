@@ -40,6 +40,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private const int NUM_EVENT_BUFFERS = 32;
 
     private bool _initialized;
+    private bool _irqRegistered;
 
     public static VirtioKeyboard? Instance { get; private set; }
 
@@ -443,9 +444,18 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         // LED updates via status queue not implemented yet
     }
 
+    /// <summary>
+    /// Enable keyboard and register IRQ handler if not already done.
+    /// Called by KeyboardManager after OnKeyPressed callback is set.
+    /// </summary>
     public override void Enable()
     {
-        // Already enabled after Initialize
+        // Register IRQ handler on first Enable() call (after callback is set)
+        if (!_irqRegistered && _initialized)
+        {
+            RegisterIRQHandler();
+            _irqRegistered = true;
+        }
     }
 
     public override void Disable()
