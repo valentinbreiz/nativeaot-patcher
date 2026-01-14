@@ -1,6 +1,14 @@
 <Project>
-  <Import Project="Asm.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
-  <Import Project="Asm.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+  <!-- Platform detection -->
+  <PropertyGroup>
+    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
+    <IsMacOS Condition="'$(OS)' != 'Windows_NT' AND $([MSBuild]::IsOSPlatform('OSX'))">true</IsMacOS>
+    <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <Import Project="Asm.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
+  <Import Project="Asm.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
+  <Import Project="Asm.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
 
   <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
     <PropertyGroup>
@@ -50,11 +58,12 @@
     <Message Text="✅ [ASM] Number of Asm files found: @(AsmFiles->Count())" Importance="High" />
   </Target>
 
-  <!-- Example target that invokes the YasmBuildTask to compile assembly source files -->
+  <!-- Target that invokes the YasmBuildTask to compile assembly source files -->
   <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm; GetYasm">
     <PropertyGroup>
-      <YasmPath Condition="$(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
-      <YasmPath Condition="$(YasmPath) == ''">/usr/bin/yasm</YasmPath>
+      <!-- Yasm fallback paths - ONLY for x64 (yasm doesn't support ARM64) -->
+      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
+      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == ''">/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>

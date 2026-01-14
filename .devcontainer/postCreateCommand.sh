@@ -15,7 +15,7 @@ rm -rf artifacts/ 2>/dev/null || true
 find src -name "obj" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Remove local source if it exists (to avoid duplicates)
-dotnet nuget remove source local-packages 2>/dev/null || true
+dotnet nuget remove source local-packages >/dev/null 2>&1 || true
 
 # Create artifacts directories
 mkdir -p artifacts/package/release

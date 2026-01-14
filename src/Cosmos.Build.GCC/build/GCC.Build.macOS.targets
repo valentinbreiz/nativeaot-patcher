@@ -1,0 +1,48 @@
+<Project>
+  <Target Name="GetGCC">
+    <PropertyGroup>
+      <!-- Derive architecture -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">
+        $([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])
+      </TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">
+        $(CosmosArch)
+      </TargetArchitecture>
+
+      <!-- x64: Real GCC ELF cross-compilers from Homebrew (supports -mcmodel=kernel) -->
+      <!-- Apple Silicon path -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == '' and Exists('/opt/homebrew/bin/x86_64-elf-gcc')">
+        /opt/homebrew/bin/x86_64-elf-gcc
+      </GCCPath>
+      <!-- Intel Mac path -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == '' and Exists('/usr/local/bin/x86_64-elf-gcc')">
+        /usr/local/bin/x86_64-elf-gcc
+      </GCCPath>
+
+      <!-- arm64: Real GCC ELF cross-compilers from Homebrew (supports -mcmodel=large) -->
+      <!-- Apple Silicon path -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('/opt/homebrew/bin/aarch64-elf-gcc')">
+        /opt/homebrew/bin/aarch64-elf-gcc
+      </GCCPath>
+      <!-- Intel Mac path -->
+      <GCCPath
+        Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == '' and Exists('/usr/local/bin/aarch64-elf-gcc')">
+        /usr/local/bin/aarch64-elf-gcc
+      </GCCPath>
+
+    </PropertyGroup>
+
+    <Error
+      Condition="'$(TargetArchitecture)' == 'x64' and '$(GCCPath)' == ''"
+      Text="No x64 cross-compiler found. Install via: brew install x86_64-elf-gcc x86_64-elf-binutils" />
+
+    <Error
+      Condition="'$(TargetArchitecture)' == 'arm64' and '$(GCCPath)' == ''"
+      Text="No ARM64 cross-compiler found. Install via: brew install aarch64-elf-gcc aarch64-elf-binutils" />
+
+    <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />
+  </Target>
+</Project>

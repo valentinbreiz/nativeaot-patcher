@@ -227,11 +227,12 @@ jobs:
       matrix:
         os: [ windows-latest ]
         dotnet-version: [ 10.0.x ]
-        arch: [ x64 ]
+        arch: [ x64, arm64 ]
         include:
           - arch: x64
             rid: linux-x64
-            assembler: yasm
+          - arch: arm64
+            rid: linux-arm64
     steps:
       - name: 🛠️ Enable long paths in Git
         run: git config --system core.longpaths true
@@ -246,7 +247,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      
+
       - name: 🧹 Clear NuGet cache before building packages
         run: dotnet nuget locals all --clear
 
@@ -268,12 +269,24 @@ jobs:
           Move-Item xorriso-1.5.6.pl02-windows-amd64.exe C:\xorriso\xorriso.exe
           echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: 🔗 Install GCC Toolchain
+      - name: 🔗 Install x64 GCC Toolchain
+        if: matrix.arch == 'x64'
         shell: pwsh
         run: |
           curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
           Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
           echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: 🔗 Install ARM64 GCC Toolchain
+        if: matrix.arch == 'arm64'
+        shell: pwsh
+        run: |
+          curl -LO https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z
+          7z x gcc-v15.2.0-aarch64-none-elf.7z -oC:\aarch64-elf-tools
+          # Find the bin directory (archive may have a root folder)
+          $binPath = Get-ChildItem -Path C:\aarch64-elf-tools -Recurse -Directory -Filter "bin" | Select-Object -First 1 -ExpandProperty FullName
+          Write-Host "Adding to PATH: $binPath"
+          echo $binPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release
@@ -305,4 +318,72 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: DevKernel-ISO-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: ./output-${{ matrix.arch }}/DevKernel.iso
+
+  macos-iso-tests:
+    name: Run ISO Build Tests - macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest ]
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            gcc_package: x86_64-elf-gcc
+            binutils_package: x86_64-elf-binutils
+          - arch: arm64
+            rid: linux-arm64
+            gcc_package: aarch64-elf-gcc
+            binutils_package: aarch64-elf-binutils
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🧹 Clear NuGet cache before building packages
+        run: dotnet nuget locals all --clear
+
+      - name: 🔄 Compile Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
+
+      - name: 🔗 Install Common Linking Tools
+        run: brew install lld xorriso yasm
+
+      - name: 🔗 Install Cross-Compilation Tools
+        run: |
+          # Install real GCC ELF cross-compilers (not Clang-based)
+          # These support -mcmodel=kernel (x64) and -mcmodel=large (arm64) needed for bare-metal kernels
+          brew install ${{ matrix.gcc_package }} ${{ matrix.binutils_package }}
+
+      - name: 🔧 Install ilc
+        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
+
+      - name: 🔧 Install Patcher
+        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+
+      - name: Build ISO for ${{ matrix.arch }}
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            ARCH_DEFINE="ARCH_ARM64"
+          else
+            ARCH_DEFINE="ARCH_X64"
+          fi
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+
+      - name: 🕵️‍♂️ Verify Output
+        run: |
+          [ -f ./output-${{ matrix.arch }}/DevKernel.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
+
+      - name: 📤 Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: DevKernel-ISO-macOS-${{ matrix.arch }}-${{ github.run_number }}
           path: ./output-${{ matrix.arch }}/DevKernel.iso

@@ -9,8 +9,16 @@
     <IsoOutput Condition="$(IsoOutput) == ''">$([MSBuild]::NormalizePath('$(CosmosOutputPath)', '$(AssemblyName).iso'))</IsoOutput>
   </PropertyGroup>
 
-  <Import Project="Common.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
-  <Import Project="Common.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+  <!-- Platform detection -->
+  <PropertyGroup>
+    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
+    <IsMacOS Condition="'$(OS)' != 'Windows_NT' AND $([MSBuild]::IsOSPlatform('OSX'))">true</IsMacOS>
+    <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <Import Project="Common.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
+  <Import Project="Common.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
+  <Import Project="Common.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
 
   <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
     <!-- Define paths used for linking and ISO creation -->

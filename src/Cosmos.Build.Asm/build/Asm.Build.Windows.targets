@@ -1,11 +1,28 @@
 <Project>
   <Target Name="GetYasm">
-    <Exec Command="where.exe yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true">
+    <PropertyGroup>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+    </PropertyGroup>
+
+    <!-- x64: Use YASM -->
+    <Exec Command="where.exe yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
+    </Exec>
+
+    <!-- ARM64: Use aarch64-none-elf-as or aarch64-elf-as from GCC cross-toolchain -->
+    <Exec Command="where.exe aarch64-none-elf-as" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'arm64'">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
+    </Exec>
+    <Exec Command="where.exe aarch64-elf-as" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'arm64' and '$(YasmPaths)' == ''">
       <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
     </Exec>
 
     <PropertyGroup>
       <YasmPath>$([System.String]::Copy('$(YasmPaths)').Split(';')[0].Trim())</YasmPath>
     </PropertyGroup>
+
+    <Error
+      Condition="'$(TargetArchitecture)' == 'arm64' and '$(YasmPath)' == ''"
+      Text="No ARM64 assembler found. Install aarch64-elf-tools and add to PATH." />
   </Target>
 </Project>

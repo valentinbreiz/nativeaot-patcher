@@ -1,0 +1,25 @@
+<Project>
+  <Target Name="GetYasm">
+    <PropertyGroup>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+    </PropertyGroup>
+
+    <!-- x64: Use YASM -->
+    <Exec Command="which yasm" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
+    </Exec>
+
+    <!-- ARM64: Use aarch64-elf-as from Homebrew (real GCC cross-assembler) -->
+    <Exec Command="which aarch64-elf-as" IgnoreExitCode="true" StandardOutputImportance="Low" ConsoleToMsBuild="true" Condition="'$(TargetArchitecture)' == 'arm64'">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YasmPaths" />
+    </Exec>
+
+    <PropertyGroup>
+      <YasmPath>$([System.String]::Copy('$(YasmPaths)').Split(';')[0].Trim())</YasmPath>
+    </PropertyGroup>
+
+    <Error
+      Condition="'$(TargetArchitecture)' == 'arm64' and '$(YasmPath)' == ''"
+      Text="No ARM64 assembler found. Install via: brew install aarch64-elf-binutils" />
+  </Target>
+</Project>
