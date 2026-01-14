@@ -19,10 +19,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm'))*.obj"/>
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm', '*.obj'))"/>
       <!-- GCC produced object files -->
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))*.obj"/>
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))*.o"/>
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.obj'))"/>
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.o'))"/>
     </ItemGroup>
 
     <PropertyGroup>
