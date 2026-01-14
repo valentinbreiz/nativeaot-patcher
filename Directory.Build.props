@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>3.0.29</VersionPrefix>
+    <VersionPrefix>3.0.30</VersionPrefix>
   </PropertyGroup>
 
   <!-- Normalize TargetArchitecture early so GCC targets pick the right toolchain -->
