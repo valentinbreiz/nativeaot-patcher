@@ -1,6 +1,6 @@
 <Project>
   <!-- Import architecture detection and configuration -->
-  <Import Project="Cosmos.Architecture.props" />
+  <Import Project="Cosmos.Architecture.props"/>
 
   <PropertyGroup>
     <CosmosOutputPath Condition="$(CosmosOutputPath) == ''">$([MSBuild]::NormalizePath('$(OutputPath)', 'cosmos'))</CosmosOutputPath>
@@ -19,10 +19,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm', '*.obj'))" />
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm'))*.obj"/>
       <!-- GCC produced object files -->
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.obj'))" />
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.o'))" />
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))*.obj"/>
+      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))*.o"/>
     </ItemGroup>
 
     <PropertyGroup>
@@ -37,31 +37,31 @@
     <ItemGroup>
       <!-- Arguments for ld.lld -->
       <!-- Priority: User project -> Framework architecture-specific -> Framework fallback -->
-      <LinkerArgs Include="-T $(UserLinkerScript)" Condition="Exists('$(UserLinkerScript)')" />
-      <LinkerArgs Include="-T $(FrameworkLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND Exists('$(FrameworkLinkerScript)')" />
-      <LinkerArgs Include="-T $(UserFallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND Exists('$(UserFallbackLinkerScript)')" />
-      <LinkerArgs Include="-T $(FallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND !Exists('$(UserFallbackLinkerScript)') AND Exists('$(FallbackLinkerScript)')" />
-      <LinkerArgs Include="-m $(CosmosLinkerEmulation)" />
-      <LinkerArgs Include="-nostdlib" />
-      <LinkerArgs Include="-static" />
-      <LinkerArgs Include="-z max-page-size=0x1000" />
-      <LinkerArgs Include="%(ManagedBinary.OutputFile)" />
-      <LinkerArgs Include="@(ObjFiles->'%(FullPath)')" />
-      <LinkerArgs Include="-o $(ElfBinary)" />
-      <LinkerArgs Include="--error-limit=0" />
-      <LinkerArgs Condition="$(ExportsFile) != ''" Include="--version-script &quot;$(ExportsFile)&quot;" />
+      <LinkerArgs Include="-T $(UserLinkerScript)" Condition="Exists('$(UserLinkerScript)')"/>
+      <LinkerArgs Include="-T $(FrameworkLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND Exists('$(FrameworkLinkerScript)')"/>
+      <LinkerArgs Include="-T $(UserFallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND Exists('$(UserFallbackLinkerScript)')"/>
+      <LinkerArgs Include="-T $(FallbackLinkerScript)" Condition="!Exists('$(UserLinkerScript)') AND !Exists('$(FrameworkLinkerScript)') AND !Exists('$(UserFallbackLinkerScript)') AND Exists('$(FallbackLinkerScript)')"/>
+      <LinkerArgs Include="-m $(CosmosLinkerEmulation)"/>
+      <LinkerArgs Include="-nostdlib"/>
+      <LinkerArgs Include="-static"/>
+      <LinkerArgs Include="-z max-page-size=0x1000"/>
+      <LinkerArgs Include="%(ManagedBinary.OutputFile)"/>
+      <LinkerArgs Include="@(ObjFiles->'%(FullPath)')"/>
+      <LinkerArgs Include="-o $(ElfBinary)"/>
+      <LinkerArgs Include="--error-limit=0"/>
+      <LinkerArgs Condition="$(ExportsFile) != ''" Include="--version-script &quot;$(ExportsFile)&quot;"/>
     </ItemGroup>
-    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property" />
+    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property"/>
 
-    <Exec Command="&quot;$(LdLinkerPath)&quot; @(LinkerArgs, ' ')" />
-    <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High" />
+    <Exec Command="&quot;$(LdLinkerPath)&quot; @(LinkerArgs, ' ')"/>
+    <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High"/>
   </Target>
 
   <Target Name="BuildISO" AfterTargets="LinkTarget">
-    <Message Text="🚀 Creating ISO image with Limine..." Importance="High" />
+    <Message Text="🚀 Creating ISO image with Limine..." Importance="High"/>
 
     <!-- Remove old ISO directory if it exists -->
-    <RemoveDir Directories="$(IsoRoot)" />
+    <RemoveDir Directories="$(IsoRoot)"/>
 
     <!-- Define normalized paths for Limine -->
     <PropertyGroup>
@@ -73,59 +73,59 @@
     </PropertyGroup>
 
     <!-- Create new directories for Limine and EFI boot files -->
-    <MakeDir Directories="$(IsoRootBootLimine)" />
-    <MakeDir Directories="$(IsoRootEfiBoot)" />
+    <MakeDir Directories="$(IsoRootBootLimine)"/>
+    <MakeDir Directories="$(IsoRootEfiBoot)"/>
 
     <ItemGroup>
       <!-- Includes any files under 'limine' folder -->
-      <LimineFiles Include="$(LimineDir)/**" />
+      <LimineFiles Include="$(LimineDir)/**"/>
     </ItemGroup>
 
     <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 &quot;$(LimineDir)&quot;" IgnoreExitCode="true" />
-    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang" />
+    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 &quot;$(LimineDir)&quot;" IgnoreExitCode="true"/>
+    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang"/>
 
     <!-- Copy built ELF and Limine config to ISO root -->
-    <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRootBoot)" />
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', 'Bootloader', 'limine.conf'))" DestinationFolder="$(IsoRootBootLimine)" />
+    <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRootBoot)"/>
+    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', 'Bootloader', 'limine.conf'))" DestinationFolder="$(IsoRootBootLimine)"/>
 
     <!-- Copy Limine files -->
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios.sys'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios-cd.bin'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-uefi-cd.bin'))" DestinationFolder="$(IsoRootBootLimine)" />
+    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios.sys'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios-cd.bin'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-uefi-cd.bin'))" DestinationFolder="$(IsoRootBootLimine)"/>
     <!-- Copy architecture-specific UEFI bootloader -->
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTX64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'x64'" />
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTAA64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'arm64'" />
+    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTX64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'x64'"/>
+    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTAA64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'arm64'"/>
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
-      <XorrisoArgs Include="-as mkisofs" />
-      <XorrisoArgs Include="-R" />
-      <XorrisoArgs Include="-J" />
-      <XorrisoArgs Include="-b boot/limine/limine-bios-cd.bin" />
-      <XorrisoArgs Include="-no-emul-boot" />
-      <XorrisoArgs Include="-boot-load-size 4" />
-      <XorrisoArgs Include="-boot-info-table" />
-      <XorrisoArgs Include="--efi-boot boot/limine/limine-uefi-cd.bin" />
-      <XorrisoArgs Include="-efi-boot-part" />
-      <XorrisoArgs Include="--efi-boot-image" />
-      <XorrisoArgs Include="--protective-msdos-label $(FinalIsoRoot)" />
-      <XorrisoArgs Include="-o $(IsoOutput)" />
+      <XorrisoArgs Include="-as mkisofs"/>
+      <XorrisoArgs Include="-R"/>
+      <XorrisoArgs Include="-J"/>
+      <XorrisoArgs Include="-b boot/limine/limine-bios-cd.bin"/>
+      <XorrisoArgs Include="-no-emul-boot"/>
+      <XorrisoArgs Include="-boot-load-size 4"/>
+      <XorrisoArgs Include="-boot-info-table"/>
+      <XorrisoArgs Include="--efi-boot boot/limine/limine-uefi-cd.bin"/>
+      <XorrisoArgs Include="-efi-boot-part"/>
+      <XorrisoArgs Include="--efi-boot-image"/>
+      <XorrisoArgs Include="--protective-msdos-label $(FinalIsoRoot)"/>
+      <XorrisoArgs Include="-o $(IsoOutput)"/>
     </ItemGroup>
 
     <!-- Create Output Dir -->
-    <MakeDir Directories="$(CosmosOutputPath)" />
+    <MakeDir Directories="$(CosmosOutputPath)"/>
 
     <!-- Build the ISO -->
-    <Exec Command="&quot;$(XorrisoBinary)&quot; @(XorrisoArgs, ' ')" />
+    <Exec Command="&quot;$(XorrisoBinary)&quot; @(XorrisoArgs, ' ')"/>
 
     <!-- Install Limine on the new ISO -->
-    <Exec Command="&quot;$(LimineBinary)&quot; bios-install &quot;$(IsoOutput)&quot;" />
-    <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High" />
+    <Exec Command="&quot;$(LimineBinary)&quot; bios-install &quot;$(IsoOutput)&quot;"/>
+    <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High"/>
   </Target>
 
   <Target Name="PublishISO" AfterTargets="Publish">
     <!-- Copy the ISO File to the Publish -->
-    <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)"/>
 
-    <Message Text="✅ ISO Copied to Publish Foder: $(PublishDir)" Importance="High" />
+    <Message Text="✅ ISO Copied to Publish Foder: $(PublishDir)" Importance="High"/>
   </Target>
 </Project>
