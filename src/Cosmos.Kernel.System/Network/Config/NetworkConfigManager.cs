@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.IPv4;
 

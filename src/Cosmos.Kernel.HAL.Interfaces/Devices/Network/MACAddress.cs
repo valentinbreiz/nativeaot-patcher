@@ -1,5 +1,3 @@
-using System;
-
 namespace Cosmos.Kernel.HAL.Devices.Network;
 
 public class MACAddress : IComparable

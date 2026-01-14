@@ -1,7 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
-using Cosmos.Kernel.HAL;
 
 namespace Cosmos.Kernel.HAL.X64;
 

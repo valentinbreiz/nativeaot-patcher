@@ -6,7 +6,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;

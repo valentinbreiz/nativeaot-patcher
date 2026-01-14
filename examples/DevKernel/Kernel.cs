@@ -1,7 +1,5 @@
-using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;

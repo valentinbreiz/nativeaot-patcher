@@ -1,7 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.HAL2/PS2Controller.cs
 
-using System;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices;

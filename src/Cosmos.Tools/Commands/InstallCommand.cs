@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text.Json;
 using Cosmos.Tools.Platform;
 using Spectre.Console;

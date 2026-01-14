@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Cosmos.Kernel.Core.Scheduler.Stride;
 
 /// <summary>

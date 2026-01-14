@@ -1,4 +1,3 @@
-using System.Linq;
 using Cosmos.Patcher.Debug;
 using Cosmos.Patcher.IL;
 using Cosmos.Patcher.Logging;

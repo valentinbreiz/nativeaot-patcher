@@ -1,4 +1,3 @@
-using System.Linq;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;

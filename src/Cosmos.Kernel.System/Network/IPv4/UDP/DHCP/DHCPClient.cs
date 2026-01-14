@@ -6,11 +6,9 @@
 *                   Port of Cosmos Code.
 */
 
-using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.Config;
-using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 

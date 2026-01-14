@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cosmos.Build.API.Attributes;
 using Cosmos.Build.API.Enum;
 using Cosmos.Patcher.Debug;
 using Cosmos.Patcher.Extensions;
@@ -9,7 +5,6 @@ using Cosmos.Patcher.Logging;
 using Cosmos.Patcher.Patching;
 using Cosmos.Patcher.Resolution;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 
 namespace Cosmos.Patcher;
 

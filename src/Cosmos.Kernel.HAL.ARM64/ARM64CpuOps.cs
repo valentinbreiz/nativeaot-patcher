@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.HAL.Interfaces;
 

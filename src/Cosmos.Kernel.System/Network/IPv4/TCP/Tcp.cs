@@ -5,7 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Network.Config;
 

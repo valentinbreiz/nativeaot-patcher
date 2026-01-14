@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;

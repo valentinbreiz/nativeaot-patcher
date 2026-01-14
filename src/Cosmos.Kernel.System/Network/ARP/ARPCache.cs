@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Cosmos.Kernel.HAL.Devices.Network;
+﻿using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.ARP;

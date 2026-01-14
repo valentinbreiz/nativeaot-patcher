@@ -1,11 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory.Heap;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.X64.Cpu.Data;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;

@@ -5,7 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.Config;

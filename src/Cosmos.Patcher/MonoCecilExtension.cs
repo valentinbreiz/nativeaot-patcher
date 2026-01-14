@@ -1,8 +1,4 @@
 ﻿#if (UNITY_2017_1_OR_NEWER && UNITY_EDITOR) || !UNITY_2017_1_OR_NEWER
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;

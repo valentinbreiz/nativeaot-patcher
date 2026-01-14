@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Cosmos.Build.Patcher.Logging;
 using Cosmos.Patcher;
 using Microsoft.Build.Framework;

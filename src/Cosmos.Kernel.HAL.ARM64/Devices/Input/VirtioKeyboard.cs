@@ -8,7 +8,6 @@ using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 

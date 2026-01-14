@@ -1,7 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyboardManager.cs
 
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 
