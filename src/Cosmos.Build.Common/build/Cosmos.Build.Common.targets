@@ -16,13 +16,15 @@
     <!-- Define paths used for linking and ISO creation -->
     <PropertyGroup>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)', '$(AssemblyName).elf'))</ElfBinary>
+      <AsmObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm'))</AsmObjDir>
+      <CObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))</CObjDir>
     </PropertyGroup>
 
     <ItemGroup>
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm', '*.obj'))"/>
+      <ObjFiles Include="$(AsmObjDir)/*.obj"/>
       <!-- GCC produced object files -->
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.obj'))"/>
-      <ObjFiles Include="$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj', '*.o'))"/>
+      <ObjFiles Include="$(CObjDir)/*.obj"/>
+      <ObjFiles Include="$(CObjDir)/*.o"/>
     </ItemGroup>
 
     <PropertyGroup>
