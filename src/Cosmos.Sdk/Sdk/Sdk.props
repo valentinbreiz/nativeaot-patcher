@@ -28,6 +28,11 @@
     <CosmosDefaultFont Condition="$(CosmosDefaultFont) == '' and $(UnRootGraphics) != 'true'">Cosmos.Kernel.Graphics.Fonts.DefaultFont.psf</CosmosDefaultFont>
   </PropertyGroup>
 
+  <!-- Cosmos Feature Switches (defaults) -->
+  <PropertyGroup>
+    <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
+  </PropertyGroup>
+
   <!-- Default kernel class name - inferred from RootNamespace or AssemblyName -->
   <PropertyGroup>
     <CosmosKernelClass Condition="'$(CosmosKernelClass)' == '' AND '$(RootNamespace)' != ''">$(RootNamespace).Kernel</CosmosKernelClass>
@@ -61,6 +66,8 @@
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
     <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
     <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
+    <!-- Cosmos Feature Switch: Keyboard -->
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
     <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.HAL.ARM64"/>
