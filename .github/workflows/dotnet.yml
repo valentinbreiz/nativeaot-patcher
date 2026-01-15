@@ -190,9 +190,6 @@ jobs:
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
-
       - name: Build ISO for ${{ matrix.arch }}
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
@@ -253,9 +250,6 @@ jobs:
           
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
       - name: Build ISO for ${{ matrix.arch }}
         shell: pwsh
@@ -322,9 +316,6 @@ jobs:
 
       - name: 🔧 Install ilc
         run: dotnet tool install -g ilc --add-source ./artifacts/package/release
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
 
       - name: Build ISO for ${{ matrix.arch }}
         run: |
