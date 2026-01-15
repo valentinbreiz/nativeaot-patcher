@@ -24,4 +24,12 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.System.Network.Enabled")]
     public static bool NetworkEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.System.Network.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls scheduler/threading support initialization.
+    /// Set via CosmosEnableScheduler property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.Scheduler.Enabled")]
+    public static bool SchedulerEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.Scheduler.Enabled", out bool enabled) ? enabled : true;
 }

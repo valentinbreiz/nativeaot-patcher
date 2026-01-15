@@ -6,7 +6,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <CosmosEnableKeyboard>true</CosmosEnableKeyboard>
-    <CosmosEnableNetwork>false</CosmosEnableNetwork>
+    <CosmosEnableNetwork>true</CosmosEnableNetwork>
+    <CosmosEnableScheduler>false</CosmosEnableScheduler>
   </PropertyGroup>
 
   <!-- Core kernel packages (using project references for development) -->
