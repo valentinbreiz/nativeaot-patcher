@@ -548,6 +548,42 @@ public static unsafe partial class ExceptionHelper
             Serial.WriteNumber(frame.ReturnAddress);
             Serial.WriteString("\n");
 
+            // Update REGDISPLAY from current UnwindState for filter evaluation
+            if (pThrowContext != null)
+            {
+                pRegDisplay = &regDisplay;
+#if ARCH_X64
+                regDisplay.Rbx = unwindState.RBX;
+                regDisplay.Rbp = frame.FramePointer;
+                regDisplay.R12 = unwindState.R12;
+                regDisplay.R13 = unwindState.R13;
+                regDisplay.R14 = unwindState.R14;
+                regDisplay.R15 = unwindState.R15;
+                regDisplay.SP = frame.FramePointer;
+
+                regDisplay.pRbx = &pRegDisplay->Rbx;
+                regDisplay.pRbp = &pRegDisplay->Rbp;
+                regDisplay.pR12 = &pRegDisplay->R12;
+                regDisplay.pR13 = &pRegDisplay->R13;
+                regDisplay.pR14 = &pRegDisplay->R14;
+                regDisplay.pR15 = &pRegDisplay->R15;
+#elif ARCH_ARM64
+                regDisplay.SP = frame.FramePointer;
+                regDisplay.FP = frame.FramePointer;
+                regDisplay.X19 = unwindState.X19;
+                regDisplay.X20 = unwindState.X20;
+                regDisplay.X21 = unwindState.X21;
+                regDisplay.X22 = unwindState.X22;
+                regDisplay.X23 = unwindState.X23;
+                regDisplay.X24 = unwindState.X24;
+                regDisplay.X25 = unwindState.X25;
+                regDisplay.X26 = unwindState.X26;
+                regDisplay.X27 = unwindState.X27;
+                regDisplay.X28 = unwindState.X28;
+                regDisplay.LR = unwindState.LR;
+#endif
+            }
+
             // Check if this frame has an exception handler for our exception
             if (TryFindHandler(ex, frame.ReturnAddress, out EHClause clause, pRegDisplay))
             {

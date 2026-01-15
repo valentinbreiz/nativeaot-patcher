@@ -12,7 +12,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-        TR.Start("TypeCasting Tests", expectedTests: 15);
+        TR.Start("TypeCasting Tests", expectedTests: 16);
 
         // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
         TR.Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);
@@ -48,6 +48,7 @@ public class Kernel : Sys.Kernel
         TR.Run("TryCatch_Filter_When", TestTryCatchFilterWhen);
         TR.Run("TryCatch_Filter_WhenFalse", TestTryCatchFilterWhenFalse);
         TR.Run("TryFinally", TestTryFinally);
+        TR.Run("FilterAndCatchResume", TestFilterAndCatchResume);
 
         Serial.WriteString("[TypeCasting Tests] All tests completed\n");
         TR.Finish();
@@ -294,6 +295,34 @@ public class Kernel : Sys.Kernel
         }
 
         Assert.True(finallyExecuted, "Finally block should always execute");
+    }
+
+    private static void TestFilterAndCatchResume()
+    {
+        bool filterRan = false;
+        bool catchRan = false;
+        bool resumed = false;
+
+        try
+        {
+            throw new Exception("FilterTest");
+        }
+        catch (Exception) when (RunFilter(ref filterRan))
+        {
+            catchRan = true;
+        }
+
+        resumed = true;
+        
+        Assert.True(filterRan, "Filter should have run");
+        Assert.True(catchRan, "Catch should have run");
+        Assert.True(resumed, "Execution should resume after catch");
+    }
+
+    private static bool RunFilter(ref bool flag)
+    {
+        flag = true;
+        return true;
     }
 }
 
