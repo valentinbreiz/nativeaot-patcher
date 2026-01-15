@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpCompress" />
     <PackageReference Include="Spectre.Console.Cli" />
   </ItemGroup>
 

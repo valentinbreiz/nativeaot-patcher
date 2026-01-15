@@ -74,7 +74,7 @@ public static class ToolDefinitions
         Commands = ["xorriso"],
         VersionArg = "--version",
         Required = true,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases" },
+        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe" },
         LinuxInstall = new() { Method = "package", AptPackages = ["xorriso"], DnfPackages = ["xorriso"], PacmanPackages = ["libisoburn"] },
         MacOSInstall = new() { Method = "package", BrewPackages = ["xorriso"] }
     };
@@ -104,8 +104,8 @@ public static class ToolDefinitions
         Architectures = ["x64"],
         IsCrossCompiler = true,
         WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip" },
-        LinuxInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases", ManualInstructions = "Download and extract to ~/.cosmos/tools/" },
-        MacOSInstall = new() { Method = "package", BrewPackages = ["x86_64-elf-gcc"] }
+        LinuxInstall = new() { Method = "package", AptPackages = ["gcc", "binutils"], DnfPackages = ["gcc", "binutils"], PacmanPackages = ["gcc", "binutils"] },
+        MacOSInstall = new() { Method = "package", BrewPackages = ["x86_64-elf-gcc", "x86_64-elf-binutils"] }
     };
 
     public static readonly ToolDefinition Aarch64ElfGcc = new()
@@ -118,9 +118,9 @@ public static class ToolDefinitions
         Required = true,
         Architectures = ["arm64"],
         IsCrossCompiler = true,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases" },
+        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z" },
         LinuxInstall = new() { Method = "package", AptPackages = ["gcc-aarch64-linux-gnu", "binutils-aarch64-linux-gnu"], DnfPackages = ["gcc-aarch64-linux-gnu", "binutils-aarch64-linux-gnu"], PacmanPackages = ["aarch64-linux-gnu-gcc"] },
-        MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-gcc"] }
+        MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-gcc", "aarch64-elf-binutils"] }
     };
 
     public static readonly ToolDefinition Aarch64ElfAs = new()
@@ -133,7 +133,7 @@ public static class ToolDefinitions
         Required = true,
         Architectures = ["arm64"],
         IsCrossCompiler = true,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases" },
+        WindowsInstall = new() { Method = "manual", ManualInstructions = "Installed with ARM64 Cross Compiler" },
         LinuxInstall = new() { Method = "package", AptPackages = ["binutils-aarch64-linux-gnu"], DnfPackages = ["binutils-aarch64-linux-gnu"], PacmanPackages = ["aarch64-linux-gnu-binutils"] },
         MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-binutils"] }
     };

@@ -39,6 +39,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
     <PackageVersion Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="10.0.0-preview.2.25163.2" />
+    <PackageVersion Include="SharpCompress" Version="0.44.0" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.51.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />

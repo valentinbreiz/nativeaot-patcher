@@ -2,6 +2,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
 using Cosmos.Tools.Platform;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -292,7 +294,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             AnsiConsole.Markup($"  Downloading {vsixName}... ");
             byte[] vsixBytes = await httpClient.GetByteArrayAsync(vsixUrl);
 
-            string tempPath = Path.Combine(Path.GetTempPath(), vsixName);
+            string tempPath = Path.Combine(Path.GetTempPath(), vsixName!);
             await File.WriteAllBytesAsync(tempPath, vsixBytes);
             AnsiConsole.MarkupLine("[green]OK[/]");
 
@@ -529,17 +531,116 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         string toolsPath = ToolChecker.GetCosmosToolsPath();
         Directory.CreateDirectory(toolsPath);
 
-        AnsiConsole.MarkupLine($"  [cyan]Download from: {info.DownloadUrl}[/]");
-        AnsiConsole.MarkupLine($"  [cyan]Extract to: {toolsPath}[/]");
-        AnsiConsole.WriteLine();
+        // Determine destination folder (avoid cluttering root tools folder)
+        // For simple exes like xorriso, we can put them in a 'bin' or 'xorriso' folder
+        // For archives, we usually extract to a folder named after the tool
+        string installDir = Path.Combine(toolsPath, tool.Name);
+        Directory.CreateDirectory(installDir);
 
-        AnsiConsole.MarkupLine("  [yellow]Automatic download not yet implemented.[/]");
-        AnsiConsole.MarkupLine("  [yellow]Please download and extract manually:[/]");
-        AnsiConsole.MarkupLine($"    1. Download from: {info.DownloadUrl}");
-        AnsiConsole.MarkupLine($"    2. Extract to: {toolsPath}");
-        AnsiConsole.MarkupLine($"    3. Add to PATH: export PATH=\"{toolsPath}/bin:$PATH\"");
+        string fileName = Path.GetFileName(new Uri(info.DownloadUrl).LocalPath);
+        string tempFile = Path.Combine(Path.GetTempPath(), fileName);
 
-        await Task.CompletedTask;
+        try
+        {
+            using var client = new HttpClient();
+            AnsiConsole.Markup($"  Fetching {fileName}... ");
+            var data = await client.GetByteArrayAsync(info.DownloadUrl);
+            await File.WriteAllBytesAsync(tempFile, data);
+            AnsiConsole.MarkupLine("[green]OK[/]");
+
+            AnsiConsole.Markup("  Installing... ");
+
+            if (fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                // Just copy the exe
+                string destFile = Path.Combine(installDir, fileName);
+                File.Copy(tempFile, destFile, true);
+                
+                // Add to PATH
+                await AddToPathAsync(installDir);
+            }
+            else if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || 
+                     fileName.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) ||
+                     fileName.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract
+                using var stream = File.OpenRead(tempFile);
+                using var archive = SharpCompress.Archives.ArchiveFactory.Open(stream);
+                
+                foreach (var entry in archive.Entries)
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        entry.WriteToDirectory(installDir, new SharpCompress.Common.ExtractionOptions 
+                        {
+                            ExtractFullPath = true,
+                            Overwrite = true
+                        });
+                    }
+                }
+                
+                // Find 'bin' directory if it exists, otherwise use installDir
+                string binPath = installDir;
+                string[] subDirs = Directory.GetDirectories(installDir, "bin", SearchOption.AllDirectories);
+                if (subDirs.Length > 0)
+                {
+                    // Use the first bin folder found (common in gcc toolchains)
+                    binPath = subDirs[0]; 
+                }
+                
+                await AddToPathAsync(binPath);
+            }
+
+            AnsiConsole.MarkupLine("[green]OK[/]");
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine("[red]FAILED[/]");
+            AnsiConsole.MarkupLine($"  [red]Error: {Markup.Escape(ex.Message)}[/]");
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
+    }
+
+    private static async Task AddToPathAsync(string path)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            string? currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User);
+            if (currentPath == null || !currentPath.Split(';').Contains(path, StringComparer.OrdinalIgnoreCase))
+            {
+                string newPath = string.IsNullOrEmpty(currentPath) ? path : currentPath + ";" + path;
+                Environment.SetEnvironmentVariable("PATH", newPath, EnvironmentVariableTarget.User);
+                AnsiConsole.MarkupLine($"  [dim]Added {path} to User PATH[/]");
+            }
+        }
+        else
+        {
+            // Linux/macOS
+            string shell = Environment.GetEnvironmentVariable("SHELL") ?? "/bin/bash";
+            string rcFile = shell.EndsWith("zsh") ? ".zshrc" : ".bashrc";
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string rcPath = Path.Combine(home, rcFile);
+            
+            string exportCmd = $"export PATH=\"{path}:$PATH\"";
+            
+            if (File.Exists(rcPath))
+            {
+                string content = await File.ReadAllTextAsync(rcPath);
+                if (!content.Contains(path))
+                {
+                    await File.AppendAllTextAsync(rcPath, $"\n# Cosmos Tools\n{exportCmd}\n");
+                    AnsiConsole.MarkupLine($"  [dim]Added to {rcFile}. Please restart shell.[/]");
+                }
+            }
+            else
+            {
+                 AnsiConsole.MarkupLine($"  [yellow]Could not find shell config file. Please add this manually:[/]");
+                 AnsiConsole.MarkupLine($"  [cyan]{exportCmd}[/]");
+            }
+        }
     }
 
     private static void PrintManualInstruction(ToolDefinition tool, InstallInfo? info = null)
