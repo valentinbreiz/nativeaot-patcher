@@ -105,11 +105,14 @@ public class Kernel
 
         // Initialize Network Manager and register platform network device
         Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
-        NetworkManager.Initialize();
-        var networkDevice = initializer.GetNetworkDevice();
-        if (networkDevice != null)
+        if (NetworkManager.IsEnabled)
         {
-            NetworkManager.RegisterDevice(networkDevice);
+            NetworkManager.Initialize();
+            var networkDevice = initializer.GetNetworkDevice();
+            if (networkDevice != null)
+            {
+                NetworkManager.RegisterDevice(networkDevice);
+            }
         }
 
         // Start scheduler timer for preemptive scheduling (after all init is complete)

@@ -16,4 +16,12 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.System.Input.Keyboard.Enabled")]
     public static bool KeyboardEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.System.Input.Keyboard.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls network support initialization.
+    /// Set via CosmosEnableNetwork property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Network.Enabled")]
+    public static bool NetworkEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Network.Enabled", out bool enabled) ? enabled : true;
 }

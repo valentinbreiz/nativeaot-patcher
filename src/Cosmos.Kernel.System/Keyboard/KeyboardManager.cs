@@ -57,12 +57,20 @@ public static class KeyboardManager
     /// </summary>
     public static bool KeyAvailable => _queuedKeys != null && _queuedKeys.Count > 0;
 
+    private static void ThrowIfDisabled()
+    {
+        if (!IsEnabled)
+            throw new InvalidOperationException("Keyboard support is disabled. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+    }
+
     /// <summary>
     /// Initializes the keyboard manager.
     /// Call RegisterKeyboard() after this to add keyboards.
     /// </summary>
     public static void Initialize()
     {
+        ThrowIfDisabled();
+
         if (_initialized)
             return;
 
@@ -182,6 +190,8 @@ public static class KeyboardManager
     /// </summary>
     public static bool TryReadKey(out KeyEvent? key)
     {
+        ThrowIfDisabled();
+
         if (_queuedKeys != null && _queuedKeys.Count > 0)
         {
             key = _queuedKeys.Dequeue();
@@ -199,6 +209,8 @@ public static class KeyboardManager
     /// </summary>
     public static KeyEvent ReadKey()
     {
+        ThrowIfDisabled();
+
         if (!_readKeyEntered)
         {
             _readKeyEntered = true;

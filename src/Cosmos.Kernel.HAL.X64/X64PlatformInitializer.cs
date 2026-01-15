@@ -71,18 +71,21 @@ public class X64PlatformInitializer : IPlatformInitializer
             _ps2Controller.Initialize();
         }
 
-        // Try to find E1000E network device
-        Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");
-        _networkDevice = E1000E.FindAndCreate();
-        if (_networkDevice != null)
+        // Try to find E1000E network device (if network feature enabled)
+        if (CosmosFeatures.NetworkEnabled)
         {
-            Serial.WriteString("[X64HAL] E1000E device found, initializing...\n");
-            _networkDevice.InitializeNetwork();
-            _networkDevice.RegisterIRQHandler();
-        }
-        else
-        {
-            Serial.WriteString("[X64HAL] No E1000E device found\n");
+            Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");
+            _networkDevice = E1000E.FindAndCreate();
+            if (_networkDevice != null)
+            {
+                Serial.WriteString("[X64HAL] E1000E device found, initializing...\n");
+                _networkDevice.InitializeNetwork();
+                _networkDevice.RegisterIRQHandler();
+            }
+            else
+            {
+                Serial.WriteString("[X64HAL] No E1000E device found\n");
+            }
         }
     }
 
