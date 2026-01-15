@@ -56,8 +56,6 @@ namespace Cosmos.Kernel.Core.Runtime
         /// </remarks>
         public static unsafe string GetMethodNameFromStartAddressIfAvailable(nuint methodStart, out bool isStackTraceHidden)
         {
-            // TODO: Fix or Plug Arrat.Sort<T>(T[] Array) in PerModuleMethodNameResolver.PopulateRvaToTokenMap, it is causing page faults.
-            // return GetMethodNameFromStartAddressIfAvailable(null, (IntPtr)methodStart, out bool isStackTraceHidden);
             s_resolverCache ??= new PerModuleMethodNameResolverCache();
 
             int rva = (int)(methodStart - (nuint)ModuleHelpers.OsModule);
@@ -69,8 +67,19 @@ namespace Cosmos.Kernel.Core.Runtime
 
                     if (resolver.TryGetStackTraceData(rva, out var stackTraceData))
                     {
+                        // Validate handles before calling FormatMethodName to avoid BadImageFormatException
+                        // during exception handling (which would cause recursive exception detection)
+                        if (resolver.Reader == null ||
+                            stackTraceData.OwningType.IsNil ||
+                            stackTraceData.Name.IsNil ||
+                            stackTraceData.Signature.IsNil)
+                        {
+                            isStackTraceHidden = false;
+                            return string.Empty;
+                        }
+
                         isStackTraceHidden = stackTraceData.IsHidden;
-                        return MethodNameFormatter.FormatMethodName(resolver.Reader!, stackTraceData.OwningType, stackTraceData.Name, stackTraceData.Signature, stackTraceData.GenericArguments);
+                        return MethodNameFormatter.FormatMethodName(resolver.Reader, stackTraceData.OwningType, stackTraceData.Name, stackTraceData.Signature, stackTraceData.GenericArguments);
                     }
                 }
             }
@@ -192,8 +201,28 @@ namespace Cosmos.Kernel.Core.Runtime
                         => address + *(int*)address;
                 }
 
-                Array.Sort(_stacktraceDatas, new Comparison<StackTraceData>((a, b) => a.CompareTo(b)));
-                //Array.Sort(_stacktraceDatas);
+                // Use simple insertion sort instead of Array.Sort
+                // Array.Sort uses IntroSort which is recursive and causes page faults in kernel
+                InsertionSort(_stacktraceDatas, current);
+            }
+
+            /// <summary>
+            /// Simple insertion sort - iterative, no allocations, safe for kernel use
+            /// </summary>
+            private static void InsertionSort(StackTraceData[] array, int count)
+            {
+                for (int i = 1; i < count; i++)
+                {
+                    var key = array[i];
+                    int j = i - 1;
+
+                    while (j >= 0 && array[j].Rva > key.Rva)
+                    {
+                        array[j + 1] = array[j];
+                        j--;
+                    }
+                    array[j + 1] = key;
+                }
             }
 
             /// <summary>
