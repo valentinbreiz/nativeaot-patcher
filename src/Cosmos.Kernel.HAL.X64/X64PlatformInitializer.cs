@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
@@ -62,23 +63,29 @@ public class X64PlatformInitializer : IPlatformInitializer
         _pit.Initialize();
         _pit.RegisterIRQHandler();
 
-        // Initialize PS/2 Controller
-        Serial.WriteString("[X64HAL] Initializing PS/2 controller...\n");
-        _ps2Controller = new PS2Controller();
-        _ps2Controller.Initialize();
-
-        // Try to find E1000E network device
-        Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");
-        _networkDevice = E1000E.FindAndCreate();
-        if (_networkDevice != null)
+        // Initialize PS/2 Controller (if keyboard feature enabled)
+        if (CosmosFeatures.KeyboardEnabled)
         {
-            Serial.WriteString("[X64HAL] E1000E device found, initializing...\n");
-            _networkDevice.InitializeNetwork();
-            _networkDevice.RegisterIRQHandler();
+            Serial.WriteString("[X64HAL] Initializing PS/2 controller...\n");
+            _ps2Controller = new PS2Controller();
+            _ps2Controller.Initialize();
         }
-        else
+
+        // Try to find E1000E network device (if network feature enabled)
+        if (CosmosFeatures.NetworkEnabled)
         {
-            Serial.WriteString("[X64HAL] No E1000E device found\n");
+            Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");
+            _networkDevice = E1000E.FindAndCreate();
+            if (_networkDevice != null)
+            {
+                Serial.WriteString("[X64HAL] E1000E device found, initializing...\n");
+                _networkDevice.InitializeNetwork();
+                _networkDevice.RegisterIRQHandler();
+            }
+            else
+            {
+                Serial.WriteString("[X64HAL] No E1000E device found\n");
+            }
         }
     }
 

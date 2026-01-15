@@ -1,5 +1,6 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.System.Keyboard;
 
@@ -11,6 +12,12 @@ public class ConsolePlug
     // Track the start position for current input line (for proper backspace/delete handling)
     private static int _inputStartX;
     private static int _inputStartY;
+
+    private static void ThrowIfKeyboardDisabled()
+    {
+        if (!CosmosFeatures.KeyboardEnabled)
+            throw new InvalidOperationException("Console input requires keyboard support. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+    }
 
     [PlugMember]
     public static void Write(string value) => KernelConsole.Write(value);
@@ -129,7 +136,11 @@ public class ConsolePlug
     }
 
     [PlugMember]
-    public static bool get_KeyAvailable() => KeyboardManager.KeyAvailable;
+    public static bool get_KeyAvailable()
+    {
+        ThrowIfKeyboardDisabled();
+        return KeyboardManager.KeyAvailable;
+    }
 
     [PlugMember]
     public static ConsoleKeyInfo ReadKey() => ReadKey(false);
@@ -137,6 +148,8 @@ public class ConsolePlug
     [PlugMember]
     public static ConsoleKeyInfo ReadKey(bool intercept)
     {
+        ThrowIfKeyboardDisabled();
+
         var keyEvent = KeyboardManager.ReadKey();
 
         if (!intercept && keyEvent.KeyChar != '\0')
@@ -150,6 +163,8 @@ public class ConsolePlug
     [PlugMember]
     public static string? ReadLine()
     {
+        ThrowIfKeyboardDisabled();
+
         var sb = new StringBuilder();
 
         // Track cursor position within input string

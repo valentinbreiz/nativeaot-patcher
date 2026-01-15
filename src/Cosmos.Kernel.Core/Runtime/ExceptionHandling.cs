@@ -216,10 +216,19 @@ public static unsafe partial class ExceptionHelper
         // Set guard
         s_isHandlingException = true;
 
-        // Print exception info - AVOID complex operations that could cause faults
+        // Print exception info
         Serial.WriteString("\n=== DOTNET EXCEPTION THROWN ===\n");
 
-        // Only print basic info - avoid GetType() and Message as they may allocate or cause faults
+        // Print message first (before stack walk which may crash)
+        // Avoid GetType().Name as it causes heap allocations
+        string? msg = ex.Message;
+        if (msg != null)
+        {
+            Serial.WriteString("Message: ");
+            Serial.WriteString(msg);
+            Serial.WriteString("\n");
+        }
+
         Serial.WriteString("Exception at 0x");
         Serial.WriteNumber(throwAddress);
         Serial.WriteString("\n");

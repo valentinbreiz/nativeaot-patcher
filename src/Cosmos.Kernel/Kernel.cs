@@ -85,33 +85,45 @@ public class Kernel
         TimerManager.RegisterTimer(timer);
 
         // Initialize Scheduler
-        Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
-        InitializeScheduler(initializer.GetCpuCount());
+        if (SchedulerManager.IsEnabled)
+        {
+            Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
+            InitializeScheduler(initializer.GetCpuCount());
+        }
 
         // Disable interrupts during device initialization
         InternalCpu.DisableInterrupts();
 
         // Initialize Keyboard Manager and register platform keyboards
-        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
-        KeyboardManager.Initialize();
-        var keyboards = initializer.GetKeyboardDevices();
-        foreach (var keyboard in keyboards)
+        if (KeyboardManager.IsEnabled)
         {
-            KeyboardManager.RegisterKeyboard(keyboard);
+            Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+            KeyboardManager.Initialize();
+            var keyboards = initializer.GetKeyboardDevices();
+            foreach (var keyboard in keyboards)
+            {
+                KeyboardManager.RegisterKeyboard(keyboard);
+            }
         }
 
         // Initialize Network Manager and register platform network device
-        Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
-        NetworkManager.Initialize();
-        var networkDevice = initializer.GetNetworkDevice();
-        if (networkDevice != null)
+        if (NetworkManager.IsEnabled)
         {
-            NetworkManager.RegisterDevice(networkDevice);
+            Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
+            NetworkManager.Initialize();
+            var networkDevice = initializer.GetNetworkDevice();
+            if (networkDevice != null)
+            {
+                NetworkManager.RegisterDevice(networkDevice);
+            }
         }
 
         // Start scheduler timer for preemptive scheduling (after all init is complete)
-        Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
-        initializer.StartSchedulerTimer(10);  // 10ms quantum
+        if (SchedulerManager.IsEnabled)
+        {
+            Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
+            initializer.StartSchedulerTimer(10);  // 10ms quantum
+        }
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }

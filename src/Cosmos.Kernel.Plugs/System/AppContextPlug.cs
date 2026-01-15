@@ -78,10 +78,9 @@ public static partial class AppContextPlug
     public static object? GetData(string name)
     {
         EnsureInitialized();
-        Serial.WriteString("Getting Data!\n");
 
         dataStore!.TryGetValue(name, out object? data);
-        Serial.WriteString((string)data);
+
         return data;
     }
     [PlugMember]
