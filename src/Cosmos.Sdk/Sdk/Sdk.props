@@ -106,11 +106,11 @@
 
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Build.Common" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.30" />
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.31" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Build.Common" />
@@ -122,10 +122,10 @@
 
   <!-- Both arch packages installed; RuntimeIdentifier selects at build time -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.30" />
-    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.30" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.31" />
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.31" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" />

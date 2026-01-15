@@ -1,3 +1,4 @@
+using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
@@ -27,7 +28,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
+        Console.WriteLine("         CosmosOS 3.0.31 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
@@ -51,106 +52,119 @@ public class Kernel : Sys.Kernel
         Console.Write("$ ");
         Console.ResetColor();
 
-        string? input = Console.ReadLine();
-
-        if (string.IsNullOrEmpty(input))
-            return;
-
-        string trimmed = input.Trim();
-        string[] parts = trimmed.Split(' ');
-        string cmd = parts[0].ToLower();
-
-        switch (cmd)
+        try
         {
-            case "help":
-                PrintHelp();
-                break;
+            string? input = Console.ReadLine();
 
-            case "clear":
-            case "cls":
-                Console.Clear();
-                break;
+            if (string.IsNullOrEmpty(input))
+                return;
 
-            case "echo":
-                if (parts.Length > 1)
-                    Console.WriteLine(trimmed.Substring(5));
-                break;
+            string trimmed = input.Trim();
+            string[] parts = trimmed.Split(' ');
+            string cmd = parts[0].ToLower();
 
-            case "info":
-            case "sysinfo":
-                PrintSystemInfo();
-                break;
+            switch (cmd)
+            {
+                case "help":
+                    PrintHelp();
+                    break;
 
-            case "timer":
-                RunTimerTest();
-                break;
+                case "clear":
+                case "cls":
+                    Console.Clear();
+                    break;
 
-            case "schedinfo":
-                ShowSchedulerInfo();
-                break;
+                case "echo":
+                    if (parts.Length > 1)
+                        Console.WriteLine(trimmed.Substring(5));
+                    break;
 
-            case "thread":
-                TestThread();
-                break;
+                case "info":
+                case "sysinfo":
+                    PrintSystemInfo();
+                    break;
 
-            case "gfx":
-                StartGraphicsThread();
-                break;
+                case "timer":
+                    RunTimerTest();
+                    break;
 
-            case "kill":
-                if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
-                    KillThread(killId);
-                else
-                    PrintError("Usage: kill <thread_id>");
-                break;
+                case "schedinfo":
+                    ShowSchedulerInfo();
+                    break;
 
-            case "halt":
-            case "shutdown":
-                PrintWarning("Halting system...");
-                Stop();
-                break;
+                case "thread":
+                    TestThread();
+                    break;
 
-#if ARCH_X64
-            case "netconfig":
-                ConfigureNetwork();
-                break;
+                case "gfx":
+                    StartGraphicsThread();
+                    break;
 
-            case "netinfo":
-                ShowNetworkInfo();
-                break;
+                case "kill":
+                    if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                        KillThread(killId);
+                    else
+                        PrintError("Usage: kill <thread_id>");
+                    break;
 
-            case "netsend":
-                SendTestPacket();
-                break;
+                case "halt":
+                case "shutdown":
+                    PrintWarning("Halting system...");
+                    Stop();
+                    break;
 
-            case "netlisten":
-                StartListening();
-                break;
+    #if ARCH_X64
+                case "netconfig":
+                    ConfigureNetwork();
+                    break;
 
-            case "dhcp":
-                RunDHCP();
-                break;
+                case "netinfo":
+                    ShowNetworkInfo();
+                    break;
 
-            case "dns":
-                if (parts.Length > 1)
-                    ResolveDNS(parts[1]);
-                else
-                    PrintError("Usage: dns <domain>");
-                break;
+                case "netsend":
+                    SendTestPacket();
+                    break;
 
-#endif
+                case "netlisten":
+                    StartListening();
+                    break;
+
+                case "dhcp":
+                    RunDHCP();
+                    break;
+
+                case "dns":
+                    if (parts.Length > 1)
+                        ResolveDNS(parts[1]);
+                    else
+                        PrintError("Usage: dns <domain>");
+                    break;
+
+    #endif
 
 
-            case "meminfo":
-                ShowMemoryInfo();
-                break;
+                case "meminfo":
+                    ShowMemoryInfo();
+                    break;
 
-            default:
-                PrintError($"\"{cmd}\" is not a command");
-                Console.WriteLine("Type 'help' for available commands.");
-                break;
+                default:
+                    PrintError($"\"{cmd}\" is not a command");
+                    Console.WriteLine("Type 'help' for available commands.");
+                    break;
+            }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        Console.WriteLine("Outside catch");
+
+        while(true);
+
     }
+
 
     protected override void AfterRun()
     {
@@ -199,7 +213,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.0 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.31 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
@@ -771,7 +785,7 @@ public class Kernel : Sys.Kernel
         dnsClient.SendAsk(domain);
 
         // Wait for response (5 second timeout)
-        Address resolvedIP = dnsClient.Receive(5000);
+        Address? resolvedIP = dnsClient.Receive(5000);
 
         if (resolvedIP != null && resolvedIP.Hash != 0)
         {
