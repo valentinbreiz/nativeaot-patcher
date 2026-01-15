@@ -93,11 +93,14 @@ public class Kernel
 
         // Initialize Keyboard Manager and register platform keyboards
         Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
-        KeyboardManager.Initialize();
-        var keyboards = initializer.GetKeyboardDevices();
-        foreach (var keyboard in keyboards)
+        if (KeyboardManager.IsEnabled)
         {
-            KeyboardManager.RegisterKeyboard(keyboard);
+            KeyboardManager.Initialize();
+            var keyboards = initializer.GetKeyboardDevices();
+            foreach (var keyboard in keyboards)
+            {
+                KeyboardManager.RegisterKeyboard(keyboard);
+            }
         }
 
         // Initialize Network Manager and register platform network device
