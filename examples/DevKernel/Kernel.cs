@@ -156,7 +156,13 @@ public class Kernel : Sys.Kernel
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            // Use Serial instead of Console to avoid OOM from threading initialization
+            Serial.WriteString("[CATCH] Exception caught: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+
+            // Call Stop() to signal the main loop to exit
+            Serial.WriteString("[CATCH] Calling Stop()...\n");
             Stop();
         }
     }
@@ -166,7 +172,6 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[DevKernel] AfterRun() called\n");
         Console.WriteLine("Goodbye!");
-        Cosmos.Kernel.Kernel.Halt();
     }
 
     private void PrintHelp()

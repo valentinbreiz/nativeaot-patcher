@@ -42,11 +42,21 @@ public abstract class Kernel
         Serial.WriteString("[Kernel] Entering main loop...\n");
         while (!mStopped)
         {
+            Serial.WriteString("[Kernel] Calling Run()...\n");
             Run();
+            Serial.WriteString("[Kernel] Run() returned\n");
         }
 
         Serial.WriteString("[Kernel] Main loop exited, calling AfterRun()...\n");
         AfterRun();
+
+        // Halt the CPU to prevent returning to NativeAOT shutdown sequence
+        // The shutdown code tries to allocate memory which fails in kernel environment
+        Serial.WriteString("[Kernel] Halting CPU...\n");
+        while (true)
+        {
+            InternalCpu.Halt();
+        }
     }
 
     /// <summary>
