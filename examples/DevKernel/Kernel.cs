@@ -157,12 +157,8 @@ public class Kernel : Sys.Kernel
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            Stop();
         }
-
-        Console.WriteLine("Outside catch");
-
-        while(true);
-
     }
 
 

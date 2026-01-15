@@ -3,11 +3,9 @@
   <Sdk Name="Cosmos.Sdk" Version="3.0.31" />
 
   <PropertyGroup>
+    <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <CosmosEnableKeyboard>false</CosmosEnableKeyboard>
-    <CosmosEnableNetwork>false</CosmosEnableNetwork>
-    <CosmosEnableScheduler>false</CosmosEnableScheduler>
   </PropertyGroup>
 
   <!-- Core kernel packages (using project references for development) -->
