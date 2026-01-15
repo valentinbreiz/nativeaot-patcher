@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
@@ -62,10 +63,13 @@ public class X64PlatformInitializer : IPlatformInitializer
         _pit.Initialize();
         _pit.RegisterIRQHandler();
 
-        // Initialize PS/2 Controller
-        Serial.WriteString("[X64HAL] Initializing PS/2 controller...\n");
-        _ps2Controller = new PS2Controller();
-        _ps2Controller.Initialize();
+        // Initialize PS/2 Controller (if keyboard feature enabled)
+        if (CosmosFeatures.KeyboardEnabled)
+        {
+            Serial.WriteString("[X64HAL] Initializing PS/2 controller...\n");
+            _ps2Controller = new PS2Controller();
+            _ps2Controller.Initialize();
+        }
 
         // Try to find E1000E network device
         Serial.WriteString("[X64HAL] Looking for E1000E network device...\n");

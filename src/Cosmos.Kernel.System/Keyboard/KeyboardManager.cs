@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyboardManager.cs
 
-using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 
@@ -12,8 +12,10 @@ namespace Cosmos.Kernel.System.Keyboard;
 /// </summary>
 public static class KeyboardManager
 {
-    [FeatureSwitchDefinition("Cosmos.Kernel.System.Input.Keyboard.Enabled")]
-    public static bool IsEnabled => AppContext.TryGetSwitch("Cosmos.Kernel.System.Input.Keyboard.Enabled", out bool enabled) ? enabled : true;
+    /// <summary>
+    /// Whether keyboard support is enabled. Uses centralized feature flag.
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.KeyboardEnabled;
 
     private static List<IKeyboardDevice>? _keyboards;
     private static Queue<KeyEvent>? _queuedKeys;
