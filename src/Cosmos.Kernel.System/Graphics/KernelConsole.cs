@@ -25,8 +25,8 @@ public static class KernelConsole
     private static int _rows;
 
     // Character dimensions from font
-    private static int CharWidth => PCScreenFont.Default.Width;
-    private static int CharHeight => PCScreenFont.Default.Height;
+    private static int CharWidth => PCScreenFont.DefaultFont.Width;
+    private static int CharHeight => PCScreenFont.DefaultFont.Height;
 
     // Cell buffer - stores all characters and their colors
     private static Cell[]? _cells;
@@ -321,7 +321,7 @@ public static class KernelConsole
         // Draw character if not empty
         if (cell.Char != '\0' && cell.Char != '\n')
         {
-            _canvas.DrawChar(cell.Char, PCScreenFont.Default, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
+            _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
         }
     }
 
@@ -373,7 +373,7 @@ public static class KernelConsole
                 {
                     int pixelX = col * CharWidth;
                     int pixelY = row * CharHeight;
-                    _canvas.DrawChar(cell.Char, PCScreenFont.Default, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
+                    _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
                 }
             }
         }

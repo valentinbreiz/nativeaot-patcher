@@ -20,6 +20,10 @@
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" PrivateAssets="none" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics\Fonts\CustomFont.psf" />
+  </ItemGroup>
+
   <!-- Multi-arch packaging support -->
   <Import Project="../Directory.MultiArch.targets" />
 </Project>

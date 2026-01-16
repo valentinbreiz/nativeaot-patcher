@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Resources;
 using System.Text;
 using Cosmos.Kernel.Core.IO;
 
@@ -40,13 +41,40 @@ public class PCScreenFont : Font
     // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     // POSSIBILITY OF SUCH DAMAGE.
 
+     public static class Default
+    {
+        public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.CustomFont";
+        public const string DefaultFontName = $"{DefaultFontKey}.psf";
+    }
+
     static PCScreenFont _Default = null;
-    public static PCScreenFont Default
+    public static PCScreenFont DefaultFont
     {
         get
         {
             if(_Default == null)
             {
+                try
+                {
+                    // Try to load from resources first
+                     string embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
+                    var resourceSpan = Cosmos.Kernel.Core.Runtime.ResourceManager.GetResourceAsSpan(embeddedResourceName);
+                    
+                    if (resourceSpan.Length > 0)
+                    {
+                        Serial.WriteString("Loading default PSF font from resources...\n");
+                        Serial.WriteString($"Font Key: {embeddedResourceName}");
+                        Serial.WriteString($"Font size: {resourceSpan.Length.ToString()} bytes\n");
+                        _Default = LoadFont(resourceSpan.ToArray());
+                        return _Default;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Serial.WriteString($"Failed to load font resource: {ex.Message}\n");
+                }
+
+                Serial.WriteString("Loading built-in fallback font\n");
                 _Default = LoadFont(Convert.FromBase64String("NgQDEAAAAAAAZjxmZmY8ZgAAAAAAABgYGBgYAAAYGBgYGAAAAABsbAAAAAAAAAAAAAAAAAAAAHyCmqKiopqCfAAAAAAAAAB8grqqsqqqgnwAAAAAAHwAAAAAAAAAAAAAAAAAAAAcJgwGJhwAAAAAAAAAAAAAAAAAAAAYPDwYAAAAAAAAAAwYMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgYMAAAGDgYGBg8AAAAAAAAAAAAAGCQIBKWbBgwcNSUHgQEADAYAHzGxsb+xsbGxgAAAAAYMAB8xsbG/sbGxsYAAAAAOGwAfMbGxv7GxsbGAAAAADJMAHzGxsb+xsbGxgAAAAAwGAB+wMDA+MDAwH4AAAAAOGwAfsDAwPjAwMB+AAAAAGxsAH7AwMD4wMDAfgAAAAAwGAB+GBgYGBgYGH4AAAAAAAB+1tbWdhYWFhYWAAAAAAA8ZmAwPGZmZmY8DAZmPAAMGAB+GBgYGBgYGH4AAAAAOGwAfhgYGBgYGBh+AAAAAGZmAH4YGBgYGBgYfgAAAAAAAHxmZmb2ZmZmZnwAAAAAMBgAfMbGxsbGxsZ8AAAAABgwAHzGxsbGxsbGfAAAAAA4bAB8xsbGxsbGxnwAAAAAMkwAfMbGxsbGxsZ8AAAAAAAAAAAAxmw4OGzGAAAAAAAAAnzGzs7W1ubmxnyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGBgYGBgYGAAYGAAAAAAAZmZmZgAAAAAAAAAAAAAAAABsbP5sbGxs/mxsAAAAAAAQftDQ0HwWFhYW/BAAAAAAAAZmbAwYGDA2ZmAAAAAAAAA4bGxsOHDazMx6AAAAAAAYGBgYAAAAAAAAAAAAAAAADhgwMGBgYGBgYDAwGA4AAHAYDAwGBgYGBgYMDBhwAAAAAABmPBj/" +
                 "GDxmAAAAAAAAAAAAABgYfhgYAAAAAAAAAAAAAAAAAAAAABgYMAAAAAAAAAAAAAB+AAAAAAAAAAAAAAAAAAAAAAAAGBgAAAAAAAMDBgYMDBgYMDBgYMDAAAAAfMbGzt725sbGfAAAAAAAABg4eFgYGBgYGH4AAAAAAAB8xgYGDBgwYMb+AAAAAAAAfMYGBjwGBgbGfAAAAAAAAMDAzMzMzP4MDAwAAAAAAAD+xsDA/AYGBsZ8AAAAAAAAfMbAwPzGxsbGfAAAAAAAAP7GBgYMGDAwMDAAAAAAAAB8xsbGfMbGxsZ8AAAAAAAAfMbGxsZ+BgbGfAAAAAAAAAAAABgYAAAAGBgAAAAAAAAAAAAYGAAAABgYMAAAAAAABgwYMGBgMBgMBgAAAAAAAAAAAH4AAH4AAAAAAAAAAABgMBgMBgYMGDBgAAAAAAAAfMYGDBgwMAAwMAAAAAAAAAB8wtra2trewHwAAAAAAAB8xsbG/sbGxsbGAAAAAAAA/MbGxvzGxsbG/AAAAAAAAH7AwMDAwMDAwH4AAAAAAAD8xsbGxsbGxsb8AAAAAAAAfsDAwPjAwMDAfgAAAAAAAH7AwMD4wMDAwMAAAAAAAAB+wMDA3sbGxsZ+AAAAAAAAxsbGxv7GxsbGxgAAAAAAAH4YGBgYGBgYGH4AAAAAAAB+GBgYGBgYGBjwAAAAAAAAxsbGzPjMxsbGxgAAAAAAAMDAwMDAwMDAwH4AAAAAAADG7v7WxsbGxsbGAAAAAAAAxsbm5tbWzs7GxgAAAAAAAHzGxsbGxsbGxnwAAAAAAAD8xsbG/MDAwMDAAAAAAAAAfMbGxsbGxtbWfBgMAAAAAPzGxsb8xsbGxsYAAAAAAAB+wMDAfAYGBgb8AAAAAAAA/xgYGBgYGBgYGAAAAAAAAMbGxsbGxsbGxn4AAAAAAADGxsbGxsbGbDgQAAAAAAAAxsbGxsbG1v7u" +
                 "xgAAAAAAAMbGxmw4bMbGxsYAAAAAAADGxsbGfgYGBgb8AAAAAAAA/gYGDBgwYMDA/gAAAAAAPjAwMDAwMDAwMDAwMD4AAMDAYGAwMBgYDAwGBgMDAAB8DAwMDAwMDAwMDAwMfAAAEDhsxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+AAAwGAwAAAAAAAAAAAAAAAAAAAAAAHwGfsbGxn4AAAAAAADAwMD8xsbGxsb8AAAAAAAAAAAAfsDAwMDAfgAAAAAAAAYGBn7GxsbGxn4AAAAAAAAAAAB+xsb+wMB+AAAAAAAAHjAwMHwwMDAwMAAAAAAAAAAAAH7GxsbGxnwGBvwAAADAwMD8xsbGxsbGAAAAAAAAGBgAOBgYGBgYHAAAAAAAABgYABgYGBgYGBgYGHAAAADAwMDM2PDw2MzGAAAAAAAAMDAwMDAwMDAwHAAAAAAAAAAAAOzW1tbWxsYAAAAAAAAAAAD8xsbGxsbGAAAAAAAAAAAAfMbGxsbGfAAAAAAAAAAAAPzGxsbGxvzAwMAAAAAAAAB+xsbGxsZ+BgYGAAAAAAAAfsbAwMDAwAAAAAAAAAAAAH7AwHwGBvwAAAAAAAAwMDB8MDAwMDAeAAAAAAAAAAAAxsbGxsbGfgAAAAAAAAAAAMbGxsZsOBAAAAAAAAAAAADGxtbW1tZuAAAAAAAAAAAAxmw4OGzGxgAAAAAAAAAAAMbGxsbGxn4GBvwAAAAAAAD+BgwYMGD+AAAAAAAOGBgYGBhwcBgYGBgYDgAAABgYGBgYGBgYGBgYGAAAAHAYGBgYGA4OGBgYGBhwAAAyfkwAAAAAAAAAAAAAAAAwGADGxsbGxsbGxn4AAAAAAAB+wMDAwMDAwMB+GBgwAAAAbGwAxsbGxsbGfgAAAAAADBgwAH7Gxv7AwH4AAAAAABA4bAB8Bn7GxsZ+AAAAAAAAbGwAfAZ+xsbGfgAA" +

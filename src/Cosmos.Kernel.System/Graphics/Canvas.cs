@@ -819,13 +819,15 @@ public unsafe abstract class Canvas
         var height = font.Height;
         var width = font.Width;
         var data = font.Data;
-        int p = height * (byte)c;
+        int bytesPerRow = (width + 7) / 8;
+        int p = height * bytesPerRow * (byte)c;
 
         for (int cy = 0; cy < height; cy++)
         {
             for (byte cx = 0; cx < width; cx++)
             {
-                if (font.ConvertByteToBitAddress(data[p + cy], cx + 1))
+                byte byteValue = data[p + (cy * bytesPerRow) + (cx / 8)];
+                if (font.ConvertByteToBitAddress(byteValue, (cx % 8) + 1))
                 {
                     DrawPoint(color, (ushort)(x + cx), (ushort)(y + cy));
                 }
