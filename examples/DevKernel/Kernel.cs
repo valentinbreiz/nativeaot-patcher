@@ -56,8 +56,7 @@ public class Kernel : Sys.Kernel
         {
             string? input = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(input))
-                return;
+            ArgumentException.ThrowIfNullOrEmpty(input);
 
             string trimmed = input.Trim();
             string[] parts = trimmed.Split(' ');
