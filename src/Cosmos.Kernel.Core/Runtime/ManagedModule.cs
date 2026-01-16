@@ -188,7 +188,7 @@ public static unsafe partial class ManagedModule
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {
                     void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
-                    
+
                     nuint rawSize = pMT->BaseSize - (nuint)(2 * sizeof(IntPtr));
                     if (pMT->HasComponentSize)
                         rawSize += (uint)Unsafe.As<RawArrayData>(obj).Length * (nuint)pMT->ComponentSize;

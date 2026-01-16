@@ -482,7 +482,7 @@ public static class KernelConsole
             }
         }
     }
-    
+
     /// <summary>
     /// Writes a Span of character at the current cursor position
     /// </summary>

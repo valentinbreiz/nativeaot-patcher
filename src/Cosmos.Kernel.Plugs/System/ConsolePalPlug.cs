@@ -32,12 +32,12 @@ public class ConsolePalPlug
     {
         return new ConsoleStream(FileAccess.Read);
     }
-    
+
     [PlugMember]
     public static void EnsureInitializedCore()
     {
         if (!KernelConsole.IsInitialized)
-        {        
+        {
             KernelConsole.Initialize();
         }
     }
@@ -45,18 +45,18 @@ public class ConsolePalPlug
     [PlugMember]
     public static bool IsErrorRedirectedCore()
     {
-	    return false;
+        return false;
     }
 
     [PlugMember]
     public static bool IsInputRedirectedCore()
     {
-	    return false;
+        return false;
     }
 
     public static bool IsOutputRedirectedCore()
     {
-	    return false;
+        return false;
     }
 
     private static KeyboardTextReader StdInReader => field ??= new();
@@ -65,14 +65,14 @@ public class ConsolePalPlug
     {
         if (CosmosFeatures.KeyboardEnabled)
         {
-	        if (Console.IsInputRedirected || Console.InputEncoding != Encoding.Default)
-    	    {
-		        Stream stream = OpenStandardInput();
+            if (Console.IsInputRedirected || Console.InputEncoding != Encoding.Default)
+            {
+                Stream stream = OpenStandardInput();
                 //TODO: Once lock keyword works, call 'TextReader.Syncronize' to get a thread save reader.
-        		return new StreamReader(stream, Console.InputEncoding, detectEncodingFromByteOrderMarks: false, 4096, leaveOpen: true);
-    	    }
+                return new StreamReader(stream, Console.InputEncoding, detectEncodingFromByteOrderMarks: false, 4096, leaveOpen: true);
+            }
 
-        	return StdInReader;
+            return StdInReader;
         }
         else
         {

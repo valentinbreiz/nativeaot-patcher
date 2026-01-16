@@ -33,7 +33,7 @@ public sealed class ConsoleStream : Stream
             return 0;
         }
 
-        if(_readLineSB.Length == 0)
+        if (_readLineSB.Length == 0)
         {
             var isEnter = ReadLineCore();
             if (isEnter)

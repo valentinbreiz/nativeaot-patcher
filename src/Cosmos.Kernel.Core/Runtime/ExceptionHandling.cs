@@ -79,14 +79,22 @@ public unsafe struct UnwindState
     {
         return reg switch
         {
-            DwarfRegX64.RAX => RAX, DwarfRegX64.RDX => RDX,
-            DwarfRegX64.RCX => RCX, DwarfRegX64.RBX => RBX,
-            DwarfRegX64.RSI => RSI, DwarfRegX64.RDI => RDI,
-            DwarfRegX64.RBP => RBP, DwarfRegX64.RSP => RSP,
-            DwarfRegX64.R8 => R8, DwarfRegX64.R9 => R9,
-            DwarfRegX64.R10 => R10, DwarfRegX64.R11 => R11,
-            DwarfRegX64.R12 => R12, DwarfRegX64.R13 => R13,
-            DwarfRegX64.R14 => R14, DwarfRegX64.R15 => R15,
+            DwarfRegX64.RAX => RAX,
+            DwarfRegX64.RDX => RDX,
+            DwarfRegX64.RCX => RCX,
+            DwarfRegX64.RBX => RBX,
+            DwarfRegX64.RSI => RSI,
+            DwarfRegX64.RDI => RDI,
+            DwarfRegX64.RBP => RBP,
+            DwarfRegX64.RSP => RSP,
+            DwarfRegX64.R8 => R8,
+            DwarfRegX64.R9 => R9,
+            DwarfRegX64.R10 => R10,
+            DwarfRegX64.R11 => R11,
+            DwarfRegX64.R12 => R12,
+            DwarfRegX64.R13 => R13,
+            DwarfRegX64.R14 => R14,
+            DwarfRegX64.R15 => R15,
             DwarfRegX64.RA => ReturnAddress,
             _ => 0
         };
@@ -1212,59 +1220,59 @@ public static unsafe partial class ExceptionHelper
                         break;
 
                     case DW_CFA_offset_extended:
+                    {
+                        byte reg = (byte)ReadULEB128(ref p);
+                        uint offset = ReadULEB128(ref p);
+                        if (reg < (byte)DwarfRegX64.MAX)
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            uint offset = ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegX64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
-                                                     (int)(offset * dataAlignFactor));
-                            }
+                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
+                                                 (int)(offset * dataAlignFactor));
                         }
-                        break;
+                    }
+                    break;
 
                     case DW_CFA_offset_extended_sf:
+                    {
+                        byte reg = (byte)ReadULEB128(ref p);
+                        int offset = ReadSLEB128(ref p);
+                        if (reg < (byte)DwarfRegX64.MAX)
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            int offset = ReadSLEB128(ref p);
-                            if (reg < (byte)DwarfRegX64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
-                                                     offset * dataAlignFactor);
-                            }
+                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
+                                                 offset * dataAlignFactor);
                         }
-                        break;
+                    }
+                    break;
 
                     case DW_CFA_same_value:
+                    {
+                        byte reg = (byte)ReadULEB128(ref p);
+                        if (reg < (byte)DwarfRegX64.MAX)
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegX64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.SameValue);
-                            }
+                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.SameValue);
                         }
-                        break;
+                    }
+                    break;
 
                     case DW_CFA_register:
+                    {
+                        byte reg = (byte)ReadULEB128(ref p);
+                        byte inReg = (byte)ReadULEB128(ref p);
+                        if (reg < (byte)DwarfRegX64.MAX)
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            byte inReg = (byte)ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegX64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.InRegister, 0, inReg);
-                            }
+                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.InRegister, 0, inReg);
                         }
-                        break;
+                    }
+                    break;
 
                     case DW_CFA_undefined:
+                    {
+                        byte reg = (byte)ReadULEB128(ref p);
+                        if (reg < (byte)DwarfRegX64.MAX)
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegX64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.Undefined);
-                            }
+                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.Undefined);
                         }
-                        break;
+                    }
+                    break;
 
                     case DW_CFA_remember_state:
                     case DW_CFA_restore_state:
@@ -1274,12 +1282,12 @@ public static unsafe partial class ExceptionHelper
                     case DW_CFA_def_cfa_expression:
                     case DW_CFA_expression:
                     case DW_CFA_val_expression:
-                        {
-                            // Skip expression - read ULEB128 length and skip bytes
-                            uint exprLen = ReadULEB128(ref p);
-                            p += exprLen;
-                        }
-                        break;
+                    {
+                        // Skip expression - read ULEB128 length and skip bytes
+                        uint exprLen = ReadULEB128(ref p);
+                        p += exprLen;
+                    }
+                    break;
 
                     default:
                         // Unknown opcode - skip

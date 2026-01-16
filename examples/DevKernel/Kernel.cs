@@ -113,7 +113,7 @@ public class Kernel : Sys.Kernel
                     Stop();
                     break;
 
-    #if ARCH_X64
+#if ARCH_X64
                 case "netconfig":
                     ConfigureNetwork();
                     break;
@@ -141,7 +141,7 @@ public class Kernel : Sys.Kernel
                         PrintError("Usage: dns <domain>");
                     break;
 
-    #endif
+#endif
 
 
                 case "meminfo":

@@ -19,26 +19,26 @@ public class ConsolePlug
         if (!CosmosFeatures.KeyboardEnabled)
             throw new InvalidOperationException("Console input requires keyboard support. Set CosmosEnableKeyboard=true in your csproj to enable it.");
     }
-    
+
     [PlugMember]
     private static TextWriter CreateOutputWriter(Stream outputStream)
     {
-	    if (outputStream != Stream.Null)
-    	{
-            if(Console.OutputEncoding != Encoding.Default)
+        if (outputStream != Stream.Null)
+        {
+            if (Console.OutputEncoding != Encoding.Default)
             {
                 //TODO: Once lock keyword works, call 'TextWriter.Syncronize' to get a thread save reader.
                 return new StreamWriter(outputStream, Console.OutputEncoding, 256, leaveOpen: true)
-		    	{
-	    			AutoFlush = true
-    			};
+                {
+                    AutoFlush = true
+                };
             }
             else
             {
-    	    	return new ConsoleTextWriter();
+                return new ConsoleTextWriter();
             }
-	    }
-	    return TextWriter.Null;
+        }
+        return TextWriter.Null;
     }
 
     [PlugMember]
