@@ -31,7 +31,7 @@ public unsafe class GopDriver : GraphicDevice
 
     public GopDriver(uint* baseAddress, uint width, uint height, uint pitch)
     {
-        LinearFrameBuffer = new MemoryBlock((uint)baseAddress, height * pitch);
+        LinearFrameBuffer = new MemoryBlock((ulong)baseAddress, height * pitch);
         lastbuffer = new ManagedMemoryBlock(height * pitch);
         Width = width;
         Height = height;

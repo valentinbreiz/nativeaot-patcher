@@ -68,20 +68,11 @@ public unsafe class ManagedMemoryBlock
     {
         get
         {
-            if (offset > Size)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            }
-
-            return *((byte*)Offset + offset);
+            return memory[offset];
         }
         set
         {
-            if (offset < 0 || offset > Size)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            }
-            *((byte*)Offset + offset) = value;
+            memory[offset] = value;
         }
     }
 
@@ -93,9 +84,11 @@ public unsafe class ManagedMemoryBlock
     /// <param name="aData">A data.</param>
     public unsafe void Fill(uint aByteOffset, uint aCount, uint aData)
     {
-        // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        uint* xDest = (uint*)(Offset + aByteOffset);
-        MemoryOp.MemSet(xDest, aData, (int)aCount);
+        fixed (byte* aArrayPtr = memory)
+        {
+            uint* xDest = (uint*)(aArrayPtr + aByteOffset);
+            MemoryOp.MemSet(xDest, aData, (int)aCount);
+        }
     }
 
     /// <summary>
@@ -122,35 +115,27 @@ public unsafe class ManagedMemoryBlock
     {
         fixed (byte* destPtr = memory)
         {
-            MemoryOp.MemSet(destPtr, (byte)aData, (int)Size);
+            MemoryOp.MemSet((uint*)destPtr, aData, (int)(Size / 4));
         }
     }
 
     public unsafe void Copy(int aStart, byte[] aData, int aIndex, int aCount)
     {
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        byte* xDest;
         fixed (byte* aArrayPtr = this.memory)
-        {
-            xDest = (byte*)(aArrayPtr + aStart);
-        }
         fixed (byte* aDataPtr = aData)
         {
-            MemoryOp.MemCopy(xDest, aDataPtr + aIndex, aCount);
+            MemoryOp.MemCopy(aArrayPtr + aStart, aDataPtr + aIndex, aCount);
         }
     }
 
     public unsafe void Copy(int aStart, int[] aData, int aIndex, int aCount)
     {
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        int* xDest;
         fixed (byte* aArrayPtr = memory)
-        {
-            xDest = (int*)aArrayPtr + aStart;
-        }
         fixed (int* aDataPtr = aData)
         {
-            MemoryOp.MemCopy((byte*)xDest, (byte*)(aDataPtr + aIndex), aCount);
+            MemoryOp.MemCopy(aArrayPtr + aStart, (byte*)(aDataPtr + aIndex), aCount);
         }
     }
 
@@ -160,10 +145,11 @@ public unsafe class ManagedMemoryBlock
     /// <param name="block">MemoryBlock to copy.</param>
     public unsafe void Copy(MemoryBlock block)
     {
-        byte* xDest = (byte*)Offset;
-        byte* aDataPtr = (byte*)block.Base;
-
-        MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
+        fixed (byte* xDest = memory)
+        {
+            byte* aDataPtr = (byte*)block.Base;
+            MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
+        }
     }
 
     /// <summary>

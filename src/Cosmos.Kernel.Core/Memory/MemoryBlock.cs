@@ -11,7 +11,7 @@ public class MemoryBlock
     /// <summary>
     /// Memory block base address.
     /// </summary>
-    public readonly uint Base;
+    public readonly ulong Base;
     /// <summary>
     /// Memory block size.
     /// </summary>
@@ -35,7 +35,7 @@ public class MemoryBlock
     /// </summary>
     /// <param name="aBase">A base.</param>
     /// <param name="aByteSize">A size.</param>
-    public MemoryBlock(uint aBase, uint aByteSize)
+    public MemoryBlock(ulong aBase, uint aByteSize)
     {
         Base = aBase;
         Size = aByteSize;
@@ -106,7 +106,7 @@ public class MemoryBlock
     public unsafe void Fill(int aByteOffset, int aCount, int aData)
     {
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        int* xDest = (int*)(Base + aByteOffset);
+        int* xDest = (int*)(Base + (uint)aByteOffset);
         MemoryOp.MemSet((uint*)xDest, (uint)aData, (int)aCount);
     }
 
@@ -202,7 +202,7 @@ public class MemoryBlock
     public unsafe void Copy(int aByteOffset, byte[] aData, int aIndex, int aCount)
     {
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        int* xDest = (int*)(Base + aByteOffset);
+        int* xDest = (int*)(Base + (uint)aByteOffset);
         fixed (byte* aDataPtr = aData)
         {
             MemoryOp.MemCopy((byte*)xDest, (byte*)(aDataPtr + aIndex), aCount);
@@ -245,7 +245,7 @@ public class MemoryBlock
     public unsafe void Copy(int aByteOffset, int[] aData, int aIndex, int aCount)
     {
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        int* xDest = (int*)(Base + aByteOffset);
+        int* xDest = (int*)(Base + (uint)aByteOffset);
         fixed (int* aDataPtr = aData)
         {
             MemoryOp.MemCopy((byte*)xDest, (byte*)(aDataPtr + aIndex), aCount);
@@ -259,9 +259,10 @@ public class MemoryBlock
     public unsafe void Copy(ManagedMemoryBlock block)
     {
         byte* xDest = (byte*)Base;
-        byte* aDataPtr = (byte*)block.Offset;
-
-        MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
+        fixed (byte* aDataPtr = block.memory)
+        {
+            MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
+        }
     }
 
     /// <summary>
@@ -273,7 +274,7 @@ public class MemoryBlock
     /// <param name="aCount">The number of elements to copy.</param>
     public unsafe void Get(int aByteOffset, int[] aData, int aIndex, int aCount)
     {
-        int* xSource = (int*)(Base + aByteOffset);
+        int* xSource = (int*)(Base + (uint)aByteOffset);
         fixed (int* aDataPtr = aData)
         {
             MemoryOp.MemCopy((byte*)(aDataPtr + aIndex), (byte*)xSource, aCount);
@@ -289,7 +290,7 @@ public class MemoryBlock
     /// <param name="aCount">The number of bytes to copy.</param>
     public unsafe void Get(int aByteOffset, byte[] aData, int aIndex, int aCount)
     {
-        byte* xSource = (byte*)(Base + aByteOffset);
+        byte* xSource = (byte*)(Base + (uint)aByteOffset);
         fixed (byte* aDataPtr = aData)
         {
             MemoryOp.MemCopy((byte*)(aDataPtr + aIndex), xSource, aCount);
@@ -441,7 +442,7 @@ public class MemoryBlock
     /// <returns>uint array.</returns>
     public unsafe uint[] ToArray(int aStart, int aIndex, int aCount)
     {
-        uint* xDest = (uint*)(Base + aStart);
+        uint* xDest = (uint*)(Base + (uint)aStart);
         uint[] array = new uint[aCount];
         fixed (uint* aArrayPtr = array)
         {
@@ -469,7 +470,7 @@ public class MemoryBlock08
     /// <summary>
     /// Base.
     /// </summary>
-    public readonly uint Base;
+    public readonly ulong Base;
     /// <summary>
     /// Size.
     /// </summary>
@@ -480,7 +481,7 @@ public class MemoryBlock08
     /// </summary>
     /// <param name="aBase">A base.</param>
     /// <param name="aSize">A size.</param>
-    internal MemoryBlock08(uint aBase, uint aSize)
+    internal MemoryBlock08(ulong aBase, uint aSize)
     {
         Base = aBase;
         Size = aSize;
@@ -521,7 +522,7 @@ public class MemoryBlock16
     /// <summary>
     /// Base.
     /// </summary>
-    public readonly uint Base;
+    public readonly ulong Base;
     /// <summary>
     /// Size.
     /// </summary>
@@ -532,7 +533,7 @@ public class MemoryBlock16
     /// </summary>
     /// <param name="aBase">A base.</param>
     /// <param name="aSize">A size.</param>
-    internal MemoryBlock16(uint aBase, uint aSize)
+    internal MemoryBlock16(ulong aBase, uint aSize)
     {
         Base = aBase;
         Size = aSize;
@@ -574,7 +575,7 @@ public class MemoryBlock32
     /// <summary>
     /// Base.
     /// </summary>
-    public readonly uint Base;
+    public readonly ulong Base;
     /// <summary>
     /// Size.
     /// </summary>
@@ -585,7 +586,7 @@ public class MemoryBlock32
     /// </summary>
     /// <param name="aBase">A base.</param>
     /// <param name="aSize">A size.</param>
-    internal MemoryBlock32(uint aBase, uint aSize)
+    internal MemoryBlock32(ulong aBase, uint aSize)
     {
         Base = aBase;
         Size = aSize;
