@@ -37,10 +37,15 @@ public class EfiCanvas : Canvas
          if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
-            driver = new EfiVideoDriver((uint*)fb->Address, mode.Width, mode.Height, (uint)fb->Pitch);
+            driver = new EfiVideoDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
+            
+            // Update mode to match actual framebuffer resolution
+            this.mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
         }
-        
-        Mode = mode;
+        else
+        {
+            Mode = mode;
+        }
     }
 
     public override void Disable()
