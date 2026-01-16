@@ -42,7 +42,11 @@ public class ConsolePlug
     }
 
     [PlugMember]
-    public static void Clear() => KernelConsole.Clear();
+    public static void Clear()
+    {
+        KernelConsole.Clear();
+        KernelConsole.Canvas.Display();
+    }
 
     [PlugMember]
     public static ConsoleColor get_ForegroundColor()
@@ -162,6 +166,7 @@ public class ConsolePlug
         if (!intercept && keyEvent.KeyChar != '\0')
         {
             KernelConsole.Write(keyEvent.KeyChar);
+            KernelConsole.Canvas.Display();
         }
 
         return ToConsoleKeyInfo(keyEvent);

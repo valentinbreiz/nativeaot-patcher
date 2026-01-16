@@ -3,6 +3,7 @@ using Cosmos.Kernel.HAL;
 using System.Drawing;
 using System;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.Graphics;
 
@@ -11,32 +12,32 @@ namespace Cosmos.Kernel.System.Graphics;
 /// that this implementation of <see cref="Canvas"/> only works on UEFI
 /// implementations, meaning that it is not available on BIOS systems.
 /// </summary>
-public class EFICanvas : Canvas
+public class EfiCanvas : Canvas
 {
     static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
     Mode mode;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EFICanvas"/> class.
+    /// Initializes a new instance of the <see cref="EfiCanvas"/> class.
     /// </summary>
-    public EFICanvas() : this(defaultMode)
+    public EfiCanvas() : this(defaultMode)
     {
     }
 
-    EfiDriver driver;
+    EfiVideoDriver driver;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EFICanvas"/> class.
+    /// Initializes a new instance of the <see cref="EfiCanvas"/> class.
     /// </summary>
     /// <param name="mode">The display mode to use.</param>
-    public unsafe EFICanvas(Mode mode) : base(mode)
+    public unsafe EfiCanvas(Mode mode) : base(mode)
     {
         ThrowIfModeIsNotValid(mode);
 
          if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
-            driver = new EfiDriver((uint*)fb->Address, (uint)mode.Width, (uint)mode.Height, (uint)fb->Pitch);
+            driver = new EfiVideoDriver((uint*)fb->Address, mode.Width, mode.Height, (uint)fb->Pitch);
         }
         
         Mode = mode;
@@ -47,7 +48,7 @@ public class EFICanvas : Canvas
         //driver.DisableDisplay();
     }
 
-    public override string Name() => "EFICanvas";
+    public override string Name() => "EfiCanvas";
 
     public override Mode Mode
     {
@@ -308,7 +309,7 @@ public class EFICanvas : Canvas
         var color = aColor.ToArgb();
         for (int i = aY; i < aY + aHeight; i++)
         {
-            //driver.ClearVRAM(GetPointOffset(aX, i), aWidth, color);
+            driver.ClearVRAM((int)((i * driver.Pitch) + (aX * 4)), aWidth, color);
         }
     }
 
@@ -431,7 +432,8 @@ public class EFICanvas : Canvas
 
     public override void Display()
     {
-        //driver.Swap();
+        Serial.WriteString("EfiCanvas Display called\n");
+        driver.Swap();
     }
 
     #region Reading

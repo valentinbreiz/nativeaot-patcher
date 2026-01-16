@@ -520,6 +520,7 @@ public class Kernel : Sys.Kernel
             }
 
             frame++;
+            KernelConsole.Canvas.Display();
             System.Threading.Thread.Sleep(100);
         }
     }

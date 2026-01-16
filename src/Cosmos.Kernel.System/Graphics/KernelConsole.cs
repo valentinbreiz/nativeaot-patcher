@@ -207,6 +207,7 @@ public static class KernelConsole
 
         // Clear screen
         _canvas.Clear((int)_backgroundColor);
+        _canvas.Display();
 
         return true;
     }
@@ -270,7 +271,7 @@ public static class KernelConsole
         int pixelX = _cursorX * CharWidth;
         int pixelY = _cursorY * CharHeight + CharHeight - 2;
 
-        //Canvas.DrawRectangle(_foregroundColor, pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)_foregroundColor), pixelX, pixelY, CharWidth, 2);
         _cursorDrawn = true;
     }
 
@@ -294,7 +295,7 @@ public static class KernelConsole
             bgColor = _cells[index].BackgroundColor;
         }
 
-        //Canvas.DrawRectangle(bgColor, pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)bgColor), pixelX, pixelY, CharWidth, 2);
         _cursorDrawn = false;
     }
 
@@ -315,7 +316,7 @@ public static class KernelConsole
         int pixelY = row * CharHeight;
 
         // Draw background
-        //Canvas.DrawRectangle(cell.BackgroundColor, pixelX, pixelY, CharWidth, CharHeight);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)cell.BackgroundColor), pixelX, pixelY, CharWidth, CharHeight);
 
         // Draw character if not empty
         if (cell.Char != '\0' && cell.Char != '\n')

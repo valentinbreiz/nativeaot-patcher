@@ -25,6 +25,7 @@ public sealed class ConsoleStream : Stream
     {
         var value = Console.OutputEncoding.GetString(buffer);
         KernelConsole.Write(value);
+        KernelConsole.Canvas.Display();
     }
     public override int Read(Span<byte> buffer)
     {
@@ -140,6 +141,7 @@ public sealed class ConsoleStream : Stream
             {
                 case ConsoleKeyEx.Enter:
                     KernelConsole.WriteLine();
+                    KernelConsole.Canvas.Display();
                     return true;
 
                 case ConsoleKeyEx.Backspace:
@@ -176,6 +178,7 @@ public sealed class ConsoleStream : Stream
                             KernelConsole.Write(' ');
                             KernelConsole.MoveCursorLeft();
                         }
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -199,6 +202,8 @@ public sealed class ConsoleStream : Stream
 
                         // Restore cursor position
                         KernelConsole.SetCursorPosition(savedX, savedY);
+
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -207,6 +212,7 @@ public sealed class ConsoleStream : Stream
                     {
                         cursorPos--;
                         KernelConsole.MoveCursorLeft();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -215,6 +221,7 @@ public sealed class ConsoleStream : Stream
                     {
                         cursorPos++;
                         KernelConsole.MoveCursorRight();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -224,6 +231,7 @@ public sealed class ConsoleStream : Stream
                     {
                         cursorPos--;
                         KernelConsole.MoveCursorLeft();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -233,6 +241,7 @@ public sealed class ConsoleStream : Stream
                     {
                         cursorPos++;
                         KernelConsole.MoveCursorRight();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -265,6 +274,7 @@ public sealed class ConsoleStream : Stream
                             cursorPos++;
                             KernelConsole.Write(keyEvent.KeyChar);
                         }
+                        KernelConsole.Canvas.Display();
                     }
                     break;
             }

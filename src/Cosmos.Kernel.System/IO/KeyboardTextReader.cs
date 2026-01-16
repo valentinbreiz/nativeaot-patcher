@@ -74,6 +74,7 @@ public sealed class KeyboardTextReader : TextReader
                             KernelConsole.Write(' ');
                             KernelConsole.MoveCursorLeft();
                         }
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -97,6 +98,8 @@ public sealed class KeyboardTextReader : TextReader
 
                         // Restore cursor position
                         KernelConsole.SetCursorPosition(savedX, savedY);
+
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -105,6 +108,7 @@ public sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos--;
                         KernelConsole.MoveCursorLeft();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -113,6 +117,7 @@ public sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos++;
                         KernelConsole.MoveCursorRight();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -122,6 +127,7 @@ public sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos--;
                         KernelConsole.MoveCursorLeft();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -131,6 +137,7 @@ public sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos++;
                         KernelConsole.MoveCursorRight();
+                        KernelConsole.Canvas.Display();
                     }
                     break;
 
@@ -150,7 +157,7 @@ public sealed class KeyboardTextReader : TextReader
                             // Redraw from current position
                             for (int i = cursorPos - 1; i < sb.Length; i++)
                             {
-                                KernelConsole.Write(sb[i]);
+                                KernelConsole.Write(sb[i]);  
                             }
 
                             // Move cursor to correct position
@@ -163,6 +170,7 @@ public sealed class KeyboardTextReader : TextReader
                             cursorPos++;
                             KernelConsole.Write(keyEvent.KeyChar);
                         }
+                        KernelConsole.Canvas.Display();
                     }
                     break;
             }

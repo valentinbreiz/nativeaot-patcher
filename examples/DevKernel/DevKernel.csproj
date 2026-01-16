@@ -3,8 +3,6 @@
   <Sdk Name="Cosmos.Sdk" Version="3.0.32" />
 
   <PropertyGroup>
-    <CosmosEnableScheduler>false</CosmosEnableScheduler>
-    <CosmosEnableNetwork>false</CosmosEnableNetwork>
     <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>

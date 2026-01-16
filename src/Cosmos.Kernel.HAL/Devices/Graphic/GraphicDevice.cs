@@ -15,4 +15,5 @@ public abstract class GraphicDevice : Device, IGraphicDevice
     public abstract void Initialize();
     public abstract void ClearScreen(uint color);
     public abstract void DrawPixel(uint color, int x, int y);
+    public abstract void Swap();
 }

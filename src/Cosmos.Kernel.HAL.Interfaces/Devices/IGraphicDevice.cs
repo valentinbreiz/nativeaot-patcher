@@ -13,4 +13,5 @@ public interface IGraphicDevice
     void Initialize();
     void ClearScreen(uint color);
     void DrawPixel(uint color, int x, int y);
+    void Swap();
 }
