@@ -172,6 +172,21 @@ public static class KeyboardManager
     }
 
     /// <summary>
+    /// Returns the KeyEvent at the beginning of the key queue without removing it.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static KeyEvent Peek()
+    {
+        if (_queuedKeys == null)
+        {
+            throw new InvalidOperationException("KeyboardManager not initialized!");
+        }
+
+        return _queuedKeys.Peek();
+    }
+
+    /// <summary>
     /// Attempts to convert the given physical key scan-code to a KeyEvent.
     /// </summary>
     public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)
