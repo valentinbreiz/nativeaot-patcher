@@ -484,6 +484,32 @@ public static class KernelConsole
     }
 
     /// <summary>
+    /// Writes a Span of character at the current cursor position
+    /// </summary>
+    /// <param name="buffer">Span of characters to write</param>
+    public static void Write(ReadOnlySpan<char> buffer)
+    {
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            if (!IsAvailable || _cells == null)
+                return;
+
+            _lock.Acquire();
+            try
+            {
+                foreach (char c in buffer)
+                {
+                    WriteInternal(c);
+                }
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+    }
+
+    /// <summary>
     /// Writes a character followed by a newline.
     /// Thread-safe.
     /// </summary>

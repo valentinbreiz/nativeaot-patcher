@@ -160,7 +160,6 @@ public static unsafe partial class ManagedModule
     }
 
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
     {
         byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
@@ -189,9 +188,14 @@ public static unsafe partial class ManagedModule
                 if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
                 {
                     void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
-                    uint size = pMT->RawBaseSize - (uint)sizeof(ObjHeader) - (uint)sizeof(MethodTable*);
-                    byte* destPtr = (byte*)&obj + sizeof(MethodTable*);
-                    MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)size);
+
+                    nuint rawSize = pMT->BaseSize - (nuint)(2 * sizeof(IntPtr));
+                    if (pMT->HasComponentSize)
+                        rawSize += (uint)Unsafe.As<RawArrayData>(obj).Length * (nuint)pMT->ComponentSize;
+
+                    byte* destPtr = (byte*)Unsafe.AsPointer(ref Unsafe.As<RawData>(obj).Data);
+
+                    MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)rawSize);
                 }
 
                 *pBlock = *(IntPtr*)&obj;
@@ -203,6 +207,16 @@ public static unsafe partial class ManagedModule
         static void* ReadRelPtr32(void* address)
             => (byte*)address + *(int*)address;
     }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal class RawArrayData
+{
+    public uint Length; // Array._numComponents padded to IntPtr
+#if TARGET_64BIT
+    public uint Padding;
+#endif
+    public byte Data;
 }
 
 [StructLayout(LayoutKind.Sequential)]
