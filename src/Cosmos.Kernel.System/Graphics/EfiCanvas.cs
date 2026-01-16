@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Devices.Graphic;
 using System.Drawing;
 using System;
 using Cosmos.Kernel.Boot.Limine;
