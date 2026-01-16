@@ -14,10 +14,4 @@
     <PackageReference Include="Cosmos.Kernel.System" Version="3.0.32" />
   </ItemGroup>
 
-  <!--#if (EnableGraphics)-->
-  <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel.Graphics" Version="3.0.32" />
-  </ItemGroup>
-  <!--#endif-->
-
 </Project>

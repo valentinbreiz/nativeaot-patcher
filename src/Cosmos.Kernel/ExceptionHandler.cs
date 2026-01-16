@@ -1,5 +1,5 @@
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Graphics;
+
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 
@@ -247,6 +247,6 @@ public static class ExceptionHandler
         Serial.WriteString("\n");
 
         // Write to screen
-        KernelConsole.WriteLine(message);
+        //KernelConsole.WriteLine(message);
     }
 }

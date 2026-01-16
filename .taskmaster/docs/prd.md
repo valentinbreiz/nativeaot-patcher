@@ -122,7 +122,6 @@ Fundamental kernel functionality implemented in managed C#.
 - `Cosmos.Kernel.Core`: Memory management, heap allocation, runtime internals
 - `Cosmos.Kernel.Boot.Limine`: Bootloader protocol support
 - `Cosmos.Kernel.Services`: Math, IO utilities, Base64
-- `Cosmos.Kernel.Graphics`: Canvas rendering, PSF font support
 - `Cosmos.Kernel.Plugs`: BCL plug implementations
 
 ## 5. Hardware Abstraction Layer (HAL)

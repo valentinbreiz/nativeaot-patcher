@@ -1,5 +1,5 @@
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.Graphics;
 
 namespace Cosmos.Kernel.System;
 

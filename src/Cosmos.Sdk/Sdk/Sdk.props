@@ -22,12 +22,6 @@
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;BuildGCC;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 
-  <!-- Graphics settings -->
-  <PropertyGroup>
-    <UnRootGraphics Condition="$(UnRootGraphics) != 'true'">false</UnRootGraphics>
-    <CosmosDefaultFont Condition="$(CosmosDefaultFont) == '' and $(UnRootGraphics) != 'true'">Cosmos.Kernel.Graphics.Fonts.DefaultFont.psf</CosmosDefaultFont>
-  </PropertyGroup>
-
   <!-- Cosmos Feature Switches (defaults) -->
   <PropertyGroup>
     <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
@@ -66,8 +60,6 @@
     <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core"/>
     <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false"/>
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
-    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
-    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
     <!-- Cosmos Feature Switches -->
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>

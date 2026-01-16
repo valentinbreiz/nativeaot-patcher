@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <ProjectReference Include="../../../src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
-    <ProjectReference Include="../../../src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" />
     <ProjectReference Include="../../Cosmos.TestRunner.Framework/Cosmos.TestRunner.Framework.csproj" />
   </ItemGroup>
 

@@ -1,5 +1,5 @@
 using System.Text;
-using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Keyboard;
 
 namespace Cosmos.Kernel.System.IO;

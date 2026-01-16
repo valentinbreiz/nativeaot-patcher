@@ -17,7 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" PrivateAssets="none" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text;
-using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.Graphics;
 
 namespace Cosmos.Kernel.System.IO;
 

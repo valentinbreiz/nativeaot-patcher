@@ -12,12 +12,6 @@
   "sourceName": "KernelName",
   "preferNameDirectory": true,
   "symbols": {
-    "EnableGraphics": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "Include Cosmos.Kernel.Graphics reference for framebuffer support"
-    }
   },
   "postActions": [
     {

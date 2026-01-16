@@ -2,7 +2,7 @@ using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
@@ -473,17 +473,17 @@ public class Kernel : Sys.Kernel
 
     private static void GraphicsWorker()
     {
-        if (Canvas.Width == 0 || Canvas.Height == 0)
+        if (KernelConsole.Canvas.Mode.Width == 0 || KernelConsole.Canvas.Mode.Height == 0)
             return;
 
         const int squareSize = 80;
         const int margin = 20;
 
-        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Width - squareSize - margin
+        int x = KernelConsole.Canvas.Mode.Width >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Width - squareSize - margin
             : margin;
-        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Height - squareSize - margin
+        int y = KernelConsole.Canvas.Mode.Height >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Height - squareSize - margin
             : margin;
 
         int frame = 0;
@@ -515,7 +515,7 @@ public class Kernel : Sys.Kernel
                     byte pb = (byte)((b * factor) / 255);
                     uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
 
-                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                    KernelConsole.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
                 }
             }
 

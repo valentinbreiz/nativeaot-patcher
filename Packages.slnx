@@ -18,7 +18,6 @@
     <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj" />
     <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj" />
     <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" />
-    <Project Path="src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" />
     <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
     <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
     <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" />
