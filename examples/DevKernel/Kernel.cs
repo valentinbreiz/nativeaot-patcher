@@ -56,7 +56,10 @@ public class Kernel : Sys.Kernel
         {
             string? input = Console.ReadLine();
 
-            ArgumentException.ThrowIfNullOrEmpty(input);
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                throw new Exception("No input provided");
+            }
 
             string trimmed = input.Trim();
             string[] parts = trimmed.Split(' ');

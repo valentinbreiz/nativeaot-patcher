@@ -58,7 +58,7 @@ public static unsafe partial class ManagedModule
         // Allocate classlib functions array on unmanaged heap (never moved by GC)
         // Must match ClassLibFunctionId enum (12 entries, 0-11)
         s_pClasslibFunctions = (void**)Cosmos.Kernel.Core.Memory.Heap.Heap.Alloc((uint)(ClasslibFunctionCount * sizeof(void*)));
-        s_pClasslibFunctions[0] = null; // GetRuntimeException - not implemented yet
+        s_pClasslibFunctions[0] = (void*)(delegate*<ExceptionIDs, Exception>)&ExceptionHelper.GetRuntimeException;
         s_pClasslibFunctions[1] = null; // FailFast - not implemented yet
         s_pClasslibFunctions[2] = null; // ThreadEntryPoint - not implemented yet
         s_pClasslibFunctions[3] = null; // AppendExceptionStackFrame - not implemented yet
