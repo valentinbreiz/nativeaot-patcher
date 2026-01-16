@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.0.32</Version>
+    <Version>3.0.33</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
