@@ -157,7 +157,7 @@ public sealed class KeyboardTextReader : TextReader
                             // Redraw from current position
                             for (int i = cursorPos - 1; i < sb.Length; i++)
                             {
-                                KernelConsole.Write(sb[i]);  
+                                KernelConsole.Write(sb[i]);
                             }
 
                             // Move cursor to correct position

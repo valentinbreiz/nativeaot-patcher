@@ -5,10 +5,10 @@ using Cosmos.Kernel.Core.Memory;
 namespace Cosmos.Kernel.HAL.Devices.Graphic;
 
 /// <summary>
-/// UEFI Video Driver.
+/// UEFI GOP Video Driver.
 /// Provides video output via UEFI framebuffer.
 /// </summary>
-public unsafe class EfiVideoDriver : GraphicDevice
+public unsafe class GopDriver : GraphicDevice
 {
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -29,7 +29,7 @@ public unsafe class EfiVideoDriver : GraphicDevice
     public uint Stride;
     private bool _initialized;
 
-    public EfiVideoDriver(uint* baseAddress, uint width, uint height, uint pitch)
+    public GopDriver(uint* baseAddress, uint width, uint height, uint pitch)
     {
         LinearFrameBuffer = new MemoryBlock((uint)baseAddress, height * pitch);
         lastbuffer = new ManagedMemoryBlock(height * pitch);
@@ -61,7 +61,7 @@ public unsafe class EfiVideoDriver : GraphicDevice
         lastbuffer[offset + 2] = (byte)((color >> 16) & 0xFF); // R
         lastbuffer[offset + 3] = (byte)((color >> 24) & 0xFF); // A
     }
-    
+
     public void ClearVRAM(int aStart, int aCount, int value)
     {
         lastbuffer.Fill(aStart, aCount, value);

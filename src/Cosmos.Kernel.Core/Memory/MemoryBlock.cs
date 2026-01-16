@@ -176,7 +176,8 @@ public class MemoryBlock
         // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
         uint* xDest = (uint*)(Base + aByteOffset);
 
-        fixed (uint* aDataPtr = aData) {
+        fixed (uint* aDataPtr = aData)
+        {
             MemoryOp.MemCopy((byte*)xDest, (byte*)(aDataPtr + aIndex), aCount);
         }
     }
@@ -227,7 +228,7 @@ public class MemoryBlock
     /// <exception cref="OverflowException">Thrown if aData length in greater then Int32.MaxValue.</exception>
     public void Copy(int[] aData, int aIndex, int aCount)
     {
-        if(aData.Length < aCount)
+        if (aData.Length < aCount)
         {
             throw new IndexOutOfRangeException();
         }
@@ -330,7 +331,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Read8(byte[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }
@@ -348,7 +349,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Write8(byte[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }
@@ -366,7 +367,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Read16(ushort[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }
@@ -384,7 +385,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Write16(ushort[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }
@@ -402,7 +403,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Read32(uint[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }
@@ -420,7 +421,7 @@ public class MemoryBlock
     /// <exception cref="Exception">Thrown on memory access violation.</exception>
     public unsafe void Write32(uint[] aBuffer)
     {
-        if(aBuffer.Length >= Size)
+        if (aBuffer.Length >= Size)
         {
             throw new Exception("Memory access violation");
         }

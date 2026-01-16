@@ -739,8 +739,8 @@ public unsafe abstract class Canvas
     public virtual void CroppedDrawImage(Image image, int x, int y, int maxWidth, int maxHeight, bool preventOffBoundPixels = true)
     {
         Color color;
-        int width = Math.Min((int)image.Width, maxWidth);  
-        int height = Math.Min((int)image.Height, maxHeight); 
+        int width = Math.Min((int)image.Width, maxWidth);
+        int height = Math.Min((int)image.Height, maxHeight);
         int[] pixels = image.RawData;
 
         for (int xi = 0; xi < width; xi++)

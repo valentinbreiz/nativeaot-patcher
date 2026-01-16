@@ -41,7 +41,7 @@ public class PCScreenFont : Font
     // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     // POSSIBILITY OF SUCH DAMAGE.
 
-     public static class Default
+    public static class Default
     {
         public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.CustomFont";
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
@@ -52,14 +52,14 @@ public class PCScreenFont : Font
     {
         get
         {
-            if(_Default == null)
+            if (_Default == null)
             {
                 try
                 {
                     // Try to load from resources first
-                     string embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
+                    string embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
                     var resourceSpan = Cosmos.Kernel.Core.Runtime.ResourceManager.GetResourceAsSpan(embeddedResourceName);
-                    
+
                     if (resourceSpan.Length > 0)
                     {
                         Serial.WriteString("Loading default PSF font from resources...\n");
@@ -94,7 +94,7 @@ public class PCScreenFont : Font
 
             return _Default;
         }
-    } 
+    }
     #endregion
 
     enum PSFVersion1Mode
@@ -191,20 +191,24 @@ public class PCScreenFont : Font
                             if (mapping.UnicodeCharacters[index] == sequenceStart)
                             {
                                 mapping.UnicodeCharacters.RemoveAt(index);
-                                if (!reachedFirstSeperator) {
+                                if (!reachedFirstSeperator)
+                                {
                                     reachedFirstSeperator = true;
                                 }
-                                else {
+                                else
+                                {
                                     mapping.UnicodeCharactersWithModifiers.Add(unicodeCombination.ToArray());
                                 }
                             }
                             else
                             {
-                                if (reachedFirstSeperator) {
+                                if (reachedFirstSeperator)
+                                {
                                     unicodeCombination.Add(mapping.UnicodeCharacters[index]);
                                     mapping.UnicodeCharacters.RemoveAt(index);
                                 }
-                                else {
+                                else
+                                {
                                     index++;
                                 }
                             }
@@ -216,7 +220,8 @@ public class PCScreenFont : Font
                             byte ac = Encoding.ASCII.GetBytes(Encoding.Unicode.GetString(BitConverter.GetBytes(uc)))[0];
                             if (!(ac == 63 && uc != 0x003F))
                             {
-                                if (!mapping.ASCIICharacters.Contains(ac)) {
+                                if (!mapping.ASCIICharacters.Contains(ac))
+                                {
                                     mapping.ASCIICharacters.Add(ac);
                                 }
                             }
@@ -285,10 +290,12 @@ public class PCScreenFont : Font
             int offset = FindASCIIOffset((byte)i);
             if (offset >= 256) // If nothing was found
             {
-                if (i < 32) {
+                if (i < 32)
+                {
                     offset = emptyOffset;
                 }
-                else {
+                else
+                {
                     offset = questionMarkOffset;
                 }
             }

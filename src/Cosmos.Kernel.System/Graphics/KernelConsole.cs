@@ -193,7 +193,7 @@ public static class KernelConsole
 
         _canvas = FullScreenCanvas.GetFullScreenCanvas();    // canvas = GetFullScreenCanvas(start);
 
-            /* Clear the Screen with the color 'Blue' */
+        /* Clear the Screen with the color 'Blue' */
         _canvas.Clear(Color.Blue);
 
         // Calculate terminal dimensions based on font size

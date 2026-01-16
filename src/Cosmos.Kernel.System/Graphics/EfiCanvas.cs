@@ -1,9 +1,9 @@
-using System.Collections.Generic;
-using Cosmos.Kernel.HAL.Devices.Graphic;
-using System.Drawing;
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Devices.Graphic;
 
 namespace Cosmos.Kernel.System.Graphics;
 
@@ -24,7 +24,7 @@ public class EfiCanvas : Canvas
     {
     }
 
-    EfiVideoDriver driver;
+    GopDriver driver;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EfiCanvas"/> class.
@@ -34,11 +34,11 @@ public class EfiCanvas : Canvas
     {
         ThrowIfModeIsNotValid(mode);
 
-         if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
+        if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
-            driver = new EfiVideoDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
-            
+            driver = new GopDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
+
             // Update mode to match actual framebuffer resolution
             this.mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
         }
@@ -466,10 +466,10 @@ public class EfiCanvas : Canvas
         int endX = Math.Min(x + width, (int)Mode.Width);
         int endY = Math.Min(y + height, (int)Mode.Height);
 
-        int offsetX = Math.Max(0, -x); 
-        int offsetY = Math.Max(0, -y); 
+        int offsetX = Math.Max(0, -x);
+        int offsetY = Math.Max(0, -y);
 
-        int[] rawData = new int[width * height]; 
+        int[] rawData = new int[width * height];
 
         for (int posy = startY; posy < endY; posy++)
         {
