@@ -217,16 +217,10 @@ public class Kernel : Sys.Kernel
 
         canvas.Display();
 
-        while(true)
-        {
-            // Keep the canvas displayed
-        }
-
-        /**
         canvas.Disable();
 
         Console.WriteLine("Back in text mode");
-        Console.WriteLine("Freed: " + Heap.Collect()); **/
+        Console.WriteLine("Freed: " + Heap.Collect());
 
         Serial.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
     }
