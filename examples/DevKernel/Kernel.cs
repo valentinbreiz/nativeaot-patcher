@@ -28,7 +28,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine("         CosmosOS 3.0.33 Shell       ");
+        Console.WriteLine("         CosmosOS 3.0.34 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
@@ -216,7 +216,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.33 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.34 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
