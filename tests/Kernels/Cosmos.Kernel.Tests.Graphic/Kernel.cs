@@ -4,18 +4,17 @@ using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
-namespace Cosmos.Kernel.Tests.Gtaphic;
+namespace Cosmos.Kernel.Tests.Graphic;
 
 public class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Gtaphic] BeforeRun() reached!\n");
-        Serial.WriteString("[Gtaphic] Starting tests...\n");
+        Serial.WriteString("[Graphic] BeforeRun() reached!\n");
+        Serial.WriteString("[Graphic] Starting tests...\n");
 
         // Initialize test suite
-        TR.Start("Gtaphic Basic Tests", expectedTests: 3);
-
+        TR.Start("Graphic Basic Tests", expectedTests: 3);
         // Test 1: Basic arithmetic
         TR.Run("Test_BasicArithmetic", () =>
         {

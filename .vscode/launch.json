@@ -289,6 +289,40 @@
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+     {
+      "name": "Debug Test Runner (Graphic x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
+        "x64",
+        "120",
+        "${workspaceFolder}/test-results-graphic-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Graphic ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
+        "arm64",
+        "180",
+        "${workspaceFolder}/test-results-graphic-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
     }
   ]
 }
