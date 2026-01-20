@@ -42,18 +42,25 @@ public static class Global
         Serial.WriteString("[Global] Init() called\n");
 
         // Initialize graphics console (framebuffer + font)
-        Serial.WriteString("[Global] Initializing KernelConsole...\n");
-        if (KernelConsole.Initialize())
+        if (Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled)
         {
-            Serial.WriteString("[Global] KernelConsole initialized: ");
-            Serial.WriteNumber((ulong)KernelConsole.Cols);
-            Serial.WriteString("x");
-            Serial.WriteNumber((ulong)KernelConsole.Rows);
-            Serial.WriteString(" chars\n");
+            Serial.WriteString("[Global] Initializing KernelConsole...\n");
+            if (KernelConsole.Initialize())
+            {
+                Serial.WriteString("[Global] KernelConsole initialized: ");
+                Serial.WriteNumber((ulong)KernelConsole.Cols);
+                Serial.WriteString("x");
+                Serial.WriteNumber((ulong)KernelConsole.Rows);
+                Serial.WriteString(" chars\n");
+            }
+            else
+            {
+                Serial.WriteString("[Global] WARNING: KernelConsole initialization failed!\n");
+            }
         }
         else
         {
-            Serial.WriteString("[Global] WARNING: KernelConsole initialization failed!\n");
+            Serial.WriteString("[Global] Graphics disabled via feature switch.\n");
         }
     }
 

@@ -45,7 +45,10 @@ public class ConsolePlug
     public static void Clear()
     {
         KernelConsole.Clear();
-        KernelConsole.Canvas.Display();
+        if (KernelConsole.IsAvailable)
+        {
+            KernelConsole.Canvas.Display();
+        }
     }
 
     [PlugMember]
@@ -166,7 +169,10 @@ public class ConsolePlug
         if (!intercept && keyEvent.KeyChar != '\0')
         {
             KernelConsole.Write(keyEvent.KeyChar);
-            KernelConsole.Canvas.Display();
+            if (KernelConsole.IsAvailable)
+            {
+                KernelConsole.Canvas.Display();
+            }
         }
 
         return ToConsoleKeyInfo(keyEvent);

@@ -10,7 +10,10 @@ public sealed class ConsoleTextWriter : TextWriter
     public override void Write(char value)
     {
         KernelConsole.Write(value);
-        KernelConsole.Canvas.Display();
+        if (KernelConsole.IsAvailable)
+        {
+            KernelConsole.Canvas.Display();
+        }
     }
     public override void Write(string? value)
     {
@@ -20,12 +23,18 @@ public sealed class ConsoleTextWriter : TextWriter
         }
 
         KernelConsole.Write(value);
-        KernelConsole.Canvas.Display();
+        if (KernelConsole.IsAvailable)
+        {
+            KernelConsole.Canvas.Display();
+        }
     }
 
     public override void Write(ReadOnlySpan<char> buffer)
     {
         KernelConsole.Write(buffer);
-        KernelConsole.Canvas.Display();
+        if (KernelConsole.IsAvailable)
+        {
+            KernelConsole.Canvas.Display();
+        }
     }
 }

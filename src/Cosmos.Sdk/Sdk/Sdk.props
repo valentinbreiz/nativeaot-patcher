@@ -26,6 +26,7 @@
   <PropertyGroup>
     <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
     <CosmosEnableNetwork Condition="'$(CosmosEnableNetwork)' == ''">true</CosmosEnableNetwork>
+    <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
     <CosmosDefaultFont Condition="'$(CosmosDefaultFont)' == ''">Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf</CosmosDefaultFont>
   </PropertyGroup>
@@ -64,6 +65,7 @@
     <!-- Cosmos Feature Switches -->
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
     <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.CustomFont" Value="$(CosmosDefaultFont)" />
     <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->

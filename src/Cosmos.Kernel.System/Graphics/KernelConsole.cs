@@ -186,6 +186,11 @@ public static class KernelConsole
     /// </summary>
     public static unsafe bool Initialize()
     {
+        if (!Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled)
+        {
+            return false;
+        }
+
         if (_isInitialized)
             return false;
 

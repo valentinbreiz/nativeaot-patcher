@@ -32,4 +32,12 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.Core.Scheduler.Enabled")]
     public static bool SchedulerEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.Core.Scheduler.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls graphics support initialization.
+    /// Set via CosmosEnableGraphics property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Graphics.Enabled")]
+    public static bool GraphicsEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Graphics.Enabled", out bool enabled) ? enabled : true;
 }
