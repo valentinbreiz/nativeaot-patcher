@@ -226,12 +226,12 @@ public class Kernel : Sys.Kernel
         PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
         if (KernelConsole.IsAvailable)
         {
-             var mode = KernelConsole.Canvas.Mode;
-             PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Canvas.Name() + ")");
+            var mode = KernelConsole.Canvas.Mode;
+            PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Canvas.Name() + ")");
         }
         else
         {
-             PrintInfoLine("Framebuffer", "Disabled");
+            PrintInfoLine("Framebuffer", "Disabled");
         }
     }
 
