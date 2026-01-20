@@ -40,7 +40,7 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver()
     {
-        return new EfiCanvas();
+        return new GopCanvas();
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver(Mode mode)
     {
-        return new EfiCanvas(mode);
+        return new GopCanvas(mode);
     }
 
     /// <summary>

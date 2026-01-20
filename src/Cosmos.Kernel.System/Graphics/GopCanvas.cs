@@ -12,25 +12,25 @@ namespace Cosmos.Kernel.System.Graphics;
 /// that this implementation of <see cref="Canvas"/> only works on UEFI
 /// implementations, meaning that it is not available on BIOS systems.
 /// </summary>
-public class EfiCanvas : Canvas
+public class GopCanvas : Canvas
 {
     static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
     Mode mode;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EfiCanvas"/> class.
+    /// Initializes a new instance of the <see cref="GopCanvas"/> class.
     /// </summary>
-    public EfiCanvas() : this(defaultMode)
+    public GopCanvas() : this(defaultMode)
     {
     }
 
     GopDriver driver;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EfiCanvas"/> class.
+    /// Initializes a new instance of the <see cref="GopCanvas"/> class.
     /// </summary>
     /// <param name="mode">The display mode to use.</param>
-    public unsafe EfiCanvas(Mode mode) : base(mode)
+    public unsafe GopCanvas(Mode mode) : base(mode)
     {
         ThrowIfModeIsNotValid(mode);
 
@@ -53,7 +53,7 @@ public class EfiCanvas : Canvas
         //driver.DisableDisplay();
     }
 
-    public override string Name() => "EfiCanvas";
+    public override string Name() => "GopCanvas";
 
     public override Mode Mode
     {
@@ -269,39 +269,24 @@ public class EfiCanvas : Canvas
         ThrowIfCoordNotValid(aX, aY);
         ThrowIfCoordNotValid(aX + aWidth, aY + aHeight);
 
-        for (int i = 0; i < aX; i++)
+        // Convert Color[] to uint[] for bulk copy
+        var pixels = new uint[aColors.Length];
+        for (int i = 0; i < aColors.Length; i++)
         {
-            for (int ii = 0; ii < aY; ii++)
-            {
-                DrawPoint(aColors[i + (ii * aWidth)], i, ii);
-            }
+            pixels[i] = (uint)aColors[i].ToArgb();
         }
+
+        driver.CopyBuffer(pixels.AsMemory(), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight)
     {
-        for (int i = 0; i < aHeight; i++)
-        {
-            if (i >= mode.Height)
-            {
-                return;
-            }
-            int destinationIndex = (aY + i) * (int)mode.Width + aX;
-            //driver.CopyVRAM(destinationIndex, aColors, i * aWidth, aWidth);
-        }
+        driver.CopyBuffer(aColors.AsMemory(), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight, int startIndex)
     {
-        for (int i = 0; i < aHeight; i++)
-        {
-            if (i >= mode.Height)
-            {
-                return;
-            }
-            int destinationIndex = (aY + i) * (int)mode.Width + aX;
-            //driver.CopyVRAM(destinationIndex, aColors, i * aWidth + startIndex, aWidth);
-        }
+        driver.CopyBuffer(aColors.AsMemory(startIndex), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)
@@ -388,20 +373,26 @@ public class EfiCanvas : Canvas
             maxWidth -= startX - x;
             maxHeight -= startY - y;
 
-            for (int i = 0; i < maxHeight; i++)
+            if (maxWidth <= 0 || maxHeight <= 0) return;
+
+            // If no cropping needed, use CopyBuffer directly
+            if (sourceX == 0 && sourceY == 0 && maxWidth == width && maxHeight == height)
             {
-                int sourceIndex = (sourceY + i) * width + sourceX;
-                int destinationIndex = (startY + i) * (int)mode.Width + startX;
-                //driver.CopyVRAM(destinationIndex, data, sourceIndex, maxWidth);
+                driver.CopyBuffer(data.AsMemory(), startX, startY, width, height);
+            }
+            else
+            {
+                // Need to copy row by row due to source offset
+                for (int i = 0; i < maxHeight; i++)
+                {
+                    int sourceIndex = (sourceY + i) * width + sourceX;
+                    driver.CopyBuffer(data.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
+                }
             }
         }
         else
         {
-            for (int i = 0; i < height; i++)
-            {
-                int destinationIndex = (y + i) * (int)mode.Width + x;
-                //driver.CopyVRAM(destinationIndex, data, i * width, width);
-            }
+            driver.CopyBuffer(data.AsMemory(), x, y, width, height);
         }
     }
 
@@ -425,20 +416,26 @@ public class EfiCanvas : Canvas
             maxWidth -= startX - aX;
             maxHeight -= startY - aY;
 
-            for (int i = 0; i < maxHeight; i++)
+            if (maxWidth <= 0 || maxHeight <= 0) return;
+
+            // If no cropping needed, use CopyBuffer directly
+            if (sourceX == 0 && sourceY == 0 && maxWidth == xWidth && maxHeight == xHeight)
             {
-                int sourceIndex = (sourceY + i) * xWidth + sourceX;
-                int destinationIndex = (startY + i) * (int)Mode.Width + startX;
-                //driver.CopyVRAM(destinationIndex, xBitmap, sourceIndex, maxWidth);
+                driver.CopyBuffer(xBitmap.AsMemory(), startX, startY, xWidth, xHeight);
+            }
+            else
+            {
+                // Need to copy row by row due to source offset
+                for (int i = 0; i < maxHeight; i++)
+                {
+                    int sourceIndex = (sourceY + i) * xWidth + sourceX;
+                    driver.CopyBuffer(xBitmap.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
+                }
             }
         }
         else
         {
-            for (int i = 0; i < xHeight; i++)
-            {
-                int destinationIndex = (aY + i) * (int)Mode.Width + aX;
-                //driver.CopyVRAM(destinationIndex, xBitmap, i * xWidth, xWidth);
-            }
+            driver.CopyBuffer(xBitmap.AsMemory(), aX, aY, xWidth, xHeight);
         }
     }
 
@@ -446,7 +443,7 @@ public class EfiCanvas : Canvas
 
     public override void Display()
     {
-        Serial.WriteString("EfiCanvas Display called\n");
+        Serial.WriteString("GopCanvas Display called\n");
         driver.Swap();
     }
 

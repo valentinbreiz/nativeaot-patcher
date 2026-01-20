@@ -1,7 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Runtime.InteropServices;
+using System;
 using Cosmos.Kernel.Core.Memory;
+
 namespace Cosmos.Kernel.HAL.Devices.Graphic;
 
 /// <summary>
@@ -78,5 +79,53 @@ public unsafe class GopDriver : GraphicDevice
     public override void Swap()
     {
         LinearFrameBuffer.Copy(lastbuffer);
+    }
+
+    /// <summary>
+    /// Copy a buffer of pixels to a rectangular region.
+    /// </summary>
+    public override void CopyBuffer(ReadOnlyMemory<uint> pixels, int x, int y, int width, int height)
+    {
+        // Clamp to screen bounds
+        if (x < 0 || y < 0 || width <= 0 || height <= 0) return;
+        if (x >= (int)Width || y >= (int)Height) return;
+
+        int clampedWidth = Math.Min(width, (int)Width - x);
+        int clampedHeight = Math.Min(height, (int)Height - y);
+
+        var span = pixels.Span;
+        for (int row = 0; row < clampedHeight; row++)
+        {
+            int srcOffset = row * width;
+            int dstByteOffset = (int)((y + row) * Pitch + x * Stride);
+
+            // Copy one row at a time
+            var rowPixels = span.Slice(srcOffset, clampedWidth);
+            lastbuffer.Copy(dstByteOffset, rowPixels);
+        }
+    }
+
+    /// <summary>
+    /// Copy a buffer of pixels to a rectangular region (int version for image data).
+    /// </summary>
+    public override void CopyBuffer(ReadOnlyMemory<int> pixels, int x, int y, int width, int height)
+    {
+        // Clamp to screen bounds
+        if (x < 0 || y < 0 || width <= 0 || height <= 0) return;
+        if (x >= (int)Width || y >= (int)Height) return;
+
+        int clampedWidth = Math.Min(width, (int)Width - x);
+        int clampedHeight = Math.Min(height, (int)Height - y);
+
+        // Reinterpret int as uint span (same memory layout)
+        var span = global::System.Runtime.InteropServices.MemoryMarshal.Cast<int, uint>(pixels.Span);
+        for (int row = 0; row < clampedHeight; row++)
+        {
+            int srcOffset = row * width;
+            int dstByteOffset = (int)((y + row) * Pitch + x * Stride);
+
+            var rowPixels = span.Slice(srcOffset, clampedWidth);
+            lastbuffer.Copy(dstByteOffset, rowPixels);
+        }
     }
 }
