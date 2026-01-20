@@ -258,11 +258,8 @@ public class MemoryBlock
     /// <param name="block">ManagedMemoryBlock to copy.</param>
     public unsafe void Copy(ManagedMemoryBlock block)
     {
-        byte* xDest = (byte*)Base;
-        fixed (byte* aDataPtr = block.memory)
-        {
-            MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
-        }
+        var dest = new Span<byte>((byte*)Base, (int)block.Size);
+        block.Span.CopyTo(dest);
     }
 
     /// <summary>

@@ -309,8 +309,17 @@ public class EfiCanvas : Canvas
         // ClearVRAM clears one uint at a time. So we clear pixelwise not byte wise. That's why we divide by 32 and not 8.
         if (preventOffBoundPixels)
         {
-            aWidth = (int)(Math.Min(aWidth, Mode.Width - aX) * (int)Mode.ColorDepth / 32);
+            // Clamp to screen bounds
+            if (aX < 0) { aWidth += aX; aX = 0; }
+            if (aY < 0) { aHeight += aY; aY = 0; }
+            if (aX >= (int)Mode.Width || aY >= (int)Mode.Height) return;
+
+            aWidth = Math.Min(aWidth, (int)Mode.Width - aX);
+            aHeight = Math.Min(aHeight, (int)Mode.Height - aY);
+
+            if (aWidth <= 0 || aHeight <= 0) return;
         }
+
         var color = aColor.ToArgb();
         for (int i = aY; i < aY + aHeight; i++)
         {

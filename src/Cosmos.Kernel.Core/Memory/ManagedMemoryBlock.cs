@@ -7,21 +7,34 @@ namespace Cosmos.Kernel.Core.Memory;
 /// </summary>
 public unsafe class ManagedMemoryBlock
 {
-    public byte[] memory;
+    private readonly byte[] _array;
+    private readonly Memory<byte> _memory;
+    private readonly int _alignedOffset;
 
     /// <summary>
-    /// Offset.
+    /// Offset (pointer address of aligned start).
     /// </summary>
-    public ulong Offset;
+    public ulong Offset { get; private set; }
+
     /// <summary>
-    /// Size.
+    /// Size of the usable memory block.
     /// </summary>
-    public uint Size;
+    public uint Size { get; }
+
+    /// <summary>
+    /// Gets a Span view of the memory block.
+    /// </summary>
+    public Span<byte> Span => _memory.Span;
+
+    /// <summary>
+    /// Gets a Memory view of the memory block.
+    /// </summary>
+    public Memory<byte> Memory => _memory;
 
     /// <summary>
     /// Create a new buffer with the given size, not aligned
     /// </summary>
-    /// <param name="byteSize">Size of buffer</param>
+    /// <param name="aByteCount">Size of buffer</param>
     public ManagedMemoryBlock(uint aByteCount) : this(aByteCount, 1, false)
     {
     }
@@ -29,7 +42,7 @@ public unsafe class ManagedMemoryBlock
     /// <summary>
     /// Create a new buffer with the given size, aligned on the byte boundary specified
     /// </summary>
-    /// <param name="byteCount">Size of buffer</param>
+    /// <param name="aByteCount">Size of buffer</param>
     /// <param name="alignment">Byte Boundary alignment</param>
     public ManagedMemoryBlock(uint aByteCount, int alignment) : this(aByteCount, alignment, true)
     {
@@ -43,19 +56,28 @@ public unsafe class ManagedMemoryBlock
     /// <param name="aAlign">true if buffer should be aligned, false otherwise</param>
     public ManagedMemoryBlock(uint aByteCount, int aAlignment, bool aAlign)
     {
-        memory = new byte[aByteCount + aAlignment - 1];
-        fixed (byte* bodystart = memory)
+        _array = new byte[aByteCount + aAlignment - 1];
+        Size = aByteCount;
+
+        fixed (byte* bodystart = _array)
         {
-            Offset = (ulong)bodystart;
-            Size = aByteCount;
-        }
-        if (aAlign == true)
-        {
-            while (Offset % (ulong)aAlignment != 0)
+            ulong baseAddress = (ulong)bodystart;
+            Offset = baseAddress;
+
+            if (aAlign)
             {
-                Offset++;
+                // Calculate aligned offset
+                ulong remainder = baseAddress % (ulong)aAlignment;
+                if (remainder != 0)
+                {
+                    Offset = baseAddress + (ulong)aAlignment - remainder;
+                }
             }
+
+            _alignedOffset = (int)(Offset - baseAddress);
         }
+
+        _memory = new Memory<byte>(_array, _alignedOffset, (int)aByteCount);
     }
 
     /// <summary>
@@ -68,11 +90,13 @@ public unsafe class ManagedMemoryBlock
     {
         get
         {
-            return memory[offset];
+            if (offset >= Size) return 0;
+            return Span[(int)offset];
         }
         set
         {
-            memory[offset] = value;
+            if (offset >= Size) return;
+            Span[(int)offset] = value;
         }
     }
 
@@ -81,62 +105,96 @@ public unsafe class ManagedMemoryBlock
     /// </summary>
     /// <param name="aByteOffset">A start.</param>
     /// <param name="aCount">A count.</param>
-    /// <param name="aData">A data.</param>
-    public unsafe void Fill(uint aByteOffset, uint aCount, uint aData)
+    /// <param name="aData">A data to fill (as uint, fills aCount uint values).</param>
+    public void Fill(uint aByteOffset, uint aCount, uint aData)
     {
-        fixed (byte* aArrayPtr = memory)
-        {
-            uint* xDest = (uint*)(aArrayPtr + aByteOffset);
-            MemoryOp.MemSet(xDest, aData, (int)aCount);
-        }
+        if (aByteOffset >= Size) return;
+
+        var remaining = Span.Slice((int)aByteOffset);
+        var availableUints = remaining.Length / 4;
+        if (availableUints == 0) return;
+
+        var count = Math.Min((int)aCount, availableUints);
+        var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(remaining.Slice(0, count * 4));
+        span.Fill(aData);
     }
 
     /// <summary>
     /// Fill memory block with integer value
     /// </summary>
-    /// <param name="aByteOffset">A starting position in the memory block. This is integer indexing based</param>
-    /// <param name="aCount">Data size.</param>
+    /// <param name="aByteOffset">A starting position in the memory block (byte offset)</param>
+    /// <param name="aCount">Number of uint values to fill.</param>
     /// <param name="aData">A data to fill memory block with.</param>
-    public unsafe void Fill(int aByteOffset, int aCount, int aData)
+    public void Fill(int aByteOffset, int aCount, int aData)
     {
-        // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        fixed (byte* aArrayPtr = memory)
-        {
-            //MemoryOperations.Fill(aArrayPtr + aByteOffset, aData, aCount * 4);
-            MemoryOp.MemSet((uint*)(aArrayPtr + aByteOffset), (uint)aData, aCount);
-        }
+        if (aByteOffset < 0 || aByteOffset >= Size) return;
+
+        var remaining = Span.Slice(aByteOffset);
+        var availableUints = remaining.Length / 4;
+        if (availableUints == 0) return;
+
+        var count = Math.Min(aCount, availableUints);
+        var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(remaining.Slice(0, count * 4));
+        span.Fill((uint)aData);
     }
 
     /// <summary>
-    /// Fill memory block.
+    /// Fill entire memory block with a uint value.
     /// </summary>
     /// <param name="aData">A data to fill.</param>
     public void Fill(uint aData)
     {
-        fixed (byte* destPtr = memory)
-        {
-            MemoryOp.MemSet((uint*)destPtr, aData, (int)(Size / 4));
-        }
+        var alignedLength = (Span.Length / 4) * 4;
+        if (alignedLength == 0) return;
+
+        var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(Span.Slice(0, alignedLength));
+        span.Fill(aData);
     }
 
-    public unsafe void Copy(int aStart, byte[] aData, int aIndex, int aCount)
+    /// <summary>
+    /// Copy data from a byte array into this memory block.
+    /// </summary>
+    /// <param name="aStart">Starting offset in this memory block.</param>
+    /// <param name="aData">Source byte array.</param>
+    /// <param name="aIndex">Starting index in source array.</param>
+    /// <param name="aCount">Number of bytes to copy.</param>
+    public void Copy(int aStart, byte[] aData, int aIndex, int aCount)
     {
-        // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        fixed (byte* aArrayPtr = this.memory)
-        fixed (byte* aDataPtr = aData)
-        {
-            MemoryOp.MemCopy(aArrayPtr + aStart, aDataPtr + aIndex, aCount);
-        }
+        aData.AsSpan(aIndex, aCount).CopyTo(Span.Slice(aStart));
     }
 
-    public unsafe void Copy(int aStart, int[] aData, int aIndex, int aCount)
+    /// <summary>
+    /// Copy data from a byte span into this memory block.
+    /// </summary>
+    /// <param name="aStart">Starting offset in this memory block.</param>
+    /// <param name="aData">Source span.</param>
+    public void Copy(int aStart, ReadOnlySpan<byte> aData)
     {
-        // TODO thow exception if aStart and aCount are not in bound. I've tried to do this but Bochs dies :-(
-        fixed (byte* aArrayPtr = memory)
-        fixed (int* aDataPtr = aData)
-        {
-            MemoryOp.MemCopy(aArrayPtr + aStart, (byte*)(aDataPtr + aIndex), aCount);
-        }
+        aData.CopyTo(Span.Slice(aStart));
+    }
+
+    /// <summary>
+    /// Copy data from an int array into this memory block.
+    /// </summary>
+    /// <param name="aStart">Starting byte offset in this memory block.</param>
+    /// <param name="aData">Source int array.</param>
+    /// <param name="aIndex">Starting index in source array.</param>
+    /// <param name="aCount">Number of bytes to copy.</param>
+    public void Copy(int aStart, int[] aData, int aIndex, int aCount)
+    {
+        var srcBytes = System.Runtime.InteropServices.MemoryMarshal.AsBytes(aData.AsSpan(aIndex));
+        srcBytes.Slice(0, aCount).CopyTo(Span.Slice(aStart));
+    }
+
+    /// <summary>
+    /// Copy data from a uint span into this memory block.
+    /// </summary>
+    /// <param name="aStart">Starting byte offset in this memory block.</param>
+    /// <param name="aData">Source uint span.</param>
+    public void Copy(int aStart, ReadOnlySpan<uint> aData)
+    {
+        var srcBytes = System.Runtime.InteropServices.MemoryMarshal.AsBytes(aData);
+        srcBytes.CopyTo(Span.Slice(aStart));
     }
 
     /// <summary>
@@ -145,44 +203,59 @@ public unsafe class ManagedMemoryBlock
     /// <param name="block">MemoryBlock to copy.</param>
     public unsafe void Copy(MemoryBlock block)
     {
-        fixed (byte* xDest = memory)
-        {
-            byte* aDataPtr = (byte*)block.Base;
-            MemoryOp.MemCopy(xDest, aDataPtr, (int)block.Size);
-        }
+        var src = new ReadOnlySpan<byte>((byte*)block.Base, (int)block.Size);
+        src.CopyTo(Span);
     }
 
     /// <summary>
     /// Copies data from the memory block to the specified array.
     /// </summary>
-    /// <param name="aStart">The start index in the memory block from which to begin copying.</param>
+    /// <param name="aStart">The start index in the memory block (as int index, not byte offset).</param>
     /// <param name="aData">The array into which data will be copied.</param>
     /// <param name="aIndex">The starting index in the array where data will be copied.</param>
-    /// <param name="aCount">The number of elements to copy.</param>
-    public unsafe void Get(int aStart, int[] aData, int aIndex, int aCount)
+    /// <param name="aCount">The number of bytes to copy.</param>
+    public void Get(int aStart, int[] aData, int aIndex, int aCount)
     {
-        int* xSrc;
-        fixed (byte* aArrayPtr = memory)
-        {
-            xSrc = (int*)aArrayPtr + aStart;
-        }
-        fixed (int* aDataPtr = aData)
-        {
-            MemoryOp.MemCopy((byte*)(aDataPtr + aIndex), (byte*)xSrc, aCount);
-        }
+        var srcSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, int>(Span);
+        var srcBytes = System.Runtime.InteropServices.MemoryMarshal.AsBytes(srcSpan.Slice(aStart));
+        var destBytes = System.Runtime.InteropServices.MemoryMarshal.AsBytes(aData.AsSpan(aIndex));
+        srcBytes.Slice(0, aCount).CopyTo(destBytes);
     }
+
+    /// <summary>
+    /// Get a span view of a portion of the memory block.
+    /// </summary>
+    /// <param name="offset">Starting byte offset.</param>
+    /// <param name="length">Length in bytes.</param>
+    /// <returns>A span view of the specified region.</returns>
+    public Span<byte> GetSpan(int offset, int length) => Span.Slice(offset, length);
+
+    /// <summary>
+    /// Get a span view of a portion of the memory block as uint values.
+    /// </summary>
+    /// <param name="byteOffset">Starting byte offset.</param>
+    /// <param name="count">Number of uint values.</param>
+    /// <returns>A span view of the specified region as uint.</returns>
+    public Span<uint> GetUIntSpan(int byteOffset, int count)
+    {
+        return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(Span.Slice(byteOffset)).Slice(0, count);
+    }
+
+    /// <summary>
+    /// Read 8-bit from the memory block.
+    /// </summary>
+    /// <param name="aByteOffset">Data offset.</param>
+    /// <returns>Byte value.</returns>
+    public byte Read8(uint aByteOffset) => Span[(int)aByteOffset];
 
     /// <summary>
     /// Write 8-bit to the memory block.
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <param name="value">Value to write.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size or smaller than 0.</exception>
     public void Write8(uint aByteOffset, byte value)
     {
-        if (aByteOffset < 0 || aByteOffset > Size)
-            throw new ArgumentOutOfRangeException("offset");
-        (*(byte*)(Offset + aByteOffset)) = value;
+        Span[(int)aByteOffset] = value;
     }
 
     /// <summary>
@@ -190,15 +263,9 @@ public unsafe class ManagedMemoryBlock
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <returns>UInt16 value.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size.</exception>
     public ushort Read16(uint aByteOffset)
     {
-        if (aByteOffset > Size)
-        {
-            throw new ArgumentOutOfRangeException(nameof(aByteOffset));
-        }
-
-        return *(ushort*)(Offset + aByteOffset);
+        return System.Runtime.InteropServices.MemoryMarshal.Read<ushort>(Span.Slice((int)aByteOffset));
     }
 
     /// <summary>
@@ -206,14 +273,9 @@ public unsafe class ManagedMemoryBlock
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <param name="value">Value to write.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size or smaller than 0.</exception>
     public void Write16(uint aByteOffset, ushort value)
     {
-        if (aByteOffset < 0 || aByteOffset > Size)
-        {
-            throw new ArgumentOutOfRangeException(nameof(aByteOffset));
-        }
-        *(ushort*)(Offset + aByteOffset) = value;
+        System.Runtime.InteropServices.MemoryMarshal.Write(Span.Slice((int)aByteOffset), in value);
     }
 
     /// <summary>
@@ -221,15 +283,9 @@ public unsafe class ManagedMemoryBlock
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <returns>UInt32 value.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size.</exception>
     public uint Read32(uint aByteOffset)
     {
-        if (aByteOffset > Size)
-        {
-            throw new ArgumentOutOfRangeException(nameof(aByteOffset));
-        }
-
-        return *(uint*)(Offset + aByteOffset);
+        return System.Runtime.InteropServices.MemoryMarshal.Read<uint>(Span.Slice((int)aByteOffset));
     }
 
     /// <summary>
@@ -237,31 +293,46 @@ public unsafe class ManagedMemoryBlock
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <param name="value">Value to write.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size or smaller than 0.</exception>
     public void Write32(uint aByteOffset, uint value)
     {
-        if (aByteOffset < 0 || aByteOffset > Size)
-        {
-            throw new ArgumentOutOfRangeException(nameof(aByteOffset));
-        }
-        *(uint*)(Offset + aByteOffset) = value;
+        System.Runtime.InteropServices.MemoryMarshal.Write(Span.Slice((int)aByteOffset), in value);
     }
 
     /// <summary>
-    /// Write string to the memory block.
+    /// Read 64-bit from the memory block.
+    /// </summary>
+    /// <param name="aByteOffset">Data offset.</param>
+    /// <returns>UInt64 value.</returns>
+    public ulong Read64(uint aByteOffset)
+    {
+        return System.Runtime.InteropServices.MemoryMarshal.Read<ulong>(Span.Slice((int)aByteOffset));
+    }
+
+    /// <summary>
+    /// Write 64-bit to the memory block.
     /// </summary>
     /// <param name="aByteOffset">Data offset.</param>
     /// <param name="value">Value to write.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if offset if bigger than memory block size or smaller than 0.</exception>
+    public void Write64(uint aByteOffset, ulong value)
+    {
+        System.Runtime.InteropServices.MemoryMarshal.Write(Span.Slice((int)aByteOffset), in value);
+    }
+
+    /// <summary>
+    /// Write string to the memory block (as ASCII bytes).
+    /// </summary>
+    /// <param name="aByteOffset">Data offset.</param>
+    /// <param name="value">Value to write.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if string exceeds memory block bounds.</exception>
     public void WriteString(uint aByteOffset, string value)
     {
-        if (aByteOffset < 0 || aByteOffset > Size)
-            throw new ArgumentOutOfRangeException("offset");
         if (value.Length + aByteOffset > Size)
-            throw new ArgumentOutOfRangeException("value");
-        for (int index = 0; index < value.Length; index++)
+            throw new ArgumentOutOfRangeException(nameof(value));
+
+        var dest = Span.Slice((int)aByteOffset, value.Length);
+        for (int i = 0; i < value.Length; i++)
         {
-            memory[aByteOffset + index] = (byte)value[index];
+            dest[i] = (byte)value[i];
         }
     }
 }
