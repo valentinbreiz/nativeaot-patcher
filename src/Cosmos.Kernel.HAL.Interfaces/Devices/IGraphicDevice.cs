@@ -29,6 +29,23 @@ public interface IGraphicDevice
     void DrawPixel(uint color, int x, int y);
 
     /// <summary>
+    /// Get the color of a single pixel.
+    /// </summary>
+    /// <param name="x">X coordinate.</param>
+    /// <param name="y">Y coordinate.</param>
+    /// <returns>ARGB color value.</returns>
+    uint GetPixel(int x, int y);
+
+    /// <summary>
+    /// Reads a block of pixels from video memory.
+    /// </summary>
+    /// <param name="sourceByteOffset">Byte offset in the frame buffer.</param>
+    /// <param name="dest">Destination array.</param>
+    /// <param name="destIndex">Index in destination array to start writing.</param>
+    /// <param name="count">Number of pixels to read.</param>
+    void GetVRAM(int sourceByteOffset, int[] dest, int destIndex, int count);
+
+    /// <summary>
     /// Copy a buffer of pixels to a rectangular region.
     /// </summary>
     /// <param name="pixels">Pixel data as ARGB values.</param>

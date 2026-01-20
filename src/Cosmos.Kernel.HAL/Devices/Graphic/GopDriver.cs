@@ -63,6 +63,31 @@ public unsafe class GopDriver : GraphicDevice
         lastbuffer[offset + 3] = (byte)((color >> 24) & 0xFF); // A
     }
 
+    public override uint GetPixel(int x, int y)
+    {
+        uint offset = GetPointOffset(x, y);
+
+        byte b = lastbuffer[offset];
+        byte g = lastbuffer[offset + 1];
+        byte r = lastbuffer[offset + 2];
+        byte a = lastbuffer[offset + 3];
+
+        return (uint)(b | (g << 8) | (r << 16) | (a << 24));
+    }
+
+    public override void GetVRAM(int sourceByteOffset, int[] dest, int destIndex, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            uint offset = (uint)(sourceByteOffset + i * 4);
+            byte b = lastbuffer[offset];
+            byte g = lastbuffer[offset + 1];
+            byte r = lastbuffer[offset + 2];
+            byte a = lastbuffer[offset + 3];
+            dest[destIndex + i] = (int)(uint)(b | (g << 8) | (r << 16) | (a << 24));
+        }
+    }
+
     public void ClearVRAM(int aStart, int aCount, int value)
     {
         lastbuffer.Fill(aStart, aCount, value);

@@ -451,16 +451,12 @@ public class GopCanvas : Canvas
 
     public override Color GetPointColor(int aX, int aY)
     {
-        //uint offset = (uint)GetPointOffset(aX, aY);
-        //return Color.FromArgb((int)driver.GetVRAM(offset));
-        throw new NotImplementedException("GetPointColor is not yet implemented.");
+        return Color.FromArgb((int)driver.GetPixel(aX, aY));
     }
 
     public override int GetRawPointColor(int aX, int aY)
     {
-        //uint offset = (uint)GetPointOffset(aX, aY);
-        //return (int)driver.GetVRAM(offset);
-        throw new NotImplementedException("GetRawPointColor is not yet implemented.");
+        return (int)driver.GetPixel(aX, aY);
     }
 
     public override Bitmap GetImage(int x, int y, int width, int height)
@@ -479,10 +475,10 @@ public class GopCanvas : Canvas
 
         for (int posy = startY; posy < endY; posy++)
         {
-            int srcOffset = posy * (int)Mode.Width + startX;
+            int srcOffset = (int)(posy * driver.Pitch + startX * 4);
             int destOffset = (posy - startY + offsetY) * width + offsetX;
 
-            //driver.GetVRAM(srcOffset, rawData, destOffset, endX - startX);
+            driver.GetVRAM(srcOffset, rawData, destOffset, endX - startX);
         }
 
         bitmap.RawData = rawData;

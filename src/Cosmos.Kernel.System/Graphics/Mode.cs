@@ -85,6 +85,6 @@ public readonly struct Mode
 
     public override string ToString()
     {
-        return $"{Width}x{Height}@{(int)ColorDepth}";
+        return Width + "x" + Height + "@" + (int)ColorDepth;
     }
 }
