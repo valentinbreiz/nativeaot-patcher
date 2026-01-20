@@ -2,8 +2,8 @@ using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -28,7 +28,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine("         CosmosOS 3.0.32 Shell       ");
+        Console.WriteLine("         CosmosOS 3.0.35 Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
@@ -216,7 +216,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.32 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.35 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
@@ -224,6 +224,15 @@ public class Kernel : Sys.Kernel
         PrintInfoLine("Architecture", "ARM64");
 #endif
         PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
+        if (KernelConsole.IsAvailable)
+        {
+            var mode = KernelConsole.Canvas.Mode;
+            PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Canvas.Name() + ")");
+        }
+        else
+        {
+            PrintInfoLine("Framebuffer", "Disabled");
+        }
     }
 
     private void PrintInfoLine(string label, string value)
@@ -473,17 +482,17 @@ public class Kernel : Sys.Kernel
 
     private static void GraphicsWorker()
     {
-        if (Canvas.Width == 0 || Canvas.Height == 0)
+        if (KernelConsole.Canvas.Mode.Width == 0 || KernelConsole.Canvas.Mode.Height == 0)
             return;
 
         const int squareSize = 80;
         const int margin = 20;
 
-        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Width - squareSize - margin
+        int x = KernelConsole.Canvas.Mode.Width >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Width - squareSize - margin
             : margin;
-        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Height - squareSize - margin
+        int y = KernelConsole.Canvas.Mode.Height >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Height - squareSize - margin
             : margin;
 
         int frame = 0;
@@ -515,11 +524,12 @@ public class Kernel : Sys.Kernel
                     byte pb = (byte)((b * factor) / 255);
                     uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
 
-                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                    KernelConsole.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
                 }
             }
 
             frame++;
+            KernelConsole.Canvas.Display();
             System.Threading.Thread.Sleep(100);
         }
     }

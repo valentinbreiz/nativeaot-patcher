@@ -446,14 +446,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void RhWaitForPendingFinalizers() { }
                 [RuntimeExport("RhGetMemoryInfo")]
                 static void RhGetMemoryInfo(IntPtr pMemInfo) { }
-                [RuntimeExport("cos")]
-                static double cos(double x) { throw null; }
-                [RuntimeExport("sin")]
-                static double sin(double x) { throw null; }
-                [RuntimeExport("tan")]
-                static double tan(double x) { throw null; }
-                [RuntimeExport("pow")]
-                static double pow(double x, double y) { throw null; }
                 [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]

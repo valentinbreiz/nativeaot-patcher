@@ -75,7 +75,6 @@ Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.HAL.ARM64.*.nupkg" 
 $MultiArchProjects = @(
     "Cosmos.Kernel.Core",
     "Cosmos.Kernel.HAL",
-    "Cosmos.Kernel.Graphics",
     "Cosmos.Kernel.System",
     "Cosmos.Kernel.Plugs",
     "Cosmos.Kernel"

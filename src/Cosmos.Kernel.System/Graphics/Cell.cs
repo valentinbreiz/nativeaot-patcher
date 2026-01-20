@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.Graphics;
+namespace Cosmos.Kernel.System.Graphics;
 
 /// <summary>
 /// Represents a single cell in the terminal grid.

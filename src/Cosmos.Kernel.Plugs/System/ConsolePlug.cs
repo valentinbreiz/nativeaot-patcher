@@ -1,7 +1,7 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core;
-using Cosmos.Kernel.Graphics;
+using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Keyboard;
 
@@ -42,7 +42,14 @@ public class ConsolePlug
     }
 
     [PlugMember]
-    public static void Clear() => KernelConsole.Clear();
+    public static void Clear()
+    {
+        KernelConsole.Clear();
+        if (KernelConsole.IsAvailable)
+        {
+            KernelConsole.Canvas.Display();
+        }
+    }
 
     [PlugMember]
     public static ConsoleColor get_ForegroundColor()
@@ -162,6 +169,10 @@ public class ConsolePlug
         if (!intercept && keyEvent.KeyChar != '\0')
         {
             KernelConsole.Write(keyEvent.KeyChar);
+            if (KernelConsole.IsAvailable)
+            {
+                KernelConsole.Canvas.Display();
+            }
         }
 
         return ToConsoleKeyInfo(keyEvent);

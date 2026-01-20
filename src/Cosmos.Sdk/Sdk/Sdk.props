@@ -22,17 +22,13 @@
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;BuildGCC;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 
-  <!-- Graphics settings -->
-  <PropertyGroup>
-    <UnRootGraphics Condition="$(UnRootGraphics) != 'true'">false</UnRootGraphics>
-    <CosmosDefaultFont Condition="$(CosmosDefaultFont) == '' and $(UnRootGraphics) != 'true'">Cosmos.Kernel.Graphics.Fonts.DefaultFont.psf</CosmosDefaultFont>
-  </PropertyGroup>
-
   <!-- Cosmos Feature Switches (defaults) -->
   <PropertyGroup>
     <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
     <CosmosEnableNetwork Condition="'$(CosmosEnableNetwork)' == ''">true</CosmosEnableNetwork>
+    <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
+    <CosmosDefaultFont Condition="'$(CosmosDefaultFont)' == ''">Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf</CosmosDefaultFont>
   </PropertyGroup>
 
   <!-- Default kernel class name - inferred from RootNamespace or AssemblyName -->
@@ -66,12 +62,12 @@
     <UnmanagedEntryPointsAssembly Include="Cosmos.Kernel.Core"/>
     <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false"/>
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
-    <IlcArg Condition="$(UnRootGraphics) != 'true'" Include="--root:Cosmos.Kernel.Graphics"/>
-    <RuntimeHostConfigurationOption Condition="$(CosmosDefaultFont) != ''" Include="Cosmos.Kernel.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)"/>
     <!-- Cosmos Feature Switches -->
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
+    <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.CustomFont" Value="$(CosmosDefaultFont)" />
     <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.HAL.ARM64"/>
@@ -106,11 +102,11 @@
 
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Build.Common" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.32" />
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.35" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Build.Common" />
@@ -122,10 +118,10 @@
 
   <!-- Both arch packages installed; RuntimeIdentifier selects at build time -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.32" />
-    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.32" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.35" />
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.35" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" />

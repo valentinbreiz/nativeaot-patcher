@@ -1,8 +1,9 @@
+using System.Drawing;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
-using Cosmos.Kernel.Graphics.Fonts;
+using Cosmos.Kernel.System.Graphics.Fonts;
 
-namespace Cosmos.Kernel.Graphics;
+namespace Cosmos.Kernel.System.Graphics;
 
 /// <summary>
 /// Cell-based graphics console for kernel output.
@@ -13,6 +14,8 @@ public static class KernelConsole
     // Lock for thread-safe console access
     private static Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
 
+    private static Canvas _canvas;
+
     // Cursor position in character coordinates (column, row)
     private static int _cursorX;
     private static int _cursorY;
@@ -22,15 +25,15 @@ public static class KernelConsole
     private static int _rows;
 
     // Character dimensions from font
-    private static int CharWidth => PCScreenFont.CharWidth;
-    private static int CharHeight => PCScreenFont.CharHeight;
+    private static int CharWidth => PCScreenFont.DefaultFont.Width;
+    private static int CharHeight => PCScreenFont.DefaultFont.Height;
 
     // Cell buffer - stores all characters and their colors
     private static Cell[]? _cells;
 
     // Current colors
-    private static uint _foregroundColor = Color.White;
-    private static uint _backgroundColor = Color.Black;
+    private static uint _foregroundColor = (uint)Color.White.ToArgb();
+    private static uint _backgroundColor = (uint)Color.Black.ToArgb();
 
     // Cursor visibility
     private static bool _cursorVisible = true;
@@ -42,28 +45,29 @@ public static class KernelConsole
     // Console color palette (standard 16 colors)
     private static readonly uint[] _palette = new uint[16]
     {
-        0x000000, // Black
-        0x000080, // DarkBlue
-        0x008000, // DarkGreen
-        0x008080, // DarkCyan
-        0x800000, // DarkRed
-        0x800080, // DarkMagenta
-        0x808000, // DarkYellow
-        0xC0C0C0, // Gray
-        0x808080, // DarkGray
-        0x0000FF, // Blue
-        0x00FF00, // Green
-        0x00FFFF, // Cyan
-        0xFF0000, // Red
-        0xFF00FF, // Magenta
-        0xFFFF00, // Yellow
-        0xFFFFFF  // White
+        0xFF000000, // Black
+        0xFF000080, // DarkBlue
+        0xFF008000, // DarkGreen
+        0xFF008080, // DarkCyan
+        0xFF800000, // DarkRed
+        0xFF808000, // DarkMagenta
+        0xFF808000, // DarkYellow
+        0xFFC0C0C0, // Gray
+        0xFF808080, // DarkGray
+        0xFF0000FF, // Blue
+        0xFF00FF00, // Green
+        0xFF00FFFF, // Cyan
+        0xFFFF0000, // Red
+        0xFFFF00FF, // Magenta
+        0xFFFFFF00, // Yellow
+        0xFFFFFFFF  // White
     };
 
     /// <summary>
     /// Gets whether graphics console is available and initialized.
     /// </summary>
-    public static unsafe bool IsAvailable => _isInitialized && Canvas.Address != null;
+    //public static unsafe bool IsAvailable => _isInitialized && Canvas.Address != null;
+    public static unsafe bool IsAvailable => _isInitialized;
 
     /// <summary>
     /// Gets whether the graphics console has been initialized.
@@ -151,6 +155,8 @@ public static class KernelConsole
         set => _backgroundColor = value;
     }
 
+    public static Canvas Canvas => _canvas;
+
     /// <summary>
     /// Sets the foreground color from ConsoleColor enum.
     /// </summary>
@@ -180,36 +186,35 @@ public static class KernelConsole
     /// </summary>
     public static unsafe bool Initialize()
     {
+        if (!Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled)
+        {
+            return false;
+        }
+
         if (_isInitialized)
-            return Canvas.Address != null;
+            return false;
 
         _isInitialized = true;
 
-        if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
-        {
-            LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
-            Canvas.Address = (uint*)fb->Address;
-            Canvas.Width = (uint)fb->Width;
-            Canvas.Height = (uint)fb->Height;
-            Canvas.Pitch = (uint)fb->Pitch;
+        _canvas = FullScreenCanvas.GetFullScreenCanvas();    // canvas = GetFullScreenCanvas(start);
 
-            // Calculate terminal dimensions based on font size
-            _cols = (int)Canvas.Width / CharWidth;
-            _rows = (int)Canvas.Height / CharHeight;
+        /* Clear the Screen with the color 'Blue' */
+        _canvas.Clear(Color.Blue);
 
-            // Allocate cell buffer
-            _cells = new Cell[_cols * _rows];
+        // Calculate terminal dimensions based on font size
+        _cols = (int)_canvas.Mode.Width / CharWidth;
+        _rows = (int)_canvas.Mode.Height / CharHeight;
+        // Allocate cell buffer
+        _cells = new Cell[_cols * _rows];
 
-            // Initialize all cells to empty with default colors
-            ClearCells();
+        // Initialize all cells to empty with default colors
+        ClearCells();
 
-            // Clear screen
-            Canvas.ClearScreen(_backgroundColor);
+        // Clear screen
+        _canvas.Clear((int)_backgroundColor);
+        _canvas.Display();
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     /// <summary>
@@ -271,7 +276,7 @@ public static class KernelConsole
         int pixelX = _cursorX * CharWidth;
         int pixelY = _cursorY * CharHeight + CharHeight - 2;
 
-        Canvas.DrawRectangle(_foregroundColor, pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)_foregroundColor), pixelX, pixelY, CharWidth, 2);
         _cursorDrawn = true;
     }
 
@@ -295,7 +300,7 @@ public static class KernelConsole
             bgColor = _cells[index].BackgroundColor;
         }
 
-        Canvas.DrawRectangle(bgColor, pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)bgColor), pixelX, pixelY, CharWidth, 2);
         _cursorDrawn = false;
     }
 
@@ -316,12 +321,12 @@ public static class KernelConsole
         int pixelY = row * CharHeight;
 
         // Draw background
-        Canvas.DrawRectangle(cell.BackgroundColor, pixelX, pixelY, CharWidth, CharHeight);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)cell.BackgroundColor), pixelX, pixelY, CharWidth, CharHeight);
 
         // Draw character if not empty
         if (cell.Char != '\0' && cell.Char != '\n')
         {
-            PCScreenFont.PutChar(cell.Char, pixelX, pixelY, cell.ForegroundColor, cell.BackgroundColor);
+            _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
         }
     }
 
@@ -359,7 +364,7 @@ public static class KernelConsole
         EraseCursor();
 
         // Clear screen with background color
-        Canvas.ClearScreen(_backgroundColor);
+        _canvas.Clear((int)_backgroundColor);
 
         // Draw all cells
         for (int row = 0; row < _rows; row++)
@@ -373,7 +378,7 @@ public static class KernelConsole
                 {
                     int pixelX = col * CharWidth;
                     int pixelY = row * CharHeight;
-                    PCScreenFont.PutChar(cell.Char, pixelX, pixelY, cell.ForegroundColor, cell.BackgroundColor);
+                    _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
                 }
             }
         }
@@ -734,7 +739,7 @@ public static class KernelConsole
             {
                 EraseCursor();
                 ClearCells();
-                Canvas.ClearScreen(_backgroundColor);
+                _canvas.Clear((int)_backgroundColor);
                 _cursorX = 0;
                 _cursorY = 0;
                 DrawCursor();
@@ -751,8 +756,8 @@ public static class KernelConsole
     /// </summary>
     public static void ResetColors()
     {
-        _foregroundColor = Color.White;
-        _backgroundColor = Color.Black;
+        _foregroundColor = (uint)Color.White.ToArgb();
+        _backgroundColor = (uint)Color.Black.ToArgb();
     }
 
     /// <summary>

@@ -37,76 +37,128 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>
         /// Assert that two values are equal
         /// </summary>
-        public static void Equal<T>(T expected, T actual) where T : System.IEquatable<T>
+        public static void Equal<T>(T expected, T actual, string? message = null) where T : System.IEquatable<T>
         {
             if (expected == null && actual == null)
                 return;
 
             if (expected == null || actual == null || !expected.Equals(actual))
             {
-                SetFailed("Values are not equal");
+                SetFailed(message ?? "Values are not equal");
             }
         }
 
         /// <summary>
         /// Assert that two integers are equal
         /// </summary>
-        public static void Equal(int expected, int actual)
+        public static void Equal(int expected, int actual, string? message = null)
         {
             if (expected != actual)
             {
-                SetFailed("Integer values are not equal");
+                SetFailed(message ?? "Integer values are not equal");
             }
         }
 
         /// <summary>
         /// Assert that two unsigned integers are equal
         /// </summary>
-        public static void Equal(uint expected, uint actual)
+        public static void Equal(uint expected, uint actual, string? message = null)
         {
             if (expected != actual)
             {
-                SetFailed("Unsigned integer values are not equal");
+                SetFailed(message ?? "Unsigned integer values are not equal");
             }
         }
 
         /// <summary>
         /// Assert that two longs are equal
         /// </summary>
-        public static void Equal(long expected, long actual)
+        public static void Equal(long expected, long actual, string? message = null)
         {
             if (expected != actual)
             {
-                SetFailed("Long values are not equal");
+                SetFailed(message ?? "Long values are not equal");
             }
         }
 
         /// <summary>
         /// Assert that two bytes are equal
         /// </summary>
-        public static void Equal(byte expected, byte actual)
+        public static void Equal(byte expected, byte actual, string? message = null)
         {
             if (expected != actual)
             {
-                SetFailed("Byte values are not equal");
+                SetFailed(message ?? "Byte values are not equal");
             }
         }
 
         /// <summary>
         /// Assert that two booleans are equal
         /// </summary>
-        public static void Equal(bool expected, bool actual)
+        public static void Equal(bool expected, bool actual, string? message = null)
         {
             if (expected != actual)
             {
-                SetFailed("Boolean values are not equal");
+                SetFailed(message ?? "Boolean values are not equal");
+            }
+        }
+
+        /// <summary>
+        /// Assert that two byte arrays are equal
+        /// </summary>
+        public static void Equal(byte[] expected, byte[] actual, string? message = null)
+        {
+            if (expected == null && actual == null) return;
+            if (expected == null || actual == null)
+            {
+                SetFailed(message ?? "Byte arrays are not equal (one is null)");
+                return;
+            }
+            if (expected.Length != actual.Length)
+            {
+                SetFailed(message ?? $"Byte arrays have different lengths: expected {expected.Length}, actual {actual.Length}");
+                return;
+            }
+            for (int i = 0; i < expected.Length; i++)
+            {
+                if (expected[i] != actual[i])
+                {
+                    SetFailed(message ?? $"Byte arrays differ at index {i}: expected {expected[i]}, actual {actual[i]}");
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Assert that two int arrays are equal
+        /// </summary>
+        public static void Equal(int[] expected, int[] actual, string? message = null)
+        {
+            if (expected == null && actual == null) return;
+            if (expected == null || actual == null)
+            {
+                SetFailed(message ?? "Int arrays are not equal (one is null)");
+                return;
+            }
+            if (expected.Length != actual.Length)
+            {
+                SetFailed(message ?? $"Int arrays have different lengths: expected {expected.Length}, actual {actual.Length}");
+                return;
+            }
+            for (int i = 0; i < expected.Length; i++)
+            {
+                if (expected[i] != actual[i])
+                {
+                    SetFailed(message ?? $"Int arrays differ at index {i}: expected {expected[i]}, actual {actual[i]}");
+                    return;
+                }
             }
         }
 
         /// <summary>
         /// Assert that a value is not null
         /// </summary>
-        public static void NotNull(object? obj)
+        public static void NotNull(object? obj, string? message = null)
         {
             if (obj == null)
             {
@@ -117,11 +169,11 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>
         /// Assert that a value is null
         /// </summary>
-        public static void Null(object? obj)
+        public static void Null(object? obj, string? message = null)
         {
             if (obj != null)
             {
-                SetFailed("Expected null value");
+                SetFailed(message ?? "Expected null value");
             }
         }
 

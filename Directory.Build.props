@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>3.0.32</VersionPrefix>
+    <VersionPrefix>3.0.35</VersionPrefix>
   </PropertyGroup>
 
   <!-- Normalize TargetArchitecture early so GCC targets pick the right toolchain -->
@@ -48,5 +48,23 @@
     <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc</GCCPath>
     <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/bin/aarch64-elf-gcc</GCCPath>
   </PropertyGroup>
+
+  <!-- Override Native Assembly paths to use local source -->
+  <ItemGroup Condition="'$(CosmosArch)' == 'x64' AND Exists('$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Runtime/')">
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Runtime/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/IO/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/CPU/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Memory/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Debug/" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CosmosArch)' == 'arm64' AND Exists('$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Runtime/')">
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Runtime/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/IO/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/CPU/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Memory/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Debug/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Devices/" />
+  </ItemGroup>
 
 </Project>

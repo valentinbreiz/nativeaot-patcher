@@ -1,11 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.32" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.35" />
 
   <PropertyGroup>
-    <CosmosEnableScheduler>false</CosmosEnableScheduler>
-    <CosmosEnableNetwork>false</CosmosEnableNetwork>
-    <CosmosEnableKeyboard>false</CosmosEnableKeyboard>
     <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -15,7 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cosmos.Kernel\Cosmos.Kernel.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.Graphics\Cosmos.Kernel.Graphics.csproj" />
   </ItemGroup>
 
   <!-- DevKernel-specific C files -->
