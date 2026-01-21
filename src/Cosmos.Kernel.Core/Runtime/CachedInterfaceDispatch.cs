@@ -4,8 +4,8 @@
 using System;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory.Heap;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime

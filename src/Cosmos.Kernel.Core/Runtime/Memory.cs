@@ -13,7 +13,7 @@ public static class Memory
         out void* pResult)
     {
         uint size = pArrayEEType->BaseSize + numElements * pArrayEEType->ComponentSize;
-        
+
         Serial.WriteString("AllocArray Base: ");
         Serial.WriteNumber(pArrayEEType->BaseSize);
         Serial.WriteString(" Comp: ");
@@ -39,18 +39,18 @@ public static class Memory
             return null;
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
-        
-        if (length < 10) 
+
+        if (length < 10)
         {
-             Serial.WriteString("RhpNewArray Base: ");
-             Serial.WriteNumber(pMT->BaseSize);
-             Serial.WriteString(" Comp: ");
-             Serial.WriteNumber(pMT->ComponentSize);
-             Serial.WriteString(" Len: ");
-             Serial.WriteNumber((uint)length);
-             Serial.WriteString(" Size: ");
-             Serial.WriteNumber(size);
-             Serial.WriteString("\n");
+            Serial.WriteString("RhpNewArray Base: ");
+            Serial.WriteNumber(pMT->BaseSize);
+            Serial.WriteString(" Comp: ");
+            Serial.WriteNumber(pMT->ComponentSize);
+            Serial.WriteString(" Len: ");
+            Serial.WriteNumber((uint)length);
+            Serial.WriteString(" Size: ");
+            Serial.WriteNumber(size);
+            Serial.WriteString("\n");
         }
 
         MethodTable** result = AllocObject(size);
@@ -68,18 +68,18 @@ public static class Memory
             return null;
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
-        
+
         if (length < 10)
         {
-             Serial.WriteString("RhpNewPtrArrayFast Base: ");
-             Serial.WriteNumber(pMT->BaseSize);
-             Serial.WriteString(" Comp: ");
-             Serial.WriteNumber(pMT->ComponentSize);
-             Serial.WriteString(" Len: ");
-             Serial.WriteNumber((uint)length);
-             Serial.WriteString(" Size: ");
-             Serial.WriteNumber(size);
-             Serial.WriteString("\n");
+            Serial.WriteString("RhpNewPtrArrayFast Base: ");
+            Serial.WriteNumber(pMT->BaseSize);
+            Serial.WriteString(" Comp: ");
+            Serial.WriteNumber(pMT->ComponentSize);
+            Serial.WriteString(" Len: ");
+            Serial.WriteNumber((uint)length);
+            Serial.WriteString(" Size: ");
+            Serial.WriteNumber(size);
+            Serial.WriteString("\n");
         }
 
         MethodTable** result = AllocObject(size);
