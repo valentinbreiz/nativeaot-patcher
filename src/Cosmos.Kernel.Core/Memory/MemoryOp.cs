@@ -45,7 +45,7 @@ public static unsafe partial class MemoryOp
     {
         if (count <= 0) return;
 
-        if (count >= 16)
+        if (count >= int.MaxValue) // SIMD disabled for debugging
         {
             // SIMD path - broadcast byte to 32-bit value for SIMD fill
             uint fillValue = (uint)(value | (value << 8) | (value << 16) | (value << 24));
@@ -65,7 +65,7 @@ public static unsafe partial class MemoryOp
     {
         if (count <= 0) return;
 
-        if (count >= 4)
+        if (count >= int.MaxValue) // SIMD disabled for debugging
         {
             // SIMD path
             FillWithSimd((byte*)dest, value, count * sizeof(uint));

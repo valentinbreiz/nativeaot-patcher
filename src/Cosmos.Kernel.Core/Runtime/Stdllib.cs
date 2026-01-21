@@ -242,12 +242,6 @@ namespace Cosmos.Kernel.Core.Runtime
             RhpAssignRef((void**)Unsafe.AsPointer(ref element), actualObjPtr);
         }
 
-        [RuntimeExport("RhpResolveInterfaceMethod")]
-        static unsafe IntPtr RhpResolveInterfaceMethod(object obj, int methodHandle)
-        {
-            return IntPtr.Zero;
-        }
-
         [RuntimeExport("RhCurrentOSThreadId")]
         static ulong RhCurrentOSThreadId()
         {
@@ -454,8 +448,6 @@ namespace Cosmos.Kernel.Core.Runtime
                 static unsafe void* RhUnbox(object obj) { throw null; }
                 [RuntimeExport("RhTypeCast_CheckArrayStore")]
                 static unsafe void RhTypeCast_CheckArrayStore(object array, object value) { }
-                [RuntimeExport("RhpResolveInterfaceMethod")]
-                static unsafe IntPtr RhpResolveInterfaceMethod(object obj, int methodHandle) { throw null; }
                 [RuntimeExport("RhCurrentOSThreadId")]
                 static int RhCurrentOSThreadId() { throw null; }
                 [RuntimeExport("RhGetCrashInfoBuffer")]

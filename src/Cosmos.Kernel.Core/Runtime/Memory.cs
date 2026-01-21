@@ -1,5 +1,6 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
@@ -11,8 +12,20 @@ public static class Memory
     internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, uint flags,
         out void* pResult)
     {
-        uint size = pArrayEEType->BaseSize * numElements;
+        uint size = pArrayEEType->BaseSize + numElements * pArrayEEType->ComponentSize;
+        
+        Serial.WriteString("AllocArray Base: ");
+        Serial.WriteNumber(pArrayEEType->BaseSize);
+        Serial.WriteString(" Comp: ");
+        Serial.WriteNumber(pArrayEEType->ComponentSize);
+        Serial.WriteString(" Num: ");
+        Serial.WriteNumber(numElements);
+        Serial.WriteString(" Size: ");
+        Serial.WriteNumber(size);
+        Serial.WriteString("\n");
+
         MethodTable** result = AllocObject(size);
+        MemoryOp.MemSet((byte*)result, 0, (int)size);
         *result = pArrayEEType;
         *(int*)(result + 1) = (int)numElements;
         pResult = result;
@@ -26,7 +39,22 @@ public static class Memory
             return null;
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
+        
+        if (length < 10) 
+        {
+             Serial.WriteString("RhpNewArray Base: ");
+             Serial.WriteNumber(pMT->BaseSize);
+             Serial.WriteString(" Comp: ");
+             Serial.WriteNumber(pMT->ComponentSize);
+             Serial.WriteString(" Len: ");
+             Serial.WriteNumber((uint)length);
+             Serial.WriteString(" Size: ");
+             Serial.WriteNumber(size);
+             Serial.WriteString("\n");
+        }
+
         MethodTable** result = AllocObject(size);
+        MemoryOp.MemSet((byte*)result, 0, (int)size);
 
         *result = pMT;
         *(int*)(result + 1) = length;
@@ -40,7 +68,22 @@ public static class Memory
             return null;
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
+        
+        if (length < 10)
+        {
+             Serial.WriteString("RhpNewPtrArrayFast Base: ");
+             Serial.WriteNumber(pMT->BaseSize);
+             Serial.WriteString(" Comp: ");
+             Serial.WriteNumber(pMT->ComponentSize);
+             Serial.WriteString(" Len: ");
+             Serial.WriteNumber((uint)length);
+             Serial.WriteString(" Size: ");
+             Serial.WriteNumber(size);
+             Serial.WriteString("\n");
+        }
+
         MethodTable** result = AllocObject(size);
+        MemoryOp.MemSet((byte*)result, 0, (int)size);
 
         *result = pMT;
         *(int*)(result + 1) = length;
@@ -54,6 +97,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
         MethodTable** result = AllocObject(size);
+        MemoryOp.MemSet((byte*)result, 0, (int)size);
 
         *result = pMT;
         *(int*)(result + 1) = length;
@@ -76,6 +120,7 @@ public static class Memory
     [RuntimeExport("RhpGcSafeZeroMemory")]
     internal static unsafe byte* RhpGcSafeZeroMemory(byte* dmem, nuint size)
     {
+        MemoryOp.MemSet(dmem, 0, (int)size);
         return dmem;
     }
 
@@ -85,6 +130,7 @@ public static class Memory
         // Use RawBaseSize instead of BaseSize because BaseSize only works for canonical/array types
         // For generic type definitions, BaseSize contains parameter count, not the actual size
         MethodTable** result = AllocObject(pMT->RawBaseSize);
+        MemoryOp.MemSet((byte*)result, 0, (int)pMT->RawBaseSize);
         *result = pMT;
         return result;
     }

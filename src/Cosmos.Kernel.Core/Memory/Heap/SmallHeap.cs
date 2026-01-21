@@ -446,10 +446,6 @@ public static unsafe class SmallHeap
     /// <returns>Byte pointer to the start of the block.</returns>
     public static byte* Alloc(uint aSize)
     {
-        // Cosmos.Kernel.Core.IO.Serial.WriteString("[SmallHeap] Alloc - size: ");
-        // Cosmos.Kernel.Core.IO.Serial.WriteNumber(aSize);
-        // Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
-
         SMTBlock* pageBlock = GetFirstWithSpace(aSize);
         if (pageBlock == null) // This happens when the page is full and we need to allocate a new page for this size
         {

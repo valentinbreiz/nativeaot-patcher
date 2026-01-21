@@ -131,6 +131,9 @@
 
       <!-- The managed debugging support in libraries is unused - trim it -->
       <IlcArg Condition="'$(DebuggerSupport)' != 'true'" Include="--feature:System.Diagnostics.Debugger.IsSupported=false"/>
+
+      <!-- Preserve interface dispatch maps for all types -->
+      <IlcArg Include="--completetypemetadata"/>
     </ItemGroup>
 
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true"/>
