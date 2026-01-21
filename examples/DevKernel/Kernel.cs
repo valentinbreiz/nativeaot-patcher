@@ -37,33 +37,6 @@ public class Kernel : Sys.Kernel
         Console.ResetColor();
         Console.WriteLine("Type 'help' for available commands.");
         Console.WriteLine();
-
-        // Test Dictionary with custom comparer
-        Dictionary<string, int> dict = new Dictionary<string, int>(new SimpleStringComparer());
-
-        Serial.WriteString("CustomComparer: Adding KeyA\n");
-        dict.Add("KeyA", 1);
-
-        Serial.WriteString("CustomComparer: Adding KeyB\n");
-        dict.Add("KeyB", 2);
-
-        Serial.WriteString("CustomComparer: Checking for KeyA\n");
-        if (dict.ContainsKey("KeyA"))
-        {
-            Serial.WriteString("CustomComparer: KeyA found! Value=");
-            Serial.WriteString(dict["KeyA"].ToString());
-            Serial.WriteString("\n");
-        }
-        else
-        {
-            Serial.WriteString("CustomComparer: KeyA NOT found!\n");
-        }
-
-        Serial.WriteString("CustomComparer: KeyB Value=");
-        Serial.WriteString(dict["KeyB"].ToString());
-        Serial.WriteString("\n");
-
-        Serial.WriteString("Dictionary test passed!\n");
     }
 
     protected override void Run()
@@ -865,37 +838,5 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(message);
         Console.ResetColor();
-    }
-
-    public class SimpleStringComparer : IEqualityComparer<string>
-    {
-        public bool Equals(string x, string y)
-        {
-            bool result = false;
-            if (x == y) result = true;
-            else if (x == null || y == null) result = false;
-            else result = x.Equals(y);
-
-            Serial.WriteString("Comparer.Equals: ");
-            Serial.WriteString(x ?? "null");
-            Serial.WriteString(" vs ");
-            Serial.WriteString(y ?? "null");
-            Serial.WriteString(" -> ");
-            Serial.WriteString(result ? "True" : "False");
-            Serial.WriteString("\n");
-
-            return result;
-        }
-
-        public int GetHashCode(string obj)
-        {
-            int h = obj.GetHashCode();
-            Serial.WriteString("Comparer.GetHashCode: ");
-            Serial.WriteString(obj ?? "null");
-            Serial.WriteString(" -> ");
-            Serial.WriteString(h.ToString());
-            Serial.WriteString("\n");
-            return h;
-        }
     }
 }
