@@ -316,13 +316,15 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpHandleAlloc")]
         static IntPtr RhpHandleAlloc(object obj, bool fPinned)
         {
-            return IntPtr.Zero;
+            //TODO: Implement GC
+            return (IntPtr)Unsafe.AsPointer(ref obj);
         }
 
         [RuntimeExport("RhpHandleAllocDependent")]
         static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
         {
-            return IntPtr.Zero;
+            //TODO: Implement GC
+            return primary;
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]
