@@ -122,9 +122,6 @@
       <IlcArg Include="-O"/>
       <!-- Generate map file for debugging symbol resolution -->
       <IlcArg Include="--map:$(IlcIntermediateOutputPath)$(AssemblyName).map.xml"/>
-      <!-- Architecture-specific instruction sets -->
-      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'x64'"/>
-      <IlcArg Include="--instruction-set:base" Condition="'$(CosmosArch)' == 'arm64'"/>
       <IlcArg Include="--preinitstatics"/> <!-- Implied by -O, but we rely on this for Limine requests. -->
       <IlcArg Include="@(UnmanagedEntryPointsAssembly->'--generateunmanagedentrypoints:%(Identity)')"/>
       <IlcArg Condition="'$(StackTraceSupport)' != 'false'" Include="--stacktracedata"/>

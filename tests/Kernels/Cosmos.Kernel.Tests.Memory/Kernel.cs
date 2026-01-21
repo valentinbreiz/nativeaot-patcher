@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -14,8 +12,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Memory Tests] Starting test suite\n");
-        TR.Start("Memory Tests", expectedTests: 36); // 8 boxing + 5 memory + 8 collections + 12 SIMD + 3 Array.Copy
+        TR.Start("Memory Tests", expectedTests: 63);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -26,6 +23,9 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Boxing_Interface", TestBoxingInterface);
         TR.Run("Boxing_CustomStruct", TestBoxingCustomStruct);
         TR.Run("Boxing_ArrayCopy", TestArrayCopyWithBoxing);
+        TR.Run("Boxing_Enum", TestBoxingEnum);
+        TR.Run("Boxing_ValueTuple", TestBoxingValueTuple);
+        TR.Run("Boxing_NullInterface", TestBoxingNullInterface);
 
         // Memory Allocation Tests
         TR.Run("Memory_CharArray", TestCharArrayAllocation);
@@ -33,6 +33,9 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Memory_IntArray", TestIntArrayAllocation);
         TR.Run("Memory_StringConcat", TestStringConcatenation);
         TR.Run("Memory_StringBuilder", TestStringBuilder);
+        TR.Run("Memory_ZeroLengthArray", TestZeroLengthArray);
+        TR.Run("Memory_EmptyString", TestEmptyString);
+        TR.Run("Memory_LargeAllocation", TestLargeAllocation);
 
         // Generic Collection Tests
         TR.Run("Collections_ListInt", TestListInt);
@@ -43,6 +46,26 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Collections_ListContains", TestListContains);
         TR.Run("Collections_ListIndexOf", TestListIndexOf);
         TR.Run("Collections_ListRemoveAt", TestListRemoveAt);
+        TR.Run("Collections_ListInsert", TestListInsert);
+        TR.Run("Collections_ListRemove", TestListRemove);
+        TR.Run("Collections_ListClear", TestListClear);
+        TR.Run("Collections_ListToArray", TestListToArray);
+        TR.Run("Collections_ListForeach", TestListForeach);
+        TR.Run("Collections_ListEmpty", TestListEmpty);
+
+        // Dictionary
+        TR.Run("Collections_DictCustomComparer", TestDictionaryCustomComparer);
+        TR.Run("Collections_DictAddGet", TestDictionaryAddGet);
+        TR.Run("Collections_DictIndexer", TestDictionaryIndexer);
+        TR.Run("Collections_DictContains", TestDictionaryContains);
+        TR.Run("Collections_DictRemove", TestDictionaryRemove);
+        TR.Run("Collections_DictClear", TestDictionaryClear);
+        TR.Run("Collections_DictTryGetValue", TestDictionaryTryGetValue);
+        TR.Run("Collections_DictKeysValues", TestDictionaryKeysValues);
+        TR.Run("Collections_DictEmpty", TestDictionaryEmpty);
+
+        // IEnumerable
+        TR.Run("Collections_IEnumerable", TestIEnumerable);
 
         // Memory Copy Tests (SIMD enabled for 16+ bytes)
         TR.Run("MemCopy_8Bytes", TestMemCopy8Bytes);
@@ -57,13 +80,17 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("MemCopy_264Bytes", TestMemCopy264Bytes);
         TR.Run("MemSet_64Bytes", TestMemSet64Bytes);
         TR.Run("MemMove_Overlap", TestMemMoveOverlap);
+        TR.Run("MemCopy_0Bytes", TestMemCopy0Bytes);
+        TR.Run("MemCopy_1Byte", TestMemCopy1Byte);
+        TR.Run("MemMove_Overlap_DestBeforeSrc", TestMemMoveOverlapDestBeforeSrc);
 
         // Array.Copy Tests (uses SIMD via memmove/RhBulkMoveWithWriteBarrier)
         TR.Run("ArrayCopy_IntArray", TestArrayCopyIntArray);
         TR.Run("ArrayCopy_ByteArray", TestArrayCopyByteArray);
         TR.Run("ArrayCopy_LargeArray", TestArrayCopyLargeArray);
+        TR.Run("ArrayCopy_ZeroLength", TestArrayCopyZeroLength);
+        TR.Run("ArrayCopy_Overlap", TestArrayCopyOverlap);
 
-        Serial.WriteString("[Memory Tests] All tests completed\n");
         TR.Finish();
 
         Stop();
@@ -163,6 +190,29 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "Boxing: Array.Copy with automatic boxing");
     }
 
+    private static void TestBoxingEnum()
+    {
+        TestEnum val = TestEnum.ValueB;
+        object boxed = val;
+        Assert.True(boxed is TestEnum, "Boxing: enum is TestEnum");
+        Assert.True((TestEnum)boxed == TestEnum.ValueB, "Boxing: enum value preserved");
+    }
+
+    private static void TestBoxingValueTuple()
+    {
+        var tuple = (1, "test");
+        object boxed = tuple;
+        var unboxed = ((int, string))boxed;
+        Assert.True(unboxed.Item1 == 1 && unboxed.Item2 == "test", "Boxing: ValueTuple box/unbox");
+    }
+
+    private static void TestBoxingNullInterface()
+    {
+        IComparable comparable = null;
+        object boxed = comparable;
+        Assert.True(boxed == null, "Boxing: null interface is null object");
+    }
+
     // ==================== Memory Allocation Tests ====================
 
     private static void TestCharArrayAllocation()
@@ -204,6 +254,27 @@ public unsafe class Kernel : Sys.Kernel
         sb.Append("StringBuilder");
         string result = sb.ToString();
         Assert.True(result == "Hello StringBuilder", "Memory: StringBuilder operations");
+    }
+
+    private static void TestZeroLengthArray()
+    {
+        int[] arr = new int[0];
+        Assert.True(arr != null && arr.Length == 0, "Memory: zero-length array allocation");
+    }
+
+    private static void TestEmptyString()
+    {
+        string s = string.Empty;
+        Assert.True(s != null && s.Length == 0, "Memory: empty string access");
+    }
+
+    private static void TestLargeAllocation()
+    {
+        int size = 1024 * 1024; // 1MB
+        byte[] large = new byte[size];
+        large[0] = 0xAA;
+        large[size - 1] = 0x55;
+        Assert.True(large.Length == size && large[0] == 0xAA && large[size - 1] == 0x55, "Memory: 1MB allocation");
     }
 
     // ==================== Generic Collection Tests ====================
@@ -299,6 +370,191 @@ public unsafe class Kernel : Sys.Kernel
         list.RemoveAt(idx);
 
         Assert.True(list.Count == 4 && list[2] == 40, "Collections: List.RemoveAt method");
+    }
+
+    private static void TestDictionaryAddGet()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+        dict.Add(2, "Two");
+
+        Assert.True(dict.Count == 2, "Dictionary.Add count");
+        Assert.True(dict[1] == "One" && dict[2] == "Two", "Dictionary.Add get values");
+    }
+
+    private static void TestListInsert()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(3);
+        list.Insert(1, 2);
+
+        Assert.True(list.Count == 3 && list[1] == 2 && list[2] == 3, "List.Insert");
+    }
+
+    private static void TestListRemove()
+    {
+        List<string> list = new List<string>();
+        list.Add("A");
+        list.Add("B");
+        list.Add("A");
+
+        bool removed = list.Remove("A"); // Removes first "A"
+        Assert.True(removed && list.Count == 2 && list[0] == "B" && list[1] == "A", "List.Remove");
+    }
+
+    private static void TestListClear()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Clear();
+        Assert.True(list.Count == 0, "List.Clear");
+    }
+
+    private static void TestListToArray()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        int[] arr = list.ToArray();
+
+        Assert.True(arr.Length == 2 && arr[0] == 1 && arr[1] == 2, "List.ToArray");
+    }
+
+    private static void TestListForeach()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        list.Add(3);
+
+        int sum = 0;
+        foreach (int i in list) sum += i;
+
+        Assert.True(sum == 6, "List foreach iteration");
+    }
+
+    private static void TestListEmpty()
+    {
+        List<int> list = new List<int>();
+        Assert.True(list.Count == 0, "Collections: empty list count");
+        Assert.True(!list.Contains(1), "Collections: empty list contains");
+        Assert.True(list.ToArray().Length == 0, "Collections: empty list ToArray");
+    }
+
+    // ==================== Dictionary Tests ====================
+
+    private static void TestDictionaryIndexer()
+    {
+        Dictionary<string, int> dict = new Dictionary<string, int>();
+        
+        string keyA = "KeyA";
+        string keyB = "KeyB";
+        string keyC = "KeyC";
+
+        // 1. Test Add and Get with string keys
+        dict.Add(keyA, 10);
+        dict.Add(keyB, 20);
+        Assert.True(dict[keyA] == 10 && dict[keyB] == 20, "Dictionary string key Add/Get");
+
+        // 2. Test Update via Indexer
+        dict[keyA] = 30; 
+        Assert.True(dict[keyA] == 30, "Dictionary string key Update");
+        
+        // 3. Test Insert via Indexer
+        dict[keyC] = 40;
+        Assert.True(dict[keyC] == 40, "Dictionary string key Insert via Indexer");
+    }
+
+    private static void TestDictionaryCustomComparer()
+    {
+        Dictionary<string, int> dict = new Dictionary<string, int>(new SimpleStringComparer());
+        dict.Add("KeyA", 1);
+        dict.Add("KeyB", 2);
+        Assert.True(dict["KeyA"] == 1 && dict["KeyB"] == 2, "Dictionary with custom comparer");
+    }
+
+    private static void TestDictionaryContains()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+
+        Assert.True(dict.ContainsKey(1), "Dictionary.ContainsKey found");
+        Assert.True(!dict.ContainsKey(2), "Dictionary.ContainsKey not found");
+        Assert.True(dict.ContainsValue("One"), "Dictionary.ContainsValue found");
+        Assert.True(!dict.ContainsValue("Two"), "Dictionary.ContainsValue not found");
+    }
+
+    private static void TestDictionaryRemove()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+        dict.Add(2, "Two");
+
+        bool removed = dict.Remove(1);
+        Assert.True(removed && dict.Count == 1 && !dict.ContainsKey(1), "Dictionary.Remove existing");
+
+        bool removed2 = dict.Remove(3);
+        Assert.True(!removed2 && dict.Count == 1, "Dictionary.Remove non-existing");
+    }
+
+    private static void TestDictionaryClear()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+        dict.Add(2, "Two");
+
+        dict.Clear();
+        Assert.True(dict.Count == 0 && !dict.ContainsKey(1), "Dictionary.Clear");
+    }
+
+    private static void TestDictionaryTryGetValue()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+
+        string val;
+        bool found = dict.TryGetValue(1, out val);
+        Assert.True(found && val == "One", "Dictionary.TryGetValue found");
+
+        bool found2 = dict.TryGetValue(2, out val);
+        Assert.True(!found2 && val == null, "Dictionary.TryGetValue not found");
+    }
+
+    private static void TestDictionaryKeysValues()
+    {
+        Dictionary<int, string> dict = new Dictionary<int, string>();
+        dict.Add(1, "One");
+        dict.Add(2, "Two");
+
+        int keySum = 0;
+        foreach (var k in dict.Keys) keySum += k;
+
+        Assert.True(keySum == 3, "Dictionary.Keys iteration");
+
+        Assert.True(dict.Values != null && dict.Values.Count == 2, "Dictionary.Values access");
+    }
+
+    private static void TestDictionaryEmpty()
+    {
+        Dictionary<int, int> dict = new Dictionary<int, int>();
+        Assert.True(dict.Count == 0, "Dictionary: empty count");
+        Assert.True(!dict.ContainsKey(1), "Dictionary: empty ContainsKey");
+        int val;
+        Assert.True(!dict.TryGetValue(1, out val), "Dictionary: empty TryGetValue");
+    }
+
+    // ==================== IEnumerable Tests ====================
+
+    private static void TestIEnumerable()
+    {
+        int[] arr = new int[] { 1, 2, 3 };
+        IEnumerable<int> enumerable = arr;
+
+        int sum = 0;
+        foreach (int i in enumerable) sum += i;
+
+        Assert.True(sum == 6, "IEnumerable foreach on array");
     }
 
     // ==================== Memory Copy Tests ====================
@@ -526,6 +782,42 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "MemMove: overlapping regions");
     }
 
+    private static void TestMemCopy0Bytes()
+    {
+        byte* src = stackalloc byte[1];
+        byte* dest = stackalloc byte[1];
+        src[0] = 0xAA;
+        dest[0] = 0xBB;
+        MemoryOp.MemCopy(dest, src, 0);
+        Assert.True(dest[0] == 0xBB, "MemCopy: 0 bytes is no-op");
+    }
+
+    private static void TestMemCopy1Byte()
+    {
+        byte* src = stackalloc byte[1];
+        byte* dest = stackalloc byte[1];
+        src[0] = 0xAA;
+        dest[0] = 0xBB;
+        MemoryOp.MemCopy(dest, src, 1);
+        Assert.True(dest[0] == 0xAA, "MemCopy: 1 byte copy");
+    }
+
+    private static void TestMemMoveOverlapDestBeforeSrc()
+    {
+        byte* buffer = stackalloc byte[32];
+        for (int i = 0; i < 32; i++) buffer[i] = (byte)i;
+
+        // Move 16 bytes from offset 8 to offset 0 (overlapping, dest < src)
+        MemoryOp.MemMove(buffer, buffer + 8, 16);
+
+        bool passed = true;
+        for (int i = 0; i < 16; i++)
+        {
+            if (buffer[i] != (byte)(i + 8)) passed = false;
+        }
+        Assert.True(passed, "MemMove: overlapping regions (dest < src)");
+    }
+
     // ==================== Array.Copy Tests ====================
 
     private static void TestArrayCopyIntArray()
@@ -572,6 +864,40 @@ public unsafe class Kernel : Sys.Kernel
         }
         Assert.True(passed, "Array.Copy: byte[] 256 bytes (large SIMD)");
     }
+
+    private static void TestArrayCopyZeroLength()
+    {
+        int[] src = new int[] { 1 };
+        int[] dest = new int[] { 2 };
+        Array.Copy(src, dest, 0);
+        Assert.True(dest[0] == 2, "Array.Copy: 0 length is no-op");
+    }
+
+    private static void TestArrayCopyOverlap()
+    {
+        int[] arr = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+        // Copy {0, 1, 2, 3} to indices 2, 3, 4, 5
+        Array.Copy(arr, 0, arr, 2, 4);
+
+        bool passed = arr[0] == 0 && arr[1] == 1 &&
+                     arr[2] == 0 && arr[3] == 1 &&
+                     arr[4] == 2 && arr[5] == 3 &&
+                     arr[6] == 6 && arr[7] == 7;
+        Assert.True(passed, "Array.Copy: overlapping regions");
+    }
+
+    private class SimpleStringComparer : IEqualityComparer<string>
+    {
+        public bool Equals(string x, string y) => x == y || (x != null && y != null && x.Equals(y));
+        public int GetHashCode(string obj) => obj?.GetHashCode() ?? 0;
+    }
+}
+
+internal enum TestEnum
+{
+    ValueA,
+    ValueB,
+    ValueC
 }
 
 // Test struct for boxing and collection tests
