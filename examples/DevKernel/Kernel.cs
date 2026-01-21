@@ -28,7 +28,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine("         CosmosOS 3.0.35 Shell       ");
+        Console.WriteLine($"         CosmosOS {Cosmos.Kernel.Kernel.VersionString} Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
