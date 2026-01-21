@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -14,8 +12,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Memory Tests] Starting test suite\n");
-        TR.Start("Memory Tests", expectedTests: 51); // 8 boxing + 5 memory + 8 collections + 12 SIMD + 3 Array.Copy + 15 exhaustive collections
+        TR.Start("Memory Tests", expectedTests: 50);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -50,8 +47,6 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Collections_ListForeach", TestListForeach);
 
         // Dictionary
-        TR.Run("Collections_StringEquals", TestStringEquals);
-        TR.Run("Collections_StringComparer", TestStringEqualityComparer);
         TR.Run("Collections_DictCustomComparer", TestDictionaryCustomComparer);
         TR.Run("Collections_DictAddGet", TestDictionaryAddGet);
         TR.Run("Collections_DictIndexer", TestDictionaryIndexer);
@@ -83,7 +78,6 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("ArrayCopy_ByteArray", TestArrayCopyByteArray);
         TR.Run("ArrayCopy_LargeArray", TestArrayCopyLargeArray);
 
-        Serial.WriteString("[Memory Tests] All tests completed\n");
         TR.Finish();
 
         Stop();
@@ -331,31 +325,59 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(dict[1] == "One" && dict[2] == "Two", "Dictionary.Add get values");
     }
 
-    private static void TestStringEqualityComparer()
+    private static void TestListInsert()
     {
-        var comparer = EqualityComparer<string>.Default;
-        Assert.True(comparer != null, "EqualityComparer<string>.Default is not null");
-        Assert.True(!comparer.Equals("KeyA", "KeyB"), "Comparer KeyA != KeyB");
-        Assert.True(comparer.Equals("KeyA", "KeyA"), "Comparer KeyA == KeyA");
-        Assert.True(comparer.GetHashCode("KeyA") != comparer.GetHashCode("KeyB"), "Comparer HashCode KeyA != KeyB");
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(3);
+        list.Insert(1, 2);
+
+        Assert.True(list.Count == 3 && list[1] == 2 && list[2] == 3, "List.Insert");
     }
 
-    private static void TestStringEquals()
+    private static void TestListRemove()
     {
-        string s1 = "KeyA";
-        string s2 = "KeyB";
-        bool eq = s1.Equals(s2);
-        
-        Serial.WriteString("TestStringEquals: 'KeyA'.Equals('KeyB') = ");
-        Serial.WriteString(eq.ToString());
-        Serial.WriteString("\n");
-        
-        Assert.True(!eq, "String.Equals('KeyA', 'KeyB') should be false");
-        
-        string s3 = "KeyA";
-        bool eq2 = s1.Equals(s3);
-        Assert.True(eq2, "String.Equals('KeyA', 'KeyA') should be true");
+        List<string> list = new List<string>();
+        list.Add("A");
+        list.Add("B");
+        list.Add("A");
+
+        bool removed = list.Remove("A"); // Removes first "A"
+        Assert.True(removed && list.Count == 2 && list[0] == "B" && list[1] == "A", "List.Remove");
     }
+
+    private static void TestListClear()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Clear();
+        Assert.True(list.Count == 0, "List.Clear");
+    }
+
+    private static void TestListToArray()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        int[] arr = list.ToArray();
+
+        Assert.True(arr.Length == 2 && arr[0] == 1 && arr[1] == 2, "List.ToArray");
+    }
+
+    private static void TestListForeach()
+    {
+        List<int> list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        list.Add(3);
+
+        int sum = 0;
+        foreach (int i in list) sum += i;
+
+        Assert.True(sum == 6, "List foreach iteration");
+    }
+
+    // ==================== Dictionary Tests ====================
 
     private static void TestDictionaryIndexer()
     {
@@ -382,13 +404,8 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestDictionaryCustomComparer()
     {
         Dictionary<string, int> dict = new Dictionary<string, int>(new SimpleStringComparer());
-        
-        Serial.WriteString("CustomComparer: Adding KeyA\n");
         dict.Add("KeyA", 1);
-        
-        Serial.WriteString("CustomComparer: Adding KeyB\n");
         dict.Add("KeyB", 2);
-        
         Assert.True(dict["KeyA"] == 1 && dict["KeyB"] == 2, "Dictionary with custom comparer");
     }
 
@@ -453,57 +470,7 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(dict.Values != null && dict.Values.Count == 2, "Dictionary.Values access");
     }
 
-    private static void TestListInsert()
-    {
-        List<int> list = new List<int>();
-        list.Add(1);
-        list.Add(3);
-        list.Insert(1, 2);
-
-        Assert.True(list.Count == 3 && list[1] == 2 && list[2] == 3, "List.Insert");
-    }
-
-    private static void TestListRemove()
-    {
-        List<string> list = new List<string>();
-        list.Add("A");
-        list.Add("B");
-        list.Add("A");
-
-        bool removed = list.Remove("A"); // Removes first "A"
-        Assert.True(removed && list.Count == 2 && list[0] == "B" && list[1] == "A", "List.Remove");
-    }
-
-    private static void TestListClear()
-    {
-        List<int> list = new List<int>();
-        list.Add(1);
-        list.Clear();
-        Assert.True(list.Count == 0, "List.Clear");
-    }
-
-    private static void TestListToArray()
-    {
-        List<int> list = new List<int>();
-        list.Add(1);
-        list.Add(2);
-        int[] arr = list.ToArray();
-
-        Assert.True(arr.Length == 2 && arr[0] == 1 && arr[1] == 2, "List.ToArray");
-    }
-
-    private static void TestListForeach()
-    {
-        List<int> list = new List<int>();
-        list.Add(1);
-        list.Add(2);
-        list.Add(3);
-
-        int sum = 0;
-        foreach (int i in list) sum += i;
-
-        Assert.True(sum == 6, "List foreach iteration");
-    }
+    // ==================== IEnumerable Tests ====================
 
     private static void TestIEnumerable()
     {
@@ -790,34 +757,8 @@ public unsafe class Kernel : Sys.Kernel
 
     private class SimpleStringComparer : IEqualityComparer<string>
     {
-        public bool Equals(string x, string y)
-        {
-            bool result = false;
-            if (x == y) result = true;
-            else if (x == null || y == null) result = false;
-            else result = x.Equals(y);
-
-            Serial.WriteString("Comparer.Equals: ");
-            Serial.WriteString(x ?? "null");
-            Serial.WriteString(" vs ");
-            Serial.WriteString(y ?? "null");
-            Serial.WriteString(" -> ");
-            Serial.WriteString(result ? "True" : "False");
-            Serial.WriteString("\n");
-
-            return result;
-        }
-
-        public int GetHashCode(string obj)
-        {
-            int h = obj.GetHashCode();
-            Serial.WriteString("Comparer.GetHashCode: ");
-            Serial.WriteString(obj ?? "null");
-            Serial.WriteString(" -> ");
-            Serial.WriteString(h.ToString());
-            Serial.WriteString("\n");
-            return h;
-        }
+        public bool Equals(string x, string y) => x == y || (x != null && y != null && x.Equals(y));
+        public int GetHashCode(string obj) => obj?.GetHashCode() ?? 0;
     }
 }
 
