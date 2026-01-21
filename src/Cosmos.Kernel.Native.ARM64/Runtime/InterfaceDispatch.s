@@ -1,13 +1,12 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-//
 // Interface dispatch stubs for Cosmos OS (ARM64)
+
+.global RhpInitialDynamicInterfaceDispatch
+
+// External C# function
+.extern RhpCidResolve
 
 .text
 .align 4
-
-// External C function
-.extern RhpCidResolve
 
 // Initial dispatch on an interface when we don't have a cache yet.
 // This is the entry point called from interface dispatch sites before
@@ -24,9 +23,6 @@
 //   Cell[1].m_pStub  = 0
 //   Cell[1].m_pCache = interface slot number
 //
-.global RhpInitialDynamicInterfaceDispatch
-.type RhpInitialDynamicInterfaceDispatch, %function
-
 RhpInitialDynamicInterfaceDispatch:
     // Trigger an exception if we're dispatching on a null this
     // Load first byte to trigger fault if null
@@ -62,5 +58,3 @@ RhpInitialDynamicInterfaceDispatch:
 
     // Jump to the resolved method address (in x16)
     br      x16
-
-.size RhpInitialDynamicInterfaceDispatch, . - RhpInitialDynamicInterfaceDispatch
