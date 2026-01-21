@@ -9,6 +9,7 @@ using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Network;
+using Cosmos.Kernel.HAL.X64.Devices.Storage;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 using Cosmos.Kernel.HAL.X64.Pci;
 
@@ -36,6 +37,10 @@ public class X64PlatformInitializer : IPlatformInitializer
         // Initialize PCI
         Serial.WriteString("[X64HAL] Initializing PCI...\n");
         PciManager.Setup();
+
+        // Initialize AHCI (SATA storage)
+        Serial.WriteString("[X64HAL] Initializing AHCI...\n");
+        AHCI.InitDriver();
 
         // Display ACPI MADT information
         Serial.WriteString("[X64HAL] Displaying ACPI MADT info...\n");
