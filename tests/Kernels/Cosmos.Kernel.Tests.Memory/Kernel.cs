@@ -12,7 +12,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 50);
+        TR.Start("Memory Tests", expectedTests: 63);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -23,6 +23,9 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Boxing_Interface", TestBoxingInterface);
         TR.Run("Boxing_CustomStruct", TestBoxingCustomStruct);
         TR.Run("Boxing_ArrayCopy", TestArrayCopyWithBoxing);
+        TR.Run("Boxing_Enum", TestBoxingEnum);
+        TR.Run("Boxing_ValueTuple", TestBoxingValueTuple);
+        TR.Run("Boxing_NullInterface", TestBoxingNullInterface);
 
         // Memory Allocation Tests
         TR.Run("Memory_CharArray", TestCharArrayAllocation);
@@ -30,6 +33,9 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Memory_IntArray", TestIntArrayAllocation);
         TR.Run("Memory_StringConcat", TestStringConcatenation);
         TR.Run("Memory_StringBuilder", TestStringBuilder);
+        TR.Run("Memory_ZeroLengthArray", TestZeroLengthArray);
+        TR.Run("Memory_EmptyString", TestEmptyString);
+        TR.Run("Memory_LargeAllocation", TestLargeAllocation);
 
         // Generic Collection Tests
         TR.Run("Collections_ListInt", TestListInt);
@@ -45,6 +51,7 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Collections_ListClear", TestListClear);
         TR.Run("Collections_ListToArray", TestListToArray);
         TR.Run("Collections_ListForeach", TestListForeach);
+        TR.Run("Collections_ListEmpty", TestListEmpty);
 
         // Dictionary
         TR.Run("Collections_DictCustomComparer", TestDictionaryCustomComparer);
@@ -55,6 +62,7 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("Collections_DictClear", TestDictionaryClear);
         TR.Run("Collections_DictTryGetValue", TestDictionaryTryGetValue);
         TR.Run("Collections_DictKeysValues", TestDictionaryKeysValues);
+        TR.Run("Collections_DictEmpty", TestDictionaryEmpty);
 
         // IEnumerable
         TR.Run("Collections_IEnumerable", TestIEnumerable);
@@ -72,11 +80,16 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("MemCopy_264Bytes", TestMemCopy264Bytes);
         TR.Run("MemSet_64Bytes", TestMemSet64Bytes);
         TR.Run("MemMove_Overlap", TestMemMoveOverlap);
+        TR.Run("MemCopy_0Bytes", TestMemCopy0Bytes);
+        TR.Run("MemCopy_1Byte", TestMemCopy1Byte);
+        TR.Run("MemMove_Overlap_DestBeforeSrc", TestMemMoveOverlapDestBeforeSrc);
 
         // Array.Copy Tests (uses SIMD via memmove/RhBulkMoveWithWriteBarrier)
         TR.Run("ArrayCopy_IntArray", TestArrayCopyIntArray);
         TR.Run("ArrayCopy_ByteArray", TestArrayCopyByteArray);
         TR.Run("ArrayCopy_LargeArray", TestArrayCopyLargeArray);
+        TR.Run("ArrayCopy_ZeroLength", TestArrayCopyZeroLength);
+        TR.Run("ArrayCopy_Overlap", TestArrayCopyOverlap);
 
         TR.Finish();
 
@@ -177,6 +190,29 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "Boxing: Array.Copy with automatic boxing");
     }
 
+    private static void TestBoxingEnum()
+    {
+        TestEnum val = TestEnum.ValueB;
+        object boxed = val;
+        Assert.True(boxed is TestEnum, "Boxing: enum is TestEnum");
+        Assert.True((TestEnum)boxed == TestEnum.ValueB, "Boxing: enum value preserved");
+    }
+
+    private static void TestBoxingValueTuple()
+    {
+        var tuple = (1, "test");
+        object boxed = tuple;
+        var unboxed = ((int, string))boxed;
+        Assert.True(unboxed.Item1 == 1 && unboxed.Item2 == "test", "Boxing: ValueTuple box/unbox");
+    }
+
+    private static void TestBoxingNullInterface()
+    {
+        IComparable comparable = null;
+        object boxed = comparable;
+        Assert.True(boxed == null, "Boxing: null interface is null object");
+    }
+
     // ==================== Memory Allocation Tests ====================
 
     private static void TestCharArrayAllocation()
@@ -218,6 +254,27 @@ public unsafe class Kernel : Sys.Kernel
         sb.Append("StringBuilder");
         string result = sb.ToString();
         Assert.True(result == "Hello StringBuilder", "Memory: StringBuilder operations");
+    }
+
+    private static void TestZeroLengthArray()
+    {
+        int[] arr = new int[0];
+        Assert.True(arr != null && arr.Length == 0, "Memory: zero-length array allocation");
+    }
+
+    private static void TestEmptyString()
+    {
+        string s = string.Empty;
+        Assert.True(s != null && s.Length == 0, "Memory: empty string access");
+    }
+
+    private static void TestLargeAllocation()
+    {
+        int size = 1024 * 1024; // 1MB
+        byte[] large = new byte[size];
+        large[0] = 0xAA;
+        large[size - 1] = 0x55;
+        Assert.True(large.Length == size && large[0] == 0xAA && large[size - 1] == 0x55, "Memory: 1MB allocation");
     }
 
     // ==================== Generic Collection Tests ====================
@@ -377,6 +434,14 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(sum == 6, "List foreach iteration");
     }
 
+    private static void TestListEmpty()
+    {
+        List<int> list = new List<int>();
+        Assert.True(list.Count == 0, "Collections: empty list count");
+        Assert.True(!list.Contains(1), "Collections: empty list contains");
+        Assert.True(list.ToArray().Length == 0, "Collections: empty list ToArray");
+    }
+
     // ==================== Dictionary Tests ====================
 
     private static void TestDictionaryIndexer()
@@ -468,6 +533,15 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(keySum == 3, "Dictionary.Keys iteration");
 
         Assert.True(dict.Values != null && dict.Values.Count == 2, "Dictionary.Values access");
+    }
+
+    private static void TestDictionaryEmpty()
+    {
+        Dictionary<int, int> dict = new Dictionary<int, int>();
+        Assert.True(dict.Count == 0, "Dictionary: empty count");
+        Assert.True(!dict.ContainsKey(1), "Dictionary: empty ContainsKey");
+        int val;
+        Assert.True(!dict.TryGetValue(1, out val), "Dictionary: empty TryGetValue");
     }
 
     // ==================== IEnumerable Tests ====================
@@ -708,6 +782,42 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "MemMove: overlapping regions");
     }
 
+    private static void TestMemCopy0Bytes()
+    {
+        byte* src = stackalloc byte[1];
+        byte* dest = stackalloc byte[1];
+        src[0] = 0xAA;
+        dest[0] = 0xBB;
+        MemoryOp.MemCopy(dest, src, 0);
+        Assert.True(dest[0] == 0xBB, "MemCopy: 0 bytes is no-op");
+    }
+
+    private static void TestMemCopy1Byte()
+    {
+        byte* src = stackalloc byte[1];
+        byte* dest = stackalloc byte[1];
+        src[0] = 0xAA;
+        dest[0] = 0xBB;
+        MemoryOp.MemCopy(dest, src, 1);
+        Assert.True(dest[0] == 0xAA, "MemCopy: 1 byte copy");
+    }
+
+    private static void TestMemMoveOverlapDestBeforeSrc()
+    {
+        byte* buffer = stackalloc byte[32];
+        for (int i = 0; i < 32; i++) buffer[i] = (byte)i;
+
+        // Move 16 bytes from offset 8 to offset 0 (overlapping, dest < src)
+        MemoryOp.MemMove(buffer, buffer + 8, 16);
+
+        bool passed = true;
+        for (int i = 0; i < 16; i++)
+        {
+            if (buffer[i] != (byte)(i + 8)) passed = false;
+        }
+        Assert.True(passed, "MemMove: overlapping regions (dest < src)");
+    }
+
     // ==================== Array.Copy Tests ====================
 
     private static void TestArrayCopyIntArray()
@@ -755,11 +865,39 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "Array.Copy: byte[] 256 bytes (large SIMD)");
     }
 
+    private static void TestArrayCopyZeroLength()
+    {
+        int[] src = new int[] { 1 };
+        int[] dest = new int[] { 2 };
+        Array.Copy(src, dest, 0);
+        Assert.True(dest[0] == 2, "Array.Copy: 0 length is no-op");
+    }
+
+    private static void TestArrayCopyOverlap()
+    {
+        int[] arr = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+        // Copy {0, 1, 2, 3} to indices 2, 3, 4, 5
+        Array.Copy(arr, 0, arr, 2, 4);
+
+        bool passed = arr[0] == 0 && arr[1] == 1 &&
+                     arr[2] == 0 && arr[3] == 1 &&
+                     arr[4] == 2 && arr[5] == 3 &&
+                     arr[6] == 6 && arr[7] == 7;
+        Assert.True(passed, "Array.Copy: overlapping regions");
+    }
+
     private class SimpleStringComparer : IEqualityComparer<string>
     {
         public bool Equals(string x, string y) => x == y || (x != null && y != null && x.Equals(y));
         public int GetHashCode(string obj) => obj?.GetHashCode() ?? 0;
     }
+}
+
+internal enum TestEnum
+{
+    ValueA,
+    ValueB,
+    ValueC
 }
 
 // Test struct for boxing and collection tests
