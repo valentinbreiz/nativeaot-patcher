@@ -14,6 +14,7 @@ public static class Memory
     {
         uint size = pArrayEEType->BaseSize + numElements * pArrayEEType->ComponentSize;
 
+        /*
         Serial.WriteString("AllocArray Base: ");
         Serial.WriteNumber(pArrayEEType->BaseSize);
         Serial.WriteString(" Comp: ");
@@ -23,6 +24,7 @@ public static class Memory
         Serial.WriteString(" Size: ");
         Serial.WriteNumber(size);
         Serial.WriteString("\n");
+        */
 
         MethodTable** result = AllocObject(size);
         MemoryOp.MemSet((byte*)result, 0, (int)size);
@@ -40,6 +42,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
+        /*
         if (length < 10)
         {
             Serial.WriteString("RhpNewArray Base: ");
@@ -52,6 +55,7 @@ public static class Memory
             Serial.WriteNumber(size);
             Serial.WriteString("\n");
         }
+        */
 
         MethodTable** result = AllocObject(size);
         MemoryOp.MemSet((byte*)result, 0, (int)size);
@@ -69,6 +73,7 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
+        /*
         if (length < 10)
         {
             Serial.WriteString("RhpNewPtrArrayFast Base: ");
@@ -81,6 +86,7 @@ public static class Memory
             Serial.WriteNumber(size);
             Serial.WriteString("\n");
         }
+        */
 
         MethodTable** result = AllocObject(size);
         MemoryOp.MemSet((byte*)result, 0, (int)size);
