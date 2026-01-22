@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.35</Version>
+    <Version>3.0.36</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Cosmos.Kernel.HAL.X64</PackageId>
     <Title>Cosmos Kernel HAL X64</Title>
