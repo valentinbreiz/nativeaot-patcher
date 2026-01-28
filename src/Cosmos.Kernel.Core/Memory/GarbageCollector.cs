@@ -236,8 +236,8 @@ public static unsafe class GarbageCollector
         {
             // Single-threaded: scan current stack conservatively
             nuint rsp = ContextSwitch.GetRsp();
-            // Conservative estimate: scan 1MB of stack
-            nuint stackEnd = rsp + 0x100000;
+            // Use default thread stack size
+            nuint stackEnd = rsp + Scheduler.Thread.DefaultStackSize;
             ScanMemoryRange((nint*)rsp, (nint*)stackEnd);
         }
     }
@@ -523,13 +523,20 @@ public static unsafe class GarbageCollector
             ushort size = header[0];
             if (size == 0) continue; // Not allocated
 
+            // Get object pointer
+            byte* objPtr = slotPtr + SmallHeap.PrefixBytes;
+
+            // IMPORTANT: Only sweep managed objects (those with a valid MethodTable)
+            // Raw allocations (like the mark stack) don't have a MethodTable and should be skipped
+            if (!IsManagedObject(objPtr))
+                continue;
+
             // Check GC status (stored in header[1])
             ObjectGcStatus status = (ObjectGcStatus)(header[1] & 0xFF);
 
             if ((status & ObjectGcStatus.Hit) == 0)
             {
                 // Unmarked - free the object
-                byte* objPtr = slotPtr + SmallHeap.PrefixBytes;
                 SmallHeap.Free(objPtr);
                 freed++;
             }
@@ -559,10 +566,15 @@ public static unsafe class GarbageCollector
 
             if (header->Size == 0) continue; // Not allocated
 
+            byte* objPtr = pagePtr + MediumHeap.PrefixBytes;
+
+            // Only sweep managed objects
+            if (!IsManagedObject(objPtr))
+                continue;
+
             if ((header->Gc.Status & ObjectGcStatus.Hit) == 0)
             {
                 // Unmarked - free the object
-                byte* objPtr = pagePtr + MediumHeap.PrefixBytes;
                 MediumHeap.Free(objPtr);
                 freed++;
             }
@@ -592,10 +604,15 @@ public static unsafe class GarbageCollector
 
             if (header->Size == 0) continue; // Not allocated
 
+            byte* objPtr = pagePtr + LargeHeap.PrefixBytes;
+
+            // Only sweep managed objects
+            if (!IsManagedObject(objPtr))
+                continue;
+
             if ((header->Gc.Status & ObjectGcStatus.Hit) == 0)
             {
                 // Unmarked - free the object
-                byte* objPtr = pagePtr + LargeHeap.PrefixBytes;
                 LargeHeap.Free(objPtr);
                 freed++;
             }
@@ -662,6 +679,38 @@ public static unsafe class GarbageCollector
         return type == PageType.HeapSmall ||
                type == PageType.HeapMedium ||
                type == PageType.HeapLarge;
+    }
+
+    /// <summary>
+    /// Checks if an allocation is a managed object (has a valid MethodTable pointer).
+    /// Raw allocations (like the mark stack) don't have a MethodTable and should not be swept.
+    /// </summary>
+    private static bool IsManagedObject(byte* objPtr)
+    {
+        if (objPtr == null)
+            return false;
+
+        // Read the first pointer-sized value - for managed objects this is the MethodTable*
+        nint potentialMT = *(nint*)objPtr;
+
+        // Null is not a valid MethodTable
+        if (potentialMT == 0)
+            return false;
+
+        // MethodTable pointers point to static data in the kernel image, NOT to heap memory.
+        // If the "MethodTable" pointer points into the heap, this is not a managed object.
+        if (potentialMT >= (nint)PageAllocator.RamStart)
+        {
+            byte* heapEnd = PageAllocator.RamStart + PageAllocator.RamSize;
+            if (potentialMT < (nint)heapEnd)
+                return false; // Points into heap - not a MethodTable
+        }
+
+        // Additional sanity check: MethodTable should be reasonably aligned
+        if ((potentialMT & 0x7) != 0)
+            return false; // Not 8-byte aligned
+
+        return true;
     }
 
     private static ObjectGcStatus* GetGcStatus(void* objPtr)
