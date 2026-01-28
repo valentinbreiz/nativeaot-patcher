@@ -44,6 +44,10 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing heap...\n");
         MemoryOp.InitializeHeap(0, 0);
 
+        // Initialize garbage collector
+        Serial.WriteString("[KERNEL]   - Initializing garbage collector...\n");
+        GarbageCollector.Initialize();
+
         // Initialize managed modules
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();

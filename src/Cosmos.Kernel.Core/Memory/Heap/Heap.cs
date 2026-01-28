@@ -151,7 +151,8 @@ public static unsafe class Heap
     }
 
     /// <summary>
-    /// Collects all unreferenced objects after identifying them first
+    /// Collects all unreferenced objects after identifying them first.
+    /// Uses the mark-and-sweep garbage collector to identify unreachable objects.
     /// </summary>
     /// <returns>Number of objects freed</returns>
     public static int Collect()
@@ -160,7 +161,11 @@ public static unsafe class Heap
 
         using (InternalCpu.DisableInterruptsScope())
         {
-            result = SmallHeap.PruneSMT() + LargeHeap.Collect() + MediumHeap.Collect();
+            // Run mark-and-sweep GC to identify and free unreachable objects
+            result = GarbageCollector.Collect();
+
+            // Also prune empty SMT pages
+            result += SmallHeap.PruneSMT();
         }
 
         return result;
