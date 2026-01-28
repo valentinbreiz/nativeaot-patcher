@@ -150,6 +150,11 @@ public class Kernel : Sys.Kernel
                     ShowMemoryInfo();
                     break;
 
+
+                case "free":
+                    Console.WriteLine(Cosmos.Kernel.Core.Memory.Heap.Heap.Collect() + " objects collected.");
+                    break;
+
                 default:
                     PrintError($"\"{cmd}\" is not a command");
                     Console.WriteLine("Type 'help' for available commands.");
