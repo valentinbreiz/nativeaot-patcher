@@ -190,7 +190,7 @@ public static unsafe class GarbageCollector
             //segment = (MemorySegment*)Heap.Heap.Alloc(MAX_SEGMENT_SIZE);
             segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
             segment->Current = segment->Start;
-            segment->End = AlignDown((nint)segment->Start + (nint)MAX_SEGMENT_SIZE);
+            segment->End = AlignDown((nint)segment + (nint)MAX_SEGMENT_SIZE);
             return segment;
         }
         
@@ -203,7 +203,8 @@ public static unsafe class GarbageCollector
         //segment = (MemorySegment*)Heap.Heap.Alloc(segmentSize);
         segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
         segment->Current = segment->Start;
-        segment->End = AlignDown((nint)segment->Start + (nint)size);
+        ulong totalBytes = (ulong)pageCount * PageAllocator.PageSize;
+        segment->End = AlignDown((nint)segment + (nint)totalBytes);
 
         return segment;
     }
@@ -250,12 +251,6 @@ public static unsafe class GarbageCollector
                     Serial.WriteNumber(objSize);
 
                     Serial.WriteString("\n");
-
-                    if (objSize == 0)
-                    {
-                        Serial.WriteString("[GC] Zero-size object, stopping segment walk\n");
-                        break;
-                    }
 
                     if (obj->MethodTable->ContainsGCPointers)
                     {
