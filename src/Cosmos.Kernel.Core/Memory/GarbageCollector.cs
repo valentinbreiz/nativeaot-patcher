@@ -188,7 +188,7 @@ public static unsafe class GarbageCollector
             _segment_count++;
             segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, 1, true);
             //segment = (MemorySegment*)Heap.Heap.Alloc(MAX_SEGMENT_SIZE);
-            segment->Start = (IntPtr)segment + sizeof(MemorySegment);
+            segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
             segment->Current = segment->Start;
             segment->End = (nint)(segment->Start + MAX_SEGMENT_SIZE);
             return segment;
@@ -201,7 +201,7 @@ public static unsafe class GarbageCollector
 
         segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
         //segment = (MemorySegment*)Heap.Heap.Alloc(segmentSize);
-        segment->Start = (IntPtr)segment + sizeof(MemorySegment);
+        segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
         segment->Current = segment->Start;
         segment->End = (nint)(segment->Start + size);
 
@@ -286,7 +286,7 @@ public static unsafe class GarbageCollector
     internal static GCObject* AllocObject(nint size, uint flags)
     {
         var segment = _lastSegment;
-        var Allocsize = size + IntPtr.Size; // + Object Header size
+        var Allocsize = Align(size + IntPtr.Size); // + Object Header size
     
         if (segment->Current + Allocsize > segment->End)
         {
