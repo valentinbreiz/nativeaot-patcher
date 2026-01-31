@@ -1,6 +1,7 @@
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.Heap;
+using Cosmos.Kernel.Debug;
 
 namespace Cosmos.Kernel.Core.Memory;
 
@@ -646,4 +647,52 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
+
+    #region Debug Interface
+
+    /// <summary>
+    /// Send page allocator state to debug interface.
+    /// Includes Limine memory map and page allocator RAT data.
+    /// </summary>
+    /// <param name="sendRawData">If true, sends RAT sample data. If false, sends only summary counts.</param>
+    /// <param name="sampleCount">Number of RAT entries to sample (when sendRawData is true)</param>
+    public static void SendDebugState(bool sendRawData = false, ulong sampleCount = 500)
+    {
+        if (sendRawData)
+        {
+            // Send full state including Limine memory map and RAT data
+            MemoryDebug.SendFullMemoryState(
+                RamStart,
+                HeapEnd,
+                mRAT,
+                RamSize,
+                TotalPageCount,
+                FreePageCount,
+                mRAT,
+                sampleCount);
+        }
+        else
+        {
+            MemoryDebug.SendPageTypeSummary(
+                RamStart,
+                HeapEnd,
+                mRAT,
+                RamSize,
+                TotalPageCount,
+                FreePageCount,
+                mRAT);
+        }
+    }
+
+    /// <summary>
+    /// Get RAT pointer for debug purposes.
+    /// </summary>
+    public static byte* GetRatPointer() => mRAT;
+
+    /// <summary>
+    /// Get heap end pointer for debug purposes.
+    /// </summary>
+    public static byte* GetHeapEnd() => HeapEnd;
+
+    #endregion
 }

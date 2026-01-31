@@ -7,6 +7,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
+using Cosmos.Kernel.Debug;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -47,6 +48,12 @@ public class Kernel
         // Initialize managed modules
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
+
+        // Initialize memory debug interface
+        MemoryDebug.Initialize(
+            s => Serial.WriteString(s),
+            n => Serial.WriteNumber(n),
+            n => Serial.WriteHex(n));
 
         // Get the platform initializer (registered by HAL.X64 or HAL.ARM64 module initializer)
         var initializer = PlatformHAL.Initializer;
@@ -296,6 +303,17 @@ public static unsafe class KernelBridge
     public static void CosmosHeapFree(void* ptr)
     {
         MemoryOp.Free(ptr);
+    }
+
+    /// <summary>
+    /// Send page allocator debug state over serial.
+    /// Can be called from GDB: call (void)__cosmos_send_memory_debug(0)
+    /// Mode 0 = summary only, Mode 1 = with RAT sample data
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__cosmos_send_memory_debug")]
+    public static void CosmosSendMemoryDebug(int mode)
+    {
+        PageAllocator.SendDebugState(sendRawData: mode != 0, sampleCount: 500);
     }
 
     /// <summary>
