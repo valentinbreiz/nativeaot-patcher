@@ -37,6 +37,8 @@ public class Kernel : Sys.Kernel
         Console.ResetColor();
         Console.WriteLine("Type 'help' for available commands.");
         Console.WriteLine();
+
+        GarbageCollector.DumbHeap();
     }
 
     protected override void Run()

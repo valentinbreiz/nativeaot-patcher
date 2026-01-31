@@ -13,6 +13,35 @@ namespace Cosmos.Kernel.Core.Memory;
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+internal struct GCObject
+{
+    public unsafe MethodTable* MethodTable;
+    public int Length; 
+
+    public unsafe uint ComputeSize()
+    {
+        if (MethodTable->HasComponentSize)
+        {
+            return MethodTable->BaseSize + (uint)Length * MethodTable->ComponentSize;
+        }
+        else
+        {
+            // Regular object
+            return MethodTable->RawBaseSize;
+        }
+    }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct MemorySegment
+{
+    public unsafe MemorySegment* Next;
+    public IntPtr Start;
+    public IntPtr Current;
+    public IntPtr End;
+}
+
 /// <summary>
 /// GCDesc series descriptor for regular objects and reference arrays.
 /// Stored immediately before the MethodTable pointer.
@@ -94,12 +123,20 @@ public static unsafe class GCDesc
 /// </summary>
 public static unsafe class GarbageCollector
 {
+    /// <summary>
+    /// Preferred size for GC memory segments. There may be segments with different sizes.
+    /// </summary>
+    private static uint MAX_SEGMENT_SIZE = (uint)((uint)PageAllocator.PageSize);
+    public static bool IsEnabled => true;
     private const nint MethodTableMarkBit = 1;
     private static bool _initialized;
     private static nint* _markStack;
     private static int _markStackCapacity = (int)(PageAllocator.PageSize / (ulong)sizeof(nint));
     private static int _markStackCount;
     private static ulong _markStackPageCount;
+    private static MemorySegment* _firstSegment;
+    private static MemorySegment* _lastSegment;
+    private static ulong _segment_count;
 
     // Statistics
     private static int _totalCollections;
@@ -124,11 +161,164 @@ public static unsafe class GarbageCollector
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
             return;
         }
+        
+        // Allocate first memory segment
+        var segment = AllocSegment((uint)(MAX_SEGMENT_SIZE - sizeof(MemorySegment)));
+        _firstSegment = segment;
+        _lastSegment = segment;
 
         _markStackCount = 0;
         _initialized = true;
 
         Serial.WriteString("[GC] Garbage collector initialized\n");
+    }
+    
+    /// <summary>
+    /// Allocates a new memory segment for the GC heap.
+    /// </summary>
+    /// <param name="size">The size of the memory segment</param>
+    /// <returns>A pointer to the allocated memory segment</returns>
+    private static MemorySegment* AllocSegment(uint size)
+    {
+        MemorySegment* segment;
+        uint segmentSize = (uint)(size + sizeof(MemorySegment));
+
+        if(segmentSize <= MAX_SEGMENT_SIZE)
+        {
+            _segment_count++;
+            segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, 1, true);
+            //segment = (MemorySegment*)Heap.Heap.Alloc(MAX_SEGMENT_SIZE);
+            segment->Start = (IntPtr)segment + sizeof(MemorySegment);
+            segment->Current = segment->Start;
+            segment->End = (nint)(segment->Start + MAX_SEGMENT_SIZE);
+            return segment;
+        }
+        
+        // Add two segments, one for the requested size, one for the residual memory
+        _segment_count+= 1;
+
+        var pageCount = segmentSize / PageAllocator.PageSize + 1;
+
+        segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
+        //segment = (MemorySegment*)Heap.Heap.Alloc(segmentSize);
+        segment->Start = (IntPtr)segment + sizeof(MemorySegment);
+        segment->Current = segment->Start;
+        segment->End = (nint)(segment->Start + size);
+
+        return segment;
+    }
+    
+    public static unsafe void DumbHeap()
+    {
+        using(InternalCpu.DisableInterruptsScope())
+        {
+            Serial.WriteString("[GC] Dumping heap contents:\n");
+            PageAllocator.DumpPageCounts();
+            Serial.WriteString("[GC] GC Segments:\n");
+            Serial.WriteString("[GC] Segment Count");
+            Serial.WriteNumber(_segment_count);
+            Serial.WriteString("\n");
+            var segment = _firstSegment;
+            while(segment != null)
+            {
+                Serial.WriteString("[GC] Segment at: ");
+                Serial.WriteHex((nuint)segment);
+                Serial.WriteString(" Start: ");
+                Serial.WriteHex((nuint)segment->Start);
+                Serial.WriteString(" End: ");
+                Serial.WriteHex((nuint)segment->End);
+                Serial.WriteString("\n");
+                
+                var ptr = segment->Start + IntPtr.Size;
+
+                while(ptr < segment->End)
+                {
+                    var obj = (GCObject*)ptr;
+                    
+                    if(obj->MethodTable == null)
+                    {
+                        break;
+                    }
+
+                    Serial.WriteString(" Object at: ");
+                    Serial.WriteHex((nuint)obj);
+                    Serial.WriteString(" MT: ");
+                    Serial.WriteHex((nuint)obj->MethodTable);
+                    Serial.WriteString(" Size: ");
+                    Serial.WriteNumber(obj->ComputeSize());
+
+                    Serial.WriteString("\n");
+
+                    if (obj->MethodTable->ContainsGCPointers)
+                    {
+                        EnumerateObjectReferences(obj, &PrintRef);
+                    }
+
+                    ptr = Align(ptr + (nint)obj->ComputeSize() + IntPtr.Size);
+                }
+                segment = segment->Next;
+            }
+            Serial.WriteString("[GC] Dumb heap allocation complete\n");
+            while (true) ;
+        }
+    }
+
+    private static void PrintRef(nint refPtr)
+    {
+        Serial.WriteString("  Ref: ");
+        Serial.WriteHex((uint)refPtr);
+        var obj = (GCObject*)refPtr;
+        if(obj->MethodTable == null)
+        {
+            Serial.WriteString(" Null Ref\n");
+            return;
+        }
+        Serial.WriteString(" MT: ");
+        Serial.WriteHex((uint)obj->MethodTable);
+        Serial.WriteString(" Size: ");
+        Serial.WriteNumber(obj->ComputeSize());
+        Serial.WriteString("\n");
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static nint Align(nint address) => (address + (IntPtr.Size - 1)) & ~(IntPtr.Size - 1);
+    
+    internal static GCObject* AllocObject(nint size, uint flags)
+    {
+        var segment = _lastSegment;
+        var Allocsize = size + IntPtr.Size; // + Object Header size
+    
+        if (segment->Current + Allocsize > segment->End)
+        {
+            using (InternalCpu.DisableInterruptsScope())
+            {
+                var segmentSize = (uint)global::System.Math.Max(Allocsize, MAX_SEGMENT_SIZE - sizeof(MemorySegment));
+
+                Serial.WriteString("[GC] New Segment needed for allocation of size ");
+                Serial.WriteNumber(segmentSize);
+                Serial.WriteString("\n");
+
+                var newSegment = AllocSegment(segmentSize);
+                _lastSegment->Next = newSegment;
+                _lastSegment = newSegment;
+
+                segment = newSegment;
+            }
+        }
+
+        GCObject* result = (GCObject*)Align(segment->Current + IntPtr.Size);
+        segment->Current = Align(segment->Current + Allocsize);
+        
+        return result;
+        
+    }
+    internal static nint RegisterFrozenSegment(nint pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
+    {
+        return pSegmentStart;
+    }
+    internal static void UpdateFrozenSegment(nint seg, nint allocated, nint committed)
+    {
+
     }
 
     /// <summary>

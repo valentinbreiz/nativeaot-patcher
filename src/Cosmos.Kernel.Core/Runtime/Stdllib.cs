@@ -188,14 +188,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhGetMemoryInfo")]
         static void RhGetMemoryInfo(IntPtr pMemInfo) { }
 
-        [RuntimeExport("RhNewArray")]
-        static unsafe void* RhNewArray(MethodTable* pEEType, int length)
-        {
-            void* result;
-            Memory.RhAllocateNewArray(pEEType, (uint)length, 0, out result);
-            return result;
-        }
-
         /// <summary>
         /// Returns the MethodTable* for System.Array. This is used by the runtime when
         /// it needs to determine the base type of array types.
