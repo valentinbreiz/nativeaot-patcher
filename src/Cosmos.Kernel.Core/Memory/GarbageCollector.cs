@@ -304,6 +304,15 @@ public static unsafe class GarbageCollector
     {
         var segment = _lastSegment;
         var Allocsize = Align(size);
+
+        if (segment == null)
+        {
+            var segmentSize = (uint)global::System.Math.Max(Allocsize, MAX_SEGMENT_SIZE - sizeof(MemorySegment));
+            var newSegment = AllocSegment(segmentSize);
+            _firstSegment = newSegment;
+            _lastSegment = newSegment;
+            segment = newSegment;
+        }
     
         if (segment->Current + Allocsize > segment->End)
         {
@@ -412,6 +421,10 @@ public static unsafe class GarbageCollector
     private static void ScanMemorySegments()
     {
         var segment = _firstSegment;
+        if (segment == null)
+        {
+            return;
+        }
 
         while(segment->Next != null)
         {
@@ -738,9 +751,9 @@ public static unsafe class GarbageCollector
         int totalFreed = 0;
 
         totalFreed += SweepMemorySegments();
-        //totalFreed += SweepSmallHeap();
-        //totalFreed += SweepMediumHeap();
-        //totalFreed += SweepLargeHeap();
+        totalFreed += SweepSmallHeap();
+        totalFreed += SweepMediumHeap();
+        totalFreed += SweepLargeHeap();
 
         return totalFreed;
     }
@@ -750,11 +763,22 @@ public static unsafe class GarbageCollector
         int freed = 0;    
         var segment = _firstSegment;
 
+        /* Rebuild the list as FULL -> SEMIFULL; empty segments are freed. */
+        MemorySegment* semiFullHead = null;
+        MemorySegment* semiFullTail = null;
+        MemorySegment* fullHead = null;
+        MemorySegment* fullTail = null;
+
         while(segment->Next != null)
         {
+            bool hasLive = false;
+            bool hasFree = false;
+            var next = segment->Next;
             var ptr = segment->Start;
+
             while(ptr < segment->End)
             {
+                /* Track whether this segment has any live objects or free space. */
                 var obj = (GCObject*)ptr;
                 
                 if(obj->MethodTable == null)
@@ -764,6 +788,8 @@ public static unsafe class GarbageCollector
                 
                 if(obj->MethodTable == _freeObjMethodTable)
                 {
+                    /* Free region marker: this segment has free space. */
+                    hasFree = true;
                     ptr = Align(ptr + obj->Length);
                     continue;
                 }
@@ -772,21 +798,83 @@ public static unsafe class GarbageCollector
 
                 if (!IsMarked(obj))
                 {
+                    /* Freed object becomes a free region. */
                     freed++;
                     MemoryOp.MemSet((byte*)obj, 0, (int)objSize);
                     obj->MethodTable = _freeObjMethodTable;
                     obj->Length = (int)objSize;
+                    hasFree = true;
                 }
                 else
                 {
+                    /* Live object found. */
                     UnmarkObject(obj);
+                    hasLive = true;
                 }
 
 
                 ptr = Align(ptr + (nint)objSize);
             }
-            segment = segment->Next;
+
+            if (!hasLive)
+            {
+                /* Segment is empty, free page and its extensions */
+                _segment_count--;
+                PageAllocator.Free(segment);
+            }
+            else
+            {
+                /* Segment contains objects */
+                segment->Next = null;
+                bool hasAvailable = segment->Current < segment->End;
+
+                if (hasFree || hasAvailable)
+                {
+                    /* Segment has remaining space (free region or end space). */
+                    if (semiFullHead == null)
+                    {
+                        semiFullHead = segment;
+                        semiFullTail = segment;
+                    }
+                    else
+                    {
+                        semiFullTail->Next = segment;
+                        semiFullTail = segment;
+                    }
+                }
+                else
+                {
+                    /* Full segment: no free space. */
+                    if (fullHead == null)
+                    {
+                        fullHead = segment;
+                        fullTail = segment;
+                    }
+                    else
+                    {
+                        fullTail->Next = segment;
+                        fullTail = segment;
+                    }
+                }
+
+            }
+
+            segment = next;
         }
+
+        if (fullHead != null)
+        {
+            /* FULL -> SEMIFULL */
+            _firstSegment = fullHead;
+            fullTail->Next = semiFullHead;
+        }
+        else
+        {
+            _firstSegment = semiFullHead;
+        }
+
+        /* First segment with space available becomes the last segment target. */
+        _lastSegment = semiFullHead != null ? semiFullHead : fullTail;
 
         return freed;
     }
