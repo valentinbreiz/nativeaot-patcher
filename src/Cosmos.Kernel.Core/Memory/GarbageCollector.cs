@@ -190,7 +190,7 @@ public static unsafe class GarbageCollector
             //segment = (MemorySegment*)Heap.Heap.Alloc(MAX_SEGMENT_SIZE);
             segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
             segment->Current = segment->Start;
-            segment->End = (nint)(segment->Start + MAX_SEGMENT_SIZE);
+            segment->End = AlignDown((nint)segment->Start + (nint)MAX_SEGMENT_SIZE);
             return segment;
         }
         
@@ -203,7 +203,7 @@ public static unsafe class GarbageCollector
         //segment = (MemorySegment*)Heap.Heap.Alloc(segmentSize);
         segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
         segment->Current = segment->Start;
-        segment->End = (nint)(segment->Start + size);
+        segment->End = AlignDown((nint)segment->Start + (nint)size);
 
         return segment;
     }
@@ -229,7 +229,7 @@ public static unsafe class GarbageCollector
                 Serial.WriteHex((nuint)segment->End);
                 Serial.WriteString("\n");
                 
-                var ptr = segment->Start + IntPtr.Size;
+                var ptr = segment->Start;
 
                 while(ptr < segment->End)
                 {
@@ -240,21 +240,29 @@ public static unsafe class GarbageCollector
                         break;
                     }
 
+                    uint objSize = obj->ComputeSize();
+
                     Serial.WriteString(" Object at: ");
                     Serial.WriteHex((nuint)obj);
                     Serial.WriteString(" MT: ");
                     Serial.WriteHex((nuint)obj->MethodTable);
                     Serial.WriteString(" Size: ");
-                    Serial.WriteNumber(obj->ComputeSize());
+                    Serial.WriteNumber(objSize);
 
                     Serial.WriteString("\n");
+
+                    if (objSize == 0)
+                    {
+                        Serial.WriteString("[GC] Zero-size object, stopping segment walk\n");
+                        break;
+                    }
 
                     if (obj->MethodTable->ContainsGCPointers)
                     {
                         EnumerateObjectReferences(obj, &PrintRef);
                     }
 
-                    ptr = Align(ptr + (nint)obj->ComputeSize() + IntPtr.Size);
+                    ptr = Align(ptr + (nint)objSize);
                 }
                 segment = segment->Next;
             }
@@ -282,11 +290,14 @@ public static unsafe class GarbageCollector
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static nint Align(nint address) => (address + (IntPtr.Size - 1)) & ~(IntPtr.Size - 1);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static nint AlignDown(nint address) => address & ~(IntPtr.Size - 1);
     
     internal static GCObject* AllocObject(nint size, uint flags)
     {
         var segment = _lastSegment;
-        var Allocsize = Align(size + IntPtr.Size); // + Object Header size
+        var Allocsize = Align(size);
     
         if (segment->Current + Allocsize > segment->End)
         {
@@ -306,7 +317,7 @@ public static unsafe class GarbageCollector
             }
         }
 
-        GCObject* result = (GCObject*)Align(segment->Current + IntPtr.Size);
+        GCObject* result = (GCObject*)Align(segment->Current);
         segment->Current = Align(segment->Current + Allocsize);
         
         return result;
