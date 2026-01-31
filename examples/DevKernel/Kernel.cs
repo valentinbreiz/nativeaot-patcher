@@ -37,8 +37,6 @@ public class Kernel : Sys.Kernel
         Console.ResetColor();
         Console.WriteLine("Type 'help' for available commands.");
         Console.WriteLine();
-
-        GarbageCollector.DumbHeap();
     }
 
     protected override void Run()
@@ -154,7 +152,8 @@ public class Kernel : Sys.Kernel
 
 
                 case "free":
-                    Console.WriteLine(Cosmos.Kernel.Core.Memory.Heap.Heap.Collect() + " objects collected.");
+                    Console.WriteLine(GarbageCollector.Collect() + " objects collected.");
+                    GarbageCollector.DumbHeap();
                     break;
 
                 default:

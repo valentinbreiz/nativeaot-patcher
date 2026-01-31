@@ -136,6 +136,7 @@ public static unsafe class GarbageCollector
     private static ulong _markStackPageCount;
     private static MemorySegment* _firstSegment;
     private static MemorySegment* _lastSegment;
+    private static MethodTable*  _freeObjMethodTable;
     private static ulong _segment_count;
 
     // Statistics
@@ -166,6 +167,7 @@ public static unsafe class GarbageCollector
         var segment = AllocSegment((uint)(MAX_SEGMENT_SIZE - sizeof(MemorySegment)));
         _firstSegment = segment;
         _lastSegment = segment;
+        _freeObjMethodTable = MethodTable.Of<Free>();
 
         _markStackCount = 0;
         _initialized = true;
@@ -185,27 +187,24 @@ public static unsafe class GarbageCollector
 
         if(segmentSize <= MAX_SEGMENT_SIZE)
         {
-            _segment_count++;
+            segmentSize = MAX_SEGMENT_SIZE;
             segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, 1, true);
-            //segment = (MemorySegment*)Heap.Heap.Alloc(MAX_SEGMENT_SIZE);
-            segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
-            segment->Current = segment->Start;
-            segment->End = AlignDown((nint)segment + (nint)MAX_SEGMENT_SIZE);
-            return segment;
         }
-        
-        // Add two segments, one for the requested size, one for the residual memory
-        _segment_count+= 1;
-
-        var pageCount = segmentSize / PageAllocator.PageSize + 1;
-
-        segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
-        //segment = (MemorySegment*)Heap.Heap.Alloc(segmentSize);
-        segment->Start = (IntPtr)Align((nint)segment + sizeof(MemorySegment));
+        else
+        {
+            var pageCount = segmentSize / PageAllocator.PageSize + 1;
+            segment = (MemorySegment*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
+            segmentSize = (uint)(pageCount * PageAllocator.PageSize);
+        }
+    
+        segment->Start = Align((nint)segment + sizeof(MemorySegment));
         segment->Current = segment->Start;
-        ulong totalBytes = (ulong)pageCount * PageAllocator.PageSize;
-        segment->End = AlignDown((nint)segment + (nint)totalBytes);
+        segment->End = AlignDown((nint)segment + (nint)segmentSize);
 
+        // Make Segment walkable from the start.
+        AllocFreeObject(segment);
+
+        _segment_count++;
         return segment;
     }
     
@@ -239,6 +238,17 @@ public static unsafe class GarbageCollector
                     if(obj->MethodTable == null)
                     {
                         break;
+                    }
+                    
+                    if(obj->MethodTable == _freeObjMethodTable)
+                    {   
+                        Serial.WriteString(" Object at: ");
+                        Serial.WriteHex((nuint)obj);
+                        Serial.WriteString(" FreeRegion, Size: ");
+                        Serial.WriteNumber(obj->Length);
+                        Serial.WriteString("\n");
+                        ptr = Align(ptr + (nint)obj->Length);
+                        continue;
                     }
 
                     uint objSize = obj->ComputeSize();
@@ -320,9 +330,20 @@ public static unsafe class GarbageCollector
 
         GCObject* result = (GCObject*)Align(segment->Current);
         segment->Current = Align(segment->Current + Allocsize);
-        
+        //MemoryOp.MemSet((byte*)result, 0, sizeof(GCObject));
+        result->Length = 0;
+
+        //if(segment->Current + (IntPtr.Size * 3) > segment->End) AllocFreeObject(segment);
+
         return result;
-        
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AllocFreeObject(MemorySegment* segment)
+    {
+        GCObject* freeObj = (GCObject*)AlignDown(segment->Current);      
+        freeObj->MethodTable = _freeObjMethodTable;
+        freeObj->Length = (int)(segment->End - segment->Current);
     }
     internal static nint RegisterFrozenSegment(nint pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
     {
@@ -363,6 +384,8 @@ public static unsafe class GarbageCollector
             Serial.WriteString(" objects\n");
         }
 
+        DumbHeap();
+
         return freedCount;
     }
 
@@ -381,12 +404,54 @@ public static unsafe class GarbageCollector
     {
         _markStackCount = 0;
 
+
         // Scan all roots
         ScanStackRoots();
         ScanStaticRoots();
+        ProcessMarkStack();
+        ScanMemorySegments();
 
         // Process mark stack (DFS traversal)
-        ProcessMarkStack();
+        //ProcessMarkStack();
+    }
+    private static void ScanMemorySegments()
+    {
+        var segment = _firstSegment;
+
+        while(segment->Next != null)
+        {
+            var ptr = segment->Start;
+            while(ptr < segment->End)
+            {
+                var obj = (GCObject*)ptr;
+                
+                if(obj->MethodTable == null)
+                {
+                    break;
+                }
+                
+                if(obj->MethodTable == _freeObjMethodTable)
+                {
+                    ptr = Align(ptr + obj->Length);
+                    continue;
+                }
+
+                uint objSize = obj->ComputeSize();
+
+                if(objSize == 0)
+                {
+                    break;
+                }
+
+                if (obj->MethodTable->ContainsGCPointers)
+                {
+                    EnumerateObjectReferences(obj, &MarkObject);
+                }
+
+                ptr = Align(ptr + (nint)objSize);
+            }
+            segment = segment->Next;
+        }
     }
 
     private static void ProcessMarkStack()
@@ -403,7 +468,7 @@ public static unsafe class GarbageCollector
                 continue; // Already marked
 
             // Mark the object
-            MarkObject((void*)ptr);
+            MarkObject(ptr);
 
             // Enumerate and push references
             EnumerateObjectReferences((void*)ptr, &PushIfValidHeapPointer);
@@ -534,7 +599,7 @@ public static unsafe class GarbageCollector
                 continue;
 
             // This is an initialized static - the value is an object reference
-            if (value != 0 && IsValidHeapPointer(value))
+            if (value != 0)
             {
                 TryAddRoot(value);
             }
@@ -677,11 +742,58 @@ public static unsafe class GarbageCollector
     {
         int totalFreed = 0;
 
-        totalFreed += SweepSmallHeap();
-        totalFreed += SweepMediumHeap();
-        totalFreed += SweepLargeHeap();
+        totalFreed += SweepMemorySegments();
+        //totalFreed += SweepSmallHeap();
+        //totalFreed += SweepMediumHeap();
+        //totalFreed += SweepLargeHeap();
 
         return totalFreed;
+    }
+
+    private static int SweepMemorySegments()
+    {
+        int freed = 0;    
+        var segment = _firstSegment;
+
+        while(segment->Next != null)
+        {
+            var ptr = segment->Start;
+            while(ptr < segment->End)
+            {
+                var obj = (GCObject*)ptr;
+                
+                if(obj->MethodTable == null)
+                {
+                    break;
+                }
+                
+                if(obj->MethodTable == _freeObjMethodTable)
+                {
+                    ptr = Align(ptr + obj->Length);
+                    continue;
+                }
+
+                uint objSize = obj->ComputeSize();
+
+                if (!IsMarked(obj))
+                {
+                    freed++;
+                    MemoryOp.MemSet((byte*)obj, 0, (int)objSize);
+                    obj->MethodTable = _freeObjMethodTable;
+                    obj->Length = (int)objSize;
+                }
+                else
+                {
+                    UnmarkObject(obj);
+                }
+
+
+                ptr = Align(ptr + (nint)objSize);
+            }
+            segment = segment->Next;
+        }
+
+        return freed;
     }
 
     private static int SweepSmallHeap()
@@ -933,7 +1045,7 @@ public static unsafe class GarbageCollector
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void MarkObject(void* objPtr)
+    private static void MarkObject(nint objPtr)
     {
         nint raw = *(nint*)objPtr;
         *(nint*)objPtr = raw | MethodTableMarkBit;
@@ -947,4 +1059,11 @@ public static unsafe class GarbageCollector
     }
 
     #endregion
+
+    /// <summary>
+    /// A marker used inside the memory segments to keep them walkable
+    /// </summary>
+    private struct Free
+    {
+    }
 }
