@@ -501,7 +501,6 @@ public static unsafe class SmallHeap
                 byte* slotPtr = (byte*)&page[i * elementSize / 2];
                 ushort* heapObject = (ushort*)slotPtr;
                 heapObject[0] = (ushort)aSize; // size of actual object being allocated
-                heapObject[1] = 0; // gc status starts as 0
 
                 // Return pointer after prefix bytes (8-byte aligned on ARM64, 4-byte on x64)
                 byte* result = slotPtr + PrefixBytes;
@@ -541,9 +540,8 @@ public static unsafe class SmallHeap
             Debugger.SendKernelPanic(Panics.SmallHeap.DoubleFree);
         }
 
-        // Zero the header (size and gc status)
+        // Zero the header (size)
         heapObject[0] = 0;
-        heapObject[1] = 0;
 
         // now zero the object so its ready for next allocation
         if (size < 4) // so we dont actually forget to clean up too small items

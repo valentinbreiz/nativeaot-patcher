@@ -161,7 +161,7 @@ public static unsafe class Heap
 
         using (InternalCpu.DisableInterruptsScope())
         {
-            // Run mark-and-sweep GC to identify and free unreachable objects
+            // Run GC to identify and free unreachable objects
             result = GarbageCollector.Collect();
 
             // Also prune empty SMT pages

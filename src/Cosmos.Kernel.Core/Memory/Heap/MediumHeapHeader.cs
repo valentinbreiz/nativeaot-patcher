@@ -8,5 +8,4 @@ namespace Cosmos.Kernel.Core.Memory.Heap;
 public struct MediumHeapHeader
 {
     public ushort Size;
-    public ObjectGc Gc;
 }

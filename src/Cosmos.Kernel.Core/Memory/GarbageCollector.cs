@@ -94,10 +94,12 @@ public static unsafe class GCDesc
 /// </summary>
 public static unsafe class GarbageCollector
 {
+    private const nint MethodTableMarkBit = 1;
     private static bool _initialized;
     private static nint* _markStack;
-    private static int _markStackCapacity = 4096;
+    private static int _markStackCapacity = (int)(PageAllocator.PageSize / (ulong)sizeof(nint));
     private static int _markStackCount;
+    private static ulong _markStackPageCount;
 
     // Statistics
     private static int _totalCollections;
@@ -113,8 +115,10 @@ public static unsafe class GarbageCollector
 
         Serial.WriteString("[GC] Initializing garbage collector\n");
 
-        // Allocate mark stack
-        _markStack = (nint*)Heap.Heap.Alloc((uint)(_markStackCapacity * sizeof(nint)));
+        // Allocate mark stack on unmanaged pages so it never gets swept
+        ulong bytes = (ulong)_markStackCapacity * (ulong)sizeof(nint);
+        _markStackPageCount = (bytes + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+        _markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, _markStackPageCount, true);
         if (_markStack == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
@@ -190,16 +194,14 @@ public static unsafe class GarbageCollector
             nint ptr = PopMarkStack();
             if (ptr == 0) continue;
 
-            // Get header and check if already marked
-            ObjectGcStatus* status = GetGcStatus((void*)ptr);
-            if (status == null)
+            if (!IsManagedObject((byte*)ptr))
                 continue;
 
-            if ((*status & ObjectGcStatus.Hit) != 0)
+            if (IsMarked((void*)ptr))
                 continue; // Already marked
 
             // Mark the object
-            *status |= ObjectGcStatus.Hit;
+            MarkObject((void*)ptr);
 
             // Enumerate and push references
             EnumerateObjectReferences((void*)ptr, &PushIfValidHeapPointer);
@@ -364,7 +366,7 @@ public static unsafe class GarbageCollector
         if (objPtr == null) return;
 
         // Get MethodTable from object
-        MethodTable* mt = *(MethodTable**)objPtr;
+        MethodTable* mt = GetMethodTable(objPtr);
         if (mt == null) return;
 
         // Quick check: does this type contain GC pointers?
@@ -417,15 +419,16 @@ public static unsafe class GarbageCollector
         if (arrayLength <= 0) return;
 
         uint componentSize = mt->ComponentSize;
-        byte* dataStart = (byte*)objPtr + mt->BaseSize - (uint)arrayLength * componentSize;
+        // GCDesc encoding: offset precedes the ValSeriesItems when numSeries is negative
+        nint offset = *((nint*)mt - 2);
 
-        // Get the ValSeriesItems (stored after the series count)
-        ValSeriesItem* valSeries = (ValSeriesItem*)((nint*)mt - 1) - 1;
+        // Get the ValSeriesItems (stored after the offset)
+        ValSeriesItem* valSeries = (ValSeriesItem*)((nint*)mt - 2) - 1;
         int numValSeries = (int)(-numSeries);
 
         for (int elemIdx = 0; elemIdx < arrayLength; elemIdx++)
         {
-            byte* elemPtr = dataStart + (uint)elemIdx * componentSize;
+            byte* ptr = (byte*)objPtr + offset + (uint)elemIdx * componentSize;
 
             for (int seriesIdx = 0; seriesIdx < numValSeries; seriesIdx++)
             {
@@ -433,24 +436,18 @@ public static unsafe class GarbageCollector
                 uint numPtrs = item->NumPtrs;
                 uint skip = item->Skip;
 
-                // Starting offset for this series within element
-                uint offset = 0;
-                for (int s = 0; s < seriesIdx; s++)
-                {
-                    ValSeriesItem* prevItem = valSeries - s;
-                    offset += prevItem->NumPtrs * (uint)sizeof(nint) + prevItem->Skip;
-                }
-
                 // Enumerate pointers in this series
                 for (uint p = 0; p < numPtrs; p++)
                 {
-                    nint* refLoc = (nint*)(elemPtr + offset + p * (uint)sizeof(nint));
+                    nint* refLoc = (nint*)(ptr + p * (uint)sizeof(nint));
                     nint refValue = *refLoc;
                     if (refValue != 0)
                     {
                         callback(refValue);
                     }
                 }
+
+                ptr += numPtrs * (uint)sizeof(nint) + skip;
             }
         }
     }
@@ -531,10 +528,7 @@ public static unsafe class GarbageCollector
             if (!IsManagedObject(objPtr))
                 continue;
 
-            // Check GC status (stored in header[1])
-            ObjectGcStatus status = (ObjectGcStatus)(header[1] & 0xFF);
-
-            if ((status & ObjectGcStatus.Hit) == 0)
+            if (!IsMarked(objPtr))
             {
                 // Unmarked - free the object
                 SmallHeap.Free(objPtr);
@@ -543,7 +537,7 @@ public static unsafe class GarbageCollector
             else
             {
                 // Marked - clear the mark for next cycle
-                header[1] = (ushort)(header[1] & ~(ushort)ObjectGcStatus.Hit);
+                UnmarkObject(objPtr);
             }
         }
 
@@ -572,7 +566,7 @@ public static unsafe class GarbageCollector
             if (!IsManagedObject(objPtr))
                 continue;
 
-            if ((header->Gc.Status & ObjectGcStatus.Hit) == 0)
+            if (!IsMarked(objPtr))
             {
                 // Unmarked - free the object
                 MediumHeap.Free(objPtr);
@@ -581,7 +575,7 @@ public static unsafe class GarbageCollector
             else
             {
                 // Marked - clear the mark
-                header->Gc.Status &= ~ObjectGcStatus.Hit;
+                UnmarkObject(objPtr);
             }
         }
 
@@ -610,7 +604,7 @@ public static unsafe class GarbageCollector
             if (!IsManagedObject(objPtr))
                 continue;
 
-            if ((header->Gc.Status & ObjectGcStatus.Hit) == 0)
+            if (!IsMarked(objPtr))
             {
                 // Unmarked - free the object
                 LargeHeap.Free(objPtr);
@@ -619,7 +613,7 @@ public static unsafe class GarbageCollector
             else
             {
                 // Marked - clear the mark
-                header->Gc.Status &= ~ObjectGcStatus.Hit;
+                UnmarkObject(objPtr);
             }
         }
 
@@ -636,7 +630,9 @@ public static unsafe class GarbageCollector
         {
             // Expand mark stack
             int newCapacity = _markStackCapacity * 2;
-            nint* newStack = (nint*)Heap.Heap.Alloc((uint)(newCapacity * sizeof(nint)));
+            ulong newBytes = (ulong)newCapacity * (ulong)sizeof(nint);
+            ulong newPageCount = (newBytes + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+            nint* newStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, newPageCount, true);
             if (newStack == null)
             {
                 Serial.WriteString("[GC] WARNING: Mark stack overflow, cannot expand\n");
@@ -650,9 +646,10 @@ public static unsafe class GarbageCollector
             }
 
             // Free old stack and use new one
-            Heap.Heap.Free(_markStack);
+            PageAllocator.Free(_markStack);
             _markStack = newStack;
             _markStackCapacity = newCapacity;
+            _markStackPageCount = newPageCount;
         }
 
         _markStack[_markStackCount++] = ptr;
@@ -692,55 +689,59 @@ public static unsafe class GarbageCollector
 
         // Read the first pointer-sized value - for managed objects this is the MethodTable*
         nint potentialMT = *(nint*)objPtr;
+        nint mt = potentialMT & ~MethodTableMarkBit;
 
         // Null is not a valid MethodTable
-        if (potentialMT == 0)
+        if (mt == 0)
+            return false;
+
+        // Reject low addresses when the heap lives in higher-half mapping
+        bool heapIsHigherHalf = ((ulong)PageAllocator.RamStart >> 63) != 0;
+        if (heapIsHigherHalf && ((ulong)mt >> 63) == 0)
             return false;
 
         // MethodTable pointers point to static data in the kernel image, NOT to heap memory.
         // If the "MethodTable" pointer points into the heap, this is not a managed object.
-        if (potentialMT >= (nint)PageAllocator.RamStart)
+        if (mt >= (nint)PageAllocator.RamStart)
         {
             byte* heapEnd = PageAllocator.RamStart + PageAllocator.RamSize;
-            if (potentialMT < (nint)heapEnd)
+            if (mt < (nint)heapEnd)
                 return false; // Points into heap - not a MethodTable
         }
 
         // Additional sanity check: MethodTable should be reasonably aligned
-        if ((potentialMT & 0x7) != 0)
+        if ((mt & 0x7) != 0)
             return false; // Not 8-byte aligned
 
         return true;
     }
 
-    private static ObjectGcStatus* GetGcStatus(void* objPtr)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static MethodTable* GetMethodTable(void* objPtr)
     {
-        if (objPtr == null) return null;
+        nint raw = *(nint*)objPtr;
+        return (MethodTable*)(raw & ~MethodTableMarkBit);
+    }
 
-        PageType type = PageAllocator.GetPageType(objPtr);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsMarked(void* objPtr)
+    {
+        nint raw = *(nint*)objPtr;
+        return (raw & MethodTableMarkBit) != 0;
+    }
 
-        switch (type)
-        {
-            case PageType.HeapSmall:
-            {
-                // SmallHeap header: [Size:ushort][GcStatus:ushort] before object
-                byte* slotPtr = (byte*)objPtr - SmallHeap.PrefixBytes;
-                // GC status is at offset 2 (after size)
-                return (ObjectGcStatus*)(slotPtr + 2);
-            }
-            case PageType.HeapMedium:
-            {
-                MediumHeapHeader* header = MediumHeap.GetHeader((byte*)objPtr);
-                return &header->Gc.Status;
-            }
-            case PageType.HeapLarge:
-            {
-                LargeHeapHeader* header = LargeHeap.GetHeader((byte*)objPtr);
-                return &header->Gc.Status;
-            }
-            default:
-                return null;
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void MarkObject(void* objPtr)
+    {
+        nint raw = *(nint*)objPtr;
+        *(nint*)objPtr = raw | MethodTableMarkBit;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void UnmarkObject(void* objPtr)
+    {
+        nint raw = *(nint*)objPtr;
+        *(nint*)objPtr = raw & ~MethodTableMarkBit;
     }
 
     #endregion

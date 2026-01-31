@@ -9,6 +9,4 @@ public struct LargeHeapHeader
 {
     public ulong Used;
     public uint Size;
-    public uint Padding;
-    public ObjectGc Gc;
 }
