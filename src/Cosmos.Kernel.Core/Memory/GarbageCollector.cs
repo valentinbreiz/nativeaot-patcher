@@ -811,10 +811,8 @@ public static unsafe class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
-
-        bool freedAny = false;
-
         GCSegment* seg = _segments;
+
         while (seg != null)
         {
             GCSegment* next = seg->Next;
@@ -825,7 +823,6 @@ public static unsafe class GarbageCollector
             if (isFree && seg->TotalSize > PageAllocator.PageSize)
             {
                 PageAllocator.Free(seg);
-                freedAny = true;
             }
             else
             {
