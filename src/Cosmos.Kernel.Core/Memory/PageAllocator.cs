@@ -651,37 +651,21 @@ public static unsafe class PageAllocator
     #region Debug Interface
 
     /// <summary>
-    /// Send page allocator state to debug interface.
-    /// Includes Limine memory map and page allocator RAT data.
+    /// Update debug buffer with current memory state.
+    /// The buffer can be read by debugging tools via GDB.
     /// </summary>
-    /// <param name="sendRawData">If true, sends RAT sample data. If false, sends only summary counts.</param>
-    /// <param name="sampleCount">Number of RAT entries to sample (when sendRawData is true)</param>
-    public static void SendDebugState(bool sendRawData = false, ulong sampleCount = 500)
+    /// <param name="ratSampleCount">Number of RAT entries to include in the sample</param>
+    public static void UpdateDebugState(uint ratSampleCount = 1000)
     {
-        if (sendRawData)
-        {
-            // Send full state including Limine memory map and RAT data
-            MemoryDebug.SendFullMemoryState(
-                RamStart,
-                HeapEnd,
-                mRAT,
-                RamSize,
-                TotalPageCount,
-                FreePageCount,
-                mRAT,
-                sampleCount);
-        }
-        else
-        {
-            MemoryDebug.SendPageTypeSummary(
-                RamStart,
-                HeapEnd,
-                mRAT,
-                RamSize,
-                TotalPageCount,
-                FreePageCount,
-                mRAT);
-        }
+        MemoryDebug.UpdateMemoryState(
+            RamStart,
+            HeapEnd,
+            mRAT,
+            RamSize,
+            TotalPageCount,
+            FreePageCount,
+            mRAT,
+            ratSampleCount);
     }
 
     /// <summary>

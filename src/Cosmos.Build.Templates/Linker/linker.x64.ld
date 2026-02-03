@@ -73,6 +73,14 @@ SECTIONS
         __bss_end = .;
     } :data
 
+    /* Debug instrumentation buffer - read by debugging tools */
+    . = ALIGN(4096);
+    .cosmos_debug : {
+        __cosmos_debug_start = .;
+        *(.cosmos_debug)
+        __cosmos_debug_end = .;
+    } :data
+
     /* Cosmos OS Memory Structure:
      * Mark the end of the kernel image - heap will start after this + alignment
      * Following Cosmos convention:

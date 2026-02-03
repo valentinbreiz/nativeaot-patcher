@@ -1,54 +1,94 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 
 namespace Cosmos.Kernel.Debug;
 
 /// <summary>
-/// Debug interface for memory/page allocator state.
-/// Sends structured data over serial that can be parsed by debugging tools.
-///
-/// Protocol:
-/// - Start: [COSMOS_MEM_BEGIN]
-/// - Data: Key=Value pairs, one per line
-/// - End: [COSMOS_MEM_END]
+/// Debug instrumentation buffer for memory/page allocator state.
+/// This buffer is placed in the .cosmos_debug linker section via C code
+/// and read by debugging tools via QEMU QMP without pausing execution.
 /// </summary>
-public static unsafe class MemoryDebug
+public static unsafe partial class MemoryDebug
 {
-    // Protocol markers
-    private const string BEGIN_MARKER = "[COSMOS_MEM_BEGIN]";
-    private const string END_MARKER = "[COSMOS_MEM_END]";
-
-    // Delegate for serial output (injected to avoid direct dependency)
-    private static Action<string>? _writeString;
-    private static Action<ulong>? _writeNumber;
-    private static Action<ulong>? _writeHex;
+    private const int MAX_LIMINE_ENTRIES = 64;
+    private const int MAX_RAT_SAMPLE = 1000;
 
     /// <summary>
-    /// Initialize the memory debug interface with serial output functions.
-    /// Call this from kernel initialization.
+    /// Debug buffer structure - matches TypeScript parsing in VS Code extension.
+    /// Layout must match exactly with what the extension expects.
     /// </summary>
-    public static void Initialize(
-        Action<string> writeString,
-        Action<ulong> writeNumber,
-        Action<ulong> writeHex)
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct DebugBuffer
     {
-        _writeString = writeString;
-        _writeNumber = writeNumber;
-        _writeHex = writeHex;
+        // Magic number for validation (0x434F534D4F53 = "COSMOS" in hex)
+        public ulong Magic;
+
+        // Version for compatibility
+        public uint Version;
+
+        // Timestamp (incremented each update)
+        public ulong Timestamp;
+
+        // Limine Memory Map
+        public uint LimineEntryCount;
+        public fixed ulong LimineEntries[MAX_LIMINE_ENTRIES * 3]; // base, length, type for each entry
+
+        // Page Allocator State
+        public ulong RamStart;
+        public ulong HeapEnd;
+        public ulong RatLocation;
+        public ulong RamSize;
+        public ulong TotalPageCount;
+        public ulong FreePageCount;
+
+        // RAT Sample
+        public uint RatSampleCount;
+        public fixed byte RatData[MAX_RAT_SAMPLE];
+    }
+
+    // Import C functions that access the buffer in .cosmos_debug section
+    [LibraryImport("*", EntryPoint = "__cosmos_get_debug_buffer")]
+    private static partial void* GetDebugBufferPointer();
+
+    [LibraryImport("*", EntryPoint = "__cosmos_get_debug_buffer_size")]
+    private static partial ulong GetDebugBufferSize();
+
+    private static DebugBuffer* s_debugBuffer;
+    private static bool s_initialized = false;
+
+    /// <summary>
+    /// Initialize the debug buffer.
+    /// </summary>
+    public static void Initialize()
+    {
+        if (s_initialized)
+            return;
+
+        // Get pointer to buffer in .cosmos_debug section
+        s_debugBuffer = (DebugBuffer*)GetDebugBufferPointer();
+
+        if (s_debugBuffer == null)
+        {
+            // Buffer not available - C file may not be linked
+            return;
+        }
+
+        // Initialize header
+        s_debugBuffer->Magic = 0x434F534D4F53; // "COSMOS"
+        s_debugBuffer->Version = 1;
+        s_debugBuffer->Timestamp = 0;
+        s_debugBuffer->LimineEntryCount = 0;
+        s_debugBuffer->RatSampleCount = 0;
+
+        s_initialized = true;
     }
 
     /// <summary>
-    /// Send the current page allocator state over serial.
+    /// Update the debug buffer with current memory state.
+    /// This can be called anytime - the buffer is continuously readable via QEMU QMP.
     /// </summary>
-    /// <param name="ramStart">Start address of heap</param>
-    /// <param name="heapEnd">End address of heap (where RAT begins)</param>
-    /// <param name="ratLocation">Location of the RAT</param>
-    /// <param name="ramSize">Total size of usable heap</param>
-    /// <param name="totalPageCount">Total number of pages</param>
-    /// <param name="freePageCount">Number of free pages</param>
-    /// <param name="rat">Pointer to the RAT array</param>
-    /// <param name="ratSampleCount">Number of RAT entries to send (0 = all, capped for performance)</param>
-    public static void SendPageAllocatorState(
+    public static void UpdateMemoryState(
         byte* ramStart,
         byte* heapEnd,
         byte* ratLocation,
@@ -56,216 +96,66 @@ public static unsafe class MemoryDebug
         ulong totalPageCount,
         ulong freePageCount,
         byte* rat,
-        ulong ratSampleCount = 500)
+        uint ratSampleCount = MAX_RAT_SAMPLE)
     {
-        if (_writeString == null || _writeNumber == null || _writeHex == null)
+        if (!s_initialized || s_debugBuffer == null || rat == null)
             return;
 
-        _writeString(BEGIN_MARKER);
-        _writeString("\n");
+        s_debugBuffer->Timestamp++;
 
-        // Page Allocator info
-        WriteKeyValue("RamStart", (ulong)ramStart, hex: true);
-        WriteKeyValue("HeapEnd", (ulong)heapEnd, hex: true);
-        WriteKeyValue("RatLocation", (ulong)ratLocation, hex: true);
-        WriteKeyValue("RamSize", ramSize, hex: false);
-        WriteKeyValue("TotalPageCount", totalPageCount, hex: false);
-        WriteKeyValue("FreePageCount", freePageCount, hex: false);
-
-        // RAT sample - send page types for visualization
-        // Limit to ratSampleCount to avoid flooding serial
-        ulong sampleCount = ratSampleCount == 0 ? totalPageCount : ratSampleCount;
-        if (sampleCount > totalPageCount)
-            sampleCount = totalPageCount;
-
-        WriteKeyValue("RatSampleCount", sampleCount, hex: false);
-
-        // Send RAT data as comma-separated bytes
-        _writeString("RatData=");
-        for (ulong i = 0; i < sampleCount; i++)
+        // Update Limine memory map
+        var limineResponse = Limine.MemoryMap.Response;
+        if (limineResponse != null)
         {
-            if (i > 0)
-                _writeString(",");
-            _writeNumber!(rat[i]);
-        }
-        _writeString("\n");
+            var entryCount = limineResponse->EntryCount;
+            if (entryCount > MAX_LIMINE_ENTRIES)
+                entryCount = MAX_LIMINE_ENTRIES;
 
-        _writeString(END_MARKER);
-        _writeString("\n");
-    }
+            s_debugBuffer->LimineEntryCount = (uint)entryCount;
 
-    /// <summary>
-    /// Send a summary of page type counts.
-    /// More efficient than sending raw RAT for large heaps.
-    /// </summary>
-    public static void SendPageTypeSummary(
-        byte* ramStart,
-        byte* heapEnd,
-        byte* ratLocation,
-        ulong ramSize,
-        ulong totalPageCount,
-        ulong freePageCount,
-        byte* rat)
-    {
-        if (_writeString == null || _writeNumber == null || _writeHex == null)
-            return;
-
-        // Count pages by type
-        ulong emptyCount = 0;
-        ulong heapSmallCount = 0;
-        ulong heapMediumCount = 0;
-        ulong heapLargeCount = 0;
-        ulong unmanagedCount = 0;
-        ulong pageDirectoryCount = 0;
-        ulong pageAllocatorCount = 0;
-        ulong smtCount = 0;
-        ulong extensionCount = 0;
-        ulong unknownCount = 0;
-
-        for (ulong i = 0; i < totalPageCount; i++)
-        {
-            byte pageType = rat[i];
-            switch (pageType)
+            for (ulong i = 0; i < entryCount; i++)
             {
-                case 0: emptyCount++; break;      // Empty
-                case 3: heapSmallCount++; break;  // HeapSmall
-                case 5: heapMediumCount++; break; // HeapMedium
-                case 7: heapLargeCount++; break;  // HeapLarge
-                case 9: unmanagedCount++; break;  // Unmanaged
-                case 11: pageDirectoryCount++; break; // PageDirectory
-                case 32: pageAllocatorCount++; break; // PageAllocator (RAT)
-                case 64: smtCount++; break;       // SMT
-                case 128: extensionCount++; break; // Extension
-                default: unknownCount++; break;
+                var entry = limineResponse->Entries[i];
+                var idx = i * 3;
+                s_debugBuffer->LimineEntries[idx + 0] = (ulong)entry->Base;
+                s_debugBuffer->LimineEntries[idx + 1] = entry->Length;
+                s_debugBuffer->LimineEntries[idx + 2] = (ulong)entry->Type;
             }
-        }
-
-        _writeString(BEGIN_MARKER);
-        _writeString("\n");
-
-        // Basic info
-        WriteKeyValue("RamStart", (ulong)ramStart, hex: true);
-        WriteKeyValue("HeapEnd", (ulong)heapEnd, hex: true);
-        WriteKeyValue("RatLocation", (ulong)ratLocation, hex: true);
-        WriteKeyValue("RamSize", ramSize, hex: false);
-        WriteKeyValue("TotalPageCount", totalPageCount, hex: false);
-        WriteKeyValue("FreePageCount", freePageCount, hex: false);
-
-        // Page type counts
-        WriteKeyValue("EmptyPages", emptyCount, hex: false);
-        WriteKeyValue("HeapSmallPages", heapSmallCount, hex: false);
-        WriteKeyValue("HeapMediumPages", heapMediumCount, hex: false);
-        WriteKeyValue("HeapLargePages", heapLargeCount, hex: false);
-        WriteKeyValue("UnmanagedPages", unmanagedCount, hex: false);
-        WriteKeyValue("PageDirectoryPages", pageDirectoryCount, hex: false);
-        WriteKeyValue("PageAllocatorPages", pageAllocatorCount, hex: false);
-        WriteKeyValue("SmtPages", smtCount, hex: false);
-        WriteKeyValue("ExtensionPages", extensionCount, hex: false);
-        WriteKeyValue("UnknownPages", unknownCount, hex: false);
-
-        _writeString(END_MARKER);
-        _writeString("\n");
-    }
-
-    /// <summary>
-    /// Send complete memory state including Limine memory map and page allocator.
-    /// </summary>
-    public static void SendFullMemoryState(
-        byte* ramStart,
-        byte* heapEnd,
-        byte* ratLocation,
-        ulong ramSize,
-        ulong totalPageCount,
-        ulong freePageCount,
-        byte* rat,
-        ulong ratSampleCount = 500)
-    {
-        if (_writeString == null || _writeNumber == null || _writeHex == null)
-            return;
-
-        _writeString(BEGIN_MARKER);
-        _writeString("\n");
-
-        // Send Limine memory map
-        SendLimineMemoryMapData();
-
-        // Page Allocator info
-        WriteKeyValue("RamStart", (ulong)ramStart, hex: true);
-        WriteKeyValue("HeapEnd", (ulong)heapEnd, hex: true);
-        WriteKeyValue("RatLocation", (ulong)ratLocation, hex: true);
-        WriteKeyValue("RamSize", ramSize, hex: false);
-        WriteKeyValue("TotalPageCount", totalPageCount, hex: false);
-        WriteKeyValue("FreePageCount", freePageCount, hex: false);
-
-        // RAT sample - send page types for visualization
-        ulong sampleCount = ratSampleCount == 0 ? totalPageCount : ratSampleCount;
-        if (sampleCount > totalPageCount)
-            sampleCount = totalPageCount;
-
-        WriteKeyValue("RatSampleCount", sampleCount, hex: false);
-
-        // Send RAT data as comma-separated bytes
-        _writeString("RatData=");
-        for (ulong i = 0; i < sampleCount; i++)
-        {
-            if (i > 0)
-                _writeString(",");
-            _writeNumber!(rat[i]);
-        }
-        _writeString("\n");
-
-        _writeString(END_MARKER);
-        _writeString("\n");
-    }
-
-    /// <summary>
-    /// Send Limine memory map entries.
-    /// Format: LimineMemMap=count;base1,length1,type1;base2,length2,type2;...
-    /// </summary>
-    private static void SendLimineMemoryMapData()
-    {
-        var response = Limine.MemoryMap.Response;
-        if (response == null)
-        {
-            WriteKeyValue("LimineMemMapCount", 0, hex: false);
-            return;
-        }
-
-        var entryCount = response->EntryCount;
-        WriteKeyValue("LimineMemMapCount", entryCount, hex: false);
-
-        _writeString("LimineMemMap=");
-        for (ulong i = 0; i < entryCount; i++)
-        {
-            var entry = response->Entries[i];
-            if (i > 0)
-                _writeString(";");
-
-            // Format: base,length,type
-            _writeString("0x");
-            _writeHex!((ulong)entry->Base);
-            _writeString(",");
-            _writeNumber!(entry->Length);
-            _writeString(",");
-            _writeNumber!((ulong)entry->Type);
-        }
-        _writeString("\n");
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteKeyValue(string key, ulong value, bool hex)
-    {
-        _writeString!(key);
-        _writeString("=");
-        if (hex)
-        {
-            _writeString("0x");
-            _writeHex!(value);
         }
         else
         {
-            _writeNumber!(value);
+            s_debugBuffer->LimineEntryCount = 0;
         }
-        _writeString("\n");
+
+        // Update page allocator state
+        s_debugBuffer->RamStart = (ulong)ramStart;
+        s_debugBuffer->HeapEnd = (ulong)heapEnd;
+        s_debugBuffer->RatLocation = (ulong)ratLocation;
+        s_debugBuffer->RamSize = ramSize;
+        s_debugBuffer->TotalPageCount = totalPageCount;
+        s_debugBuffer->FreePageCount = freePageCount;
+
+        // Update RAT sample
+        if (ratSampleCount > MAX_RAT_SAMPLE)
+            ratSampleCount = MAX_RAT_SAMPLE;
+        if (ratSampleCount > totalPageCount)
+            ratSampleCount = (uint)totalPageCount;
+
+        s_debugBuffer->RatSampleCount = ratSampleCount;
+
+        for (uint i = 0; i < ratSampleCount; i++)
+        {
+            s_debugBuffer->RatData[i] = rat[i];
+        }
+    }
+
+    /// <summary>
+    /// Get the address of the debug buffer.
+    /// This is used by the extension to locate the buffer in QEMU memory.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void* GetDebugBufferAddress()
+    {
+        return s_debugBuffer;
     }
 }

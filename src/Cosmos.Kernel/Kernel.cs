@@ -49,12 +49,6 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
 
-        // Initialize memory debug interface
-        MemoryDebug.Initialize(
-            s => Serial.WriteString(s),
-            n => Serial.WriteNumber(n),
-            n => Serial.WriteHex(n));
-
         // Get the platform initializer (registered by HAL.X64 or HAL.ARM64 module initializer)
         var initializer = PlatformHAL.Initializer;
         if (initializer == null)
@@ -131,6 +125,14 @@ public class Kernel
             Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
             initializer.StartSchedulerTimer(10);  // 10ms quantum
         }
+
+        // Initialize memory debug buffer (after all systems are ready)
+        Serial.WriteString("[KERNEL]   - Initializing memory debug buffer...\n");
+        MemoryDebug.Initialize();
+
+        // Update debug buffer with current memory state
+        Serial.WriteString("[KERNEL]   - Populating memory debug data...\n");
+        PageAllocator.UpdateDebugState();
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
@@ -303,17 +305,6 @@ public static unsafe class KernelBridge
     public static void CosmosHeapFree(void* ptr)
     {
         MemoryOp.Free(ptr);
-    }
-
-    /// <summary>
-    /// Send page allocator debug state over serial.
-    /// Can be called from GDB: call (void)__cosmos_send_memory_debug(0)
-    /// Mode 0 = summary only, Mode 1 = with RAT sample data
-    /// </summary>
-    [UnmanagedCallersOnly(EntryPoint = "__cosmos_send_memory_debug")]
-    public static void CosmosSendMemoryDebug(int mode)
-    {
-        PageAllocator.SendDebugState(sendRawData: mode != 0, sampleCount: 500);
     }
 
     /// <summary>

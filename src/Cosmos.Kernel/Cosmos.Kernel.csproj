@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
+    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Plugs\Cosmos.Kernel.Plugs.csproj" PrivateAssets="none" />
