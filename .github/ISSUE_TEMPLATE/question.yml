@@ -1,0 +1,55 @@
+name: Question or Help
+description: Ask a question or get help using nativeaot-patcher
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking a question, please check:
+        - [Documentation](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)
+        - [Existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)
+        - [CLAUDE.md](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/CLAUDE.md) for build commands
+        
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I...? Why does...?
+    validations:
+      required: true
+      
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish?
+      placeholder: I'm trying to build a kernel that...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried?
+      description: What steps have you already taken?
+      placeholder: I tried... and looked at...
+      
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architecture
+      description: If relevant, which architecture?
+      options:
+        - x64
+        - ARM64
+        - Both
+        - Not applicable
+      
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any error messages, code snippets, or other relevant details
+      placeholder: When I run... I see...

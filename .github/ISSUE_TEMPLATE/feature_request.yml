@@ -1,0 +1,54 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please describe it below.
+        
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What problem does this feature solve? What would you like to be able to do?
+      placeholder: I'm frustrated when... / I would like to be able to...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you envision this feature working?
+      placeholder: The feature should...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches or workarounds have you considered?
+      placeholder: I tried... but...
+      
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architecture
+      description: Which architecture should this feature support?
+      options:
+        - x64
+        - ARM64
+        - Both
+        - Not architecture-specific
+    validations:
+      required: true
+      
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information, screenshots, or examples
+      placeholder: Here's an example from another project...
