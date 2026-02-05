@@ -30,7 +30,7 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             // We set this bit below during second pass, callers should not set it.
 #if DEBUG
-            Debug.Assert((flags & ResolveFlags.DefaultInterfaceImplementation) == 0);
+            System.Diagnostics.Debug.Assert((flags & ResolveFlags.DefaultInterfaceImplementation) == 0);
 #endif
 
             Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImpl] TgtType=");
@@ -149,7 +149,7 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             // We set this below during second pass, callers should not set this.
 #if DEBUG
-            Debug.Assert((flags & ResolveFlags.Variant) == 0);
+            System.Diagnostics.Debug.Assert((flags & ResolveFlags.Variant) == 0);
 #endif
 
             bool fRes = false;
@@ -200,7 +200,7 @@ namespace Cosmos.Kernel.Core.Runtime
                                      ResolveFlags flags)
         {
 #if DEBUG
-            Debug.Assert(pTgtType->HasDispatchMap, "Missing dispatch map");
+            System.Diagnostics.Debug.Assert(pTgtType->HasDispatchMap, "Missing dispatch map");
 #endif
 
             bool fCheckVariance = false;
