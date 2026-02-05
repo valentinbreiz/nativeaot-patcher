@@ -222,5 +222,79 @@ public static unsafe partial class GarbageCollector
         freeBlock->Next = null;
     }
 
+    /// <summary>
+    /// Reorder pinned segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
+    /// </summary>
+    private static void ReorderPinnedSegmentsAndFreeEmpty()
+    {
+        GCSegment* fullHead = null;
+        GCSegment* fullTail = null;
+        GCSegment* semiHead = null;
+        GCSegment* semiTail = null;
+        GCSegment* freeHead = null;
+        GCSegment* freeTail = null;
+        GCSegment* seg = _pinnedSegments;
+
+        while (seg != null)
+        {
+            GCSegment* next = seg->Next;
+
+            bool isFree = seg->UsedSize == 0 || seg->Bump == seg->Start;
+            bool isFull = seg->Bump >= seg->End;
+
+            if (isFree && seg->TotalSize > PageAllocator.PageSize)
+            {
+                PageAllocator.Free(seg);
+            }
+            else
+            {
+                seg->Next = null;
+
+                if (isFull)
+                {
+                    if (fullHead == null) fullHead = seg;
+                    else fullTail->Next = seg;
+                    fullTail = seg;
+                }
+                else if (isFree)
+                {
+                    if (freeHead == null) freeHead = seg;
+                    else freeTail->Next = seg;
+                    freeTail = seg;
+                }
+                else
+                {
+                    if (semiHead == null) semiHead = seg;
+                    else semiTail->Next = seg;
+                    semiTail = seg;
+                }
+            }
+
+            seg = next;
+        }
+
+        GCSegment* newHead = null;
+        GCSegment* tail = null;
+
+        if (fullHead != null) { newHead = fullHead; tail = fullTail; }
+        if (semiHead != null)
+        {
+            if (newHead == null) newHead = semiHead;
+            else tail->Next = semiHead;
+            tail = semiTail;
+        }
+        if (freeHead != null)
+        {
+            if (newHead == null) newHead = freeHead;
+            else tail->Next = freeHead;
+            tail = freeTail;
+        }
+
+        _pinnedSegments = newHead;
+        _currentPinnedSegment = semiHead != null ? semiHead : freeHead;
+
+        _heapRangeDirty = true;
+    }
+
     #endregion
 }

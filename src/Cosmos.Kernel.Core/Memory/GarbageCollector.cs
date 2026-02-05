@@ -432,8 +432,8 @@ public static unsafe partial class GarbageCollector
             freedCount = SweepPhase();
 
             // Reorder segments and free empty ones
-            ReorderSegmentsAndFreeEmpty(_segments);
-            ReorderSegmentsAndFreeEmpty(_pinnedSegments);        
+            ReorderSegmentsAndFreeEmpty();
+            ReorderPinnedSegmentsAndFreeEmpty();
             RecomputeHeapRange();
 
             _totalCollections++;
@@ -471,6 +471,11 @@ public static unsafe partial class GarbageCollector
     private static void ScanGCHandles()
     {
         if (handlerStore == null) return;
+        Serial.WriteString("Start: ");
+        Serial.WriteHex((ulong)_gcHeapMin);
+        Serial.WriteString("\nEnd: ");
+        Serial.WriteHex((ulong)_gcHeapMax);
+        Serial.WriteString("\n");
 
         int size = (int)(handlerStore->End - handlerStore->Bump) / sizeof(GCHandle);
 
@@ -638,30 +643,27 @@ public static unsafe partial class GarbageCollector
 
         if (numSeries > 0)
         {
-            
             uint objectSize = obj->ComputeSize();
             GCDescSeries* last = cur - numSeries + 1;
 
             do
             {
-                    nint size = cur->SeriesSize + (nint)objectSize;
-                    nint offset = cur->StartOffset;
-                    var ptr = (nint*)((nint)obj + offset);
+                nint size = cur->SeriesSize + (nint)objectSize;
+                nint offset = cur->StartOffset;
+                var ptr = (nint*)((nint)obj + offset);
 
-                    for (nint i = 0; i < size / IntPtr.Size; i++)
-                    {
-                        //nint* refLoc = (nint*)((byte*)obj + offset + i);
-                        nint refValue = ptr[i];
-                        Serial.WriteNumber(refValue);
-                        if (refValue != 0 && IsInGCHeap(refValue))
-                            PushMarkStack(refValue);
-                    }
+                for (nint i = 0; i < size / IntPtr.Size; i++)
+                {
+                    nint refValue = ptr[i];
+                    if (refValue != 0 && IsInGCHeap(refValue))
+                        PushMarkStack(refValue);
+                }
                 cur--;
             } while (cur >= last);
         }
         else
         {
-            
+            //TODO: ValSeries Scanning.
         }
     }
 
@@ -797,7 +799,7 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Reorder segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
     /// </summary>
-    private static void ReorderSegmentsAndFreeEmpty(GCSegment* seg)
+    private static void ReorderSegmentsAndFreeEmpty()
     {
         GCSegment* fullHead = null;
         GCSegment* fullTail = null;
@@ -805,6 +807,7 @@ public static unsafe partial class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
+        GCSegment* seg = _segments;
 
         while (seg != null)
         {
@@ -893,7 +896,7 @@ public static unsafe partial class GarbageCollector
         return freed;
     }
 
-     private static int SweepSMTBlock(SMTBlock* block, uint itemSize)
+    private static int SweepSMTBlock(SMTBlock* block, uint itemSize)
     {
         int freed = 0;
         ulong elementSize = itemSize + SmallHeap.PrefixBytes;
@@ -974,7 +977,7 @@ public static unsafe partial class GarbageCollector
         return freed;
     }
 
-     private static int SweepLargeHeap()
+    private static int SweepLargeHeap()
     {
         int freed = 0;
 
@@ -1114,7 +1117,7 @@ public struct GCDescSeries
     public nint SeriesSize;
     public nint StartOffset;
 
-    
+
     public void Deconstruct(out nint size, out nint offset)
     {
         size = SeriesSize;
@@ -1124,11 +1127,11 @@ public struct GCDescSeries
 
 internal static class ObjectHeader
 {
-    private const uint BIT_SBLK_UNUSED   = 0x80000000;
+    private const uint BIT_SBLK_UNUSED = 0x80000000;
     private const uint BIT_SBLK_FINALIZER_RUN = 0x40000000;
-    private const uint BIT_SBLK_GC_RESERVE    = 0x20000000;
+    private const uint BIT_SBLK_GC_RESERVE = 0x20000000;
 
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe int* GetHeaderPtr(MethodTable** ppMethodTable)
     {
