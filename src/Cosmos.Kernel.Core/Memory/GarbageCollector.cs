@@ -32,57 +32,6 @@ internal unsafe struct FreeBlock
 internal struct FreeMarker { }
 
 /// <summary>
-/// Represents a managed object in the GC heap.
-/// Uses LSB of MethodTable pointer for marking.
-/// </summary>
-[StructLayout(LayoutKind.Sequential)]
-internal unsafe struct GCObject
-{
-    public MethodTable* MethodTable;
-    public int Length;  // For arrays/strings
-
-    /// <summary>
-    /// Gets the MethodTable with mark bit masked off.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly MethodTable* GetMethodTable() => (MethodTable*)((nint)MethodTable & ~(nint)1);
-
-    /// <summary>
-    /// Checks if this object is marked.
-    /// </summary>
-    public readonly bool IsMarked
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ((nint)MethodTable & 1) != 0;
-    }
-
-    /// <summary>
-    /// Marks this object.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Mark() => MethodTable = (MethodTable*)((nint)MethodTable | 1);
-
-    /// <summary>
-    /// Unmarks this object.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Unmark() => MethodTable = GetMethodTable();
-
-    /// <summary>
-    /// Computes the size of this object.
-    /// </summary>
-    public readonly uint ComputeSize()
-    {
-        var mt = GetMethodTable();
-        if (mt->HasComponentSize)
-        {
-            return mt->BaseSize + (uint)Length * mt->ComponentSize;
-        }
-        return mt->RawBaseSize;
-    }
-}
-
-/// <summary>
 /// GC heap segment for contiguous allocations.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
@@ -99,7 +48,7 @@ internal unsafe struct GCSegment
 /// <summary>
 /// Mark-and-Sweep Garbage Collector with free list allocation.
 /// </summary>
-public static unsafe class GarbageCollector
+public static unsafe partial class GarbageCollector
 {
     // Free list size classes: 16, 32, 64, ... 32768 (powers of two)
     private const int NumSizeClasses = 12;
@@ -189,6 +138,8 @@ public static unsafe class GarbageCollector
         }
         _markStackCount = 0;
 
+        InitializeGCHandleStore();
+
         _initialized = true;
         Serial.WriteString("[GC] Initialization complete\n");
     }
@@ -228,9 +179,15 @@ public static unsafe class GarbageCollector
     /// <summary>
     /// Allocates memory for a GC object. Called by runtime.
     /// </summary>
-    internal static GCObject* AllocObject(nint size, uint flags)
+    internal static GCObject* AllocObject(nint size, GC_ALLOC_FLAGS flags)
     {
         if (!_initialized) Initialize();
+
+        // Check for pinned object allocation
+        if ((flags & GC_ALLOC_FLAGS.GC_ALLOC_PINNED_OBJECT_HEAP) != 0)
+        {
+            return AllocPinnedObject(size, flags);
+        }
 
         uint allocSize = Align((uint)size);
         if (allocSize < MinBlockSize)
@@ -475,7 +432,9 @@ public static unsafe class GarbageCollector
             freedCount = SweepPhase();
 
             // Reorder segments and free empty ones
-            ReorderSegmentsAndFreeEmpty();
+            ReorderSegmentsAndFreeEmpty(_segments);
+            ReorderSegmentsAndFreeEmpty(_pinnedSegments);        
+            RecomputeHeapRange();
 
             _totalCollections++;
             _totalObjectsFreed += freedCount;
@@ -502,8 +461,32 @@ public static unsafe class GarbageCollector
     private static void MarkPhase()
     {
         _markStackCount = 0;
+        ScanFrozenSegments();
         ScanStackRoots();
-        ScanStaticRoots();
+        ScanGCHandles();
+        //ScanStaticRoots();
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    private static void ScanGCHandles()
+    {
+        if (handlerStore == null) return;
+
+        int size = (int)(handlerStore->End - handlerStore->Bump) / sizeof(GCHandle);
+
+        var handles = new Span<GCHandle>((void*)Align((uint)handlerStore->Bump), size);
+        for (int i = 0; i < handles.Length; i++)
+        {
+            if ((IntPtr)handles[i].obj != IntPtr.Zero)
+            {
+                // Only mark objects for Normal and Pinned handles
+                // Weak handles should not keep objects alive
+                if (handles[i].type >= GCHandleType.Normal)
+                {
+                    TryMarkRoot((nint)handles[i].obj);
+                }
+            }
+        }
     }
 
     private static void ScanStackRoots()
@@ -615,10 +598,12 @@ public static unsafe class GarbageCollector
             TryMarkRoot(*ptr);
     }
 
-    private static void TryMarkRoot(nint value)
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    private static void TryMarkRoot(nint value, bool SkipValidation = false)
     {
-        if (value == 0 || !IsInGCHeap(value))
-            return;
+        //if (!SkipValidation && (value == 0 || !IsInGCHeap(value)))
+        //    return;
 
         PushMarkStack(value);
 
@@ -643,32 +628,40 @@ public static unsafe class GarbageCollector
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void EnumerateReferences(GCObject* obj, MethodTable* mt)
     {
-        nint numSeries = *((nint*)mt - 1);
+        nint numSeries = ((nint*)mt)[-1];
         if (numSeries == 0) return;
 
         GCDescSeries* cur = (GCDescSeries*)((nint*)mt - 1) - 1;
 
         if (numSeries > 0)
         {
-            GCDescSeries* last = cur - numSeries + 1;
+            
             uint objectSize = obj->ComputeSize();
+            GCDescSeries* last = cur - numSeries + 1;
 
             do
             {
-                nint size = cur->SeriesSize + (nint)objectSize;
-                nint offset = cur->StartOffset;
+                    nint size = cur->SeriesSize + (nint)objectSize;
+                    nint offset = cur->StartOffset;
+                    var ptr = (nint*)((nint)obj + offset);
 
-                for (nint i = 0; i < size; i += sizeof(nint))
-                {
-                    nint* refLoc = (nint*)((byte*)obj + offset + i);
-                    nint refValue = *refLoc;
-                    if (refValue != 0 && IsInGCHeap(refValue))
-                        PushMarkStack(refValue);
-                }
+                    for (nint i = 0; i < size / IntPtr.Size; i++)
+                    {
+                        //nint* refLoc = (nint*)((byte*)obj + offset + i);
+                        nint refValue = ptr[i];
+                        Serial.WriteNumber(refValue);
+                        if (refValue != 0 && IsInGCHeap(refValue))
+                            PushMarkStack(refValue);
+                    }
                 cur--;
             } while (cur >= last);
+        }
+        else
+        {
+            
         }
     }
 
@@ -687,6 +680,7 @@ public static unsafe class GarbageCollector
             segment = segment->Next;
         }
 
+        totalFreed += SweepPinnedHeap();
         totalFreed += SweepSmallHeap();
         totalFreed += SweepMediumHeap();
         totalFreed += SweepLargeHeap();
@@ -803,7 +797,7 @@ public static unsafe class GarbageCollector
     /// <summary>
     /// Reorder segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
     /// </summary>
-    private static void ReorderSegmentsAndFreeEmpty()
+    private static void ReorderSegmentsAndFreeEmpty(GCSegment* seg)
     {
         GCSegment* fullHead = null;
         GCSegment* fullTail = null;
@@ -811,7 +805,6 @@ public static unsafe class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
-        GCSegment* seg = _segments;
 
         while (seg != null)
         {
@@ -874,7 +867,6 @@ public static unsafe class GarbageCollector
         _currentSegment = _lastSegment;
 
         _heapRangeDirty = true;
-        RecomputeHeapRange();
     }
 
     private static int SweepSmallHeap()
@@ -1060,7 +1052,7 @@ public static unsafe class GarbageCollector
     }
 
     /// <summary>
-    /// Checks if pointer is within a GC heap segment.
+    /// Checks if pointer is within any GC heap segment (including pinned).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInGCHeap(nint ptr)
@@ -1070,7 +1062,10 @@ public static unsafe class GarbageCollector
 
         byte* p = (byte*)ptr;
         if (p < _gcHeapMin || p >= _gcHeapMax)
-            return false;
+        {
+            // Check pinned heap
+            return IsInPinnedHeap(ptr);
+        }
 
         GCSegment* segment = _segments;
         while (segment != null)
@@ -1079,7 +1074,8 @@ public static unsafe class GarbageCollector
                 return true;
             segment = segment->Next;
         }
-        return false;
+
+        return IsInPinnedHeap(ptr);
     }
 
     private static void RecomputeHeapRange()
@@ -1107,25 +1103,6 @@ public static unsafe class GarbageCollector
     }
 
     #endregion
-
-    #region Runtime Integration
-
-    /// <summary>
-    /// Called by runtime to register frozen segments (preinitialized data).
-    /// </summary>
-    internal static nint RegisterFrozenSegment(nint pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
-    {
-        return pSegmentStart;
-    }
-
-    /// <summary>
-    /// Called by runtime to update frozen segment.
-    /// </summary>
-    internal static void UpdateFrozenSegment(nint seg, nint allocated, nint committed)
-    {
-    }
-
-    #endregion
 }
 
 /// <summary>
@@ -1136,4 +1113,26 @@ public struct GCDescSeries
 {
     public nint SeriesSize;
     public nint StartOffset;
+
+    
+    public void Deconstruct(out nint size, out nint offset)
+    {
+        size = SeriesSize;
+        offset = StartOffset;
+    }
+}
+
+internal static class ObjectHeader
+{
+    private const uint BIT_SBLK_UNUSED   = 0x80000000;
+    private const uint BIT_SBLK_FINALIZER_RUN = 0x40000000;
+    private const uint BIT_SBLK_GC_RESERVE    = 0x20000000;
+
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe int* GetHeaderPtr(MethodTable** ppMethodTable)
+    {
+        // The header is 4 bytes before m_pEEType field on all architectures
+        return (int*)ppMethodTable - 1;
+    }
 }

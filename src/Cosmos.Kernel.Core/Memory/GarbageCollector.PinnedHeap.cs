@@ -1,0 +1,226 @@
+// This code is licensed under MIT license (see LICENSE for details)
+
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.IO;
+using Internal.Runtime;
+
+namespace Cosmos.Kernel.Core.Memory;
+
+public static unsafe partial class GarbageCollector
+{
+    #region Pinned Heap
+
+    // Pinned heap segments - separate from regular GC heap
+    private const uint PINNED_HEAP_MIN_SIZE = (uint)PageAllocator.PageSize; // Minimum 1 page
+    private static GCSegment* _pinnedSegments;
+    private static GCSegment* _currentPinnedSegment;
+
+    /// <summary>
+    /// Allocates a pinned object on the pinned heap.
+    /// Pinned objects are not subject to compaction but can still be collected.
+    /// </summary>
+    private static GCObject* AllocPinnedObject(nint size, GC_ALLOC_FLAGS flags)
+    {
+        uint allocSize = Align((uint)size);
+        if (allocSize < MinBlockSize)
+            allocSize = MinBlockSize;
+
+        // Try bump allocation in current pinned segment
+        void* result = BumpAllocInPinnedSegment(_currentPinnedSegment, allocSize);
+        if (result != null)
+            return (GCObject*)result;
+
+        // Need new segment
+        GCSegment* newSegment = AllocatePinnedSegment(Math.Max(PINNED_HEAP_MIN_SIZE, allocSize + (uint)sizeof(GCSegment)));
+        if (newSegment == null)
+            return null;
+
+        // Link the segment
+        AppendPinnedSegment(newSegment);
+        _currentPinnedSegment = newSegment;
+
+        // Try allocation again
+        result = BumpAllocInPinnedSegment(_currentPinnedSegment, allocSize);
+        return (GCObject*)result;
+    }
+
+    /// <summary>
+    /// Allocates a new pinned heap segment.
+    /// </summary>
+    private static GCSegment* AllocatePinnedSegment(uint requestedSize)
+    {
+        uint size = requestedSize < PINNED_HEAP_MIN_SIZE ? PINNED_HEAP_MIN_SIZE : requestedSize;
+        uint totalSize = size + (uint)sizeof(GCSegment);
+        ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+
+        byte* memory = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, pageCount, true);
+        if (memory == null) return null;
+
+        GCSegment* segment = (GCSegment*)memory;
+        segment->Next = null;
+        segment->Start = memory + Align((uint)sizeof(GCSegment));
+        segment->End = memory + (pageCount * PageAllocator.PageSize);
+        segment->Bump = segment->Start;
+        segment->TotalSize = (uint)(segment->End - segment->Start);
+        segment->UsedSize = 0;
+
+        return segment;
+    }
+
+    /// <summary>
+    /// Attempts bump allocation in a pinned segment.
+    /// </summary>
+    private static void* BumpAllocInPinnedSegment(GCSegment* segment, uint size)
+    {
+        if (segment == null)
+            return null;
+
+        byte* newBump = segment->Bump + size;
+        if (newBump <= segment->End)
+        {
+            void* result = segment->Bump;
+            segment->Bump = newBump;
+            segment->UsedSize += size;
+            return result;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Appends a pinned segment to the pinned segment list.
+    /// </summary>
+    private static void AppendPinnedSegment(GCSegment* segment)
+    {
+        if (segment == null) return;
+
+        if (_pinnedSegments == null)
+        {
+            _pinnedSegments = segment;
+        }
+        else
+        {
+            GCSegment* tail = _pinnedSegments;
+            while (tail->Next != null)
+                tail = tail->Next;
+            tail->Next = segment;
+        }
+    }
+
+    /// <summary>
+    /// Checks if a pointer is in the pinned heap.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInPinnedHeap(nint ptr)
+    {
+        byte* p = (byte*)ptr;
+        GCSegment* segment = _pinnedSegments;
+        while (segment != null)
+        {
+            if (p >= segment->Start && p < segment->End)
+                return true;
+            segment = segment->Next;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Sweeps the pinned heap for unmarked objects.
+    /// Pinned objects can still be collected if not referenced.
+    /// </summary>
+    private static int SweepPinnedHeap()
+    {
+        int freed = 0;
+        GCSegment* segment = _pinnedSegments;
+        while (segment != null)
+        {
+            freed += SweepPinnedSegment(segment);
+            segment = segment->Next;
+        }
+        return freed;
+    }
+
+    /// <summary>
+    /// Sweeps a single pinned segment.
+    /// </summary>
+    private static int SweepPinnedSegment(GCSegment* segment)
+    {
+        int freed = 0;
+        byte* ptr = segment->Start;
+        byte* freeRunStart = null;
+        uint freeRunSize = 0;
+
+        while (ptr < segment->Bump)
+        {
+            GCObject* obj = (GCObject*)ptr;
+
+            // Validate MethodTable
+            MethodTable* mt = obj->GetMethodTable();
+            if (mt == null || IsInGCHeap((nint)mt))
+            {
+                // Skip invalid objects
+                ptr += sizeof(nint);
+                continue;
+            }
+
+            uint objSize = Align(obj->ComputeSize());
+            if (objSize == 0 || objSize > (uint)(segment->End - ptr))
+                break;
+
+            if (obj->IsMarked)
+            {
+                // Live pinned object - unmark it
+                obj->Unmark();
+
+                // Flush free run
+                FlushPinnedFreeRun(freeRunStart, freeRunSize);
+                freeRunStart = null;
+                freeRunSize = 0;
+            }
+            else
+            {
+                // Dead pinned object - add to free run
+                freed++;
+                if (freeRunStart == null)
+                    freeRunStart = ptr;
+                freeRunSize += objSize;
+            }
+
+            ptr += objSize;
+        }
+
+        // Handle trailing free space
+        if (freeRunStart != null)
+        {
+            if (freeRunStart + freeRunSize >= segment->Bump)
+            {
+                segment->Bump = freeRunStart;
+                segment->UsedSize = (uint)(freeRunStart - segment->Start);
+            }
+            else
+            {
+                FlushPinnedFreeRun(freeRunStart, freeRunSize);
+            }
+        }
+
+        return freed;
+    }
+
+    /// <summary>
+    /// Converts a free run in pinned heap into a FreeBlock.
+    /// </summary>
+    private static void FlushPinnedFreeRun(byte* start, uint size)
+    {
+        if (start == null || size < MinBlockSize)
+            return;
+
+        FreeBlock* freeBlock = (FreeBlock*)start;
+        freeBlock->MethodTable = _freeMethodTable;
+        freeBlock->Size = (int)size;
+        freeBlock->Next = null;
+    }
+
+    #endregion
+}

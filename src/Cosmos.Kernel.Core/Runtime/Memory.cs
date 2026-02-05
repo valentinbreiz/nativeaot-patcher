@@ -1,7 +1,9 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Internal.Metadata.NativeFormat;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -9,7 +11,6 @@ namespace Cosmos.Kernel.Core.Runtime;
 
 public static unsafe class Memory
 {
-    
     [RuntimeExport("RhNewArray")]
     internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
     {
@@ -18,13 +19,13 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhAllocateNewArray")]
-    internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, uint flags,
+    internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, GC_ALLOC_FLAGS flags,
         out void* pResult)
     {
         uint size = pArrayEEType->BaseSize + numElements * pArrayEEType->ComponentSize;
 
         GCObject* result = AllocObject(size, flags);
-        
+
         result->MethodTable = pArrayEEType;
         result->Length = (int)numElements;
 
@@ -84,7 +85,7 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhAllocateNewObject")]
-    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags, void* pResult)
+    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, GC_ALLOC_FLAGS flags, void* pResult)
     {
         GCObject* result = AllocObject(pEEType->RawBaseSize, flags);
         result->MethodTable = pEEType;
@@ -137,7 +138,7 @@ public static unsafe class Memory
     [RuntimeExport("RhRegisterFrozenSegment")]
     static unsafe IntPtr RhRegisterFrozenSegment(void* pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
     {
-        if(GarbageCollector.IsEnabled)
+        if (GarbageCollector.IsEnabled)
         {
             return GarbageCollector.RegisterFrozenSegment((IntPtr)pSegmentStart, allocSize, commitSize, reservedSize);
         }
@@ -155,9 +156,33 @@ public static unsafe class Memory
             GarbageCollector.UpdateFrozenSegment((nint)seg, (nint)allocated, (nint)committed);
         }
     }
-    
+
+    [RuntimeExport("RhHandleSet")]
+    static IntPtr RhHandleSet(object obj)
+    {
+        return IntPtr.Zero;
+    }
+
+    [RuntimeExport("RhHandleFree")]
+    static void RhHandleFree(IntPtr handle)
+    {
+        GarbageCollector.FreeHandle(handle);
+    }
+
+    [RuntimeExport("RhpHandleAlloc")]
+    static IntPtr RhpHandleAlloc(GCObject* obj, GCHandleType handleType)
+    {
+        return GarbageCollector.AllocateHandler(obj, handleType, UIntPtr.Zero);
+    }
+
+    [RuntimeExport("RhpHandleAllocDependent")]
+    static IntPtr RhpHandleAllocDependent(GCObject* primary, GCObject* secondary)
+    {
+        return GarbageCollector.AllocateHandler(primary, GCHandleType.Normal, (nuint)secondary);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe GCObject* AllocObject(uint size, uint flags = 0)
+    private static unsafe GCObject* AllocObject(uint size, GC_ALLOC_FLAGS flags = GC_ALLOC_FLAGS.GC_ALLOC_NO_FLAGS)
     {
         if (GarbageCollector.IsEnabled)
         {

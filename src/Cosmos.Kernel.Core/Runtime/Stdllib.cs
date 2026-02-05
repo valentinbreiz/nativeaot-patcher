@@ -204,16 +204,6 @@ namespace Cosmos.Kernel.Core.Runtime
             return Memory.RhpNewFast(pEEType); // Simplified implementation
         }
 
-        [RuntimeExport("RhHandleSet")]
-        static IntPtr RhHandleSet(object obj)
-        {
-            return IntPtr.Zero;
-        }
-
-        [RuntimeExport("RhHandleFree")]
-        static void RhHandleFree(IntPtr handle) { }
-
-
         [RuntimeExport("RhpStelemRef")]
         static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
         {
@@ -297,20 +287,6 @@ namespace Cosmos.Kernel.Core.Runtime
         static int RhYield()
         {
             return 0;
-        }
-
-        [RuntimeExport("RhpHandleAlloc")]
-        static IntPtr RhpHandleAlloc(object obj, bool fPinned)
-        {
-            //TODO: Implement GC
-            return (IntPtr)Unsafe.AsPointer(ref obj);
-        }
-
-        [RuntimeExport("RhpHandleAllocDependent")]
-        static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
-        {
-            //TODO: Implement GC
-            return primary;
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]
