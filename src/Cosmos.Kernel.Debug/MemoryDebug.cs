@@ -43,7 +43,8 @@ public static unsafe partial class MemoryDebug
         public ulong TotalPageCount;
         public ulong FreePageCount;
 
-        // RAT Sample
+        // RAT Sample Control (bidirectional)
+        public uint RatSampleOffset;   // Extension writes this to select region
         public uint RatSampleCount;
         public fixed byte RatData[MAX_RAT_SAMPLE];
     }
@@ -79,6 +80,7 @@ public static unsafe partial class MemoryDebug
             s_debugBuffer->Version = 1;
             s_debugBuffer->Timestamp = 0;
             s_debugBuffer->LimineEntryCount = 0;
+            s_debugBuffer->RatSampleOffset = 0;
             s_debugBuffer->RatSampleCount = 0;
         }
 
@@ -105,6 +107,7 @@ public static unsafe partial class MemoryDebug
             s_ivshmemBuffer->Version = 1;
             s_ivshmemBuffer->Timestamp = 0;
             s_ivshmemBuffer->LimineEntryCount = 0;
+            s_ivshmemBuffer->RatSampleOffset = 0;
             s_ivshmemBuffer->RatSampleCount = 0;
         }
     }
@@ -167,17 +170,28 @@ public static unsafe partial class MemoryDebug
         targetBuffer->TotalPageCount = totalPageCount;
         targetBuffer->FreePageCount = freePageCount;
 
-        // Update RAT sample
+        // Read RAT sample offset (written by extension for region selection)
+        uint ratOffset = targetBuffer->RatSampleOffset;
+
+        // Validate offset doesn't exceed total pages
+        if (ratOffset >= totalPageCount)
+            ratOffset = 0;
+
+        // Update RAT sample starting from the requested offset
         if (ratSampleCount > MAX_RAT_SAMPLE)
             ratSampleCount = MAX_RAT_SAMPLE;
-        if (ratSampleCount > totalPageCount)
-            ratSampleCount = (uint)totalPageCount;
+
+        // Adjust sample count if offset + count exceeds total pages
+        uint maxPossibleCount = (uint)(totalPageCount - ratOffset);
+        if (ratSampleCount > maxPossibleCount)
+            ratSampleCount = maxPossibleCount;
 
         targetBuffer->RatSampleCount = ratSampleCount;
 
+        // Copy RAT data starting from offset
         for (uint i = 0; i < ratSampleCount; i++)
         {
-            targetBuffer->RatData[i] = rat[i];
+            targetBuffer->RatData[i] = rat[ratOffset + i];
         }
     }
 
