@@ -82,7 +82,7 @@ MULTIARCH_PROJECTS=(
 
 # Build all multi-arch packages for x64
 echo "Building all multi-arch packages for x64..."
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:DefineConstants="ARCH_X64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:CosmosArch=x64 --no-incremental
 
 # Stage x64 builds
 echo "Staging x64 builds..."
@@ -94,7 +94,7 @@ done
 
 # Build all multi-arch packages for arm64
 echo "Building all multi-arch packages for arm64..."
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:DefineConstants="ARCH_ARM64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:CosmosArch=arm64 --no-incremental
 
 # Stage arm64 builds
 echo "Staging arm64 builds..."

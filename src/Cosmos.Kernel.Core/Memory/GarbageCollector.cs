@@ -526,7 +526,43 @@ public static unsafe partial class GarbageCollector
             Scheduler.ThreadContext* ctx = thread.GetContext();
             if (ctx != null)
             {
-#if ARCH_X64
+#if ARCH_ARM64
+                // Scan all general-purpose registers X0-X30
+                TryMarkRoot((nint)ctx->X0);
+                TryMarkRoot((nint)ctx->X1);
+                TryMarkRoot((nint)ctx->X2);
+                TryMarkRoot((nint)ctx->X3);
+                TryMarkRoot((nint)ctx->X4);
+                TryMarkRoot((nint)ctx->X5);
+                TryMarkRoot((nint)ctx->X6);
+                TryMarkRoot((nint)ctx->X7);
+                TryMarkRoot((nint)ctx->X8);
+                TryMarkRoot((nint)ctx->X9);
+                TryMarkRoot((nint)ctx->X10);
+                TryMarkRoot((nint)ctx->X11);
+                TryMarkRoot((nint)ctx->X12);
+                TryMarkRoot((nint)ctx->X13);
+                TryMarkRoot((nint)ctx->X14);
+                TryMarkRoot((nint)ctx->X15);
+                TryMarkRoot((nint)ctx->X16);
+                TryMarkRoot((nint)ctx->X17);
+                TryMarkRoot((nint)ctx->X18);
+                TryMarkRoot((nint)ctx->X19);
+                TryMarkRoot((nint)ctx->X20);
+                TryMarkRoot((nint)ctx->X21);
+                TryMarkRoot((nint)ctx->X22);
+                TryMarkRoot((nint)ctx->X23);
+                TryMarkRoot((nint)ctx->X24);
+                TryMarkRoot((nint)ctx->X25);
+                TryMarkRoot((nint)ctx->X26);
+                TryMarkRoot((nint)ctx->X27);
+                TryMarkRoot((nint)ctx->X28);
+                TryMarkRoot((nint)ctx->X29);  // FP (Frame Pointer)
+                TryMarkRoot((nint)ctx->X30);  // LR (Link Register)
+                TryMarkRoot((nint)ctx->Sp);   // Stack Pointer
+                TryMarkRoot((nint)ctx->Elr);  // Exception Link Register (return address)
+#else
+                // x64: Scan all general-purpose registers
                 TryMarkRoot((nint)ctx->Rax);
                 TryMarkRoot((nint)ctx->Rbx);
                 TryMarkRoot((nint)ctx->Rcx);
