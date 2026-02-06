@@ -188,14 +188,6 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhGetMemoryInfo")]
         static void RhGetMemoryInfo(IntPtr pMemInfo) { }
 
-        [RuntimeExport("RhNewArray")]
-        static unsafe void* RhNewArray(MethodTable* pEEType, int length)
-        {
-            void* result;
-            Memory.RhAllocateNewArray(pEEType, (uint)length, 0, out result);
-            return result;
-        }
-
         /// <summary>
         /// Returns the MethodTable* for System.Array. This is used by the runtime when
         /// it needs to determine the base type of array types.
@@ -211,16 +203,6 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             return Memory.RhpNewFast(pEEType); // Simplified implementation
         }
-
-        [RuntimeExport("RhHandleSet")]
-        static IntPtr RhHandleSet(object obj)
-        {
-            return IntPtr.Zero;
-        }
-
-        [RuntimeExport("RhHandleFree")]
-        static void RhHandleFree(IntPtr handle) { }
-
 
         [RuntimeExport("RhpStelemRef")]
         static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
@@ -257,17 +239,13 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhCreateCrashDumpIfEnabled")]
         static void RhCreateCrashDumpIfEnabled(IntPtr exceptionRecord, IntPtr contextRecord) { }
 
+#if ARCH_ARM64
         [RuntimeExport("RhpByRefAssignRef")]
         static unsafe void RhpByRefAssignRef(void** location, void* value)
         {
-#if ARCH_ARM64
             RhpByRefAssignRefArm64(location, value);
-#else
-            *location = value;
-#endif
         }
 
-#if ARCH_ARM64
         [DllImport("*", EntryPoint = "RhpByRefAssignRefArm64")]
         private static extern unsafe void RhpByRefAssignRefArm64(void** location, void* value);
 #endif
@@ -305,20 +283,6 @@ namespace Cosmos.Kernel.Core.Runtime
         static int RhYield()
         {
             return 0;
-        }
-
-        [RuntimeExport("RhpHandleAlloc")]
-        static IntPtr RhpHandleAlloc(object obj, bool fPinned)
-        {
-            //TODO: Implement GC
-            return (IntPtr)Unsafe.AsPointer(ref obj);
-        }
-
-        [RuntimeExport("RhpHandleAllocDependent")]
-        static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
-        {
-            //TODO: Implement GC
-            return primary;
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]

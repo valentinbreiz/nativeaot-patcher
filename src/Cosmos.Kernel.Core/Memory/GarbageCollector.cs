@@ -1,4 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
+// Clean GC implementation with free list allocation
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -11,152 +12,434 @@ using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Memory;
 
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+#pragma warning disable CS8500
 
 /// <summary>
-/// GCDesc series descriptor for regular objects and reference arrays.
-/// Stored immediately before the MethodTable pointer.
+/// Free block in the GC heap. Used for free list management.
+/// Laid out to be walkable like a GCObject.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public struct GCDescSeries
+internal unsafe struct FreeBlock
 {
-    /// <summary>
-    /// Size of the series. For regular objects, this is negative (-BaseSize + actual_series_size).
-    /// To get actual size: seriessize + objectSize.
-    /// </summary>
-    public nint SeriesSize;
-
-    /// <summary>
-    /// Offset from object start where the series begins.
-    /// </summary>
-    public nint StartOffset;
+    public MethodTable* MethodTable;  // Points to _freeMethodTable marker
+    public int Size;                   // Size of this free block (matches GCObject.Length position)
+    public FreeBlock* Next;            // Next free block in this size class
 }
 
 /// <summary>
-/// GCDesc series item for value type arrays with embedded references.
+/// Marker type for free blocks. Used to get a valid MethodTable pointer.
+/// </summary>
+internal struct FreeMarker { }
+
+/// <summary>
+/// GC heap segment for contiguous allocations.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public struct ValSeriesItem
+internal unsafe struct GCSegment
 {
-    /// <summary>
-    /// Number of pointers in this series.
-    /// </summary>
-    public uint NumPtrs;
-
-    /// <summary>
-    /// Bytes to skip after these pointers.
-    /// </summary>
-    public uint Skip;
+    public GCSegment* Next;
+    public byte* Start;
+    public byte* End;
+    public byte* Bump;        // Current bump allocation pointer
+    public uint TotalSize;
+    public uint UsedSize;
 }
 
 /// <summary>
-/// Utilities for reading GCDesc information from MethodTables.
-/// GCDesc is stored immediately BEFORE the MethodTable pointer in memory.
+/// Mark-and-Sweep Garbage Collector with free list allocation.
 /// </summary>
-public static unsafe class GCDesc
+public static unsafe partial class GarbageCollector
 {
-    /// <summary>
-    /// Gets the number of GCDesc series for a MethodTable.
-    /// Positive = regular object or reference array.
-    /// Negative = value type array with embedded references.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static nint GetNumSeries(MethodTable* mt)
-    {
-        // NumSeries is stored at (MethodTable* - sizeof(nint))
-        return *((nint*)mt - 1);
-    }
+    // Free list size classes: 16, 32, 64, ... 32768 (powers of two)
+    private const int NumSizeClasses = 12;
+    private const uint MinSizeClass = 16;
 
-    /// <summary>
-    /// Gets the highest (first) GCDesc series pointer.
-    /// Series are stored in decreasing address order before NumSeries.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static GCDescSeries* GetHighestSeries(MethodTable* mt)
-    {
-        // First series is at (MethodTable* - sizeof(nint) - sizeof(GCDescSeries))
-        return (GCDescSeries*)((nint*)mt - 1) - 1;
-    }
+    // Free lists indexed by size class
+    private static FreeBlock** _freeLists;
+    private static bool _freeListsInitialized;
 
-    /// <summary>
-    /// Gets the lowest (last) series given the highest and count.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static GCDescSeries* GetLowestSeries(GCDescSeries* highest, nint numSeries)
-    {
-        return highest - numSeries + 1;
-    }
-}
+    // Free block marker MethodTable
+    private static MethodTable* _freeMethodTable;
 
-/// <summary>
-/// Mark-and-Sweep Garbage Collector implementation based on Kevin Gosse's approach.
-/// Uses GCDesc for precise reference enumeration.
-/// </summary>
-public static unsafe class GarbageCollector
-{
-    private const nint MethodTableMarkBit = 1;
-    private static bool _initialized;
+    // GC Segments
+    private static GCSegment* _segments;
+    private static GCSegment* _currentSegment;
+    private static GCSegment* _lastSegment;
+    private static GCSegment* _tailSegment;
+    private static uint MAX_SEGMENT_SIZE = (uint)((uint)PageAllocator.PageSize);
+
+    // Heap range cache (fast pre-check for IsInGCHeap)
+    private static byte* _gcHeapMin;
+    private static byte* _gcHeapMax;
+    private static bool _heapRangeDirty;
+
+    // Mark stack
     private static nint* _markStack;
-    private static int _markStackCapacity = (int)(PageAllocator.PageSize / (ulong)sizeof(nint));
+    private static int _markStackCapacity;
     private static int _markStackCount;
-    private static ulong _markStackPageCount;
 
-    // Statistics
+    // State
+    private static bool _initialized;
     private static int _totalCollections;
     private static int _totalObjectsFreed;
 
     /// <summary>
-    /// Initializes the garbage collector. Called automatically on first collection.
+    /// Returns true if the GC is enabled.
+    /// </summary>
+    public static bool IsEnabled => true;
+
+    // Minimum block size (must hold FreeBlock header) - 24 bytes on x64
+    private const uint MinBlockSize = 24;
+
+    /// <summary>
+    /// Initializes the garbage collector.
     /// </summary>
     public static void Initialize()
     {
-        if (_initialized)
+        if (_initialized) return;
+
+        Serial.WriteString("[GC] Initializing with free list allocator\n");
+
+        // Allocate free list array using page allocator (not GC heap)
+        ulong freeListBytes = (ulong)(NumSizeClasses * sizeof(FreeBlock*));
+        _freeLists = (FreeBlock**)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+        if (_freeLists == null)
+        {
+            Serial.WriteString("[GC] ERROR: Failed to allocate free lists\n");
             return;
+        }
+        for (int i = 0; i < NumSizeClasses; i++)
+            _freeLists[i] = null;
+        _freeListsInitialized = true;
 
-        Serial.WriteString("[GC] Initializing garbage collector\n");
+        // Get the free marker MethodTable
+        _freeMethodTable = MethodTable.Of<FreeMarker>();
 
-        // Allocate mark stack on unmanaged pages so it never gets swept
-        ulong bytes = (ulong)_markStackCapacity * (ulong)sizeof(nint);
-        _markStackPageCount = (bytes + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
-        _markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, _markStackPageCount, true);
+        // Allocate initial segment
+        _currentSegment = AllocateSegment(MAX_SEGMENT_SIZE);
+        _segments = _currentSegment;
+        _lastSegment = _currentSegment;
+        _tailSegment = _currentSegment;
+        _heapRangeDirty = true;
+        RecomputeHeapRange();
+        if (_segments == null)
+        {
+            Serial.WriteString("[GC] ERROR: Failed to allocate initial segment\n");
+            return;
+        }
+
+        // Allocate mark stack
+        _markStackCapacity = 4096;
+        _markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
         if (_markStack == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
             return;
         }
-
         _markStackCount = 0;
-        _initialized = true;
 
-        Serial.WriteString("[GC] Garbage collector initialized\n");
+        InitializeGCHandleStore();
+
+        _initialized = true;
+        Serial.WriteString("[GC] Initialization complete\n");
     }
 
     /// <summary>
-    /// Performs a full garbage collection cycle.
+    /// Allocates a new GC segment.
     /// </summary>
-    /// <returns>Number of objects freed.</returns>
+    private static GCSegment* AllocateSegment(uint requestedSize)
+    {
+        uint size = requestedSize < MAX_SEGMENT_SIZE ? MAX_SEGMENT_SIZE : requestedSize;
+        uint totalSize = size + (uint)sizeof(GCSegment);
+        ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+
+        byte* memory = (byte*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
+        if (memory == null) return null;
+
+        GCSegment* segment = (GCSegment*)memory;
+        segment->Next = null;
+        segment->Start = memory + Align((uint)sizeof(GCSegment));
+        segment->End = memory + (pageCount * PageAllocator.PageSize);
+        segment->Bump = segment->Start;
+        segment->TotalSize = (uint)(segment->End - segment->Start);
+        segment->UsedSize = 0;
+
+        return segment;
+    }
+
+    /// <summary>
+    /// Aligns size to pointer boundary.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint Align(uint size)
+    {
+        return (size + ((uint)sizeof(nint) - 1)) & ~((uint)sizeof(nint) - 1);
+    }
+
+    /// <summary>
+    /// Allocates memory for a GC object. Called by runtime.
+    /// </summary>
+    internal static GCObject* AllocObject(nint size, GC_ALLOC_FLAGS flags)
+    {
+        if (!_initialized) Initialize();
+
+        // Check for pinned object allocation
+        if ((flags & GC_ALLOC_FLAGS.GC_ALLOC_PINNED_OBJECT_HEAP) != 0)
+        {
+            return AllocPinnedObject(size, flags);
+        }
+
+        uint allocSize = Align((uint)size);
+        if (allocSize < MinBlockSize)
+            allocSize = MinBlockSize;
+
+        // Try free list allocation first
+        void* result = AllocFromFreeList(allocSize);
+        if (result != null)
+            return (GCObject*)result;
+
+        // Try fast bump allocation from last segment
+        result = BumpAllocInSegment(_lastSegment, allocSize);
+        if (result != null)
+            return (GCObject*)result;
+
+        // Slow path: walk segments from _lastSegment and append if needed
+        result = AllocateObjectSlow(allocSize);
+        if (result != null)
+            return (GCObject*)result;
+
+        // Last resort: collect and retry
+        Collect();
+
+        result = AllocFromFreeList(allocSize);
+        if (result != null)
+            return (GCObject*)result;
+
+        result = AllocateObjectSlow(allocSize);
+        return (GCObject*)result;
+    }
+
+    /// <summary>
+    /// Tries to allocate from free lists.
+    /// </summary>
+    private static void* AllocFromFreeList(uint size)
+    {
+        if (!_freeListsInitialized) return null;
+
+        int sizeClass = -1;
+        uint classSize = MinSizeClass;
+        for (int i = 0; i < NumSizeClasses; i++, classSize <<= 1)
+        {
+            if (size <= classSize)
+            {
+                sizeClass = i;
+                break;
+            }
+        }
+        if (sizeClass < 0) return null; // Too large
+
+        // Try this size class and larger
+        for (int i = sizeClass; i < NumSizeClasses; i++)
+        {
+            FreeBlock* block = _freeLists[i];
+            if (block == null) continue;
+
+            // Check each block in this class
+            FreeBlock* prev = null;
+            while (block != null)
+            {
+                if (block->Size >= size)
+                {
+                    uint remainder = (uint)(block->Size - size);
+
+                    // Avoid unsplittable tail: skip this block if it would leave a tiny remainder
+                    if (remainder != 0 && remainder < MinBlockSize)
+                    {
+                        prev = block;
+                        block = block->Next;
+                        continue;
+                    }
+
+                    // Remove from free list
+                    if (prev != null)
+                        prev->Next = block->Next;
+                    else
+                        _freeLists[i] = block->Next;
+
+                    // Split if remainder is usable
+                    if (remainder >= MinBlockSize)
+                    {
+                        FreeBlock* split = (FreeBlock*)((byte*)block + size);
+                        split->MethodTable = _freeMethodTable;
+                        split->Size = (int)remainder;
+                        split->Next = null;
+                        AddToFreeList(split);
+                    }
+
+                    // Clear and return
+                    MemoryOp.MemSet((byte*)block, 0, (int)size);
+                    return block;
+                }
+                prev = block;
+                block = block->Next;
+            }
+        }
+
+        return null;
+    }
+
+    private static void* BumpAllocInSegment(GCSegment* segment, uint size)
+    {
+        if (segment == null)
+            return null;
+
+        byte* newBump = segment->Bump + size;
+        if (newBump <= segment->End)
+        {
+            void* result = segment->Bump;
+            segment->Bump = newBump;
+            segment->UsedSize += size;
+            _currentSegment = segment;
+            _lastSegment = segment;
+            return result;
+        }
+
+        return null;
+    }
+
+    private static void* AllocateObjectSlow(uint size)
+    {
+        if (_segments == null)
+            return null;
+
+        if (_lastSegment == null)
+            _lastSegment = _segments;
+
+        GCSegment* start = _lastSegment;
+
+        // Pass 1: from _lastSegment to end
+        for (GCSegment* seg = start; seg != null; seg = seg->Next)
+        {
+            void* result = BumpAllocInSegment(seg, size);
+            if (result != null)
+                return result;
+        }
+
+        // Pass 2: from head to _lastSegment (exclusive)
+        for (GCSegment* seg = _segments; seg != start; seg = seg->Next)
+        {
+            void* result = BumpAllocInSegment(seg, size);
+            if (result != null)
+                return result;
+        }
+
+        // No segment fits: allocate and append a new segment at tail
+        GCSegment* newSegment = AllocateSegment(size);
+        if (newSegment == null)
+            return null;
+
+        AppendSegment(newSegment);
+        _lastSegment = newSegment;
+        _currentSegment = newSegment;
+
+        return BumpAllocInSegment(newSegment, size);
+    }
+
+    private static void AppendSegment(GCSegment* segment)
+    {
+        if (segment == null) return;
+
+        segment->Next = null;
+
+        if (_segments == null)
+        {
+            _segments = segment;
+            _tailSegment = segment;
+            _heapRangeDirty = true;
+            return;
+        }
+
+        if (_tailSegment != null)
+        {
+            _tailSegment->Next = segment;
+            _tailSegment = segment;
+            _heapRangeDirty = true;
+            return;
+        }
+
+        // Fallback if tail is not tracked
+        GCSegment* tail = _segments;
+        while (tail->Next != null)
+            tail = tail->Next;
+
+        tail->Next = segment;
+        _tailSegment = segment;
+        _heapRangeDirty = true;
+    }
+
+    /// <summary>
+    /// Adds a block to the appropriate free list.
+    /// </summary>
+    private static void AddToFreeList(FreeBlock* block)
+    {
+        if (!_freeListsInitialized || block == null || block->Size < MinBlockSize)
+            return;
+
+        block->MethodTable = _freeMethodTable;
+
+        int sizeClass = -1;
+        uint classSize = MinSizeClass;
+        uint size = (uint)block->Size;
+        for (int i = 0; i < NumSizeClasses; i++, classSize <<= 1)
+        {
+            if (size <= classSize)
+            {
+                sizeClass = i;
+                break;
+            }
+        }
+        if (sizeClass < 0)
+        {
+            sizeClass = NumSizeClasses - 1;
+        }
+
+        block->Next = _freeLists[sizeClass];
+        _freeLists[sizeClass] = block;
+    }
+
+    /// <summary>
+    /// Performs garbage collection.
+    /// </summary>
     public static int Collect()
     {
-        if (!_initialized)
-            return 0; // Failed to initialize
+        if (!_initialized) return 0;
 
         int freedCount;
         using (InternalCpu.DisableInterruptsScope())
         {
-            Serial.WriteString("[GC] Starting collection cycle #");
+            Serial.WriteString("[GC] Collection #");
             Serial.WriteNumber((uint)_totalCollections + 1);
             Serial.WriteString("\n");
 
-            // Phase 1: Mark all reachable objects
+            // Clear free lists - will be rebuilt during sweep
+            for (int i = 0; i < NumSizeClasses; i++)
+                _freeLists[i] = null;
+
+            // Mark reachable objects
             MarkPhase();
 
-            // Phase 2: Sweep and free unreachable objects
+            // Sweep and rebuild free lists
             freedCount = SweepPhase();
+
+            // Reorder segments and free empty ones
+            ReorderSegmentsAndFreeEmpty();
+            ReorderPinnedSegmentsAndFreeEmpty();
+            RecomputeHeapRange();
 
             _totalCollections++;
             _totalObjectsFreed += freedCount;
 
-            Serial.WriteString("[GC] Collection complete. Freed ");
+            Serial.WriteString("[GC] Freed ");
             Serial.WriteNumber((uint)freedCount);
             Serial.WriteString(" objects\n");
         }
@@ -165,7 +448,7 @@ public static unsafe class GarbageCollector
     }
 
     /// <summary>
-    /// Gets collection statistics.
+    /// Gets GC statistics.
     /// </summary>
     public static void GetStats(out int totalCollections, out int totalObjectsFreed)
     {
@@ -178,41 +461,36 @@ public static unsafe class GarbageCollector
     private static void MarkPhase()
     {
         _markStackCount = 0;
-
-        // Scan all roots
+        ScanFrozenSegments();
         ScanStackRoots();
-        ScanStaticRoots();
-
-        // Process mark stack (DFS traversal)
-        ProcessMarkStack();
+        ScanGCHandles();
+        //ScanStaticRoots();
     }
 
-    private static void ProcessMarkStack()
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    private static void ScanGCHandles()
     {
-        while (_markStackCount > 0)
+        if (handlerStore == null) return;
+        Serial.WriteString("Start: ");
+        Serial.WriteHex((ulong)_gcHeapMin);
+        Serial.WriteString("\nEnd: ");
+        Serial.WriteHex((ulong)_gcHeapMax);
+        Serial.WriteString("\n");
+
+        int size = (int)(handlerStore->End - handlerStore->Bump) / sizeof(GCHandle);
+
+        var handles = new Span<GCHandle>((void*)Align((uint)handlerStore->Bump), size);
+        for (int i = 0; i < handles.Length; i++)
         {
-            nint ptr = PopMarkStack();
-            if (ptr == 0) continue;
-
-            if (!IsManagedObject((byte*)ptr))
-                continue;
-
-            if (IsMarked((void*)ptr))
-                continue; // Already marked
-
-            // Mark the object
-            MarkObject((void*)ptr);
-
-            // Enumerate and push references
-            EnumerateObjectReferences((void*)ptr, &PushIfValidHeapPointer);
-        }
-    }
-
-    private static void PushIfValidHeapPointer(nint ptr)
-    {
-        if (ptr != 0 && IsValidHeapPointer(ptr))
-        {
-            PushMarkStack(ptr);
+            if ((IntPtr)handles[i].obj != IntPtr.Zero)
+            {
+                // Only mark objects for Normal and Pinned handles
+                // Weak handles should not keep objects alive
+                if (handles[i].type >= GCHandleType.Normal)
+                {
+                    TryMarkRoot((nint)handles[i].obj);
+                }
+            }
         }
     }
 
@@ -220,7 +498,6 @@ public static unsafe class GarbageCollector
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            // Multi-threaded: scan all CPU states
             var cpuStates = SchedulerManager.GetAllCpuStates();
             if (cpuStates != null)
             {
@@ -228,17 +505,13 @@ public static unsafe class GarbageCollector
                 {
                     var state = cpuStates[i];
                     if (state?.CurrentThread != null)
-                    {
                         ScanThreadStack(state.CurrentThread);
-                    }
                 }
             }
         }
         else
         {
-            // Single-threaded: scan current stack conservatively
             nuint rsp = ContextSwitch.GetRsp();
-            // Use default thread stack size
             nuint stackEnd = rsp + Scheduler.Thread.DefaultStackSize;
             ScanMemoryRange((nint*)rsp, (nint*)stackEnd);
         }
@@ -248,41 +521,37 @@ public static unsafe class GarbageCollector
     {
         if (thread == null) return;
 
-        // Scan saved registers from context
         if (thread.State != Scheduler.ThreadState.Running)
         {
             Scheduler.ThreadContext* ctx = thread.GetContext();
             if (ctx != null)
             {
 #if ARCH_X64
-                TryAddRoot((nint)ctx->Rax);
-                TryAddRoot((nint)ctx->Rbx);
-                TryAddRoot((nint)ctx->Rcx);
-                TryAddRoot((nint)ctx->Rdx);
-                TryAddRoot((nint)ctx->Rsi);
-                TryAddRoot((nint)ctx->Rdi);
-                TryAddRoot((nint)ctx->Rbp);
-                TryAddRoot((nint)ctx->R8);
-                TryAddRoot((nint)ctx->R9);
-                TryAddRoot((nint)ctx->R10);
-                TryAddRoot((nint)ctx->R11);
-                TryAddRoot((nint)ctx->R12);
-                TryAddRoot((nint)ctx->R13);
-                TryAddRoot((nint)ctx->R14);
-                TryAddRoot((nint)ctx->R15);
+                TryMarkRoot((nint)ctx->Rax);
+                TryMarkRoot((nint)ctx->Rbx);
+                TryMarkRoot((nint)ctx->Rcx);
+                TryMarkRoot((nint)ctx->Rdx);
+                TryMarkRoot((nint)ctx->Rsi);
+                TryMarkRoot((nint)ctx->Rdi);
+                TryMarkRoot((nint)ctx->Rbp);
+                TryMarkRoot((nint)ctx->R8);
+                TryMarkRoot((nint)ctx->R9);
+                TryMarkRoot((nint)ctx->R10);
+                TryMarkRoot((nint)ctx->R11);
+                TryMarkRoot((nint)ctx->R12);
+                TryMarkRoot((nint)ctx->R13);
+                TryMarkRoot((nint)ctx->R14);
+                TryMarkRoot((nint)ctx->R15);
 #endif
             }
         }
 
-        // Scan stack memory
         if (thread.StackBase != 0 && thread.StackSize != 0)
         {
             nuint stackStart = thread.StackPointer;
             nuint stackEnd = thread.StackBase + thread.StackSize;
             if (stackStart < stackEnd)
-            {
                 ScanMemoryRange((nint*)stackStart, (nint*)stackEnd);
-            }
         }
     }
 
@@ -291,16 +560,15 @@ public static unsafe class GarbageCollector
         var modules = ManagedModule.Modules;
         if (modules == null) return;
 
-        for (int i = 0; i < modules.Length; i++)
+        int moduleCount = ManagedModule.ModuleCount;
+        for (int i = 0; i < moduleCount; i++)
         {
             TypeManager* tm = modules[i].AsTypeManager();
             if (tm == null) continue;
 
             nint gcStaticSection = tm->GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out int length);
             if (gcStaticSection != 0 && length > 0)
-            {
                 ScanGCStaticRegion((byte*)gcStaticSection, length);
-            }
         }
     }
 
@@ -314,156 +582,88 @@ public static unsafe class GarbageCollector
         {
             nint* pBlock;
             if (MethodTable.SupportsRelativePointers)
-            {
                 pBlock = (nint*)((byte*)block + *(int*)block);
-            }
             else
-            {
                 pBlock = *(nint**)block;
-            }
 
             if (pBlock == null) continue;
 
-            // The value at pBlock is either a MethodTable* (uninitialized) or an object reference (initialized)
             nint value = *pBlock;
-
-            // Skip uninitialized entries (they have the Uninitialized flag set)
             if ((value & GCStaticRegionConstants.Mask) != 0)
                 continue;
 
-            // This is an initialized static - the value is an object reference
-            if (value != 0 && IsValidHeapPointer(value))
-            {
-                TryAddRoot(value);
-            }
+            if (value != 0)
+                TryMarkRoot(value);
         }
     }
 
     private static void ScanMemoryRange(nint* start, nint* end)
     {
-        // Conservative stack scanning: treat every pointer-sized value as potential reference
         for (nint* ptr = start; ptr < end; ptr++)
+            TryMarkRoot(*ptr);
+    }
+
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    private static void TryMarkRoot(nint value, bool SkipValidation = false)
+    {
+        //if (!SkipValidation && (value == 0 || !IsInGCHeap(value)))
+        //    return;
+
+        PushMarkStack(value);
+
+        while (_markStackCount > 0)
         {
-            nint value = *ptr;
-            TryAddRoot(value);
+            nint ptr = PopMarkStack();
+            GCObject* obj = (GCObject*)ptr;
+
+            // Validate MethodTable - must point outside heap (to kernel code)
+            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
+            if (mtPtr == 0 || IsInGCHeap((nint)mtPtr))
+                continue;
+
+            if (obj->IsMarked)
+                continue;
+
+            obj->Mark();
+
+            MethodTable* mt = obj->GetMethodTable();
+            if (mt->ContainsGCPointers)
+                EnumerateReferences(obj, mt);
         }
     }
 
-    private static void TryAddRoot(nint value)
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    private static void EnumerateReferences(GCObject* obj, MethodTable* mt)
     {
-        if (value != 0 && IsValidHeapPointer(value))
-        {
-            PushMarkStack(value);
-        }
-    }
-
-    #endregion
-
-    #region Reference Enumeration
-
-    private static void EnumerateObjectReferences(void* objPtr, delegate*<nint, void> callback)
-    {
-        if (objPtr == null) return;
-
-        // Get MethodTable from object
-        MethodTable* mt = GetMethodTable(objPtr);
-        if (mt == null) return;
-
-        // Quick check: does this type contain GC pointers?
-        if (!mt->ContainsGCPointers)
-            return;
-
-        nint numSeries = GCDesc.GetNumSeries(mt);
+        nint numSeries = ((nint*)mt)[-1];
         if (numSeries == 0) return;
 
-        GCDescSeries* cur = GCDesc.GetHighestSeries(mt);
+        GCDescSeries* cur = (GCDescSeries*)((nint*)mt - 1) - 1;
 
         if (numSeries > 0)
         {
-            // Regular object or reference array (positive numSeries)
-            GCDescSeries* last = GCDesc.GetLowestSeries(cur, numSeries);
-            uint objectSize = ComputeSize(objPtr, mt);
+            uint objectSize = obj->ComputeSize();
+            GCDescSeries* last = cur - numSeries + 1;
 
             do
             {
-                // SeriesSize is encoded as (actual_size - BaseSize), so we add objectSize
                 nint size = cur->SeriesSize + (nint)objectSize;
                 nint offset = cur->StartOffset;
+                var ptr = (nint*)((nint)obj + offset);
 
-                // Each pointer in this series
-                for (nint i = 0; i < size; i += sizeof(nint))
+                for (nint i = 0; i < size / IntPtr.Size; i++)
                 {
-                    nint* refLoc = (nint*)((byte*)objPtr + offset + i);
-                    nint refValue = *refLoc;
-                    if (refValue != 0)
-                    {
-                        callback(refValue);
-                    }
+                    nint refValue = ptr[i];
+                    if (refValue != 0 && IsInGCHeap(refValue))
+                        PushMarkStack(refValue);
                 }
                 cur--;
             } while (cur >= last);
         }
         else
         {
-            // Value type array with embedded references (negative numSeries)
-            EnumerateValueTypeArrayReferences(objPtr, mt, numSeries, callback);
-        }
-    }
-
-    private static void EnumerateValueTypeArrayReferences(void* objPtr, MethodTable* mt, nint numSeries, delegate*<nint, void> callback)
-    {
-        // For value type arrays, the GCDesc contains ValSeriesItems
-        // numSeries is negative and indicates the number of pointer series per element
-
-        int arrayLength = *(int*)((byte*)objPtr + sizeof(nint)); // Length is after MethodTable*
-        if (arrayLength <= 0) return;
-
-        uint componentSize = mt->ComponentSize;
-        // GCDesc encoding: offset precedes the ValSeriesItems when numSeries is negative
-        nint offset = *((nint*)mt - 2);
-
-        // Get the ValSeriesItems (stored after the offset)
-        ValSeriesItem* valSeries = (ValSeriesItem*)((nint*)mt - 2) - 1;
-        int numValSeries = (int)(-numSeries);
-
-        for (int elemIdx = 0; elemIdx < arrayLength; elemIdx++)
-        {
-            byte* ptr = (byte*)objPtr + offset + (uint)elemIdx * componentSize;
-
-            for (int seriesIdx = 0; seriesIdx < numValSeries; seriesIdx++)
-            {
-                ValSeriesItem* item = valSeries - seriesIdx;
-                uint numPtrs = item->NumPtrs;
-                uint skip = item->Skip;
-
-                // Enumerate pointers in this series
-                for (uint p = 0; p < numPtrs; p++)
-                {
-                    nint* refLoc = (nint*)(ptr + p * (uint)sizeof(nint));
-                    nint refValue = *refLoc;
-                    if (refValue != 0)
-                    {
-                        callback(refValue);
-                    }
-                }
-
-                ptr += numPtrs * (uint)sizeof(nint) + skip;
-            }
-        }
-    }
-
-    private static uint ComputeSize(void* objPtr, MethodTable* mt)
-    {
-        if (mt->HasComponentSize)
-        {
-            // Array or string - size depends on element count
-            int length = *(int*)((byte*)objPtr + sizeof(nint));
-            return mt->BaseSize + (uint)length * mt->ComponentSize;
-        }
-        else
-        {
-            // Regular object
-            return mt->RawBaseSize;
+            //TODO: ValSeries Scanning.
         }
     }
 
@@ -475,11 +675,201 @@ public static unsafe class GarbageCollector
     {
         int totalFreed = 0;
 
+        GCSegment* segment = _segments;
+        while (segment != null)
+        {
+            totalFreed += SweepSegment(segment);
+            segment = segment->Next;
+        }
+
+        totalFreed += SweepPinnedHeap();
         totalFreed += SweepSmallHeap();
         totalFreed += SweepMediumHeap();
         totalFreed += SweepLargeHeap();
 
         return totalFreed;
+    }
+
+    private static int SweepSegment(GCSegment* segment)
+    {
+        int freed = 0;
+        byte* ptr = segment->Start;
+        byte* freeRunStart = null;
+        uint freeRunSize = 0;
+
+        while (ptr < segment->Bump)
+        {
+            GCObject* obj = (GCObject*)ptr;
+
+            // Get MethodTable (mask off mark bit)
+            MethodTable* mt = obj->GetMethodTable();
+
+            if (mt == null)
+            {
+                // End of valid objects
+                break;
+            }
+
+            // Check if this is a free block from previous GC
+            if (mt == _freeMethodTable)
+            {
+                FreeBlock* freeBlock = (FreeBlock*)ptr;
+                uint blockSize = (uint)freeBlock->Size;
+                if (blockSize == 0 || blockSize > (uint)(segment->End - ptr))
+                    break;
+
+                // Accumulate into free run
+                if (freeRunStart == null)
+                    freeRunStart = ptr;
+                freeRunSize += blockSize;
+
+                ptr += blockSize;
+                continue;
+            }
+
+            // Check if this is a managed object (MT points outside heap to kernel code)
+            if (IsInGCHeap((nint)mt))
+            {
+                // Not a managed object - skip pointer-sized chunk
+                ptr += sizeof(nint);
+                continue;
+            }
+
+            uint objSize = Align(obj->ComputeSize());
+            if (objSize == 0 || objSize > (uint)(segment->End - ptr))
+            {
+                break;
+            }
+
+            if (obj->IsMarked)
+            {
+                // Live object - unmark it
+                obj->Unmark();
+
+                // Flush accumulated free run as a FreeBlock
+                FlushFreeRun(freeRunStart, freeRunSize);
+                freeRunStart = null;
+                freeRunSize = 0;
+            }
+            else
+            {
+                // Dead object - add to free run
+                freed++;
+
+                if (freeRunStart == null)
+                    freeRunStart = ptr;
+                freeRunSize += objSize;
+            }
+
+            ptr += objSize;
+        }
+
+        // Handle trailing free space
+        if (freeRunStart != null)
+        {
+            if (freeRunStart + freeRunSize >= segment->Bump)
+            {
+                segment->Bump = freeRunStart;
+                segment->UsedSize = (uint)(freeRunStart - segment->Start);
+            }
+            else
+            {
+                FlushFreeRun(freeRunStart, freeRunSize);
+            }
+        }
+
+        return freed;
+    }
+
+    /// <summary>
+    /// Converts a free memory run into a FreeBlock and adds to free list.
+    /// </summary>
+    private static void FlushFreeRun(byte* start, uint size)
+    {
+        if (start == null || size < MinBlockSize)
+            return;
+
+        FreeBlock* freeBlock = (FreeBlock*)start;
+        freeBlock->MethodTable = _freeMethodTable;
+        freeBlock->Size = (int)size;
+        freeBlock->Next = null;
+        AddToFreeList(freeBlock);
+    }
+
+    /// <summary>
+    /// Reorder segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
+    /// </summary>
+    private static void ReorderSegmentsAndFreeEmpty()
+    {
+        GCSegment* fullHead = null;
+        GCSegment* fullTail = null;
+        GCSegment* semiHead = null;
+        GCSegment* semiTail = null;
+        GCSegment* freeHead = null;
+        GCSegment* freeTail = null;
+        GCSegment* seg = _segments;
+
+        while (seg != null)
+        {
+            GCSegment* next = seg->Next;
+
+            bool isFree = seg->UsedSize == 0 || seg->Bump == seg->Start;
+            bool isFull = seg->Bump >= seg->End;
+
+            if (isFree && seg->TotalSize > PageAllocator.PageSize)
+            {
+                PageAllocator.Free(seg);
+            }
+            else
+            {
+                seg->Next = null;
+
+                if (isFull)
+                {
+                    if (fullHead == null) fullHead = seg;
+                    else fullTail->Next = seg;
+                    fullTail = seg;
+                }
+                else if (isFree)
+                {
+                    if (freeHead == null) freeHead = seg;
+                    else freeTail->Next = seg;
+                    freeTail = seg;
+                }
+                else
+                {
+                    if (semiHead == null) semiHead = seg;
+                    else semiTail->Next = seg;
+                    semiTail = seg;
+                }
+            }
+
+            seg = next;
+        }
+
+        GCSegment* newHead = null;
+        GCSegment* tail = null;
+
+        if (fullHead != null) { newHead = fullHead; tail = fullTail; }
+        if (semiHead != null)
+        {
+            if (newHead == null) newHead = semiHead;
+            else tail->Next = semiHead;
+            tail = semiTail;
+        }
+        if (freeHead != null)
+        {
+            if (newHead == null) newHead = freeHead;
+            else tail->Next = freeHead;
+            tail = freeTail;
+        }
+
+        _segments = newHead;
+        _tailSegment = tail;
+        _lastSegment = semiHead != null ? semiHead : freeHead;
+        _currentSegment = _lastSegment;
+
+        _heapRangeDirty = true;
     }
 
     private static int SweepSmallHeap()
@@ -523,12 +913,14 @@ public static unsafe class GarbageCollector
             // Get object pointer
             byte* objPtr = slotPtr + SmallHeap.PrefixBytes;
 
-            // IMPORTANT: Only sweep managed objects (those with a valid MethodTable)
-            // Raw allocations (like the mark stack) don't have a MethodTable and should be skipped
-            if (!IsManagedObject(objPtr))
+            GCObject* obj = (GCObject*)objPtr;
+
+            // Validate MethodTable - must point outside heap (to kernel code)
+            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
+            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
                 continue;
 
-            if (!IsMarked(objPtr))
+            if (!obj->IsMarked)
             {
                 // Unmarked - free the object
                 SmallHeap.Free(objPtr);
@@ -537,7 +929,7 @@ public static unsafe class GarbageCollector
             else
             {
                 // Marked - clear the mark for next cycle
-                UnmarkObject(objPtr);
+                obj->Unmark();
             }
         }
 
@@ -562,11 +954,14 @@ public static unsafe class GarbageCollector
 
             byte* objPtr = pagePtr + MediumHeap.PrefixBytes;
 
-            // Only sweep managed objects
-            if (!IsManagedObject(objPtr))
+            GCObject* obj = (GCObject*)objPtr;
+
+            // Validate MethodTable - must point outside heap (to kernel code)
+            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
+            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
                 continue;
 
-            if (!IsMarked(objPtr))
+            if (!obj->IsMarked)
             {
                 // Unmarked - free the object
                 MediumHeap.Free(objPtr);
@@ -574,8 +969,8 @@ public static unsafe class GarbageCollector
             }
             else
             {
-                // Marked - clear the mark
-                UnmarkObject(objPtr);
+                // Marked - clear the mark for next cycle
+                obj->Unmark();
             }
         }
 
@@ -600,11 +995,14 @@ public static unsafe class GarbageCollector
 
             byte* objPtr = pagePtr + LargeHeap.PrefixBytes;
 
-            // Only sweep managed objects
-            if (!IsManagedObject(objPtr))
+            GCObject* obj = (GCObject*)objPtr;
+
+            // Validate MethodTable - must point outside heap (to kernel code)
+            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
+            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
                 continue;
 
-            if (!IsMarked(objPtr))
+            if (!obj->IsMarked)
             {
                 // Unmarked - free the object
                 LargeHeap.Free(objPtr);
@@ -612,8 +1010,8 @@ public static unsafe class GarbageCollector
             }
             else
             {
-                // Marked - clear the mark
-                UnmarkObject(objPtr);
+                // Marked - clear the mark for next cycle
+                obj->Unmark();
             }
         }
 
@@ -622,127 +1020,122 @@ public static unsafe class GarbageCollector
 
     #endregion
 
-    #region Helper Methods
+    #region Helpers
 
     private static void PushMarkStack(nint ptr)
     {
         if (_markStackCount >= _markStackCapacity)
         {
             // Expand mark stack
-            int newCapacity = _markStackCapacity * 2;
-            ulong newBytes = (ulong)newCapacity * (ulong)sizeof(nint);
-            ulong newPageCount = (newBytes + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+            ulong newPageCount = (_markStackPageCount + 1) * 2;
             nint* newStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, newPageCount, true);
             if (newStack == null)
             {
-                Serial.WriteString("[GC] WARNING: Mark stack overflow, cannot expand\n");
+                Serial.WriteString("[GC] WARNING: Mark stack overflow\n");
                 return;
             }
 
-            // Copy existing entries
             for (int i = 0; i < _markStackCount; i++)
-            {
                 newStack[i] = _markStack[i];
-            }
 
-            // Free old stack and use new one
             PageAllocator.Free(_markStack);
             _markStack = newStack;
-            _markStackCapacity = newCapacity;
+            _markStackCapacity = (int)(newPageCount * PageAllocator.PageSize / (ulong)sizeof(nint));
             _markStackPageCount = newPageCount;
         }
 
         _markStack[_markStackCount++] = ptr;
     }
 
+    private static ulong _markStackPageCount = 1;
+
     private static nint PopMarkStack()
     {
-        if (_markStackCount <= 0) return 0;
-        return _markStack[--_markStackCount];
-    }
-
-    private static bool IsValidHeapPointer(nint ptr)
-    {
-        // Check if pointer is within managed heap range
-        if (ptr < (nint)PageAllocator.RamStart)
-            return false;
-
-        byte* heapEnd = PageAllocator.RamStart + PageAllocator.RamSize;
-        if (ptr >= (nint)heapEnd)
-            return false;
-
-        // Check if page type is a heap type
-        PageType type = PageAllocator.GetPageType((void*)ptr);
-        return type == PageType.HeapSmall ||
-               type == PageType.HeapMedium ||
-               type == PageType.HeapLarge;
+        return _markStackCount > 0 ? _markStack[--_markStackCount] : 0;
     }
 
     /// <summary>
-    /// Checks if an allocation is a managed object (has a valid MethodTable pointer).
-    /// Raw allocations (like the mark stack) don't have a MethodTable and should not be swept.
+    /// Checks if pointer is within any GC heap segment (including pinned).
     /// </summary>
-    private static bool IsManagedObject(byte* objPtr)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInGCHeap(nint ptr)
     {
-        if (objPtr == null)
-            return false;
+        if (_heapRangeDirty)
+            RecomputeHeapRange();
 
-        // Read the first pointer-sized value - for managed objects this is the MethodTable*
-        nint potentialMT = *(nint*)objPtr;
-        nint mt = potentialMT & ~MethodTableMarkBit;
-
-        // Null is not a valid MethodTable
-        if (mt == 0)
-            return false;
-
-        // Reject low addresses when the heap lives in higher-half mapping
-        bool heapIsHigherHalf = ((ulong)PageAllocator.RamStart >> 63) != 0;
-        if (heapIsHigherHalf && ((ulong)mt >> 63) == 0)
-            return false;
-
-        // MethodTable pointers point to static data in the kernel image, NOT to heap memory.
-        // If the "MethodTable" pointer points into the heap, this is not a managed object.
-        if (mt >= (nint)PageAllocator.RamStart)
+        byte* p = (byte*)ptr;
+        if (p < _gcHeapMin || p >= _gcHeapMax)
         {
-            byte* heapEnd = PageAllocator.RamStart + PageAllocator.RamSize;
-            if (mt < (nint)heapEnd)
-                return false; // Points into heap - not a MethodTable
+            // Check pinned heap
+            return IsInPinnedHeap(ptr);
         }
 
-        // Additional sanity check: MethodTable should be reasonably aligned
-        if ((mt & 0x7) != 0)
-            return false; // Not 8-byte aligned
+        GCSegment* segment = _segments;
+        while (segment != null)
+        {
+            if (p >= segment->Start && p < segment->End)
+                return true;
+            segment = segment->Next;
+        }
 
-        return true;
+        return IsInPinnedHeap(ptr);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static MethodTable* GetMethodTable(void* objPtr)
+    private static void RecomputeHeapRange()
     {
-        nint raw = *(nint*)objPtr;
-        return (MethodTable*)(raw & ~MethodTableMarkBit);
-    }
+        if (_segments == null)
+        {
+            _gcHeapMin = (byte*)0;
+            _gcHeapMax = (byte*)0;
+            _heapRangeDirty = false;
+            return;
+        }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMarked(void* objPtr)
-    {
-        nint raw = *(nint*)objPtr;
-        return (raw & MethodTableMarkBit) != 0;
-    }
+        byte* min = _segments->Start;
+        byte* max = _segments->End;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void MarkObject(void* objPtr)
-    {
-        nint raw = *(nint*)objPtr;
-        *(nint*)objPtr = raw | MethodTableMarkBit;
-    }
+        for (GCSegment* seg = _segments->Next; seg != null; seg = seg->Next)
+        {
+            if (seg->Start < min) min = seg->Start;
+            if (seg->End > max) max = seg->End;
+        }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void UnmarkObject(void* objPtr)
-    {
-        nint raw = *(nint*)objPtr;
-        *(nint*)objPtr = raw & ~MethodTableMarkBit;
+        _gcHeapMin = min;
+        _gcHeapMax = max;
+        _heapRangeDirty = false;
     }
 
     #endregion
+}
+
+/// <summary>
+/// GCDesc series descriptor.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+public struct GCDescSeries
+{
+    public nint SeriesSize;
+    public nint StartOffset;
+
+
+    public void Deconstruct(out nint size, out nint offset)
+    {
+        size = SeriesSize;
+        offset = StartOffset;
+    }
+}
+
+internal static class ObjectHeader
+{
+    private const uint BIT_SBLK_UNUSED = 0x80000000;
+    private const uint BIT_SBLK_FINALIZER_RUN = 0x40000000;
+    private const uint BIT_SBLK_GC_RESERVE = 0x20000000;
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe int* GetHeaderPtr(MethodTable** ppMethodTable)
+    {
+        // The header is 4 bytes before m_pEEType field on all architectures
+        return (int*)ppMethodTable - 1;
+    }
 }
