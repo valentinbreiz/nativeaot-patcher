@@ -130,6 +130,14 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing memory debug buffer...\n");
         MemoryDebug.Initialize();
 
+        // Set shared memory device if available (for zero-pause streaming)
+        var sharedMemory = Cosmos.Kernel.HAL.Devices.SharedMemory.SharedMemoryDevice.Instance;
+        if (sharedMemory != null)
+        {
+            Serial.WriteString("[KERNEL]   - Using shared memory for debug streaming\n");
+            MemoryDebug.SetSharedMemory(sharedMemory);
+        }
+
         // Update debug buffer with current memory state
         Serial.WriteString("[KERNEL]   - Populating memory debug data...\n");
         PageAllocator.UpdateDebugState();

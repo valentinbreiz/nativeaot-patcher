@@ -37,6 +37,10 @@ public class X64PlatformInitializer : IPlatformInitializer
         Serial.WriteString("[X64HAL] Initializing PCI...\n");
         PciManager.Setup();
 
+        // Try to initialize ivshmem for debug streaming
+        Serial.WriteString("[X64HAL] Looking for ivshmem device...\n");
+        IvshmemDevice.FindAndInitialize();
+
         // Display ACPI MADT information
         Serial.WriteString("[X64HAL] Displaying ACPI MADT info...\n");
         Acpi.Acpi.DisplayMadtInfo();

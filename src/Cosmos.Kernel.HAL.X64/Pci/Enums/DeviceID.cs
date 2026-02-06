@@ -8,5 +8,6 @@ public enum DeviceId
     Pcnetii = 0x2000,
     Bga = 0x1111,
     Vbvga = 0xBEEF,
-    VBoxGuest = 0xCAFE
+    VBoxGuest = 0xCAFE,
+    IvshmemPlain = 0x1110  // QEMU ivshmem-plain device for shared memory
 }

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.Debug;
 
@@ -56,37 +57,62 @@ public static unsafe partial class MemoryDebug
 
     private static DebugBuffer* s_debugBuffer;
     private static bool s_initialized = false;
+    private static DebugBuffer* s_ivshmemBuffer;
+    private static ISharedMemoryDevice? s_sharedMemory;
 
     /// <summary>
-    /// Initialize the debug buffer.
+    /// Initialize the debug buffer using ELF section.
+    /// Call SetSharedMemory() later if a shared memory device becomes available.
     /// </summary>
     public static void Initialize()
     {
         if (s_initialized)
             return;
 
-        // Get pointer to buffer in .cosmos_debug section
+        // Initialize ELF section buffer
         s_debugBuffer = (DebugBuffer*)GetDebugBufferPointer();
 
-        if (s_debugBuffer == null)
+        if (s_debugBuffer != null)
         {
-            // Buffer not available - C file may not be linked
-            return;
+            // Initialize ELF buffer
+            s_debugBuffer->Magic = 0x434F534D4F53; // "COSMOS"
+            s_debugBuffer->Version = 1;
+            s_debugBuffer->Timestamp = 0;
+            s_debugBuffer->LimineEntryCount = 0;
+            s_debugBuffer->RatSampleCount = 0;
         }
-
-        // Initialize header
-        s_debugBuffer->Magic = 0x434F534D4F53; // "COSMOS"
-        s_debugBuffer->Version = 1;
-        s_debugBuffer->Timestamp = 0;
-        s_debugBuffer->LimineEntryCount = 0;
-        s_debugBuffer->RatSampleCount = 0;
 
         s_initialized = true;
     }
 
     /// <summary>
+    /// Set the shared memory device for zero-pause streaming.
+    /// Called by the kernel after HAL initialization if a shared memory device is available.
+    /// </summary>
+    public static void SetSharedMemory(ISharedMemoryDevice device)
+    {
+        s_sharedMemory = device;
+
+        var shmem = device.GetSharedMemory();
+        var size = device.GetSharedMemorySize();
+
+        if (shmem != 0 && size >= (ulong)sizeof(DebugBuffer))
+        {
+            s_ivshmemBuffer = (DebugBuffer*)(void*)shmem;
+
+            // Initialize shared memory buffer
+            s_ivshmemBuffer->Magic = 0x434F534D4F53; // "COSMOS"
+            s_ivshmemBuffer->Version = 1;
+            s_ivshmemBuffer->Timestamp = 0;
+            s_ivshmemBuffer->LimineEntryCount = 0;
+            s_ivshmemBuffer->RatSampleCount = 0;
+        }
+    }
+
+    /// <summary>
     /// Update the debug buffer with current memory state.
-    /// This can be called anytime - the buffer is continuously readable via QEMU QMP.
+    /// Writes to ivshmem for zero-pause streaming (preferred).
+    /// Also updates ELF section buffer if available (fallback).
     /// </summary>
     public static void UpdateMemoryState(
         byte* ramStart,
@@ -98,10 +124,16 @@ public static unsafe partial class MemoryDebug
         byte* rat,
         uint ratSampleCount = MAX_RAT_SAMPLE)
     {
-        if (!s_initialized || s_debugBuffer == null || rat == null)
+        if (!s_initialized || rat == null)
             return;
 
-        s_debugBuffer->Timestamp++;
+        // Choose which buffer to update (prefer ivshmem)
+        DebugBuffer* targetBuffer = s_ivshmemBuffer != null ? s_ivshmemBuffer : s_debugBuffer;
+
+        if (targetBuffer == null)
+            return;
+
+        targetBuffer->Timestamp++;
 
         // Update Limine memory map
         var limineResponse = Limine.MemoryMap.Response;
@@ -111,29 +143,29 @@ public static unsafe partial class MemoryDebug
             if (entryCount > MAX_LIMINE_ENTRIES)
                 entryCount = MAX_LIMINE_ENTRIES;
 
-            s_debugBuffer->LimineEntryCount = (uint)entryCount;
+            targetBuffer->LimineEntryCount = (uint)entryCount;
 
             for (ulong i = 0; i < entryCount; i++)
             {
                 var entry = limineResponse->Entries[i];
                 var idx = i * 3;
-                s_debugBuffer->LimineEntries[idx + 0] = (ulong)entry->Base;
-                s_debugBuffer->LimineEntries[idx + 1] = entry->Length;
-                s_debugBuffer->LimineEntries[idx + 2] = (ulong)entry->Type;
+                targetBuffer->LimineEntries[idx + 0] = (ulong)entry->Base;
+                targetBuffer->LimineEntries[idx + 1] = entry->Length;
+                targetBuffer->LimineEntries[idx + 2] = (ulong)entry->Type;
             }
         }
         else
         {
-            s_debugBuffer->LimineEntryCount = 0;
+            targetBuffer->LimineEntryCount = 0;
         }
 
         // Update page allocator state
-        s_debugBuffer->RamStart = (ulong)ramStart;
-        s_debugBuffer->HeapEnd = (ulong)heapEnd;
-        s_debugBuffer->RatLocation = (ulong)ratLocation;
-        s_debugBuffer->RamSize = ramSize;
-        s_debugBuffer->TotalPageCount = totalPageCount;
-        s_debugBuffer->FreePageCount = freePageCount;
+        targetBuffer->RamStart = (ulong)ramStart;
+        targetBuffer->HeapEnd = (ulong)heapEnd;
+        targetBuffer->RatLocation = (ulong)ratLocation;
+        targetBuffer->RamSize = ramSize;
+        targetBuffer->TotalPageCount = totalPageCount;
+        targetBuffer->FreePageCount = freePageCount;
 
         // Update RAT sample
         if (ratSampleCount > MAX_RAT_SAMPLE)
@@ -141,11 +173,11 @@ public static unsafe partial class MemoryDebug
         if (ratSampleCount > totalPageCount)
             ratSampleCount = (uint)totalPageCount;
 
-        s_debugBuffer->RatSampleCount = ratSampleCount;
+        targetBuffer->RatSampleCount = ratSampleCount;
 
         for (uint i = 0; i < ratSampleCount; i++)
         {
-            s_debugBuffer->RatData[i] = rat[i];
+            targetBuffer->RatData[i] = rat[i];
         }
     }
 
