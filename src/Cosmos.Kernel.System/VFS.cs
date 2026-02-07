@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.System;
 /// </summary>
 public static class Vfs
 {
-    private static readonly SimpleDictionary<FileHandle, IFileHandle> s_openHandles = new();
+    private static readonly SimpleDictionary<FileHandleId, FileHandle> s_openHandles = new();
     private static readonly SimpleDictionary<string, IFileSystemOperations> s_mountPoints = new();
     private static uint s_nextHandleId = 1;
 
@@ -27,9 +27,9 @@ public static class Vfs
         Serial.WriteString("\n");
     }
 
-    private static uint NextHandleId()
+    private static FileHandleId NextHandleId()
     {
-        return Interlocked.Increment(ref s_nextHandleId);
+        return new FileHandleId { Id = Interlocked.Increment(ref s_nextHandleId) };
     }
 
     /// <summary>
@@ -39,11 +39,11 @@ public static class Vfs
     /// <param name="mode">The file access mode (read, write, read/write).</param>
     /// <param name="create">Whether to create the file if it doesn't exist.</param>
     /// <returns>A file handle, or null if the file cannot be opened.</returns>
-    public static FileHandle? Open(string path, FileAccessMode mode, bool create = false)
+    public static FileHandleId Open(string path, FileAccessMode mode, bool create = false)
     {
         Log("Open(", path, ",", mode.AsString(), ",", create, ")");
         if (string.IsNullOrEmpty(path))
-            return null;
+            return FileHandleId.Null;
 
         // Normalize path
         path = NormalizePath(path);
@@ -51,7 +51,7 @@ public static class Vfs
         // Find the file system for this path
         IFileSystemOperations? fileSystem = GetFileSystem(path);
         if (fileSystem == null)
-            return null;
+            return FileHandleId.Null;
 
         // Get relative path from mount point
         string relativePath = GetRelativePath(path, fileSystem.MountPoint);
@@ -65,28 +65,28 @@ public static class Vfs
                 // Find parent directory
                 string? parentPath = GetParentPath(relativePath);
                 if (parentPath == null)
-                    return null;
+                    return FileHandleId.Null;
 
                 IInode? parent = fileSystem.GetInode(parentPath);
                 if (parent == null || !parent.IsDirectory)
-                    return null;
+                    return FileHandleId.Null;
 
                 string fileName = GetFileName(relativePath);
                 inode = fileSystem.InodeOperations.CreateFile(parent, fileName);
             }
             else
             {
-                return null;
+                return FileHandleId.Null;
             }
         }
 
         if (!inode.IsFile)
-            return null;
+            return FileHandleId.Null;
 
         // Get file operations
         IFileOperations? fileOps = inode.FileOperations ?? fileSystem.InodeOperations.GetFileOperations(inode);
         if (fileOps == null)
-            return null;
+            return FileHandleId.Null;
 
         // Create file handle with all file descriptor table data (similar to Linux's struct file)
         FileHandle handle = new FileHandle
@@ -99,28 +99,29 @@ public static class Vfs
         };
         // Reference count starts at 0, VfsFileHandle will increment it to 1
 
-        IFileHandle fileHandle = new VfsFileHandle(handle);
-        s_openHandles.Add(handle, fileHandle);
+        s_openHandles.Add(handle.Id, handle);
 
-        return handle;
+        return handle.Id;
+    }
+
+    public static FileHandle? Get(FileHandleId handle)
+    {
+        Log("Get(", handle.Id, ")");
+        s_openHandles.TryGetValue(handle, out FileHandle? fileHandle);
+        return fileHandle;
+
     }
 
     /// <summary>
     /// Closes a file handle.
     /// </summary>
     /// <param name="handle">The file handle to close.</param>
-    public static void Close(FileHandle handle)
+    public static void Close(FileHandleId handle)
     {
         Log("Close(", handle.Id, ")");
-        if (s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
+        if (s_openHandles.TryGetValue(handle, out FileHandle? fileHandle))
         {
             fileHandle.Close();
-            // If reference count reaches 0, remove from the table
-            // (Close already decrements the reference count)
-            if (handle.ReferenceCount <= 0)
-            {
-                s_openHandles.Remove(handle);
-            }
         }
     }
 
@@ -132,10 +133,10 @@ public static class Vfs
     /// <param name="offset">Offset in buffer to start writing.</param>
     /// <param name="count">Number of bytes to read.</param>
     /// <returns>Number of bytes read.</returns>
-    public static int Read(FileHandle handle, byte[] buffer, int offset, int count)
+    public static int Read(FileHandleId handle, byte[] buffer, int offset, int count)
     {
         Log("Read(", handle.Id, ",", buffer.Length, ",", offset, ",", count, ")");
-        if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
+        if (!s_openHandles.TryGetValue(handle, out FileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
         return fileHandle.Read(buffer, offset, count);
@@ -149,11 +150,15 @@ public static class Vfs
     /// <param name="offset">Offset in buffer to start reading.</param>
     /// <param name="count">Number of bytes to write.</param>
     /// <returns>Number of bytes written.</returns>
-    public static int Write(FileHandle handle, byte[] buffer, int offset, int count)
+    public static int Write(FileHandleId handle, byte[] buffer, int offset, int count)
     {
         Log("Write(", handle.Id, ",", buffer.Length, ",", offset, ",", count, ")");
-        if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
+        if (!s_openHandles.TryGetValue(handle, out FileHandle? fileHandle))
+        {
+            Log("Invalid file handle.", handle.Id);
             throw new ArgumentException("Invalid file handle.", nameof(handle));
+        }
+
 
         fileHandle.Write(buffer, offset, count);
         return count;
@@ -166,10 +171,10 @@ public static class Vfs
     /// <param name="offset">Offset to seek to.</param>
     /// <param name="origin">Origin of the seek operation.</param>
     /// <returns>New position in the file.</returns>
-    public static long Seek(FileHandle handle, long offset, SeekOrigin origin)
+    public static long Seek(FileHandleId handle, long offset, SeekOrigin origin)
     {
         Log("Seek(", handle.Id, ",", offset, ",", origin, ")");
-        if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
+        if (!s_openHandles.TryGetValue(handle, out FileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
         return fileHandle.Seek(offset, origin);
@@ -180,10 +185,10 @@ public static class Vfs
     /// </summary>
     /// <param name="handle">The file handle.</param>
     /// <returns>A stream for the file handle.</returns>
-    public static Stream GetStream(FileHandle handle)
+    public static Stream GetStream(FileHandleId handle)
     {
         Log("GetStream(", handle.Id, ")");
-        if (!s_openHandles.TryGetValue(handle, out IFileHandle? fileHandle))
+        if (!s_openHandles.TryGetValue(handle, out FileHandle? fileHandle))
             throw new ArgumentException("Invalid file handle.", nameof(handle));
 
         return new FileHandleStream(fileHandle);

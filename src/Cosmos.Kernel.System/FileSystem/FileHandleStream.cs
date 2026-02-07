@@ -10,23 +10,24 @@ namespace Cosmos.Kernel.System.FileSystem;
 /// </summary>
 public class FileHandleStream : Stream
 {
-    private readonly IFileHandle _fileHandle;
+    private readonly FileHandle _fileHandle;
     private bool _disposed;
 
-    public FileHandleStream(IFileHandle fileHandle)
+    public FileHandleStream(FileHandle? fileHandle)
     {
         _fileHandle = fileHandle ?? throw new ArgumentNullException(nameof(fileHandle));
-        _fileHandle.Handle.IncrementReference();
+
     }
 
     public override bool CanRead => _fileHandle.CanRead;
     public override bool CanWrite => _fileHandle.CanWrite;
     public override bool CanSeek => _fileHandle.CanSeek;
     public override long Length => _fileHandle.Length;
+
     public override long Position
     {
         get => _fileHandle.Position;
-        set => _fileHandle.Position = value;
+        set => Seek(value, SeekOrigin.Current);
     }
 
     public override void Flush() => _fileHandle.Flush();
@@ -56,11 +57,7 @@ public class FileHandleStream : Stream
 
     protected override void Dispose(bool disposing)
     {
-        if (!_disposed && disposing)
-        {
-            _fileHandle.Close();
-            _disposed = true;
-        }
+        _disposed = true;
         base.Dispose(disposing);
     }
 }

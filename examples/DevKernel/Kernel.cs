@@ -26,7 +26,7 @@ public class Kernel : Sys.Kernel
 {
     private string _prompt = "cosmos";
 
-    private FileHandle HistoryFile;
+    private FileHandleId HistoryFile;
 
     protected override void BeforeRun()
     {
@@ -39,7 +39,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
 
         Sys.Vfs.Mount(RootFs.Create(), "/");
-        FileHandle aTestFile = Sys.Vfs.Open("/afile.txt", FileAccessMode.ReadWrite, true);
+        FileHandleId aTestFile = Sys.Vfs.Open("/afile.txt", FileAccessMode.ReadWrite, true)!;
         var aTestFileData = Encoding.UTF8.GetBytes("this is a text file");
         Sys.Vfs.Write(aTestFile, aTestFileData, 0, aTestFileData.Length);
         Sys.Vfs.Close(aTestFile);
@@ -72,10 +72,16 @@ public class Kernel : Sys.Kernel
         if (string.IsNullOrEmpty(input))
             return;
 
-        var historyFileData = Encoding.UTF8.GetBytes(input);
-        Serial.Write("HistoryFile ", HistoryFile.Id, " ", HistoryFile.Position, " ", historyFileData.Length, '\n');
-        Sys.Vfs.Write(HistoryFile, historyFileData, (int)HistoryFile.Position, historyFileData.Length);
-        // HistoryFile.FileOperations.Flush(HistoryFile.Inode);
+        var historyFileData = Encoding.UTF8.GetBytes($"{input}\n");
+        try
+        {
+            Sys.Vfs.Write(HistoryFile, historyFileData, (int)(Sys.Vfs.Get(HistoryFile)?.Position ?? -1), historyFileData.Length);
+        }
+        catch (Exception e)
+        {
+            Serial.WriteString(e.ToString());
+            Console.WriteLine(e);
+        }
 
         string trimmed = input.Trim();
         string[] parts = trimmed.Split(' ');

@@ -216,6 +216,17 @@ public static unsafe partial class ExceptionHelper
         if (s_isHandlingException)
         {
             Serial.WriteString("[EH] ERROR: Recursive exception detected!\n");
+
+            Serial.WriteString("Exception at 0x");
+            Serial.WriteNumber(throwAddress);
+            Serial.WriteString("\n");
+            Serial.WriteString("RBP: 0x");
+            Serial.WriteNumber(throwRbp);
+            Serial.WriteString("\n");
+            Serial.WriteString("RSP: 0x");
+            Serial.WriteNumber(throwRsp);
+            Serial.WriteString("\n");
+
             FailFast("Recursive exception", ex);
             return;
         }

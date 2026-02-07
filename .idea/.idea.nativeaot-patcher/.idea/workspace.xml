@@ -9,37 +9,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9499bc9a-f569-4b12-85c2-3b046ed66785" name="Changes" comment="pull in main">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="9499bc9a-f569-4b12-85c2-3b046ed66785" name="Changes" comment="work on vfs">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/DevKernel/Fs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Fs.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/ConsolePlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/ConsolePlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Enums/DirectoryEntryType.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatFileSystem.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/FAT/FatIsFileSystem.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IDirectoryEntry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileEntry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileSystem.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IFileSystemFormatter.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/IIsFileSystem.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Interfaces/ILinkEntry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/MountFlags.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/Partition.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/PartitionStream.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Services/VFS/VfsManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Panic.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Panic.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileHandle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileHandle.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileHandleStream.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileHandleStream.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/IFileHandle.cs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/IVfs.cs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsFileOperations.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsFileOperations.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsFileSystemOperations.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsFileSystemOperations.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsInodeOperations.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsInodeOperations.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/RootFs/RootFs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/RootFs/RootFs.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/VfsFileHandle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/VfsFileHandle.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsInode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/MemFs/MemFsInode.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/VfsFileHandle.cs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/VFS.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/VFS.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Panic.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Panic.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,6 +39,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/610c920d4ead4a5383016370f496a00b4000/fc/6a0314c9/Console.cs" root0="FORCE_HIGHLIGHTING" />
@@ -64,6 +49,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/54/1001bc57/SafeFileHandle.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/b3/f219f6c6/Object.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/fb/32d84a1c/Path.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/8b/e629f53b/Boolean.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/2b/5975d6d0/Int32.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/a9/c448662e/IEqualityComparer`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/c0/07e95fd2/IReadOnlyCollection`1.cs" root0="SKIP_HIGHLIGHTING" />
@@ -88,6 +74,7 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileAccessMode.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.System/FileSystem/FileHandleId.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProblemsViewState">
@@ -106,6 +93,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;zarlo/blockdevice/0&quot;,
@@ -138,9 +126,20 @@
       <option name="presentableId" value="Default" />
       <updated>1768104629721</updated>
       <workItem from="1768104632264" duration="2000" />
-      <workItem from="1768104643403" duration="16293000" />
+      <workItem from="1768104643403" duration="16991000" />
+      <workItem from="1769388592753" duration="2390000" />
+      <workItem from="1769854656934" duration="4833000" />
+      <workItem from="1769900150459" duration="5378000" />
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="work on vfs">
+      <option name="closed" value="true" />
+      <created>1768125387583</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1768125387583</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -150,6 +149,7 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <MESSAGE value="pull in main" />
-    <option name="LAST_COMMIT_MESSAGE" value="pull in main" />
+    <MESSAGE value="work on vfs" />
+    <option name="LAST_COMMIT_MESSAGE" value="work on vfs" />
   </component>
 </project>

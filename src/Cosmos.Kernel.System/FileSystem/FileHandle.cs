@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System;
+using System.IO;
 using System.Threading;
 
 namespace Cosmos.Kernel.System.FileSystem;
@@ -8,12 +10,12 @@ namespace Cosmos.Kernel.System.FileSystem;
 /// Represents a file handle, similar to Linux's struct file (file descriptor table entry).
 /// Contains all the data that would be stored in a Linux file descriptor table.
 /// </summary>
-public class FileHandle
+public class FileHandle : IDisposable
 {
     /// <summary>
     /// File descriptor ID (similar to fd number in Linux).
     /// </summary>
-    public uint Id { get; internal init; }
+    public FileHandleId Id { get; internal init; }
 
     /// <summary>
     /// File position (f_pos in Linux).
@@ -35,32 +37,68 @@ public class FileHandle
     /// </summary>
     internal IFileOperations? FileOperations { get; set; }
 
-    /// <summary>
-    /// Reference count (f_count in Linux).
-    /// </summary>
-    private int _referenceCount;
-
-    /// <summary>
-    /// Gets the current reference count.
-    /// </summary>
-    public int ReferenceCount => _referenceCount;
-
-    /// <summary>
-    /// Increments the reference count.
-    /// </summary>
-    internal void IncrementReference()
-    {
-        Interlocked.Increment(ref _referenceCount);
-    }
-
-    /// <summary>
-    /// Decrements the reference count.
-    /// </summary>
-    /// <returns>The new reference count.</returns>
-    internal int DecrementReference()
-    {
-        return Interlocked.Decrement(ref _referenceCount);
-    }
-
     public override int GetHashCode() => Id.GetHashCode();
+
+    public string Path => Inode!.Path;
+
+    public long Length => (long)Inode!.Size;
+    public bool CanRead => AccessMode is FileAccessMode.Read or FileAccessMode.ReadWrite;
+    public bool CanWrite => AccessMode is FileAccessMode.Write or FileAccessMode.ReadWrite;
+    public bool CanSeek => true;
+
+    public int Read(byte[] buffer, int offset, int count)
+    {
+        if (!CanRead) throw new InvalidOperationException("File handle is not open for reading.");
+        if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+        if (offset < 0 || offset >= buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
+        if (count < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(count));
+
+        int bytesRead = FileOperations!.Read(Inode!, buffer, offset, count, Position);
+        Position += bytesRead;
+        return bytesRead;
+    }
+
+    public void Write(byte[] buffer, int offset, int count)
+    {
+        if (!CanWrite) throw new InvalidOperationException("File handle is not open for writing.");
+        if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+        if (offset < 0 || offset >= buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
+        if (count < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(count));
+
+        FileOperations!.Write(Inode!, buffer, offset, count, Position);
+        Position += count;
+    }
+
+    public long Seek(long offset, SeekOrigin origin)
+    {
+        long newPosition = origin switch
+        {
+            SeekOrigin.Begin => offset,
+            SeekOrigin.Current => Position + offset,
+            SeekOrigin.End => Length + offset,
+            _ => throw new ArgumentOutOfRangeException(nameof(origin))
+        };
+
+        if (newPosition < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Cannot seek before the beginning of the file.");
+        if (newPosition > Length) throw new ArgumentOutOfRangeException(nameof(offset), "Cannot seek beyond the end of the file.");
+
+        Position = newPosition;
+        return Position;
+    }
+
+    public void Flush()
+    {
+        FileOperations!.Flush(Inode!);
+    }
+
+    public void Close()
+    {
+        // Handle is closed by Vfs when removed from the dictionary
+        Flush();
+    }
+
+    public void Dispose()
+    {
+        Vfs.Close(Id);
+    }
 }

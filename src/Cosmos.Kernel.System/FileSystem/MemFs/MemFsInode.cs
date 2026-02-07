@@ -25,7 +25,7 @@ internal class MemFsInode : IInode
         _name = name;
         _type = type;
         _parent = parent;
-        _data = type == InodeType.File ? new byte[0] : Array.Empty<byte>();
+        _data = Array.Empty<byte>();
         _symlinkTarget = null;
     }
 

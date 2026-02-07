@@ -17,14 +17,26 @@ internal class MemFsFileOperations : IFileOperations
         Serial.WriteString("\n");
     }
 
+    MemFsInode Checks(IInode inode)
+    {
+        if (inode is not MemFsInode memInode)
+        {
+            Log("Inode must be a MemFsInode.", nameof(inode));
+            throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
+        }
+
+        if (!memInode.IsFile)
+        {
+            Log("Cannot write to non-file inode.");
+            throw new InvalidOperationException("Cannot write to non-file inode.");
+        }
+        return memInode;
+    }
+
     public int Read(IInode inode, byte[] buffer, int offset, int count, long position)
     {
         Log("Read(", inode.InodeNumber, ",", buffer.Length, ",", offset, ",", count, ",", position, ")");
-        if (inode is not MemFsInode memInode)
-            throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
-
-        if (!memInode.IsFile)
-            throw new InvalidOperationException("Cannot read from non-file inode.");
+        MemFsInode memInode = Checks(inode);
 
         byte[] data = memInode.Data;
         long dataLength = data.Length;
@@ -43,11 +55,7 @@ internal class MemFsFileOperations : IFileOperations
     public int Write(IInode inode, byte[] buffer, int offset, int count, long position)
     {
         Log("Write(", inode.InodeNumber, ",", buffer.Length, ",", offset, ",", count, ",", position, ")");
-        if (inode is not MemFsInode memInode)
-            throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
-
-        if (!memInode.IsFile)
-            throw new InvalidOperationException("Cannot write to non-file inode.");
+        MemFsInode memInode = Checks(inode);
 
         byte[] data = memInode.Data;
         long newSize = (long)data.Length > (position + count) ? (long)data.Length : (position + count);
@@ -56,7 +64,11 @@ internal class MemFsFileOperations : IFileOperations
         if (newSize > data.Length)
         {
             if (newSize > int.MaxValue)
+            {
+                Log(nameof(position), "File size exceeds maximum supported size.");
                 throw new ArgumentOutOfRangeException(nameof(position), "File size exceeds maximum supported size.");
+            }
+
             byte[] newData = new byte[(int)newSize];
             Array.Copy(data, 0, newData, 0, data.Length);
             data = newData;
@@ -77,11 +89,7 @@ internal class MemFsFileOperations : IFileOperations
     public void Truncate(IInode inode, long length)
     {
         Log("Truncate(", inode.InodeNumber, ",", length, ")");
-        if (inode is not MemFsInode memInode)
-            throw new ArgumentException("Inode must be a MemFsInode.", nameof(inode));
-
-        if (!memInode.IsFile)
-            throw new InvalidOperationException("Cannot truncate non-file inode.");
+        MemFsInode memInode = Checks(inode);
 
         if (length < 0)
             throw new ArgumentOutOfRangeException(nameof(length));

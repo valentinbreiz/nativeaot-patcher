@@ -20,6 +20,12 @@ public static class Fs
     public static void Ls(string[] parts)
     {
 
+        if (parts.Length != 2)
+        {
+            Console.WriteLine("?");
+            return;
+        }
+
         var path = parts[1];
         if (!path.EndsWith('/'))
         {
@@ -42,13 +48,13 @@ public static class Fs
     {
 
         var fd = Vfs.Open(parts[1], FileAccessMode.Read, false);
-        if (fd == null)
+        if (fd.Equals(FileHandleId.Null))
         {
             Log("Cound not find file");
             return;
         }
 
-        if (!fd.Inode?.IsFile?? false)
+        if (!(Vfs.Get(fd)?.Inode?.IsFile ?? false))
         {
             Log("This is not a File");
         }
