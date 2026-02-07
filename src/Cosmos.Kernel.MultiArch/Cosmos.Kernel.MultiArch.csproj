@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>3.0.36</Version>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageId>Cosmos.Kernel.MultiArch</PackageId>
+    <Title>Cosmos Kernel Multi-Arch Native C</Title>
+    <Description>Shared native C sources for Cosmos kernel (x64 and arm64).</Description>
+    <PackageTags>cosmos;kernel;native;c;multiarch</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="build\Cosmos.Kernel.MultiArch.props" PackagePath="build\" />
+    <Content Include="C\*.c" PackagePath="build\C" />
+  </ItemGroup>
+</Project>
