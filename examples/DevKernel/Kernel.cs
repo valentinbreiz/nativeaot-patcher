@@ -24,9 +24,19 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        float mTest = 22.12345f;
+        Serial.WriteString("[DevKernel] BeforeRun() called\n");
 
-        Console.WriteLine(MathF.Floor(mTest));
+        Console.Clear();
+        Console.WriteLine("========================================");
+        Console.WriteLine($"         CosmosOS {Cosmos.Kernel.Kernel.VersionString} Shell       ");
+        Console.WriteLine("========================================");
+        Console.WriteLine();
+
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Cosmos booted successfully!");
+        Console.ResetColor();
+        Console.WriteLine("Type 'help' for available commands.");
+        Console.WriteLine();
     }
 
     protected override void Run()
