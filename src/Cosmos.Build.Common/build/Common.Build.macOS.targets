@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <XorrisoBinary>xorriso</XorrisoBinary>
+    <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
+  </PropertyGroup>
+
+  <Target Name="GetLinker">
+    <!-- Check Homebrew LLD paths (separate 'lld' formula since 2024) -->
+    <PropertyGroup>
+      <!-- Apple Silicon: lld formula path -->
+      <LdLinkerPath Condition="'$(LdLinkerPath)' == '' AND Exists('/opt/homebrew/opt/lld/bin/ld.lld')">/opt/homebrew/opt/lld/bin/ld.lld</LdLinkerPath>
+      <!-- Intel Mac: lld formula path -->
+      <LdLinkerPath Condition="'$(LdLinkerPath)' == '' AND Exists('/usr/local/opt/lld/bin/ld.lld')">/usr/local/opt/lld/bin/ld.lld</LdLinkerPath>
+      <!-- Legacy: Apple Silicon llvm path (older Homebrew) -->
+      <LdLinkerPath Condition="'$(LdLinkerPath)' == '' AND Exists('/opt/homebrew/opt/llvm/bin/ld.lld')">/opt/homebrew/opt/llvm/bin/ld.lld</LdLinkerPath>
+      <!-- Legacy: Intel Mac llvm path (older Homebrew) -->
+      <LdLinkerPath Condition="'$(LdLinkerPath)' == '' AND Exists('/usr/local/opt/llvm/bin/ld.lld')">/usr/local/opt/llvm/bin/ld.lld</LdLinkerPath>
+    </PropertyGroup>
+
+    <!-- Fallback to 'which' -->
+    <Exec Command="which ld.lld" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="Low"
+          Condition="'$(LdLinkerPath)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="LdLinkerPath"/>
+    </Exec>
+
+    <!-- Trim any whitespace from the result -->
+    <PropertyGroup>
+      <LdLinkerPath>$(LdLinkerPath.Trim())</LdLinkerPath>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="CheckXorriso" BeforeTargets="BuildISO">
+    <Exec Command="which xorriso" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="XorrisoPath"/>
+    </Exec>
+    <Error Condition="'$(XorrisoPath.Trim())' == ''" Text="xorriso not found. Install it with: brew install xorriso"/>
+  </Target>
+</Project>

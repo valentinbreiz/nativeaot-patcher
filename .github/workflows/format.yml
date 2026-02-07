@@ -1,8 +1,10 @@
 name: .NET Format
 
 on:
-  pull_request:
+  push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "**" ]
 
 jobs:
   format:

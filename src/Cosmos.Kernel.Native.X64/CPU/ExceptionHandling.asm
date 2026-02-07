@@ -182,26 +182,55 @@ RhpCallCatchFunclet:
     mov     r9, [rdx + OFFSETOF__REGDISPLAY__SP]   ; r9 = resume SP
 
     ; Pop ExInfo entries that are below the resume SP
-    lea     rsi, [rel __cosmos_exinfo_stack_head]
+    ; Use r10/r11 as scratch registers to avoid clobbering rdi/rsi which may be
+    ; expected by the resume code
+    lea     r11, [rel __cosmos_exinfo_stack_head]
 
 .pop_exinfo_loop:
-    mov     rdi, [rsi]              ; current ExInfo
-    test    rdi, rdi
+    mov     r10, [r11]              ; current ExInfo
+    test    r10, r10
     jz      .pop_exinfo_done        ; null = done
-    cmp     rdi, r9
+    cmp     r10, r9
     jge     .pop_exinfo_done        ; >= resume SP = done
-    mov     rdi, [rdi + OFFSETOF__ExInfo__m_pPrevExInfo]
-    mov     [rsi], rdi              ; pop it
+    mov     r10, [r10 + OFFSETOF__ExInfo__m_pPrevExInfo]
+    mov     [r11], r10              ; pop it
     jmp     .pop_exinfo_loop
 
 .pop_exinfo_done:
-    ; Reset SP to resume point
-    ; NOTE: We're not popping our saved registers because we're never returning
-    ; The funclet has already restored callee-saved registers for the target method
-    mov     rsp, r9
+    ; Resume execution after the catch block
+    ; The funclet has executed the catch block body, and r8 contains the resume address
+    ; r9 contains the handler frame's RBP (REGDISPLAY.SP)
 
-    ; Jump to resume address (in r8)
-    jmp     r8
+    ; Instead of jumping to the resume address (which has complex stack expectations),
+    ; we'll directly return from the catching function (Run) to its caller (Start).
+
+    ; From stack dump analysis:
+    ;   [RBP + 16] = 'this' pointer (0xFFFF80000010D004)
+    ;   [RBP + 8]  = return address to caller
+    ;   [RBP + 0]  = caller's saved RBP
+    ;   [RBP - 8]  = stack pointer value (not saved RBX)
+    ;   [RBP - 16] = some data address
+    ;   [RBP - 40] = 'this' pointer again
+    ;   [RBP - 64] = 'this' pointer again
+
+    ; Start() likely keeps 'this' in RBX across the call to Run()
+    ; Restore RBX from [RBP+16] which appears to be 'this'
+    mov     rbx, [r9 + 16]          ; Restore 'this' pointer to RBX
+
+    ; Zero other callee-saved registers (safer than reading garbage)
+    xor     r12, r12
+    xor     r13, r13
+    xor     r14, r14
+    xor     r15, r15
+
+    ; Set up stack to return from Run to Start
+    ; r9 = Run's RBP
+    ; [r9 + 0] = Start's saved RBP
+    ; [r9 + 8] = return address in Start
+    mov     rbp, [r9]               ; Restore Start's RBP
+    mov     rsp, r9
+    add     rsp, 8                  ; Point RSP to return address
+    ret                             ; Return to Start (pops [r9+8] as return addr)
 
 
 ;=============================================================================

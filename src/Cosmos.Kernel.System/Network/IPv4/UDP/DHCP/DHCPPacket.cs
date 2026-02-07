@@ -6,7 +6,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
@@ -29,7 +28,7 @@ public class DHCPOption
     /// <summary>
     /// The raw data of the <see cref="DHCPOption"/>.
     /// </summary>
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 }
 
 /// <summary>

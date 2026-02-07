@@ -1,6 +1,14 @@
 <Project>
-  <Import Project="GCC.Build.Unix.targets" Condition="'$(OS)' != 'Windows_NT'"/>
-  <Import Project="GCC.Build.Windows.targets" Condition="'$(OS)' == 'Windows_NT'"/>
+  <!-- Platform detection -->
+  <PropertyGroup>
+    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
+    <IsMacOS Condition="'$(OS)' != 'Windows_NT' AND $([MSBuild]::IsOSPlatform('OSX'))">true</IsMacOS>
+    <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <Import Project="GCC.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
+  <Import Project="GCC.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
+  <Import Project="GCC.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
 
   <Target Name="FindCSourceFilesForGCC" BeforeTargets="BuildGCC">
     <PropertyGroup>

@@ -9,8 +9,8 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </summary>
 public static class SchedulerManager
 {
-    private static IScheduler _currentScheduler;
-    private static PerCpuState[] _cpuStates;
+    private static IScheduler? _currentScheduler;
+    private static PerCpuState[]? _cpuStates;
     private static uint _cpuCount;
     private static SpinLock _globalLock;
     private static bool _enabled;
@@ -21,10 +21,23 @@ public static class SchedulerManager
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 
+    /// <summary>
+    /// Whether scheduler support is enabled. Uses centralized feature flag.
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
+
+    private static void ThrowIfDisabled()
+    {
+        if (!IsEnabled)
+            throw new InvalidOperationException("Scheduler support is disabled. Set CosmosEnableScheduler=true in your csproj to enable it.");
+    }
+
     // ========== Initialization ==========
 
     public static void Initialize(uint cpuCount)
     {
+        ThrowIfDisabled();
+
         _cpuCount = cpuCount;
         _cpuStates = new PerCpuState[cpuCount];
 
@@ -91,6 +104,8 @@ public static class SchedulerManager
 
     public static void CreateThread(uint cpuId, Thread thread)
     {
+        ThrowIfDisabled();
+
         Serial.WriteString("[SCHED] CreateThread: entering\n");
         var state = _cpuStates[cpuId];
         Serial.WriteString("[SCHED] CreateThread: acquiring lock\n");
@@ -109,6 +124,8 @@ public static class SchedulerManager
 
     public static void ReadyThread(uint cpuId, Thread thread)
     {
+        ThrowIfDisabled();
+
         var state = _cpuStates[cpuId];
         state.Lock.Acquire();
         try

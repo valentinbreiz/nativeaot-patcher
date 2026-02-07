@@ -1,5 +1,3 @@
-using System;
-
 namespace Cosmos.Kernel.HAL.Devices.Network;
 
 public class MACAddress : IComparable
@@ -170,7 +168,7 @@ public class MACAddress : IComparable
     public override string ToString()
     {
         // mac address consists of 6 2chars pairs, delimited by :
-        var xChars = new char[17];
+        char[] xChars = new char[17];
         PutByte(xChars, 0, bytes[0]);
         xChars[2] = ':';
         PutByte(xChars, 3, bytes[1]);

@@ -7,10 +7,21 @@
 .global __cosmos_exinfo_stack_head
 __cosmos_exinfo_stack_head: .quad 0
 
+// Debug strings
+.debug_x20_str: .asciz "[ASM] x20="
+.debug_x29_str: .asciz " x29="
+.debug_sp_str: .asciz " SP="
+.debug_newline: .asciz "\n"
+.debug_pfp_str: .asciz "[ASM] pFP="
+.debug_pfp_val_str: .asciz " *pFP="
+.debug_regdisp_str: .asciz "[ASM] REGDISPLAY*="
+
 .section .text
 
 // External managed functions
 .extern RhThrowEx                    // C# exception dispatcher
+.extern __cosmos_serial_write        // Serial write string
+.extern __cosmos_serial_write_hex_u64 // Serial write hex
 
 //=============================================================================
 // Structure offsets
@@ -42,19 +53,20 @@ __cosmos_exinfo_stack_head: .quad 0
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__X27, 0x60
 .equ OFFSETOF__PAL_LIMITED_CONTEXT__X28, 0x68
 
-// REGDISPLAY offsets for ARM64
+// REGDISPLAY offsets for ARM64 (direct values, not pointers)
 .equ OFFSETOF__REGDISPLAY__SP,        0x00
-.equ OFFSETOF__REGDISPLAY__pFP,       0x08
-.equ OFFSETOF__REGDISPLAY__pX19,      0x10
-.equ OFFSETOF__REGDISPLAY__pX20,      0x18
-.equ OFFSETOF__REGDISPLAY__pX21,      0x20
-.equ OFFSETOF__REGDISPLAY__pX22,      0x28
-.equ OFFSETOF__REGDISPLAY__pX23,      0x30
-.equ OFFSETOF__REGDISPLAY__pX24,      0x38
-.equ OFFSETOF__REGDISPLAY__pX25,      0x40
-.equ OFFSETOF__REGDISPLAY__pX26,      0x48
-.equ OFFSETOF__REGDISPLAY__pX27,      0x50
-.equ OFFSETOF__REGDISPLAY__pX28,      0x58
+.equ OFFSETOF__REGDISPLAY__FP,        0x08
+.equ OFFSETOF__REGDISPLAY__X19,       0x10
+.equ OFFSETOF__REGDISPLAY__X20,       0x18
+.equ OFFSETOF__REGDISPLAY__X21,       0x20
+.equ OFFSETOF__REGDISPLAY__X22,       0x28
+.equ OFFSETOF__REGDISPLAY__X23,       0x30
+.equ OFFSETOF__REGDISPLAY__X24,       0x38
+.equ OFFSETOF__REGDISPLAY__X25,       0x40
+.equ OFFSETOF__REGDISPLAY__X26,       0x48
+.equ OFFSETOF__REGDISPLAY__X27,       0x50
+.equ OFFSETOF__REGDISPLAY__X28,       0x58
+.equ OFFSETOF__REGDISPLAY__LR,        0x60
 
 // ExKind enum
 .equ ExKind_Throw,        1
@@ -151,196 +163,76 @@ RhpThrowEx:
 .global RhpCallCatchFunclet
 .balign 4
 RhpCallCatchFunclet:
-    // Save callee-saved registers and arguments
-    // Allocate 0x80 bytes to have room for all saved data
+    // Save callee-saved registers (like x64 does)
     stp     x29, x30, [sp, #-0x80]!
-    mov     x29, sp                     // Set up frame pointer
+    mov     x29, sp
     stp     x19, x20, [sp, #0x10]
     stp     x21, x22, [sp, #0x20]
     stp     x23, x24, [sp, #0x30]
     stp     x25, x26, [sp, #0x40]
     stp     x27, x28, [sp, #0x50]
 
-    // Save all arguments on stack (funclet may clobber callee-saved registers)
-    str     x0, [sp, #0x60]             // Save exception object
-    str     x1, [sp, #0x68]             // Save handler address
-    str     x2, [sp, #0x70]             // Save REGDISPLAY*
-    str     x3, [sp, #0x78]             // Save ExInfo*
+    // Save arguments on stack
+    str     x0, [sp, #0x60]             // exception object
+    str     x1, [sp, #0x68]             // handler address
+    str     x2, [sp, #0x70]             // REGDISPLAY*
+    str     x3, [sp, #0x78]             // ExInfo*
 
-    // Restore callee-saved registers from REGDISPLAY BEFORE calling funclet
-    // The funclet expects these registers to have the values from the throwing method
+    // Restore callee-saved registers from REGDISPLAY
+    // These are the registers the funclet expects to have from the throwing method
     // x2 = REGDISPLAY*
 
-    // pFP -> x29 (frame pointer)
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
-    cbz     x8, .pre_skip_fp
-    ldr     x29, [x8]
-.pre_skip_fp:
+    ldr     x29, [x2, #OFFSETOF__REGDISPLAY__FP]
+    ldr     x19, [x2, #OFFSETOF__REGDISPLAY__X19]
+    ldr     x20, [x2, #OFFSETOF__REGDISPLAY__X20]
+    ldr     x21, [x2, #OFFSETOF__REGDISPLAY__X21]
+    ldr     x22, [x2, #OFFSETOF__REGDISPLAY__X22]
+    ldr     x23, [x2, #OFFSETOF__REGDISPLAY__X23]
+    ldr     x24, [x2, #OFFSETOF__REGDISPLAY__X24]
+    ldr     x25, [x2, #OFFSETOF__REGDISPLAY__X25]
+    ldr     x26, [x2, #OFFSETOF__REGDISPLAY__X26]
+    ldr     x27, [x2, #OFFSETOF__REGDISPLAY__X27]
+    ldr     x28, [x2, #OFFSETOF__REGDISPLAY__X28]
 
-    // pX19 -> x19
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
-    cbz     x8, .pre_skip_x19
-    ldr     x19, [x8]
-.pre_skip_x19:
-
-    // pX20 -> x20
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
-    cbz     x8, .pre_skip_x20
-    ldr     x20, [x8]
-.pre_skip_x20:
-
-    // pX21 -> x21
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
-    cbz     x8, .pre_skip_x21
-    ldr     x21, [x8]
-.pre_skip_x21:
-
-    // pX22 -> x22
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
-    cbz     x8, .pre_skip_x22
-    ldr     x22, [x8]
-.pre_skip_x22:
-
-    // pX23 -> x23
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
-    cbz     x8, .pre_skip_x23
-    ldr     x23, [x8]
-.pre_skip_x23:
-
-    // pX24 -> x24
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
-    cbz     x8, .pre_skip_x24
-    ldr     x24, [x8]
-.pre_skip_x24:
-
-    // pX25 -> x25
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
-    cbz     x8, .pre_skip_x25
-    ldr     x25, [x8]
-.pre_skip_x25:
-
-    // pX26 -> x26
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
-    cbz     x8, .pre_skip_x26
-    ldr     x26, [x8]
-.pre_skip_x26:
-
-    // pX27 -> x27
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
-    cbz     x8, .pre_skip_x27
-    ldr     x27, [x8]
-.pre_skip_x27:
-
-    // pX28 -> x28
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
-    cbz     x8, .pre_skip_x28
-    ldr     x28, [x8]
-.pre_skip_x28:
-
-    // Call handler funclet
-    // Load exception object and handler address from stack (registers may have been restored)
+    // Load exception object and call handler
     ldr     x0, [sp, #0x60]             // exception object
     ldr     x8, [sp, #0x68]             // handler address
-    blr     x8                          // Call handler funclet
+    blr     x8                          // call handler funclet
 
     // x0 now contains the resume address
-    // Save it in a temp register
-    mov     x9, x0                      // x9 = resume address (temp)
+    mov     x9, x0                      // Save resume address
 
-    // Reload REGDISPLAY* from stack (funclet may have clobbered x21)
-    ldr     x10, [sp, #0x70]            // x10 = REGDISPLAY*
+    // Reload REGDISPLAY* from stack (x2 may have been clobbered)
+    ldr     x2, [sp, #0x70]             // REGDISPLAY*
 
-    // Now restore ALL callee-saved registers from REGDISPLAY to the values
-    // they had at the throw site. This is critical because when we jump to
-    // the resume point, the code expects these registers to have the values
-    // from before the exception was thrown.
-
-    // pFP -> x29
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pFP]
-    cbz     x8, .skip_fp_restore
-    ldr     x29, [x8]
-.skip_fp_restore:
-
-    // pX19 -> x19
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX19]
-    cbz     x8, .skip_x19
-    ldr     x19, [x8]
-.skip_x19:
-
-    // pX20 -> x20
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX20]
-    cbz     x8, .skip_x20
-    ldr     x20, [x8]
-.skip_x20:
-
-    // pX21 -> x21
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX21]
-    cbz     x8, .skip_x21
-    ldr     x21, [x8]
-.skip_x21:
-
-    // pX22 -> x22
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX22]
-    cbz     x8, .skip_x22
-    ldr     x22, [x8]
-.skip_x22:
-
-    // pX23 -> x23
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX23]
-    cbz     x8, .skip_x23
-    ldr     x23, [x8]
-.skip_x23:
-
-    // pX24 -> x24
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX24]
-    cbz     x8, .skip_x24
-    ldr     x24, [x8]
-.skip_x24:
-
-    // pX25 -> x25
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX25]
-    cbz     x8, .skip_x25
-    ldr     x25, [x8]
-.skip_x25:
-
-    // pX26 -> x26
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX26]
-    cbz     x8, .skip_x26
-    ldr     x26, [x8]
-.skip_x26:
-
-    // pX27 -> x27
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX27]
-    cbz     x8, .skip_x27
-    ldr     x27, [x8]
-.skip_x27:
-
-    // pX28 -> x28
-    ldr     x8, [x10, #OFFSETOF__REGDISPLAY__pX28]
-    cbz     x8, .skip_x28
-    ldr     x28, [x8]
-.skip_x28:
-
-    // Get resume SP from REGDISPLAY (use x10 which still has REGDISPLAY*)
-    ldr     x11, [x10, #OFFSETOF__REGDISPLAY__SP]   // x11 = resume SP
+    // Get resume SP from REGDISPLAY (this is the handler frame's FP)
+    ldr     x11, [x2, #OFFSETOF__REGDISPLAY__SP]   // x11 = handler frame's FP
 
     // Pop ExInfo entries that are below the resume SP
     adrp    x8, __cosmos_exinfo_stack_head
     add     x8, x8, :lo12:__cosmos_exinfo_stack_head
 
 .pop_exinfo_loop:
-    ldr     x12, [x8]                   // current ExInfo (use x12, not x9)
-    cbz     x12, .pop_exinfo_done       // null = done
-    cmp     x12, x11
+    ldr     x10, [x8]                   // current ExInfo
+    cbz     x10, .pop_exinfo_done       // null = done
+    cmp     x10, x11
     b.ge    .pop_exinfo_done            // >= resume SP = done
-    ldr     x12, [x12, #OFFSETOF__ExInfo__m_pPrevExInfo]
-    str     x12, [x8]                   // pop it
+    ldr     x10, [x10, #OFFSETOF__ExInfo__m_pPrevExInfo]
+    str     x10, [x8]                   // pop it
     b       .pop_exinfo_loop
 
 .pop_exinfo_done:
-    // Reset SP to resume point and jump
-    // x9 = resume address, x11 = resume SP
+    // Resume execution after the catch block
+    // x9 contains the resume address returned by the funclet
+    // x11 contains the handler frame's FP (from REGDISPLAY.SP)
+
+    // Restore handler's Frame Pointer
+    mov     x29, x11
+
+    // Restore handler's Stack Pointer (assuming SP == FP in handler frame)
     mov     sp, x11
+
+    // Jump to the resume address
     br      x9
 
 
@@ -376,71 +268,17 @@ RhpCallFilterFunclet:
     // The funclet expects these registers to have the values from the method
     // x2 = REGDISPLAY*
 
-    // pFP -> x29 (frame pointer)
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pFP]
-    cbz     x8, .filter_skip_fp
-    ldr     x29, [x8]
-.filter_skip_fp:
-
-    // pX19 -> x19
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX19]
-    cbz     x8, .filter_skip_x19
-    ldr     x19, [x8]
-.filter_skip_x19:
-
-    // pX20 -> x20
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX20]
-    cbz     x8, .filter_skip_x20
-    ldr     x20, [x8]
-.filter_skip_x20:
-
-    // pX21 -> x21
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX21]
-    cbz     x8, .filter_skip_x21
-    ldr     x21, [x8]
-.filter_skip_x21:
-
-    // pX22 -> x22
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX22]
-    cbz     x8, .filter_skip_x22
-    ldr     x22, [x8]
-.filter_skip_x22:
-
-    // pX23 -> x23
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX23]
-    cbz     x8, .filter_skip_x23
-    ldr     x23, [x8]
-.filter_skip_x23:
-
-    // pX24 -> x24
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX24]
-    cbz     x8, .filter_skip_x24
-    ldr     x24, [x8]
-.filter_skip_x24:
-
-    // pX25 -> x25
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX25]
-    cbz     x8, .filter_skip_x25
-    ldr     x25, [x8]
-.filter_skip_x25:
-
-    // pX26 -> x26
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX26]
-    cbz     x8, .filter_skip_x26
-    ldr     x26, [x8]
-.filter_skip_x26:
-
-    // pX27 -> x27
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX27]
-    cbz     x8, .filter_skip_x27
-    ldr     x27, [x8]
-.filter_skip_x27:
-
-    // pX28 -> x28
-    ldr     x8, [x2, #OFFSETOF__REGDISPLAY__pX28]
-    cbz     x8, .filter_skip_x28
-    ldr     x28, [x8]
-.filter_skip_x28:
+    ldr     x29, [x2, #OFFSETOF__REGDISPLAY__FP]
+    ldr     x19, [x2, #OFFSETOF__REGDISPLAY__X19]
+    ldr     x20, [x2, #OFFSETOF__REGDISPLAY__X20]
+    ldr     x21, [x2, #OFFSETOF__REGDISPLAY__X21]
+    ldr     x22, [x2, #OFFSETOF__REGDISPLAY__X22]
+    ldr     x23, [x2, #OFFSETOF__REGDISPLAY__X23]
+    ldr     x24, [x2, #OFFSETOF__REGDISPLAY__X24]
+    ldr     x25, [x2, #OFFSETOF__REGDISPLAY__X25]
+    ldr     x26, [x2, #OFFSETOF__REGDISPLAY__X26]
+    ldr     x27, [x2, #OFFSETOF__REGDISPLAY__X27]
+    ldr     x28, [x2, #OFFSETOF__REGDISPLAY__X28]
 
     // Call filter funclet
     // Load exception object and filter address from stack (registers may have been restored)

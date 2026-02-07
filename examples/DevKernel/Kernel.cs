@@ -2,12 +2,11 @@ using System;
 using System.Text;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Graphics;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.FileSystem;
 using Cosmos.Kernel.System.FileSystem.RootFs;
+using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -34,7 +33,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine("         CosmosOS 3.0.0 Shell       ");
+        Console.WriteLine($"         CosmosOS {Cosmos.Kernel.Kernel.VersionString} Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
@@ -67,11 +66,18 @@ public class Kernel : Sys.Kernel
         Console.Write("$ ");
         Console.ResetColor();
 
-        string? input = Console.ReadLine();
+        try
+        {
+            string? input = Console.ReadLine();
 
-        if (string.IsNullOrEmpty(input))
-            return;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                throw new Exception("No input provided");
+            }
 
+            string trimmed = input.Trim();
+            string[] parts = trimmed.Split(' ');
+            string cmd = parts[0].ToLower();
         var historyFileData = Encoding.UTF8.GetBytes($"{input}\n");
         try
         {
@@ -87,83 +93,83 @@ public class Kernel : Sys.Kernel
         string[] parts = trimmed.Split(' ');
         string cmd = parts[0].ToLower();
 
-        switch (cmd)
-        {
-            case "help":
-                PrintHelp();
-                break;
+            switch (cmd)
+            {
+                case "help":
+                    PrintHelp();
+                    break;
 
-            case "clear":
-            case "cls":
-                Console.Clear();
-                break;
+                case "clear":
+                case "cls":
+                    Console.Clear();
+                    break;
 
-            case "echo":
-                if (parts.Length > 1)
-                    Console.WriteLine(trimmed.Substring(5));
-                break;
+                case "echo":
+                    if (parts.Length > 1)
+                        Console.WriteLine(trimmed.Substring(5));
+                    break;
 
-            case "info":
-            case "sysinfo":
-                PrintSystemInfo();
-                break;
+                case "info":
+                case "sysinfo":
+                    PrintSystemInfo();
+                    break;
 
-            case "timer":
-                RunTimerTest();
-                break;
+                case "timer":
+                    RunTimerTest();
+                    break;
 
-            case "schedinfo":
-                ShowSchedulerInfo();
-                break;
+                case "schedinfo":
+                    ShowSchedulerInfo();
+                    break;
 
-            case "thread":
-                TestThread();
-                break;
+                case "thread":
+                    TestThread();
+                    break;
 
-            case "gfx":
-                StartGraphicsThread();
-                break;
+                case "gfx":
+                    StartGraphicsThread();
+                    break;
 
-            case "kill":
-                if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
-                    KillThread(killId);
-                else
-                    PrintError("Usage: kill <thread_id>");
-                break;
+                case "kill":
+                    if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                        KillThread(killId);
+                    else
+                        PrintError("Usage: kill <thread_id>");
+                    break;
 
-            case "halt":
-            case "shutdown":
-                PrintWarning("Halting system...");
-                Stop();
-                break;
+                case "halt":
+                case "shutdown":
+                    PrintWarning("Halting system...");
+                    Stop();
+                    break;
 
 #if ARCH_X64
-            case "netconfig":
-                ConfigureNetwork();
-                break;
+                case "netconfig":
+                    ConfigureNetwork();
+                    break;
 
-            case "netinfo":
-                ShowNetworkInfo();
-                break;
+                case "netinfo":
+                    ShowNetworkInfo();
+                    break;
 
-            case "netsend":
-                SendTestPacket();
-                break;
+                case "netsend":
+                    SendTestPacket();
+                    break;
 
-            case "netlisten":
-                StartListening();
-                break;
+                case "netlisten":
+                    StartListening();
+                    break;
 
-            case "dhcp":
-                RunDHCP();
-                break;
+                case "dhcp":
+                    RunDHCP();
+                    break;
 
-            case "dns":
-                if (parts.Length > 1)
-                    ResolveDNS(parts[1]);
-                else
-                    PrintError("Usage: dns <domain>");
-                break;
+                case "dns":
+                    if (parts.Length > 1)
+                        ResolveDNS(parts[1]);
+                    else
+                        PrintError("Usage: dns <domain>");
+                    break;
 
 #endif
 
@@ -175,16 +181,29 @@ public class Kernel : Sys.Kernel
                 Fs.Cat(parts);
                 break;
 
-            case "meminfo":
-                ShowMemoryInfo();
-                break;
+                case "meminfo":
+                    ShowMemoryInfo();
+                    break;
 
-            default:
-                PrintError($"\"{cmd}\" is not a command");
-                Console.WriteLine("Type 'help' for available commands.");
-                break;
+                default:
+                    PrintError($"\"{cmd}\" is not a command");
+                    Console.WriteLine("Type 'help' for available commands.");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Use Serial instead of Console to avoid OOM from threading initialization
+            Serial.WriteString("[CATCH] Exception caught: ");
+            Serial.WriteString(ex.Message);
+            Serial.WriteString("\n");
+
+            // Call Stop() to signal the main loop to exit
+            Serial.WriteString("[CATCH] Calling Stop()...\n");
+            Stop();
         }
     }
+
 
     protected override void AfterRun()
     {
@@ -235,7 +254,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.0 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.36 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
@@ -243,6 +262,15 @@ public class Kernel : Sys.Kernel
         PrintInfoLine("Architecture", "ARM64");
 #endif
         PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
+        if (KernelConsole.IsAvailable)
+        {
+            var mode = KernelConsole.Canvas.Mode;
+            PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Canvas.Name() + ")");
+        }
+        else
+        {
+            PrintInfoLine("Framebuffer", "Disabled");
+        }
     }
 
     private void PrintInfoLine(string label, string value)
@@ -492,17 +520,17 @@ public class Kernel : Sys.Kernel
 
     private static void GraphicsWorker()
     {
-        if (Canvas.Width == 0 || Canvas.Height == 0)
+        if (KernelConsole.Canvas.Mode.Width == 0 || KernelConsole.Canvas.Mode.Height == 0)
             return;
 
         const int squareSize = 80;
         const int margin = 20;
 
-        int x = Canvas.Width >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Width - squareSize - margin
+        int x = KernelConsole.Canvas.Mode.Width >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Width - squareSize - margin
             : margin;
-        int y = Canvas.Height >= (uint)(squareSize + margin * 2)
-            ? (int)Canvas.Height - squareSize - margin
+        int y = KernelConsole.Canvas.Mode.Height >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Canvas.Mode.Height - squareSize - margin
             : margin;
 
         int frame = 0;
@@ -534,11 +562,12 @@ public class Kernel : Sys.Kernel
                     byte pb = (byte)((b * factor) / 255);
                     uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
 
-                    Canvas.DrawPixel(pixelColor, x + dx, y + dy);
+                    KernelConsole.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
                 }
             }
 
             frame++;
+            KernelConsole.Canvas.Display();
             System.Threading.Thread.Sleep(100);
         }
     }
@@ -807,7 +836,7 @@ public class Kernel : Sys.Kernel
         dnsClient.SendAsk(domain);
 
         // Wait for response (5 second timeout)
-        Address resolvedIP = dnsClient.Receive(5000);
+        Address? resolvedIP = dnsClient.Receive(5000);
 
         if (resolvedIP != null && resolvedIP.Hash != 0)
         {

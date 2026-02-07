@@ -5,7 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Network.Config;
 
@@ -217,7 +216,7 @@ public class Tcp
     /// <summary>
     /// Gets a TCP connection object that matches the specified local and remote ports and addresses.
     /// </summary>
-    internal static Tcp GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    internal static Tcp? GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
         foreach (var con in Connections)
         {

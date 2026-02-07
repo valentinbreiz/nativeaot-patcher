@@ -1,7 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyboardManager.cs
 
-using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 
@@ -12,6 +12,11 @@ namespace Cosmos.Kernel.System.Keyboard;
 /// </summary>
 public static class KeyboardManager
 {
+    /// <summary>
+    /// Whether keyboard support is enabled. Uses centralized feature flag.
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.KeyboardEnabled;
+
     private static List<IKeyboardDevice>? _keyboards;
     private static Queue<KeyEvent>? _queuedKeys;
     private static ScanMapBase? _scanMap;
@@ -52,12 +57,20 @@ public static class KeyboardManager
     /// </summary>
     public static bool KeyAvailable => _queuedKeys != null && _queuedKeys.Count > 0;
 
+    private static void ThrowIfDisabled()
+    {
+        if (!IsEnabled)
+            throw new InvalidOperationException("Keyboard support is disabled. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+    }
+
     /// <summary>
     /// Initializes the keyboard manager.
     /// Call RegisterKeyboard() after this to add keyboards.
     /// </summary>
     public static void Initialize()
     {
+        ThrowIfDisabled();
+
         if (_initialized)
             return;
 
@@ -78,6 +91,9 @@ public static class KeyboardManager
 
         keyboard.OnKeyPressed = HandleScanCode;
         _keyboards.Add(keyboard);
+
+        // Enable keyboard after callback is set (this registers IRQ handler)
+        keyboard.Enable();
 
         Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] Registered keyboard, total: ");
         Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
@@ -156,6 +172,21 @@ public static class KeyboardManager
     }
 
     /// <summary>
+    /// Returns the KeyEvent at the beginning of the key queue without removing it.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static KeyEvent Peek()
+    {
+        if (_queuedKeys == null)
+        {
+            throw new InvalidOperationException("KeyboardManager not initialized!");
+        }
+
+        return _queuedKeys.Peek();
+    }
+
+    /// <summary>
     /// Attempts to convert the given physical key scan-code to a KeyEvent.
     /// </summary>
     public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)
@@ -174,6 +205,8 @@ public static class KeyboardManager
     /// </summary>
     public static bool TryReadKey(out KeyEvent? key)
     {
+        ThrowIfDisabled();
+
         if (_queuedKeys != null && _queuedKeys.Count > 0)
         {
             key = _queuedKeys.Dequeue();
@@ -191,6 +224,8 @@ public static class KeyboardManager
     /// </summary>
     public static KeyEvent ReadKey()
     {
+        ThrowIfDisabled();
+
         if (!_readKeyEntered)
         {
             _readKeyEntered = true;

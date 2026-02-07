@@ -6,7 +6,6 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Input;
 
@@ -24,8 +23,11 @@ public class PS2Keyboard : KeyboardDevice
         Reset = 0xFF
     }
 
-    // Static callback for key events (set by KeyboardManager)
-    public static KeyPressedHandler? KeyCallback;
+    // Static reference to the first keyboard instance (for IRQ handler)
+    private static PS2Keyboard? _instance;
+
+    // Flag to prevent multiple IRQ registrations
+    private static bool _irqRegistered;
 
     /// <summary>
     /// Registers IRQ handler for keyboard interrupts.
@@ -104,6 +106,12 @@ public class PS2Keyboard : KeyboardDevice
 
         Serial.WriteString("[PS2Keyboard] Initialized (scanning will be enabled later)\n");
 
+        // Store first keyboard instance for IRQ handler
+        if (_instance == null)
+        {
+            _instance = this;
+        }
+
         UpdateLeds();
     }
 
@@ -128,9 +136,10 @@ public class PS2Keyboard : KeyboardDevice
             scanCode = (byte)(scanCode ^ 0x80);
         }
 
-        if (KeyCallback != null)
+        // Use the instance's OnKeyPressed callback (set by KeyboardManager.RegisterKeyboard)
+        if (_instance?.OnKeyPressed != null)
         {
-            KeyCallback.Invoke(scanCode, released);
+            _instance.OnKeyPressed.Invoke(scanCode, released);
         }
 
         // EOI is sent by InterruptManager.Dispatch after this handler returns
@@ -166,10 +175,19 @@ public class PS2Keyboard : KeyboardDevice
     public override bool KeyAvailable => (Native.IO.Read8(PS2Ports.Status) & 0x01) != 0;
 
     /// <summary>
-    /// Enable keyboard scanning.
+    /// Enable keyboard scanning and register IRQ handler if not already done.
+    /// Called by KeyboardManager after OnKeyPressed callback is set.
     /// </summary>
     public override void Enable()
     {
+        // Register IRQ handler on first Enable() call (after callback is set)
+        if (!_irqRegistered)
+        {
+            RegisterIRQHandler();
+            _irqRegistered = true;
+            return;
+        }
+
         _controller.WaitToWrite();
         Native.IO.Write8(PS2Ports.Data, (byte)Command.EnableScanning);
         _controller.WaitForAck();

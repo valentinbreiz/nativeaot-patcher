@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -9,7 +7,6 @@ using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.TCP;
-using Cosmos.Kernel.System.Network.IPv4.UDP;
 using KernelEndPoint = Cosmos.Kernel.System.Network.IPv4.EndPoint;
 using KernelUdpClient = Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient;
 
@@ -49,7 +46,7 @@ public static class SocketPlug
     public static void CheckSocket(Socket aThis, SocketType socketType, ProtocolType protocolType)
     {
         Serial.WriteString("[SocketPlug] CheckSocket called\n");
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         Serial.WriteString("[SocketPlug] GetId returned: ");
         Serial.WriteNumber(id);
         Serial.WriteString("\n");
@@ -84,7 +81,7 @@ public static class SocketPlug
     [PlugMember("get_Connected")]
     public static bool get_Connected(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_protocolTypes.TryGetValue(id, out var proto))
         {
             if (proto == ProtocolType.Tcp)
@@ -106,7 +103,7 @@ public static class SocketPlug
     [PlugMember("get_Available")]
     public static int get_Available(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto))
         {
             return 0;
@@ -132,18 +129,18 @@ public static class SocketPlug
     }
 
     [PlugMember("get_LocalEndPoint")]
-    public static global::System.Net.EndPoint get_LocalEndPoint(Socket aThis)
+    public static global::System.Net.EndPoint? get_LocalEndPoint(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_localEndPoints.TryGetValue(id, out var ep))
             return ep;
         return null;
     }
 
     [PlugMember("get_RemoteEndPoint")]
-    public static global::System.Net.EndPoint get_RemoteEndPoint(Socket aThis)
+    public static global::System.Net.EndPoint? get_RemoteEndPoint(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_remoteEndPoints.TryGetValue(id, out var ep))
             return ep;
         return null;
@@ -152,7 +149,7 @@ public static class SocketPlug
     [PlugMember]
     public static bool Poll(Socket aThis, int microSeconds, SelectMode mode)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_protocolTypes.TryGetValue(id, out var proto))
         {
             if (proto == ProtocolType.Tcp)
@@ -176,7 +173,7 @@ public static class SocketPlug
     [PlugMember]
     public static void Bind(Socket aThis, global::System.Net.EndPoint localEP)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         var ipep = localEP as IPEndPoint;
         _endpoints[id] = ipep;
         _localEndPoints[id] = ipep;
@@ -195,7 +192,7 @@ public static class SocketPlug
     [PlugMember]
     public static void Listen(Socket aThis, int backlog)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_protocolTypes.TryGetValue(id, out var proto) && proto == ProtocolType.Tcp)
         {
             StartTcp(aThis);
@@ -204,7 +201,7 @@ public static class SocketPlug
 
     public static void StartTcp(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_endpoints.TryGetValue(id, out var ep) || ep == null)
         {
             Serial.WriteString("[SocketPlug] Socket not bound\n");
@@ -222,7 +219,7 @@ public static class SocketPlug
     [PlugMember]
     public static Socket Accept(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
@@ -249,7 +246,7 @@ public static class SocketPlug
     [PlugMember]
     public static void Connect(Socket aThis, IPAddress address, int port)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto))
         {
             throw new InvalidOperationException("Socket not initialized");
@@ -267,7 +264,7 @@ public static class SocketPlug
 
     public static void ConnectUdp(Socket aThis, IPAddress address, int port)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         // Create UDP client if not exists
         if (!_udpClients.TryGetValue(id, out var client))
@@ -292,7 +289,7 @@ public static class SocketPlug
 
     public static void ConnectTcp(Socket aThis, IPAddress address, int port)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         // Create endpoint if not bound
         if (!_endpoints.ContainsKey(id))
@@ -367,7 +364,7 @@ public static class SocketPlug
     [PlugMember]
     public static int Send(Socket aThis, byte[] buffer, int offset, int size, SocketFlags socketFlags)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto))
         {
             throw new InvalidOperationException("Socket not initialized");
@@ -385,7 +382,7 @@ public static class SocketPlug
 
     public static int SendUdp(Socket aThis, byte[] buffer, int offset, int size)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_udpClients.TryGetValue(id, out var client))
         {
             throw new InvalidOperationException("UDP socket not connected");
@@ -406,7 +403,7 @@ public static class SocketPlug
     public static int SendTcp(Socket aThis, byte[] buffer, int offset, int size)
     {
         Serial.WriteString("[SocketPlug] SendTcp: entering\n");
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
             Serial.WriteString("[SocketPlug] Must establish a connection before sending data.\n");
@@ -437,7 +434,7 @@ public static class SocketPlug
             byte[] data = new byte[size];
             Buffer.BlockCopy(buffer, offset, data, 0, size);
 
-            var chunks = ArraySplit(data, 536);
+            byte[][] chunks = ArraySplit(data, 536);
 
             for (int i = 0; i < chunks.Length; i++)
             {
@@ -512,7 +509,7 @@ public static class SocketPlug
     [PlugMember]
     public static int SendTo(Socket aThis, byte[] buffer, int offset, int size, SocketFlags socketFlags, global::System.Net.EndPoint remoteEP)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto) || proto != ProtocolType.Udp)
         {
             throw new InvalidOperationException("SendTo only supported for UDP sockets");
@@ -568,7 +565,7 @@ public static class SocketPlug
     [PlugMember]
     public static int Receive(Socket aThis, byte[] buffer, int offset, int size, SocketFlags socketFlags)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto))
         {
             throw new InvalidOperationException("Socket not initialized");
@@ -586,7 +583,7 @@ public static class SocketPlug
 
     public static int ReceiveUdp(Socket aThis, byte[] buffer, int offset, int size)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_udpClients.TryGetValue(id, out var client))
         {
             throw new InvalidOperationException("UDP socket not initialized");
@@ -625,7 +622,7 @@ public static class SocketPlug
 
     public static int ReceiveTcp(Socket aThis, byte[] buffer, int offset, int size)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
             Serial.WriteString("[SocketPlug] Must establish a connection before receiving data.\n");
@@ -684,7 +681,7 @@ public static class SocketPlug
     [PlugMember]
     public static int ReceiveFrom(Socket aThis, byte[] buffer, int offset, int size, SocketFlags socketFlags, ref global::System.Net.EndPoint remoteEP)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_protocolTypes.TryGetValue(id, out var proto) || proto != ProtocolType.Udp)
         {
             throw new InvalidOperationException("ReceiveFrom only supported for UDP sockets");
@@ -738,7 +735,7 @@ public static class SocketPlug
     [PlugMember]
     public static void Close(Socket aThis, int timeout)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
 
         if (_protocolTypes.TryGetValue(id, out var proto))
         {
@@ -756,7 +753,7 @@ public static class SocketPlug
 
     public static void CloseUdp(Socket aThis)
     {
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (_udpClients.TryGetValue(id, out var client))
         {
             client.Close();
@@ -770,7 +767,7 @@ public static class SocketPlug
     public static void CloseTcp(Socket aThis, int timeout)
     {
         Serial.WriteString("[SocketPlug] CloseTcp: entering\n");
-        var id = GetId(aThis);
+        int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
             Serial.WriteString("[SocketPlug] CloseTcp: no state machine found, returning\n");

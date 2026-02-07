@@ -64,6 +64,13 @@
       </CandidateAssemblies>
     </ItemGroup>
 
+    <!-- Include RID-specific assemblies from Cosmos multi-arch packages -->
+    <ItemGroup Condition="'@(CosmosMultiArchReference)' != ''">
+      <CandidateAssemblies Include="@(CosmosMultiArchReference)">
+        <PatcherOutputPath>$(IntermediateOutputPath)/cosmos/ref/%(Filename).dll</PatcherOutputPath>
+      </CandidateAssemblies>
+    </ItemGroup>
+
     <!-- Filter references to find plug assemblies based on PlugReference assembly names -->
     <ItemGroup>
       <!-- Always include the main assembly as a plug -->
@@ -153,6 +160,13 @@
 
     <Copy SourceFiles="@(AssembliesToCopy)"
           DestinationFiles="@(AssembliesToCopy->'%(PatcherOutputPath)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- Copy PDB files for debug symbols -->
+    <!-- Copy main assembly PDB to cosmos folder -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pdb"
+          DestinationFiles="$(IntermediateOutputPath)/cosmos/$(AssemblyName)_patched.pdb"
+          Condition="Exists('$(OutputPath)$(AssemblyName).pdb')"
           SkipUnchangedFiles="true" />
   </Target>
 

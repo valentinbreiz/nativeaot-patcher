@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Tool configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>cosmos</ToolCommandName>
+    <PackageOutputPath>../../artifacts/package/release</PackageOutputPath>
+
+    <!-- Package metadata -->
+    <PackageId>Cosmos.Tools</PackageId>
+    <Version>3.0.36</Version>
+    <Title>Cosmos Development Tools</Title>
+    <Description>CLI tools for Cosmos kernel development. Includes tool checking, installation, project creation, building, and QEMU integration.</Description>
+    <PackageTags>cosmos;kernel;os;tools;cli;qemu;nativeaot</PackageTags>
+    <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>CosmosOS</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console.Cli" />
+  </ItemGroup>
+
+</Project>

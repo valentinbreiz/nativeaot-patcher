@@ -88,16 +88,28 @@ _native_arm64_exception_vectors:
 // ============================================================================
 __exception_common:
     // On entry: x0 = interrupt type, original x0/x1 saved at [sp] by vector entry
+    
+    // Allocate stack for NEON registers Q0-Q31 (32 * 16 = 512 bytes)
+    // Plus IRQContext (296 bytes) = 816 bytes total (aligned)
+    sub     sp, sp, #816
+
+    // Save caller-saved registers that we need to use/clobber IMMEDIATELY
+    // We use SP offsets because x10 is not set up yet
+    str     x9, [sp, #584]      // x9 at offset 512 + 72
+    str     x10, [sp, #592]     // x10 at offset 512 + 80
+    str     x11, [sp, #600]     // x11 at offset 512 + 88
+    str     x12, [sp, #608]     // x12 at offset 512 + 96
+
+    // Now we can use x9, x10, x11, x12 safely
+
     // Save interrupt type in x9 (callee-saved)
     mov     x9, x0
 
     // Load original x0, x1 from where vector entry saved them
-    // They're at current sp (the vector did stp x0, x1, [sp, #-16]!)
-    ldp     x11, x12, [sp], #16     // x11 = original x0, x12 = original x1, and pop
-
-    // Allocate stack for NEON registers Q0-Q31 (32 * 16 = 512 bytes)
-    // Plus IRQContext (296 bytes) = 816 bytes total (aligned)
-    sub     sp, sp, #816
+    // They are at sp + 816 (since we subbed 816)
+    // ldp has a limited range (-512 to 504), so use two ldr instead
+    ldr     x11, [sp, #816]          // x11 = original x0
+    ldr     x12, [sp, #824]          // x12 = original x1
 
     // Save NEON/SIMD registers Q0-Q31 at bottom of stack (offsets 0-511)
     stp     q0, q1, [sp, #0]
@@ -128,11 +140,12 @@ __exception_common:
     stp     x2, x3, [x10, #16]      // x2,x3 at offset 16,24
     stp     x4, x5, [x10, #32]      // x4,x5 at offset 32,40
     stp     x6, x7, [x10, #48]      // x6,x7 at offset 48,56
-    stp     x8, x9, [x10, #64]      // x8,x9 at offset 64,72 (x9 has interrupt type)
-    // x10 is our base pointer, x11/x12 were used for original x0/x1 - store 0
-    str     xzr, [x10, #80]         // x10 at offset 80 (clobbered)
-    str     xzr, [x10, #88]         // x11 at offset 88 (clobbered)
-    str     xzr, [x10, #96]         // x12 at offset 96 (clobbered)
+    
+    // Save x8. x9 is already saved (original) so don't overwrite it!
+    str     x8, [x10, #64]          // x8 at offset 64
+    
+    // x10, x11, x12 are already saved (original). Do NOT overwrite them with xzr!
+    
     stp     x13, x14, [x10, #104]   // x13,x14 at offset 104,112
     stp     x15, x16, [x10, #120]   // x15,x16 at offset 120,128
     stp     x17, x18, [x10, #136]   // x17,x18 at offset 136,144
@@ -144,7 +157,8 @@ __exception_common:
     stp     x29, x30, [x10, #232]   // x29,x30 at offset 232,240
 
     // Save sp (original sp before we modified it)
-    add     x0, sp, #816
+    // We subbed 816. The vector pushed 16. So original SP is sp + 832.
+    add     x0, sp, #832
     str     x0, [x10, #248]         // sp at offset 248
 
     // Save elr_el1 (exception return address)
@@ -227,7 +241,7 @@ __restore_context:
     ldp     x4, x5, [x10, #32]
     ldp     x6, x7, [x10, #48]
     ldp     x8, x9, [x10, #64]
-    // Skip x10 restore (it's our base pointer)
+    // Skip x10 restore (it's our base pointer) - we restore it LAST
     ldp     x11, x12, [x10, #88]
     ldp     x13, x14, [x10, #104]
     ldp     x15, x16, [x10, #120]
@@ -260,8 +274,12 @@ __restore_context:
     ldp     q28, q29, [sp, #448]
     ldp     q30, q31, [sp, #480]
 
+    // Restore x10 (which was used as base pointer)
+    ldr     x10, [sp, #592]
+
     // Deallocate stack
-    add     sp, sp, #816
+    // We subbed 816, and the vector pushed 16. Total 832.
+    add     sp, sp, #832
 
     eret
 

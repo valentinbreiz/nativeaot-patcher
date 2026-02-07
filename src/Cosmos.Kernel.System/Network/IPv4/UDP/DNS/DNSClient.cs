@@ -52,7 +52,7 @@ public class DnsClient : UdpClient
     /// </summary>
     /// <param name="timeout">The timeout value - by default 5000ms.</param>
     /// <returns>The address corresponding to the previously specified domain name.</returns>
-    public Address Receive(int timeout = 5000)
+    public Address? Receive(int timeout = 5000)
     {
         // Wait in 100ms intervals, checking for data each time
         int waited = 0;

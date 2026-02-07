@@ -1,41 +1,18 @@
 using System.Runtime.InteropServices;
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Runtime;
+using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Graphics;
-using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.Core.CPU;
-
-#if ARCH_X64
-using Cosmos.Kernel.HAL.Acpi;
-using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.X64;
-using Cosmos.Kernel.HAL.X64.Devices.Clock;
-using Cosmos.Kernel.HAL.X64.Devices.Input;
-using Cosmos.Kernel.HAL.X64.Devices.Network;
-using Cosmos.Kernel.HAL.X64.Devices.Timer;
-using Cosmos.Kernel.HAL.X64.Cpu;
-using Cosmos.Kernel.HAL.X64.Pci;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Core.Scheduler.Stride;
-#elif ARCH_ARM64
-using Cosmos.Kernel.HAL.ARM64;
-using Cosmos.Kernel.HAL.ARM64.Cpu;
-using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
-using Cosmos.Kernel.HAL.ARM64.Devices.Input;
-using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.System.Timer;
-using Cosmos.Kernel.System.Keyboard;
-using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Core.Scheduler.Stride;
-#endif
 
 namespace Cosmos.Kernel;
 
@@ -45,7 +22,7 @@ public class Kernel
     public const int VersionMajor = 3;
     public const int VersionMinor = 0;
     public const int VersionPatch = 0;
-    public const string VersionString = "3.0.0";
+    public const string VersionString = "3.0.36";
     public const string Codename = "gen3";
 
     /// <summary>
@@ -63,21 +40,6 @@ public class Kernel
         Serial.WriteString(Codename);
         Serial.WriteString(") - Managed runtime active\n");
 
-        // Display architecture
-        Serial.WriteString("[KERNEL]   - Architecture: ");
-        if (PlatformHAL.Architecture == PlatformArchitecture.X64)
-        {
-            Serial.WriteString("x86-64\n");
-        }
-        else if (PlatformHAL.Architecture == PlatformArchitecture.ARM64)
-        {
-            Serial.WriteString("ARM64/AArch64\n");
-        }
-        else
-        {
-            Serial.WriteString("Unknown\n");
-        }
-
         // Initialize heap for memory allocations
         Serial.WriteString("[KERNEL]   - Initializing heap...\n");
         MemoryOp.InitializeHeap(0, 0);
@@ -86,184 +48,91 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
         ManagedModule.InitializeModules();
 
+        // Get the platform initializer (registered by HAL.X64 or HAL.ARM64 module initializer)
+        var initializer = PlatformHAL.Initializer;
+        if (initializer == null)
+        {
+            Serial.WriteString("[KERNEL] ERROR: No platform initializer registered!\n");
+            Serial.WriteString("[KERNEL] Make sure Cosmos.Kernel.HAL.X64 or HAL.ARM64 is referenced.\n");
+            while (true) { }
+        }
+
+        // Display architecture
+        Serial.WriteString("[KERNEL]   - Architecture: ");
+        Serial.WriteString(initializer.PlatformName);
+        Serial.WriteString("\n");
+
         // Initialize platform-specific HAL
         Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
-#if ARCH_X64
-        PlatformHAL.Initialize(new X64PlatformInitializer());
-#elif ARCH_ARM64
-        PlatformHAL.Initialize(new ARM64PlatformInitializer());
-#endif
+        PlatformHAL.Initialize(initializer);
 
         // Initialize interrupts
         Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
-#if ARCH_X64
-        InterruptManager.Initialize(new X64InterruptController());
-#elif ARCH_ARM64
-        InterruptManager.Initialize(new ARM64InterruptController());
-#endif
+        InterruptManager.Initialize(initializer.CreateInterruptController());
 
         // Initialize exception handlers (must be after InterruptManager)
         Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
         ExceptionHandler.Initialize();
 
-#if ARCH_X64
-        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
-        PciManager.Setup();
+        // Initialize platform-specific hardware (PCI, ACPI, APIC, GIC, timers, etc.)
+        Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
+        initializer.InitializeHardware();
 
-        // Retrieve and display ACPI MADT information (initialized during early boot)
-        Serial.WriteString("[KERNEL]   - Displaying ACPI MADT info...\n");
-        Acpi.DisplayMadtInfo();
-
-        // Initialize APIC (Advanced Programmable Interrupt Controller)
-        Serial.WriteString("[KERNEL]   - Initializing APIC...\n");
-        ApicManager.Initialize();
-
-        // Calibrate TSC frequency using LAPIC timer (already calibrated during APIC init)
-        Serial.WriteString("[KERNEL]   - Calibrating TSC frequency...\n");
-        X64CpuOps.CalibrateTsc();
-        Serial.WriteString("[KERNEL]   - TSC frequency: ");
-        Serial.WriteNumber((ulong)X64CpuOps.TscFrequency);
-        Serial.WriteString(" Hz\n");
-
-        // Initialize RTC for DateTime support (after TSC calibration)
-        Serial.WriteString("[KERNEL]   - Initializing RTC...\n");
-        var rtc = new RTC();
-        rtc.Initialize();
-
-        // Initialize PIT (Programmable Interval Timer)
-        Serial.WriteString("[KERNEL]   - Initializing PIT...\n");
-        var pit = new PIT();
-        pit.Initialize();
-        pit.RegisterIRQHandler();
+        // Initialize Timer Manager and register platform timer
+        Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
         TimerManager.Initialize();
-        TimerManager.RegisterTimer(pit);
-
-        // Initialize Scheduler
-        Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
-        InitializeScheduler();
-
-        // Register LAPIC timer handler (but don't start yet - wait for all init to complete)
-        Serial.WriteString("[KERNEL]   - Registering LAPIC timer handler...\n");
-        LocalApic.RegisterTimerHandler();
-
-        InternalCpu.DisableInterrupts();
-
-        // Initialize PS/2 Controller BEFORE enabling keyboard IRQ
-        Serial.WriteString("[KERNEL]   - Initializing PS/2 controller...\n");
-        var ps2Controller = new PS2Controller();
-        ps2Controller.Initialize();
-
-        // Initialize Keyboard Manager
-        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
-        KeyboardManager.Initialize();
-
-        // Register keyboards with KeyboardManager
-        var keyboards = PS2Controller.GetKeyboardDevices();
-        foreach (var keyboard in keyboards)
-        {
-            KeyboardManager.RegisterKeyboard(keyboard);
-        }
-
-        // Set static callback for PS2 keyboard IRQ handler
-        PS2Keyboard.KeyCallback = KeyboardManager.HandleScanCode;
-
-        // Register keyboard IRQ handler (this also routes IRQ1 through APIC)
-        Serial.WriteString("[KERNEL]   - Registering keyboard IRQ handler...\n");
-        PS2Keyboard.RegisterIRQHandler();
-
-        // Initialize Network Manager
-        Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
-        NetworkManager.Initialize();
-
-        // Try to find and initialize E1000E network device
-        Serial.WriteString("[KERNEL]   - Looking for E1000E network device...\n");
-        var e1000e = E1000E.FindAndCreate();
-        if (e1000e != null)
-        {
-            Serial.WriteString("[KERNEL]   - E1000E device found, initializing...\n");
-            e1000e.InitializeNetwork();
-            NetworkManager.RegisterDevice(e1000e);
-            e1000e.RegisterIRQHandler();
-        }
-        else
-        {
-            Serial.WriteString("[KERNEL]   - No E1000E device found\n");
-        }
-
-        // Start LAPIC timer for preemptive scheduling (after all init is complete)
-        Serial.WriteString("[KERNEL]   - Starting LAPIC timer for scheduling...\n");
-        LocalApic.StartPeriodicTimer(10);  // 10ms quantum
-#elif ARCH_ARM64
-        // Initialize Generic Timer (ARM64 architected timer)
-        Serial.WriteString("[KERNEL]   - Initializing Generic Timer...\n");
-        var timer = new GenericTimer();
-        timer.Initialize();
-        TimerManager.Initialize();
+        var timer = initializer.CreateTimer();
         TimerManager.RegisterTimer(timer);
 
         // Initialize Scheduler
-        Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
-        InitializeSchedulerARM64();
+        if (SchedulerManager.IsEnabled)
+        {
+            Serial.WriteString("[KERNEL]   - Initializing scheduler...\n");
+            InitializeScheduler(initializer.GetCpuCount());
+        }
 
-        // Register timer interrupt handler
-        Serial.WriteString("[KERNEL]   - Registering timer interrupt handler...\n");
-        timer.RegisterIRQHandler();
-
-        // Disable interrupts during final init
+        // Disable interrupts during device initialization
         InternalCpu.DisableInterrupts();
 
-        // Scan for virtio devices
-        Serial.WriteString("[KERNEL]   - Scanning for virtio devices...\n");
-        VirtioMMIO.ScanDevices();
-
-        // Initialize Keyboard Manager
-        Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
-        KeyboardManager.Initialize();
-
-        // Initialize virtio keyboard
-        Serial.WriteString("[KERNEL]   - Initializing virtio keyboard...\n");
-        var virtioKeyboard = VirtioKeyboard.FindAndCreate();
-        if (virtioKeyboard != null)
+        // Initialize Keyboard Manager and register platform keyboards
+        if (KeyboardManager.IsEnabled)
         {
-            virtioKeyboard.Initialize();
-            if (virtioKeyboard.IsInitialized)
+            Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
+            KeyboardManager.Initialize();
+            var keyboards = initializer.GetKeyboardDevices();
+            foreach (var keyboard in keyboards)
             {
-                KeyboardManager.RegisterKeyboard(virtioKeyboard);
-
-                // Set static callback (mirrors x64 PS2Keyboard pattern)
-                VirtioKeyboard.KeyCallback = KeyboardManager.HandleScanCode;
-
-                virtioKeyboard.RegisterIRQHandler();
-                Serial.WriteString("[KERNEL]   - Virtio keyboard initialized\n");
-            }
-            else
-            {
-                Serial.WriteString("[KERNEL]   - Virtio keyboard initialization failed\n");
+                KeyboardManager.RegisterKeyboard(keyboard);
             }
         }
-        else
+
+        // Initialize Network Manager and register platform network device
+        if (NetworkManager.IsEnabled)
         {
-            Serial.WriteString("[KERNEL]   - No virtio keyboard found\n");
+            Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
+            NetworkManager.Initialize();
+            var networkDevice = initializer.GetNetworkDevice();
+            if (networkDevice != null)
+            {
+                NetworkManager.RegisterDevice(networkDevice);
+            }
         }
 
-        // Start the timer for preemptive scheduling
-        Serial.WriteString("[KERNEL]   - Starting Generic Timer for scheduling...\n");
-        timer.Start();
-#endif
+        // Start scheduler timer for preemptive scheduling (after all init is complete)
+        if (SchedulerManager.IsEnabled)
+        {
+            Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
+            initializer.StartSchedulerTimer(10);  // 10ms quantum
+        }
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
 
-#if ARCH_X64
     /// <summary>
     /// Initializes the scheduler subsystem with idle threads for each CPU.
     /// </summary>
-    private static unsafe void InitializeScheduler()
+    private static void InitializeScheduler(uint cpuCount)
     {
-        // Get CPU count from ACPI MADT
-        var madtInfo = Acpi.GetMadtInfoPtr();
-        uint cpuCount = madtInfo != null ? madtInfo->CpuCount : 1;
-
         Serial.WriteString("[SCHED] Detected ");
         Serial.WriteNumber(cpuCount);
         Serial.WriteString(" CPU(s)\n");
@@ -278,9 +147,6 @@ public class Kernel
         Serial.WriteString("[SCHED] Using ");
         Serial.WriteString(scheduler.Name);
         Serial.WriteString(" scheduler\n");
-
-        // Get code selector for thread initialization
-        ushort cs = (ushort)Idt.GetCurrentCodeSelector();
 
         // Create idle thread for each CPU
         // The idle thread represents the main kernel - no separate stack needed
@@ -316,76 +182,6 @@ public class Kernel
         SchedulerManager.Enabled = true;
         Serial.WriteString("[SCHED] Scheduler enabled\n");
     }
-
-    /// <summary>
-    /// Idle thread entry point - runs when no other threads are ready.
-    /// </summary>
-    [UnmanagedCallersOnly]
-    private static void IdleLoop()
-    {
-        while (true)
-        {
-            // Halt until next interrupt
-            if (PlatformHAL.CpuOps != null)
-            {
-                PlatformHAL.CpuOps.Halt();
-            }
-        }
-    }
-#elif ARCH_ARM64
-    /// <summary>
-    /// Initializes the scheduler subsystem for ARM64 with idle threads.
-    /// </summary>
-    private static unsafe void InitializeSchedulerARM64()
-    {
-        // For now, single CPU
-        uint cpuCount = 1;
-
-        Serial.WriteString("[SCHED] ARM64: Using ");
-        Serial.WriteNumber(cpuCount);
-        Serial.WriteString(" CPU(s)\n");
-
-        // Initialize scheduler manager
-        SchedulerManager.Initialize(cpuCount);
-
-        // Set up stride scheduler
-        var scheduler = new StrideScheduler();
-        SchedulerManager.SetScheduler(scheduler);
-
-        Serial.WriteString("[SCHED] Using ");
-        Serial.WriteString(scheduler.Name);
-        Serial.WriteString(" scheduler\n");
-
-        // Create idle thread for each CPU
-        // The idle thread represents the main kernel - no separate stack needed
-        for (uint cpu = 0; cpu < cpuCount; cpu++)
-        {
-            var idleThread = new Core.Scheduler.Thread
-            {
-                Id = SchedulerManager.AllocateThreadId(),
-                CpuId = cpu,
-                State = Core.Scheduler.ThreadState.Running,  // Already running
-                Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
-            };
-
-            // Register with scheduler (but don't add to run queue)
-            SchedulerManager.CreateThread(cpu, idleThread);
-
-            // Set as CPU's idle and current thread
-            SchedulerManager.SetupIdleThread(cpu, idleThread);
-
-            Serial.WriteString("[SCHED] Idle thread ");
-            Serial.WriteNumber(idleThread.Id);
-            Serial.WriteString(" for CPU ");
-            Serial.WriteNumber(cpu);
-            Serial.WriteString("\n");
-        }
-
-        // Enable scheduler
-        SchedulerManager.Enabled = true;
-        Serial.WriteString("[SCHED] Scheduler enabled\n");
-    }
-#endif
 
     /// <summary>
     /// Halt the CPU using platform-specific implementation.
@@ -523,7 +319,6 @@ public static unsafe class KernelBridge
     }
 }
 
-#if ARCH_X64
 /// <summary>
 /// Wrapper for C code to access managed Limine data (RSDP address)
 /// NOTE: This is a data accessor wrapper - C code gets managed data, then continues in C
@@ -544,4 +339,3 @@ public static unsafe class AcpiBridge
         return null;
     }
 }
-#endif

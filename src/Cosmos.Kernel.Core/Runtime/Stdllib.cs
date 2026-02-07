@@ -1,7 +1,6 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
@@ -243,12 +242,6 @@ namespace Cosmos.Kernel.Core.Runtime
             RhpAssignRef((void**)Unsafe.AsPointer(ref element), actualObjPtr);
         }
 
-        [RuntimeExport("RhpResolveInterfaceMethod")]
-        static unsafe IntPtr RhpResolveInterfaceMethod(object obj, int methodHandle)
-        {
-            return IntPtr.Zero;
-        }
-
         [RuntimeExport("RhCurrentOSThreadId")]
         static ulong RhCurrentOSThreadId()
         {
@@ -317,13 +310,15 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpHandleAlloc")]
         static IntPtr RhpHandleAlloc(object obj, bool fPinned)
         {
-            return IntPtr.Zero;
+            //TODO: Implement GC
+            return (IntPtr)Unsafe.AsPointer(ref obj);
         }
 
         [RuntimeExport("RhpHandleAllocDependent")]
         static IntPtr RhpHandleAllocDependent(IntPtr primary, object secondary)
         {
-            return IntPtr.Zero;
+            //TODO: Implement GC
+            return primary;
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]
@@ -372,6 +367,24 @@ namespace Cosmos.Kernel.Core.Runtime
         static IntPtr RhGetTargetOfUnboxingAndInstantiatingStub(IntPtr pCode)
         {
             return pCode;
+        }
+
+        [RuntimeExport("RhSpanHelpers_MemZero")]
+        static unsafe void RhSpanHelpers_MemZero(byte* dest, nuint len)
+        {
+            MemoryOp.MemSet(dest, 0, (int)len);
+        }
+
+        [RuntimeExport("RhpDbl2Lng")]
+        static long RhpDbl2Lng(double value)
+        {
+            return (long)value;
+        }
+
+        [RuntimeExport("RhpDbl2Int")]
+        static int RhpDbl2Int(double value)
+        {
+            return (int)value;
         }
 
         private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
@@ -429,22 +442,12 @@ namespace Cosmos.Kernel.Core.Runtime
                 static void RhWaitForPendingFinalizers() { }
                 [RuntimeExport("RhGetMemoryInfo")]
                 static void RhGetMemoryInfo(IntPtr pMemInfo) { }
-                [RuntimeExport("cos")]
-                static double cos(double x) { throw null; }
-                [RuntimeExport("sin")]
-                static double sin(double x) { throw null; }
-                [RuntimeExport("tan")]
-                static double tan(double x) { throw null; }
-                [RuntimeExport("pow")]
-                static double pow(double x, double y) { throw null; }
                 [RuntimeExport("RhTypeCast_IsInstanceOfAny")]
                 static unsafe object RhTypeCast_IsInstanceOfAny(object obj, int* pTypeHandles, int count) { throw null; }
                 [RuntimeExport("RhUnbox")]
                 static unsafe void* RhUnbox(object obj) { throw null; }
                 [RuntimeExport("RhTypeCast_CheckArrayStore")]
                 static unsafe void RhTypeCast_CheckArrayStore(object array, object value) { }
-                [RuntimeExport("RhpResolveInterfaceMethod")]
-                static unsafe IntPtr RhpResolveInterfaceMethod(object obj, int methodHandle) { throw null; }
                 [RuntimeExport("RhCurrentOSThreadId")]
                 static int RhCurrentOSThreadId() { throw null; }
                 [RuntimeExport("RhGetCrashInfoBuffer")]

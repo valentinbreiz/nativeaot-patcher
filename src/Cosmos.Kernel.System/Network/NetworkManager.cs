@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Network;
@@ -9,6 +10,17 @@ namespace Cosmos.Kernel.System.Network;
 /// </summary>
 public static class NetworkManager
 {
+    /// <summary>
+    /// Whether network support is enabled. Uses centralized feature flag.
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.NetworkEnabled;
+
+    private static void ThrowIfDisabled()
+    {
+        if (!IsEnabled)
+            throw new InvalidOperationException("Network support is disabled. Set CosmosEnableNetwork=true in your csproj to enable it.");
+    }
+
     private static INetworkDevice? _primaryDevice;
     private static INetworkDevice?[]? _devices;
     private static int _deviceCount;
@@ -34,6 +46,8 @@ public static class NetworkManager
     /// </summary>
     public static void Initialize()
     {
+        ThrowIfDisabled();
+
         if (_initialized)
             return;
 
@@ -67,6 +81,8 @@ public static class NetworkManager
     /// <returns>The network device, or null if not found.</returns>
     public static INetworkDevice? GetDevice(int index)
     {
+        ThrowIfDisabled();
+
         if (_devices == null || index < 0 || index >= _deviceCount)
             return null;
 
@@ -81,6 +97,7 @@ public static class NetworkManager
     /// <returns>True if the packet was sent successfully.</returns>
     public static bool Send(byte[] data, int length)
     {
+        ThrowIfDisabled();
         return _primaryDevice?.Send(data, length) ?? false;
     }
 

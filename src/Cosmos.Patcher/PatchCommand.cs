@@ -59,8 +59,22 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
         try
         {
-            AssemblyDefinition targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
-            logger.Info($"Loaded target assembly: {settings.TargetAssembly}");
+            // Read with symbols to preserve debug info
+            var readerParams = new Mono.Cecil.ReaderParameters { ReadSymbols = true };
+            AssemblyDefinition targetAssembly;
+            bool hasSymbols = false;
+            try
+            {
+                targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly, readerParams);
+                hasSymbols = true;
+                logger.Info($"Loaded target assembly with symbols: {settings.TargetAssembly}");
+            }
+            catch
+            {
+                // Fallback without symbols if PDB not found
+                targetAssembly = AssemblyDefinition.ReadAssembly(settings.TargetAssembly);
+                logger.Info($"Loaded target assembly (no symbols): {settings.TargetAssembly}");
+            }
 
             AssemblyDefinition[] plugAssemblies = [.. plugPaths.Select(AssemblyDefinition.ReadAssembly)];
             PlatformArchitecture targetPlatform = Enum.Parse<PlatformArchitecture>(settings.TargetPlatform.ToUpperInvariant());
@@ -77,7 +91,16 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
                                    Path.GetDirectoryName(settings.TargetAssembly)!,
                                    Path.GetFileNameWithoutExtension(settings.TargetAssembly) + "_patched.dll");
 
-            targetAssembly.Write(finalPath);
+            // Write with symbols if we read them
+            if (hasSymbols)
+            {
+                var writerParams = new Mono.Cecil.WriterParameters { WriteSymbols = true };
+                targetAssembly.Write(finalPath, writerParams);
+            }
+            else
+            {
+                targetAssembly.Write(finalPath);
+            }
 
             logger.Info($"Patched assembly saved to: {finalPath}");
             logger.Info("Patching completed successfully.");

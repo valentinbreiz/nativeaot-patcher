@@ -1,8 +1,18 @@
-<Project>  
+<Project>
   <Target Name="GetGCC" Condition="'$(OS)' == 'Windows_NT'">
-    <!-- Always use x86_64-elf-gcc as the tool path -->
     <PropertyGroup>
-      <GCCPath>x86_64-elf-gcc</GCCPath>
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">
+        $([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])
+      </TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">
+        $(CosmosArch)
+      </TargetArchitecture>
+    </PropertyGroup>
+
+    <!-- Select GCC based on target architecture -->
+    <PropertyGroup>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">x86_64-elf-gcc</GCCPath>
+      <GCCPath Condition="'$(TargetArchitecture)' == 'arm64'">aarch64-none-elf-gcc</GCCPath>
     </PropertyGroup>
 
     <Message Text="Using GCC for kernel compilation: $(GCCPath)" Importance="High" />

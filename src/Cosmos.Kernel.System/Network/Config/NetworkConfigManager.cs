@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.IPv4;
 
@@ -12,7 +11,7 @@ public static class NetworkConfigManager
     /// <summary>
     /// The current network configuration used by the network stack.
     /// </summary>
-    public static NetworkConfigEntry CurrentNetworkConfig { get; set; }
+    public static NetworkConfigEntry? CurrentNetworkConfig { get; set; }
 
     /// <summary>
     /// The current network configuration list used by the network stack.
@@ -81,7 +80,7 @@ public static class NetworkConfigManager
     /// Get the IPv4 configuration for the given network device.
     /// </summary>
     /// <param name="device">Network device.</param>
-    public static IPConfig Get(INetworkDevice device)
+    public static IPConfig? Get(INetworkDevice device)
     {
         foreach (var networkConfig in NetworkConfigs)
         {
@@ -100,7 +99,7 @@ public static class NetworkConfigManager
     /// <param name="key">The target network device.</param>
     public static void Remove(INetworkDevice key)
     {
-        NetworkConfigEntry toRemove = null;
+        NetworkConfigEntry? toRemove = null;
         foreach (var networkConfig in NetworkConfigs)
         {
             if (key == networkConfig.Device)

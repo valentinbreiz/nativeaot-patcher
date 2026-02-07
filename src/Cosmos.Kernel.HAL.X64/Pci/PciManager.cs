@@ -7,7 +7,7 @@ namespace Cosmos.Kernel.HAL.X64.Pci;
 
 public class PciManager
 {
-    public static PciDevice[] Devices;
+    public static PciDevice[]? Devices;
 
     public static uint Count = 0;
 

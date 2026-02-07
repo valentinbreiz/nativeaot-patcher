@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Text.Unicode;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Utilities;
 using Internal.NativeFormat;

@@ -4,13 +4,16 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Cosmos.Build.Asm" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Build.Common" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Build.GCC" Version="3.0.4" />
-    <PackageVersion Include="Cosmos.Build.Ilc" Version="3.0.3" />
-    <PackageVersion Include="Cosmos.Build.Patcher" Version="3.0.1" />
-    <PackageVersion Include="Cosmos.Kernel.Native.x64" Version="3.0.0" />
-    <PackageVersion Include="Cosmos.Kernel.Native.ARM64" Version="3.0.0" />
+    <PackageVersion Include="Cosmos.Build.Asm" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Build.Common" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Build.GCC" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Build.Ilc" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Build.Patcher" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.Native.x64" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.Native.ARM64" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.Native.MultiArch" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.HAL.X64" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.36" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="log4net" Version="3.0.3" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />

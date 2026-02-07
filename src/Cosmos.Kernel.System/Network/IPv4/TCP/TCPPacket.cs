@@ -5,8 +5,6 @@
 *                   Port of Cosmos Code.
 */
 
-using System;
-using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.Network.IPv4.TCP;
@@ -54,7 +52,7 @@ public class TCPOption
 {
     public byte Kind { get; set; }
     public byte Length { get; set; }
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 }
 
 /// <summary>

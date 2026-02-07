@@ -1,41 +1,41 @@
 <Solution>
-  <Folder Name="/examples/">
-    <Project Path="examples\DevKernel\DevKernel.csproj" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj" />
-    <Project Path="src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
-    <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj" />
-    <Project Path="src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj" />
-    <Project Path="src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj" />
-    <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj" />
-    <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj" />
-    <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj" />
-    <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj" />
-    <Project Path="src/Cosmos.Kernel.Graphics/Cosmos.Kernel.Graphics.csproj" />
-    <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
-    <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
-    <Project Path="src\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" Type="C#" />
-  </Folder>
-  <Folder Name="/src/Build/">
-    <Project Path="src/Cosmos.Build.Analyzer.Patcher.CodeFixes/Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj" />
-    <Project Path="src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj" />
-    <Project Path="src/Cosmos.Build.Analyzer.Patcher/Cosmos.Build.Analyzer.Patcher.csproj" />
-    <Project Path="src/Cosmos.Build.API/Cosmos.Build.API.csproj" />
-    <Project Path="src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj" />
-    <Project Path="src/Cosmos.Build.Common/Cosmos.Build.Common.csproj" />
-    <Project Path="src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" />
-    <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj" />
-    <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj" />
-    <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" />
-    <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" />
-    <Project Path="src\Cosmos.Build.GCC\Cosmos.Build.GCC.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests\Cosmos.Tests.Build.Analyzer.Patcher\Cosmos.Tests.Build.Analyzer.Patcher.csproj" />
-    <Project Path="tests\Cosmos.Tests.Build.Asm\Cosmos.Tests.Build.Asm.csproj" />
-    <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" />
-    <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj" />
-    <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj" />
-  </Folder>
+    <Folder Name="/examples/">
+        <Project Path="examples\DevKernel\DevKernel.csproj"/>
+    </Folder>
+    <Folder Name="/src/">
+        <Project Path="src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj"/>
+        <Project Path="src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj"/>
+        <Project Path="src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj"/>
+        <Project Path="src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj"/>
+        <Project Path="src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj"/>
+        <Project Path="src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj"/>
+        <Project Path="src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj"/>
+        <Project Path="src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj"/>
+        <Project Path="src/Cosmos.Kernel.Plugs/Cosmos.Kernel.Plugs.csproj"/>
+        <Project Path="src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj"/>
+        <Project Path="src/Cosmos.Kernel/Cosmos.Kernel.csproj"/>
+        <Project Path="src\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" Type="C#"/>
+    </Folder>
+    <Folder Name="/src/Build/">
+        <Project Path="src/Cosmos.Build.Analyzer.Patcher.CodeFixes/Cosmos.Build.Analyzer.Patcher.CodeFixes.csproj"/>
+        <Project Path="src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj"/>
+        <Project Path="src/Cosmos.Build.Analyzer.Patcher/Cosmos.Build.Analyzer.Patcher.csproj"/>
+        <Project Path="src/Cosmos.Build.API/Cosmos.Build.API.csproj"/>
+        <Project Path="src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj"/>
+        <Project Path="src/Cosmos.Build.Common/Cosmos.Build.Common.csproj"/>
+        <Project Path="src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj"/>
+        <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj"/>
+        <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj"/>
+        <Project Path="src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj"/>
+        <Project Path="src/Cosmos.Tools/Cosmos.Tools.csproj"/>
+        <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj"/>
+        <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests\Cosmos.Tests.Build.Analyzer.Patcher\Cosmos.Tests.Build.Analyzer.Patcher.csproj"/>
+        <Project Path="tests\Cosmos.Tests.Build.Asm\Cosmos.Tests.Build.Asm.csproj"/>
+        <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj"/>
+        <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj"/>
+        <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj"/>
+    </Folder>
 </Solution>

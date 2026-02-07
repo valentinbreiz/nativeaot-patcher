@@ -6,6 +6,10 @@
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
+      "sourceFileMap": {
+        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+      },
+
       "miDebuggerPath": "gdb",
       "targetArchitecture": "x64",
       "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/DevKernel.elf",
@@ -41,6 +45,10 @@
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
+      "sourceFileMap": {
+        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+      },
+
       "miDebuggerPath": "gdb-multiarch",
       "targetArchitecture": "arm64",
       "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/DevKernel.elf",
@@ -284,6 +292,40 @@
         "arm64",
         "180",
         "${workspaceFolder}/test-results-threading-arm64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+     {
+      "name": "Debug Test Runner (Graphic x64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
+        "x64",
+        "120",
+        "${workspaceFolder}/test-results-graphic-x64.xml",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Test Runner (Graphic ARM64)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build Test Runner",
+      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+      "args": [
+        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
+        "arm64",
+        "180",
+        "${workspaceFolder}/test-results-graphic-arm64.xml",
         "dev"
       ],
       "cwd": "${workspaceFolder}",

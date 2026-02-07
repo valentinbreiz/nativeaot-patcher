@@ -8,7 +8,6 @@ using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 
@@ -41,11 +40,12 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private const int NUM_EVENT_BUFFERS = 32;
 
     private bool _initialized;
+    private bool _irqRegistered;
 
     public static VirtioKeyboard? Instance { get; private set; }
 
     // Static callback for key events (set by KeyboardManager) - mirrors x64 PS2Keyboard
-    public static KeyPressedHandler? KeyCallback;
+    // Note: OnKeyPressed (from base class) is set by KeyboardManager.RegisterKeyboard()
 
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -346,8 +346,8 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 Serial.WriteHex(scanCode);
                 Serial.Write(released ? " released\n" : " pressed\n");
 
-                // Invoke static callback (mirrors x64 PS2Keyboard pattern)
-                KeyCallback?.Invoke(scanCode, released);
+                // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
+                Instance?.OnKeyPressed?.Invoke(scanCode, released);
             }
 
             // Re-add buffer to queue
@@ -444,9 +444,18 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         // LED updates via status queue not implemented yet
     }
 
+    /// <summary>
+    /// Enable keyboard and register IRQ handler if not already done.
+    /// Called by KeyboardManager after OnKeyPressed callback is set.
+    /// </summary>
     public override void Enable()
     {
-        // Already enabled after Initialize
+        // Register IRQ handler on first Enable() call (after callback is set)
+        if (!_irqRegistered && _initialized)
+        {
+            RegisterIRQHandler();
+            _irqRegistered = true;
+        }
     }
 
     public override void Disable()

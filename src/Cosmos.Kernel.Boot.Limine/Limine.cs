@@ -1,5 +1,3 @@
-using System;
-
 namespace Cosmos.Kernel.Boot.Limine;
 
 public static class Limine

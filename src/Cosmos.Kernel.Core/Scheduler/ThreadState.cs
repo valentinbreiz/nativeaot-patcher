@@ -1,5 +1,3 @@
-using System;
-
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>

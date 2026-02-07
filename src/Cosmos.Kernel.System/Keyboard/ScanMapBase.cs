@@ -1,9 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/ScanMapBase.cs
 
-using System;
-using System.Collections.Generic;
-
 namespace Cosmos.Kernel.System.Keyboard;
 
 /// <summary>
