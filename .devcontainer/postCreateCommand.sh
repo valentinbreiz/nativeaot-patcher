@@ -42,6 +42,7 @@ dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
 echo "Packing native packages..."
 dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release
 dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release
+dotnet pack src/Cosmos.Kernel.Native.MultiArch/Cosmos.Kernel.Native.MultiArch.csproj -c Release -o artifacts/package/release
 
 echo "Verifying native packages..."
 ls -la artifacts/package/release/Cosmos.Kernel.Native.*.nupkg
