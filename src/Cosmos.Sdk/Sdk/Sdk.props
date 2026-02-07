@@ -120,14 +120,14 @@
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.36" />
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Kernel.MultiArch" Version="3.0.36" />
+    <PackageReference Include="Cosmos.Kernel.Native.MultiArch" Version="3.0.36" />
     <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.36" />
     <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.36" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" />
     <PackageReference Include="Cosmos.Kernel.Native.ARM64" />
-    <PackageReference Include="Cosmos.Kernel.MultiArch" />
+    <PackageReference Include="Cosmos.Kernel.Native.MultiArch" />
     <PackageReference Include="Cosmos.Kernel.HAL.X64" />
     <PackageReference Include="Cosmos.Kernel.HAL.ARM64" />
   </ItemGroup>

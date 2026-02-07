@@ -42,7 +42,7 @@ dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
 Write-Host "Packing native packages..." -ForegroundColor Cyan
 dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release
 dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release
-dotnet pack src/Cosmos.Kernel.MultiArch/Cosmos.Kernel.MultiArch.csproj -c Release -o artifacts/package/release
+dotnet pack src/Cosmos.Kernel.Native.MultiArch/Cosmos.Kernel.Native.MultiArch.csproj -c Release -o artifacts/package/release
 
 Write-Host "Verifying native packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.Native.*.nupkg" | ForEach-Object { Write-Host $_.Name }
