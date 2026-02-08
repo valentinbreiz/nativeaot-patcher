@@ -3,6 +3,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
+using SysThread = System.Threading.Thread;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
@@ -23,7 +24,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] Starting tests...\n");
 
         // Initialize test suite - reduced to 8 tests (removed Thread_Creation test that interferes)
-        TR.Start("Threading Tests", expectedTests: 8);
+        TR.Start("Threading Tests", expectedTests: 9);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -36,6 +37,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_Start_ExecutesDelegate", TestThreadExecution);
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
+        TR.Run("Thread_ThreadStatics", TestThreadStatics);
 
         // Finish test suite
         TR.Finish();
@@ -236,5 +238,27 @@ public class Kernel : Sys.Kernel
             _testLock.Release();
         }
         Serial.WriteString("[Thread2] Done\n");
+    }
+
+    [ThreadStatic]
+    private static int StaticValue;
+    private static void TestThreadStatics()
+    {
+        int secondThreadValue = 0;
+        StaticValue = 18;
+
+        SysThread thread = new SysThread(() =>
+        {
+            StaticValue = 42;
+            secondThreadValue = StaticValue;
+        });
+
+        thread.Start();
+
+        SysThread.Sleep(100); // Wait 10ms for the thread to finish.
+
+
+        Assert.Equal(18, StaticValue);
+        Assert.Equal(42, secondThreadValue);
     }
 }
