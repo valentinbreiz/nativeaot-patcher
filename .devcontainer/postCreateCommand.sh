@@ -133,7 +133,7 @@ rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
 
 # Restore main solution
 echo "Restoring main solution..."
-dotnet restore ./nativeaot-patcher.slnx
+dotnet restore ./Packages.slnx
 
 # Install global tools
 echo "Installing global tools..."
