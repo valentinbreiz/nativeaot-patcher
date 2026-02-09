@@ -8,5 +8,6 @@ public enum VendorId
     Amd = 0x1022,
     VmWare = 0x15AD,
     Bochs = 0x1234,
-    VirtualBox = 0x80EE
+    VirtualBox = 0x80EE,
+    RedHat = 0x1AF4  // QEMU/KVM virtio devices
 }

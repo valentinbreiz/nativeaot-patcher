@@ -1,6 +1,7 @@
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.Heap;
+using Cosmos.Kernel.Debug;
 
 namespace Cosmos.Kernel.Core.Memory;
 
@@ -646,4 +647,36 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
+
+    #region Debug Interface
+
+    /// <summary>
+    /// Update debug buffer with current memory state.
+    /// The buffer can be read by debugging tools via GDB.
+    /// </summary>
+    /// <param name="ratSampleCount">Number of RAT entries to include in the sample</param>
+    public static void UpdateDebugState(uint ratSampleCount = 1000)
+    {
+        MemoryDebug.UpdateMemoryState(
+            RamStart,
+            HeapEnd,
+            mRAT,
+            RamSize,
+            TotalPageCount,
+            FreePageCount,
+            mRAT,
+            ratSampleCount);
+    }
+
+    /// <summary>
+    /// Get RAT pointer for debug purposes.
+    /// </summary>
+    public static byte* GetRatPointer() => mRAT;
+
+    /// <summary>
+    /// Get heap end pointer for debug purposes.
+    /// </summary>
+    public static byte* GetHeapEnd() => HeapEnd;
+
+    #endregion
 }

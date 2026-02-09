@@ -7,6 +7,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
+using Cosmos.Kernel.Debug;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -124,6 +125,22 @@ public class Kernel
             Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
             initializer.StartSchedulerTimer(10);  // 10ms quantum
         }
+
+        // Initialize memory debug buffer (after all systems are ready)
+        Serial.WriteString("[KERNEL]   - Initializing memory debug buffer...\n");
+        MemoryDebug.Initialize();
+
+        // Set shared memory device if available (for zero-pause streaming)
+        var sharedMemory = Cosmos.Kernel.HAL.Devices.SharedMemory.SharedMemoryDevice.Instance;
+        if (sharedMemory != null)
+        {
+            Serial.WriteString("[KERNEL]   - Using shared memory for debug streaming\n");
+            MemoryDebug.SetSharedMemory(sharedMemory);
+        }
+
+        // Update debug buffer with current memory state
+        Serial.WriteString("[KERNEL]   - Populating memory debug data...\n");
+        PageAllocator.UpdateDebugState();
 
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }

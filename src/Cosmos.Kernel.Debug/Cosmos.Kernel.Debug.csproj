@@ -8,4 +8,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package C source file for inclusion in builds -->
+    <Content Include="build\Cosmos.Kernel.Debug.props" PackagePath="build\" />
+    <Content Include="cosmos_debug_buffer.c" PackagePath="build\" />
+  </ItemGroup>
+
 </Project>

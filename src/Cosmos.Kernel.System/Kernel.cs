@@ -1,5 +1,6 @@
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.System;
 
@@ -33,6 +34,16 @@ public abstract class Kernel
 
         Serial.WriteString("[Kernel] Enabling interrupts...\n");
         InternalCpu.EnableInterrupts();
+
+        var thread = new Thread(() =>
+        {
+            while (true)
+            {
+                PageAllocator.UpdateDebugState();
+                Thread.Sleep(1000);
+            }
+        });
+        thread.Start();
 
         Serial.WriteString("[Kernel] Calling BeforeRun()...\n");
         BeforeRun();
