@@ -1,7 +1,13 @@
+using System;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Text;
+using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Internal.NativeFormat;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -50,7 +56,7 @@ public static unsafe partial class ManagedModule
     public static void InitializeModules()
     {
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Starting\n");
-        uint count = GetModules(out var modulesptr);
+        var count = GetModules(out var modulesptr);
         Serial.WriteString("[ManagedModule] - Found ");
         Serial.WriteNumber(count);
         Serial.WriteString(" modules\n");
@@ -58,7 +64,7 @@ public static unsafe partial class ManagedModule
         // Allocate classlib functions array on unmanaged heap (never moved by GC)
         // Must match ClassLibFunctionId enum (12 entries, 0-11)
         s_pClasslibFunctions = (void**)Cosmos.Kernel.Core.Memory.Heap.Heap.Alloc((uint)(ClasslibFunctionCount * sizeof(void*)));
-        s_pClasslibFunctions[0] = (void*)(delegate*<ExceptionIDs, Exception>)&ExceptionHelper.GetRuntimeException;
+        s_pClasslibFunctions[0] = null; // GetRuntimeException - not implemented yet
         s_pClasslibFunctions[1] = null; // FailFast - not implemented yet
         s_pClasslibFunctions[2] = null; // ThreadEntryPoint - not implemented yet
         s_pClasslibFunctions[3] = null; // AppendExceptionStackFrame - not implemented yet
@@ -87,13 +93,6 @@ public static unsafe partial class ManagedModule
 
         s_modules = modules;
         s_moduleCount = modules.Length;
-
-        // Run module initializers ([ModuleInitializer] methods) - these register HAL platforms
-        Serial.WriteString("[ManagedModule] - Running Module Initializers\n");
-        for (int i = 0; i < modules.Length; i++)
-        {
-            RunInitializers(modules[i], ReadyToRunSectionType.ModuleInitializerList);
-        }
 
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
@@ -160,63 +159,14 @@ public static unsafe partial class ManagedModule
     }
 
 
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "InitializeStatics")]
+    private unsafe static extern object[] RhInitializeStatics([UnsafeAccessorType("Internal.Runtime.CompilerHelpers.StartupCodeHelpers")]object helper, IntPtr gcStaticRegionStart, int length);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
     {
-        byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
-
-        int currentBase = 0;
-        for (byte* block = (byte*)gcStaticRegionStart;
-            block < gcStaticRegionEnd;
-            block += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
-        {
-
-            IntPtr* pBlock = MethodTable.SupportsRelativePointers ? (IntPtr*)ReadRelPtr32(block) : *(IntPtr**)block;
-            nint blockAddr = MethodTable.SupportsRelativePointers ? (nint)ReadRelPtr32(pBlock) : *pBlock;
-
-            if ((blockAddr & GCStaticRegionConstants.Uninitialized) == GCStaticRegionConstants.Uninitialized)
-            {
-                object? obj = null;
-                var pMT = (MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask);
-                Memory.RhAllocateNewObject(pMT, 0, &obj);
-
-                if (obj is null)
-                {
-                    Serial.WriteString("Failed allocating GC static bases\n");
-                    throw new OutOfMemoryException();
-                }
-
-                if ((blockAddr & GCStaticRegionConstants.HasPreInitializedData) == GCStaticRegionConstants.HasPreInitializedData)
-                {
-                    void* pPreInitDataAddr = MethodTable.SupportsRelativePointers ? ReadRelPtr32((int*)pBlock + 1) : (void*)*(pBlock + 1);
-
-                    nuint rawSize = pMT->BaseSize - (nuint)(2 * sizeof(IntPtr));
-                    if (pMT->HasComponentSize)
-                        rawSize += (uint)Unsafe.As<RawArrayData>(obj).Length * (nuint)pMT->ComponentSize;
-
-                    byte* destPtr = (byte*)Unsafe.AsPointer(ref Unsafe.As<RawData>(obj).Data);
-
-                    MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)rawSize);
-                }
-
-                *pBlock = *(IntPtr*)&obj;
-            }
-
-            currentBase++;
-        }
-
-        static void* ReadRelPtr32(void* address)
-            => (byte*)address + *(int*)address;
+        RhInitializeStatics(null!, gcStaticRegionStart, length);
     }
-}
-
-[StructLayout(LayoutKind.Sequential)]
-internal class RawArrayData
-{
-    public uint Length; // Array._numComponents padded to IntPtr
-#if TARGET_64BIT
-    public uint Padding;
-#endif
-    public byte Data;
 }
 
 [StructLayout(LayoutKind.Sequential)]

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -15,10 +17,16 @@ public static class Panic
     /// Disables interrupts and halts the CPU.
     /// </summary>
     /// <param name="message">The panic message describing the error.</param>
-    public static void Halt(string message)
+    /// <param name="caller">The caller method name.</param>
+    /// <param name="file">The source file path.</param>
+    /// <param name="line">The line number.</param>
+    public static void Halt(string message,
+        [CallerMemberName] string caller = "",
+        [CallerFilePath] string file = "",
+        [CallerLineNumber] int line = 0)
     {
         // Use core panic for basic halt
-        CorePanic.Halt(message);
+        CorePanic.Halt(message, caller, file, line);
     }
 
     /// <summary>
@@ -89,6 +97,7 @@ public static class Panic
 #endif
     }
 
+    [DoesNotReturn]
     private static void HaltCpu()
     {
         // Infinite loop with halt to save power
