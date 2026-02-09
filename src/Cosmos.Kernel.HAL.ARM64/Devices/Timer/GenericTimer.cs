@@ -38,10 +38,30 @@ public partial class GenericTimer : TimerDevice
     private ulong _ticksPerPeriod;
 
     /// <summary>
-    /// Physical timer interrupt number on GIC.
+    /// Whethr to use EL2 hypervisor timer registers.
+    /// </summary>
+    private bool _useHypervisorTimer;
+
+    /// <summary>
+    /// Whether to use EL1 virtual timer registers.
+    /// </summary>
+    private bool _useVirtualTimer;
+
+    /// <summary>
+    /// Physical timer interrupt number GIC.
     /// For QEMU virt machine: INTID 30 (non-secure physical timer).
     /// </summary>
     public const uint PhysicalTimerIrq = 30;
+
+    /// <summary>
+    /// Virtual timer interrupt number on GIC (PPI 27).
+    /// </summary>
+    public const uint VirtualTimerIrq = 27;
+
+    /// <summary>
+    /// Hypervisor timer interrupt number on GIC (PPI 26).
+    /// </summary>
+    public const uint HypervisorTimerIrq = 26;
 
     /// <summary>
     /// Default timer period: 10ms (100 Hz) for scheduling.
@@ -52,6 +72,14 @@ public partial class GenericTimer : TimerDevice
     [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_frequency")]
     [SuppressGCTransition]
     private static partial ulong GetTimerFrequency();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_get_current_el")]
+    [SuppressGCTransition]
+    private static partial ulong GetCurrentEL();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_timer_enable_user_access")]
+    [SuppressGCTransition]
+    private static partial void EnableUserAccessToTimers();
 
     [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_counter")]
     [SuppressGCTransition]
@@ -77,6 +105,38 @@ public partial class GenericTimer : TimerDevice
     [SuppressGCTransition]
     private static partial uint GetTimerControl();
 
+    [LibraryImport("*", EntryPoint = "_native_arm64_vtimer_enable")]
+    [SuppressGCTransition]
+    private static partial void EnableVirtualTimer();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_vtimer_disable")]
+    [SuppressGCTransition]
+    private static partial void DisableVirtualTimer();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_vtimer_set_tval")]
+    [SuppressGCTransition]
+    private static partial void SetVirtualTimerValue(uint ticks);
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_vtimer_get_ctl")]
+    [SuppressGCTransition]
+    private static partial uint GetVirtualTimerControl();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_htimer_enable")]
+    [SuppressGCTransition]
+    private static partial void EnableHypervisorTimer();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_htimer_disable")]
+    [SuppressGCTransition]
+    private static partial void DisableHypervisorTimer();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_htimer_set_tval")]
+    [SuppressGCTransition]
+    private static partial void SetHypervisorTimerValue(uint ticks);
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_htimer_get_ctl")]
+    [SuppressGCTransition]
+    private static partial uint GetHypervisorTimerControl();
+
     public GenericTimer()
     {
     }
@@ -92,6 +152,33 @@ public partial class GenericTimer : TimerDevice
         Serial.Write("[GenericTimer] Initializing ARM64 Generic Timer...\n");
 
         Instance = this;
+
+        // Detect current exception level to choose correct timer registers.
+        ulong currentEl = GetCurrentEL();
+        _useHypervisorTimer = currentEl >= 2;
+        _useVirtualTimer = currentEl == 1;
+        Serial.Write("[GenericTimer] CurrentEL: ");
+        Serial.WriteNumber(currentEl);
+        if (_useHypervisorTimer)
+        {
+            Serial.Write(" (EL2)\n");
+        }
+        else if (_useVirtualTimer)
+        {
+            Serial.Write(" (EL1 - virtual timer)\n");
+        }
+        else
+        {
+            Serial.Write(" (EL0)\n");
+        }
+
+        if (currentEl == 0)
+        {
+            Serial.Write("[GenericTimer] ERROR: Running at EL0; timer registers not accessible\n");
+            return;
+        }
+
+        EnableUserAccessToTimers();
 
         // Read timer frequency from CNTFRQ_EL0
         _timerFrequency = GetTimerFrequency();
@@ -141,22 +228,55 @@ public partial class GenericTimer : TimerDevice
     {
         Serial.Write("[GenericTimer] Starting timer...\n");
 
+        // Recheck
+        ulong currentEl = GetCurrentEL();
+        if (currentEl >= 2 && !_useHypervisorTimer)
+        {
+            _useHypervisorTimer = true;
+            _useVirtualTimer = false;
+        }
+        else if (currentEl == 1 && !_useVirtualTimer)
+        {
+            _useVirtualTimer = true;
+            _useHypervisorTimer = false;
+        }
+        Serial.Write("[GenericTimer] Start CurrentEL: ");
+        Serial.WriteNumber(currentEl);
+        if (_useHypervisorTimer)
+        {
+            Serial.Write(" (EL2)\n");
+        }
+        else if (_useVirtualTimer)
+        {
+            Serial.Write(" (EL1 - virtual timer)\n");
+        }
+        else
+        {
+            Serial.Write(" (EL0)\n");
+        }
+
+        if (currentEl == 0)
+        {
+            Serial.Write("[GenericTimer] ERROR: Running at EL0; skipping timer start\n");
+            return;
+        }
+
         // Set TVAL to trigger after one period
         if (_ticksPerPeriod > uint.MaxValue)
         {
             Serial.Write("[GenericTimer] WARNING: ticks per period exceeds 32-bit, clamping\n");
-            SetTimerValue(uint.MaxValue);
+            SetTimerValueInternal(uint.MaxValue);
         }
         else
         {
-            SetTimerValue((uint)_ticksPerPeriod);
+            SetTimerValueInternal((uint)_ticksPerPeriod);
         }
 
         // Enable the timer (ENABLE=1, IMASK=0)
-        EnableTimer();
+        EnableTimerInternal();
 
         Serial.Write("[GenericTimer] Timer started, CTL=0x");
-        Serial.WriteHex(GetTimerControl());
+        Serial.WriteHex(GetTimerControlInternal());
         Serial.Write("\n");
     }
 
@@ -165,7 +285,7 @@ public partial class GenericTimer : TimerDevice
     /// </summary>
     public void Stop()
     {
-        DisableTimer();
+        DisableTimerInternal();
         Serial.Write("[GenericTimer] Timer stopped\n");
     }
 
@@ -175,13 +295,14 @@ public partial class GenericTimer : TimerDevice
     /// </summary>
     public void RegisterIRQHandler()
     {
+        uint irq = GetActiveTimerIrq();
         Serial.Write("[GenericTimer] Registering timer IRQ handler for INTID ");
-        Serial.WriteNumber(PhysicalTimerIrq);
+        Serial.WriteNumber(irq);
         Serial.Write("\n");
 
         // Register handler for GIC interrupt
-        // The vector will be PhysicalTimerIrq (30) mapped through GIC
-        InterruptManager.SetHandler((byte)PhysicalTimerIrq, HandleIRQ);
+        // The vector will be the selected timer PPI mapped through GIC
+        InterruptManager.SetHandler((byte)irq, HandleIRQ);
 
         Serial.Write("[GenericTimer] Timer IRQ handler registered\n");
     }
@@ -204,11 +325,11 @@ public partial class GenericTimer : TimerDevice
         // Re-arm the timer for the next period
         if (Instance._ticksPerPeriod > uint.MaxValue)
         {
-            SetTimerValue(uint.MaxValue);
+            Instance.SetTimerValueInternal(uint.MaxValue);
         }
         else
         {
-            SetTimerValue((uint)Instance._ticksPerPeriod);
+            Instance.SetTimerValueInternal((uint)Instance._ticksPerPeriod);
         }
 
         // Invoke the OnTick handler (for TimerManager)
@@ -258,4 +379,78 @@ public partial class GenericTimer : TimerDevice
     /// Gets the timer period in nanoseconds.
     /// </summary>
     public ulong PeriodNs => _periodNs;
+
+    private void EnableTimerInternal()
+    {
+        if (_useHypervisorTimer)
+        {
+            EnableHypervisorTimer();
+        }
+        else if (_useVirtualTimer)
+        {
+            EnableVirtualTimer();
+        }
+        else
+        {
+            EnableTimer();
+        }
+    }
+
+    private void DisableTimerInternal()
+    {
+        if (_useHypervisorTimer)
+        {
+            DisableHypervisorTimer();
+        }
+        else if (_useVirtualTimer)
+        {
+            DisableVirtualTimer();
+        }
+        else
+        {
+            DisableTimer();
+        }
+    }
+
+    private void SetTimerValueInternal(uint ticks)
+    {
+        if (_useHypervisorTimer)
+        {
+            SetHypervisorTimerValue(ticks);
+        }
+        else if (_useVirtualTimer)
+        {
+            SetVirtualTimerValue(ticks);
+        }
+        else
+        {
+            SetTimerValue(ticks);
+        }
+    }
+
+    private uint GetTimerControlInternal()
+    {
+        if (_useHypervisorTimer)
+        {
+            return GetHypervisorTimerControl();
+        }
+        if (_useVirtualTimer)
+        {
+            return GetVirtualTimerControl();
+        }
+        return GetTimerControl();
+    }
+
+    private uint GetActiveTimerIrq()
+    {
+        if (_useHypervisorTimer)
+        {
+            return HypervisorTimerIrq;
+        }
+        if (_useVirtualTimer)
+        {
+            return VirtualTimerIrq;
+        }
+        return PhysicalTimerIrq;
+    }
 }

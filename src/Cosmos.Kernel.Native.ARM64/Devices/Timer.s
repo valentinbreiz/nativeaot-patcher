@@ -8,6 +8,16 @@
 .global _native_arm64_timer_disable
 .global _native_arm64_timer_set_tval
 .global _native_arm64_timer_get_ctl
+.global _native_arm64_vtimer_enable
+.global _native_arm64_vtimer_disable
+.global _native_arm64_vtimer_set_tval
+.global _native_arm64_vtimer_get_ctl
+.global _native_arm64_get_current_el
+.global _native_arm64_timer_enable_user_access
+.global _native_arm64_htimer_enable
+.global _native_arm64_htimer_disable
+.global _native_arm64_htimer_set_tval
+.global _native_arm64_htimer_get_ctl
 
 .section .text
 
@@ -16,6 +26,28 @@
 .balign 4
 _native_arm64_timer_get_frequency:
     mrs     x0, cntfrq_el0
+    ret
+
+// ulong _native_arm64_get_current_el(void)
+// Returns current exception level (0-3) from CurrentEL
+.balign 4
+_native_arm64_get_current_el:
+    mrs     x0, CurrentEL
+    lsr     x0, x0, #2
+    and     x0, x0, #0x3
+    ret
+
+// void _native_arm64_timer_enable_user_access(void)
+// Enable EL0 access to physical/virtual counters and timers via CNTKCTL_EL1
+.balign 4
+_native_arm64_timer_enable_user_access:
+    mrs     x0, cntkctl_el1
+    orr     x0, x0, #0x1      // EL0PCTEN
+    orr     x0, x0, #0x2      // EL0VCTEN
+    orr     x0, x0, #0x100    // EL0PTEN
+    orr     x0, x0, #0x200    // EL0VTEN
+    msr     cntkctl_el1, x0
+    isb
     ret
 
 // ulong _native_arm64_timer_get_counter(void)
@@ -67,4 +99,70 @@ _native_arm64_timer_set_tval:
 .balign 4
 _native_arm64_timer_get_ctl:
     mrs     x0, cntp_ctl_el0
+    ret
+
+// void _native_arm64_vtimer_enable(void)
+// Enables the virtual timer: CNTV_CTL_EL0.ENABLE=1, IMASK=0
+.balign 4
+_native_arm64_vtimer_enable:
+    mov     x0, #1
+    msr     cntv_ctl_el0, x0
+    isb
+    ret
+
+// void _native_arm64_vtimer_disable(void)
+// Disables the virtual timer: CNTV_CTL_EL0.ENABLE=0
+.balign 4
+_native_arm64_vtimer_disable:
+    mov     x0, #0
+    msr     cntv_ctl_el0, x0
+    isb
+    ret
+
+// void _native_arm64_vtimer_set_tval(uint ticks)
+// Sets CNTV_TVAL_EL0
+.balign 4
+_native_arm64_vtimer_set_tval:
+    msr     cntv_tval_el0, x0
+    isb
+    ret
+
+// uint _native_arm64_vtimer_get_ctl(void)
+// Returns CNTV_CTL_EL0
+.balign 4
+_native_arm64_vtimer_get_ctl:
+    mrs     x0, cntv_ctl_el0
+    ret
+
+// void _native_arm64_htimer_enable(void)
+// Enables the EL2 physical timer: CNTHP_CTL_EL2.ENABLE=1, IMASK=0
+.balign 4
+_native_arm64_htimer_enable:
+    mov     x0, #1
+    msr     cnthp_ctl_el2, x0
+    isb
+    ret
+
+// void _native_arm64_htimer_disable(void)
+// Disables the EL2 physical timer: CNTHP_CTL_EL2.ENABLE=0
+.balign 4
+_native_arm64_htimer_disable:
+    mov     x0, #0
+    msr     cnthp_ctl_el2, x0
+    isb
+    ret
+
+// void _native_arm64_htimer_set_tval(uint ticks)
+// Sets CNTHP_TVAL_EL2
+.balign 4
+_native_arm64_htimer_set_tval:
+    msr     cnthp_tval_el2, x0
+    isb
+    ret
+
+// uint _native_arm64_htimer_get_ctl(void)
+// Returns CNTHP_CTL_EL2
+.balign 4
+_native_arm64_htimer_get_ctl:
+    mrs     x0, cnthp_ctl_el2
     ret

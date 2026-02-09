@@ -35,9 +35,13 @@ public partial class ARM64InterruptController : IInterruptController
         // Initialize the GIC (Generic Interrupt Controller)
         GIC.Initialize();
 
-        // Enable timer interrupts (PPI 30 = non-secure physical timer)
+        // Enable timer interrupts (physical/virtual/hypervisor PPIs since before theyh weren't proper)
         GIC.SetPriority(GIC.TIMER_NONSEC_PHYS, 0x80);  // Medium priority
         GIC.EnableInterrupt(GIC.TIMER_NONSEC_PHYS);
+        GIC.SetPriority(GIC.TIMER_VIRT, 0x80);
+        GIC.EnableInterrupt(GIC.TIMER_VIRT);
+        GIC.SetPriority(GIC.TIMER_HYP, 0x80);
+        GIC.EnableInterrupt(GIC.TIMER_HYP);
 
         Serial.Write("[ARM64InterruptController] ARM64 interrupt system ready\n");
 
