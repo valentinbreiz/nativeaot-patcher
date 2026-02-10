@@ -461,7 +461,6 @@ public static unsafe partial class GarbageCollector
     private static void MarkPhase()
     {
         _markStackCount = 0;
-        ScanFrozenSegments();
         ScanStackRoots();
         ScanGCHandles();
         //ScanStaticRoots();
