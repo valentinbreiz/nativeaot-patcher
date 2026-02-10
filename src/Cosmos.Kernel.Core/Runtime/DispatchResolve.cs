@@ -33,6 +33,8 @@ namespace Cosmos.Kernel.Core.Runtime
             System.Diagnostics.Debug.Assert((flags & ResolveFlags.DefaultInterfaceImplementation) == 0);
 #endif
 
+            /*
+
             Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImpl] TgtType=");
             Cosmos.Kernel.Core.IO.Serial.WriteHex((ulong)pTgtType);
             Cosmos.Kernel.Core.IO.Serial.WriteString(" ItfType=");
@@ -66,20 +68,25 @@ namespace Cosmos.Kernel.Core.Runtime
                 Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
             }
 
+            */
+
             // Start at the current type and work up the inheritance chain
             MethodTable* pCur = pTgtType;
 
         again:
             while (pCur != null)
             {
+                /*
                 Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImpl] Checking type ");
                 Cosmos.Kernel.Core.IO.Serial.WriteHex((ulong)pCur);
                 Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+                */
 
                 ushort implSlotNumber;
                 if (FindImplSlotForCurrentType(
                         pCur, pItfType, itfSlotNumber, flags, &implSlotNumber, ppGenericContext))
                 {
+                    /*
                     Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImpl] Found! ImplSlot=");
                     Cosmos.Kernel.Core.IO.Serial.WriteHex(implSlotNumber);
                     Cosmos.Kernel.Core.IO.Serial.WriteString(" (Type has ");
@@ -99,6 +106,7 @@ namespace Cosmos.Kernel.Core.Runtime
                             Cosmos.Kernel.Core.IO.Serial.WriteString(" ");
                     }
                     Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+                    */
 
                     IntPtr targetMethod;
                     if (implSlotNumber < pCur->NumVtableSlots)
@@ -167,7 +175,7 @@ namespace Cosmos.Kernel.Core.Runtime
 
             if (pTgtType->HasDispatchMap)
             {
-                Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImplSlot] Has dispatch map\n");
+                //Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImplSlot] Has dispatch map\n");
 
                 // For variant interface dispatch, the algorithm is to walk the parent hierarchy, and at each level
                 // attempt to dispatch exactly first, and then if that fails attempt to dispatch variantly. This can
@@ -177,9 +185,11 @@ namespace Cosmos.Kernel.Core.Runtime
                 fRes = FindImplSlotInSimpleMap(
                     pTgtType, pItfType, itfSlotNumber, pImplSlotNumber, ppGenericContext, flags);
 
+                /*
                 Cosmos.Kernel.Core.IO.Serial.WriteString("[FindImplSlot] First pass result=");
                 Cosmos.Kernel.Core.IO.Serial.WriteHex((uint)(fRes ? 1 : 0));
                 Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+                */
 
                 if (!fRes)
                 {
@@ -248,13 +258,13 @@ namespace Cosmos.Kernel.Core.Runtime
             // We either scan the instance or static portion of the dispatch map. Depends on what the caller wants.
             DispatchMap* pMap = pTgtType->DispatchMap;
 
-            Cosmos.Kernel.Core.IO.Serial.WriteString("[SimpleMap] Map=");
+            /*Cosmos.Kernel.Core.IO.Serial.WriteString("[SimpleMap] Map=");
             Cosmos.Kernel.Core.IO.Serial.WriteHex((ulong)pMap);
             Cosmos.Kernel.Core.IO.Serial.WriteString(" StdEntries=");
             Cosmos.Kernel.Core.IO.Serial.WriteHex((uint)pMap->NumStandardEntries);
             Cosmos.Kernel.Core.IO.Serial.WriteString(" DefEntries=");
             Cosmos.Kernel.Core.IO.Serial.WriteHex((uint)pMap->NumDefaultEntries);
-            Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+            Cosmos.Kernel.Core.IO.Serial.WriteString("\n");*/
 
             DispatchMap.DispatchMapEntry* i = fStaticDispatch ?
                 pMap->GetStaticEntry(checkDefaultImplementations ? (int)pMap->NumStandardStaticEntries : 0) :
@@ -267,6 +277,7 @@ namespace Cosmos.Kernel.Core.Runtime
             for (; i != iEnd; i = fStaticDispatch ? (DispatchMap.DispatchMapEntry*)(((DispatchMap.StaticDispatchMapEntry*)i) + 1) : i + 1)
             {
                 entryCount++;
+                /*
                 Cosmos.Kernel.Core.IO.Serial.WriteString("[SimpleMap] Entry ");
                 Cosmos.Kernel.Core.IO.Serial.WriteHex((uint)entryCount);
                 Cosmos.Kernel.Core.IO.Serial.WriteString(": ItfIdx=");
@@ -276,6 +287,7 @@ namespace Cosmos.Kernel.Core.Runtime
                 Cosmos.Kernel.Core.IO.Serial.WriteString(" ImplSlot=");
                 Cosmos.Kernel.Core.IO.Serial.WriteHex(i->_usImplMethodSlot);
                 Cosmos.Kernel.Core.IO.Serial.WriteString("\n");
+                */
 
                 if (i->_usInterfaceMethodSlot == itfSlotNumber)
                 {

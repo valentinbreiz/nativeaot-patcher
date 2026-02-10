@@ -356,6 +356,25 @@ namespace Cosmos.Kernel.Core.Runtime
             MemoryOp.MemMove(dest, src, (int)len);
         }
 
+        // NativeRuntimeEventSource stubs for event tracing
+        [RuntimeExport("NativeRuntimeEventSource_LogContentionLockCreated")]
+        static void NativeRuntimeEventSource_LogContentionLockCreated(IntPtr lockID, IntPtr declaringTypeID, string methodName, int lockLevel) { }
+
+        [RuntimeExport("NativeRuntimeEventSource_LogContentionStart")]
+        static void NativeRuntimeEventSource_LogContentionStart(int id, IntPtr lockID, IntPtr declaringTypeID, string methodName, int lockLevel) { }
+
+        [RuntimeExport("NativeRuntimeEventSource_LogContentionStop")]
+        static void NativeRuntimeEventSource_LogContentionStop(int id, IntPtr lockID, IntPtr declaringTypeID, string methodName, int lockLevel) { }
+
+        [RuntimeExport("NativeRuntimeEventSource_LogWaitHandleWaitStart")]
+        static void NativeRuntimeEventSource_LogWaitHandleWaitStart(int id, IntPtr handle) { }
+
+        [RuntimeExport("NativeRuntimeEventSource_LogWaitHandleWaitStop")]
+        static void NativeRuntimeEventSource_LogWaitHandleWaitStop(int id, IntPtr handle) { }
+
+        [RuntimeExport("NativeRuntimeEventSource_LogThreadPoolMinMaxThreads")]
+        static void NativeRuntimeEventSource_LogThreadPoolMinMaxThreads(int workerMin, int workerMax, int ioMin, int ioMax) { }
+
     }
 }
 

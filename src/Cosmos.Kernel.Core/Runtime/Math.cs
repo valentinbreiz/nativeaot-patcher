@@ -29,4 +29,30 @@ internal static class Math
     {
         return (float)ceil(x);
     }
+
+    [RuntimeExport("sqrt")]
+    internal static double sqrt(double x)
+    {
+        // Handle special cases
+        if (double.IsNaN(x) || x < 0)
+            return double.NaN;
+        if (double.IsPositiveInfinity(x))
+            return double.PositiveInfinity;
+        if (x == 0)
+            return 0;
+
+        // Newton-Raphson method for square root
+        double guess = x;
+        double epsilon = 1e-10;
+
+        for (int i = 0; i < 50; i++)
+        {
+            double nextGuess = (guess + x / guess) / 2.0;
+            if (System.Math.Abs(nextGuess - guess) < epsilon)
+                break;
+            guess = nextGuess;
+        }
+
+        return guess;
+    }
 }
