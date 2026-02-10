@@ -428,6 +428,9 @@ public static unsafe partial class GarbageCollector
             // Mark reachable objects
             MarkPhase();
 
+            // Free Weak GC Handles 
+            FreeWeakHandles();
+
             // Sweep and rebuild free lists
             freedCount = SweepPhase();
 
@@ -466,7 +469,6 @@ public static unsafe partial class GarbageCollector
         //ScanStaticRoots();
     }
 
-    [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void ScanGCHandles()
     {
         if (handlerStore == null) return;

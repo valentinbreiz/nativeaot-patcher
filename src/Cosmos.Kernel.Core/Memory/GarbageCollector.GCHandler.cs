@@ -33,25 +33,31 @@ public static unsafe partial class GarbageCollector
                 return (nint)(handlerStore->Bump + i * sizeof(GCHandle));
             }
         }
-        /*
-        var ptr = Align(handlerStore->Current);
-        
-        while(ptr < handlerStore->End)
-        {
-            var handle = (GCHandle*)ptr;
-
-            if(handle->obj == null)
-            {
-                handle->obj = obj;
-                handle->type = handleType;
-                handle->extraInfo = extraInfo;
-                return (nint)handle;
-            }
-
-            ptr = Align(ptr + sizeof(GCHandle));
-        }
-        */
         return IntPtr.Zero;
+    }
+
+    private static void FreeWeakHandles()
+    {
+        if (handlerStore == null) return;
+        Serial.WriteString("Start: ");
+        Serial.WriteHex((ulong)_gcHeapMin);
+        Serial.WriteString("\nEnd: ");
+        Serial.WriteHex((ulong)_gcHeapMax);
+        Serial.WriteString("\n");
+
+        int size = (int)(handlerStore->End - handlerStore->Bump) / sizeof(GCHandle);
+
+        var handles = new Span<GCHandle>((void*)Align((uint)handlerStore->Bump), size);
+        for (int i = 0; i < handles.Length; i++)
+        {
+            if ((IntPtr)handles[i].obj != IntPtr.Zero)
+            {
+                if (handles[i].type < GCHandleType.Normal && !handles[i].obj->IsMarked)
+                {
+                    handles[i].obj = null;
+                }
+            }
+        }
     }
 
 
