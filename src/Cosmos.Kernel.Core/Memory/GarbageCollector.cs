@@ -668,7 +668,6 @@ public static unsafe partial class GarbageCollector
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void EnumerateReferences(GCObject* obj, MethodTable* mt)
     {
         nint numSeries = ((nint*)mt)[-1];
@@ -698,7 +697,36 @@ public static unsafe partial class GarbageCollector
         }
         else
         {
-            //TODO: ValSeries Scanning.
+            var offset =  ((nint*)mt)[-2];
+            var valSeries = (ValSerieItem*)((nint*)mt - 2) - 1;
+
+            // Start at the offset
+            var ptr = (nint*)((nint)obj + offset);
+
+            // Retrieve the length of the array
+            var length = obj->Length;
+
+            // Repeat the loop for each element in the array
+            for (int item = 0; item < length; item++)
+            {
+                for (int i = 0; i > numSeries; i--)
+                {
+                    // i is negative, so this is going backwards
+                    var valSerieItem = valSeries + i;
+
+                    // Read valSerieItem->Nptrs pointers
+                    for (int j = 0; j < valSerieItem->Nptrs; j++)
+                    {
+                        nint refValue = (nint)ptr;
+                        if (refValue != 0 && IsInGCHeap(refValue))
+                            PushMarkStack(refValue);
+                        ptr++;
+                    }
+
+                    // Skip valSerieItem->Skip bytes
+                    ptr = (nint*)((nint)ptr + valSerieItem->Skip);
+                }
+            }
         }
     }
 
@@ -1141,6 +1169,16 @@ public static unsafe partial class GarbageCollector
     }
 
     #endregion
+}
+
+/// <summary>
+/// GCVal series descriptor.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct ValSerieItem
+{
+    public uint Nptrs;
+    public uint Skip;
 }
 
 /// <summary>
