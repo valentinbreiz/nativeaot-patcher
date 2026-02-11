@@ -298,10 +298,9 @@ While scanning, `TryMarkRoot(value)` pushes a candidate pointer onto the mark st
 5. Mark the object (set bit 0 of `MethodTable`)
 6. If `ContainsGCPointers` is set, call `EnumerateReferences` to discover child references
 
+`EnumerateReferences` reads the **GCDesc** metadata to find which fields inside an object are managed pointers. This metadata is emitted by the NativeAOT compiler (ILC) and stored in memory immediately *before* each `MethodTable`. It is not part of the `MethodTable` struct itself — the code reads it by indexing backwards from the `MethodTable` pointer: `((nint*)mt)[-1]` gives the first word before `mt`, `((nint*)mt)[-2]` the second, and so on.
 
-`EnumerateReferences` reads the **GCDesc** metadata stored immediately before the `MethodTable` in memory. The runtime compiler (ILC) emits this metadata for every type that contains managed pointers.
-
-The layout depends on the sign of `numSeries` (stored at `MT[-1]`):
+The first word before the MethodTable (`MT[-1]`) is `numSeries`, which determines the layout:
 
 **Normal series** (`numSeries > 0`) — for regular objects:
 
