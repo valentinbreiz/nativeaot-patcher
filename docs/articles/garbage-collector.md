@@ -263,7 +263,7 @@ sequenceDiagram
     GC->>PA: Free(empty segments)
     GC->>GC: RecomputeHeapRange
     deactivate GC
-    GC-->>App: collect objects count
+    GC-->>App: freed objects count
 ```
 
 ### Mark phase
