@@ -1,6 +1,6 @@
 ## Overview
 
-The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across four heap tiers (GC heap, GC handles, pinned heap, frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.
+The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.
 
 All GC code lives in the `GarbageCollector` partial class split across four files:
 
