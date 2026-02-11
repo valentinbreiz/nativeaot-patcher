@@ -13,7 +13,22 @@ All GC code lives in the `GarbageCollector` partial class split across four file
 
 ---
 
-## Object layout
+### MethodTable struct
+
+Every managed type compiled by the NativeAOT compiler (ILC) has a `MethodTable`, a type descriptor struct that lives in the kernel's code/data sections (never on the GC heap). The GC relies on several of its fields:
+
+| Field | Purpose |
+|-------|---------|
+| `RawBaseSize` / `BaseSize` | Size of a fixed-size object (in bytes) |
+| `ComponentSize` | Size of each element for arrays/strings |
+| `HasComponentSize` | True for arrays and strings |
+| `ContainsGCPointers` | True if the type has reference-type fields the GC must trace |
+
+Because `MethodTable` pointers always reside in kernel code sections, the GC uses `IsInGCHeap((nint)mt)` as a validity check. If a `MethodTable*` points inside the heap, it cannot be a real type descriptor and the candidate object is rejected.
+
+---
+
+### Object struct
 
 Every managed object on the GC heap starts with a [`GCObject`](../../src/Cosmos.Kernel.Core/Memory/GCObject.cs) header:
 
@@ -28,6 +43,20 @@ Every managed object on the GC heap starts with a [`GCObject`](../../src/Cosmos.
 ```
 
 **Mark bit encoding**: The least significant bit of the `MethodTable` pointer doubles as the mark flag. Since `MethodTable` pointers are always aligned, bit 0 is normally zero. `Mark()` sets it to 1, `Unmark()` clears it. Any code that needs the real `MethodTable*` calls `GetMethodTable()` which masks off bit 0.
+
+### FreeBlock struct
+
+Dead objects discovered during sweep are converted into `FreeBlock` entries. A `FreeBlock` is deliberately laid out to be walkable like a `GCObject` so the sweep can iterate through a segment linearly without distinguishing between live objects, dead objects, and free blocks until it inspects the `MethodTable`:
+
+```
+              ┌──────────────────────────────────┐
+              │  MethodTable*  (8 bytes on x64)  │  ← points to _freeMethodTable marker
+              ├──────────────────────────────────┤
+              │  Size           (4 bytes)        │  ← total size of this free block
+              ├──────────────────────────────────┤
+              │  Next*          (8 bytes)        │  ← next FreeBlock in this size class bucket
+              └──────────────────────────────────┘
+```
 
 ---
 
@@ -76,8 +105,8 @@ The GC maintains **two independent linked lists** of segments — one for the re
  └────────┘            └────────┘            └────────┘       └────────┘
                             ▲
                             │
-                       _lastSegment
-                       (next alloc starts here)
+                  _lastSegment / _currentSegment
+                  (next alloc starts here)
 
 
  Pinned heap chain (_pinnedSegments)
@@ -95,13 +124,17 @@ The GC maintains **two independent linked lists** of segments — one for the re
                     _currentPinnedSegment
 ```
 
-Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the **pinned chain**. 
+Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the **pinned chain**.
+
+The GC tracks two segment pointers for the regular heap: `_lastSegment` is the segment where the next allocation attempt begins (set to the first semifull or free segment after collection), and `_currentSegment` tracks the segment that last successfully served an allocation. Both are updated together during bump allocation and segment reordering.
 
 After each collection, segments in both chains are sorted into three groups: **FULL** (bump reached end) → **SEMIFULL** (partially used) → **FREE** (empty). Empty multi-page segments are returned to the page allocator entirely. `_lastSegment` is set to the first semifull (or free) segment so the next allocation targets available space first.
 
 ### Handle store
 
-GC handles allow native or runtime code to hold references to managed objects that the GC can track. The handle table is stored in a dedicated `GCSegment` allocated at GC initialization.
+GC handles let the runtime hold references to managed objects from locations the GC does not automatically scan (registers, native code, internal caches). For example, `RuntimeType` caches a `RuntimeTypeInfo` via a weak GC handle — without a handle, the GC would not know that the cached object is still reachable and might collect it. Handle types control lifetime: `Weak` handles do not prevent collection, while `Normal` and `Pinned` handles keep objects alive.
+
+The handle table is stored in a dedicated `GCSegment` allocated at GC initialization.
 
 Each handle entry is:
 
@@ -227,7 +260,7 @@ flowchart TD
     SLOW2 --> RET
 ```
 
-**Free list allocation** finds the smallest size class that fits, walks that bucket for a block large enough, and splits leftovers back into the free list if the remainder is at least 24 bytes (`MinBlockSize`). If no block fits in that class, it tries larger classes.
+**Free list allocation** uses 12 size classes — powers of two from 16 to 32768 bytes. A request is matched to the smallest class that fits, then that bucket is walked for a block large enough. If none fits, larger classes are tried. When a block is found, leftovers are split back into the free list if the remainder is at least 24 bytes (`MinBlockSize`).
 
 **Bump allocation** is the fast path: advance `Bump` by the aligned size. If `_lastSegment` is full, the slow path walks all segments from `_lastSegment` forward (then wraps around), and if nothing fits, allocates a new segment from the page allocator.
 
@@ -343,11 +376,31 @@ The collector starts at `obj + startOffset` and for each array element, walks th
 
 ### Sweep phase
 
-The sweep walks every segment linearly from `Start` to `Bump`. For each position it reads the object header and decides:
+```mermaid
+flowchart TD
+    SWEEP["SweepPhase()"] --> SEG["Walk each regular segment
+    SweepSegment()"]
+    SWEEP --> PIN["SweepPinnedHeap()"]
+    SWEEP --> SM["SweepSmallHeap()"]
+    SWEEP --> MED["SweepMediumHeap()"]
+    SWEEP --> LG["SweepLargeHeap()"]
 
-- **Free block** (`MethodTable == _freeMethodTable`): accumulate into the current free run.
-- **Marked object**: unmark it, flush the accumulated free run as a new `FreeBlock` on the free list.
-- **Unmarked object**: dead — extend the free run.
+    SEG --> WALK["Linear walk from Start to Bump"]
+    WALK --> READ{Read object at ptr}
+    READ -->|"MT == null"| STOP[Break]
+    READ -->|"MT == _freeMethodTable"| ACCUM[Accumulate into free run]
+    READ -->|"MT inside heap"| SKIP["Skip pointer-sized chunk"]
+    READ -->|Marked object| LIVE["Unmark, flush free run
+    to free list"]
+    READ -->|Unmarked object| DEAD["Extend free run"]
+    ACCUM --> NEXT[Advance ptr]
+    SKIP --> NEXT
+    LIVE --> NEXT
+    DEAD --> NEXT
+    NEXT --> READ
+```
+
+For each regular segment, the sweep walks linearly from `Start` to `Bump`. It accumulates consecutive dead objects and free blocks into a **free run**. When a live (marked) object is encountered, the accumulated free run is flushed as a `FreeBlock` onto the free list, and the object is unmarked for the next cycle.
 
 When a free run reaches the end of a segment (trailing dead objects), the sweeper reclaims that space by moving `Bump` back instead of creating a free block.
 
