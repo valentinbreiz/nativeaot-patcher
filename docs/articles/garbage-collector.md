@@ -26,8 +26,6 @@ Every managed type compiled by the NativeAOT compiler (ILC) has a `MethodTable`,
 
 Because `MethodTable` pointers always reside in kernel code sections, the GC uses `IsInGCHeap((nint)mt)` as a validity check. If a `MethodTable*` points inside the heap, it cannot be a real type descriptor and the candidate object is rejected.
 
----
-
 ### Object struct
 
 Every managed object on the GC heap starts with a [`GCObject`](../../src/Cosmos.Kernel.Core/Memory/GCObject.cs) header:
