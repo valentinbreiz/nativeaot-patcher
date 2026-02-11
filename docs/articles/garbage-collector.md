@@ -262,6 +262,7 @@ sequenceDiagram
     GC->>GC: Reorder pinned segments, free empty ones 
     GC->>PA: Free(empty segments)
     GC->>GC: RecomputeHeapRange
+    Note over GC: Interrupts enabled
     deactivate GC
     GC-->>App: freed objects count
 ```
