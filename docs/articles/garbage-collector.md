@@ -1,6 +1,6 @@
 ## Overview
 
-The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across four heap tiers (GC heap, pinned heap, frozen segments and the Small/Medium/Large heaps), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.
+The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across four heap tiers (GC heap, GC handles, pinned heap, frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.
 
 All GC code lives in the `GarbageCollector` partial class split across four files:
 
@@ -175,21 +175,6 @@ Not `GCSegment`-based. A linked list of `FrozenSegmentInfo` nodes tracking pre-i
 
 The garbage collector also sweeps objects allocated on the general-purpose heaps (SmallHeap, MediumHeap, LargeHeap). These heaps are not segment-based — the sweeper finds their objects by scanning the page allocator's Range Allocation Table (RAT) for the corresponding page types.
 
-### Free list
-
-The allocator maintains **12 size classes** as power-of-two buckets from 16 bytes to 32 KB. Each bucket is a singly-linked list of `FreeBlock` nodes. A `FreeBlock` is laid out to be walkable like a `GCObject` — its `MethodTable` field points to a special `FreeMarker` method table so the sweeper can distinguish free blocks from live objects:
-
-```
-FreeBlock (24 bytes on x64)
-┌─────────────────────────┐
-│ MethodTable* ──► FreeMarker MT
-├─────────────────────────┤
-│ Size  (int)             │  ← occupies same offset as GCObject.Length
-├─────────────────────────┤
-│ Next  (FreeBlock*)      │  ← next block in this size class
-└─────────────────────────┘
-```
-
 ---
 
 ## Allocation
@@ -254,16 +239,6 @@ For pointers outside the main heap range, `IsInPinnedHeap` performs a separate l
 
 If all of that fails, a **collection** runs and the allocation retries.
 
-**Handle types and collection behavior**:
-
-| Type | Keeps object alive? | Freed during collection? |
-|------|--------------------|-----------------------|
-| `Weak` | No | Yes, if object is unmarked |
-| `Normal` | Yes (scanned as root) | No |
-| `Pinned` | Yes (scanned as root) | No |
-
-`AllocateHandler` scans the handle table linearly for an empty slot (where `obj == null`). `FreeWeakHandles` runs between the mark and sweep phases — it nulls out any weak handle whose object was not marked, breaking the reference before the sweeper reclaims the object's memory.
-
 ---
 
 ## Collection
@@ -304,13 +279,19 @@ flowchart LR
     MARK --> STATIC["ScanStaticRoots (disabled)"]
 ```
 
+**Static root scanning** walks GCStaticRegion sections from all loaded modules. This is currently disabled.
+
 **Stack scanning** is **conservative**: every pointer-sized value on the stack is treated as a potential object reference. If the scheduler is active, the GC iterates all thread contexts and scans both saved registers and stack memory. Without a scheduler, it scans the current stack from RSP to the stack base.
 
 **GC handle scanning** walks the handle table and marks objects referenced by `Normal` and `Pinned` handles. `Weak` handles do not keep objects alive.
 
-**Static root scanning** walks GCStaticRegion sections from all loaded modules. This is currently disabled.
+| Type | Keeps object alive? | Freed during collection? |
+|------|--------------------|-----------------------|
+| `Weak` | No | Yes, if object is unmarked |
+| `Normal` | Yes (scanned as root) | No |
+| `Pinned` | Yes (scanned as root) | No |
 
-`TryMarkRoot(value)` pushes a candidate pointer onto the mark stack, then processes the stack iteratively:
+While scanning, `TryMarkRoot(value)` pushes a candidate pointer onto the mark stack, then processes the stack iteratively:
 
 1. Pop a pointer
 2. Read the `MethodTable` field (masking off the mark bit)
