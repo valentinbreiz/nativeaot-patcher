@@ -95,9 +95,11 @@ The GC maintains **two independent linked lists** of segments — one for the re
                     _currentPinnedSegment
 ```
 
+Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the **pinned chain**. 
+
 After each collection, segments in both chains are sorted into three groups: **FULL** (bump reached end) → **SEMIFULL** (partially used) → **FREE** (empty). Empty multi-page segments are returned to the page allocator entirely. `_lastSegment` is set to the first semifull (or free) segment so the next allocation targets available space first.
 
-### Handle store chain
+### Handle store
 
 GC handles allow native or runtime code to hold references to managed objects that the GC can track. The handle table is stored in a dedicated `GCSegment` allocated at GC initialization.
 
@@ -114,15 +116,13 @@ GCHandle (24 bytes on x64)
 └──────────────────────────┘
 ```
 
-Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the **pinned chain**. Both use the same `GCSegment` structure and bump allocation, but are allocated, swept, and reordered independently. Pinned objects are never moved but can still be collected when unreachable.
-
-The handle store is a standalone `GCSegment*` allocated once at GC initialization via `AllocateSegment()`. It is not part of the regular or pinned chains. Unlike regular segments, `Bump` is never advanced, it stays equal to `Start` and serves as the base address of the handle table. The entire region from `Start` to `End` is a flat array of `GCHandle` slots. `AllocateHandler` scans linearly for an empty slot (`obj == null`).
+The handle store is a standalone `GCSegment*` allocated once at GC initialization via `AllocateSegment()`. It is not part of the regular or pinned chains. Unlike regular segments, `Bump` is never advanced — it stays equal to `Start` and serves as the base address of the handle table. The entire region from `Start` to `End` is a flat array of `GCHandle` slots. `AllocateHandler` scans linearly for an empty slot (`obj == null`).
 
 ```
  Handle store (handlerStore)
  ═══════════════════════════════════════════════════════════════════
 
- handlerStore ──► GCSegment linked list
+ handlerStore ──► GCSegment (single, not linked)
                        │
               Start = Bump (never moves)                        End
                        │                                         │
@@ -137,7 +137,7 @@ The handle store is a standalone `GCSegment*` allocated once at GC initializatio
                                           picks first empty slot
 ```
 
-The GC scans this table during the mark phase, `Normal` and `Pinned` handles are treated as roots. After marking, `FreeWeakHandles` nulls out any `Weak` handle whose object was not marked (see [GC handles](#gc-handles)).
+The GC scans this table during the mark phase, `Normal` and `Pinned` handles are treated as roots. After marking, `FreeWeakHandles` nulls out any `Weak` handle whose object was not marked (see [Handle store](#handle-store)).
 
 ### Frozen segments chain
 
@@ -168,8 +168,6 @@ Frozen segments do not participate in mark or sweep phases.
                      │  const data, ...)│      │  ...)            │
                      └──────────────────┘      └──────────────────┘
 ```
-
-Not `GCSegment`-based. A linked list of `FrozenSegmentInfo` nodes tracking pre-initialized, read-only memory regions registered by the NativeAOT runtime at startup (string literals, static readonly data, etc.). These never participate in collection. 
 
 ### Other heaps
 
@@ -233,10 +231,6 @@ flowchart TD
 
 **Bump allocation** is the fast path: advance `Bump` by the aligned size. If `_lastSegment` is full, the slow path walks all segments from `_lastSegment` forward (then wraps around), and if nothing fits, allocates a new segment from the page allocator.
 
-To quickly reject pointers that cannot be heap objects, the GC maintains a bounding box (`_gcHeapMin` / `_gcHeapMax`) covering all segment addresses. `IsInGCHeap` first checks this range before walking the segment list. The range is recomputed after any segment is added, removed, or reordered (flagged by `_heapRangeDirty`).
-
-For pointers outside the main heap range, `IsInPinnedHeap` performs a separate linear walk of pinned segments.
-
 If all of that fails, a **collection** runs and the allocation retries.
 
 ---
@@ -244,6 +238,10 @@ If all of that fails, a **collection** runs and the allocation retries.
 ## Collection
 
 Collection is triggered when allocation fails or when `Collect()` is called explicitly. The entire collection runs inside a `DisableInterruptsScope` — no thread switching or interrupt handling occurs during GC.
+
+To quickly reject pointers that cannot be heap objects, the GC maintains a bounding box (`_gcHeapMin` / `_gcHeapMax`) covering all segment addresses. `IsInGCHeap` first checks this range before walking the segment list. The range is recomputed after any segment is added, removed, or reordered (flagged by `_heapRangeDirty`).
+
+For pointers outside the main heap range, `IsInPinnedHeap` performs a separate linear walk of pinned segments.
 
 ### Collection lifecycle
 
