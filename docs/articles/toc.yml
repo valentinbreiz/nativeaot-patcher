@@ -8,6 +8,8 @@
   href: patcher-build.md
 - name: Kernel Compilation Steps
   href: kernel-compilation-steps.md
+- name: Garbage Collector
+  href: garbage-collector.md
 - name: Testing
   href: testing.md
 - name: Kernel Project Layout
