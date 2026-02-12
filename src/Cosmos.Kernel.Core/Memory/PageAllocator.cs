@@ -646,4 +646,40 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
+    internal static void DumpPageCounts()
+    {
+        ulong empty = 0, heapSmall = 0, heapMedium = 0, heapLarge = 0, unmanaged = 0, pageDirectory = 0, pageAllocator = 0, smt = 0, extension = 0, unknown = 0, gcHeap = 0;
+        for (ulong i = 0; i < TotalPageCount; i++)
+        {
+            byte b = mRAT[i];
+            switch ((PageType)b)
+            {
+                case PageType.Empty: empty++; break;
+                case PageType.GCHeap: gcHeap++; break;
+                case PageType.HeapSmall: heapSmall++; break;
+                case PageType.HeapMedium: heapMedium++; break;
+                case PageType.HeapLarge: heapLarge++; break;
+                case PageType.Unmanaged: unmanaged++; break;
+                case PageType.PageDirectory: pageDirectory++; break;
+                case PageType.PageAllocator: pageAllocator++; break;
+                case PageType.SMT: smt++; break;
+                case PageType.Extension: extension++; break;
+                default: unknown++; break;
+            }
+        }
+
+        Serial.WriteString("[PageAllocator] Page counts by type:\n");
+        Serial.WriteString("  Empty: "); Serial.WriteNumber(empty); Serial.WriteString("\n");
+        Serial.WriteString("  GCHeap: "); Serial.WriteNumber(gcHeap); Serial.WriteString("\n");
+        Serial.WriteString("  HeapSmall: "); Serial.WriteNumber(heapSmall); Serial.WriteString("\n");
+        Serial.WriteString("  HeapMedium: "); Serial.WriteNumber(heapMedium); Serial.WriteString("\n");
+        Serial.WriteString("  HeapLarge: "); Serial.WriteNumber(heapLarge); Serial.WriteString("\n");
+        Serial.WriteString("  Unmanaged: "); Serial.WriteNumber(unmanaged); Serial.WriteString("\n");
+        Serial.WriteString("  PageDirectory: "); Serial.WriteNumber(pageDirectory); Serial.WriteString("\n");
+        Serial.WriteString("  PageAllocator: "); Serial.WriteNumber(pageAllocator); Serial.WriteString("\n");
+        Serial.WriteString("  SMT: "); Serial.WriteNumber(smt); Serial.WriteString("\n");
+        Serial.WriteString("  Extension: "); Serial.WriteNumber(extension); Serial.WriteString("\n");
+        if (unknown > 0) { Serial.WriteString("  Unknown/Other: "); Serial.WriteNumber(unknown); Serial.WriteString("\n"); }
+        Serial.WriteString("  Total: "); Serial.WriteNumber(TotalPageCount); Serial.WriteString("\n");
+    }
 }

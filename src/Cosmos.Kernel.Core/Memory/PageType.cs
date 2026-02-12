@@ -13,6 +13,12 @@ public enum PageType : byte
     Empty = 0,
 
     /// <summary>
+    /// GC page.
+    /// A page managed by the GC, here is where managed objects are allocated.
+    /// </summary>
+    GCHeap = 1,
+
+    /// <summary>
     /// Small heap page.
     /// </summary>
     HeapSmall = 3,
