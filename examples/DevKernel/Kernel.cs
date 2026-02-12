@@ -407,22 +407,38 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
     }
 
+    private int i = 0;
+
     private void TestThread()
     {
         Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
         Console.WriteLine("Creating and starting a thread...");
-
-        var thread = new System.Threading.Thread(() =>
+        while (true)
         {
-            Serial.WriteString("[Thread] Hello from thread delegate!\n");
-            Console.WriteLine("Hello from thread!");
-        });
+            var thread = new System.Threading.Thread(() =>
+            {
+                i++;
+                int ii = 0;
+                Serial.WriteStringAsync("[Thread] Hello from thread delegate!\n", (_) => { });
+                Console.WriteLine($"Hello from thread {i}!");
+                while (true)
+                {
+                    if (ii == (int.MaxValue - 1))
+                    {
+                        ii = 0;
+                    }
 
-        thread.Start();
+                    ii++;
+                    Serial.WriteStringAsync("[Thread "+ i +"] some text "+ ii +" \n", (e) => { });
+                }
+            });
+
+            thread.Start();
+        }
+
         PrintSuccess("Thread started!");
         Console.WriteLine();
 
-        TimerManager.Wait(2000);
     }
 
     private void StartGraphicsThread()

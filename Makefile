@@ -10,7 +10,6 @@ test: build
 	  -boot d \
 	  -m 512M \
 	  -serial file:uart.log \
-	  -nographic \
 	  -no-reboot \
 	  -enable-kvm \
 	  -machine accel=kvm \

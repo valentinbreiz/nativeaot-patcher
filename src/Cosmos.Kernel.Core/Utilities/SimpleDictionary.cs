@@ -101,19 +101,7 @@ public class SimpleDictionary<TKey, TValue> where TKey : notnull
 
     private void Resize()
     {
-        var oldBuckets = _buckets;
-        _buckets = new Entry[_buckets.Length * 2];
-        _count = 0;
-
-        foreach (var entry in oldBuckets)
-        {
-            var current = entry;
-            while (current != null)
-            {
-                Add(current.Key, current.Value);
-                current = current.Next;
-            }
-        }
+        Array.Resize(ref _buckets, _buckets.Length * 2);
     }
 
     private static int HashCode(TKey key)

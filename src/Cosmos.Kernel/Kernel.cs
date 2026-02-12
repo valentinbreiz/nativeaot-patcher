@@ -124,7 +124,7 @@ public class Kernel
             Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
             initializer.StartSchedulerTimer(10);  // 10ms quantum
         }
-
+        Serial.StartThread();
         Serial.WriteString("[KERNEL] Phase 3: Complete\n");
     }
 

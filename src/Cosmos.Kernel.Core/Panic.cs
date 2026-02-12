@@ -8,26 +8,8 @@ namespace Cosmos.Kernel.Core;
 /// </summary>
 public static class Panic
 {
-    /// <summary>
-    /// Triggers a kernel panic with the specified message.
-    /// Disables interrupts and halts the CPU.
-    /// </summary>
-    /// <param name="message">The panic message describing the error.</param>
-    public static void Halt(string message)
-    {
-        InternalCpu.DisableInterrupts();
 
-        Serial.WriteString("\n");
-        Serial.WriteString("========================================\n");
-        Serial.WriteString("KERNEL PANIC\n");
-        Serial.WriteString("========================================\n");
-        Serial.WriteString(message);
-        Serial.WriteString("\n");
-        Serial.WriteString("========================================\n");
-        Serial.WriteString("System halted.\n");
-
-        HaltCpu();
-    }
+    public static bool HasHalted = false;
 
     /// <summary>
     /// Triggers a kernel panic with the specified message and caller information.
@@ -44,7 +26,7 @@ public static class Panic
         [System.Runtime.CompilerServices.CallerLineNumber] int line = 0)
     {
         InternalCpu.DisableInterrupts();
-
+        HasHalted = true;
         Serial.WriteString("\n");
         Serial.WriteString("========================================\n");
         Serial.WriteString("KERNEL PANIC\n");

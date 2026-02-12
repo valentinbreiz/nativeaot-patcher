@@ -61,7 +61,10 @@ public static class SchedulerManager
             _currentScheduler = scheduler;
 
             for (uint i = 0; i < _cpuCount; i++)
+            {
                 scheduler.InitializeCpu(_cpuStates[i]);
+            }
+
         }
         finally
         {
