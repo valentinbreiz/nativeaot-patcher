@@ -11,14 +11,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.devcontainer/postCreateCommand.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.devcontainer/postCreateCommand.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Panic.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Panic.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/DispatchResolve.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/DispatchResolve.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Thread.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Thread.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +46,8 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/54/1001bc57/SafeFileHandle.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/b3/f219f6c6/Object.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/fb/32d84a1c/Path.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/0a/49270645/Array.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/0a/6ec688cf/Queue`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/16/bf8cf680/Action.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/20/17b7a842/Action`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c14245b740114dda83d119606535b688db2800/4e/103bd325/IAsyncResult.cs" root0="FORCE_HIGHLIGHTING" />
@@ -63,11 +68,14 @@
     <setting file="file://$PROJECT_DIR$/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/MiscHelpers.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/thread.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/vm/methodtablebuilder.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/CachedInterfaceDispatch.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="FORCE_HIGHLIGHTING" />
@@ -76,6 +84,7 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/InterruptManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/DebugInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/C/floor.c" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.asm" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Commands/BuildCommand.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Program.cs" root0="FORCE_HIGHLIGHTING" />
@@ -95,20 +104,55 @@
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="1" id="Add" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "git-widget-placeholder": "zarlo/async-serial/0",
-    "node.js.selected.package.tslint": "(autodetect)"
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;zarlo/async-serial/0&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
     </key>
   </component>
   <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="" />
+      <created>1770620597707</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1770620597707</updated>
+      <workItem from="1770620597709" duration="28155000" />
+      <workItem from="1770779737218" duration="4628000" />
+      <workItem from="1770796896969" duration="295000" />
+      <workItem from="1770853387226" duration="4584000" />
+    </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
 </project>

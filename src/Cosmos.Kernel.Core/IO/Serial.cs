@@ -15,6 +15,13 @@ public static partial class Serial
 
     // COM1 port base address
     private const ushort COM1_BASE = 0x3F8;
+    private const ushort COM2_BASE = 0x2F8;
+    private const ushort COM3_BASE = 0x3E8;
+    private const ushort COM4_BASE = 0x2E8;
+    private const ushort COM5_BASE = 0x5F8;
+    private const ushort COM6_BASE = 0x4F8;
+    private const ushort COM7_BASE = 0x5E8;
+    private const ushort COM8_BASE = 0x4E8;
 
     // Register offsets from base
     private const ushort REG_DATA = 0;           // Data register (R/W), also divisor latch low when DLAB=1
@@ -127,63 +134,6 @@ public static partial class Serial
         // Enable DTR, RTS, and OUT2 (required for interrupts)
         Native.IO.Write8(COM1_BASE + REG_MCR, MCR_DTR_RTS_OUT2);
 #endif
-    }
-
-    private static Thread? s_thread = null;
-
-    public static void StartThread()
-    {
-        s_thread = new Thread(Process);
-        s_thread.Start();
-    }
-
-    private static readonly BlockingCollection<Action> s_queue = new();
-
-    private static void RealComWrite(byte value)
-    {
-
-#if ARCH_ARM64
-        // PL011: Wait until TX FIFO is not full
-        while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
-        Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
-#else
-        // 16550: Wait for transmit buffer to be empty
-        while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
-        Native.IO.Write8(COM1_BASE + REG_DATA, value);
-#endif
-
-    }
-
-    private static void Queue(Action callback)
-    {
-        // when Paniced there are no thread so we must inline
-        if (s_thread is null || Panic.HasHalted)
-        {
-            callback();
-        }
-        else
-        {
-            s_queue.Add(callback);
-        }
-    }
-
-    [DoesNotReturn]
-    private static void Process()
-    {
-        while (true)
-        {
-            foreach (Action callback in s_queue.GetConsumingEnumerable())
-            {
-                try
-                {
-                    callback();
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
     }
 
 }
