@@ -6,6 +6,9 @@ using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
+/// <summary>
+/// Frozen segment registration: pre-initialized read-only objects that are never collected.
+/// </summary>
 public static unsafe partial class GarbageCollector
 {
     // --- Nested types ---

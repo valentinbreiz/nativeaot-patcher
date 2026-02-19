@@ -6,6 +6,9 @@ using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
+/// <summary>
+/// Pinned object heap: allocation, sweeping, and segment management for pinned objects.
+/// </summary>
 public static unsafe partial class GarbageCollector
 {
     // --- Constants ---

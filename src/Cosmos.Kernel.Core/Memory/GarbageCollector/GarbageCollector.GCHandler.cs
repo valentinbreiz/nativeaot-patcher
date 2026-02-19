@@ -6,6 +6,9 @@ using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
+/// <summary>
+/// GC handle table: allocation, freeing, and weak handle cleanup for Weak, Normal, and Pinned handles.
+/// </summary>
 public static unsafe partial class GarbageCollector
 {
     // --- Nested types ---
