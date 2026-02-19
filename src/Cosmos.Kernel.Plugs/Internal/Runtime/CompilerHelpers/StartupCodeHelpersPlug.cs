@@ -13,7 +13,7 @@ public unsafe partial class StartupCodeHelpersPlug
     {
         // Already run early in ManagedModule.InitializeModules()
     }
-    
+
     [PlugMember]
     internal static int GetLoadedModules(TypeManagerHandle[] outputModules)
     {

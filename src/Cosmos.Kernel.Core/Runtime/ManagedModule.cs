@@ -25,7 +25,7 @@ public static unsafe partial class ManagedModule
     internal static int s_moduleCount = 0;
     public static TypeManagerHandle[] Modules => s_modules;
     public static int ModuleCount => s_moduleCount;
-    
+
     /// <summary>
     /// GC handle of an array with s_moduleCount elements, each representing and array of GC static bases of the types in the module.
     /// </summary>
@@ -108,12 +108,12 @@ public static unsafe partial class ManagedModule
 
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
-    
+
     public static int GetLoadedModules(TypeManagerHandle[] outputModules)
     {
         if (outputModules is not null)
         {
-            for(int i = 0; i < s_moduleCount && i < outputModules.Length; i++)
+            for (int i = 0; i < s_moduleCount && i < outputModules.Length; i++)
             {
                 outputModules[i] = s_modules[i];
             }
@@ -148,13 +148,13 @@ public static unsafe partial class ManagedModule
         }
 
         IntPtr frozenSegmentRegion = typeManager->GetModuleSection(ReadyToRunSectionType.FrozenObjectRegion, out length);
-        if(frozenSegmentRegion != IntPtr.Zero)
+        if (frozenSegmentRegion != IntPtr.Zero)
         {
             if (GarbageCollector.RegisterFrozenSegment(frozenSegmentRegion, (nuint)length, (nuint)length, (nuint)length) == IntPtr.Zero)
             {
                 ExceptionHelper.FailFast("Failed to register frozen object segment for the module.");
             }
-            
+
         }
     }
 
@@ -203,14 +203,14 @@ public static unsafe partial class ManagedModule
     {
         byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
 
-        
+
         //var ptr = Memory.RhNewArray(MethodTable.Of<object[]>(), length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
         //var spine = Unsafe.AsRef<object[]>(ptr);
 
         object[] spine = new object[length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))];
         ref object rawSpineData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(spine).Data);
         GCHandle.Alloc(spine);
-        
+
         int currentBase = 0;
         for (byte* block = (byte*)gcStaticRegionStart;
             block < gcStaticRegionEnd;
@@ -255,7 +255,7 @@ public static unsafe partial class ManagedModule
         }
 
         return spine;
-        
+
 
         static void* ReadRelPtr32(void* address)
             => (byte*)address + *(int*)address;
@@ -266,9 +266,9 @@ public static unsafe partial class ManagedModule
 internal class RawArrayData
 {
     public uint Length; // Array._numComponents padded to IntPtr
-//#if TARGET_64BIT
+                        //#if TARGET_64BIT
     public uint Padding;
-//#endif
+    //#endif
     public byte Data;
 }
 

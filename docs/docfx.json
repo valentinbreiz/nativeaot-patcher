@@ -11,10 +11,6 @@
         { "src": "../src/Cosmos.Kernel.HAL.ARM64", "files": [ "Cosmos.Kernel.HAL.ARM64.csproj" ] },
         { "src": "../src/Cosmos.Kernel.HAL.Interfaces", "files": [ "Cosmos.Kernel.HAL.Interfaces.csproj" ] },
         { "src": "../src/Cosmos.Kernel.HAL.X64", "files": [ "Cosmos.Kernel.HAL.X64.csproj" ] },
-        { "src": "../src/Cosmos.Kernel.Native.ARM64", "files": [ "Cosmos.Kernel.Native.ARM64.csproj" ] },
-        { "src": "../src/Cosmos.Kernel.Native.MultiArch", "files": [ "Cosmos.Kernel.Native.MultiArch.csproj" ] },
-        { "src": "../src/Cosmos.Kernel.Native.X64", "files": [ "Cosmos.Kernel.Native.X64.csproj" ] },
-        { "src": "../src/Cosmos.Kernel.Plugs", "files": [ "Cosmos.Kernel.Plugs.csproj" ] },
         { "src": "../src/Cosmos.Kernel.System", "files": [ "Cosmos.Kernel.System.csproj" ] }
       ],
       "dest": "api",

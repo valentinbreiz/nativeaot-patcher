@@ -1,11 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Internal.Runtime;
-using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
