@@ -18,7 +18,8 @@
         { "src": "../src/Cosmos.Kernel.System", "files": [ "Cosmos.Kernel.System.csproj" ] }
       ],
       "dest": "api",
-      "disableGitFeatures": true
+      "disableGitFeatures": true,
+      "allowCompilationErrors": true
     }
   ],
 
