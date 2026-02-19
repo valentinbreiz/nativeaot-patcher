@@ -17,18 +17,30 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup dotnet
+    - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     - name: Install DocFX
       shell: pwsh
-      run: choco install docfx
+      run: |
+        dotnet tool update -g docfx
+        echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+
+    - name: Restore solution
+      shell: pwsh
+      run: dotnet restore nativeaot-patcher.slnx
 
     - name: Build Docs
       shell: pwsh
-      run: docfx ./docs/docfx.json
+      run: |
+        cd docs
+        docfx docfx.json
+
+    - name: Verify output
+      shell: pwsh
+      run: Get-ChildItem -Recurse docs/_site
 
     - name: Publish to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
