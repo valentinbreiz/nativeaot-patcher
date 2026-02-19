@@ -46,7 +46,7 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Initializes the GC handle store by allocating a dedicated segment.
     /// </summary>
-    public static void InitializeGCHandleStore()
+    private static void InitializeGCHandleStore()
     {
         s_handlerStore = AllocateSegment((uint)(PageAllocator.PageSize - (ulong)sizeof(GCSegment)));
     }
