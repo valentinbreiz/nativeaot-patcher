@@ -1,5 +1,4 @@
 // This code is licensed under MIT license (see LICENSE for details)
-// Clean GC implementation with free list allocation
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,7 +9,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Internal.Runtime;
 
-namespace Cosmos.Kernel.Core.Memory;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 #pragma warning disable CS8500
 
@@ -66,7 +65,7 @@ public static unsafe partial class GarbageCollector
     private static GCSegment* _currentSegment;
     private static GCSegment* _lastSegment;
     private static GCSegment* _tailSegment;
-    private static uint MAX_SEGMENT_SIZE = (uint)((uint)PageAllocator.PageSize);
+    private static uint MAX_SEGMENT_SIZE = (uint)PageAllocator.PageSize;
 
     // Heap range cache (fast pre-check for IsInGCHeap)
     private static byte* _gcHeapMin;
@@ -101,7 +100,6 @@ public static unsafe partial class GarbageCollector
         Serial.WriteString("[GC] Initializing with free list allocator\n");
 
         // Allocate free list array using page allocator (not GC heap)
-        ulong freeListBytes = (ulong)(NumSizeClasses * sizeof(FreeBlock*));
         _freeLists = (FreeBlock**)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
         if (_freeLists == null)
         {
@@ -640,13 +638,9 @@ public static unsafe partial class GarbageCollector
             TryMarkRoot(*ptr);
     }
 
-
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    private static void TryMarkRoot(nint value, bool SkipValidation = false)
+    private static void TryMarkRoot(nint value)
     {
-        //if (!SkipValidation && (value == 0 || !IsInGCHeap(value)))
-        //    return;
-
         PushMarkStack(value);
 
         while (_markStackCount > 0)
@@ -1191,26 +1185,4 @@ public struct GCDescSeries
 {
     public nint SeriesSize;
     public nint StartOffset;
-
-
-    public void Deconstruct(out nint size, out nint offset)
-    {
-        size = SeriesSize;
-        offset = StartOffset;
-    }
-}
-
-internal static class ObjectHeader
-{
-    private const uint BIT_SBLK_UNUSED = 0x80000000;
-    private const uint BIT_SBLK_FINALIZER_RUN = 0x40000000;
-    private const uint BIT_SBLK_GC_RESERVE = 0x20000000;
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int* GetHeaderPtr(MethodTable** ppMethodTable)
-    {
-        // The header is 4 bytes before m_pEEType field on all architectures
-        return (int*)ppMethodTable - 1;
-    }
 }

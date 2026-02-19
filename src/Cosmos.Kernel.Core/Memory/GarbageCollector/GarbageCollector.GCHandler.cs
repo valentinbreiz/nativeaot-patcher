@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
-namespace Cosmos.Kernel.Core.Memory;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 public static unsafe partial class GarbageCollector
 {
@@ -13,7 +13,6 @@ public static unsafe partial class GarbageCollector
     public static void InitializeGCHandleStore()
     {
         handlerStore = AllocateSegment((uint)(PageAllocator.PageSize - (ulong)sizeof(GCSegment)));
-        //handlerStore->Bump = (byte*)Align((uint)(handlerStore->Start + sizeof(GCHandle)));
     }
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -24,7 +23,6 @@ public static unsafe partial class GarbageCollector
         var handles = new Span<GCHandle>((void*)Align((uint)handlerStore->Bump), size);
         for(int i = 0; i < handles.Length; i++)
         {
-            //var handle = handles[i];
             if((IntPtr)handles[i].obj == IntPtr.Zero)
             {
                 handles[i].obj = obj;
@@ -59,7 +57,6 @@ public static unsafe partial class GarbageCollector
             }
         }
     }
-
 
     internal static void FreeHandle(IntPtr handle)
     {

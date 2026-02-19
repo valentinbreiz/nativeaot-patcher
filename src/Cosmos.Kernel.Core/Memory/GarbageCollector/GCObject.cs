@@ -1,11 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
-// Clean GC implementation with free list allocation
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Internal.Runtime;
 
-namespace Cosmos.Kernel.Core.Memory;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 /// <summary>
 /// Represents a managed object in the GC heap.

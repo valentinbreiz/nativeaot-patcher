@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Internal.Metadata.NativeFormat;
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;

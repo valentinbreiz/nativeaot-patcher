@@ -6,7 +6,7 @@ using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Internal.Runtime;
 
-namespace Cosmos.Kernel.Core.Memory;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 public static unsafe partial class GarbageCollector
 {

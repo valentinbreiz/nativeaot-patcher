@@ -162,7 +162,7 @@ public static unsafe class Heap
         using (InternalCpu.DisableInterruptsScope())
         {
             // Run GC to identify and free unreachable objects
-            result = GarbageCollector.Collect();
+            result = GarbageCollector.GarbageCollector.Collect();
 
             // Also prune empty SMT pages
             result += SmallHeap.PruneSMT();
