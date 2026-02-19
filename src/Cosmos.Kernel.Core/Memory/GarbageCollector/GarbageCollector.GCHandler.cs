@@ -10,24 +10,51 @@ public static unsafe partial class GarbageCollector
 {
     // --- Nested types ---
 
+    /// <summary>
+    /// Represents a single GC handle entry in the handle store.
+    /// </summary>
     private struct GCHandle
     {
+        /// <summary>
+        /// Pointer to the managed object this handle references.
+        /// </summary>
         public GCObject* obj;
+
+        /// <summary>
+        /// The type of this handle (Weak, Normal, Pinned, etc.).
+        /// </summary>
         public GCHandleType type;
+
+        /// <summary>
+        /// Additional info associated with this handle (e.g., weak track resurrection flag).
+        /// </summary>
         public nuint extraInfo;
     }
 
     // --- Static fields ---
 
+    /// <summary>
+    /// Segment used as the backing store for all GC handles.
+    /// </summary>
     private static GCSegment* s_handlerStore;
 
     // --- Methods ---
 
+    /// <summary>
+    /// Initializes the GC handle store by allocating a dedicated segment.
+    /// </summary>
     public static void InitializeGCHandleStore()
     {
         s_handlerStore = AllocateSegment((uint)(PageAllocator.PageSize - (ulong)sizeof(GCSegment)));
     }
 
+    /// <summary>
+    /// Allocates a new GC handle for the specified object.
+    /// </summary>
+    /// <param name="obj">Pointer to the managed object to track.</param>
+    /// <param name="handleType">The type of handle to allocate.</param>
+    /// <param name="extraInfo">Additional info associated with the handle.</param>
+    /// <returns>An opaque handle value, or <see cref="IntPtr.Zero"/> if the store is full.</returns>
     [MethodImpl(MethodImplOptions.NoOptimization)]
     internal static IntPtr AllocateHandler(GCObject* obj, GCHandleType handleType, nuint extraInfo)
     {
@@ -48,6 +75,10 @@ public static unsafe partial class GarbageCollector
         return IntPtr.Zero;
     }
 
+    /// <summary>
+    /// Clears weak handles whose target objects were not marked during the mark phase.
+    /// Called between mark and sweep to allow weak references to be collected.
+    /// </summary>
     private static void FreeWeakHandles()
     {
         if (s_handlerStore == null)
@@ -78,6 +109,10 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Frees a previously allocated GC handle, releasing the slot for reuse.
+    /// </summary>
+    /// <param name="handle">The handle to free. No-op if <see cref="IntPtr.Zero"/>.</param>
     internal static void FreeHandle(IntPtr handle)
     {
         if (handle != IntPtr.Zero && s_handlerStore != null)

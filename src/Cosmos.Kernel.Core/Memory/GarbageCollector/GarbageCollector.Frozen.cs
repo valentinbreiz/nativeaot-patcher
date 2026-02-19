@@ -11,32 +11,62 @@ public static unsafe partial class GarbageCollector
     // --- Nested types ---
 
     /// <summary>
-    /// Information about a frozen segment.
+    /// Tracks a frozen segment registered by the runtime.
+    /// Frozen segments contain pre-initialized objects that are never collected.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     private struct FrozenSegmentInfo
     {
+        /// <summary>
+        /// Start address of the frozen segment.
+        /// </summary>
         public nint Start;
+
+        /// <summary>
+        /// Number of bytes allocated within this segment.
+        /// </summary>
         public nuint AllocSize;
+
+        /// <summary>
+        /// Number of bytes committed (backed by physical memory).
+        /// </summary>
         public nuint CommitSize;
+
+        /// <summary>
+        /// Total reserved address space for this segment.
+        /// </summary>
         public nuint ReservedSize;
+
+        /// <summary>
+        /// Pointer to the next frozen segment in the linked list.
+        /// </summary>
         public FrozenSegmentInfo* Next;
     }
 
     // --- Static fields ---
 
-    // Linked list of frozen segments
+    /// <summary>
+    /// Head of the linked list of registered frozen segments.
+    /// </summary>
     private static FrozenSegmentInfo* s_frozenSegments;
 
-    // Metadata storage for frozen segment info
+    /// <summary>
+    /// Current metadata page used to bump-allocate <see cref="FrozenSegmentInfo"/> structs.
+    /// </summary>
     private static byte* s_frozenSegmentMetadataPage;
+
+    /// <summary>
+    /// Current offset into <see cref="s_frozenSegmentMetadataPage"/>.
+    /// </summary>
     private static int s_frozenSegmentMetadataOffset;
 
     // --- Methods ---
 
     /// <summary>
-    /// Checks if a pointer is within a frozen segment.
+    /// Checks if a pointer falls within any registered frozen segment.
     /// </summary>
+    /// <param name="ptr">The pointer to test.</param>
+    /// <returns><c>true</c> if <paramref name="ptr"/> is inside a frozen segment; otherwise, <c>false</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInFrozenSegment(nint ptr)
     {
@@ -55,9 +85,14 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Called by runtime to register frozen segments (preinitialized data).
-    /// Frozen segments contain pre-initialized objects that should never be collected.
+    /// Registers a frozen segment with the GC. Called by the runtime during startup
+    /// for pre-initialized data segments that should never be collected.
     /// </summary>
+    /// <param name="pSegmentStart">Start address of the frozen segment.</param>
+    /// <param name="allocSize">Allocated size in bytes.</param>
+    /// <param name="commitSize">Committed size in bytes.</param>
+    /// <param name="reservedSize">Reserved size in bytes.</param>
+    /// <returns>The segment start address (used as a segment handle by the runtime).</returns>
     internal static nint RegisterFrozenSegment(nint pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
     {
         // Allocate info structure from unmanaged memory (frozen segments are pre-allocated)
@@ -99,8 +134,12 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Called by runtime to update frozen segment.
+    /// Updates a previously registered frozen segment with new allocation and commit sizes.
+    /// Called by the runtime when additional objects are placed into the segment.
     /// </summary>
+    /// <param name="seg">The segment start address (handle returned by <see cref="RegisterFrozenSegment"/>).</param>
+    /// <param name="allocated">New allocated size.</param>
+    /// <param name="committed">New committed size.</param>
     internal static void UpdateFrozenSegment(nint seg, nint allocated, nint committed)
     {
         // Find the segment and update its committed size

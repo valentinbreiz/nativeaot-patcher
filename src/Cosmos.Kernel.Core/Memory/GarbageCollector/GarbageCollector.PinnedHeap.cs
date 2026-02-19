@@ -10,20 +10,32 @@ public static unsafe partial class GarbageCollector
 {
     // --- Constants ---
 
-    private const uint PinnedHeapMinSize = (uint)PageAllocator.PageSize; // Minimum 1 page
+    /// <summary>
+    /// Minimum size for a pinned heap segment (one page).
+    /// </summary>
+    private const uint PinnedHeapMinSize = (uint)PageAllocator.PageSize;
 
     // --- Static fields ---
 
-    // Pinned heap segments - separate from regular GC heap
+    /// <summary>
+    /// Head of the linked list of pinned heap segments.
+    /// </summary>
     private static GCSegment* s_pinnedSegments;
+
+    /// <summary>
+    /// Current pinned segment used for bump allocation.
+    /// </summary>
     private static GCSegment* s_currentPinnedSegment;
 
     // --- Methods ---
 
     /// <summary>
     /// Allocates a pinned object on the pinned heap.
-    /// Pinned objects are not subject to compaction but can still be collected.
+    /// Pinned objects are not subject to compaction but can still be collected when unreachable.
     /// </summary>
+    /// <param name="size">Requested object size in bytes.</param>
+    /// <param name="flags">Allocation flags from the runtime.</param>
+    /// <returns>Pointer to the allocated object, or <c>null</c> if allocation fails.</returns>
     private static GCObject* AllocPinnedObject(nint size, GC_ALLOC_FLAGS flags)
     {
         uint allocSize = Align((uint)size);
@@ -56,8 +68,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Allocates a new pinned heap segment.
+    /// Allocates a new pinned heap segment backed by page-allocated memory.
     /// </summary>
+    /// <param name="requestedSize">Minimum usable size in bytes.</param>
+    /// <returns>Pointer to the new segment, or <c>null</c> if page allocation fails.</returns>
     private static GCSegment* AllocatePinnedSegment(uint requestedSize)
     {
         uint size = requestedSize < PinnedHeapMinSize ? PinnedHeapMinSize : requestedSize;
@@ -84,6 +98,9 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Attempts bump allocation in a pinned segment.
     /// </summary>
+    /// <param name="segment">The pinned segment to allocate from.</param>
+    /// <param name="size">Number of bytes to allocate.</param>
+    /// <returns>Pointer to the allocated memory, or <c>null</c> if the segment has insufficient space.</returns>
     private static void* BumpAllocInPinnedSegment(GCSegment* segment, uint size)
     {
         if (segment == null)
@@ -104,8 +121,9 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Appends a pinned segment to the pinned segment list.
+    /// Appends a pinned segment to the end of the pinned segment linked list.
     /// </summary>
+    /// <param name="segment">The segment to append.</param>
     private static void AppendPinnedSegment(GCSegment* segment)
     {
         if (segment == null)
@@ -130,8 +148,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Checks if a pointer is in the pinned heap.
+    /// Checks if a pointer falls within any pinned heap segment.
     /// </summary>
+    /// <param name="ptr">The pointer to test.</param>
+    /// <returns><c>true</c> if <paramref name="ptr"/> is inside a pinned segment; otherwise, <c>false</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInPinnedHeap(nint ptr)
     {
@@ -151,9 +171,9 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Sweeps the pinned heap for unmarked objects.
-    /// Pinned objects can still be collected if not referenced.
+    /// Sweeps all pinned heap segments, collecting unmarked objects.
     /// </summary>
+    /// <returns>The number of objects freed across all pinned segments.</returns>
     private static int SweepPinnedHeap()
     {
         int freed = 0;
@@ -168,8 +188,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Sweeps a single pinned segment.
+    /// Sweeps a single pinned segment, freeing unmarked objects and coalescing free runs.
     /// </summary>
+    /// <param name="segment">The pinned segment to sweep.</param>
+    /// <returns>The number of objects freed in this segment.</returns>
     private static int SweepPinnedSegment(GCSegment* segment)
     {
         int freed = 0;
@@ -239,8 +261,11 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Converts a free run in pinned heap into a FreeBlock.
+    /// Converts a contiguous free run in the pinned heap into a <see cref="FreeBlock"/>.
+    /// Unlike regular heap free runs, pinned free blocks are not added to the free list.
     /// </summary>
+    /// <param name="start">Start of the free run.</param>
+    /// <param name="size">Size of the free run in bytes.</param>
     private static void FlushPinnedFreeRun(byte* start, uint size)
     {
         if (start == null || size < MinBlockSize)
@@ -255,7 +280,8 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Reorder pinned segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
+    /// Reorders pinned segments (FULL, then SEMI-FULL, then FREE) and releases
+    /// fully empty multi-page segments back to the page allocator.
     /// </summary>
     private static void ReorderPinnedSegmentsAndFreeEmpty()
     {

@@ -14,115 +14,239 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 #pragma warning disable CS8500
 
 /// <summary>
-/// Mark-and-Sweep Garbage Collector with free list allocation.
+/// Mark-and-sweep garbage collector with free list allocation.
+/// Manages GC heap segments, pinned heap, frozen segments, and GC handles.
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
     // --- Nested types ---
 
     /// <summary>
-    /// Free block in the GC heap. Used for free list management.
-    /// Laid out to be walkable like a GCObject.
+    /// Represents a free block in the GC heap, linked into size-class free lists.
+    /// Laid out to be walkable like a <see cref="GCObject"/> (MethodTable at offset 0, Size at offset 8).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal struct FreeBlock
     {
-        public MethodTable* MethodTable;  // Points to s_freeMethodTable marker
-        public int Size;                   // Size of this free block (matches GCObject.Length position)
-        public FreeBlock* Next;            // Next free block in this size class
+        /// <summary>
+        /// Points to <see cref="s_freeMethodTable"/> to identify this block as free during heap walks.
+        /// </summary>
+        public MethodTable* MethodTable;
+
+        /// <summary>
+        /// Total size of this free block in bytes (occupies the same position as <see cref="GCObject.Length"/>).
+        /// </summary>
+        public int Size;
+
+        /// <summary>
+        /// Next free block in this size class bucket.
+        /// </summary>
+        public FreeBlock* Next;
     }
 
     /// <summary>
-    /// Marker type for free blocks. Used to get a valid MethodTable pointer.
+    /// Marker type whose MethodTable is used to tag free blocks in the heap.
     /// </summary>
     internal struct FreeMarker { }
 
     /// <summary>
-    /// GC heap segment for contiguous allocations.
+    /// Describes a contiguous GC heap segment used for bump allocation.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal struct GCSegment
     {
+        /// <summary>
+        /// Next segment in the linked list.
+        /// </summary>
         public GCSegment* Next;
+
+        /// <summary>
+        /// Start of the usable allocation area (after the segment header).
+        /// </summary>
         public byte* Start;
+
+        /// <summary>
+        /// End of the segment's address range.
+        /// </summary>
         public byte* End;
-        public byte* Bump;        // Current bump allocation pointer
+
+        /// <summary>
+        /// Current bump allocation pointer. Advances toward <see cref="End"/>.
+        /// </summary>
+        public byte* Bump;
+
+        /// <summary>
+        /// Total usable size in bytes (<see cref="End"/> - <see cref="Start"/>).
+        /// </summary>
         public uint TotalSize;
+
+        /// <summary>
+        /// Bytes currently in use (live + dead objects before sweep).
+        /// </summary>
         public uint UsedSize;
     }
 
     /// <summary>
-    /// GCVal series descriptor.
+    /// Describes a value-type series within a GCDesc for arrays of structs containing references.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal struct ValSerieItem
     {
+        /// <summary>
+        /// Number of pointer-sized reference fields in this series.
+        /// </summary>
         public uint Nptrs;
+
+        /// <summary>
+        /// Number of bytes to skip after the reference fields.
+        /// </summary>
         public uint Skip;
     }
 
     /// <summary>
-    /// GCDesc series descriptor.
+    /// Describes a reference series within a GCDesc stored before the MethodTable.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct GCDescSeries
     {
+        /// <summary>
+        /// Size of the series relative to the object size. Added to object size to get byte count.
+        /// </summary>
         public nint SeriesSize;
+
+        /// <summary>
+        /// Byte offset from the object base where this series begins.
+        /// </summary>
         public nint StartOffset;
     }
 
     // --- Constants ---
 
-    // Free list size classes: 16, 32, 64, ... 32768 (powers of two)
+    /// <summary>
+    /// Number of free list size classes (powers of two: 16, 32, 64, ... 32768).
+    /// </summary>
     private const int NumSizeClasses = 12;
+
+    /// <summary>
+    /// Smallest free list size class in bytes.
+    /// </summary>
     private const uint MinSizeClass = 16;
 
-    // Minimum block size (must hold FreeBlock header) - 24 bytes on x64
+    /// <summary>
+    /// Minimum block size in bytes. Must be large enough to hold a <see cref="FreeBlock"/> header (24 bytes on x64).
+    /// </summary>
     private const uint MinBlockSize = 24;
 
     // --- Static fields ---
 
-    // Free lists indexed by size class
+    /// <summary>
+    /// Array of free list heads, indexed by size class.
+    /// </summary>
     private static FreeBlock** s_freeLists;
+
+    /// <summary>
+    /// Whether the free list array has been allocated and initialized.
+    /// </summary>
     private static bool s_freeListsInitialized;
 
-    // Free block marker MethodTable
+    /// <summary>
+    /// MethodTable pointer used to tag <see cref="FreeBlock"/> entries in the heap.
+    /// </summary>
     private static MethodTable* s_freeMethodTable;
 
-    // GC Segments
+    /// <summary>
+    /// Head of the GC segment linked list.
+    /// </summary>
     private static GCSegment* s_segments;
+
+    /// <summary>
+    /// Segment currently being used for bump allocation.
+    /// </summary>
     private static GCSegment* s_currentSegment;
+
+    /// <summary>
+    /// Last segment where allocation succeeded (used as a fast-path hint).
+    /// </summary>
     private static GCSegment* s_lastSegment;
+
+    /// <summary>
+    /// Tail of the segment linked list (for O(1) append).
+    /// </summary>
     private static GCSegment* s_tailSegment;
+
+    /// <summary>
+    /// Default segment size. Grows as needed.
+    /// </summary>
     private static uint s_maxSegmentSize = (uint)PageAllocator.PageSize;
 
-    // Heap range cache (fast pre-check for IsInGCHeap)
+    /// <summary>
+    /// Lowest address across all GC segments (for fast heap range pre-check).
+    /// </summary>
     private static byte* s_gcHeapMin;
+
+    /// <summary>
+    /// Highest address across all GC segments (for fast heap range pre-check).
+    /// </summary>
     private static byte* s_gcHeapMax;
+
+    /// <summary>
+    /// Set to <c>true</c> when segments are added or removed, triggering a range recomputation.
+    /// </summary>
     private static bool s_heapRangeDirty;
 
-    // Mark stack
+    /// <summary>
+    /// Stack used during the mark phase for iterative object traversal.
+    /// </summary>
     private static nint* s_markStack;
+
+    /// <summary>
+    /// Maximum number of entries the mark stack can hold.
+    /// </summary>
     private static int s_markStackCapacity;
+
+    /// <summary>
+    /// Current number of entries in the mark stack.
+    /// </summary>
     private static int s_markStackCount;
+
+    /// <summary>
+    /// Number of pages currently backing the mark stack.
+    /// </summary>
     private static ulong s_markStackPageCount = 1;
 
-    // State
+    /// <summary>
+    /// Whether the GC has been initialized.
+    /// </summary>
     private static bool s_initialized;
+
+    /// <summary>
+    /// Total number of collections performed since initialization.
+    /// </summary>
     private static int s_totalCollections;
+
+    /// <summary>
+    /// Cumulative number of objects freed across all collections.
+    /// </summary>
     private static int s_totalObjectsFreed;
 
     // --- Properties ---
 
     /// <summary>
-    /// Returns true if the GC is enabled.
+    /// Gets a value indicating whether the garbage collector is enabled.
     /// </summary>
-    public static bool IsEnabled => true;
+    /// <value>Always <c>true</c> for this implementation.</value>
+    public static bool IsEnabled
+    {
+        get
+        {
+            return true;
+        }
+    }
 
     // --- Public methods ---
 
     /// <summary>
-    /// Initializes the garbage collector.
+    /// Initializes the garbage collector, allocating the free list array, initial segment, and mark stack.
     /// </summary>
     public static void Initialize()
     {
@@ -182,8 +306,9 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Performs garbage collection.
+    /// Performs a full garbage collection: mark, sweep, and segment reordering.
     /// </summary>
+    /// <returns>The number of objects freed during this collection.</returns>
     public static int Collect()
     {
         if (!s_initialized)
@@ -230,8 +355,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Gets GC statistics.
+    /// Gets cumulative GC statistics.
     /// </summary>
+    /// <param name="totalCollections">Total number of collections performed.</param>
+    /// <param name="totalObjectsFreed">Total number of objects freed across all collections.</param>
     public static void GetStats(out int totalCollections, out int totalObjectsFreed)
     {
         totalCollections = s_totalCollections;
@@ -241,8 +368,12 @@ public static unsafe partial class GarbageCollector
     // --- Internal methods ---
 
     /// <summary>
-    /// Allocates memory for a GC object. Called by runtime.
+    /// Allocates memory for a managed object. Called by the runtime allocation helpers.
+    /// Tries free list, then bump allocation, then triggers a collection as a last resort.
     /// </summary>
+    /// <param name="size">Requested object size in bytes.</param>
+    /// <param name="flags">Runtime allocation flags (e.g., pinned object heap).</param>
+    /// <returns>Pointer to the allocated object, or <c>null</c> if allocation fails.</returns>
     internal static GCObject* AllocObject(nint size, GC_ALLOC_FLAGS flags)
     {
         if (!s_initialized)
@@ -299,8 +430,10 @@ public static unsafe partial class GarbageCollector
     // --- Private methods: Allocation ---
 
     /// <summary>
-    /// Allocates a new GC segment.
+    /// Allocates a new GC segment backed by page-allocated memory.
     /// </summary>
+    /// <param name="requestedSize">Minimum usable size in bytes.</param>
+    /// <returns>Pointer to the initialized segment, or <c>null</c> if page allocation fails.</returns>
     private static GCSegment* AllocateSegment(uint requestedSize)
     {
         uint size = requestedSize < s_maxSegmentSize ? s_maxSegmentSize : requestedSize;
@@ -325,8 +458,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Aligns size to pointer boundary.
+    /// Aligns a size up to the nearest pointer-sized boundary.
     /// </summary>
+    /// <param name="size">The size to align.</param>
+    /// <returns>The aligned size.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint Align(uint size)
     {
@@ -334,8 +469,11 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Tries to allocate from free lists.
+    /// Searches the free lists for a block of the requested size.
+    /// Splits oversized blocks and returns the remainder to the free list.
     /// </summary>
+    /// <param name="size">Aligned allocation size in bytes.</param>
+    /// <returns>Pointer to zeroed memory, or <c>null</c> if no suitable block is found.</returns>
     private static void* AllocFromFreeList(uint size)
     {
         if (!s_freeListsInitialized)
@@ -417,6 +555,12 @@ public static unsafe partial class GarbageCollector
         return null;
     }
 
+    /// <summary>
+    /// Attempts bump allocation within a specific segment.
+    /// </summary>
+    /// <param name="segment">The segment to allocate from.</param>
+    /// <param name="size">Number of bytes to allocate.</param>
+    /// <returns>Pointer to the allocated memory, or <c>null</c> if the segment has insufficient space.</returns>
     private static void* BumpAllocInSegment(GCSegment* segment, uint size)
     {
         if (segment == null)
@@ -438,6 +582,11 @@ public static unsafe partial class GarbageCollector
         return null;
     }
 
+    /// <summary>
+    /// Slow allocation path: walks all segments looking for space, then allocates a new segment if needed.
+    /// </summary>
+    /// <param name="size">Number of bytes to allocate.</param>
+    /// <returns>Pointer to the allocated memory, or <c>null</c> if allocation fails.</returns>
     private static void* AllocateObjectSlow(uint size)
     {
         if (s_segments == null)
@@ -486,6 +635,10 @@ public static unsafe partial class GarbageCollector
         return BumpAllocInSegment(newSegment, size);
     }
 
+    /// <summary>
+    /// Appends a segment to the end of the GC segment linked list.
+    /// </summary>
+    /// <param name="segment">The segment to append.</param>
     private static void AppendSegment(GCSegment* segment)
     {
         if (segment == null)
@@ -524,8 +677,9 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Adds a block to the appropriate free list.
+    /// Inserts a free block into the appropriate size-class free list.
     /// </summary>
+    /// <param name="block">The free block to add.</param>
     private static void AddToFreeList(FreeBlock* block)
     {
         if (!s_freeListsInitialized || block == null || block->Size < MinBlockSize)
@@ -558,6 +712,9 @@ public static unsafe partial class GarbageCollector
 
     #region Mark Phase
 
+    /// <summary>
+    /// Executes the mark phase: scans roots (stack, GC handles) and marks all reachable objects.
+    /// </summary>
     private static void MarkPhase()
     {
         s_markStackCount = 0;
@@ -566,6 +723,10 @@ public static unsafe partial class GarbageCollector
         //ScanStaticRoots();
     }
 
+    /// <summary>
+    /// Scans GC handle entries and marks objects referenced by strong handles (Normal and Pinned).
+    /// Weak handles are skipped so their targets can be collected if otherwise unreachable.
+    /// </summary>
     private static void ScanGCHandles()
     {
         if (s_handlerStore == null)
@@ -596,6 +757,10 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Scans stack roots. When the scheduler is active, scans all thread stacks and saved registers;
+    /// otherwise scans the current stack from RSP to the stack end.
+    /// </summary>
     private static void ScanStackRoots()
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
@@ -621,6 +786,10 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Scans a thread's saved register state and stack for potential object references.
+    /// </summary>
+    /// <param name="thread">The thread whose stack and registers to scan.</param>
     private static void ScanThreadStack(Scheduler.Thread thread)
     {
         if (thread == null)
@@ -700,6 +869,9 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Scans static GC roots from all loaded managed modules.
+    /// </summary>
     private static void ScanStaticRoots()
     {
         var modules = ManagedModule.Modules;
@@ -725,6 +897,11 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Scans a GCStaticRegion section for object references in static fields.
+    /// </summary>
+    /// <param name="regionStart">Start of the GCStaticRegion data.</param>
+    /// <param name="length">Length of the region in bytes.</param>
     private static void ScanGCStaticRegion(byte* regionStart, int length)
     {
         byte* regionEnd = regionStart + length;
@@ -761,6 +938,11 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Scans a contiguous memory range for potential object references (conservative scanning).
+    /// </summary>
+    /// <param name="start">Pointer to the first word to scan.</param>
+    /// <param name="end">Pointer past the last word to scan.</param>
     private static void ScanMemoryRange(nint* start, nint* end)
     {
         for (nint* ptr = start; ptr < end; ptr++)
@@ -769,6 +951,12 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Attempts to mark a potential object reference. Validates that the pointer looks like a
+    /// valid GC object (MethodTable outside heap) before marking and enumerating its references.
+    /// Uses an iterative mark stack to avoid deep recursion.
+    /// </summary>
+    /// <param name="value">Potential object pointer to investigate.</param>
     [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void TryMarkRoot(nint value)
     {
@@ -801,6 +989,12 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    /// <summary>
+    /// Enumerates object references described by the GCDesc and pushes them onto the mark stack.
+    /// Handles both fixed-layout objects (positive series count) and arrays of structs (negative series count).
+    /// </summary>
+    /// <param name="obj">The object whose references to enumerate.</param>
+    /// <param name="mt">The object's MethodTable (must have <c>ContainsGCPointers</c> set).</param>
     private static void EnumerateReferences(GCObject* obj, MethodTable* mt)
     {
         nint numSeries = ((nint*)mt)[-1];
@@ -876,6 +1070,11 @@ public static unsafe partial class GarbageCollector
 
     #region Sweep Phase
 
+    /// <summary>
+    /// Executes the sweep phase across all heap types: GC segments, pinned heap,
+    /// small heap, medium heap, and large heap.
+    /// </summary>
+    /// <returns>Total number of objects freed.</returns>
     private static int SweepPhase()
     {
         int totalFreed = 0;
@@ -895,6 +1094,12 @@ public static unsafe partial class GarbageCollector
         return totalFreed;
     }
 
+    /// <summary>
+    /// Sweeps a single GC segment, freeing unmarked objects and coalescing adjacent dead objects
+    /// into free blocks. Trailing dead objects reclaim bump pointer space.
+    /// </summary>
+    /// <param name="segment">The segment to sweep.</param>
+    /// <returns>The number of objects freed in this segment.</returns>
     private static int SweepSegment(GCSegment* segment)
     {
         int freed = 0;
@@ -995,8 +1200,10 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Converts a free memory run into a FreeBlock and adds to free list.
+    /// Converts a contiguous free run into a <see cref="FreeBlock"/> and adds it to the free list.
     /// </summary>
+    /// <param name="start">Start of the free run.</param>
+    /// <param name="size">Size of the free run in bytes. Must be at least <see cref="MinBlockSize"/>.</param>
     private static void FlushFreeRun(byte* start, uint size)
     {
         if (start == null || size < MinBlockSize)
@@ -1012,7 +1219,8 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Reorder segments as FULL -> SEMIFULL -> FREE, and free fully empty multi-page segments.
+    /// Reorders GC segments (FULL, then SEMI-FULL, then FREE) and releases
+    /// fully empty multi-page segments back to the page allocator.
     /// </summary>
     private static void ReorderSegmentsAndFreeEmpty()
     {
@@ -1093,6 +1301,10 @@ public static unsafe partial class GarbageCollector
         s_heapRangeDirty = true;
     }
 
+    /// <summary>
+    /// Sweeps the small heap (SMT pages) for unmarked objects.
+    /// </summary>
+    /// <returns>The number of objects freed from the small heap.</returns>
     private static int SweepSmallHeap()
     {
         int freed = 0;
@@ -1119,6 +1331,12 @@ public static unsafe partial class GarbageCollector
         return freed;
     }
 
+    /// <summary>
+    /// Sweeps a single SMT block, freeing unmarked objects and clearing marks on live ones.
+    /// </summary>
+    /// <param name="block">The SMT block to sweep.</param>
+    /// <param name="itemSize">The allocation item size for this block's size class.</param>
+    /// <returns>The number of objects freed in this block.</returns>
     private static int SweepSMTBlock(SMTBlock* block, uint itemSize)
     {
         int freed = 0;
@@ -1163,6 +1381,10 @@ public static unsafe partial class GarbageCollector
         return freed;
     }
 
+    /// <summary>
+    /// Sweeps the medium heap by scanning all HeapMedium pages in the RAT.
+    /// </summary>
+    /// <returns>The number of objects freed from the medium heap.</returns>
     private static int SweepMediumHeap()
     {
         int freed = 0;
@@ -1211,6 +1433,10 @@ public static unsafe partial class GarbageCollector
         return freed;
     }
 
+    /// <summary>
+    /// Sweeps the large heap by scanning all HeapLarge pages in the RAT.
+    /// </summary>
+    /// <returns>The number of objects freed from the large heap.</returns>
     private static int SweepLargeHeap()
     {
         int freed = 0;
@@ -1263,6 +1489,10 @@ public static unsafe partial class GarbageCollector
 
     #region Helpers
 
+    /// <summary>
+    /// Pushes a potential object pointer onto the mark stack. Expands the stack if full.
+    /// </summary>
+    /// <param name="ptr">The pointer to push.</param>
     private static void PushMarkStack(nint ptr)
     {
         if (s_markStackCount >= s_markStackCapacity)
@@ -1290,14 +1520,21 @@ public static unsafe partial class GarbageCollector
         s_markStack[s_markStackCount++] = ptr;
     }
 
+    /// <summary>
+    /// Pops the top entry from the mark stack.
+    /// </summary>
+    /// <returns>The popped pointer value, or <c>0</c> if the stack is empty.</returns>
     private static nint PopMarkStack()
     {
         return s_markStackCount > 0 ? s_markStack[--s_markStackCount] : 0;
     }
 
     /// <summary>
-    /// Checks if pointer is within any GC heap segment (including pinned).
+    /// Checks if a pointer falls within any GC heap segment (including pinned segments).
+    /// Uses a cached min/max range for a fast pre-check before walking the segment list.
     /// </summary>
+    /// <param name="ptr">The pointer to test.</param>
+    /// <returns><c>true</c> if <paramref name="ptr"/> is inside a GC or pinned heap segment; otherwise, <c>false</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInGCHeap(nint ptr)
     {
@@ -1327,6 +1564,9 @@ public static unsafe partial class GarbageCollector
         return IsInPinnedHeap(ptr);
     }
 
+    /// <summary>
+    /// Recomputes the cached heap min/max range from the current segment list.
+    /// </summary>
     private static void RecomputeHeapRange()
     {
         if (s_segments == null)
