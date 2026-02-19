@@ -3,9 +3,9 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Internal.Runtime;
+using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
@@ -37,12 +37,6 @@ public static unsafe partial class GarbageCollector
         {
             return;
         }
-
-        Serial.WriteString("Start: ");
-        Serial.WriteHex((ulong)s_gcHeapMin);
-        Serial.WriteString("\nEnd: ");
-        Serial.WriteHex((ulong)s_gcHeapMax);
-        Serial.WriteString("\n");
 
         int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
 
@@ -174,75 +168,6 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Scans static GC roots from all loaded managed modules.
-    /// </summary>
-    private static void ScanStaticRoots()
-    {
-        var modules = ManagedModule.Modules;
-        if (modules == null)
-        {
-            return;
-        }
-
-        int moduleCount = ManagedModule.ModuleCount;
-        for (int i = 0; i < moduleCount; i++)
-        {
-            TypeManager* tm = modules[i].AsTypeManager();
-            if (tm == null)
-            {
-                continue;
-            }
-
-            nint gcStaticSection = tm->GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out int length);
-            if (gcStaticSection != 0 && length > 0)
-            {
-                ScanGCStaticRegion((byte*)gcStaticSection, length);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Scans a GCStaticRegion section for object references in static fields.
-    /// </summary>
-    /// <param name="regionStart">Start of the GCStaticRegion data.</param>
-    /// <param name="length">Length of the region in bytes.</param>
-    private static void ScanGCStaticRegion(byte* regionStart, int length)
-    {
-        byte* regionEnd = regionStart + length;
-
-        for (byte* block = regionStart;
-             block < regionEnd;
-             block += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
-        {
-            nint* pBlock;
-            if (MethodTable.SupportsRelativePointers)
-            {
-                pBlock = (nint*)((byte*)block + *(int*)block);
-            }
-            else
-            {
-                pBlock = *(nint**)block;
-            }
-
-            if (pBlock == null)
-            {
-                continue;
-            }
-
-            nint value = *pBlock;
-            if ((value & GCStaticRegionConstants.Mask) != 0)
-            {
-                continue;
-            }
-
-            if (value != 0)
-            {
-                TryMarkRoot(value);
-            }
-        }
-    }
-
-    /// <summary>
     /// Scans a contiguous memory range for potential object references (conservative scanning).
     /// </summary>
     /// <param name="start">Pointer to the first word to scan.</param>
@@ -354,7 +279,7 @@ public static unsafe partial class GarbageCollector
                     // Read valSerieItem->Nptrs pointers
                     for (int j = 0; j < valSerieItem->Nptrs; j++)
                     {
-                        nint refValue = (nint)ptr;
+                        nint refValue = *ptr;
                         if (refValue != 0 && IsInGCHeap(refValue))
                         {
                             PushMarkStack(refValue);

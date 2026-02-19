@@ -444,12 +444,15 @@ public static unsafe partial class GarbageCollector
         }
 
         byte* p = (byte*)ptr;
+
+        // Fast reject: outside the bounding box of all GC segments
         if (p < s_gcHeapMin || p >= s_gcHeapMax)
         {
             // Check pinned heap
             return IsInPinnedHeap(ptr);
         }
 
+        // Walk segments to confirm
         GCSegment* segment = s_segments;
         while (segment != null)
         {
@@ -461,6 +464,7 @@ public static unsafe partial class GarbageCollector
             segment = segment->Next;
         }
 
+        // Inside bounding box but in a gap between segments - check pinned heap
         return IsInPinnedHeap(ptr);
     }
 

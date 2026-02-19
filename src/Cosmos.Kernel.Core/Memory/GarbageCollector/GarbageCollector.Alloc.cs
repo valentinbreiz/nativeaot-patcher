@@ -237,22 +237,7 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        if (s_tailSegment != null)
-        {
-            s_tailSegment->Next = segment;
-            s_tailSegment = segment;
-            s_heapRangeDirty = true;
-            return;
-        }
-
-        // Fallback if tail is not tracked
-        GCSegment* tail = s_segments;
-        while (tail->Next != null)
-        {
-            tail = tail->Next;
-        }
-
-        tail->Next = segment;
+        s_tailSegment->Next = segment;
         s_tailSegment = segment;
         s_heapRangeDirty = true;
     }

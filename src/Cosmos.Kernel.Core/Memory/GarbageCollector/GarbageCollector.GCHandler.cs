@@ -61,7 +61,7 @@ public static unsafe partial class GarbageCollector
     [MethodImpl(MethodImplOptions.NoOptimization)]
     internal static IntPtr AllocateHandler(GCObject* obj, GCHandleType handleType, nuint extraInfo)
     {
-        int size = (int)(s_handlerStore->TotalSize / sizeof(GCHandle));
+        int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
 
         var handles = new Span<GCHandle>((void*)Align((uint)s_handlerStore->Bump), size);
         for (int i = 0; i < handles.Length; i++)
@@ -88,14 +88,6 @@ public static unsafe partial class GarbageCollector
         {
             return;
         }
-
-        /*
-        Serial.WriteString("Start: ");
-        Serial.WriteHex((ulong)s_gcHeapMin);
-        Serial.WriteString("\nEnd: ");
-        Serial.WriteHex((ulong)s_gcHeapMax);
-        Serial.WriteString("\n");
-        */
 
         int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
 
