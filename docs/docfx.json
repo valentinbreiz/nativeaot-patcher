@@ -1,20 +1,25 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+
   "metadata": [
     {
       "src": [
         {
           "src": "../src",
-          "files": [ "**/*.csproj" ],
+          "files": [ "*.sln", "**/*.csproj" ],
           "exclude": [
             "**/bin/**",
-            "**/obj/**"
+            "**/obj/**",
+            "**/*.Tests.csproj",
+            "../tests/**"
           ]
         }
       ],
-      "dest": "api"
+      "dest": "api",
+      "disableGitFeatures": true
     }
   ],
+
   "build": {
     "content": [
       {
@@ -23,14 +28,18 @@
         "exclude": [ "_site/**" ]
       }
     ],
+
     "resource": [
       {
         "src": ".",
         "files": [ "images/**" ]
       }
     ],
+
     "output": "_site",
+
     "template": [ "default", "modern" ],
+
     "globalMetadata": {
       "_appName": "Cosmos Gen 3",
       "_appTitle": "Cosmos Gen 3",
