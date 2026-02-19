@@ -53,6 +53,7 @@ internal unsafe struct GCObject
         {
             return mt->BaseSize + (uint)Length * mt->ComponentSize;
         }
+
         return mt->RawBaseSize;
     }
 }

@@ -2,15 +2,13 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
-using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 public static unsafe partial class GarbageCollector
 {
-    #region Frozen Segments
+    // --- Nested types ---
 
     /// <summary>
     /// Information about a frozen segment.
@@ -25,12 +23,16 @@ public static unsafe partial class GarbageCollector
         public FrozenSegmentInfo* Next;
     }
 
+    // --- Static fields ---
+
     // Linked list of frozen segments
-    private static FrozenSegmentInfo* _frozenSegments;
+    private static FrozenSegmentInfo* s_frozenSegments;
 
     // Metadata storage for frozen segment info
-    private static byte* _frozenSegmentMetadataPage;
-    private static int _frozenSegmentMetadataOffset;
+    private static byte* s_frozenSegmentMetadataPage;
+    private static int s_frozenSegmentMetadataOffset;
+
+    // --- Methods ---
 
     /// <summary>
     /// Checks if a pointer is within a frozen segment.
@@ -38,13 +40,17 @@ public static unsafe partial class GarbageCollector
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInFrozenSegment(nint ptr)
     {
-        FrozenSegmentInfo* segment = _frozenSegments;
+        FrozenSegmentInfo* segment = s_frozenSegments;
         while (segment != null)
         {
             if (ptr >= segment->Start && ptr < segment->Start + (nint)segment->AllocSize)
+            {
                 return true;
+            }
+
             segment = segment->Next;
         }
+
         return false;
     }
 
@@ -56,31 +62,32 @@ public static unsafe partial class GarbageCollector
     {
         // Allocate info structure from unmanaged memory (frozen segments are pre-allocated)
         // Use a simple bump allocator for metadata
-        int InfoSize = sizeof(FrozenSegmentInfo);
-        const int PageSize = (int)PageAllocator.PageSize;
+        int infoSize = sizeof(FrozenSegmentInfo);
+        const int pageSize = (int)PageAllocator.PageSize;
 
         // Allocate a page if we don't have one, or use existing
-        if (_frozenSegmentMetadataPage == null || _frozenSegmentMetadataOffset + InfoSize > PageSize)
+        if (s_frozenSegmentMetadataPage == null || s_frozenSegmentMetadataOffset + infoSize > pageSize)
         {
-            _frozenSegmentMetadataPage = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
-            if (_frozenSegmentMetadataPage == null)
+            s_frozenSegmentMetadataPage = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+            if (s_frozenSegmentMetadataPage == null)
             {
                 Serial.WriteString("[GC] ERROR: Failed to allocate frozen segment metadata page\n");
                 return pSegmentStart;
             }
-            _frozenSegmentMetadataOffset = 0;
+
+            s_frozenSegmentMetadataOffset = 0;
         }
 
-        FrozenSegmentInfo* info = (FrozenSegmentInfo*)(_frozenSegmentMetadataPage + _frozenSegmentMetadataOffset);
-        _frozenSegmentMetadataOffset += InfoSize;
+        var info = (FrozenSegmentInfo*)(s_frozenSegmentMetadataPage + s_frozenSegmentMetadataOffset);
+        s_frozenSegmentMetadataOffset += infoSize;
 
         info->Start = pSegmentStart;
         info->AllocSize = allocSize;
         info->CommitSize = commitSize;
         info->ReservedSize = reservedSize;
-        info->Next = _frozenSegments;
+        info->Next = s_frozenSegments;
 
-        _frozenSegments = info;
+        s_frozenSegments = info;
 
         Serial.WriteString("[GC] Registered frozen segment at 0x");
         Serial.WriteHex((ulong)pSegmentStart);
@@ -97,7 +104,7 @@ public static unsafe partial class GarbageCollector
     internal static void UpdateFrozenSegment(nint seg, nint allocated, nint committed)
     {
         // Find the segment and update its committed size
-        FrozenSegmentInfo* segment = _frozenSegments;
+        FrozenSegmentInfo* segment = s_frozenSegments;
         while (segment != null)
         {
             if (segment->Start == seg)
@@ -106,8 +113,8 @@ public static unsafe partial class GarbageCollector
                 segment->AllocSize = (nuint)allocated;
                 break;
             }
+
             segment = segment->Next;
         }
     }
-    #endregion
 }

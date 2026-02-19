@@ -223,7 +223,7 @@ public class Kernel : Sys.Kernel
                         ulong usedBytes = usedPages * pageSize;
                         ulong freeBytes = freePages * pageSize;
 
-                        Cosmos.Kernel.Core.Memory.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
+                        Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
 
                         int rowY = y;
 

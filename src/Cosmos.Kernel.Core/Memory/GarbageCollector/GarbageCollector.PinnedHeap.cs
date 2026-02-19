@@ -1,8 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Internal.Runtime;
 
@@ -10,12 +8,17 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 public static unsafe partial class GarbageCollector
 {
-    #region Pinned Heap
+    // --- Constants ---
+
+    private const uint PinnedHeapMinSize = (uint)PageAllocator.PageSize; // Minimum 1 page
+
+    // --- Static fields ---
 
     // Pinned heap segments - separate from regular GC heap
-    private const uint PINNED_HEAP_MIN_SIZE = (uint)PageAllocator.PageSize; // Minimum 1 page
-    private static GCSegment* _pinnedSegments;
-    private static GCSegment* _currentPinnedSegment;
+    private static GCSegment* s_pinnedSegments;
+    private static GCSegment* s_currentPinnedSegment;
+
+    // --- Methods ---
 
     /// <summary>
     /// Allocates a pinned object on the pinned heap.
@@ -25,24 +28,30 @@ public static unsafe partial class GarbageCollector
     {
         uint allocSize = Align((uint)size);
         if (allocSize < MinBlockSize)
+        {
             allocSize = MinBlockSize;
+        }
 
         // Try bump allocation in current pinned segment
-        void* result = BumpAllocInPinnedSegment(_currentPinnedSegment, allocSize);
+        void* result = BumpAllocInPinnedSegment(s_currentPinnedSegment, allocSize);
         if (result != null)
+        {
             return (GCObject*)result;
+        }
 
         // Need new segment
-        GCSegment* newSegment = AllocatePinnedSegment(Math.Max(PINNED_HEAP_MIN_SIZE, allocSize + (uint)sizeof(GCSegment)));
+        GCSegment* newSegment = AllocatePinnedSegment(Math.Max(PinnedHeapMinSize, allocSize + (uint)sizeof(GCSegment)));
         if (newSegment == null)
+        {
             return null;
+        }
 
         // Link the segment
         AppendPinnedSegment(newSegment);
-        _currentPinnedSegment = newSegment;
+        s_currentPinnedSegment = newSegment;
 
         // Try allocation again
-        result = BumpAllocInPinnedSegment(_currentPinnedSegment, allocSize);
+        result = BumpAllocInPinnedSegment(s_currentPinnedSegment, allocSize);
         return (GCObject*)result;
     }
 
@@ -51,14 +60,17 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static GCSegment* AllocatePinnedSegment(uint requestedSize)
     {
-        uint size = requestedSize < PINNED_HEAP_MIN_SIZE ? PINNED_HEAP_MIN_SIZE : requestedSize;
+        uint size = requestedSize < PinnedHeapMinSize ? PinnedHeapMinSize : requestedSize;
         uint totalSize = size + (uint)sizeof(GCSegment);
         ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
 
-        byte* memory = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, pageCount, true);
-        if (memory == null) return null;
+        var memory = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, pageCount, true);
+        if (memory == null)
+        {
+            return null;
+        }
 
-        GCSegment* segment = (GCSegment*)memory;
+        var segment = (GCSegment*)memory;
         segment->Next = null;
         segment->Start = memory + Align((uint)sizeof(GCSegment));
         segment->End = memory + (pageCount * PageAllocator.PageSize);
@@ -75,7 +87,9 @@ public static unsafe partial class GarbageCollector
     private static void* BumpAllocInPinnedSegment(GCSegment* segment, uint size)
     {
         if (segment == null)
+        {
             return null;
+        }
 
         byte* newBump = segment->Bump + size;
         if (newBump <= segment->End)
@@ -94,17 +108,23 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void AppendPinnedSegment(GCSegment* segment)
     {
-        if (segment == null) return;
-
-        if (_pinnedSegments == null)
+        if (segment == null)
         {
-            _pinnedSegments = segment;
+            return;
+        }
+
+        if (s_pinnedSegments == null)
+        {
+            s_pinnedSegments = segment;
         }
         else
         {
-            GCSegment* tail = _pinnedSegments;
+            GCSegment* tail = s_pinnedSegments;
             while (tail->Next != null)
+            {
                 tail = tail->Next;
+            }
+
             tail->Next = segment;
         }
     }
@@ -116,13 +136,17 @@ public static unsafe partial class GarbageCollector
     private static bool IsInPinnedHeap(nint ptr)
     {
         byte* p = (byte*)ptr;
-        GCSegment* segment = _pinnedSegments;
+        GCSegment* segment = s_pinnedSegments;
         while (segment != null)
         {
             if (p >= segment->Start && p < segment->End)
+            {
                 return true;
+            }
+
             segment = segment->Next;
         }
+
         return false;
     }
 
@@ -133,12 +157,13 @@ public static unsafe partial class GarbageCollector
     private static int SweepPinnedHeap()
     {
         int freed = 0;
-        GCSegment* segment = _pinnedSegments;
+        GCSegment* segment = s_pinnedSegments;
         while (segment != null)
         {
             freed += SweepPinnedSegment(segment);
             segment = segment->Next;
         }
+
         return freed;
     }
 
@@ -154,7 +179,7 @@ public static unsafe partial class GarbageCollector
 
         while (ptr < segment->Bump)
         {
-            GCObject* obj = (GCObject*)ptr;
+            var obj = (GCObject*)ptr;
 
             // Validate MethodTable
             MethodTable* mt = obj->GetMethodTable();
@@ -167,7 +192,9 @@ public static unsafe partial class GarbageCollector
 
             uint objSize = Align(obj->ComputeSize());
             if (objSize == 0 || objSize > (uint)(segment->End - ptr))
+            {
                 break;
+            }
 
             if (obj->IsMarked)
             {
@@ -184,7 +211,10 @@ public static unsafe partial class GarbageCollector
                 // Dead pinned object - add to free run
                 freed++;
                 if (freeRunStart == null)
+                {
                     freeRunStart = ptr;
+                }
+
                 freeRunSize += objSize;
             }
 
@@ -214,10 +244,12 @@ public static unsafe partial class GarbageCollector
     private static void FlushPinnedFreeRun(byte* start, uint size)
     {
         if (start == null || size < MinBlockSize)
+        {
             return;
+        }
 
-        FreeBlock* freeBlock = (FreeBlock*)start;
-        freeBlock->MethodTable = _freeMethodTable;
+        var freeBlock = (FreeBlock*)start;
+        freeBlock->MethodTable = s_freeMethodTable;
         freeBlock->Size = (int)size;
         freeBlock->Next = null;
     }
@@ -233,7 +265,7 @@ public static unsafe partial class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
-        GCSegment* seg = _pinnedSegments;
+        GCSegment* seg = s_pinnedSegments;
 
         while (seg != null)
         {
@@ -252,20 +284,20 @@ public static unsafe partial class GarbageCollector
 
                 if (isFull)
                 {
-                    if (fullHead == null) fullHead = seg;
-                    else fullTail->Next = seg;
+                    if (fullHead == null) { fullHead = seg; }
+                    else { fullTail->Next = seg; }
                     fullTail = seg;
                 }
                 else if (isFree)
                 {
-                    if (freeHead == null) freeHead = seg;
-                    else freeTail->Next = seg;
+                    if (freeHead == null) { freeHead = seg; }
+                    else { freeTail->Next = seg; }
                     freeTail = seg;
                 }
                 else
                 {
-                    if (semiHead == null) semiHead = seg;
-                    else semiTail->Next = seg;
+                    if (semiHead == null) { semiHead = seg; }
+                    else { semiTail->Next = seg; }
                     semiTail = seg;
                 }
             }
@@ -276,25 +308,29 @@ public static unsafe partial class GarbageCollector
         GCSegment* newHead = null;
         GCSegment* tail = null;
 
-        if (fullHead != null) { newHead = fullHead; tail = fullTail; }
+        if (fullHead != null)
+        {
+            newHead = fullHead;
+            tail = fullTail;
+        }
+
         if (semiHead != null)
         {
-            if (newHead == null) newHead = semiHead;
-            else tail->Next = semiHead;
+            if (newHead == null) { newHead = semiHead; }
+            else { tail->Next = semiHead; }
             tail = semiTail;
         }
+
         if (freeHead != null)
         {
-            if (newHead == null) newHead = freeHead;
-            else tail->Next = freeHead;
+            if (newHead == null) { newHead = freeHead; }
+            else { tail->Next = freeHead; }
             tail = freeTail;
         }
 
-        _pinnedSegments = newHead;
-        _currentPinnedSegment = semiHead != null ? semiHead : freeHead;
+        s_pinnedSegments = newHead;
+        s_currentPinnedSegment = semiHead != null ? semiHead : freeHead;
 
-        _heapRangeDirty = true;
+        s_heapRangeDirty = true;
     }
-
-    #endregion
 }
