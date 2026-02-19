@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Virtqueue | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Virtqueue | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Virtqueue implementation for virtio devices. A virtqueue consists of three parts:  Descriptor table: array of buffer descriptors Available ring: buffers offered to device Used ring: buffers returned by device">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue" class="text-break">
+Class Virtqueue  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Virtqueue implementation for virtio devices.
+A virtqueue consists of three parts:</p>
+<ul>
+<li>Descriptor table: array of buffer descriptors</li>
+<li>Available ring: buffers offered to device</li>
+<li>Used ring: buffers returned by device</li>
+</ul>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Virtqueue</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Virtqueue</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue__ctor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue__ctor_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.#ctor(System.UInt32)">
+  Virtqueue(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new virtqueue with the specified size.
+Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Virtqueue(uint queueSize)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>queueSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_AVAIL_F_NO_INTERRUPT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_AVAIL_F_NO_INTERRUPT">
+  VRING_AVAIL_F_NO_INTERRUPT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VRING_AVAIL_F_NO_INTERRUPT = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_INDIRECT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_INDIRECT">
+  VRING_DESC_F_INDIRECT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VRING_DESC_F_INDIRECT = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_NEXT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_NEXT">
+  VRING_DESC_F_NEXT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VRING_DESC_F_NEXT = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_WRITE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_WRITE">
+  VRING_DESC_F_WRITE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VRING_DESC_F_WRITE = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_USED_F_NO_NOTIFY" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_USED_F_NO_NOTIFY">
+  VRING_USED_F_NO_NOTIFY
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VRING_USED_F_NO_NOTIFY = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AvailableRingAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AvailableRingAddr*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AvailableRingAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AvailableRingAddr">
+  AvailableRingAddr
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Physical address of available ring.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong AvailableRingAddr { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_DescriptorTableAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.DescriptorTableAddr*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_DescriptorTableAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.DescriptorTableAddr">
+  DescriptorTableAddr
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Physical address of descriptor table.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong DescriptorTableAddr { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueBaseAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueBaseAddr*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueBaseAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueBaseAddr">
+  QueueBaseAddr
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Base address of the entire queue (for legacy PFN calculation).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong QueueBaseAddr { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueSize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueSize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueSize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueSize">
+  QueueSize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Queue size (number of descriptors).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint QueueSize { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_UsedRingAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.UsedRingAddr*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_UsedRingAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.UsedRingAddr">
+  UsedRingAddr
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Physical address of used ring.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong UsedRingAddr { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AddAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AddAvailable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AddAvailable_System_UInt16_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AddAvailable(System.UInt16)">
+  AddAvailable(ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Adds a buffer chain to the available ring.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AddAvailable(ushort headIdx)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>headIdx</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AllocDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AllocDescriptor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AllocDescriptor" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AllocDescriptor">
+  AllocDescriptor()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Allocates a descriptor from the free list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int AllocDescriptor()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_FreeDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.FreeDescriptor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_FreeDescriptor_System_Int32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.FreeDescriptor(System.Int32)">
+  FreeDescriptor(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Frees a descriptor back to the free list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void FreeDescriptor(int idx)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>idx</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_GetUsedBuffer_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.GetUsedBuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_GetUsedBuffer_System_UInt32__System_UInt32__" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.GetUsedBuffer(System.UInt32@,System.UInt32@)">
+  GetUsedBuffer(out uint, out uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the next used buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool GetUsedBuffer(out uint id, out uint len)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>id</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>len</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_HasUsedBuffers_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.HasUsedBuffers*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_HasUsedBuffers" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.HasUsedBuffers">
+  HasUsedBuffers()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks if there are used buffers to process.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool HasUsedBuffers()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_SetupDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.SetupDescriptor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_SetupDescriptor_System_Int32_System_UInt64_System_UInt32_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.SetupDescriptor(System.Int32,System.UInt64,System.UInt32,System.UInt16,System.UInt16)">
+  SetupDescriptor(int, ulong, uint, ushort, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets up a descriptor with the given buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetupDescriptor(int idx, ulong addr, uint len, ushort flags, ushort next)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>idx</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>addr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>len</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>flags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>next</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

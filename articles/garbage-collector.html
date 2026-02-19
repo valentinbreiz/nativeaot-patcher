@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/235/merge/docs/articles/garbage-collector.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="overview">Overview</h2>
+<p>The garbage collector is a <strong>mark-and-sweep</strong> collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.</p>
+<p>All GC code lives in the <code>GarbageCollector</code> partial class split across seven files:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>GarbageCollector.cs</code></a></td>
+<td>Core types, constants, fields, public API (Initialize, Collect, GetStats), AllocObject</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>GarbageCollector.Alloc.cs</code></a></td>
+<td>Private allocation (segments, bump alloc, free lists)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
+<td>Mark phase (root scanning, reference enumeration, mark stack)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>GarbageCollector.Sweep.cs</code></a></td>
+<td>Sweep phase (segment sweep, heap sweepers, helpers)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>GarbageCollector.GCHandler.cs</code></a></td>
+<td>GC handle table (Weak, Normal, Pinned handles)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>GarbageCollector.Frozen.cs</code></a></td>
+<td>Frozen segment registration (pre-initialized read-only data)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>GarbageCollector.PinnedHeap.cs</code></a></td>
+<td>Pinned object allocation and sweeping</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="methodtable-struct">MethodTable struct</h3>
+<p>Every managed type compiled by the NativeAOT compiler (ILC) has a <code>MethodTable</code>, a type descriptor struct that lives in the kernel's code/data sections (never on the GC heap). The GC relies on several of its fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RawBaseSize</code> / <code>BaseSize</code></td>
+<td>Size of a fixed-size object (in bytes)</td>
+</tr>
+<tr>
+<td><code>ComponentSize</code></td>
+<td>Size of each element for arrays/strings</td>
+</tr>
+<tr>
+<td><code>HasComponentSize</code></td>
+<td>True for arrays and strings</td>
+</tr>
+<tr>
+<td><code>ContainsGCPointers</code></td>
+<td>True if the type has reference-type fields the GC must trace</td>
+</tr>
+</tbody>
+</table>
+<p>Because <code>MethodTable</code> pointers always reside in kernel code sections, the GC uses <code>IsInGCHeap((nint)mt)</code> as a validity check. If a <code>MethodTable*</code> points inside the heap, it cannot be a real type descriptor and the candidate object is rejected.</p>
+<h3 id="object-struct">Object struct</h3>
+<p>Every managed object on the GC heap starts with a <a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>GCObject</code></a> header:</p>
+<pre><code>              ┌──────────────────────────────────┐
+              │  MethodTable*  (8 bytes on x64)  │  ← bit 0 used as mark bit
+              ├──────────────────────────────────┤
+              │  Length         (4 bytes)        │  ← element count for arrays/strings
+              ├──────────────────────────────────┤
+              │  ... object fields / elements ...│
+              └──────────────────────────────────┘
+</code></pre>
+<p><strong>Mark bit encoding</strong>: The least significant bit of the <code>MethodTable</code> pointer doubles as the mark flag. Since <code>MethodTable</code> pointers are always aligned, bit 0 is normally zero. <code>Mark()</code> sets it to 1, <code>Unmark()</code> clears it. Any code that needs the real <code>MethodTable*</code> calls <code>GetMethodTable()</code> which masks off bit 0.</p>
+<h3 id="freeblock-struct">FreeBlock struct</h3>
+<p>Dead objects discovered during sweep are converted into <code>FreeBlock</code> entries. A <code>FreeBlock</code> is deliberately laid out to be walkable like a <code>GCObject</code> so the sweep can iterate through a segment linearly without distinguishing between live objects, dead objects, and free blocks until it inspects the <code>MethodTable</code>:</p>
+<pre><code>              ┌──────────────────────────────────┐
+              │  MethodTable*  (8 bytes on x64)  │  ← points to _freeMethodTable marker
+              ├──────────────────────────────────┤
+              │  Size           (4 bytes)        │  ← total size of this free block
+              ├──────────────────────────────────┤
+              │  Next*          (8 bytes)        │  ← next FreeBlock in this size class bucket
+              └──────────────────────────────────┘
+</code></pre>
+<hr>
+<h2 id="memory-layout">Memory layout</h2>
+<h3 id="single-segment">Single segment</h3>
+<p>Each segment is a contiguous memory region obtained from the page allocator. The <code>GCSegment</code> header sits at the start of the allocated pages, followed by the usable region where objects are placed:</p>
+<pre><code>                         one segment (1+ pages from PageAllocator)
+┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+
+│  GCSegment header              Usable region                              │
+  ┌────────────────┐ ┌──────────────────────────────────────────────────┐
+│ │ Next ──────────────► (next segment or null)                         │   │
+  │ Start ─────────┼►│                                                  │
+│ │ End ───────────┼─┼─────────────────────────────────────────────────►│   │
+  │ Bump ──────────┼─┼───────────────────────────►│                     │
+│ │ TotalSize      │ │                            │                     │   │
+  │ UsedSize       │ │ [obj A] [obj B] [free] ... │   (unallocated)     │
+│ └────────────────┘ └──────────────────────────────────────────────────┘   │
+
+└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+                     ◄─── allocated objects ───►◄── free space ──►
+                          &amp; free blocks           (bump region)
+</code></pre>
+<ul>
+<li><strong>Start → Bump</strong>: contains allocated objects and free blocks (left behind by dead objects after a collection).</li>
+<li><strong>Bump → End</strong>: untouched space. New objects are placed at <code>Bump</code>, which advances forward.</li>
+</ul>
+<h3 id="regular-gc-chains">Regular GC chains</h3>
+<p>The GC maintains <strong>two independent linked lists</strong> of segments — one for the regular heap, one for pinned objects:</p>
+<pre><code> Regular GC heap chain (_segments)
+ ═══════════════════════════════════════════════════════════════════
+
+ _segments                                                _tailSegment
+     │                                                         │
+     ▼                                                         ▼
+ ┌────────┐    Next    ┌────────┐    Next    ┌────────┐       ┌────────┐
+ │ Seg 0  │──────────► │ Seg 1  │──────────► │ Seg 2  │─···─► │ Seg N  │──► null
+ │ (FULL) │            │(SEMI)  │            │(SEMI)  │       │ (FREE) │
+ └────────┘            └────────┘            └────────┘       └────────┘
+                            ▲
+                            │
+                  _lastSegment / _currentSegment
+                  (next alloc starts here)
+
+
+ Pinned heap chain (_pinnedSegments)
+ ═══════════════════════════════════════════════════════════════════
+
+ _pinnedSegments
+     │
+     ▼
+ ┌────────┐    Next    ┌────────┐
+ │ Pin 0  │──────────► │ Pin 1  │──► null
+ │ (FULL) │            │(SEMI)  │
+ └────────┘            └────────┘
+                            ▲
+                            │
+                    _currentPinnedSegment
+</code></pre>
+<p>Objects allocated with the <code>GC_ALLOC_PINNED_OBJECT_HEAP</code> flag go to the <strong>pinned chain</strong>.</p>
+<p>The GC tracks two segment pointers for the regular heap: <code>_lastSegment</code> is the segment where the next allocation attempt begins (set to the first semifull or free segment after collection), and <code>_currentSegment</code> tracks the segment that last successfully served an allocation. Both are updated together during bump allocation and segment reordering.</p>
+<p>After each collection, segments in both chains are sorted into three groups: <strong>FULL</strong> (bump reached end) → <strong>SEMIFULL</strong> (partially used) → <strong>FREE</strong> (empty). Empty multi-page segments are returned to the page allocator entirely. <code>_lastSegment</code> is set to the first semifull (or free) segment so the next allocation targets available space first.</p>
+<h3 id="handle-store">Handle store</h3>
+<p>GC handles let the runtime hold references to managed objects from locations the GC does not automatically scan (registers, native code, internal caches). For example, <code>RuntimeType</code> caches a <code>RuntimeTypeInfo</code> via a weak GC handle — without a handle, the GC would not know that the cached object is still reachable and might collect it. Handle types control lifetime: <code>Weak</code> handles do not prevent collection, while <code>Normal</code> and <code>Pinned</code> handles keep objects alive.</p>
+<p>The handle table is stored in a dedicated <code>GCSegment</code> allocated at GC initialization.</p>
+<p>Each handle entry is:</p>
+<pre><code>GCHandle (24 bytes on x64)
+┌──────────────────────────┐
+│ GCObject* obj            │  ← the referenced object
+├──────────────────────────┤
+│ GCHandleType type        │  ← Weak, Normal, or Pinned
+├──────────────────────────┤
+│ nuint extraInfo          │  ← used for dependent handles
+└──────────────────────────┘
+</code></pre>
+<p>The handle store is a standalone <code>GCSegment*</code> allocated once at GC initialization via <code>AllocateSegment()</code>. It is not part of the regular or pinned chains. Unlike regular segments, <code>Bump</code> is never advanced — it stays equal to <code>Start</code> and serves as the base address of the handle table. The entire region from <code>Start</code> to <code>End</code> is a flat array of <code>GCHandle</code> slots. <code>AllocateHandler</code> scans linearly for an empty slot (<code>obj == null</code>).</p>
+<pre><code> Handle store (handlerStore)
+ ═══════════════════════════════════════════════════════════════════
+
+ handlerStore ──► GCSegment (single, not linked)
+                       │
+              Start = Bump (never moves)                        End
+                       │                                         │
+                       ▼                                         ▼
+                      ┌──────────┬──────────┬──────────┬────────┐
+                      │ GCHandle │ GCHandle │ GCHandle │  ...   │
+                      │ obj─►ObjA│ obj─►ObjB│ obj=null │        │
+                      │ type=Weak│ type=Norm│ (empty)  │        │
+                      └──────────┴──────────┴──────────┴────────┘
+                                                 ▲
+                                          AllocateHandler()
+                                          picks first empty slot
+</code></pre>
+<p>The GC scans this table during the mark phase, <code>Normal</code> and <code>Pinned</code> handles are treated as roots. After marking, <code>FreeWeakHandles</code> nulls out any <code>Weak</code> handle whose object was not marked (see <a href="#handle-store">Handle store</a>).</p>
+<h3 id="frozen-segments-chain">Frozen segments chain</h3>
+<p>Frozen segments hold <strong>pre-initialized, read-only objects</strong> emitted by the NativeAOT compiler (string literals, static readonly data, etc.). They are registered at startup via <code>RhRegisterFrozenSegment</code> and are never collected.</p>
+<p>The GC tracks them in a linked list of <code>FrozenSegmentInfo</code> nodes allocated from a bump-allocated metadata page. <code>IsInFrozenSegment</code> is used to distinguish frozen objects from heap objects during validation.</p>
+<p>Frozen segments do not participate in mark or sweep phases.</p>
+<pre><code> Frozen segments (_frozenSegments)
+ ═══════════════════════════════════════════════════════════════════
+
+ _frozenSegments ──► FrozenSegmentInfo linked list
+                          │
+                          ▼
+                     ┌──────────────┐   Next   ┌──────────────┐
+                     │ Start: 0x... │─────────►│ Start: 0x... │──► null
+                     │ AllocSize    │          │ AllocSize    │
+                     │ CommitSize   │          │ CommitSize   │
+                     │ ReservedSize │          │ ReservedSize │
+                     └──────┬───────┘          └──────┬───────┘
+                            │                         │
+                            ▼                         ▼
+                     ┌──────────────────┐      ┌──────────────────┐
+                     │ read-only objects│      │ read-only objects│
+                     │ (string literals,│      │ (static data,    │
+                     │  const data, ...)│      │  ...)            │
+                     └──────────────────┘      └──────────────────┘
+</code></pre>
+<h3 id="other-heaps">Other heaps</h3>
+<p>The garbage collector also sweeps objects allocated on the general-purpose heaps (SmallHeap, MediumHeap, LargeHeap). These heaps are not segment-based — the sweeper finds their objects by scanning the page allocator's Range Allocation Table (RAT) for the corresponding page types.</p>
+<hr>
+<h2 id="allocation">Allocation</h2>
+<h3 id="runtime-bridge">Runtime bridge</h3>
+<h4 id="gc-allocation">GC Allocation</h4>
+<p>The .NET runtime calls exported functions (defined in <a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>) which all funnel into <code>GarbageCollector.AllocObject(size, flags)</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Runtime function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RhpNewFast</code></td>
+<td>Allocate fixed-size object</td>
+</tr>
+<tr>
+<td><code>RhpNewArray</code></td>
+<td>Allocate array</td>
+</tr>
+<tr>
+<td><code>RhpNewArrayFast</code></td>
+<td>Allocate array (fast path)</td>
+</tr>
+<tr>
+<td><code>RhpNewPtrArrayFast</code></td>
+<td>Allocate pointer array (fast path)</td>
+</tr>
+<tr>
+<td><code>RhNewArray</code></td>
+<td>Allocate array (via <code>RhAllocateNewArray</code>)</td>
+</tr>
+<tr>
+<td><code>RhAllocateNewArray</code></td>
+<td>Allocate array with flags</td>
+</tr>
+<tr>
+<td><code>RhAllocateNewObject</code></td>
+<td>Allocate object with flags</td>
+</tr>
+<tr>
+<td><code>RhNewVariableSizeObject</code></td>
+<td>Allocate variable-size object</td>
+</tr>
+<tr>
+<td><code>RhNewString</code></td>
+<td>Allocate string (via <code>RhpNewArray</code>)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="handles">Handles</h4>
+<p>The .NET runtime accesses GC handles through exported functions in <a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>:</p>
+<table>
+<thead>
+<tr>
+<th>Runtime function</th>
+<th>Maps to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RhpHandleAlloc</code></td>
+<td><code>GarbageCollector.AllocateHandler</code></td>
+</tr>
+<tr>
+<td><code>RhHandleFree</code></td>
+<td><code>GarbageCollector.FreeHandle</code></td>
+</tr>
+<tr>
+<td><code>RhRegisterFrozenSegment</code></td>
+<td><code>GarbageCollector.RegisterFrozenSegment</code></td>
+</tr>
+<tr>
+<td><code>RhUpdateFrozenSegment</code></td>
+<td><code>GarbageCollector.UpdateFrozenSegment</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="allocation-flow">Allocation flow</h3>
+<pre><code class="lang-mermaid">flowchart TD
+    REQ[&quot;AllocObject(size, flags)&quot;] --&gt; PINNED{Pinned flag?}
+    PINNED --&gt;|Yes| PIN_ALLOC[AllocPinnedObject]
+    PINNED --&gt;|No| ALIGN[Align size, enforce 24-byte minimum]
+    ALIGN --&gt; FL[Try AllocFromFreeList]
+    FL --&gt;|Found| RET[Return object]
+    FL --&gt;|Miss| BUMP[&quot;Try BumpAlloc in _lastSegment&quot;]
+    BUMP --&gt;|Fits| RET
+    BUMP --&gt;|Full| SLOW[&quot;AllocateObjectSlow
+    Walk segments, then allocate new segment&quot;]
+    SLOW --&gt;|Success| RET
+    SLOW --&gt;|Fail| GC[&quot;AllocObject calls Collect()&quot;]
+    GC --&gt; FL2[Retry free list]
+    FL2 --&gt;|Found| RET
+    FL2 --&gt;|Miss| SLOW2[Retry AllocateObjectSlow]
+    SLOW2 --&gt; RET
+</code></pre>
+<p><strong>Free list allocation</strong> uses 12 size classes — powers of two from 16 to 32768 bytes. A request is matched to the smallest class that fits, then that bucket is walked for a block large enough. If none fits, larger classes are tried. When a block is found, leftovers are split back into the free list if the remainder is at least 24 bytes (<code>MinBlockSize</code>).</p>
+<p><strong>Bump allocation</strong> is the fast path: advance <code>Bump</code> by the aligned size. If <code>_lastSegment</code> is full, the slow path walks all segments from <code>_lastSegment</code> forward (then wraps around), and if nothing fits, allocates a new segment from the page allocator.</p>
+<p>If all of that fails, a <strong>collection</strong> runs and the allocation retries.</p>
+<hr>
+<h2 id="collection">Collection</h2>
+<p>Collection is triggered when allocation fails or when <code>Collect()</code> is called explicitly. The entire collection runs inside a <code>DisableInterruptsScope</code> — no thread switching or interrupt handling occurs during GC.</p>
+<p>To quickly reject pointers that cannot be heap objects, the GC maintains a bounding box (<code>_gcHeapMin</code> / <code>_gcHeapMax</code>) covering all segment addresses. <code>IsInGCHeap</code> first checks this range before walking the segment list. The range is recomputed after any segment is added, removed, or reordered (flagged by <code>_heapRangeDirty</code>).</p>
+<p>For pointers outside the main heap range, <code>IsInPinnedHeap</code> performs a separate linear walk of pinned segments.</p>
+<h3 id="collection-lifecycle">Collection lifecycle</h3>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant App as Application
+    participant GC as GarbageCollector
+    participant PA as PageAllocator
+
+    App-&gt;&gt;GC: Collect()
+    activate GC
+    Note over GC: Interrupts disabled
+    GC-&gt;&gt;GC: Clear all free lists
+    GC-&gt;&gt;GC: MarkPhase (scan stacks, handles)
+    GC-&gt;&gt;GC: FreeWeakHandles
+    GC-&gt;&gt;GC: SweepPhase (rebuild free lists)
+    GC-&gt;&gt;GC: Reorder segments, free empty ones 
+    GC-&gt;&gt;GC: Reorder pinned segments, free empty ones 
+    GC-&gt;&gt;PA: Free(empty segments)
+    GC-&gt;&gt;GC: RecomputeHeapRange
+    Note over GC: Interrupts enabled
+    deactivate GC
+    GC--&gt;&gt;App: freed objects count
+</code></pre>
+<h3 id="mark-phase">Mark phase</h3>
+<p>The mark phase identifies all reachable objects using a worklist-based traversal. It scans three root sources:</p>
+<pre><code class="lang-mermaid">flowchart LR
+    MARK[MarkPhase] --&gt; STACK[ScanStackRoots]
+    MARK --&gt; HANDLES[ScanGCHandles]
+    MARK --&gt; STATIC[&quot;ScanStaticRoots (disabled)&quot;]
+</code></pre>
+<p><strong>Static root scanning</strong> walks GCStaticRegion sections from all loaded modules. This is currently disabled.</p>
+<p><strong>Stack scanning</strong> is <strong>conservative</strong>: every pointer-sized value on the stack is treated as a potential object reference. If the scheduler is active, the GC iterates all thread contexts and scans both saved registers and stack memory. Without a scheduler, it scans the current stack from RSP to the stack base.</p>
+<p><strong>GC handle scanning</strong> walks the handle table and marks objects referenced by <code>Normal</code> and <code>Pinned</code> handles. <code>Weak</code> handles do not keep objects alive.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Keeps object alive?</th>
+<th>Freed during collection?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Weak</code></td>
+<td>No</td>
+<td>Yes, if object is unmarked</td>
+</tr>
+<tr>
+<td><code>Normal</code></td>
+<td>Yes (scanned as root)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>Pinned</code></td>
+<td>Yes (scanned as root)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>While scanning, <code>TryMarkRoot(value)</code> pushes a candidate pointer onto the mark stack, then processes the stack iteratively:</p>
+<ol>
+<li>Pop a pointer</li>
+<li>Read the <code>MethodTable</code> field (masking off the mark bit)</li>
+<li>Reject if the <code>MethodTable</code> pointer is null or points inside the GC heap — valid method tables live in kernel code, outside the heap</li>
+<li>Skip if already marked</li>
+<li>Mark the object (set bit 0 of <code>MethodTable</code>)</li>
+<li>If <code>ContainsGCPointers</code> is set, call <code>EnumerateReferences</code> to discover child references</li>
+</ol>
+<p><code>EnumerateReferences</code> reads the <strong>GCDesc</strong> metadata to find which fields inside an object are managed pointers. This metadata is emitted by the NativeAOT compiler (ILC) and stored in memory immediately <em>before</em> each <code>MethodTable</code>. It is not part of the <code>MethodTable</code> struct itself — the code reads it by indexing backwards from the <code>MethodTable</code> pointer: <code>((nint*)mt)[-1]</code> gives the first word before <code>mt</code>, <code>((nint*)mt)[-2]</code> the second, and so on.</p>
+<p>The first word before the MethodTable (<code>MT[-1]</code>) is <code>numSeries</code>, which determines the layout:</p>
+<p><strong>Normal series</strong> (<code>numSeries &gt; 0</code>) — for regular objects:</p>
+<pre><code>          lower addresses
+    ┌──────────────────────────┐
+    │ GCDescSeries[last]       │  ← SeriesSize + StartOffset
+    │ ...                      │
+    │ GCDescSeries[0]          │
+    ├──────────────────────────┤
+    │ numSeries (positive)     │  ← MT[-1]
+    ├──────────────────────────┤
+    │ MethodTable fields ...   │  ← MT[0], MT[1], ...
+    └──────────────────────────┘
+          higher addresses
+</code></pre>
+<p>Each <code>GCDescSeries</code> describes a contiguous range of pointers within the object. The collector scans from <code>obj + StartOffset</code> for <code>(SeriesSize + objectSize) / pointerSize</code> slots.</p>
+<p><strong>Val series</strong> (<code>numSeries &lt; 0</code>) — for arrays whose elements contain pointers (e.g. <code>SomeStruct[]</code> where <code>SomeStruct</code> has reference fields):</p>
+<pre><code>          lower addresses
+    ┌──────────────────────────┐
+    │ ValSerieItem[last]       │  ← Nptrs (pointer count) + Skip (bytes to skip)
+    │ ...                      │
+    │ ValSerieItem[0]          │
+    ├──────────────────────────┤
+    │ startOffset              │  ← MT[-2]
+    ├──────────────────────────┤
+    │ numSeries (negative)     │  ← MT[-1]
+    ├──────────────────────────┤
+    │ MethodTable fields ...   │
+    └──────────────────────────┘
+          higher addresses
+</code></pre>
+<p>The collector starts at <code>obj + startOffset</code> and for each array element, walks the <code>ValSerieItem</code> entries backwards (negative loop index). Each entry says &quot;scan <code>Nptrs</code> pointers, then skip <code>Skip</code> bytes&quot;. This pattern repeats for every element in the array.</p>
+<h3 id="sweep-phase">Sweep phase</h3>
+<pre><code class="lang-mermaid">flowchart TD
+    SWEEP[&quot;SweepPhase()&quot;] --&gt; SEG[&quot;Walk each regular segment
+    SweepSegment()&quot;]
+    SWEEP --&gt; PIN[&quot;SweepPinnedHeap()&quot;]
+    SWEEP --&gt; SM[&quot;SweepSmallHeap()&quot;]
+    SWEEP --&gt; MED[&quot;SweepMediumHeap()&quot;]
+    SWEEP --&gt; LG[&quot;SweepLargeHeap()&quot;]
+
+    SEG --&gt; WALK[&quot;Linear walk from Start to Bump&quot;]
+    WALK --&gt; READ{Read object at ptr}
+    READ --&gt;|&quot;MT == null&quot;| STOP[Break]
+    READ --&gt;|&quot;MT == _freeMethodTable&quot;| ACCUM[Accumulate into free run]
+    READ --&gt;|&quot;MT inside heap&quot;| SKIP[&quot;Skip pointer-sized chunk&quot;]
+    READ --&gt;|Marked object| LIVE[&quot;Unmark, flush free run
+    to free list&quot;]
+    READ --&gt;|Unmarked object| DEAD[&quot;Extend free run&quot;]
+    ACCUM --&gt; NEXT[Advance ptr]
+    SKIP --&gt; NEXT
+    LIVE --&gt; NEXT
+    DEAD --&gt; NEXT
+    NEXT --&gt; READ
+</code></pre>
+<p>For each regular segment, the sweep walks linearly from <code>Start</code> to <code>Bump</code>. It accumulates consecutive dead objects and free blocks into a <strong>free run</strong>. When a live (marked) object is encountered, the accumulated free run is flushed as a <code>FreeBlock</code> onto the free list, and the object is unmarked for the next cycle.</p>
+<p>When a free run reaches the end of a segment (trailing dead objects), the sweeper reclaims that space by moving <code>Bump</code> back instead of creating a free block.</p>
+<p>The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list) and the Small/Medium/Large heaps. For these, the sweeper calls the respective heap's <code>Free()</code> method to release dead objects.</p>
+<h3 id="segment-reordering">Segment reordering</h3>
+<p>After sweeping, segments are reordered into three groups:</p>
+<pre><code> FULL segments → SEMIFULL segments → FREE segments
+</code></pre>
+<p>Empty multi-page segments are returned to the page allocator. <code>_lastSegment</code> is set to the first semifull segment (or first free segment) so the next allocation targets available space.</p>
+<p>The same reordering runs independently on the pinned segment chain.</p>
+<hr>
+<h2 id="source-files">Source files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GC core</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs</code></a></td>
+</tr>
+<tr>
+<td>Allocation</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs</code></a></td>
+</tr>
+<tr>
+<td>Mark phase</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs</code></a></td>
+</tr>
+<tr>
+<td>Sweep phase</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs</code></a></td>
+</tr>
+<tr>
+<td>GC handles</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs</code></a></td>
+</tr>
+<tr>
+<td>Frozen segments</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs</code></a></td>
+</tr>
+<tr>
+<td>Pinned heap</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs</code></a></td>
+</tr>
+<tr>
+<td>Object header</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs</code></a></td>
+</tr>
+<tr>
+<td>Runtime exports</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>src/Cosmos.Kernel.Core/Runtime/Memory.cs</code></a></td>
+</tr>
+<tr>
+<td>Page allocator</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs"><code>src/Cosmos.Kernel.Core/Memory/PageAllocator.cs</code></a></td>
+</tr>
+</tbody>
+</table>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/235/merge/docs/articles/garbage-collector.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

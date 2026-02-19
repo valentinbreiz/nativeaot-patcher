@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class VirtioMMIO | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class VirtioMMIO | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Virtio MMIO transport layer for ARM64. QEMU virt machine provides virtio devices via MMIO starting at 0x0a000000.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO" class="text-break">
+Class VirtioMMIO  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Virtio MMIO transport layer for ARM64.
+QEMU virt machine provides virtio devices via MMIO starting at 0x0a000000.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class VirtioMMIO</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">VirtioMMIO</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_CONFIG" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_CONFIG">
+  REG_CONFIG
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_CONFIG = 256</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_CONFIG_GENERATION" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_CONFIG_GENERATION">
+  REG_CONFIG_GENERATION
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_CONFIG_GENERATION = 252</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_DEVICE_FEATURES" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_DEVICE_FEATURES">
+  REG_DEVICE_FEATURES
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_DEVICE_FEATURES = 16</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_DEVICE_FEATURES_SEL" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_DEVICE_FEATURES_SEL">
+  REG_DEVICE_FEATURES_SEL
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_DEVICE_FEATURES_SEL = 20</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_DEVICE_ID" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_DEVICE_ID">
+  REG_DEVICE_ID
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_DEVICE_ID = 8</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_DRIVER_FEATURES" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_DRIVER_FEATURES">
+  REG_DRIVER_FEATURES
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_DRIVER_FEATURES = 32</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_DRIVER_FEATURES_SEL" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_DRIVER_FEATURES_SEL">
+  REG_DRIVER_FEATURES_SEL
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_DRIVER_FEATURES_SEL = 36</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_GUEST_PAGE_SIZE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_GUEST_PAGE_SIZE">
+  REG_GUEST_PAGE_SIZE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_GUEST_PAGE_SIZE = 40</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_INTERRUPT_ACK" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_INTERRUPT_ACK">
+  REG_INTERRUPT_ACK
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_INTERRUPT_ACK = 100</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_INTERRUPT_STATUS" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_INTERRUPT_STATUS">
+  REG_INTERRUPT_STATUS
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_INTERRUPT_STATUS = 96</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_MAGIC" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_MAGIC">
+  REG_MAGIC
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_MAGIC = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_ALIGN" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_ALIGN">
+  REG_QUEUE_ALIGN
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_ALIGN = 60</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DESC_HIGH" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DESC_HIGH">
+  REG_QUEUE_DESC_HIGH
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DESC_HIGH = 132</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DESC_LOW" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DESC_LOW">
+  REG_QUEUE_DESC_LOW
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DESC_LOW = 128</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DEVICE_HIGH" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DEVICE_HIGH">
+  REG_QUEUE_DEVICE_HIGH
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DEVICE_HIGH = 164</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DEVICE_LOW" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DEVICE_LOW">
+  REG_QUEUE_DEVICE_LOW
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DEVICE_LOW = 160</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DRIVER_HIGH" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DRIVER_HIGH">
+  REG_QUEUE_DRIVER_HIGH
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DRIVER_HIGH = 148</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_DRIVER_LOW" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_DRIVER_LOW">
+  REG_QUEUE_DRIVER_LOW
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_DRIVER_LOW = 144</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_NOTIFY" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_NOTIFY">
+  REG_QUEUE_NOTIFY
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_NOTIFY = 80</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_NUM" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_NUM">
+  REG_QUEUE_NUM
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_NUM = 56</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_NUM_MAX" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_NUM_MAX">
+  REG_QUEUE_NUM_MAX
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_NUM_MAX = 52</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_PFN" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_PFN">
+  REG_QUEUE_PFN
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_PFN = 64</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_READY" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_READY">
+  REG_QUEUE_READY
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_READY = 68</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_QUEUE_SEL" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_QUEUE_SEL">
+  REG_QUEUE_SEL
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_QUEUE_SEL = 48</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_STATUS" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_STATUS">
+  REG_STATUS
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_STATUS = 112</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_VENDOR_ID" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_VENDOR_ID">
+  REG_VENDOR_ID
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_VENDOR_ID = 12</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_VERSION" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_VERSION">
+  REG_VERSION
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint REG_VERSION = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_STATUS_ACKNOWLEDGE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.STATUS_ACKNOWLEDGE">
+  STATUS_ACKNOWLEDGE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint STATUS_ACKNOWLEDGE = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_STATUS_DRIVER" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.STATUS_DRIVER">
+  STATUS_DRIVER
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint STATUS_DRIVER = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_STATUS_DRIVER_OK" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.STATUS_DRIVER_OK">
+  STATUS_DRIVER_OK
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint STATUS_DRIVER_OK = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_STATUS_FAILED" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.STATUS_FAILED">
+  STATUS_FAILED
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint STATUS_FAILED = 128</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_STATUS_FEATURES_OK" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.STATUS_FEATURES_OK">
+  STATUS_FEATURES_OK
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint STATUS_FEATURES_OK = 8</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_BLOCK" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_BLOCK">
+  VIRTIO_DEV_BLOCK
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_BLOCK = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_CONSOLE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_CONSOLE">
+  VIRTIO_DEV_CONSOLE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_CONSOLE = 3</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_GPU" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_GPU">
+  VIRTIO_DEV_GPU
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_GPU = 16</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_INPUT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_INPUT">
+  VIRTIO_DEV_INPUT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_INPUT = 18</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_NET" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_NET">
+  VIRTIO_DEV_NET
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_NET = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_DEV_RNG" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_DEV_RNG">
+  VIRTIO_DEV_RNG
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_DEV_RNG = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_IRQ_BASE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_IRQ_BASE">
+  VIRTIO_IRQ_BASE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_IRQ_BASE = 48</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_MAGIC" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MAGIC">
+  VIRTIO_MAGIC
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint VIRTIO_MAGIC = 1953655158</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_MMIO_BASE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MMIO_BASE">
+  VIRTIO_MMIO_BASE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong VIRTIO_MMIO_BASE = 167772160</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_MMIO_MAX_DEVICES" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MMIO_MAX_DEVICES">
+  VIRTIO_MMIO_MAX_DEVICES
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int VIRTIO_MMIO_MAX_DEVICES = 32</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VIRTIO_MMIO_SIZE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MMIO_SIZE">
+  VIRTIO_MMIO_SIZE
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong VIRTIO_MMIO_SIZE = 512</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_FindDevice_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.FindDevice*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_FindDevice_System_UInt32_System_UInt64__System_UInt32__" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.FindDevice(System.UInt32,System.UInt64@,System.UInt32@)">
+  FindDevice(uint, out ulong, out uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Finds a virtio device by type and returns its base address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool FindDevice(uint deviceType, out ulong baseAddress, out uint irq)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>deviceType</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>The virtio device type to find.</p>
+</dd>
+    <dt><code>baseAddress</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>The base address of the found device.</p>
+</dd>
+    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>The IRQ number for the found device.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True if device found, false otherwise.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Read32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Read32*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Read32_System_UInt64_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Read32(System.UInt64,System.UInt32)">
+  Read32(ulong, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint Read32(ulong baseAddr, uint offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>baseAddr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Read8_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Read8*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Read8_System_UInt64_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Read8(System.UInt64,System.UInt32)">
+  Read8(ulong, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte Read8(ulong baseAddr, uint offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>baseAddr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_ScanDevices_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.ScanDevices*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_ScanDevices" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.ScanDevices">
+  ScanDevices()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Scans for virtio devices and returns information about found devices.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ScanDevices()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Write32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Write32*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Write32_System_UInt64_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Write32(System.UInt64,System.UInt32,System.UInt32)">
+  Write32(ulong, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Write32(ulong baseAddr, uint offset, uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>baseAddr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Write8_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Write8*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Write8_System_UInt64_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Write8(System.UInt64,System.UInt32,System.Byte)">
+  Write8(ulong, uint, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Write8(ulong baseAddr, uint offset, byte value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>baseAddr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

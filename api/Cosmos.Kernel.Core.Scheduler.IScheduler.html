@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IScheduler | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IScheduler | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Interface for pluggable scheduling algorithms. Inspired by Ekiben&#39;s EkibenScheduler trait.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler">
+
+
+
+  <h1 id="Cosmos_Kernel_Core_Scheduler_IScheduler" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler" class="text-break">
+Interface IScheduler  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Scheduler</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Interface for pluggable scheduling algorithms.
+Inspired by Ekiben's EkibenScheduler trait.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IScheduler</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_Name_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.Name*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_Name" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.Name">
+  Name
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Unique name for this scheduler.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Name { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_Balance_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.Balance*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_Balance_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_PerCpuState___" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.Balance(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.PerCpuState[])">
+  Balance(PerCpuState, PerCpuState[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Periodic load balancing opportunity.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Balance(PerCpuState cpuState, PerCpuState[] allCpuStates)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>allCpuStates</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetPriority(Cosmos.Kernel.Core.Scheduler.Thread)">
+  GetPriority(Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get thread's current priority/weight.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long GetPriority(Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueCount_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetRunQueueCount*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueCount_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetRunQueueCount(Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  GetRunQueueCount(PerCpuState)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get the number of threads in the run queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int GetRunQueueCount(PerCpuState cpuState)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetRunQueueThread*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueThread_Cosmos_Kernel_Core_Scheduler_PerCpuState_System_Int32_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetRunQueueThread(Cosmos.Kernel.Core.Scheduler.PerCpuState,System.Int32)">
+  GetRunQueueThread(PerCpuState, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get a thread from the run queue by index.
+Returns null if index is out of range.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Thread GetRunQueueThread(PerCpuState cpuState, int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_InitializeCpu_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.InitializeCpu*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_InitializeCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.InitializeCpu(Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  InitializeCpu(PerCpuState)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize scheduler for a specific CPU.
+Create and assign PerCpuState.SchedulerData here.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void InitializeCpu(PerCpuState cpuState)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnPickFailed_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnPickFailed*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnPickFailed_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnPickFailed(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnPickFailed(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called when picked thread couldn't be scheduled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPickFailed(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadBlocked_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadBlocked*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadBlocked_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadBlocked(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnThreadBlocked(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread has blocked (I/O, lock, sleep, etc.).
+Remove from run queue, save state for resume.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadBlocked(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadCreate*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadCreate(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnThreadCreate(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>A new thread is being added to this CPU's management.
+Create and assign Thread.SchedulerData here.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadCreate(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadExit*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadExit(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnThreadExit(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread is terminating.
+Cleanup Thread.SchedulerData.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadExit(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadMigrate_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadMigrate*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadMigrate_Cosmos_Kernel_Core_Scheduler_Thread_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadMigrate(Cosmos.Kernel.Core.Scheduler.Thread,Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  OnThreadMigrate(Thread, PerCpuState, PerCpuState)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread is migrating between CPUs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadMigrate(Thread thread, PerCpuState fromState, PerCpuState toState)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+    <dt><code>fromState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>toState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadReady*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadReady(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnThreadReady(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread is ready to run (first time or after wakeup).
+Add to run queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadReady(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadYield*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadYield(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
+  OnThreadYield(PerCpuState, Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread voluntarily yields remaining time slice.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnThreadYield(PerCpuState cpuState, Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnTick_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnTick*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnTick_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnTick(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt64)">
+  OnTick(PerCpuState, Thread, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Timer tick - update accounting, check for preemption.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>current</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+    <dt><code>elapsedNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True if reschedule needed (preemption)</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_PickNext_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.PickNext*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_PickNext_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.PickNext(Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  PickNext(PerCpuState)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Pick the next thread to run.
+Returns null if no runnable threads (run idle).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Thread PickNext(PerCpuState cpuState)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_SelectCpu_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SelectCpu*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SelectCpu_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SelectCpu(Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32,System.UInt32)">
+  SelectCpu(Thread, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Select best CPU for a new or migrating thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">uint SelectCpu(Thread thread, uint currentCpu, uint cpuCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+    <dt><code>currentCpu</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>cpuCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_System_Int64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SetPriority(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread,System.Int64)">
+  SetPriority(PerCpuState, Thread, long)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Thread's priority/weight is changing.
+Interpretation is scheduler-specific.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetPriority(PerCpuState cpuState, Thread thread, long priority)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+    <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_ShutdownCpu_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.ShutdownCpu*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_ShutdownCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.ShutdownCpu(Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  ShutdownCpu(PerCpuState)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Cleanup when scheduler is being replaced or shutdown.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ShutdownCpu(PerCpuState cpuState)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

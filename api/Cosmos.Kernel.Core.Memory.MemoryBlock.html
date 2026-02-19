@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class MemoryBlock | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class MemoryBlock | Cosmos Gen 3 ">
+      
+      <meta name="description" content="MemoryBlock class. Used to read and write to memory blocks.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock">
+
+
+
+  <h1 id="Cosmos_Kernel_Core_Memory_MemoryBlock" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock" class="text-break">
+Class MemoryBlock  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>MemoryBlock class. Used to read and write to memory blocks.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class MemoryBlock</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">MemoryBlock</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock__ctor_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock__ctor_System_UInt64_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.#ctor(System.UInt64,System.UInt32)">
+  MemoryBlock(ulong, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.Core.Memory.MemoryBlock.html">MemoryBlock</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MemoryBlock(ulong aBase, uint aByteSize)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>A base.</p>
+</dd>
+    <dt><code>aByteSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A size.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Base" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Base">
+  Base
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Memory block base address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly ulong Base</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Bytes" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Bytes">
+  Bytes
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Bytes memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly MemoryBlock08 Bytes</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.MemoryBlock08.html">MemoryBlock08</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_DWords" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.DWords">
+  DWords
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>DWords memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly MemoryBlock32 DWords</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.MemoryBlock32.html">MemoryBlock32</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Size" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Size">
+  Size
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Memory block size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly uint Size</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Words" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Words">
+  Words
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Words memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly MemoryBlock16 Words</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.MemoryBlock16.html">MemoryBlock16</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Item_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Item*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Item_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Item(System.UInt32)">
+  this[uint]
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get and set memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint this[uint aByteOffset] { get; set; }</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A byte offset.</p>
+</dd>
+  </dl>
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>uint value.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_Cosmos_Kernel_Core_Memory_ManagedMemoryBlock_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(Cosmos.Kernel.Core.Memory.ManagedMemoryBlock)">
+  Copy(ManagedMemoryBlock)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy ManagedMemoryBlock into MemoryBlock</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(ManagedMemoryBlock block)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>block</code> <a class="xref" href="Cosmos.Kernel.Core.Memory.ManagedMemoryBlock.html">ManagedMemoryBlock</a></dt>
+    <dd><p>ManagedMemoryBlock to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_Byte___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.Byte[])">
+  Copy(byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer to the start of the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(byte[] aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aData length in greater then Int32.MaxValue.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_Int32_System_Byte___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.Int32,System.Byte[],System.Int32,System.Int32)">
+  Copy(int, byte[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer array to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(int aByteOffset, byte[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Starting point offset in bytes</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A staring index in the source data buffer array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of bytes to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_Int32_System_Int32___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.Int32,System.Int32[],System.Int32,System.Int32)">
+  Copy(int, int[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer array to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(int aByteOffset, int[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Starting point offset in bytes</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A staring index in the source data buffer array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of integers to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_Int32___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.Int32[])">
+  Copy(int[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer to the start of the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(int[] aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aData length in greater then Int32.MaxValue.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_Int32___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.Int32[],System.Int32,System.Int32)">
+  Copy(int[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer array to the start of the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(int[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A staring index in the source data buffer array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of integers to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aData length in greater then Int32.MaxValue.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_UInt32_System_UInt32___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.UInt32,System.UInt32[],System.Int32,System.Int32)">
+  Copy(uint, uint[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer array to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(uint aByteOffset, uint[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Starting point offset in bytes</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A staring index in the source data buffer array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of bytes to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Copy_System_UInt32___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Copy(System.UInt32[])">
+  Copy(uint[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copy data from the buffer to the start of the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Copy(uint[] aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>A data buffer array.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aData length in greater then Int32.MaxValue.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_Byte_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.Byte)">
+  Fill(byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill data to memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(byte aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Data to fill the memory block with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.Int32,System.Int32,System.Int32)">
+  Fill(int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill memory block with a value. The filling is integer aligned</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(int aByteOffset, int aCount, int aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Byte offset from Base</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of integers to fill</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Value to fill memory block with</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_UInt16_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.UInt16)">
+  Fill(ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill data to memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(ushort aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd><p>Data to fill the memory block with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.UInt32)">
+  Fill(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(uint aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A data to fill.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_UInt32_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.UInt32,System.UInt32,System.Byte)">
+  Fill(uint, uint, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill data to memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(uint aByteOffset, uint aCount, byte aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Starting point offset in bytes</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Data size.</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>A data to fill memory block with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_UInt32_System_UInt32_System_UInt16_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.UInt32,System.UInt32,System.UInt16)">
+  Fill(uint, uint, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill data to memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(uint aByteOffset, uint aCount, ushort aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Starting point offset in bytes</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Data size.</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd><p>A data to fill memory block with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Fill_System_UInt32_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Fill(System.UInt32,System.UInt32,System.UInt32)">
+  Fill(uint, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fill memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(uint aByteOffset, uint aCount, uint aData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A start.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A count.</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A data.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Get_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Get*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Get_System_Int32_System_Byte___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Get(System.Int32,System.Byte[],System.Int32,System.Int32)">
+  Get(int, byte[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copies a specified number of bytes from the memory block into an array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Get(int aByteOffset, byte[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The byte offset in the memory block from where the copy starts.</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>The array where the data will be copied to.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting index in the destination array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The number of bytes to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Get_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Get*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Get_System_Int32_System_Int32___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Get(System.Int32,System.Int32[],System.Int32,System.Int32)">
+  Get(int, int[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copies data from the memory block to the specified array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Get(int aByteOffset, int[] aData, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aByteOffset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The byte offset in the memory block from which to start copying.</p>
+</dd>
+    <dt><code>aData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>The array into which data will be copied.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting index in the array where data will be copied.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The number of elements to copy.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_MoveDown_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.MoveDown*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_MoveDown_System_UInt32_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.MoveDown(System.UInt32,System.UInt32,System.UInt32)">
+  MoveDown(uint, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Move bytes array down the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void MoveDown(uint aDest, uint aSrc, uint aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aDest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Destination location.</p>
+</dd>
+    <dt><code>aSrc</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Sourcs location.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Number of bytes to move.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_MoveUp_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.MoveUp*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_MoveUp_System_UInt32_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.MoveUp(System.UInt32,System.UInt32,System.UInt32)">
+  MoveUp(uint, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Move data inside the block. Undone.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void MoveUp(uint aDest, uint aSrc, uint aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aDest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A destination address.</p>
+</dd>
+    <dt><code>aSrc</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>A source address.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Number of bytes to move.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_Core_Memory_MemoryBlock_MoveUp_System_UInt32_System_UInt32_System_UInt32__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Always throw. Yet to be done.</p>
+</div>
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown always.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read16_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read16*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read16_System_UInt16___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read16(System.UInt16[])">
+  Read16(ushort[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read 16-bit from the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Read16(ushort[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>[]</dt>
+    <dd><p>A buffer to write the data to.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read32*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read32_System_UInt32___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read32(System.UInt32[])">
+  Read32(uint[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read 32-bit from the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Read32(uint[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>A buffer to write the data to.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read8_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read8*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Read8_System_Byte___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Read8(System.Byte[])">
+  Read8(byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read 8-bit from the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Read8(byte[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>A buffer to write the data to.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_ToArray_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.ToArray*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_ToArray" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.ToArray">
+  ToArray()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Convert the memory block to array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint[] ToArray()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>uint array.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_ToArray_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.ToArray*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_ToArray_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.ToArray(System.Int32,System.Int32,System.Int32)">
+  ToArray(int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Convert part for the memory block to array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint[] ToArray(int aStart, int aIndex, int aCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A starting position of the data at the source memory block.</p>
+</dd>
+    <dt><code>aIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A index to be the staring index at the destination array.</p>
+</dd>
+    <dt><code>aCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Number of bytes to get.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>uint array.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write16_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write16*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write16_System_UInt16___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write16(System.UInt16[])">
+  Write16(ushort[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write 16-bit to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write16(ushort[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>[]</dt>
+    <dd><p>A buffer to be written to the memory block.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write32*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write32_System_UInt32___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write32(System.UInt32[])">
+  Write32(uint[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write 32-bit to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write32(uint[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>[]</dt>
+    <dd><p>A buffer to be written to the memory block.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write8_" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write8*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryBlock_Write8_System_Byte___" data-uid="Cosmos.Kernel.Core.Memory.MemoryBlock.Write8(System.Byte[])">
+  Write8(byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write 8-bit to the memory block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write8(byte[] aBuffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aBuffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>A buffer to be written to the memory block.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.overflowexception">OverflowException</a></dt>
+    <dd><p>Thrown if aBuffer length in greater then Int32.MaxValue.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd><p>Thrown on memory access violation.</p>
+</dd>
+  </dl>
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

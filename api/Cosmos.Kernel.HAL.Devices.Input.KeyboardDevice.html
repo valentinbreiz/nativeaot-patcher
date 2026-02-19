@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class KeyboardDevice | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class KeyboardDevice | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Abstract base class for all keyboard devices.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice" class="text-break">
+Class KeyboardDevice  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.html">Input</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Abstract base class for all keyboard devices.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class KeyboardDevice : Device, IKeyboardDevice</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><span class="xref">KeyboardDevice</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html">IKeyboardDevice</a></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist derived">
+    <dt>Derived</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html">VirtioKeyboard</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.html">PS2Keyboard</a></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_KeyAvailable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.KeyAvailable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_KeyAvailable" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.KeyAvailable">
+  KeyAvailable
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Check if a key is available in the buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool KeyAvailable { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_OnKeyPressed_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.OnKeyPressed*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_OnKeyPressed" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.OnKeyPressed">
+  OnKeyPressed
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event handler invoked when a key is pressed or released.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public KeyPressedHandler? OnKeyPressed { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.html">KeyPressedHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Disable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Disable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Disable" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Disable">
+  Disable()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disable keyboard scanning.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void Disable()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Enable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Enable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Enable" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Enable">
+  Enable()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Enable keyboard scanning.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void Enable()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Initialize_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Initialize" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize the keyboard device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Poll_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Poll*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_Poll" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.Poll">
+  Poll()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Poll for keyboard events (default: no-op for interrupt-driven keyboards).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Poll()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_UpdateLeds_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.UpdateLeds*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_UpdateLeds" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.UpdateLeds">
+  UpdateLeds()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Update keyboard LEDs (Caps Lock, Num Lock, Scroll Lock).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void UpdateLeds()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_WaitForKey_" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.WaitForKey*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_WaitForKey" data-uid="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.WaitForKey">
+  WaitForKey()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Wait for a key to be pressed by halting the CPU.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WaitForKey()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

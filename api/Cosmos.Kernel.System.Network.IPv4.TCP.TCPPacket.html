@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TCPPacket | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TCPPacket | Cosmos Gen 3 ">
+      
+      <meta name="description" content="TCP Packet Class">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket" class="text-break">
+Class TCPPacket  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.html">TCP</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>TCP Packet Class</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TCPPacket : IPPacket</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></div>
+      <div><span class="xref">TCPPacket</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_ipHeaderLength">IPPacket.ipHeaderLength</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_NextIPFragmentID">IPPacket.NextIPFragmentID</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_CalcOcCRC_System_UInt16_System_UInt16_">IPPacket.CalcOcCRC(ushort, ushort)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_CalcOcCRC_System_Byte___System_UInt16_System_Int32_">IPPacket.CalcOcCRC(byte[], ushort, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_SumShortValues_System_Byte___System_Int32_System_Int32_">IPPacket.SumShortValues(byte[], int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_CalcIPCRC_System_UInt16_">IPPacket.CalcIPCRC(ushort)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_SourceIP">IPPacket.SourceIP</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DestinationIP">IPPacket.DestinationIP</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_srcMAC">EthernetPacket.srcMAC</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_destMAC">EthernetPacket.destMAC</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">EthernetPacket.RawData</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_System_UInt16_System_UInt16_System_UInt64_System_UInt64_System_UInt16_System_Byte_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor(Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address,System.UInt16,System.UInt16,System.UInt64,System.UInt64,System.UInt16,System.Byte,System.UInt16,System.UInt16)">
+  TCPPacket(Address, Address, ushort, ushort, ulong, ulong, ushort, byte, ushort, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.html">TCPPacket</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TCPPacket(Address source, Address dest, ushort srcPort, ushort destPort, ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags, ushort WSValue, ushort UrgentPointer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+    <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+    <dt><code>srcPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>destPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>sequencenumber</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>acknowledgmentnb</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>Headerlenght</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>Flags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>WSValue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>UrgentPointer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_System_UInt16_System_UInt16_System_UInt64_System_UInt64_System_UInt16_System_Byte_System_UInt16_System_UInt16_System_Byte___" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor(Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address,System.UInt16,System.UInt16,System.UInt64,System.UInt64,System.UInt16,System.Byte,System.UInt16,System.UInt16,System.Byte[])">
+  TCPPacket(Address, Address, ushort, ushort, ulong, ulong, ushort, byte, ushort, ushort, byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.html">TCPPacket</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TCPPacket(Address source, Address dest, ushort srcPort, ushort destPort, ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags, ushort WSValue, ushort UrgentPointer, byte[] data)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+    <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+    <dt><code>srcPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>destPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>sequencenumber</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>acknowledgmentnb</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>Headerlenght</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>Flags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>WSValue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>UrgentPointer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>data</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket__ctor_System_Byte___" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.#ctor(System.Byte[])">
+  TCPPacket(byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.html">TCPPacket</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TCPPacket(byte[] rawData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rawData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>Raw data.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_AckNumber_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.AckNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_AckNumber" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.AckNumber">
+  AckNumber
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get acknowledge number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint AckNumber { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_Checksum_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.Checksum*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_Checksum" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.Checksum">
+  Checksum
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get checksum.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort Checksum { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_DestinationPort_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.DestinationPort*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_DestinationPort" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.DestinationPort">
+  DestinationPort
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get destination port.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort DestinationPort { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_Options_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.Options*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_Options" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.Options">
+  Options
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>TCP Options</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;TCPOption&gt; Options { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption.html">TCPOption</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_SequenceNumber_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.SequenceNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_SequenceNumber" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.SequenceNumber">
+  SequenceNumber
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get sequence number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint SequenceNumber { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_SourcePort_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.SourcePort*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_SourcePort" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.SourcePort">
+  SourcePort
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get source port.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort SourcePort { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCPFlags_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCPFlags*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCPFlags" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCPFlags">
+  TCPFlags
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get TCP flags.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte TCPFlags { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCPHeaderLength_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCPHeaderLength*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCPHeaderLength" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCPHeaderLength">
+  TCPHeaderLength
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get TCP header length.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte TCPHeaderLength { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCP_DataLength_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCP_DataLength*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_TCP_DataLength" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.TCP_DataLength">
+  TCP_DataLength
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get TCP data length.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort TCP_DataLength { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_UrgentPointer_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.UrgentPointer*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_UrgentPointer" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.UrgentPointer">
+  UrgentPointer
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get urgent pointer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort UrgentPointer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_WindowSize_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.WindowSize*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_WindowSize" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.WindowSize">
+  WindowSize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get window size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort WindowSize { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_GetFlags_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.GetFlags*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_GetFlags" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.GetFlags">
+  GetFlags()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Get string representation of TCP flags.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string GetFlags()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_InitializeFields_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.InitializeFields*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_InitializeFields" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.InitializeFields">
+  InitializeFields()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Init TCPPacket fields.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void InitializeFields()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_ToString_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.ToString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TCPPacket_ToString" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.ToString">
+  ToString()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>To string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

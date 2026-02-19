@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Kernel Compilation Steps | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Kernel Compilation Steps | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/235/merge/docs/articles/build/kernel-compilation-steps.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="kernel-compilation-steps">Kernel Compilation Steps</h1>
+
+<p>This document outlines the complete build pipeline that transforms C# kernel code into a bootable ISO image using .NET NativeAOT compilation, custom IL patching, and native code generation.</p>
+<h2 id="compilation-flow-chart">Compilation Flow Chart</h2>
+<pre><code class="lang-mermaid">flowchart TD
+    CS[C# Source Code] --&gt; ROSLYN[Roslyn Compiler]
+    PLUGS[Plug Definitions] --&gt; ANALYZER[Cosmos.Build.Analyzer.Patcher]
+    ANALYZER -.-&gt; |Validates| ROSLYN
+    ROSLYN --&gt; IL[IL Assembly]
+
+    subgraph &quot;Cosmos.Build.Patcher&quot;
+        PATCHER[IL Patcher]
+        PATCHER --&gt; |cosmos.patcher| PATCHED[Patched Assemblies]
+        PATCHED --&gt; COSMOS_REF[&quot;$(IntermediateOutputPath)/cosmos/ref/&quot;]
+        PATCHED --&gt; COSMOS_ROOT[&quot;$(IntermediateOutputPath)/cosmos/&quot;]
+    end
+    IL --&gt; PATCHER
+    PLUGS --&gt; PATCHER
+
+    subgraph &quot;Cosmos.Build.Ilc&quot;
+        ILC[NativeAOT Compiler]
+        ILC --&gt; |ilc| NATIVE[&quot;Native Object (.o)&quot;]
+        NATIVE --&gt; COSMOS_NATIVE[&quot;$(IntermediateOutputPath)/cosmos/native/&quot;]
+    end
+    COSMOS_REF --&gt; ILC
+    COSMOS_ROOT --&gt; ILC
+
+    subgraph &quot;Cosmos.Build.Asm&quot;
+        ASM_BUILD[YASM Compiler]
+        ASM_BUILD --&gt; |yasm -felf64| ASM_OBJ[&quot;Assembly Objects (.obj)&quot;]
+        ASM_OBJ --&gt; COSMOS_ASM[&quot;$(IntermediateOutputPath)/cosmos/asm/&quot;]
+    end
+    ASM_SRC[&quot;Assembly Files (.asm)&quot;] --&gt; ASM_BUILD
+
+    subgraph &quot;Cosmos.Build.GCC&quot;
+        GCC_BUILD[GCC Compiler]
+        GCC_BUILD --&gt; |gcc/x86_64-elf-gcc| C_OBJ[&quot;C Objects (.obj)&quot;]
+        C_OBJ --&gt; COSMOS_COBJ[&quot;$(IntermediateOutputPath)/cosmos/cobj/&quot;]
+    end
+    C_SRC[&quot;C Source Files (.c)&quot;] --&gt; GCC_BUILD
+
+    subgraph &quot;Cosmos.Build.Common&quot;
+        LINK[Link Target]
+        LINK --&gt; |ld.lld| ELF[&quot;ELF Binary ($(OutputPath)/$(AssemblyName).elf)&quot;]
+        ELF --&gt; FINAL_ISO[BuildISO Target]
+        FINAL_ISO  --&gt; |xorriso + Limine| ISO_OUT[&quot;$(OutputPath)/cosmos/$(AssemblyName).iso&quot;]
+        ISO_OUT --&gt; |PublishISO| PUBLISH[&quot;$(PublishDir)/$(AssemblyName).iso&quot;]
+    end
+    
+    COSMOS_NATIVE --&gt; LINK
+    COSMOS_ASM --&gt; LINK
+    COSMOS_COBJ --&gt; LINK
+    LINKER_SCRIPT[&quot;linker.ld&quot;] --&gt; LINK
+    LIMINE_CONF[&quot;limine.conf&quot;] --&gt; FINAL_ISO
+
+    style CS fill:#e1f5e1
+    style ASM_SRC fill:#e1f5e1
+    style C_SRC fill:#e1f5e1
+    style PLUGS fill:#e1f5e1
+    style LINKER_SCRIPT fill:#e1f5e1
+    style LIMINE_CONF fill:#e1f5e1
+    
+    style PUBLISH fill:#ffe1e1
+</code></pre>
+<h2 id="prerequisites">Prerequisites</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Required Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>.NET SDK</strong></td>
+<td>Core compilation</td>
+<td>9.0.200+</td>
+</tr>
+<tr>
+<td><strong>YASM</strong></td>
+<td>Assembly compilation</td>
+<td>Latest</td>
+</tr>
+<tr>
+<td><strong>ld.lld</strong></td>
+<td>ELF linking</td>
+<td>LLVM toolchain</td>
+</tr>
+<tr>
+<td><strong>xorriso</strong></td>
+<td>ISO creation</td>
+<td>Latest</td>
+</tr>
+<tr>
+<td><strong>gcc/x86_64-elf-gcc</strong></td>
+<td>C compilation</td>
+<td>Cross-compiler on Windows</td>
+</tr>
+</tbody>
+</table>
+<h2 id="key-components">Key Components</h2>
+<ul>
+<li><a href="../../../src/Cosmos.Sdk"><code>Cosmos.Sdk</code></a> - MSBuild SDK orchestration</li>
+<li><a href="../../../src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a> - IL patching infrastructure</li>
+<li><a href="../../../src/Cosmos.Build.Ilc"><code>Cosmos.Build.Ilc</code></a> - NativeAOT integration</li>
+<li><a href="../../../src/Cosmos.Build.Asm"><code>Cosmos.Build.Asm</code></a> - Assembly compilation</li>
+<li><a href="../../../src/Cosmos.Build.GCC"><code>Cosmos.Build.GCC</code></a> - C compilation</li>
+<li><a href="../../../src/Cosmos.Build.Common"><code>Cosmos.Build.Common</code></a> - Linking and ISO creation</li>
+</ul>
+<h2 id="example-project">Example Project</h2>
+<p>Reference implementation: <code>examples/DevKernel/DevKernel.csproj</code></p>
+<h2 id="output-summary">Output Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Output Path</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Patching</td>
+<td><code>$(IntermediateOutputPath)/cosmos/</code></td>
+<td>Main patched assembly</td>
+</tr>
+<tr>
+<td>Patching</td>
+<td><code>$(IntermediateOutputPath)/cosmos/ref/</code></td>
+<td>Reference assemblies</td>
+</tr>
+<tr>
+<td>NativeAOT</td>
+<td><code>$(IntermediateOutputPath)/cosmos/native/</code></td>
+<td>Native object files (.o)</td>
+</tr>
+<tr>
+<td>Assembly</td>
+<td><code>$(IntermediateOutputPath)/cosmos/asm/</code></td>
+<td>YASM objects (.obj)</td>
+</tr>
+<tr>
+<td>C Code</td>
+<td><code>$(IntermediateOutputPath)/cosmos/cobj/</code></td>
+<td>GCC objects (.o/.obj)</td>
+</tr>
+<tr>
+<td>Linking</td>
+<td><code>$(OutputPath)/$(AssemblyName).elf</code></td>
+<td>Linked ELF kernel</td>
+</tr>
+<tr>
+<td>ISO</td>
+<td><code>$(OutputPath)/cosmos/$(AssemblyName).iso</code></td>
+<td>Bootable ISO image</td>
+</tr>
+<tr>
+<td>Publish</td>
+<td><code>$(PublishDir)/$(AssemblyName).iso</code></td>
+<td>Published ISO</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/235/merge/docs/articles/build/kernel-compilation-steps.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

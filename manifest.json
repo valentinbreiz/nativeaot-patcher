@@ -1,0 +1,4868 @@
+{
+  "source_base_path": "D:/a/nativeaot-patcher/nativeaot-patcher/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.Limine.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.Limine.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.Limine",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebuffer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebuffer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineFramebuffer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebufferRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebufferRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineFramebufferRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebufferResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFramebufferResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineFramebufferResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineHHDMRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineID.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineID.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineID",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineMemmapEntry",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineMemmapRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineMemmapResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineMemmapType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineMemmapType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineRsdpRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineRsdpRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineRsdpRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineRsdpResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineRsdpResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineRsdpResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.yml\" sourcestartlinenumber=\"1\">A disposable scope that disables interrupts on creation and re-enables them on dispose.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.InternalCpu.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.InternalCpu.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.InternalCpu",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.yml\" sourcestartlinenumber=\"1\">Low-level CPU operations that can be used by Core components like the heap.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CosmosFeatures.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CosmosFeatures.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CosmosFeatures",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CosmosFeatures.yml\" sourcestartlinenumber=\"1\">Centralized feature flags for Cosmos kernel components.\nThese flags can be set via RuntimeHostConfigurationOption in csproj\nand are used by ILC for trimming.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Extensions.ByteArray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Extensions.ByteArray.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Extensions.ByteArray",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Extensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Extensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Extensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.IO.Serial.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.IO.Serial.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.IO.Serial",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.IO.Serial.yml\" sourcestartlinenumber=\"1\">Multi-architecture serial port driver.</p>\n<ul sourcefile=\"api/Cosmos.Kernel.Core.IO.Serial.yml\" sourcestartlinenumber=\"2\">\n<li sourcefile=\"api/Cosmos.Kernel.Core.IO.Serial.yml\" sourcestartlinenumber=\"2\">x86-64: 16550 UART via port I/O (COM1 at 0x3F8)</li>\n<li sourcefile=\"api/Cosmos.Kernel.Core.IO.Serial.yml\" sourcestartlinenumber=\"3\">ARM64: PL011 UART via MMIO (QEMU virt at 0x09000000)</li>\n</ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.IO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.IO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.IO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.yml\" sourcestartlinenumber=\"1\">Describes a reference series within a GCDesc stored before the MethodTable.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.yml\" sourcestartlinenumber=\"1\">Allocation methods: segment management, bump allocation, and free list operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.Heap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.Heap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.Heap",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.Heap.Heap.yml\" sourcestartlinenumber=\"1\">a basic Heap that uses PageAllocator</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.LargeHeap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.LargeHeap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.LargeHeap",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.Heap.LargeHeap.yml\" sourcestartlinenumber=\"1\">will use more then 1 page</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.LargeHeapHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.LargeHeapHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.LargeHeapHeader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.MediumHeap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.MediumHeap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.MediumHeap",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.Heap.MediumHeap.yml\" sourcestartlinenumber=\"1\">will mostly fill a whole page</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.MediumHeapHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.MediumHeapHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.MediumHeapHeader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.RootSMTBlock",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SMTBlock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SMTBlock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.SMTBlock",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SMTPage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SMTPage.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.SMTPage",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.Heap.SMTPage.yml\" sourcestartlinenumber=\"1\">Page containing Size Map Table</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SmallHeap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SmallHeap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.SmallHeap",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SmallHeapHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.SmallHeapHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap.SmallHeapHeader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Heap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Heap",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.ManagedMemoryBlock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.ManagedMemoryBlock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.ManagedMemoryBlock",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.ManagedMemoryBlock.yml\" sourcestartlinenumber=\"1\">ManagedMemoryBlock class. Used to read and write a managed memory block.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.MemoryBlock",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.MemoryBlock.yml\" sourcestartlinenumber=\"1\">MemoryBlock class. Used to read and write to memory blocks.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock08.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock08.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.MemoryBlock08",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.MemoryBlock08.yml\" sourcestartlinenumber=\"1\">MemoryBlock08 class.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock16.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock16.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.MemoryBlock16",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.MemoryBlock16.yml\" sourcestartlinenumber=\"1\">MemoryBlock16 class.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock32.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryBlock32.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.MemoryBlock32",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.MemoryBlock32.yml\" sourcestartlinenumber=\"1\">MemoryBlock32 class.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryOp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.MemoryOp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.MemoryOp",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.PageAllocator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.PageAllocator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.PageAllocator",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.PageAllocator.yml\" sourcestartlinenumber=\"1\">a basic page allocator</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.PageType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.PageType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.PageType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.PageType.yml\" sourcestartlinenumber=\"1\">PageType enum. Used to define the type of the page.\nData Types from 1, special meanings from 255 down.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Panics.SmallHeap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Panics.SmallHeap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Panics.SmallHeap",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.Panics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.Panics.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.Panics",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.Panics.yml\" sourcestartlinenumber=\"1\">panics used be the Memory sub system</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Native.Debug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Native.Debug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Native.Debug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Native.IO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Native.IO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Native.IO",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Native.IO.yml\" sourcestartlinenumber=\"1\">x86-64 Port I/O operations.\nOnly available on x86-64 architecture (uses in/out instructions).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Native.MMIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Native.MMIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Native.MMIO",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Native.MMIO.yml\" sourcestartlinenumber=\"1\">Memory-Mapped I/O operations.\nAvailable on all architectures for accessing hardware via memory addresses.\nNoInlining prevents compiler from reordering these operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Native.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Native.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Native",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Native.yml\" sourcestartlinenumber=\"1\">Native low-level hardware access primitives.\nArchitecture-specific implementations for I/O operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Panic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Panic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Panic",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Panic.yml\" sourcestartlinenumber=\"1\">Kernel panic handler for fatal errors.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.yml\" sourcestartlinenumber=\"1\">Exception thrown when an ambiguous interface implementation is detected (diamond problem)</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.Cpu.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.Cpu.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.Cpu",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.DwarfRegX64",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.yml\" sourcestartlinenumber=\"1\">DWARF register numbers for x86-64</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.EHClause.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.EHClause.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.EHClause",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClause.yml\" sourcestartlinenumber=\"1\">Exception handling clause structure matching NativeAOT format</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.EHClauseKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.EHClauseKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.EHClauseKind",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClauseKind.yml\" sourcestartlinenumber=\"1\">Exception handling clauses as defined in ICodeManager.h</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.ExceptionHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.ExceptionHelper.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.ExceptionHelper",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionHelper.yml\" sourcestartlinenumber=\"1\">Core exception handling implementation</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.ExceptionIDs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.ExceptionIDs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.ExceptionIDs",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionIDs.yml\" sourcestartlinenumber=\"1\">Runtime exception IDs</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.ManagedModule.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.ManagedModule.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.ManagedModule",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ManagedModule.yml\" sourcestartlinenumber=\"1\">Handles the initialization of managed modules.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.Memory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.Memory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.Memory",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.MetaTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.MetaTable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.MetaTable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.MetaTable.yml\" sourcestartlinenumber=\"1\">Contains runtime exports for various metadata and dispatch operations</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT.yml\" sourcestartlinenumber=\"1\">PAL_LIMITED_CONTEXT structure matching x64 assembly offsets</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.REGDISPLAY.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.REGDISPLAY.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.REGDISPLAY",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.REGDISPLAY.yml\" sourcestartlinenumber=\"1\">REGDISPLAY structure for x64 funclet calls - matches assembly offsets exactly</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.RegLocation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.RegLocation.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.RegLocation",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.RegLocation.yml\" sourcestartlinenumber=\"1\">Tracks where a register is saved during unwind</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.RegSaveKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.RegSaveKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.RegSaveKind",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.RegSaveKind.yml\" sourcestartlinenumber=\"1\">Register save location during unwind</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.ResourceManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.ResourceManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.ResourceManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.StackFrame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.StackFrame.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.StackFrame",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.StackFrame.yml\" sourcestartlinenumber=\"1\">Stack frame information for unwinding</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.StackTraceMetadata.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.StackTraceMetadata.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.StackTraceMetadata",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.Thread.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.Thread.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.Thread",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.UnwindState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.UnwindState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.UnwindState",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.UnwindState.yml\" sourcestartlinenumber=\"1\">State of all registers during stack unwinding</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.ContextSwitch",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.yml\" sourcestartlinenumber=\"1\">Low-level context switch operations.\nPlatform-specific implementations in native code.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.IScheduler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.IScheduler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.IScheduler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.IScheduler.yml\" sourcestartlinenumber=\"1\">Interface for pluggable scheduling algorithms.\nInspired by Ekiben's EkibenScheduler trait.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.PerCpuState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.PerCpuState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.PerCpuState",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.PerCpuState.yml\" sourcestartlinenumber=\"1\">Per-CPU scheduling state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.SchedulerExtensible",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.yml\" sourcestartlinenumber=\"1\">Base class for objects that can hold scheduler-specific extension data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.SchedulerManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.yml\" sourcestartlinenumber=\"1\">Manages scheduler lifecycle and dispatches to current scheduler.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.SpinLock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.SpinLock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.SpinLock",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.SpinLock.yml\" sourcestartlinenumber=\"1\">Simple spinlock for SMP synchronization.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData.yml\" sourcestartlinenumber=\"1\">Stride scheduler per-CPU extension data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideScheduler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideScheduler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Stride.StrideScheduler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Stride.StrideScheduler.yml\" sourcestartlinenumber=\"1\">Stride scheduler with interactive process support.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideThreadData.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.StrideThreadData.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Stride.StrideThreadData",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Stride.StrideThreadData.yml\" sourcestartlinenumber=\"1\">Stride scheduler per-thread extension data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Stride.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Stride",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Thread.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Thread.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Thread",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Thread.yml\" sourcestartlinenumber=\"1\">Thread Control Block for scheduling.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.ThreadContext",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ThreadContext.yml\" sourcestartlinenumber=\"1\">Complete thread context saved on stack during interrupt.\nThis represents the full stack layout after IRQ stub saves all registers.\nRSP points to the start of this structure after save.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.ThreadFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ThreadFlags.yml\" sourcestartlinenumber=\"1\">Thread flags.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.ThreadState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.ThreadState",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ThreadState.yml\" sourcestartlinenumber=\"1\">Thread execution state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Utilities.SimpleDictionary-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Utilities.SimpleDictionary-2.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Utilities.SimpleDictionary<TKey, TValue>",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Utilities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Utilities.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Utilities",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Debug.Debugger.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Debug.Debugger.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Debug.Debugger",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Debug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Debug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Debug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.ARM64CpuOps",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.yml\" sourcestartlinenumber=\"1\">ARM64 platform initializer - creates ARM64-specific HAL components.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.yml\" sourcestartlinenumber=\"1\">ARM64 interrupt controller - manages exception vectors and GIC.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GIC",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v2 (GICv2) implementation.\nUsed on QEMU virt machine and many ARM64 platforms.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.yml\" sourcestartlinenumber=\"1\">Virtio-input keyboard driver for ARM64.\nProvides keyboard input via virtio-input device on QEMU virt machine.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml\" sourcestartlinenumber=\"1\">ARM64 Generic Timer (Architected Timer) implementation.\nUses the physical timer (CNTP_*) for scheduling interrupts.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Timer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.yml\" sourcestartlinenumber=\"1\">Virtio MMIO transport layer for ARM64.\nQEMU virt machine provides virtio devices via MMIO starting at 0x0a000000.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"1\">Virtqueue implementation for virtio devices.\nA virtqueue consists of three parts:</p>\n<ul sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">Descriptor table: array of buffer descriptors</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"4\">Available ring: buffers offered to device</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"5\">Used ring: buffers returned by device</li>\n</ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.Acpi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.Acpi.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi.Acpi",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.Acpi.yml\" sourcestartlinenumber=\"1\">ACPI subsystem interface</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.CpuInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.CpuInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi.CpuInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.CpuInfo.yml\" sourcestartlinenumber=\"1\">CPU information from MADT</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi.IoApicInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.yml\" sourcestartlinenumber=\"1\">I/O APIC information from MADT</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.IrqOverride.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.IrqOverride.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi.IrqOverride",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.IrqOverride.yml\" sourcestartlinenumber=\"1\">Interrupt Source Override from MADT</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.MadtInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.MadtInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi.MadtInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.MadtInfo.yml\" sourcestartlinenumber=\"1\">Complete MADT information</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Acpi",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.IRQContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.IRQContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.Data.IRQContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.Data",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Enums.EFlagsEnum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Enums.EFlagsEnum.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.Enums.EFlagsEnum",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Cpu.Enums.EFlagsEnum.yml\" sourcestartlinenumber=\"1\">EFlags Enum.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Enums.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Enums.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.Enums",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.yml\" sourcestartlinenumber=\"1\">Interrupt delegate signature.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu.InterruptManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Cpu.InterruptManager.yml\" sourcestartlinenumber=\"1\">Interrupt manager - provides interrupt registration and dispatch for all architectures.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Cpu",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.DebugInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.DebugInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.DebugInfo",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Device.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Device.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Device",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Device.yml\" sourcestartlinenumber=\"1\">Base class for all hardware devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.GopDriver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.GopDriver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.GopDriver",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Graphic.GopDriver.yml\" sourcestartlinenumber=\"1\">UEFI GOP Video Driver.\nProvides video output via UEFI framebuffer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all graphic devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all keyboard devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Input",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.MACAddress.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.MACAddress.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Network.MACAddress",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Network.NetworkDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all network devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Timer.TimerDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all timer devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Timer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Timer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Timer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.yml\" sourcestartlinenumber=\"1\">Interface for graphic devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.yml\" sourcestartlinenumber=\"1\">Interface for keyboard devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.yml\" sourcestartlinenumber=\"1\">Interface for mouse devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.yml\" sourcestartlinenumber=\"1\">Interface for network devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.yml\" sourcestartlinenumber=\"1\">Interface for timer devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.yml\" sourcestartlinenumber=\"1\">Delegate for handling key press events.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.yml\" sourcestartlinenumber=\"1\">Delegate for handling packet received events.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.yml\" sourcestartlinenumber=\"1\">Delegate for handling timer tick events.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.ICpuOps",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.yml\" sourcestartlinenumber=\"1\">Essential CPU operations for multi-architecture support</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.IInterruptController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific interrupt controller.\nImplemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific HAL initialization.\nImplemented by HAL.X64 and HAL.ARM64.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPortIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPortIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.IPortIO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.PlatformHAL.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.PlatformHAL.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.PlatformHAL",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.PlatformHAL.yml\" sourcestartlinenumber=\"1\">Platform HAL manager - provides access to platform-specific hardware.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.ApicManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.yml\" sourcestartlinenumber=\"1\">Manages APIC initialization and configuration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Idt.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Idt.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Idt",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.Idt.yml\" sourcestartlinenumber=\"1\">Handles Interrupt Descriptor Table initialization for x86_64.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.IoApic",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.yml\" sourcestartlinenumber=\"1\">I/O APIC (Advanced Programmable Interrupt Controller) driver.\nRoutes external interrupts (IRQs) to Local APICs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.LegacyPic",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.yml\" sourcestartlinenumber=\"1\">Legacy 8259 PIC (Programmable Interrupt Controller).\nUsed to disable/mask all IRQs when using APIC.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.LocalApic",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.yml\" sourcestartlinenumber=\"1\">Local APIC (Advanced Programmable Interrupt Controller) driver.\nEach CPU has its own Local APIC for receiving interrupts.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.yml\" sourcestartlinenumber=\"1\">X64 interrupt controller - manages IDT and APIC.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Cpu",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Clock.RTC",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.yml\" sourcestartlinenumber=\"1\">CMOS Real-Time Clock (RTC) device for x64.\nReads date/time from the hardware RTC.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Clock",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.yml\" sourcestartlinenumber=\"1\">PS/2 Controller driver for managing keyboard and mouse devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.yml\" sourcestartlinenumber=\"1\">PS/2 Keyboard driver.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.yml\" sourcestartlinenumber=\"1\">PS/2 controller IO port definitions.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Input",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Network.E1000E",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.yml\" sourcestartlinenumber=\"1\">Intel 82574 (E1000E) Gigabit Ethernet Controller Driver.\nSupports MSI-X interrupts.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.yml\" sourcestartlinenumber=\"1\">Represents the trigger handler for a <xref href=\"Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.yml\" sourcestartlinenumber=\"1\">Represents a virtual timer that can be handled using the\nProgrammable Interrupt Timer (PIT).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.yml\" sourcestartlinenumber=\"1\">Handles the Programmable Interval Timer (PIT).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.DeviceString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.DeviceString.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.DeviceString",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.Config.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.Config.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.Config",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDevice",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.Pci",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.X64CpuOps",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.X64PlatformInitializer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.yml\" sourcestartlinenumber=\"1\">X64 platform initializer - creates x64-specific HAL components.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64PortIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.X64PortIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64.X64PortIO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.X64",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers.StartupCodeHelpersPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers.StartupCodeHelpersPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers.StartupCodeHelpersPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.Internal.StackTraceMetadata.StackTraceMetadataPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.Internal.StackTraceMetadata.StackTraceMetadataPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.Internal.StackTraceMetadata.StackTraceMetadataPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.Internal.StackTraceMetadata.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.Internal.StackTraceMetadata.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.Internal.StackTraceMetadata",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.AppContextPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.AppContextPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.AppContextPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.ConsolePalPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.ConsolePalPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.ConsolePalPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.ConsolePlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.ConsolePlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.ConsolePlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.DateTimePlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.DateTimePlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.DateTimePlug",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Plugs.System.DateTimePlug.yml\" sourcestartlinenumber=\"1\">Plug for System.DateTime to provide current time functionality.\nUses RTC for initial boot time and TSC for elapsed time tracking.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Diagnostics.StopwatchPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Diagnostics.StopwatchPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Diagnostics.StopwatchPlug",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Plugs.System.Diagnostics.StopwatchPlug.yml\" sourcestartlinenumber=\"1\">Plug for System.Diagnostics.Stopwatch to provide timestamp functionality.\nUses TSC (Time Stamp Counter) on x64 for high-resolution timing.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Diagnostics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Diagnostics.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Diagnostics",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.InteropSysPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.InteropSysPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.InteropSysPlug",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Plugs.System.InteropSysPlug.yml\" sourcestartlinenumber=\"1\">Plug for Interop+Sys class to provide OS interop functions for bare-metal kernel.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.IPAddressPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.IPAddressPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.IPAddressPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.IPEndPointPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.IPEndPointPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.IPEndPointPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.NetworkStreamPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.NetworkStreamPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets.NetworkStreamPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.SocketPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.SocketPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets.SocketPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.TcpClientPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.TcpClientPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets.TcpClientPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.TcpListenerPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.TcpListenerPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets.TcpListenerPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.UdpClientPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.UdpClientPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets.UdpClientPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.Sockets.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net.Sockets",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Net.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Net.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Net",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Numerics.BitOperationsPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Numerics.BitOperationsPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Numerics.BitOperationsPlug",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Plugs.System.Numerics.BitOperationsPlug.yml\" sourcestartlinenumber=\"1\">Plug for System.Numerics.BitOperations to fix ARM64 NativeAOT codegen bug.\nThe ARM64 intrinsic path uses ArmBase.LeadingZeroCount which causes hangs.\nThis provides simple software fallback implementations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Numerics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Numerics.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Numerics",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AesPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AesPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AesPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx10v1Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx10v1Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx10v1Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx2Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx2Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx2Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512BWPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512BWPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512BWPlug",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512BWPlug.yml\" sourcestartlinenumber=\"1\">Plugs for X86-specific intrinsics to prevent crashes on ARM64.\nNativeAOT ARM64 has codegen bugs where it tries to use X86 SIMD instructions.\nThese plugs ensure IsSupported always returns false on ARM64.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512CDPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512CDPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512CDPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512DQPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512DQPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512DQPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512FPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512FPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512FPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512VbmiPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512VbmiPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Avx512VbmiPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxVnniPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxVnniPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.AvxVnniPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi1Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi1Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi1Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi2Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi2Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Bmi2Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.FmaPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.FmaPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.FmaPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.LzcntPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.LzcntPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.LzcntPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PclmulqdqPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PclmulqdqPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PclmulqdqPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PopcntPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PopcntPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.PopcntPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse2Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse2Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse2Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse3Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse3Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse3Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse41Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse41Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse41Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse42Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse42Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Sse42Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.SsePlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.SsePlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.SsePlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Ssse3Plug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Ssse3Plug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.Ssse3Plug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86BasePlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86BasePlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86BasePlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86SerializePlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86SerializePlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.X86SerializePlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.Intrinsics.X86",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.NativeMemoryPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.NativeMemoryPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime.NativeMemoryPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Runtime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Runtime",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.MonitorPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.MonitorPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Threading.MonitorPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.ThreadPlug.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.ThreadPlug.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Threading.ThreadPlug",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.Threading.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System.Threading",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Plugs.System.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Plugs.System.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Plugs.System",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Conversion.Base64.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Conversion.Base64.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Conversion.Base64",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Conversion.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Conversion.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Conversion",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Global.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Global.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Global",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Global.yml\" sourcestartlinenumber=\"1\">Global system state and initialization for Cosmos.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Bitmap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Bitmap.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Bitmap",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Bitmap.yml\" sourcestartlinenumber=\"1\">Represents a bitmap image.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Canvas.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Canvas.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Canvas",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Canvas.yml\" sourcestartlinenumber=\"1\">Represents a drawing surface.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Cell.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Cell.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Cell",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Cell.yml\" sourcestartlinenumber=\"1\">Represents a single cell in the terminal grid.\nEach cell contains a character and its associated colors.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.ColorDepth.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.ColorDepth.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.ColorDepth",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.ColorDepth.yml\" sourcestartlinenumber=\"1\">Represents the color depth of the pixels of a graphics surface.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.ColorOrder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.ColorOrder.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.ColorOrder",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.ColorOrder.yml\" sourcestartlinenumber=\"1\">Describes the order in which the colors are stored in each pixel of an image.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.Font.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.Font.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts.Font",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Fonts.Font.yml\" sourcestartlinenumber=\"1\">Represents a bitmap font.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.yml\" sourcestartlinenumber=\"1\">Represents a font in the PC Screen Font (PCF) format.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping.yml\" sourcestartlinenumber=\"1\">Represents a Unicode to font position mapping.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.FullScreenCanvas.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.FullScreenCanvas.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.FullScreenCanvas",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.FullScreenCanvas.yml\" sourcestartlinenumber=\"1\">Provides functionality to fetch canvases that write directly to the\nunderlying display device.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.GopCanvas.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.GopCanvas.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.GopCanvas",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.GopCanvas.yml\" sourcestartlinenumber=\"1\">Defines a EFI canvas implementation. Please note\nthat this implementation of <xref href=\"Cosmos.Kernel.System.Graphics.Canvas\" data-throw-if-not-resolved=\"false\"></xref> only works on UEFI\nimplementations, meaning that it is not available on BIOS systems.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Image.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Image.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Image",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Image.yml\" sourcestartlinenumber=\"1\">Represents a raster image.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.ImageFormat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.ImageFormat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.ImageFormat",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.ImageFormat.yml\" sourcestartlinenumber=\"1\">Supported image formats.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.KernelConsole.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.KernelConsole.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.KernelConsole",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.KernelConsole.yml\" sourcestartlinenumber=\"1\">Cell-based graphics console for kernel output.\nUses a character grid (cells) similar to Aura OS for efficient terminal rendering.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Mode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Mode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Mode",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Mode.yml\" sourcestartlinenumber=\"1\">Represents a video mode, definining its width (rows), height (columns) and color depth.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.IO.ConsoleStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.IO.ConsoleStream.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.IO.ConsoleStream",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.IO.ConsoleTextWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.IO.ConsoleTextWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.IO.ConsoleTextWriter",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.IO.KeyboardTextReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.IO.KeyboardTextReader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.IO.KeyboardTextReader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.IO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.IO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.IO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Kernel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Kernel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Kernel",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Kernel.yml\" sourcestartlinenumber=\"1\">Base class for all Cosmos user kernels.\nProvides the BeforeRun/Run/AfterRun lifecycle pattern.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ConsoleKeyEx",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.yml\" sourcestartlinenumber=\"1\">Specifies the recognized virtual console keys, that are independent\nfrom physical keyboard scan-codes.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyEvent.KeyEventType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyEvent.KeyEventType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.KeyEvent.KeyEventType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.KeyEvent.KeyEventType.yml\" sourcestartlinenumber=\"1\">Represents the type of the a <xref href=\"Cosmos.Kernel.System.Keyboard.KeyEvent\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.KeyEvent",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.KeyEvent.yml\" sourcestartlinenumber=\"1\">Represents a key-press event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyMapping.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyMapping.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.KeyMapping",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.KeyMapping.yml\" sourcestartlinenumber=\"1\">Represents a physical to virtual key mapping.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyboardManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.KeyboardManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.KeyboardManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.KeyboardManager.yml\" sourcestartlinenumber=\"1\">Manages keyboard input from physical keyboards.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMapBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMapBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMapBase",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMapBase.yml\" sourcestartlinenumber=\"1\">Represents the base class for keyboard layout scan-maps.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard English (US) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.ARP.ARPPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.ARP.ARPPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.ARP.ARPPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.ARP.ARPPacket.yml\" sourcestartlinenumber=\"1\">Represents an ARP (Address Resolution Protocol) packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.ARP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.ARP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.ARP",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.DNSConfig.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Config.DNSConfig.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Config.DNSConfig",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.Config.DNSConfig.yml\" sourcestartlinenumber=\"1\">Represents DNS configuration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.IPConfig.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Config.IPConfig.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Config.IPConfig",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.Config.IPConfig.yml\" sourcestartlinenumber=\"1\">Represents IPv4 configuration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Config.NetworkConfigEntry",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.yml\" sourcestartlinenumber=\"1\">Represents a single network configuration entry, linking a network device\nto an IP address.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.NetworkConfigManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Config.NetworkConfigManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Config.NetworkConfigManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.Config.NetworkConfigManager.yml\" sourcestartlinenumber=\"1\">Manages the global network stack configuration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Config.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Config",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.EthernetPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.EthernetPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.EthernetPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.EthernetPacket.yml\" sourcestartlinenumber=\"1\">Represents an Ethernet packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.Address",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.Address.yml\" sourcestartlinenumber=\"1\">Represents a IPv4 address.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.EndPoint.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.EndPoint.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.EndPoint",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.EndPoint.yml\" sourcestartlinenumber=\"1\">Represents an IPv4 end-point.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.IPPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.IPPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.IPPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.IPPacket.yml\" sourcestartlinenumber=\"1\">Represents an IP (Internet Protocol) packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.OutgoingBuffer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.OutgoingBuffer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.OutgoingBuffer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.OutgoingBuffer.yml\" sourcestartlinenumber=\"1\">Represents an outgoing IPv4 buffer. for use by drivers</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Flags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Flags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.Flags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.Flags.yml\" sourcestartlinenumber=\"1\">TCP Flags</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Status.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Status.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.Status",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.Status.yml\" sourcestartlinenumber=\"1\">Represents a TCP connection status.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption.yml\" sourcestartlinenumber=\"1\">TCP Option</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.yml\" sourcestartlinenumber=\"1\">TCP Packet Class</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.Tcp",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.yml\" sourcestartlinenumber=\"1\">Used to manage the TCP state machine.\nHandle received packets according to current TCP connection Status. Also contains TCB (Transmission Control Block) information.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TransmissionControlBlock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TransmissionControlBlock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TransmissionControlBlock",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TransmissionControlBlock.yml\" sourcestartlinenumber=\"1\">Represents a Transmission Control Block (TCB).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.yml\" sourcestartlinenumber=\"1\">Used to manage the DHCP connection to a server.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPOption.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPOption.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPOption",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPOption.yml\" sourcestartlinenumber=\"1\">Represents a DHCP option.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPPacket.yml\" sourcestartlinenumber=\"1\">Represents a DHCP packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.yml\" sourcestartlinenumber=\"1\">Represents a DNS answer (response).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.yml\" sourcestartlinenumber=\"1\">Represents a DNS packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAnswer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAnswer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAnswer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAnswer.yml\" sourcestartlinenumber=\"1\">Represents a DNS translation result packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAsk.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAsk.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAsk",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAsk.yml\" sourcestartlinenumber=\"1\">Represents a DNS translation request packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.yml\" sourcestartlinenumber=\"1\">Represents a DNS query.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.yml\" sourcestartlinenumber=\"1\">Used to manage a DNS connection to a server.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.yml\" sourcestartlinenumber=\"1\">ReplyCode set in Flags</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPDataReceivedHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPDataReceivedHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.UDPDataReceivedHandler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPDataReceivedHandler.yml\" sourcestartlinenumber=\"1\">Delegate for UDP data received events.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket.yml\" sourcestartlinenumber=\"1\">Represents a UDP packet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.yml\" sourcestartlinenumber=\"1\">Used to manage the UDP connection to a client.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.NetworkManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.NetworkManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.NetworkManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.NetworkManager.yml\" sourcestartlinenumber=\"1\">Manages network devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.NetworkStack.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.NetworkStack.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.NetworkStack",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.NetworkStack.yml\" sourcestartlinenumber=\"1\">Manages the Cosmos networking stack.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Timer.TimerManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Timer.TimerManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Timer.TimerManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Timer.TimerManager.yml\" sourcestartlinenumber=\"1\">Manages system timers.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Timer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Timer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Timer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.ClassLibFunctionId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.ClassLibFunctionId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.ClassLibFunctionId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.ReadyToRunHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.ReadyToRunHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.ReadyToRunHeader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.ReadyToRunSectionType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.ReadyToRunSectionType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.ReadyToRunSectionType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.TypeManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.TypeManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.TypeManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.TypeManagerHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.TypeManagerHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.TypeManagerHandle",
+      "Summary": "<p sourcefile=\"api/Internal.Runtime.TypeManagerHandle.yml\" sourcestartlinenumber=\"1\">TypeManagerHandle represents an AOT module in MRT based runtimes.\nThese handles are a pointer to a TypeManager</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/System.Runtime.RuntimeExportAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/System.Runtime.RuntimeExportAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "System.Runtime.RuntimeExportAttribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/System.Runtime.RuntimeImportAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/System.Runtime.RuntimeImportAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "System.Runtime.RuntimeImportAttribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/System.Runtime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/System.Runtime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "System.Runtime",
+      "Summary": null
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/build/asm-build.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/build/asm-build.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/build/gcc-build.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/build/gcc-build.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/build/ilc-build.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/build/ilc-build.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/build/kernel-compilation-steps.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/build/kernel-compilation-steps.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/build/patcher-build.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/build/patcher-build.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/debugging.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/debugging.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/garbage-collector.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/garbage-collector.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/kernel-project-layout.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/kernel-project-layout.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/plugs.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/plugs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/testing.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/testing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

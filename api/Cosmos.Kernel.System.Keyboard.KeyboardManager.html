@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class KeyboardManager | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class KeyboardManager | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Manages keyboard input from physical keyboards.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Keyboard_KeyboardManager" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager" class="text-break">
+Class KeyboardManager  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Keyboard.html">Keyboard</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Manages keyboard input from physical keyboards.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class KeyboardManager</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">KeyboardManager</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_AltPressed_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.AltPressed*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_AltPressed" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.AltPressed">
+  AltPressed
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the Alt key is currently pressed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool AltPressed { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_CapsLock_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.CapsLock*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_CapsLock" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.CapsLock">
+  CapsLock
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The caps-lock state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool CapsLock { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ControlPressed_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ControlPressed*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ControlPressed" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ControlPressed">
+  ControlPressed
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the Control (Ctrl) key is currently pressed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ControlPressed { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_IsEnabled_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.IsEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_IsEnabled" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.IsEnabled">
+  IsEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether keyboard support is enabled. Uses centralized feature flag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_KeyAvailable_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.KeyAvailable*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_KeyAvailable" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.KeyAvailable">
+  KeyAvailable
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether a keyboard input is pending to be processed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool KeyAvailable { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_NumLock_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.NumLock*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_NumLock" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.NumLock">
+  NumLock
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The num-lock state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool NumLock { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ScrollLock_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ScrollLock*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ScrollLock" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ScrollLock">
+  ScrollLock
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The scroll-lock state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ScrollLock { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ShiftPressed_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ShiftPressed*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ShiftPressed" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ShiftPressed">
+  ShiftPressed
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the Shift key is currently pressed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ShiftPressed { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKey_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKey*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKey_System_Byte_Cosmos_Kernel_System_Keyboard_KeyEvent__" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKey(System.Byte,Cosmos.Kernel.System.Keyboard.KeyEvent@)">
+  GetKey(byte, out KeyEvent?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Attempts to convert the given physical key scan-code to a KeyEvent.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>scanCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>keyInfo</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKeyLayout_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKeyLayout*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKeyLayout" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKeyLayout">
+  GetKeyLayout()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the currently used keyboard layout.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ScanMapBase? GetKeyLayout()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_HandleScanCode_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.HandleScanCode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_HandleScanCode_System_Byte_System_Boolean_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.HandleScanCode(System.Byte,System.Boolean)">
+  HandleScanCode(byte, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Handles a key-press by its physical key scan-code.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void HandleScanCode(byte scanCode, bool released)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>scanCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>released</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Initialize_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Initialize" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the keyboard manager.
+Call RegisterKeyboard() after this to add keyboards.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Peek_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Peek*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Peek" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Peek">
+  Peek()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the KeyEvent at the beginning of the key queue without removing it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static KeyEvent Peek()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ReadKey_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ReadKey*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_ReadKey" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.ReadKey">
+  ReadKey()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads the next key from the pending key-press buffer, blocking until available.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static KeyEvent ReadKey()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_RegisterKeyboard_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_RegisterKeyboard_Cosmos_Kernel_HAL_Interfaces_Devices_IKeyboardDevice_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard(Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice)">
+  RegisterKeyboard(IKeyboardDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers a keyboard device with the manager.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void RegisterKeyboard(IKeyboardDevice keyboard)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>keyboard</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html">IKeyboardDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_SetKeyLayout_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.SetKeyLayout*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_SetKeyLayout_Cosmos_Kernel_System_Keyboard_ScanMapBase_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.SetKeyLayout(Cosmos.Kernel.System.Keyboard.ScanMapBase)">
+  SetKeyLayout(ScanMapBase)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the currently used keyboard layout.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetKeyLayout(ScanMapBase scanMap)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>scanMap</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_TryReadKey_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.TryReadKey*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_TryReadKey_Cosmos_Kernel_System_Keyboard_KeyEvent__" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.TryReadKey(Cosmos.Kernel.System.Keyboard.KeyEvent@)">
+  TryReadKey(out KeyEvent?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>If available, reads the next key from the pending key-press buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryReadKey(out KeyEvent? key)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>key</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

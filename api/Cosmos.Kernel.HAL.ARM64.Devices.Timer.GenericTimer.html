@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class GenericTimer | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class GenericTimer | Cosmos Gen 3 ">
+      
+      <meta name="description" content="ARM64 Generic Timer (Architected Timer) implementation. Uses the physical timer (CNTP_*) for scheduling interrupts.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer" class="text-break">
+Class GenericTimer  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Timer.html">Timer</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>ARM64 Generic Timer (Architected Timer) implementation.
+Uses the physical timer (CNTP_*) for scheduling interrupts.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class GenericTimer : TimerDevice, ITimerDevice</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html">TimerDevice</a></div>
+      <div><span class="xref">GenericTimer</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html">ITimerDevice</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_OnTick">TimerDevice.OnTick</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer__ctor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer__ctor" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.#ctor">
+  GenericTimer()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public GenericTimer()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_DefaultPeriodNs" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.DefaultPeriodNs">
+  DefaultPeriodNs
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Default timer period: 10ms (100 Hz) for scheduling.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong DefaultPeriodNs = 10000000</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_PhysicalTimerIrq" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.PhysicalTimerIrq">
+  PhysicalTimerIrq
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Physical timer interrupt number on GIC.
+For QEMU virt machine: INTID 30 (non-secure physical timer).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint PhysicalTimerIrq = 30</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Frequency_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Frequency*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Frequency" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Frequency">
+  Frequency
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the timer frequency in Hz.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override uint Frequency { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Instance_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Instance*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Instance" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Instance">
+  Instance
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Singleton instance of the Generic Timer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static GenericTimer? Instance { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.html">GenericTimer</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_PeriodNs_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.PeriodNs*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_PeriodNs" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.PeriodNs">
+  PeriodNs
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the timer period in nanoseconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong PeriodNs { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_GetCurrentCounter_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.GetCurrentCounter*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_GetCurrentCounter" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.GetCurrentCounter">
+  GetCurrentCounter()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the current counter value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong GetCurrentCounter()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize the Generic Timer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_RegisterIRQHandler_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.RegisterIRQHandler*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_RegisterIRQHandler" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.RegisterIRQHandler">
+  RegisterIRQHandler()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers the IRQ handler for the timer.
+Should be called after GIC is initialized.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void RegisterIRQHandler()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_SetFrequency_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.SetFrequency*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_SetFrequency_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.SetFrequency(System.UInt32)">
+  SetFrequency(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the timer frequency in Hz.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void SetFrequency(uint frequency)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frequency</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Frequency in Hz.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_SetPeriod_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.SetPeriod*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_SetPeriod_System_UInt64_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.SetPeriod(System.UInt64)">
+  SetPeriod(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the timer period in nanoseconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetPeriod(ulong periodNs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>periodNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Period in nanoseconds.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Start_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Start*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Start" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Start">
+  Start()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Starts the timer and arms it for the first interrupt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Start()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Stop_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Stop*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Stop" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Stop">
+  Stop()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Stops the timer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Stop()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Wait_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Wait*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Wait_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Wait(System.UInt32)">
+  Wait(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Wait(uint timeoutMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

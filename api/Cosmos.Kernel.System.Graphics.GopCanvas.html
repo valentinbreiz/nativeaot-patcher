@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class GopCanvas | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class GopCanvas | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Defines a EFI canvas implementation. Please note that this implementation of  only works on UEFI implementations, meaning that it is not available on BIOS systems.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Graphics.GopCanvas">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Graphics_GopCanvas" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas" class="text-break">
+Class GopCanvas  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Graphics.html">Graphics</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Defines a EFI canvas implementation. Please note
+that this implementation of <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> only works on UEFI
+implementations, meaning that it is not available on BIOS systems.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class GopCanvas : Canvas</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></div>
+      <div><span class="xref">GopCanvas</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Clear">Canvas.Clear()</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawLine_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_">Canvas.DrawLine(Color, int, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawCircle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_">Canvas.DrawCircle(Color, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawFilledCircle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_">Canvas.DrawFilledCircle(Color, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawEllipse_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_">Canvas.DrawEllipse(Color, int, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawFilledEllipse_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_">Canvas.DrawFilledEllipse(Color, int, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawArc_System_Int32_System_Int32_System_Int32_System_Int32_System_Drawing_Color_System_Int32_System_Int32_">Canvas.DrawArc(int, int, int, int, Color, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawPolygon_System_Drawing_Color_System_Drawing_Point___">Canvas.DrawPolygon(Color, params Point[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawSquare_System_Drawing_Color_System_Int32_System_Int32_System_Int32_">Canvas.DrawSquare(Color, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawTriangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_">Canvas.DrawTriangle(Color, int, int, int, int, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_">Canvas.DrawImage(Image, int, int, int, int, bool)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawImageAlpha_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Boolean_">Canvas.DrawImageAlpha(Image, int, int, bool)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_">Canvas.DrawString(string, Font, Color, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawChar_System_Char_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_">Canvas.DrawChar(char, Font, Color, int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_CheckIfModeIsValid_Cosmos_Kernel_System_Graphics_Mode_">Canvas.CheckIfModeIsValid(Mode)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_ThrowIfModeIsNotValid_Cosmos_Kernel_System_Graphics_Mode_">Canvas.ThrowIfModeIsNotValid(Mode)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_ThrowIfCoordNotValid_System_Int32_System_Int32_">Canvas.ThrowIfCoordNotValid(int, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_TrimLine_System_Int32__System_Int32__System_Int32__System_Int32__">Canvas.TrimLine(ref int, ref int, ref int, ref int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_AlphaBlend_System_Drawing_Color_System_Drawing_Color_System_Byte_">Canvas.AlphaBlend(Color, Color, byte)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas__ctor" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.#ctor">
+  GopCanvas()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.GopCanvas.html">GopCanvas</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public GopCanvas()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas__ctor_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.#ctor(Cosmos.Kernel.System.Graphics.Mode)">
+  GopCanvas(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.GopCanvas.html">GopCanvas</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public GopCanvas(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd><p>The display mode to use.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_AvailableModes_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_AvailableModes" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes">
+  AvailableModes
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Available EFI supported video modes.</p>
+<p>
+Low res:
+<ul><li>320x240x32.</li><li>640x480x32.</li><li>800x600x32.</li><li>1024x768x32.</li></ul>
+
+<p>
+HD:
+<ul><li>1280x720x32.</li><li>1280x1024x32.</li></ul>
+
+<p>
+HDR:
+<ul><li>1366x768x32.</li><li>1680x1050x32.</li></ul>
+
+<p>
+HDTV:
+<ul><li>1920x1080x32.</li><li>1920x1200x32.</li></ul>
+
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override List&lt;Mode&gt; AvailableModes { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DefaultGraphicsMode_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DefaultGraphicsMode" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode">
+  DefaultGraphicsMode
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The default graphics mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Mode DefaultGraphicsMode { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Mode_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Mode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Mode" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Mode">
+  Mode
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The currently used display mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Mode Mode { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Clear_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Clear*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Clear_System_Drawing_Color_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Drawing.Color)">
+  Clear(Color)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears the entire canvas with the specified color.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Clear(Color aColor)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Clear_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Clear*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Clear_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Int32)">
+  Clear(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears the entire canvas with the specified color.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Clear(int aColor)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_CroppedDrawImage_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_CroppedDrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">
+  CroppedDrawImage(Image, int, int, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws the given image at the specified coordinates, cropping the image to fit within the maximum width and height.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void CroppedDrawImage(Image aImage, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aImage</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Disable_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Disable*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Disable" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Disable">
+  Disable()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disables the canvas.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Disable()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Display_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Display*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Display" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Display">
+  Display()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Updates the screen to display the underlying frame-buffer.
+Call this method in order to synchronize the screen with the canvas.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Display()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Drawing_Color___System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Drawing.Color[],System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(Color[], int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawArray(Color[] aColors, int aX, int aY, int aWidth, int aHeight)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a>[]</dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(int[], int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(int[], int, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight, int startIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>startIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>int[] colors tarting position</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawFilledRectangle_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">
+  DrawFilledRectangle(Color, int, int, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a filled rectangle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawImage_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Boolean)">
+  DrawImage(Image, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws the given image at the specified coordinates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawImage(Image image, int x, int y, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd><p>The image to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin Y coordinate.</p>
+</dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_Drawing_Color_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Drawing.Color,System.Int32,System.Int32)">
+  DrawPoint(Color, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawPoint(Color aColor, int aX, int aY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Int32,System.Int32,System.Int32)">
+  DrawPoint(int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>. without ToArgb()</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawPoint(int aColor, int aX, int aY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_UInt32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.UInt32,System.Int32,System.Int32)">
+  DrawPoint(uint, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>, without unnecessary color operations.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawPoint(uint aColor, int aX, int aY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aColor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawRectangle_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_DrawRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawRectangle(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a rectangle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void DrawRectangle(Color color, int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the rectangle.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the rectangle.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_GetImage_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_GetImage_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)">
+  GetImage(int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a bitmap by copying a portion of your canvas from the specified coordinates and dimensions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Bitmap GetImage(int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting X coordinate of the region to copy.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting Y coordinate of the region to copy.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the region to copy.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the region to copy.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></dt>
+    <dd><p>A new <a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a> containing the copied region.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_GetPointColor_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_GetPointColor_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor(System.Int32,System.Int32)">
+  GetPointColor(int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the color of the pixel at the given coordinates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Color GetPointColor(int aX, int aY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_GetRawPointColor_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_GetRawPointColor_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor(System.Int32,System.Int32)">
+  GetRawPointColor(int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the color of the pixel at the given coordinates in ARGB.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetRawPointColor(int aX, int aY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>aX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>aY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_GopCanvas_Name_" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Name*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_GopCanvas_Name" data-uid="Cosmos.Kernel.System.Graphics.GopCanvas.Name">
+  Name()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The name of the Canvas implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string Name()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

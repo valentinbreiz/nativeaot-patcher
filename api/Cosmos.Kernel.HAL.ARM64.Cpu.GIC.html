@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class GIC | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class GIC | Cosmos Gen 3 ">
+      
+      <meta name="description" content="ARM Generic Interrupt Controller v2 (GICv2) implementation. Used on QEMU virt machine and many ARM64 platforms.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC" class="text-break">
+Class GIC  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Cpu.html">Cpu</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>ARM Generic Interrupt Controller v2 (GICv2) implementation.
+Used on QEMU virt machine and many ARM64 platforms.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class GIC</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">GIC</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_PPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.PPI_START">
+  PPI_START
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint PPI_START = 16</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SGI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SGI_START">
+  SGI_START
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint SGI_START = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SPI_START">
+  SPI_START
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint SPI_START = 32</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_HYP" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_HYP">
+  TIMER_HYP
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint TIMER_HYP = 26</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_NONSEC_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_NONSEC_PHYS">
+  TIMER_NONSEC_PHYS
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint TIMER_NONSEC_PHYS = 30</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_SECURE_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_SECURE_PHYS">
+  TIMER_SECURE_PHYS
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint TIMER_SECURE_PHYS = 29</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_VIRT" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_VIRT">
+  TIMER_VIRT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint TIMER_VIRT = 27</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized">
+  IsInitialized
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the GIC has been initialized.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsInitialized { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_AcknowledgeInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.AcknowledgeInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_AcknowledgeInterrupt" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.AcknowledgeInterrupt">
+  AcknowledgeInterrupt()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Acknowledges an interrupt and returns its ID.
+Must be called at the start of interrupt handling.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint AcknowledgeInterrupt()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>The interrupt ID, or 1023 if spurious.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ClearPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ClearPending*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ClearPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ClearPending(System.UInt32)">
+  ClearPending(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears a pending interrupt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ClearPending(uint intId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ConfigureInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ConfigureInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ConfigureInterrupt_System_UInt32_System_Boolean_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ConfigureInterrupt(System.UInt32,System.Boolean)">
+  ConfigureInterrupt(uint, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configures an interrupt as edge-triggered or level-triggered.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ConfigureInterrupt(uint intId, bool edgeTriggered)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID.</p>
+</dd>
+    <dt><code>edgeTriggered</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True for edge-triggered, false for level-triggered.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_DisableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.DisableInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_DisableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.DisableInterrupt(System.UInt32)">
+  DisableInterrupt(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disables a specific interrupt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void DisableInterrupt(uint intId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EnableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EnableInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EnableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EnableInterrupt(System.UInt32)">
+  EnableInterrupt(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Enables a specific interrupt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void EnableInterrupt(uint intId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID (0-1019).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EndOfInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EndOfInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EndOfInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EndOfInterrupt(System.UInt32)">
+  EndOfInterrupt(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Signals the end of interrupt processing.
+Must be called at the end of interrupt handling.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void EndOfInterrupt(uint intId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>The interrupt ID that was acknowledged.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the GIC distributor and CPU interface.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeCpuInterface_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeCpuInterface" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface">
+  InitializeCpuInterface()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the GIC CPU interface for the current CPU.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void InitializeCpuInterface()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInterruptPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInterruptPending*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInterruptPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInterruptPending(System.UInt32)">
+  IsInterruptPending(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks if an interrupt is pending.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsInterruptPending(uint intId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True if pending.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SetPriority_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SetPriority_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SetPriority(System.UInt32,System.Byte)">
+  SetPriority(uint, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the priority of an interrupt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetPriority(uint intId, byte priority)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Interrupt ID.</p>
+</dd>
+    <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Priority (0 = highest, 0xFF = lowest).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
