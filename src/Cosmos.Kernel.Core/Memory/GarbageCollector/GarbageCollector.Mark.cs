@@ -156,14 +156,43 @@ public static unsafe partial class GarbageCollector
             }
         }
 
-        if (thread.StackBase != 0 && thread.StackSize != 0)
+        // Determine stack range to scan
+        nuint stackStart;
+        nuint stackEnd;
+
+        if (thread.State == Scheduler.ThreadState.Running)
         {
-            nuint stackStart = thread.StackPointer;
-            nuint stackEnd = thread.StackBase + thread.StackSize;
-            if (stackStart < stackEnd)
+            // For the currently running thread, thread.StackPointer is stale (saved
+            // during the last context switch). Use the actual RSP instead.
+            stackStart = ContextSwitch.GetRsp();
+
+            if (thread.StackBase != 0 && thread.StackSize != 0)
             {
-                ScanMemoryRange((nint*)stackStart, (nint*)stackEnd);
+                // Regular scheduled thread with allocated stack
+                stackEnd = thread.StackBase + thread.StackSize;
             }
+            else
+            {
+                // Boot/idle thread uses the bootloader's stack — no StackBase/StackSize.
+                // Scan upward from RSP for a conservative fixed range.
+                stackEnd = stackStart + Scheduler.Thread.DefaultStackSize;
+            }
+        }
+        else
+        {
+            // Suspended thread — use saved StackPointer
+            if (thread.StackBase == 0 || thread.StackSize == 0)
+            {
+                return;
+            }
+
+            stackStart = thread.StackPointer;
+            stackEnd = thread.StackBase + thread.StackSize;
+        }
+
+        if (stackStart < stackEnd)
+        {
+            ScanMemoryRange((nint*)stackStart, (nint*)stackEnd);
         }
     }
 
@@ -189,6 +218,13 @@ public static unsafe partial class GarbageCollector
     [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void TryMarkRoot(nint value)
     {
+        // Conservative scanning: only consider values that point into the GC heap.
+        // Stack slots may contain arbitrary integers, return addresses, etc.
+        if (!IsInGCHeap(value))
+        {
+            return;
+        }
+
         PushMarkStack(value);
 
         while (s_markStackCount > 0)
