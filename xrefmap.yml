@@ -1060,19 +1060,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Initialize
   nameWithType: GarbageCollector.Initialize
-- uid: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore
-  name: InitializeGCHandleStore()
-  href: api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html#Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_InitializeGCHandleStore
-  commentId: M:Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore
-  fullName: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore()
-  nameWithType: GarbageCollector.InitializeGCHandleStore()
-- uid: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore*
-  name: InitializeGCHandleStore
-  href: api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html#Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_InitializeGCHandleStore_
-  commentId: Overload:Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore
-  isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.InitializeGCHandleStore
-  nameWithType: GarbageCollector.InitializeGCHandleStore
 - uid: Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.IsEnabled
   name: IsEnabled
   href: api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html#Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_IsEnabled
