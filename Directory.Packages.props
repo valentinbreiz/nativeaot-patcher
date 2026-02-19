@@ -11,6 +11,7 @@
     <PackageVersion Include="Cosmos.Build.Patcher" Version="3.0.36" />
     <PackageVersion Include="Cosmos.Kernel.Native.x64" Version="3.0.36" />
     <PackageVersion Include="Cosmos.Kernel.Native.ARM64" Version="3.0.36" />
+    <PackageVersion Include="Cosmos.Kernel.Native.MultiArch" Version="3.0.36" />
     <PackageVersion Include="Cosmos.Kernel.HAL.X64" Version="3.0.36" />
     <PackageVersion Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.36" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
