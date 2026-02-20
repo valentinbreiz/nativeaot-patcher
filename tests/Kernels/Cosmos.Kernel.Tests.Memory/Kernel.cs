@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Cosmos.Kernel.Core.Memory;
@@ -14,7 +15,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 81);
+        TR.Start("Memory Tests", expectedTests: 85);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -112,6 +113,10 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("GC_StructArraySurvival", TestGCStructArraySurvival);
         TR.Run("GC_DictSurvival", TestGCDictionarySurvival);
         TR.Run("GC_PageAccounting", TestGCPageAccounting);
+        TR.Run("GC_DependentHandle", TestGCDependentHandle);
+        TR.Run("GC_DependentHandleCleanup", TestGCDependentHandleCleanup);
+        TR.Run("GC_HandleStoreIntegrity", TestGCHandleStoreIntegrity);
+        TR.Run("GC_PinnedHeapReuse", TestGCPinnedHeapReuse);
 
         TR.Finish();
 
@@ -1227,6 +1232,95 @@ public unsafe class Kernel : Sys.Kernel
         // Free pages should stay the same or increase after GC (segments released)
         Assert.True(freePagesAfter >= freePagesBefore,
             "GC: free pages after collect (" + freePagesAfter + ") must be >= before (" + freePagesBefore + ")");
+    }
+
+    // ==================== Dependent Handle & Handle Store Tests ====================
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (object key, ConditionalWeakTable<object, byte[]> table) CreateDependentHandleScenario()
+    {
+        object key = new object();
+        var table = new ConditionalWeakTable<object, byte[]>();
+        table.AddOrUpdate(key, new byte[64]);
+        return (key, table);
+    }
+
+    private static void TestGCDependentHandle()
+    {
+        // A ConditionalWeakTable keeps its values alive as long as the key is alive.
+        // The value has NO direct reference from the key - only through the dependent handle.
+        var (key, table) = CreateDependentHandleScenario();
+
+        GarbageCollector.Collect();
+
+        // The value should survive because key is still alive
+        bool found = table.TryGetValue(key, out byte[] value);
+        Assert.True(found, "GC: ConditionalWeakTable value must survive when key is alive");
+        Assert.True(value != null && value.Length == 64, "GC: ConditionalWeakTable value data intact");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ConditionalWeakTable<object, byte[]> CreateOrphanedDepHandle()
+    {
+        var table = new ConditionalWeakTable<object, byte[]>();
+        object key = new object();
+        table.AddOrUpdate(key, new byte[128]);
+        // key becomes unreachable after return
+        return table;
+    }
+
+    private static void TestGCDependentHandleCleanup()
+    {
+        var table = CreateOrphanedDepHandle();
+
+        GarbageCollector.Collect();
+        GarbageCollector.Collect();
+
+        // Table should be empty now - the key is dead, so the entry should be removed
+        int count = 0;
+        foreach (var kv in table) count++;
+        Assert.Equal(0, count, "GC: ConditionalWeakTable entries cleared when key is dead");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (WeakReference, WeakReference, WeakReference) CreateThreeWeakRefs()
+    {
+        // NoInlining ensures the byte[] pointers don't remain on the caller's stack
+        return (
+            new WeakReference(new byte[32]),
+            new WeakReference(new byte[32]),
+            new WeakReference(new byte[32])
+        );
+    }
+
+    private static void TestGCHandleStoreIntegrity()
+    {
+        // Allocate handles via NoInlining helper to avoid conservative scan false positives
+        var (wr1, wr2, wr3) = CreateThreeWeakRefs();
+
+        // Force collection to exercise handle scanning
+        GarbageCollector.Collect();
+        GarbageCollector.Collect();
+
+        // All weak refs should be cleared (targets are unreachable)
+        Assert.True(!wr1.IsAlive, "GC: handle store wr1 cleared");
+        Assert.True(!wr2.IsAlive, "GC: handle store wr2 cleared");
+        Assert.True(!wr3.IsAlive, "GC: handle store wr3 cleared");
+
+        // Allocate more handles to verify store still works
+        object alive = new byte[64];
+        WeakReference wr4 = new WeakReference(alive);
+        GarbageCollector.Collect();
+        Assert.True(wr4.IsAlive, "GC: handle store works after cleanup");
+    }
+
+    private static void TestGCPinnedHeapReuse()
+    {
+        // Verify pinned allocations don't crash after GC
+        GC.AllocateArray<byte>(32, pinned: true);
+        GarbageCollector.Collect();
+        byte[] arr = GC.AllocateArray<byte>(32, pinned: true);
+        Assert.True(arr != null, "GC: pinned allocation works after collection");
     }
 
     private class SimpleStringComparer : IEqualityComparer<string>

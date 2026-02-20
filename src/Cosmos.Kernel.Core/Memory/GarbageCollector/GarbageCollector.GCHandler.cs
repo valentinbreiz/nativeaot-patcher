@@ -63,7 +63,7 @@ public static unsafe partial class GarbageCollector
     {
         int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
 
-        var handles = new Span<GCHandle>((void*)Align((uint)s_handlerStore->Bump), size);
+        var handles = new Span<GCHandle>((void*)s_handlerStore->Bump, size);
         for (int i = 0; i < handles.Length; i++)
         {
             if ((IntPtr)handles[i].obj == IntPtr.Zero)
@@ -91,7 +91,7 @@ public static unsafe partial class GarbageCollector
 
         int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
 
-        var handles = new Span<GCHandle>((void*)Align((uint)s_handlerStore->Bump), size);
+        var handles = new Span<GCHandle>((void*)s_handlerStore->Bump, size);
         for (int i = 0; i < handles.Length; i++)
         {
             if ((IntPtr)handles[i].obj != IntPtr.Zero)
@@ -100,8 +100,62 @@ public static unsafe partial class GarbageCollector
                 {
                     handles[i].obj = null;
                 }
+                // Clear dependent handles whose primary is dead
+                else if (handles[i].extraInfo != 0 && !handles[i].obj->IsMarked)
+                {
+                    handles[i].obj = null;
+                    handles[i].extraInfo = 0;
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the primary object from a dependent handle.
+    /// </summary>
+    /// <param name="handle">The handle pointer.</param>
+    /// <returns>Pointer to the primary object, or <c>null</c> if the handle is empty.</returns>
+    internal static GCObject* HandleGetPrimary(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        var entry = (GCHandle*)(nint)handle;
+        return entry->obj;
+    }
+
+    /// <summary>
+    /// Gets the secondary (dependent) object from a dependent handle.
+    /// </summary>
+    /// <param name="handle">The handle pointer.</param>
+    /// <returns>Pointer to the secondary object, or <c>null</c> if none.</returns>
+    internal static GCObject* HandleGetSecondary(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        var entry = (GCHandle*)(nint)handle;
+        return (GCObject*)entry->extraInfo;
+    }
+
+    /// <summary>
+    /// Sets the secondary (dependent) object on a dependent handle.
+    /// </summary>
+    /// <param name="handle">The handle pointer.</param>
+    /// <param name="secondary">The new secondary object pointer.</param>
+    internal static void HandleSetSecondary(IntPtr handle, GCObject* secondary)
+    {
+        if (handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var entry = (GCHandle*)(nint)handle;
+        entry->extraInfo = (nuint)secondary;
     }
 
     /// <summary>
@@ -119,7 +173,7 @@ public static unsafe partial class GarbageCollector
                 int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
                 if (handleIndex < size)
                 {
-                    var handles = new Span<GCHandle>((void*)Align((uint)s_handlerStore->Bump), size);
+                    var handles = new Span<GCHandle>((void*)s_handlerStore->Bump, size);
                     handles[(int)handleIndex].obj = null;
                     handles[(int)handleIndex].type = default;
                     handles[(int)handleIndex].extraInfo = UIntPtr.Zero;

@@ -28,7 +28,8 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Scans GC handle entries and marks objects referenced by strong handles (Normal and Pinned).
+    /// Scans all GC handle entries: marks objects referenced by strong handles (Normal and Pinned),
+    /// then runs a convergence loop for dependent handles (if primary is marked, mark secondary).
     /// Weak handles are skipped so their targets can be collected if otherwise unreachable.
     /// </summary>
     private static void ScanGCHandles()
@@ -39,17 +40,36 @@ public static unsafe partial class GarbageCollector
         }
 
         int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
+        var handles = new Span<GCHandle>((void*)s_handlerStore->Bump, size);
 
-        var handles = new Span<GCHandle>((void*)Align((uint)s_handlerStore->Bump), size);
+        // Pass 1: Mark strong handles (Normal and Pinned, excluding dependent)
         for (int i = 0; i < handles.Length; i++)
         {
-            if ((IntPtr)handles[i].obj != IntPtr.Zero)
+            if ((IntPtr)handles[i].obj != IntPtr.Zero
+                && handles[i].type >= GCHandleType.Normal
+                && handles[i].extraInfo == 0)
             {
-                // Only mark objects for Normal and Pinned handles
-                // Weak handles should not keep objects alive
-                if (handles[i].type >= GCHandleType.Normal)
+                TryMarkRoot((nint)handles[i].obj);
+            }
+        }
+
+        // Pass 2: Dependent handle convergence loop
+        // If primary is marked, mark secondary. Repeat until no new marks (handles transitive chains).
+        bool markedNew = true;
+        while (markedNew)
+        {
+            markedNew = false;
+            for (int i = 0; i < handles.Length; i++)
+            {
+                if ((IntPtr)handles[i].obj != IntPtr.Zero && handles[i].extraInfo != 0
+                    && handles[i].obj->IsMarked)
                 {
-                    TryMarkRoot((nint)handles[i].obj);
+                    var secondary = (GCObject*)handles[i].extraInfo;
+                    if (!secondary->IsMarked)
+                    {
+                        TryMarkRoot((nint)secondary);
+                        markedNew = true;
+                    }
                 }
             }
         }
