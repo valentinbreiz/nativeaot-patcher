@@ -82,6 +82,7 @@
 <p>If you want to build bare-metal C# kernels without setting up the full toolchain manually, use the <a href="https://github.com/valentinbreiz/CosmosVsCodeExtension">Cosmos VS Code Extension</a>. It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor. See the <a href="articles/install.html">Installation guide</a> to get started.</p>
 <h2 id="documentation">Documentation</h2>
 <ul>
+<li><a href="articles/features.md">Gen3 Feature Status</a></li>
 <li><a href="articles/install.html">Installation (Cosmos VS Code Extension)</a></li>
 <li><a href="articles/debugging.html">Debugging with VSCode and QEMU</a></li>
 <li><a href="articles/build/kernel-compilation-steps.html">Kernel Compilation Steps</a></li>
@@ -100,6 +101,204 @@
 <li><a href="https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/nativeaot.md">NativeAOT Developer Workflow</a></li>
 <li><a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md">NativeAOT Limitations</a></li>
 </ul>
+<p>This page tracks all features targeted for the Cosmos Gen3 (NativeAOT) release. The goal is feature parity with <a href="https://github.com/CosmosOS/Cosmos">Cosmos Gen2</a>, built on a modern NativeAOT foundation with dual-architecture support (x64 + ARM64).</p>
+<h2 id="gen2gen3-feature-comparison">Gen2/Gen3 Feature Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Gen2</th>
+<th>Gen3 Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low level assembly access</td>
+<td>✅</td>
+<td>✅</td>
+<td>Before X# now x64 NASM + ARM64 GAS assembly.</td>
+</tr>
+<tr>
+<td>ACPI</td>
+<td>✅</td>
+<td>✅</td>
+<td>LAI (Lightweight ACPI Implementation) via C interop.</td>
+</tr>
+<tr>
+<td>Interrupt Handling</td>
+<td>✅</td>
+<td>✅</td>
+<td>x64: APIC (Local + I/O). ARM64: GIC.</td>
+</tr>
+<tr>
+<td>Memory Management</td>
+<td>✅</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Driver support</td>
+<td>✅</td>
+<td>🟡 Partial</td>
+<td>Only PCI on x64</td>
+</tr>
+<tr>
+<td>Garbage Collection</td>
+<td>✅</td>
+<td>✅</td>
+<td>Mark-and-sweep GC</td>
+</tr>
+<tr>
+<td>Filesystem</td>
+<td>✅</td>
+<td>🟡 In progress</td>
+<td></td>
+</tr>
+<tr>
+<td>.NET core library features</td>
+<td>✅</td>
+<td>🟡 Partial</td>
+<td>Core types work (String, Collections, List, Dictionary). Console, DateTime, Random, BitOperations plugged. Missing: <code>System.Math</code> (Sin/Cos/Tan/Log/Exp/Pow), <code>System.IO.File</code>.</td>
+</tr>
+<tr>
+<td>Plug system</td>
+<td>✅</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Test Framework</td>
+<td>✅</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Debugger</td>
+<td>✅</td>
+<td>🟡 Partial</td>
+<td>Source link + variables bugs in vscode</td>
+</tr>
+<tr>
+<td>CPU/FPU accelerated math</td>
+<td>✅</td>
+<td>🟡 Minimal</td>
+<td>SSE enabled but only used for memory operations. Software <code>ceil</code>/<code>sqrt</code> only. No hardware FPU math, no <code>System.Math</code> plug.</td>
+</tr>
+<tr>
+<td>Cosmos Graphic Subsystem</td>
+<td>✅</td>
+<td>✅</td>
+<td>UEFI GOP framebuffer via Limine only.</td>
+</tr>
+<tr>
+<td>Network interface</td>
+<td>✅</td>
+<td>🟡 Partial</td>
+<td>x64 only, no ARM64 network driver.</td>
+</tr>
+<tr>
+<td>Timer / Clock</td>
+<td>✅</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Keyboard Input</td>
+<td>✅</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Mouse Input</td>
+<td>✅</td>
+<td>❌ Not Started</td>
+<td></td>
+</tr>
+<tr>
+<td>Audio interface</td>
+<td>✅</td>
+<td>❌ Not Started</td>
+<td>No audio, sound, or speaker support.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="additional-gen3-features">Additional Gen3 Features</h2>
+<p>Beyond Gen2 parity, Gen3 brings new capabilities:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NativeAOT Runtime</strong></td>
+<td>🟡 In progress</td>
+<td>Full NativeAOT compilation with runtime, no IL2CPU.</td>
+</tr>
+<tr>
+<td><strong>ARM64 Support</strong></td>
+<td>🟡 Partial</td>
+<td>Missing network driver, timer bugs.</td>
+</tr>
+<tr>
+<td><strong>Limine Boot Protocol</strong></td>
+<td>✅ Complete</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Threading &amp; Scheduler</strong></td>
+<td>✅ Complete</td>
+<td>Priority-based stride scheduler (x64 + ARM64).</td>
+</tr>
+<tr>
+<td><strong>Feature Flags</strong></td>
+<td>✅ Complete</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Cosmos Vs Code Extension</strong></td>
+<td>✅ Complete</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="future-releases">Future Releases</h2>
+<p>Features planned for post-Gen3 releases:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SMP (Symmetric Multiprocessing)</strong></td>
+<td>❌ Not Started</td>
+<td>Multi-core AP boot, per-CPU scheduling, load balancer.</td>
+</tr>
+<tr>
+<td><strong>USB Support</strong></td>
+<td>❌ Not Started</td>
+<td>XHCI/EHCI host controller drivers, USB HID (keyboard/mouse), mass storage.</td>
+</tr>
+<tr>
+<td><strong>HTTPS</strong></td>
+<td>❌ Not Started</td>
+<td>TLS/SSL implementation, certificate handling, secure sockets.</td>
+</tr>
+<tr>
+<td><strong>Generational GC</strong></td>
+<td>❌ Not Started</td>
+<td>Replace current mark-and-sweep with generational collector (Gen0/Gen1/Gen2) for better performance.</td>
+</tr>
+</tbody>
+</table>
 <p>xref link <a href="xrefmap.yml">xrefmap.yml</a></p>
 
 </article>
