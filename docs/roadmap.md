@@ -2,7 +2,7 @@
 
 ![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-78%25-yellow?style=for-the-badge)
 
-| Feature | Gen2 | Gen3 Status | Notes |
+| Feature | Gen2 | Gen3 | Notes |
 |---------|------|-------------|-------|
 | Low level assembly access | ✅ | ✅ | Before X# now x64 NASM + ARM64 GAS assembly. |
 | ACPI | ✅ | ✅ | LAI (Lightweight ACPI Implementation) via C interop.  |
