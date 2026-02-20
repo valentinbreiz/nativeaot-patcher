@@ -80,7 +80,7 @@ Features planned for post-Gen3 releases:
 | **USB Support** | ❌ Not Started | XHCI/EHCI host controller drivers, USB HID (keyboard/mouse), mass storage. |
 | **HTTPS** | ❌ Not Started | TLS/SSL implementation, certificate handling, secure sockets. |
 | **Generational GC** | ❌ Not Started | Replace current mark-and-sweep with generational collector (Gen0/Gen1/Gen2) for better performance. |
-
+| **Code execution** | ❌ Not Started | Userland WASM VM |
 
 
 
