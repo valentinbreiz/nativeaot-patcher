@@ -83,7 +83,7 @@ $MultiArchProjects = @(
 
 # Build all multi-arch packages for x64
 Write-Host "Building all multi-arch packages for x64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:DefineConstants="ARCH_X64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:CosmosArch=x64 --no-incremental
 
 # Stage x64 builds
 Write-Host "Staging x64 builds..." -ForegroundColor Cyan
@@ -102,7 +102,7 @@ foreach ($proj in $MultiArchProjects) {
 
 # Build all multi-arch packages for arm64
 Write-Host "Building all multi-arch packages for arm64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:DefineConstants="ARCH_ARM64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:CosmosArch=arm64 --no-incremental
 
 # Stage arm64 builds
 Write-Host "Staging arm64 builds..." -ForegroundColor Cyan
