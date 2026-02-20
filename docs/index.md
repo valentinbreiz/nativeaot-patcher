@@ -2,11 +2,11 @@
 _layout: landing
 ---
 
-Welcome to the nativeaot-patcher wiki!
+Welcome to the Cosmos gen3 wiki! 
 
 ## How to Use
 
-There are two ways to use nativeaot-patcher depending on your needs:
+There are two ways to use gen3 depending on your needs:
 
 ### As a Developer
 
@@ -35,6 +35,8 @@ If you want to build bare-metal C# kernels without setting up the full toolchain
 - [NativeAOT Limitations](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md)
 
 ## Gen2/Gen3 Feature Comparison
+
+![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-78%25-yellow?style=for-the-badge)
 
 | Feature | Gen2 | Gen3 Status | Notes |
 |---------|------|-------------|-------|
@@ -72,7 +74,7 @@ Beyond Gen2 parity, Gen3 brings new capabilities:
 
 ## Future Releases
 
-Features planned for post-Gen3 releases:
+Features planned after first release:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
