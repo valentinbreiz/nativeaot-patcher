@@ -45,7 +45,7 @@ If you want to build bare-metal C# kernels without setting up the full toolchain
 | Driver support | ✅ | 🟡 Partial | Only PCI on x64 |
 | Garbage Collection | ✅ | ✅ | Mark-and-sweep GC |
 | Filesystem | ✅ | 🟡 In progress |  |
-| .NET core library features | ✅ | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Console, DateTime, Random, BitOperations plugged. Missing: `System.Math` (Sin/Cos/Tan/Log/Exp/Pow), `System.IO.File`. |
+| .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Console, DateTime, Random, BitOperations plugged. Missing: `System.Math` (Sin/Cos/Tan/Log/Exp/Pow), `System.IO.File`. |
 | Plug system | ✅ | ✅  |  |
 | Test Framework | ✅ | ✅  |  |
 | Debugger| ✅ | 🟡 Partial | Source link + variables bugs in vscode |
@@ -54,8 +54,8 @@ If you want to build bare-metal C# kernels without setting up the full toolchain
 | Network interface | ✅ | 🟡 Partial | x64 only, no ARM64 network driver. |
 | Timer / Clock | ✅ | ✅ | |
 | Keyboard Input | ✅ | ✅ | |
-| Mouse Input | ✅ | ❌ Not Started | |
-| Audio interface | ✅ | ❌ Not Started | No audio, sound, or speaker support. |
+| Mouse Input | ✅ | ❌ | |
+| Audio interface | 🟡 | ❌ | No audio, sound, or speaker support. |
 
 ## Additional Gen3 Features
 
