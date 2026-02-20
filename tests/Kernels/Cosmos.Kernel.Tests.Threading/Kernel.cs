@@ -255,8 +255,7 @@ public class Kernel : Sys.Kernel
 
         thread.Start();
 
-        SysThread.Sleep(100); // Wait 10ms for the thread to finish.
-
+        TimerManager.Wait(100); // Wait 10ms for the thread to finish.
 
         Assert.Equal(18, StaticValue);
         Assert.Equal(42, secondThreadValue);
