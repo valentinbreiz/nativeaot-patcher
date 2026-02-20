@@ -213,7 +213,7 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Whether the GC has been initialized.
     /// </summary>
-    private static bool s_initialized;
+    private static bool s_initialized = false;
 
     /// <summary>
     /// Total number of collections performed since initialization.
@@ -230,12 +230,11 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Gets a value indicating whether the garbage collector is enabled.
     /// </summary>
-    /// <value>Always <c>true</c> for this implementation.</value>
     public static bool IsEnabled
     {
         get
         {
-            return true;
+            return s_initialized;
         }
     }
 
