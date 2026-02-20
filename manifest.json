@@ -4053,6 +4053,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/install.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/install.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/kernel-project-layout.md",
       "output": {
         ".html": {

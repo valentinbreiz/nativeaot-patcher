@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Debugging with VSCode and QEMU | Cosmos Gen 3 </title>
+      <title>Installing the Cosmos VS Code Extension | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Debugging with VSCode and QEMU | Cosmos Gen 3 ">
+      <meta name="title" content="Installing the Cosmos VS Code Extension | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/debugging.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/install.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -85,22 +85,39 @@
         </div>
 
         <article data-uid="">
-<h1 id="debugging-with-vscode-and-qemu">Debugging with VSCode and QEMU</h1>
+<h1 id="installing-the-cosmos-vs-code-extension">Installing the Cosmos VS Code Extension</h1>
 
-<h2 id="setting-up-debugging">Setting Up Debugging</h2>
-<p>Debugging the kernel with VSCode and QEMU uses remote GDB debugging. Breakpoints can be set directly in the editor as with any standard debugging session.</p>
-<h3 id="how-to-debug">How to Debug</h3>
-<ol>
-<li>Open the RUN AND DEBUG view in VSCode</li>
-<li>Set breakpoints anywhere in your kernel source code</li>
-<li>Start your debugging session (F5) — for example, select <strong>Debug x64 DevKernel</strong> from the RUN AND DEBUG dropdown</li>
-<li>Qemu will launchs and the kernel will stop at your breakpoints as expected</li>
-</ol>
+<p>The easiest way to use gen3 is through the <a href="https://github.com/valentinbreiz/CosmosVsCodeExtension">Cosmos VS Code Extension</a>. The <code>Cosmos.Tools</code> .NET global tool handles the installation of the extension and its dependencies.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li><a href="https://dotnet.microsoft.com/download">.NET SDK</a> 10.0 or later</li>
+<li><a href="https://code.visualstudio.com/">Visual Studio Code</a></li>
+</ul>
+<h2 id="steps">Steps</h2>
+<h3 id="1-install-cosmostools">1. Install Cosmos.Tools</h3>
+<p>Install the <code>Cosmos.Tools</code> .NET global tool:</p>
+<pre><code class="lang-bash">dotnet tool install -g Cosmos.Tools
+</code></pre>
+<p>If you already have it installed and want to update it:</p>
+<pre><code class="lang-bash">dotnet tool update -g Cosmos.Tools
+</code></pre>
+<h3 id="2-check-dependencies">2. Check Dependencies</h3>
+<p>Run <code>cosmos check</code> to verify that all required dependencies are installed and properly configured on your system:</p>
+<pre><code class="lang-bash">cosmos check
+</code></pre>
+<p>This command will report any missing tools or configuration issues that need to be resolved before proceeding.</p>
+<h3 id="3-install-the-vs-code-extension">3. Install the VS Code Extension</h3>
+<p>Run <code>cosmos install</code> to download and install the Cosmos VS Code Extension:</p>
+<pre><code class="lang-bash">cosmos install
+</code></pre>
+<p>This will install the extension into VS Code automatically.</p>
+<h3 id="4-start-using-cosmos">4. Start Using Cosmos</h3>
+<p>Once installed, open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.</p>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/debugging.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/install.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
