@@ -17,7 +17,6 @@ If you want to develop or contribute to the project, clone the repository and op
 If you want to build bare-metal C# kernels without setting up the full toolchain manually, use the [Cosmos VS Code Extension](https://github.com/valentinbreiz/CosmosVsCodeExtension). It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor. See the [Installation guide](articles/install.md) to get started.
 
 ## Documentation
- - [Gen3 Feature Status](articles/features.md)
  - [Installation (Cosmos VS Code Extension)](articles/install.md)
  - [Debugging with VSCode and QEMU](articles/debugging.md)
  - [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md)
@@ -34,8 +33,6 @@ If you want to build bare-metal C# kernels without setting up the full toolchain
 - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
 - [NativeAOT Developer Workflow](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/nativeaot.md)
 - [NativeAOT Limitations](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md)
-
-This page tracks all features targeted for the Cosmos Gen3 (NativeAOT) release. The goal is feature parity with [Cosmos Gen2](https://github.com/CosmosOS/Cosmos), built on a modern NativeAOT foundation with dual-architecture support (x64 + ARM64).
 
 ## Gen2/Gen3 Feature Comparison
 
