@@ -4,6 +4,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
@@ -43,6 +44,10 @@ public class Kernel
         // Initialize heap for memory allocations
         Serial.WriteString("[KERNEL]   - Initializing heap...\n");
         MemoryOp.InitializeHeap(0, 0);
+
+        // Initialize garbage collector
+        Serial.WriteString("[KERNEL]   - Initializing garbage collector...\n");
+        GarbageCollector.Initialize();
 
         // Initialize managed modules
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
