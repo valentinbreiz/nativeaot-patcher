@@ -9,7 +9,7 @@
 [![Package](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/package.yml/badge.svg)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/package.yml)
 
  ## Documentation
- - [Index](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)
+ - [Index](https://valentinbreiz.github.io/nativeaot-patcher/index.html)
 
 ## Priority
 - [Priority Board](https://github.com/users/valentinbreiz/projects/2/views/2) 
