@@ -232,15 +232,15 @@ public class E1000E : PciDevice, INetworkDevice
         return null;
     }
 
-    /// <summary>
-    /// INetworkDevice.Initialize implementation.
-    /// </summary>
-    void INetworkDevice.Initialize() => InitializeNetwork();
+    public void Initialize()
+    {
+        InitializeNetwork();
+    }
 
     /// <summary>
     /// Initialize the E1000E network device.
     /// </summary>
-    public unsafe void InitializeNetwork()
+    private unsafe void InitializeNetwork()
     {
         if (_networkInitialized)
             return;

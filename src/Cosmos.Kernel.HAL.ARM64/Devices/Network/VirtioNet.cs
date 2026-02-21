@@ -98,13 +98,72 @@ public unsafe class VirtioNet : INetworkDevice
         return new VirtioNet(baseAddr, irq, version);
     }
 
-    /// <summary>
-    /// INetworkDevice.Initialize implementation.
-    /// </summary>
-    void INetworkDevice.Initialize() => InitializeNetwork();
+    public void Initialize()
+    {
+        InitializeNetwork();
+    }
 
+    public void RegisterIRQHandler()
+    {
+        Serial.Write("[VirtioNet] Registering IRQ handler for INTID ");
+        Serial.WriteNumber(_irq);
+        Serial.Write("\n");
 
-    public void InitializeNetwork()
+        // Configure interrupt as edge-triggered (VirtIO MMIO uses edge)
+        GIC.ConfigureInterrupt(_irq, true);
+
+        // Set priority and enable
+        GIC.SetPriority(_irq, 0x80);
+        GIC.EnableInterrupt(_irq);
+
+        // Register handler
+        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
+
+        Serial.Write("[VirtioNet] IRQ handler registered\n");
+    }
+
+    public bool Send(byte[] data, int length)
+    {
+        if (!_networkInitialized || !_enabled || _txQueue == null || _txBuffers == null || data == null)
+            return false;
+
+        ReclaimTx();
+
+        int descIdx = _txQueue.AllocDescriptor();
+        if (descIdx < 0)
+        {
+            Serial.Write("[VirtioNet] No TX descriptors available\n");
+            return false;
+        }
+
+        if (length > RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE)
+            length = RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE;
+
+        byte* buf = _txBuffers[descIdx];
+
+        // Clear virtio-net header
+        for (int i = 0; i < VIRTIO_NET_HDR_SIZE; i++)
+            buf[i] = 0;
+
+        // Copy packet data
+        for (int i = 0; i < length; i++)
+            buf[VIRTIO_NET_HDR_SIZE + i] = data[i];
+
+        _txQueue.SetupDescriptor(descIdx, (ulong)buf, (uint)(VIRTIO_NET_HDR_SIZE + length), 0, 0);
+        _txQueue.AddAvailable((ushort)descIdx);
+
+        // Notify device
+        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, TX_QUEUE);
+
+        return true;
+    }
+
+    public void Enable() => _enabled = true;
+    public void Disable() => _enabled = false;
+
+    // --- Private methods ---
+
+    private void InitializeNetwork()
     {
         if (_networkInitialized) return;
 
@@ -217,66 +276,6 @@ public unsafe class VirtioNet : INetworkDevice
         _enabled = true;
         Serial.Write("[VirtioNet] Initialization complete\n");
     }
-
-    public void RegisterIRQHandler()
-    {
-        Serial.Write("[VirtioNet] Registering IRQ handler for INTID ");
-        Serial.WriteNumber(_irq);
-        Serial.Write("\n");
-
-        // Configure interrupt as edge-triggered (VirtIO MMIO uses edge)
-        GIC.ConfigureInterrupt(_irq, true);
-
-        // Set priority and enable
-        GIC.SetPriority(_irq, 0x80);
-        GIC.EnableInterrupt(_irq);
-
-        // Register handler
-        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
-
-        Serial.Write("[VirtioNet] IRQ handler registered\n");
-    }
-
-    public bool Send(byte[] data, int length)
-    {
-        if (!_networkInitialized || !_enabled || _txQueue == null || _txBuffers == null || data == null)
-            return false;
-
-        ReclaimTx();
-
-        int descIdx = _txQueue.AllocDescriptor();
-        if (descIdx < 0)
-        {
-            Serial.Write("[VirtioNet] No TX descriptors available\n");
-            return false;
-        }
-
-        if (length > RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE)
-            length = RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE;
-
-        byte* buf = _txBuffers[descIdx];
-
-        // Clear virtio-net header
-        for (int i = 0; i < VIRTIO_NET_HDR_SIZE; i++)
-            buf[i] = 0;
-
-        // Copy packet data
-        for (int i = 0; i < length; i++)
-            buf[VIRTIO_NET_HDR_SIZE + i] = data[i];
-
-        _txQueue.SetupDescriptor(descIdx, (ulong)buf, (uint)(VIRTIO_NET_HDR_SIZE + length), 0, 0);
-        _txQueue.AddAvailable((ushort)descIdx);
-
-        // Notify device
-        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, TX_QUEUE);
-
-        return true;
-    }
-
-    public void Enable() => _enabled = true;
-    public void Disable() => _enabled = false;
-
-    // --- Private methods ---
 
     private bool SetupQueue(int queueIndex, out Virtqueue? queue)
     {
