@@ -7105,19 +7105,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.FindAndCreate
   nameWithType: VirtioNet.FindAndCreate
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
-  name: Initialize()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Initialize
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize()
-  nameWithType: VirtioNet.Initialize()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize*
-  name: Initialize
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Initialize_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
-  nameWithType: VirtioNet.Initialize
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork
   name: InitializeNetwork()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_InitializeNetwork
