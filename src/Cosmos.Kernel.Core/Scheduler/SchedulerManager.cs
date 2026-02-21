@@ -107,17 +107,10 @@ public static class SchedulerManager
         ThrowIfDisabled();
 
         Serial.WriteString("[SCHED] CreateThread: entering\n");
-        var state = _cpuStates[cpuId];
-        Serial.WriteString("[SCHED] CreateThread: acquiring lock\n");
-        state.Lock.Acquire();
-        Serial.WriteString("[SCHED] CreateThread: lock acquired\n");
-        try
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
+            var state = _cpuStates[cpuId];
             _currentScheduler.OnThreadCreate(state, thread);
-        }
-        finally
-        {
-            state.Lock.Release();
         }
         Serial.WriteString("[SCHED] CreateThread: done\n");
     }
@@ -126,10 +119,10 @@ public static class SchedulerManager
     {
         ThrowIfDisabled();
 
-        var state = _cpuStates[cpuId];
-        state.Lock.Acquire();
-        try
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
+            var state = _cpuStates[cpuId];
+
             // Only set to Ready if not a new thread (Created).
             // New threads stay Created until they actually start running.
             // This allows ScheduleFromInterrupt to detect first-time execution.
@@ -142,10 +135,6 @@ public static class SchedulerManager
             Serial.WriteString(" is now ready, RSP=");
             Serial.WriteHexWithPrefix((ulong)thread.StackPointer);
             Serial.WriteString("\n");
-        }
-        finally
-        {
-            state.Lock.Release();
         }
     }
 
@@ -330,7 +319,7 @@ public static class SchedulerManager
     {
         var state = _cpuStates[cpuId];
 
-        // No need for lock - we're in interrupt context
+        // No lock needed - interrupts are already disabled in interrupt context
         var prev = state.CurrentThread;
         var next = _currentScheduler.PickNext(state) ?? state.IdleThread;
 
