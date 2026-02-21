@@ -56,30 +56,36 @@ public class UartMessageParser
 
     private static bool TryParseMessage(byte[] data, ref int offset, TestResults results)
     {
-        if (offset + 3 > data.Length)
+        // Need at least 7 bytes: [MAGIC:4][Command:1][Length:2]
+        if (offset + 7 > data.Length)
             return false;
 
-        byte command = data[offset];
+        // Check for magic signature (0x19740807 little-endian)
+        if (data[offset] != 0x07 || data[offset + 1] != 0x08 ||
+            data[offset + 2] != 0x74 || data[offset + 3] != 0x19)
+            return false;
+
+        byte command = data[offset + 4];
 
         // Only proceed if this looks like a valid protocol command
         if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.TestSuiteEnd)
             return false;
 
-        ushort length = (ushort)(data[offset + 1] | (data[offset + 2] << 8));
+        ushort length = (ushort)(data[offset + 5] | (data[offset + 6] << 8));
 
         // Sanity check: length shouldn't be huge (max test name ~256 chars)
         if (length > 1024)
             return false;
 
         // Validate we have enough data for payload
-        if (offset + 3 + length > data.Length)
+        if (offset + 7 + length > data.Length)
             return false;
 
         byte[] payload = new byte[length];
-        Array.Copy(data, offset + 3, payload, 0, length);
+        Array.Copy(data, offset + 7, payload, 0, length);
 
         // Only advance offset after we've validated this is a real message
-        offset += 3 + length;
+        offset += 7 + length;
 
         // Parse based on command
         switch (command)
