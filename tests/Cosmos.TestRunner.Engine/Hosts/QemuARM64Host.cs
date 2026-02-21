@@ -68,10 +68,18 @@ public class QemuARM64Host : IQemuHost
             ? $"-device ramfb -display gtk -serial file:\"{uartLogPath}\""
             : $"-device ramfb -serial file:\"{uartLogPath}\" -nographic";
 
+        // Network configuration: E1000E device with user-mode networking
+        // Guest IP: 10.0.2.15, Gateway: 10.0.2.2
+        // UDP Port 5555: UdpTestServer binds to receive kernel's outgoing packets (no hostfwd needed)
+        // UDP Port 5556: hostfwd forwards test runner packets to kernel
+        // TCP Port 5557: kernel connects to host (no hostfwd needed, outgoing from guest)
+        // TCP Port 5558: hostfwd forwards test runner packets to kernel's listening socket
+        string networkArgs = "-netdev user,id=net0,hostfwd=udp::5556-:5556,hostfwd=tcp::5558-:5558 -device virtio-net-device,netdev=net0";
+
         var startInfo = new ProcessStartInfo
         {
             FileName = _qemuBinary,
-            Arguments = $"-M virt -cpu cortex-a72 -m {_memoryMb}M " +
+            Arguments = $"-M virt,highmem=off -cpu cortex-a72 -m {_memoryMb}M " +
                        $"-bios \"{_uefiFirmwarePath}\" " +
                        $"-cdrom \"{isoPath}\" " +
                        $"-boot d -no-reboot " +
