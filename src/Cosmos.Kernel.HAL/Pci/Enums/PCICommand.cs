@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.HAL.X64.Pci.Enums;
+namespace Cosmos.Kernel.HAL.Pci.Enums;
 
 public enum PciCommand : short
 {
@@ -13,5 +13,6 @@ public enum PciCommand : short
     Parity = 0x40, /* Enable parity checking */
     Wait = 0x80, /* Enable address/data stepping */
     Serr = 0x100, /* Enable SERR */
-    FastBack = 0x200 /* Enable back-to-back writes */
+    FastBack = 0x200, /* Enable back-to-back writes */
+    InterruptDisable = 0x400 /* Disable INTx interrupts */
 }

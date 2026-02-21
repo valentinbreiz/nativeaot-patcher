@@ -9,7 +9,7 @@ using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.HAL.X64.Pci;
+using Cosmos.Kernel.HAL.Pci;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Network;
 
@@ -232,10 +232,15 @@ public class E1000E : PciDevice, INetworkDevice
         return null;
     }
 
+    public void Initialize()
+    {
+        InitializeNetwork();
+    }
+
     /// <summary>
     /// Initialize the E1000E network device.
     /// </summary>
-    public unsafe void InitializeNetwork()
+    private unsafe void InitializeNetwork()
     {
         if (_networkInitialized)
             return;
@@ -293,11 +298,6 @@ public class E1000E : PciDevice, INetworkDevice
         _networkInitialized = true;
         Serial.Write("[E1000E] Initialized\n");
     }
-
-    /// <summary>
-    /// INetworkDevice.Initialize implementation.
-    /// </summary>
-    void INetworkDevice.Initialize() => InitializeNetwork();
 
     /// <summary>
     /// Reset the device.

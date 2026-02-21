@@ -307,9 +307,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
 
-        Serial.Write("[VirtioKeyboard] IRQ! status=0x");
-        Serial.WriteHex(intStatus);
-        Serial.Write("\n");
+        //Serial.Write("[VirtioKeyboard] IRQ! status=0x");
+        //Serial.WriteHex(intStatus);
+        //Serial.Write("\n");
 
         // Process used buffers
         Instance.ProcessEvents();
@@ -340,11 +340,11 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 byte scanCode = LinuxToPS2ScanCode(evt->Code);
                 bool released = evt->Value == 0;
 
-                Serial.Write("[VirtioKeyboard] Key ");
-                Serial.WriteNumber(evt->Code);
-                Serial.Write(" -> scan 0x");
-                Serial.WriteHex(scanCode);
-                Serial.Write(released ? " released\n" : " pressed\n");
+                //Serial.Write("[VirtioKeyboard] Key ");
+                //Serial.WriteNumber(evt->Code);
+                //Serial.Write(" -> scan 0x");
+                //Serial.WriteHex(scanCode);
+                //Serial.Write(released ? " released\n" : " pressed\n");
 
                 // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
                 Instance?.OnKeyPressed?.Invoke(scanCode, released);
