@@ -1,6 +1,6 @@
 ## Gen2/Gen3 Feature Comparison
 
-![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-78%25-yellow?style=for-the-badge)
+![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-83%25-yellow?style=for-the-badge)
 
 | Feature | Gen2 | Gen3 | Notes |
 |---------|------|-------------|-------|
@@ -8,7 +8,7 @@
 | ACPI | ✅ | ✅ | LAI (Lightweight ACPI Implementation) via C interop.  |
 | Interrupt Handling | ✅  | ✅  | x64: APIC (Local + I/O). ARM64: GIC. |
 | Memory Management | ✅ | ✅ ||
-| Driver support | ✅ | 🟡 Partial | Only PCI on x64 |
+| Driver support | ✅ | ✅ | PCI and MMIO |
 | Garbage Collection | ✅ | ✅ | Mark-and-sweep GC |
 | Filesystem | ✅ | 🟡 In progress |  |
 | .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Console, DateTime, Random, BitOperations plugged. Missing: `System.Math` (Sin/Cos/Tan/Log/Exp/Pow), `System.IO.File`. |
@@ -17,7 +17,7 @@
 | Debugger| ✅ | 🟡 Partial | Source link + variables bugs in vscode |
 | CPU/FPU accelerated math | ✅ | 🟡 Minimal | SSE enabled but only used for memory operations. Software `ceil`/`sqrt` only. No hardware FPU math, no `System.Math` plug. |
 | Cosmos Graphic Subsystem | ✅ | ✅ | UEFI GOP framebuffer via Limine only. |
-| Network interface | ✅ | 🟡 Partial | x64 only, no ARM64 network driver. |
+| Network interface | ✅ | ✅ | |
 | Timer / Clock | ✅ | ✅ | |
 | Keyboard Input | ✅ | ✅ | |
 | Mouse Input | ✅ | ❌ | |
@@ -30,7 +30,7 @@ Beyond Gen2 parity, Gen3 brings new capabilities:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | **NativeAOT Runtime** | 🟡 In progress | Full NativeAOT compilation with runtime, no IL2CPU. |
-| **ARM64 Support** | 🟡 Partial  | Missing network driver, timer bugs. |
+| **ARM64 Support** | 🟡 Partial  |  Timer bugs. |
 | **Limine Boot Protocol** | ✅ Complete |  |
 | **Threading & Scheduler** | ✅ Complete | Priority-based stride scheduler (x64 + ARM64). |
 | **Feature Flags** | ✅ Complete |  |
