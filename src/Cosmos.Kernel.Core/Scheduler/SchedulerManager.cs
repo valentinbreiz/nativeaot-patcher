@@ -140,58 +140,34 @@ public static class SchedulerManager
 
     public static void BlockThread(uint cpuId, Thread thread)
     {
-        using (InternalCpu.DisableInterruptsScope())
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
 
-            state.Lock.Acquire();
-            try
-            {
-                thread.State = ThreadState.Blocked;
-                _currentScheduler.OnThreadBlocked(state, thread);
-            }
-            finally
-            {
-                state.Lock.Release();
-            }
+            thread.State = ThreadState.Blocked;
+            _currentScheduler.OnThreadBlocked(state, thread);
         }
     }
 
     public static void ExitThread(uint cpuId, Thread thread)
     {
-        using (InternalCpu.DisableInterruptsScope())
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
 
-            state.Lock.Acquire();
-            try
-            {
-                thread.State = ThreadState.Dead;
-                _currentScheduler.OnThreadExit(state, thread);
-                Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
-            }
-            finally
-            {
-                state.Lock.Release();
-            }
+            thread.State = ThreadState.Dead;
+            _currentScheduler.OnThreadExit(state, thread);
+            Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
         }
     }
 
     public static void YieldThread(uint cpuId, Thread thread)
     {
-        using (InternalCpu.DisableInterruptsScope())
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
 
-            state.Lock.Acquire();
-            try
-            {
-                _currentScheduler.OnThreadYield(state, thread);
-            }
-            finally
-            {
-                state.Lock.Release();
-            }
+            _currentScheduler.OnThreadYield(state, thread);
         }
     }
 
