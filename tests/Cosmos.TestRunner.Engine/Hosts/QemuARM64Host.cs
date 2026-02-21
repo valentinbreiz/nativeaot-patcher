@@ -83,6 +83,7 @@ public class QemuARM64Host : IQemuHost
                        $"-bios \"{_uefiFirmwarePath}\" " +
                        $"-cdrom \"{isoPath}\" " +
                        $"-boot d -no-reboot " +
+                       $"{networkArgs} " +
                        $"{displayArgs}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
@@ -93,10 +94,23 @@ public class QemuARM64Host : IQemuHost
         using var process = new Process { StartInfo = startInfo };
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
+        // Only create test servers for network tests
+        UdpTestServer? udpServer = null;
+        TcpTestServer? tcpServer = null;
+        if (enableNetworkTesting)
+        {
+            udpServer = new UdpTestServer();
+            tcpServer = new TcpTestServer();
+        }
+
         bool testSuiteCompleted = false;
 
         try
         {
+            // Start test servers for network tests
+            udpServer?.Start();
+            tcpServer?.Start();
+
             process.Start();
 
             // Monitor UART log for TestSuiteEnd while waiting for process
@@ -127,6 +141,12 @@ public class QemuARM64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
+            // Stop test servers if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
+
             // Read UART log
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -153,6 +173,12 @@ public class QemuARM64Host : IQemuHost
             // Give UART log a moment to flush
             await Task.Delay(100);
 
+            // Stop test servers if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
+
             // Read whatever UART output we got
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -170,6 +196,12 @@ public class QemuARM64Host : IQemuHost
         }
         catch (Exception ex)
         {
+            // Stop test servers on error if running
+            if (udpServer != null)
+                await udpServer.StopAsync();
+            if (tcpServer != null)
+                await tcpServer.StopAsync();
+
             return new QemuRunResult
             {
                 ExitCode = -1,
