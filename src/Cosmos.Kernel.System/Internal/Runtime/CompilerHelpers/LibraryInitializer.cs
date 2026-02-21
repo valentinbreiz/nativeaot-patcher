@@ -16,19 +16,20 @@ namespace Internal.Runtime.CompilerHelpers
         {
             // Initialize heap for memory allocations
             Serial.WriteString("[LibINIT]\n");
-            
+
             // Initialize Timer Manager and register platform timer
             Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
             TimerManager.Initialize();
+
             var initializer = PlatformHAL.Initializer;
-            if(initializer is not null)
-            {        
+            if (initializer is not null)
+            {
                 var timer = initializer.CreateTimer();
                 TimerManager.RegisterTimer(timer);
 
                 using (InternalCpu.DisableInterruptsScope())
                 {
-                    
+
                     // Initialize Keyboard Manager and register platform keyboards
                     if (KeyboardManager.IsEnabled)
                     {
