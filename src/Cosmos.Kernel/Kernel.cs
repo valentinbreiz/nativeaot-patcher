@@ -89,12 +89,6 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
         initializer.InitializeHardware();
 
-        // Initialize Timer Manager and register platform timer
-        Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
-        TimerManager.Initialize();
-        var timer = initializer.CreateTimer();
-        TimerManager.RegisterTimer(timer);
-
         // Initialize Scheduler
         if (SchedulerManager.IsEnabled)
         {
@@ -104,30 +98,6 @@ public class Kernel
 
         // Disable interrupts during device initialization
         InternalCpu.DisableInterrupts();
-
-        // Initialize Keyboard Manager and register platform keyboards
-        if (KeyboardManager.IsEnabled)
-        {
-            Serial.WriteString("[KERNEL]   - Initializing keyboard manager...\n");
-            KeyboardManager.Initialize();
-            var keyboards = initializer.GetKeyboardDevices();
-            foreach (var keyboard in keyboards)
-            {
-                KeyboardManager.RegisterKeyboard(keyboard);
-            }
-        }
-
-        // Initialize Network Manager and register platform network device
-        if (NetworkManager.IsEnabled)
-        {
-            Serial.WriteString("[KERNEL]   - Initializing network manager...\n");
-            NetworkManager.Initialize();
-            var networkDevice = initializer.GetNetworkDevice();
-            if (networkDevice != null)
-            {
-                NetworkManager.RegisterDevice(networkDevice);
-            }
-        }
 
         // Start scheduler timer for preemptive scheduling (after all init is complete)
         if (SchedulerManager.IsEnabled)
