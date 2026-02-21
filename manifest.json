@@ -3974,6 +3974,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/System.Runtime.CompilerServices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/System.Runtime.CompilerServices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "System.Runtime.CompilerServices",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/System.Runtime.RuntimeExportAttribute.yml",
       "output": {
         ".html": {

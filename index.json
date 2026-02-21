@@ -1414,6 +1414,16 @@
     "title": "Namespace Internal.Runtime | Cosmos Gen 3",
     "summary": "Namespace Internal.Runtime Structs ReadyToRunHeader TypeManager TypeManagerHandle TypeManagerHandle represents an AOT module in MRT based runtimes. These handles are a pointer to a TypeManager Enums ClassLibFunctionId ReadyToRunSectionType"
   },
+  "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html": {
+    "href": "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html",
+    "title": "Class EagerStaticClassConstructionAttribute | Cosmos Gen 3",
+    "summary": "Class EagerStaticClassConstructionAttribute Namespace System.Runtime.CompilerServices Assembly Cosmos.Kernel.HAL.ARM64.dll [AttributeUsage(AttributeTargets.Class|AttributeTargets.Struct, Inherited = false, AllowMultiple = false)] public class EagerStaticClassConstructionAttribute : Attribute Inheritance object Attribute EagerStaticClassConstructionAttribute Inherited Members Attribute.Equals(object) Attribute.GetCustomAttribute(Assembly, Type) Attribute.GetCustomAttribute(Assembly, Type, bool) Attribute.GetCustomAttribute(MemberInfo, Type) Attribute.GetCustomAttribute(MemberInfo, Type, bool) Attribute.GetCustomAttribute(Module, Type) Attribute.GetCustomAttribute(Module, Type, bool) Attribute.GetCustomAttribute(ParameterInfo, Type) Attribute.GetCustomAttribute(ParameterInfo, Type, bool) Attribute.GetCustomAttributes(Assembly) Attribute.GetCustomAttributes(Assembly, bool) Attribute.GetCustomAttributes(Assembly, Type) Attribute.GetCustomAttributes(Assembly, Type, bool) Attribute.GetCustomAttributes(MemberInfo) Attribute.GetCustomAttributes(MemberInfo, bool) Attribute.GetCustomAttributes(MemberInfo, Type) Attribute.GetCustomAttributes(MemberInfo, Type, bool) Attribute.GetCustomAttributes(Module) Attribute.GetCustomAttributes(Module, bool) Attribute.GetCustomAttributes(Module, Type) Attribute.GetCustomAttributes(Module, Type, bool) Attribute.GetCustomAttributes(ParameterInfo) Attribute.GetCustomAttributes(ParameterInfo, bool) Attribute.GetCustomAttributes(ParameterInfo, Type) Attribute.GetCustomAttributes(ParameterInfo, Type, bool) Attribute.GetHashCode() Attribute.IsDefaultAttribute() Attribute.IsDefined(Assembly, Type) Attribute.IsDefined(Assembly, Type, bool) Attribute.IsDefined(MemberInfo, Type) Attribute.IsDefined(MemberInfo, Type, bool) Attribute.IsDefined(Module, Type) Attribute.IsDefined(Module, Type, bool) Attribute.IsDefined(ParameterInfo, Type) Attribute.IsDefined(ParameterInfo, Type, bool) Attribute.Match(object) Attribute.TypeId object.Equals(object, object) object.GetType() object.MemberwiseClone() object.ReferenceEquals(object, object) object.ToString()"
+  },
+  "api/System.Runtime.CompilerServices.html": {
+    "href": "api/System.Runtime.CompilerServices.html",
+    "title": "Namespace System.Runtime.CompilerServices | Cosmos Gen 3",
+    "summary": "Namespace System.Runtime.CompilerServices Classes EagerStaticClassConstructionAttribute"
+  },
   "api/System.Runtime.RuntimeExportAttribute.html": {
     "href": "api/System.Runtime.RuntimeExportAttribute.html",
     "title": "Class RuntimeExportAttribute | Cosmos Gen 3",

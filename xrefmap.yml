@@ -22195,6 +22195,18 @@ references:
   commentId: N:System.Runtime
   fullName: System.Runtime
   nameWithType: System.Runtime
+- uid: System.Runtime.CompilerServices
+  name: System.Runtime.CompilerServices
+  href: api/System.Runtime.CompilerServices.html
+  commentId: N:System.Runtime.CompilerServices
+  fullName: System.Runtime.CompilerServices
+  nameWithType: System.Runtime.CompilerServices
+- uid: System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute
+  name: EagerStaticClassConstructionAttribute
+  href: api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html
+  commentId: T:System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute
+  fullName: System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute
+  nameWithType: EagerStaticClassConstructionAttribute
 - uid: System.Runtime.RuntimeExportAttribute
   name: RuntimeExportAttribute
   href: api/System.Runtime.RuntimeExportAttribute.html
