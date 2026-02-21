@@ -7105,19 +7105,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.FindAndCreate
   nameWithType: VirtioNet.FindAndCreate
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork
-  name: InitializeNetwork()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_InitializeNetwork
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork()
-  nameWithType: VirtioNet.InitializeNetwork()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork*
-  name: InitializeNetwork
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_InitializeNetwork_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
+  name: Initialize()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Initialize
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize()
+  nameWithType: VirtioNet.Initialize()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Initialize_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
   isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.InitializeNetwork
-  nameWithType: VirtioNet.InitializeNetwork
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
+  nameWithType: VirtioNet.Initialize
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
   name: Instance
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Instance
@@ -13780,19 +13780,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.HasMsix
   nameWithType: E1000E.HasMsix
-- uid: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork
-  name: InitializeNetwork()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html#Cosmos_Kernel_HAL_X64_Devices_Network_E1000E_InitializeNetwork
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork()
-  nameWithType: E1000E.InitializeNetwork()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork*
-  name: InitializeNetwork
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html#Cosmos_Kernel_HAL_X64_Devices_Network_E1000E_InitializeNetwork_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork
+- uid: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize
+  name: Initialize()
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html#Cosmos_Kernel_HAL_X64_Devices_Network_E1000E_Initialize
+  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize()
+  nameWithType: E1000E.Initialize()
+- uid: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html#Cosmos_Kernel_HAL_X64_Devices_Network_E1000E_Initialize_
+  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize
   isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.InitializeNetwork
-  nameWithType: E1000E.InitializeNetwork
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Initialize
+  nameWithType: E1000E.Initialize
 - uid: Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.Instance
   name: Instance
   href: api/Cosmos.Kernel.HAL.X64.Devices.Network.E1000E.html#Cosmos_Kernel_HAL_X64_Devices_Network_E1000E_Instance
