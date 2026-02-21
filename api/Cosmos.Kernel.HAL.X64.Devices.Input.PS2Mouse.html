@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class CosmosFeatures | Cosmos Gen 3 </title>
+      <title>Class PS2Mouse | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class CosmosFeatures | Cosmos Gen 3 ">
+      <meta name="title" content="Class PS2Mouse | Cosmos Gen 3 ">
       
-      <meta name="description" content="Centralized feature flags for Cosmos kernel components. These flags can be set via RuntimeHostConfigurationOption in csproj and are used by ILC for trimming.">
+      <meta name="description" content="PS/2 Mouse driver.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,27 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.CosmosFeatures">
+        <article data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse">
 
 
 
-  <h1 id="Cosmos_Kernel_Core_CosmosFeatures" data-uid="Cosmos.Kernel.Core.CosmosFeatures" class="text-break">
-Class CosmosFeatures  
+  <h1 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse" class="text-break">
+Class PS2Mouse  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.html">Input</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Centralized feature flags for Cosmos kernel components.
-These flags can be set via RuntimeHostConfigurationOption in csproj
-and are used by ILC for trimming.</p>
+  <div class="markdown summary"><p>PS/2 Mouse driver.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class CosmosFeatures</code></pre>
+    <pre><code class="lang-csharp hljs">public class PS2Mouse : MouseDevice, IMouseDevice</code></pre>
   </div>
 
 
@@ -114,15 +112,44 @@ and are used by ILC for trimming.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">CosmosFeatures</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
+      <div><span class="xref">PS2Mouse</span></div>
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent">MouseDevice.OnMouseEvent</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X">MouseDevice.X</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y">MouseDevice.Y</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton">MouseDevice.LeftButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton">MouseDevice.RightButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton">MouseDevice.MiddleButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Poll">MouseDevice.Poll()</a>
+    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -155,21 +182,19 @@ and are used by ILC for trimming.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_CosmosFeatures_GraphicsEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled*"></a>
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DataAvailable_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_GraphicsEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled">
-  GraphicsEnabled
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DataAvailable" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable">
+  DataAvailable
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Controls graphics support initialization.
-Set via CosmosEnableGraphics property in csproj.</p>
+  <div class="markdown level1 summary"><p>Check if mouse data is available.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Graphics.Enabled&quot;)]
-public static bool GraphicsEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override bool DataAvailable { get; }</code></pre>
   </div>
 
 
@@ -189,21 +214,19 @@ public static bool GraphicsEnabled { get; }</code></pre>
 
 
 
-  <a id="Cosmos_Kernel_Core_CosmosFeatures_KeyboardEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled*"></a>
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_PS2Port_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_KeyboardEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled">
-  KeyboardEnabled
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_PS2Port" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port">
+  PS2Port
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Controls keyboard support initialization.
-Set via CosmosEnableKeyboard property in csproj.</p>
+  <div class="markdown level1 summary"><p>The PS/2 port this mouse is connected to (should be 2).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Input.Keyboard.Enabled&quot;)]
-public static bool KeyboardEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public byte PS2Port { get; }</code></pre>
   </div>
 
 
@@ -212,7 +235,7 @@ public static bool KeyboardEnabled { get; }</code></pre>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -223,32 +246,29 @@ public static bool KeyboardEnabled { get; }</code></pre>
 
 
 
-  <a id="Cosmos_Kernel_Core_CosmosFeatures_MouseEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled*"></a>
+  <h2 class="section" id="methods">Methods
+</h2>
 
-  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_MouseEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled">
-  MouseEnabled
+
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Disable_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Disable" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable">
+  Disable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Controls mouse support initialization.
-Set via CosmosEnableMouse property in csproj.</p>
+  <div class="markdown level1 summary"><p>Disable mouse data reporting.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Input.Mouse.Enabled&quot;)]
-public static bool MouseEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Disable()</code></pre>
   </div>
 
 
 
 
 
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -257,32 +277,25 @@ public static bool MouseEnabled { get; }</code></pre>
 
 
 
-  <a id="Cosmos_Kernel_Core_CosmosFeatures_NetworkEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.NetworkEnabled*"></a>
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DrainBuffer_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_NetworkEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.NetworkEnabled">
-  NetworkEnabled
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DrainBuffer" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer">
+  DrainBuffer()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Controls network support initialization.
-Set via CosmosEnableNetwork property in csproj.</p>
+  <div class="markdown level1 summary"><p>Drains any pending data from the mouse buffer.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Network.Enabled&quot;)]
-public static bool NetworkEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static void DrainBuffer()</code></pre>
   </div>
 
 
 
 
 
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -291,32 +304,80 @@ public static bool NetworkEnabled { get; }</code></pre>
 
 
 
-  <a id="Cosmos_Kernel_Core_CosmosFeatures_SchedulerEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.SchedulerEnabled*"></a>
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Enable_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_SchedulerEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.SchedulerEnabled">
-  SchedulerEnabled
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Enable" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable">
+  Enable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Controls scheduler/threading support initialization.
-Set via CosmosEnableScheduler property in csproj.</p>
+  <div class="markdown level1 summary"><p>Enable mouse and register IRQ handler if not already done.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.Core.Scheduler.Enabled&quot;)]
-public static bool SchedulerEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Enable()</code></pre>
   </div>
 
 
 
 
 
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Initialize_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Initialize" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the mouse.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_RegisterIRQHandler_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_RegisterIRQHandler" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler">
+  RegisterIRQHandler()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers IRQ handler for mouse interrupts.
+Called explicitly from Kernel.Initialize to ensure proper initialization order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void RegisterIRQHandler()</code></pre>
+  </div>
+
+
+
+
+
 
 
 

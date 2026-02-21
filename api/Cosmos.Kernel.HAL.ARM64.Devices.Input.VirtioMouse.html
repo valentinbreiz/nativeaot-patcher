@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class VirtioKeyboard | Cosmos Gen 3 </title>
+      <title>Class VirtioMouse | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class VirtioKeyboard | Cosmos Gen 3 ">
+      <meta name="title" content="Class VirtioMouse | Cosmos Gen 3 ">
       
-      <meta name="description" content="Virtio-input keyboard driver for ARM64. Provides keyboard input via virtio-input device on QEMU virt machine.">
+      <meta name="description" content="Virtio-input mouse driver for ARM64. Provides mouse input via virtio-input device on QEMU virt machine.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,12 +84,12 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard">
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard" class="text-break">
-Class VirtioKeyboard  
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse" class="text-break">
+Class VirtioMouse  
   </h1>
 
   <div class="facts text-secondary">
@@ -97,13 +97,13 @@ Class VirtioKeyboard
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Virtio-input keyboard driver for ARM64.
-Provides keyboard input via virtio-input device on QEMU virt machine.</p>
+  <div class="markdown summary"><p>Virtio-input mouse driver for ARM64.
+Provides mouse input via virtio-input device on QEMU virt machine.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class VirtioKeyboard : KeyboardDevice, IKeyboardDevice</code></pre>
+    <pre><code class="lang-csharp hljs">public class VirtioMouse : MouseDevice, IMouseDevice</code></pre>
   </div>
 
 
@@ -114,15 +114,15 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
       <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html">KeyboardDevice</a></div>
-      <div><span class="xref">VirtioKeyboard</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
+      <div><span class="xref">VirtioMouse</span></div>
     </dd>
   </dl>
 
   <dl class="typelist implements">
     <dt>Implements</dt>
     <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html">IKeyboardDevice</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></div>
     </dd>
   </dl>
 
@@ -131,10 +131,22 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html#Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_OnKeyPressed">KeyboardDevice.OnKeyPressed</a>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent">MouseDevice.OnMouseEvent</a>
     </div>
     <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html#Cosmos_Kernel_HAL_Devices_Input_KeyboardDevice_WaitForKey">KeyboardDevice.WaitForKey()</a>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X">MouseDevice.X</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y">MouseDevice.Y</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton">MouseDevice.LeftButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton">MouseDevice.RightButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton">MouseDevice.MiddleButton</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -168,9 +180,41 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Instance_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Instance" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable">
+  DataAvailable
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Check if mouse data is available.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool DataAvailable { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance">
   Instance
   
   </h3>
@@ -179,7 +223,7 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static VirtioKeyboard? Instance { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static VirtioMouse? Instance { get; }</code></pre>
   </div>
 
 
@@ -188,71 +232,7 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html">VirtioKeyboard</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_IsInitialized_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.IsInitialized*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_IsInitialized" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.IsInitialized">
-  IsInitialized
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the device was successfully initialized.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool IsInitialized { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_KeyAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.KeyAvailable*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_KeyAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.KeyAvailable">
-  KeyAvailable
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Check if a key is available in the buffer.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override bool KeyAvailable { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html">VirtioMouse</a></dt>
     <dd></dd>
   </dl>
 
@@ -267,41 +247,14 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_DebugGicState_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_DebugGicState" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState">
-  DebugGicState()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Checks if GIC interrupt is pending.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void DebugGicState()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Disable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Disable*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Disable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Disable">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable">
   Disable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disable keyboard scanning.</p>
+  <div class="markdown level1 summary"><p>Disable the mouse.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -321,15 +274,14 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Enable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Enable*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Enable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Enable">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable">
   Enable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Enable keyboard and register IRQ handler if not already done.
-Called by KeyboardManager after OnKeyPressed callback is set.</p>
+  <div class="markdown level1 summary"><p>Enable the mouse.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -349,26 +301,26 @@ Called by KeyboardManager after OnKeyPressed callback is set.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_FindAndCreate_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_FindAndCreate" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate">
   FindAndCreate()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Finds and creates a virtio keyboard device.
-Note: QEMU enumerates mouse first, keyboard second, so we find the 2nd device.</p>
+  <div class="markdown level1 summary"><p>Finds and creates a virtio mouse device.
+Note: QEMU enumerates mouse first, keyboard second, so we find the 1st device.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static VirtioKeyboard? FindAndCreate()</code></pre>
+    <pre><code class="lang-csharp hljs">public static VirtioMouse? FindAndCreate()</code></pre>
   </div>
 
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html">VirtioKeyboard</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html">VirtioMouse</a></dt>
     <dd></dd>
   </dl>
 
@@ -382,14 +334,14 @@ Note: QEMU enumerates mouse first, keyboard second, so we find the 2nd device.</
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize">
   Initialize()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the virtio keyboard device.</p>
+  <div class="markdown level1 summary"><p>Initializes the virtio mouse device.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -409,14 +361,14 @@ Note: QEMU enumerates mouse first, keyboard second, so we find the 2nd device.</
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Poll_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Poll*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Poll" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Poll">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll">
   Poll()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Polls for keyboard events (for non-interrupt mode).</p>
+  <div class="markdown level1 summary"><p>Poll for mouse events (default: no-op for interrupt-driven mice).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -436,73 +388,19 @@ Note: QEMU enumerates mouse first, keyboard second, so we find the 2nd device.</
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_PollStatic_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_PollStatic" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic">
-  PollStatic()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Static poll for use from timer or main loop.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void PollStatic()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_RegisterIRQHandler_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_RegisterIRQHandler" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler">
   RegisterIRQHandler()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Registers the IRQ handler for keyboard interrupts.</p>
+  <div class="markdown level1 summary"><p>Registers the IRQ handler for mouse interrupts.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public void RegisterIRQHandler()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_UpdateLeds_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_UpdateLeds" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds">
-  UpdateLeds()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Update keyboard LEDs (Caps Lock, Num Lock, Scroll Lock).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void UpdateLeds()</code></pre>
   </div>
 
 
