@@ -1,14 +1,14 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
+using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Network;
 

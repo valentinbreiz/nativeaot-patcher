@@ -67,7 +67,7 @@ public partial class ARM64InterruptController : IInterruptController
     public void RouteIrq(byte irqNo, byte vector, bool startMasked)
     {
         // On ARM64, irqNo is the GIC interrupt ID
-        
+
         // Enable the interrupt in GIC
         if (!startMasked)
         {

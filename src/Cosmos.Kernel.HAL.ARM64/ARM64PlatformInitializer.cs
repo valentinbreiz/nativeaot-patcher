@@ -1,13 +1,13 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
-using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.ARM64.Devices.Input;
+using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
