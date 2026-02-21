@@ -1382,12 +1382,12 @@
   "api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html": {
     "href": "api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html",
     "title": "Class LibraryInitializer | Cosmos Gen 3",
-    "summary": "Class LibraryInitializer Namespace Internal.Runtime.CompilerHelpers Assembly Cosmos.Kernel.System.dll public class LibraryInitializer Inheritance object LibraryInitializer Inherited Members object.Equals(object) object.Equals(object, object) object.GetHashCode() object.GetType() object.MemberwiseClone() object.ReferenceEquals(object, object) object.ToString() Methods InitializeLibrary() public static void InitializeLibrary()"
+    "summary": "Class LibraryInitializer Namespace Internal.Runtime.CompilerHelpers Assembly Cosmos.Kernel.Core.dll This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed. public class LibraryInitializer Inheritance object LibraryInitializer Inherited Members object.Equals(object) object.Equals(object, object) object.GetHashCode() object.GetType() object.MemberwiseClone() object.ReferenceEquals(object, object) object.ToString() Methods InitializeLibrary() Initialize all Core Elements of Cosmos, such as heap memory, garbage collector, and managed modules. This method is called by the runtime before any managed code is executed. public static void InitializeLibrary()"
   },
   "api/Internal.Runtime.CompilerHelpers.html": {
     "href": "api/Internal.Runtime.CompilerHelpers.html",
     "title": "Namespace Internal.Runtime.CompilerHelpers | Cosmos Gen 3",
-    "summary": "Namespace Internal.Runtime.CompilerHelpers Classes LibraryInitializer"
+    "summary": "Namespace Internal.Runtime.CompilerHelpers Classes LibraryInitializer This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed."
   },
   "api/Internal.Runtime.ReadyToRunHeader.html": {
     "href": "api/Internal.Runtime.ReadyToRunHeader.html",

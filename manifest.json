@@ -3886,7 +3886,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Internal.Runtime.CompilerHelpers.LibraryInitializer",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/Internal.Runtime.CompilerHelpers.LibraryInitializer.yml\" sourcestartlinenumber=\"1\">This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed.</p>\n"
     },
     {
       "type": "ManagedReference",
