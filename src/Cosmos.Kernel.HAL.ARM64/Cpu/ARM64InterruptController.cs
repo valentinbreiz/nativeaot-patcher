@@ -68,12 +68,6 @@ public partial class ARM64InterruptController : IInterruptController
     {
         // On ARM64, irqNo is the GIC interrupt ID
         
-        // PCI INTx interrupts (SPI 0-3, GIC IDs 32-35) must be level-triggered
-        if (irqNo >= 32 && irqNo <= 35)
-        {
-            GIC.ConfigureInterrupt(irqNo, false); // Level-triggered
-        }
-
         // Enable the interrupt in GIC
         if (!startMasked)
         {
