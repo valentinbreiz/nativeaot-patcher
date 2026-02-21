@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL.X64.Devices.Input | Cosmos Gen 3 </title>
+      <title>Delegate MouseEventHandler | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL.X64.Devices.Input | Cosmos Gen 3 ">
+      <meta name="title" content="Delegate MouseEventHandler | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Delegate for handling mouse events.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,36 +84,56 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Devices.Input">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler">
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Devices_Input" data-uid="Cosmos.Kernel.HAL.X64.Devices.Input" class="text-break">Namespace Cosmos.Kernel.HAL.X64.Devices.Input</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html">PS2Controller</a></dt>
-      <dd><p>PS/2 Controller driver for managing keyboard and mouse devices.</p>
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Input_MouseEventHandler" data-uid="Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler" class="text-break">
+Delegate MouseEventHandler  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.html">Input</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Delegate for handling mouse events.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public delegate void MouseEventHandler(int deltaX, int deltaY, bool leftButton, bool rightButton, bool middleButton)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>deltaX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Change in X position.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.html">PS2Keyboard</a></dt>
-      <dd><p>PS/2 Keyboard driver.</p>
+    <dt><code>deltaY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Change in Y position.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html">PS2Mouse</a></dt>
-      <dd><p>PS/2 Mouse driver.</p>
+    <dt><code>leftButton</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Left button state.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.html">PS2Ports</a></dt>
-      <dd><p>PS/2 controller IO port definitions.</p>
+    <dt><code>rightButton</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Right button state.</p>
 </dd>
-    </dl>
+    <dt><code>middleButton</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Middle button state.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
 
 
 </article>
