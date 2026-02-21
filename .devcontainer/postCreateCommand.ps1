@@ -42,6 +42,7 @@ dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
 Write-Host "Packing native packages..." -ForegroundColor Cyan
 dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release
 dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release
+dotnet pack src/Cosmos.Kernel.Native.MultiArch/Cosmos.Kernel.Native.MultiArch.csproj -c Release -o artifacts/package/release
 
 Write-Host "Verifying native packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.Native.*.nupkg" | ForEach-Object { Write-Host $_.Name }
@@ -82,7 +83,7 @@ $MultiArchProjects = @(
 
 # Build all multi-arch packages for x64
 Write-Host "Building all multi-arch packages for x64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:DefineConstants="ARCH_X64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:CosmosArch=x64 --no-incremental
 
 # Stage x64 builds
 Write-Host "Staging x64 builds..." -ForegroundColor Cyan
@@ -101,7 +102,7 @@ foreach ($proj in $MultiArchProjects) {
 
 # Build all multi-arch packages for arm64
 Write-Host "Building all multi-arch packages for arm64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:DefineConstants="ARCH_ARM64" --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:CosmosArch=arm64 --no-incremental
 
 # Stage arm64 builds
 Write-Host "Staging arm64 builds..." -ForegroundColor Cyan

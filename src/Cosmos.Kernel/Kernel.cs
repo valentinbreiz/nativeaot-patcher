@@ -4,12 +4,15 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
+using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Timer;
@@ -22,7 +25,7 @@ public class Kernel
     public const int VersionMajor = 3;
     public const int VersionMinor = 0;
     public const int VersionPatch = 0;
-    public const string VersionString = "3.0.36";
+    public const string VersionString = "3.0.37";
     public const string Codename = "gen3";
 
     /// <summary>
@@ -43,6 +46,10 @@ public class Kernel
         // Initialize heap for memory allocations
         Serial.WriteString("[KERNEL]   - Initializing heap...\n");
         MemoryOp.InitializeHeap(0, 0);
+
+        // Initialize garbage collector
+        Serial.WriteString("[KERNEL]   - Initializing garbage collector...\n");
+        GarbageCollector.Initialize();
 
         // Initialize managed modules
         Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
@@ -74,7 +81,11 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
         ExceptionHandler.Initialize();
 
-        // Initialize platform-specific hardware (PCI, ACPI, APIC, GIC, timers, etc.)
+        // Initialize PCI
+        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+        PciManager.Setup();
+
+        // Initialize platform-specific hardware (ACPI, APIC, GIC, timers, etc.)
         Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
         initializer.InitializeHardware();
 

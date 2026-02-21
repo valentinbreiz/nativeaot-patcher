@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites name="Cosmos.Kernel.Tests" tests="3" failures="0" skipped="0" time="19.860" timestamp="2026-02-21T02:59:40">
+  <testsuite name="Cosmos.Kernel.Tests" tests="3" failures="0" skipped="0" time="19.860" timestamp="2026-02-21T02:59:40">
+    <properties>
+      <property name="architecture" value="x64" />
+    </properties>
+    <testcase name="Test_BasicArithmetic" classname="Cosmos.Kernel.Tests" time="0.000" />
+    <testcase name="Test_BooleanLogic" classname="Cosmos.Kernel.Tests" time="0.000" />
+    <testcase name="Test_IntegerComparison" classname="Cosmos.Kernel.Tests" time="0.000" />
+    <system-out><![CDATA[
+========================================
+  CosmosOS v3.0.37 (gen3)
+  Architecture: x86-64
+========================================
+
+[KMAIN] Phase 1: CPU initialization
+
+[KMAIN] Phase 2: Platform initialization
+[KMAIN]   - Querying Limine for RSDP...
+[KMAIN]   - RSDP found at: 0x0xFFFF8000000F5290
+[KMAIN]   - Initializing ACPI (LAI)...
+[ACPI] acpi_early_init() called
+[ACPI] Initializing LAI with RSDP
+[ACPI] Valid RSDP signature found
+[ACPI] ACPI revision: 1.0
+[ACPI] LAI ACPI revision set
+[ACPI] Skipping LAI namespace creation, using direct table parsing
+[ACPI] Using RSDT at: 0x1FFE1C52
+[ACPI] MADT found via RSDT
+[ACPI] MADT found at: 0x1FFE1B7A
+[ACPI] Parsing MADT entries...
+[ACPI] Local APIC address: 0xFEE00000
+[ACPI] CPU found (ID=0 APIC=0)
+[ACPI] I/O APIC found (ID=0 at 0xFEC00000 GSI base=0)
+[ACPI] MADT parsing complete
+[ACPI] ACPI initialization complete
+[KMAIN]   - ACPI initialized
+
+[KMAIN] Phase 3: Managed kernel initialization
+[ModuleHelpers] - RhpRegisterOsModule called for OS Module 0x4800131EB1358D48
+[KERNEL]   - CosmosOS v3.0.37 (gen3) - Managed runtime active
+[KERNEL]   - Initializing heap...
+[PageAllocator] Initializing heap using Limine memory map...
+[PageAllocator] Memory map detected with 14 entries:
+[MemMap] Entry 0: 0x1000 - 0x52000 (0 MB) Type: 5 (Bootloader Reclaimable)
+[MemMap] Entry 1: 0x52000 - 0x9F000 (0 MB) Type: 0 (Usable)
+[MemMap] Entry 2: 0x9FC00 - 0xA0000 (0 MB) Type: 1 (Reserved)
+[MemMap] Entry 3: 0xF0000 - 0x100000 (0 MB) Type: 1 (Reserved)
+[MemMap] Entry 4: 0x100000 - 0x1FAA0000 (505 MB) Type: 0 (Usable)
+[MemMap] Entry 5: 0x1FAA0000 - 0x1FAA5000 (0 MB) Type: 5 (Bootloader Reclaimable)
+[MemMap] Entry 6: 0x1FAA5000 - 0x1FBED000 (1 MB) Type: 6 (Kernel and Modules)
+[MemMap] Entry 7: 0x1FBED000 - 0x1FF5C000 (3 MB) Type: 5 (Bootloader Reclaimable)
+[MemMap] Entry 8: 0x1FF5C000 - 0x1FF5D000 (0 MB) Type: 0 (Usable)
+[MemMap] Entry 9: 0x1FF5D000 - 0x1FFE0000 (0 MB) Type: 5 (Bootloader Reclaimable)
+[MemMap] Entry 10: 0x1FFE0000 - 0x20000000 (0 MB) Type: 1 (Reserved)
+[MemMap] Entry 11: 0xFD000000 - 0xFD3E8000 (3 MB) Type: 7 (Framebuffer)
+[MemMap] Entry 12: 0xFFFC0000 - 0x100000000 (0 MB) Type: 1 (Reserved)
+[MemMap] Entry 13: 0xFD00000000 - 0x10000000000 (12288 MB) Type: 1 (Reserved)
+[PageAllocator] Searching for largest safe usable memory region...
+[PageAllocator] Protected: Kernel/Modules 0x1FAA5000 - 0x1FBED000 (1 MB)
+[PageAllocator] Protected: Framebuffer 0xFD000000 - 0xFD3E8000 (3 MB)
+[PageAllocator] Evaluating region: phys 0x52000 - 0x9F000 (0 MB)
+[PageAllocator]  Best candidate so far: 0 MB
+[PageAllocator] Evaluating region: phys 0x100000 - 0x1FAA0000 (505 MB)
+[PageAllocator]  Best candidate so far: 505 MB
+[PageAllocator] Evaluating region: phys 0x1FF5C000 - 0x1FF5D000 (0 MB)
+[PageAllocator] Selected largest usable region:
+  Start (virt): 0xFFFF800000100000
+  Size: 505 MB (530186240 bytes)
+[PageAllocator] Total pages: 129440, RAT pages: 32, RAT size: 128 KB
+[PageAllocator] Memory layout (Cosmos-style):
+  RamStart (heap): 0xFFFF800000100000
+  HeapEnd: 0xFFFF80001FA80000
+  RAT location: 0xFFFF80001FA80000
+  RAT end: 0xFFFF80001FAA0000
+  Heap size: 505 MB
+[PageAllocator] Initializing 129440 RAT entries...
+[PageAllocator] Testing first RAT write at 0xFFFF80001FA80000...
+[PageAllocator] First write successful, initializing all entries...
+[PageAllocator] Initialized 10000 / 129440 entries...
+[PageAllocator] Initialized 20000 / 129440 entries...
+[PageAllocator] Initialized 30000 / 129440 entries...
+[PageAllocator] Initialized 40000 / 129440 entries...
+[PageAllocator] Initialized 50000 / 129440 entries...
+[PageAllocator] Initialized 60000 / 129440 entries...
+[PageAllocator] Initialized 70000 / 129440 entries...
+[PageAllocator] Initialized 80000 / 129440 entries...
+[PageAllocator] Initialized 90000 / 129440 entries...
+[PageAllocator] Initialized 100000 / 129440 entries...
+[PageAllocator] Initialized 110000 / 129440 entries...
+[PageAllocator] Initialized 120000 / 129440 entries...
+[PageAllocator] All RAT entries initialized.
+[PageAllocator] Marking RAT pages (32 pages starting at index 129408)...
+[PageAllocator] Heap initialization complete!
+  Total pages: 129440
+  Free pages: 129408
+  Usable heap: 505 MB
+[PageAllocator] Testing RAT write access...
+[PageAllocator] RAT write test passed
+[PageAllocator] Initializing SmallHeap...
+[SmallHeap] Init started
+[SmallHeap] Max item size: 1020
+[SmallHeap] InitSMTPage - Allocating SMT page
+[PageAllocator] AllocPages - Type: 64, Count: 1, Free: 129408
+[SmallHeap] SMT page allocated at: 0xFFFF800000100000
+[SmallHeap] Adding root SMT blocks
+[SmallHeap] AddRootSMTBlock - size: 16
+[SmallHeap] CreatePage - itemSize: 16
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129407
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000101000
+[SmallHeap] AddRootSMTBlock - size: 24
+[SmallHeap] CreatePage - itemSize: 24
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129406
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000102000
+[SmallHeap] AddRootSMTBlock - size: 48
+[SmallHeap] CreatePage - itemSize: 48
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129405
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000103000
+[SmallHeap] AddRootSMTBlock - size: 64
+[SmallHeap] CreatePage - itemSize: 64
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129404
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000104000
+[SmallHeap] AddRootSMTBlock - size: 128
+[SmallHeap] CreatePage - itemSize: 128
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129403
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000105000
+[SmallHeap] AddRootSMTBlock - size: 256
+[SmallHeap] CreatePage - itemSize: 256
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129402
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000106000
+[SmallHeap] AddRootSMTBlock - size: 512
+[SmallHeap] CreatePage - itemSize: 512
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129401
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000107000
+[SmallHeap] AddRootSMTBlock - size: 1024
+[SmallHeap] CreatePage - itemSize: 1024
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129400
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000108000
+[SmallHeap] AddRootSMTBlock - size: 2048
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129399
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000109000
+[SmallHeap] InitSMTPage complete
+[SmallHeap] Init complete, SMT at: 0xFFFF800000100000
+[KERNEL]   - Initializing garbage collector...
+[GC] Initializing with free list allocator
+[PageAllocator] AllocPages - Type: 9, Count: 1, Free: 129398
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 129397
+[PageAllocator] AllocPages - Type: 9, Count: 1, Free: 129395
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 129394
+[GC] Initialization complete
+[KERNEL]   - Initializing managed modules...
+[ManagedModule] - Initilizing Module Handlers - Starting
+[ManagedModule] - Found 1 modules
+[ManagedModule] - Setting TypeManagerSlot for module 0
+[ManagedModule] - Initializing Statics for module 0
+[PageAllocator] AllocPages - Type: 9, Count: 2, Free: 129392
+[PageAllocator] AllocPages - Type: 9, Count: 1, Free: 129390
+[GC] Registered frozen segment at 0xFFFFFFFF80111230, size: 132768
+[ManagedModule] - Running Static Constructors for all modules
+[ManagedModule] - Running Initializers, found 3 initializers for section 205
+[ManagedModule] - Running Initializer at address 80111000
+[ManagedModule] - Completed Initializer at address 80111000
+[ManagedModule] - Running Initializer at address 80111004
+[ManagedModule] - Completed Initializer at address 80111004
+[ManagedModule] - Running Initializer at address 80111008
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 129389
+[ManagedModule] - Completed Initializer at address 80111008
+[ManagedModule] - Running Module Initializers
+[ManagedModule] - Running Initializers, found 2 initializers for section 213
+[ManagedModule] - Running Initializer at address 80132DB0
+[ManagedModule] - Completed Initializer at address 80132DB0
+[ManagedModule] - Running Initializer at address 80132DB4
+[ManagedModule] - Completed Initializer at address 80132DB4
+[ManagedModule] - Initilizing Module Handlers - Complete
+[KERNEL]   - Architecture: x86-64
+[KERNEL]   - Initializing HAL...
+[KERNEL]   - Initializing interrupts...
+[InterruptManager.Initialize] Allocating handlers array...
+[InterruptManager.Initialize] Initializing platform interrupt controller...
+[X64InterruptController] Starting IDT initialization...
+[IDT] Initializing with CS=0x28
+[IDT] Allocating IdtEntries array...
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 129387
+[IDT] IdtEntries length: 256
+[IDT] Setting entry 0
+[IDT] Setting entry 255
+[IDT] IDT base: 0xFFFF80001FA76038
+[IDT] IDT Limit: 0xFFF
+[IDT] Loaded 256 interrupt vectors at 0xFFFF80001FA76038
+[IDT] IDT loaded.
+[X64InterruptController] IDT initialization complete
+[InterruptManager.Initialize] Interrupt system ready
+[KERNEL]   - Initializing exception handlers...
+[ExceptionHandler] CPU exception handlers registered
+[KERNEL]   - Initializing PCI...
+[PciManager] Setup .
+[PciManager] Setup Clearing List.
+[PciManager] Setup Cleared List.
+[PciManager] CheckBus(0)
+[PciManager] CheckBus - 0 VID: 0x8086
+[PciDevice] Init0,0,0
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Intel Unknown device --- Host Bridge 
+[PciManager] Cached
+[PciManager] CheckBus - 1 VID: 0x8086
+[PciDevice] Init0,1,0
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Intel Unknown device --- ISA Bridge 
+[PciManager] Cached
+[PciDevice] Init0,1,1
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Intel Unknown device --- IDE Controller 
+[PciManager] Cached
+[PciDevice] Init0,1,3
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Intel PIIX4/82371AB/EB/MB ACPI --- Unknown Bridge Device 
+[PciManager] Cached
+[PciManager] CheckBus - 2 VID: 0x1234
+[PciDevice] Init0,2,0
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Bochs BGA --- VGA-Compatible Controller 
+[PciManager] Cached
+[PciManager] CheckBus - 3 VID: 0x8086
+[PciDevice] Init0,3,0
+[PciDevice] Init Done 
+[PciManager] CheckFunction - Intel Unknown device --- Ethernet Controller 
+[PciManager] Cached
+[PciManager] CheckBus - 4 VID: 0xFFFF
+[PciManager] CheckBus - 5 VID: 0xFFFF
+[PciManager] CheckBus - 6 VID: 0xFFFF
+[PciManager] CheckBus - 7 VID: 0xFFFF
+[PciManager] CheckBus - 8 VID: 0xFFFF
+[PciManager] CheckBus - 9 VID: 0xFFFF
+[PciManager] CheckBus - 10 VID: 0xFFFF
+[PciManager] CheckBus - 11 VID: 0xFFFF
+[PciManager] CheckBus - 12 VID: 0xFFFF
+[PciManager] CheckBus - 13 VID: 0xFFFF
+[PciManager] CheckBus - 14 VID: 0xFFFF
+[PciManager] CheckBus - 15 VID: 0xFFFF
+[PciManager] CheckBus - 16 VID: 0xFFFF
+[PciManager] CheckBus - 17 VID: 0xFFFF
+[PciManager] CheckBus - 18 VID: 0xFFFF
+[PciManager] CheckBus - 19 VID: 0xFFFF
+[PciManager] CheckBus - 20 VID: 0xFFFF
+[PciManager] CheckBus - 21 VID: 0xFFFF
+[PciManager] CheckBus - 22 VID: 0xFFFF
+[PciManager] CheckBus - 23 VID: 0xFFFF
+[PciManager] CheckBus - 24 VID: 0xFFFF
+[PciManager] CheckBus - 25 VID: 0xFFFF
+[PciManager] CheckBus - 26 VID: 0xFFFF
+[PciManager] CheckBus - 27 VID: 0xFFFF
+[PciManager] CheckBus - 28 VID: 0xFFFF
+[PciManager] CheckBus - 29 VID: 0xFFFF
+[PciManager] CheckBus - 30 VID: 0xFFFF
+[PciManager] CheckBus - 31 VID: 0xFFFF
+[PciManager] Found - Intel Unknown device --- Host Bridge 
+[PciManager] Found - Intel Unknown device --- ISA Bridge 
+[PciManager] Found - Intel Unknown device --- IDE Controller 
+[PciManager] Found - Intel PIIX4/82371AB/EB/MB ACPI --- Unknown Bridge Device 
+[PciManager] Found - Bochs BGA --- VGA-Compatible Controller 
+[PciManager] Found - Intel Unknown device --- Ethernet Controller 
+[PciManager] Found Count 6
+[KERNEL]   - Initializing platform hardware...
+[X64HAL] Displaying ACPI MADT info...
+[ACPI] Local APIC at 0xFEE00000
+[ACPI] Found 1 CPU(s)
+[ACPI]   CPU 0 -> APIC ID 0 (enabled)
+[ACPI] Found 1 I/O APIC(s)
+[ACPI]   I/O APIC 0 at 0xFEC00000 (GSI base: 0)
+[ACPI] Found 5 IRQ override(s)
+[ACPI]   IRQ 0 -> GSI 2
+[ACPI]   IRQ 5 -> GSI 5 (level triggered)
+[ACPI]   IRQ 9 -> GSI 9 (level triggered)
+[ACPI]   IRQ A -> GSI 10 (level triggered)
+[ACPI]   IRQ B -> GSI 11 (level triggered)
+[X64HAL] Initializing APIC...
+[ApicManager] Starting APIC initialization...
+[LegacyPIC] Remapping and disabling 8259 PIC...
+[LegacyPIC] 8259 PIC remapped and disabled
+[ApicManager] Initializing Local APIC...
+[LocalAPIC] Initializing at 0xFEE00000
+[LocalAPIC] ID: 0
+[LocalAPIC] Version: 0x50014
+[LocalAPIC] SVR set to 0x1FF
+[LocalAPIC] Initialization complete
+[ApicManager] Calibrating LAPIC timer...
+[LocalAPIC] Calibrating timer using PIT...
+[LocalAPIC] Timer calibrated: 62734 ticks/ms
+[ApicManager] Initializing I/O APIC...
+[IOAPIC] Initializing at 0xFEC00000
+[IOAPIC] GSI base: 0
+[IOAPIC] ID: 0
+[IOAPIC] Version: 32
+[IOAPIC] Max redirection entries: 24
+[IOAPIC] Initialization complete
+[ApicManager] APIC system initialized
+[X64HAL] Calibrating TSC frequency...
+[X64HAL] TSC frequency: 2519687000 Hz
+[X64HAL] Initializing RTC...
+[RTC] Initializing...
+[RTC] Boot time: 2026-02-21 01:59:58
+[RTC] Initialized
+[X64HAL] Initializing PIT...
+[PIT] Initializing...
+[PIT] Initialized
+[PIT] Registering IRQ 0 handler...
+[InterruptManager] Routing IRQ 0 -> vector 0x20
+[PIT] IRQ 0 handler registered
+[X64HAL] Initializing PS/2 controller...
+[PS2Controller] Initializing...
+[PS2Controller] Port 1 test passed
+[PS2Controller] Port 2 test passed
+[PS2Controller] Keyboard detected on port 1
+[PS2Keyboard] Initializing on port 1...
+[PS2Keyboard] Resetting keyboard...
+[PS2Keyboard] Initialized (scanning will be enabled later)
+[PS2Controller] No device detected on port 2 (FirstByte: 0x0, SecondByte: 0x0)
+[PS2Controller] Initialization complete
+[X64HAL] Looking for E1000E network device...
+[PciDevice] Init0,3,0
+[PciDevice] Init Done 
+[X64HAL] E1000E device found, initializing...
+[E1000E] Initializing...
+[E1000E] MMIO Base: 0xFEB80000
+[E1000E] Resetting device...
+[E1000E] Reset complete
+[E1000E] MAC Address: 52:54:00:12:34:56
+[E1000E] MSI supported (not MSI-X)
+[E1000E] MSI-X supported, table at BAR3 offset 0x0
+[E1000E] Initializing RX...
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129385
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000010D000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129384
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000010E000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129383
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000010F000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129382
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000110000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129381
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000111000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129380
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000112000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129379
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000113000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129378
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000114000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129377
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000115000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129376
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000116000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129375
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000117000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129374
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000118000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129373
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000119000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129372
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011A000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129371
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011B000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129370
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011C000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129369
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011D000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129368
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011E000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129367
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000011F000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129366
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000120000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129365
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000121000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129364
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000122000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129363
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000123000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129362
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000124000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129361
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000125000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129360
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000126000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129359
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000127000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129358
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000128000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129357
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000129000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129356
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012A000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129355
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012B000
+[E1000E] RX initialized
+[E1000E] Initializing TX...
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129354
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012C000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129353
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012D000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129352
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012E000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129351
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000012F000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129350
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000130000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129349
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000131000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129348
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000132000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129347
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000133000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129346
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000134000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129345
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000135000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129344
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000136000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129343
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000137000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129342
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000138000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129341
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000139000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129340
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013A000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129339
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013B000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129338
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013C000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129337
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013D000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129336
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013E000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129335
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000013F000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129334
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000140000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129333
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000141000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129332
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000142000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129331
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000143000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129330
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000144000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129329
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000145000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129328
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000146000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129327
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000147000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129326
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000148000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129325
+[SmallHeap] HeapSmall page allocated at: 0xFFFF800000149000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129324
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000014A000
+[SmallHeap] CreatePage - itemSize: 2048
+[PageAllocator] AllocPages - Type: 3, Count: 1, Free: 129323
+[SmallHeap] HeapSmall page allocated at: 0xFFFF80000014B000
+[E1000E] TX initialized
+[E1000E] Link: UP
+[E1000E] Initialized
+[E1000E] Registering IRQ 11 handler...
+[InterruptManager] Routing IRQ B -> vector 0x2B
+[E1000E] IRQ handler registered
+[KERNEL]   - Initializing timer manager...
+[KERNEL]   - Initializing scheduler...
+[SCHED] Detected 1 CPU(s)
+[SCHED] Using Stride scheduler
+[SCHED] CreateThread: entering
+[SCHED] CreateThread: acquiring lock
+[SCHED] CreateThread: lock acquired
+[SCHED] CreateThread: done
+[SCHED] Idle thread 0 (main kernel) for CPU 0
+[SCHED] Scheduler enabled
+[KERNEL]   - Initializing keyboard manager...
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 129322
+[InterruptManager] Routing IRQ 1 -> vector 0x21
+[PS2Keyboard] Keyboard ready for input
+[KeyboardManager] Registered keyboard, total: 1
+[KERNEL]   - Initializing network manager...
+[KERNEL]   - Starting scheduler timer...
+[X64HAL] Registering LAPIC timer handler...
+[LocalAPIC] Registering timer handler for vector 0xEF
+[X64HAL] Starting LAPIC timer for scheduling...
+[LocalAPIC] Starting periodic timer:
+[LocalAPIC]   TicksPerMs: 62734
+[LocalAPIC]   Interval: 10ms
+[LocalAPIC]   Ticks: 627340
+[LocalAPIC]   Vector: 0xEF
+[KERNEL] Phase 3: Complete
+
+[KMAIN] Phase 4: Module initialization
+
+[KMAIN] Phase 5: User kernel
+[Kernel] Constructing Cosmos.Kernel.System.Kernel instance
+[Global] Registering kernel
+[Global] StartKernel called
+[Global] Starting kernel...
+[Kernel] Starting kernel...
+[Kernel] Calling OnBoot()...
+[Global] Init() called
+[Global] Initializing KernelConsole...
+[PageAllocator] AllocPages - Type: 1, Count: 1001, Free: 129320
+Cosmos.Kernel.System.Input.Keyboard.Enabled = true
+Cosmos.Kernel.System.Network.Enabled = true
+Cosmos.Kernel.System.Graphics.Enabled = true
+Cosmos.Kernel.Core.Scheduler.Enabled = true
+Cosmos.Kernel.System.Graphics.Fonts.CustomFont = Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf
+Microsoft.Extensions.DependencyInjection.VerifyOpenGenericServiceTrimmability = true
+System.ComponentModel.DefaultValueAttribute.IsSupported = false
+System.ComponentModel.Design.IDesignerHost.IsSupported = false
+System.ComponentModel.TypeConverter.EnableUnsafeBinaryFormatterInDesigntimeLicenseContextSerialization = false
+System.ComponentModel.TypeDescriptor.IsComObjectDescriptorSupported = false
+System.Data.DataSet.XmlSerializationIsSupported = false
+System.Globalization.Invariant = true
+System.Globalization.PredefinedCulturesOnly = true
+System.Net.Security.UseManagedNtlm = false
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 128319
+System.Net.SocketsHttpHandler.Http3Support = false
+System.Reflection.Metadata.MetadataUpdater.IsSupported = false
+System.Resources.ResourceManager.AllowCustomResourceTypes = false
+System.Resources.UseSystemResourceKeys = false
+System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported = true
+System.Runtime.InteropServices.BuiltInComInterop.IsSupported = false
+System.Runtime.InteropServices.EnableConsumingManagedCodeFromNativeHosting = false
+System.Runtime.InteropServices.EnableCppCLIHostActivation = false
+System.Runtime.InteropServices.Marshalling.EnableGeneratedComInterfaceComImportInterop = false
+System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization = false
+System.StartupHookProvider.IsSupported = false
+System.Text.Encoding.EnableUnsafeUTF7Encoding = false
+System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault = false
+System.Threading.Thread.EnableAutoreleasePool = false
+RUNTIME_IDENTIFIER = linux-x64
+[ModuleHelpers] - RhFindBlob called for Blob ID 24
+[PageAllocator] AllocPages - Type: 1, Count: 2, Free: 128317
+Found resource: Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf
+[ModuleHelpers] - RhFindBlob called for Blob ID 25
+Loading default PSF font from resources...
+Font Key: Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psfFont size: 17403 bytes
+[PageAllocator] AllocPages - Type: 1, Count: 5, Free: 128315
+[PageAllocator] AllocPages - Type: 1, Count: 5, Free: 128310
+[PageAllocator] AllocPages - Type: 1, Count: 6, Free: 128305
+[Global] KernelConsole initialized: 80x25 chars
+[Kernel] Enabling interrupts...
+[LAPIC] Timer tick 1 RSP=FFFF80001FF9FD90
+[SCHED] Tick 1 enabled=1
+[LAPIC] Timer tick 2 RSP=FFFF80001FF9FD90
+[SCHED] Tick 2 enabled=1
+[Kernel] Calling BeforeRun()...
+[HelloWorld] BeforeRun() reached!
+[HelloWorld] Starting tests...
+dHelloWorld Basic TestseTest_BasicArithmeticfeTest_BooleanLogicfeTest_IntegerComparisonfiޭ������
+Test Suite: HelloWorld Basic Tests
+Total: 3  Passed: 3  Failed: 0
+
+[Tests Complete - System Halting]
+[Kernel] Entering main loop...
+[Kernel] Main loop exited, calling AfterRun()...
+[LAPIC] Timer tick 3 RSP=FFFF80001FF9FD70
+[SCHED] Tick 3 enabled=1
+[Kernel] Halting CPU...
+[LAPIC] Timer tick 4 RSP=FFFF80001FF9FD80
+[SCHED] Tick 4 enabled=1
+[LAPIC] Timer tick 5 RSP=FFFF80001FF9FD80
+[SCHED] Tick 5 enabled=1
+[SCHED] Tick 6 enabled=1
+[SCHED] Tick 7 enabled=1
+[SCHED] Tick 8 enabled=1
+[SCHED] Tick 9 enabled=1
+[SCHED] Tick 10 enabled=1
+]]></system-out>
+  </testsuite>
+</testsuites>

@@ -9,6 +9,7 @@
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.Config;
+using Cosmos.Kernel.System.Timer;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 
@@ -44,16 +45,17 @@ public class DHCPClient : UdpClient
     /// <returns>time value (-1 = timeout)</returns>
     private int Receive(int timeout = 5000)
     {
-        int iterations = 0;
-        int maxIterations = timeout * 1000;
+        int waited = 0;
 
-        while (rxBuffer.Count < 1)
+        while (rxBuffer.Count < 1 && waited < timeout)
         {
-            iterations++;
-            if (iterations > maxIterations)
-            {
-                return -1;
-            }
+            TimerManager.Wait(100);
+            waited += 100;
+        }
+
+        if (rxBuffer.Count < 1)
+        {
+            return -1;
         }
 
         var packet = new DHCPPacket(rxBuffer.Dequeue().RawData);
@@ -76,7 +78,7 @@ public class DHCPClient : UdpClient
             }
         }
 
-        return iterations / 1000;
+        return waited;
     }
 
     /// <summary>

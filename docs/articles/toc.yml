@@ -1,14 +1,22 @@
-- name: Plugs
-  href: plugs.md
-- name: Cosmos.Asm.Build
-  href: asm-build.md
-- name: Cosmos.ilc.Build
-  href: ilc-build.md
-- name: Cosmos.Patcher.Build
-  href: patcher-build.md
+- name: Installation (Cosmos VS Code Extension)
+  href: install.md
+- name: Debugging with VSCode and QEMU
+  href: debugging.md
 - name: Kernel Compilation Steps
-  href: kernel-compilation-steps.md
-- name: Testing
-  href: testing.md
+  href: build/kernel-compilation-steps.md
 - name: Kernel Project Layout
   href: kernel-project-layout.md
+- name: Plugs
+  href: plugs.md
+- name: Testing
+  href: testing.md
+- name: Garbage Collector
+  href: garbage-collector.md
+- name: Cosmos.Build.Asm
+  href: build/asm-build.md
+- name: Cosmos.Build.GCC
+  href: build/gcc-build.md
+- name: Cosmos.Build.Patcher
+  href: build/patcher-build.md
+- name: Cosmos.Build.Ilc
+  href: build/ilc-build.md

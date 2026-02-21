@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -24,6 +25,12 @@ public static unsafe partial class ManagedModule
     internal static int s_moduleCount = 0;
     public static TypeManagerHandle[] Modules => s_modules;
     public static int ModuleCount => s_moduleCount;
+
+    /// <summary>
+    /// GC handle of an array with s_moduleCount elements, each representing and array of GC static bases of the types in the module.
+    /// </summary>
+    private static IntPtr s_moduleGCStaticsSpines;
+
 
     [LibraryImport("*", EntryPoint = "GetModules")]
     [SuppressGCTransition]
@@ -73,13 +80,17 @@ public static unsafe partial class ManagedModule
 
         var modules = ModuleHelpers.CreateTypeManagers((nint)modulesptr, new(modulesptr, (int)count), s_pClasslibFunctions, ClasslibFunctionCount);
 
+        var ptr = Memory.RhNewArray(MethodTable.Of<object[][]>(), modules.Length);
+        var gcStaticBaseSpines = Unsafe.AsRef<object[]>(ptr);
+        s_moduleGCStaticsSpines = GarbageCollector.AllocateHandler((GCObject*)ptr, GCHandleType.Normal, UIntPtr.Zero);
+
         for (int i = 0; i < modules.Length; i++)
         {
             Serial.WriteString("[ManagedModule] - Setting TypeManagerSlot for module ");
             Serial.WriteNumber(i);
             Serial.WriteString("\n");
 
-            InitializeGlobalTablesForModule(modules[i], i);
+            InitializeGlobalTablesForModule(modules[i], i, ref gcStaticBaseSpines);
 
             Serial.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");
             RunInitializers(modules[i], ReadyToRunSectionType.EagerCctor);
@@ -98,7 +109,20 @@ public static unsafe partial class ManagedModule
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
 
-    private static void InitializeGlobalTablesForModule(TypeManagerHandle typeManagerHandle, int moduleIndex)
+    public static int GetLoadedModules(TypeManagerHandle[] outputModules)
+    {
+        if (outputModules is not null)
+        {
+            for (int i = 0; i < s_moduleCount && i < outputModules.Length; i++)
+            {
+                outputModules[i] = s_modules[i];
+            }
+        }
+
+        return s_moduleCount;
+    }
+
+    private static void InitializeGlobalTablesForModule(TypeManagerHandle typeManagerHandle, int moduleIndex, ref object[] gcStaticBaseSpines)
     {
         TypeManagerSlot* section;
 
@@ -115,7 +139,22 @@ public static unsafe partial class ManagedModule
             Serial.WriteNumber(moduleIndex);
             Serial.WriteString("\n");
 
-            InitializeStatics(gcStaticBase, length);
+            var spine = InitializeStatics(gcStaticBase, length);
+            ref object rawSpineIndexData = ref MemoryMarshal.GetArrayDataReference(gcStaticBaseSpines);
+            //ref object rawSpineIndexData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(gcStaticBaseSpines).Data);            
+            // Avoid type check
+            //gcStaticBaseSpines[moduleIndex] = spine;
+            Unsafe.Add(ref rawSpineIndexData, moduleIndex) = spine;
+        }
+
+        IntPtr frozenSegmentRegion = typeManager->GetModuleSection(ReadyToRunSectionType.FrozenObjectRegion, out length);
+        if (frozenSegmentRegion != IntPtr.Zero)
+        {
+            if (GarbageCollector.RegisterFrozenSegment(frozenSegmentRegion, (nuint)length, (nuint)length, (nuint)length) == IntPtr.Zero)
+            {
+                ExceptionHelper.FailFast("Failed to register frozen object segment for the module.");
+            }
+
         }
     }
 
@@ -160,9 +199,17 @@ public static unsafe partial class ManagedModule
     }
 
 
-    private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
+    private static unsafe object[] InitializeStatics(IntPtr gcStaticRegionStart, int length)
     {
         byte* gcStaticRegionEnd = ((byte*)gcStaticRegionStart) + length;
+
+
+        //var ptr = Memory.RhNewArray(MethodTable.Of<object[]>(), length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
+        //var spine = Unsafe.AsRef<object[]>(ptr);
+
+        object[] spine = new object[length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))];
+        ref object rawSpineData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(spine).Data);
+        GCHandle.Alloc(spine);
 
         int currentBase = 0;
         for (byte* block = (byte*)gcStaticRegionStart;
@@ -177,7 +224,7 @@ public static unsafe partial class ManagedModule
             {
                 object? obj = null;
                 var pMT = (MethodTable*)(blockAddr & ~GCStaticRegionConstants.Mask);
-                Memory.RhAllocateNewObject(pMT, 0, &obj);
+                Memory.RhAllocateNewObject(pMT, GC_ALLOC_FLAGS.GC_ALLOC_PINNED_OBJECT_HEAP, &obj);
 
                 if (obj is null)
                 {
@@ -198,11 +245,17 @@ public static unsafe partial class ManagedModule
                     MemoryOp.MemMove(destPtr, (byte*)pPreInitDataAddr, (int)rawSize);
                 }
 
+                // Avoid type check
+                Unsafe.Add(ref rawSpineData, currentBase) = obj;
+
                 *pBlock = *(IntPtr*)&obj;
             }
 
             currentBase++;
         }
+
+        return spine;
+
 
         static void* ReadRelPtr32(void* address)
             => (byte*)address + *(int*)address;
@@ -213,9 +266,9 @@ public static unsafe partial class ManagedModule
 internal class RawArrayData
 {
     public uint Length; // Array._numComponents padded to IntPtr
-#if TARGET_64BIT
+                        //#if TARGET_64BIT
     public uint Padding;
-#endif
+    //#endif
     public byte Data;
 }
 
