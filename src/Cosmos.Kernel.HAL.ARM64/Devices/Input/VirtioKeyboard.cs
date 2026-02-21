@@ -369,11 +369,11 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 byte scanCode = LinuxToPS2ScanCode(evt->Code);
                 bool released = evt->Value == 0;
 
-                Serial.Write("[VirtioKeyboard] Key ");
-                Serial.WriteNumber(evt->Code);
-                Serial.Write(" -> scan 0x");
-                Serial.WriteHex(scanCode);
-                Serial.Write(released ? " released\n" : " pressed\n");
+                //Serial.Write("[VirtioKeyboard] Key ");
+                //Serial.WriteNumber(evt->Code);
+                //Serial.Write(" -> scan 0x");
+                //Serial.WriteHex(scanCode);
+                //Serial.Write(released ? " released\n" : " pressed\n");
 
                 // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
                 Instance?.OnKeyPressed?.Invoke(scanCode, released);

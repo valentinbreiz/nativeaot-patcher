@@ -281,9 +281,9 @@ public unsafe class VirtioMouse : MouseDevice
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
 
-        Serial.Write("[VirtioMouse] IRQ! status=0x");
-        Serial.WriteHex(intStatus);
-        Serial.Write("\n");
+        //Serial.Write("[VirtioMouse] IRQ! status=0x");
+        //Serial.WriteHex(intStatus);
+        //Serial.Write("\n");
 
         Instance.ProcessEvents();
     }
