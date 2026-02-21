@@ -2,32 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Rebuild Libraries for x64",
-      "type": "shell",
-      "command": "bash",
-      "args": [
-        ".devcontainer/postCreateCommand.sh",
-        "x64"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Rebuild Libraries for ARM64",
-      "type": "shell",
-      "command": "bash",
-      "args": [
-        ".devcontainer/postCreateCommand.sh",
-        "arm64"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
       "label": "Build x64 DevKernel",
       "type": "shell",
       "command": "dotnet",
