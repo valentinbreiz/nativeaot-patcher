@@ -45,7 +45,6 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Network Tests] Starting test suite\n");
 
-#if ARCH_X64
         // x64 has E1000E network driver
         TR.Start("Network Tests", expectedTests: 10);
 
@@ -69,24 +68,6 @@ public class Kernel : Sys.Kernel
 
         Serial.WriteString("[Network Tests] All tests completed\n");
         TR.Finish();
-#else
-        // ARM64 doesn't have network driver yet - skip all tests
-        TR.Start("Network Tests", expectedTests: 10);
-
-        TR.Skip("Network_DeviceDetected", "ARM64 network driver not implemented");
-        TR.Skip("Network_DeviceReady", "ARM64 network driver not implemented");
-        TR.Skip("Network_StackInitialize", "ARM64 network driver not implemented");
-        TR.Skip("DHCP_AutoConfigure", "ARM64 network driver not implemented");
-        TR.Skip("UDP_SendPacket", "ARM64 network driver not implemented");
-        TR.Skip("UDP_ReceivePacket", "ARM64 network driver not implemented");
-        TR.Skip("TCP_ClientConnect", "ARM64 network driver not implemented");
-        TR.Skip("TCP_ServerAccept", "ARM64 network driver not implemented");
-        TR.Skip("DNS_ClientCreate", "ARM64 network driver not implemented");
-        TR.Skip("DNS_ResolveValentinBzh", "ARM64 network driver not implemented");
-
-        Serial.WriteString("[Network Tests] All tests skipped (ARM64 not supported)\n");
-        TR.Finish();
-#endif
 
         Stop();
     }
@@ -101,7 +82,6 @@ public class Kernel : Sys.Kernel
         Cosmos.Kernel.Kernel.Halt();
     }
 
-#if ARCH_X64
     // ==================== Network Device Tests ====================
 
     private static void TestNetworkDeviceDetected()
@@ -710,5 +690,4 @@ public class Kernel : Sys.Kernel
 
         dnsClient.Close();
     }
-#endif
 }

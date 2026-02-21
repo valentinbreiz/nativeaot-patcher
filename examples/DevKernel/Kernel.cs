@@ -120,7 +120,6 @@ public class Kernel : Sys.Kernel
                     Stop();
                     break;
 
-#if ARCH_X64
                 case "netconfig":
                     ConfigureNetwork();
                     break;
@@ -147,9 +146,6 @@ public class Kernel : Sys.Kernel
                     else
                         PrintError("Usage: dns <domain>");
                     break;
-
-#endif
-
 
                 case "meminfo":
                     ShowMemoryInfo();
@@ -300,14 +296,12 @@ public class Kernel : Sys.Kernel
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
         PrintCommand("halt", "Halt the system");
-#if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
-#endif
     }
 
     private void PrintCommand(string cmd, string description)
@@ -641,7 +635,6 @@ public class Kernel : Sys.Kernel
         }
     }
 
-#if ARCH_X64
     // Network configuration
     private Address? _localIP;
     private Address? _gatewayIP;
@@ -919,7 +912,6 @@ public class Kernel : Sys.Kernel
         dnsClient.Close();
         Console.WriteLine();
     }
-#endif
 
     private void PrintInfo(string message)
     {

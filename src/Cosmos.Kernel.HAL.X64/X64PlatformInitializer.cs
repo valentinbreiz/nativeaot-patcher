@@ -10,7 +10,6 @@ using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Network;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
-using Cosmos.Kernel.HAL.X64.Pci;
 
 namespace Cosmos.Kernel.HAL.X64;
 
@@ -33,10 +32,6 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public void InitializeHardware()
     {
-        // Initialize PCI
-        Serial.WriteString("[X64HAL] Initializing PCI...\n");
-        PciManager.Setup();
-
         // Display ACPI MADT information
         Serial.WriteString("[X64HAL] Displaying ACPI MADT info...\n");
         Acpi.Acpi.DisplayMadtInfo();

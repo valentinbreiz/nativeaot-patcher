@@ -1,10 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices;
-using Cosmos.Kernel.HAL.X64.Pci.Enums;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
-namespace Cosmos.Kernel.HAL.X64.Pci;
+namespace Cosmos.Kernel.HAL.Pci;
 
 public class PciDevice : Device
 {
@@ -33,6 +34,9 @@ public class PciDevice : Device
 
     public const ushort ConfigAddressPort = 0xCF8;
     public const ushort ConfigDataPort = 0xCFC;
+
+    // ARM64 ECAM Base Address (QEMU virt machine VIRT_PCIE_ECAM)
+    private const ulong PciEcamBase = 0x3F000000;
 
     public readonly PciBaseAddressBar[] BaseAddressBar;
 
@@ -115,19 +119,7 @@ public class PciDevice : Device
     /// <returns>ushort value.</returns>
     public static ushort GetHeaderType(ushort bus, ushort slot, ushort function)
     {
-        Serial.WriteString("[PciDevice] GetHeaderType(");
-        Serial.WriteNumber(bus);
-        Serial.WriteString(",");
-        Serial.WriteNumber(slot);
-        Serial.WriteString(",");
-        Serial.WriteNumber(function);
-        Serial.WriteString(") = ");
-        uint xAddr = GetAddressBase(bus, slot, function) | (0xE & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        byte headerType = (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0xE % 4 * 8)) & 0xFF);
-        Serial.WriteNumber(headerType);
-        Serial.WriteString("\n");
-        return headerType;
+        return ReadConfig8(bus, slot, function, (byte)Config.HeaderType);
     }
 
     /// <summary>
@@ -139,112 +131,150 @@ public class PciDevice : Device
     /// <returns>UInt16 value.</returns>
     public static ushort GetVendorId(ushort bus, ushort slot, ushort function)
     {
-        Serial.WriteString("[PciDevice] GetVendorId(");
-        Serial.WriteNumber(bus);
-        Serial.WriteString(",");
-        Serial.WriteNumber(slot);
-        Serial.WriteString(") = ");
-        uint xAddr = GetAddressBase(bus, slot, function) | (0x0 & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        ushort vendorId = (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (0x0 % 4 * 8)) & 0xFFFF);
-        Serial.WriteNumber(vendorId);
-        Serial.WriteString("\n");
-        return vendorId;
+        return ReadConfig16(bus, slot, function, (byte)Config.VendorId);
     }
 
     #region IOReadWrite
 
-    /// <summary>
-    /// Read register - 8-bit.
-    /// </summary>
-    /// <param name="aRegister">A register to read.</param>
-    /// <returns>byte value.</returns>
     public byte ReadRegister8(byte aRegister)
     {
-        Serial.WriteString("[PciDevice] ReadRegister8(");
-        Serial.WriteNumber(aRegister);
-        Serial.WriteString(") =");
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        byte value = (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFF);
-        Serial.WriteNumber(value);
-        Serial.WriteString("\n");
-        return value;
+        return ReadConfig8((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister);
     }
 
     public void WriteRegister8(byte aRegister, byte value)
     {
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteByte(ConfigDataPort, value);
+        WriteConfig8((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister, value);
     }
 
-    /// <summary>
-    /// Read register 16.
-    /// </summary>
-    /// <param name="aRegister">A register.</param>
-    /// <returns>UInt16 value.</returns>
     public ushort ReadRegister16(byte aRegister)
     {
-        Serial.WriteString("[PciDevice] ReadRegister16(");
-        Serial.WriteNumber(aRegister);
-        Serial.WriteString(") =");
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        ushort value = (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (aRegister % 4 * 8)) & 0xFFFF);
-        Serial.WriteNumber(value);
-        Serial.WriteString("\n");
-        return value;
+        return ReadConfig16((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister);
     }
 
-    /// <summary>
-    /// Write register 16.
-    /// </summary>
-    /// <param name="aRegister">A register.</param>
-    /// <param name="value">A value.</param>
     public void WriteRegister16(byte aRegister, ushort value)
     {
-        Serial.WriteString("[PciDevice] WriteRegister16(");
-        Serial.WriteNumber(aRegister);
-        Serial.WriteString(",");
-        Serial.WriteNumber(value);
-        Serial.WriteString(")\n");
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteWord(ConfigDataPort, value);
+        WriteConfig16((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister, value);
     }
 
     public uint ReadRegister32(byte aRegister)
     {
-        Serial.WriteString("[PciDevice] ReadRegister32(");
-        Serial.WriteNumber(aRegister);
-        Serial.WriteString(") =");
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
-        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        uint value = PlatformHAL.PortIO.ReadDWord(ConfigDataPort);
-        Serial.WriteNumber(value);
-        Serial.WriteString("\n");
-        return value;
+        return ReadConfig32((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister);
     }
 
     public void WriteRegister32(byte aRegister, uint value)
     {
-        uint xAddr = GetAddressBase(Bus, Slot, Function) | (uint)(aRegister & 0xFC);
+        WriteConfig32((ushort)Bus, (ushort)Slot, (ushort)Function, aRegister, value);
+    }
+
+    #endregion
+
+    #region ConfigSpaceAccess
+
+    private static byte ReadConfig8(ushort bus, ushort slot, ushort func, byte offset)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        return Native.MMIO.Read8(addr);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
+        return (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % 4 * 8)) & 0xFF);
+#endif
+    }
+
+    private static void WriteConfig8(ushort bus, ushort slot, ushort func, byte offset, byte value)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        Native.MMIO.Write8(addr, value);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
+        PlatformHAL.PortIO.WriteByte(ConfigDataPort, value);
+#endif
+    }
+
+    private static bool _firstAccessLogged = false;
+
+    private static ushort ReadConfig16(ushort bus, ushort slot, ushort func, byte offset)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        if (!_firstAccessLogged)
+        {
+            Serial.WriteString("[PciDevice] First ECAM Read: Bus ");
+            Serial.WriteNumber(bus);
+            Serial.WriteString(" Slot ");
+            Serial.WriteNumber(slot);
+            Serial.WriteString(" Func ");
+            Serial.WriteNumber(func);
+            Serial.WriteString(" Offset ");
+            Serial.WriteNumber(offset);
+            Serial.WriteString(" -> Addr 0x");
+            Serial.WriteHex(addr);
+            Serial.WriteString("\n");
+            _firstAccessLogged = true;
+        }
+        return Native.MMIO.Read16(addr);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
+        return (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % 4 * 8)) & 0xFFFF);
+#endif
+    }
+
+    private static void WriteConfig16(ushort bus, ushort slot, ushort func, byte offset, ushort value)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        Native.MMIO.Write16(addr, value);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
+        PlatformHAL.PortIO.WriteWord(ConfigDataPort, value);
+#endif
+    }
+
+    private static uint ReadConfig32(ushort bus, ushort slot, ushort func, byte offset)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        return Native.MMIO.Read32(addr);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
+        return PlatformHAL.PortIO.ReadDWord(ConfigDataPort);
+#endif
+    }
+
+    private static void WriteConfig32(ushort bus, ushort slot, ushort func, byte offset, uint value)
+    {
+#if ARCH_ARM64
+        ulong addr = GetEcamAddress(bus, slot, func, offset);
+        Native.MMIO.Write32(addr, value);
+#else
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
         PlatformHAL.PortIO.WriteDWord(ConfigDataPort, value);
+#endif
     }
 
     #endregion
 
     /// <summary>
-    /// Get address base.
+    /// Get address base for x86 Configuration Mechanism #1.
     /// </summary>
-    /// <param name="aBus">A bus.</param>
-    /// <param name="aSlot">A slot.</param>
-    /// <param name="aFunction">A function.</param>
-    /// <returns>UInt32 value.</returns>
-    protected static uint GetAddressBase(uint aBus, uint aSlot, uint aFunction) =>
+    private static uint GetAddressBase(uint aBus, uint aSlot, uint aFunction) =>
         0x80000000 | (aBus << 16) | ((aSlot & 0x1F) << 11) | ((aFunction & 0x07) << 8);
+
+    /// <summary>
+    /// Get ECAM address for ARM64.
+    /// </summary>
+    private static ulong GetEcamAddress(ushort bus, ushort slot, ushort func, byte offset)
+    {
+        // ECAM Base + (Bus << 20) + (Device << 15) + (Function << 12) + Offset
+        return PciEcamBase + ((ulong)bus << 20) + ((ulong)slot << 15) + ((ulong)func << 12) + offset;
+    }
 
     /// <summary>
     /// Enable memory.

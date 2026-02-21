@@ -1,9 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.HAL.X64.Pci.Enums;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
-namespace Cosmos.Kernel.HAL.X64.Pci;
+namespace Cosmos.Kernel.HAL.Pci;
 
 public class PciManager
 {
@@ -65,8 +65,11 @@ public class PciManager
         {
             Serial.WriteString("[PciManager] CheckBus - ");
             Serial.WriteNumber(device);
+            ushort vendorId = PciDevice.GetVendorId(xBus, device, 0x0);
+            Serial.WriteString(" VID: 0x");
+            Serial.WriteHex(vendorId);
             Serial.WriteString("\n");
-            if (PciDevice.GetVendorId(xBus, device, 0x0) == 0xFFFF)
+            if (vendorId == 0xFFFF)
             {
                 continue;
             }

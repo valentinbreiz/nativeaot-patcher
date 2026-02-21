@@ -9,6 +9,8 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.System.Keyboard;
@@ -79,7 +81,11 @@ public class Kernel
         Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
         ExceptionHandler.Initialize();
 
-        // Initialize platform-specific hardware (PCI, ACPI, APIC, GIC, timers, etc.)
+        // Initialize PCI
+        Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+        PciManager.Setup();
+
+        // Initialize platform-specific hardware (ACPI, APIC, GIC, timers, etc.)
         Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
         initializer.InitializeHardware();
 

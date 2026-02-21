@@ -9,7 +9,7 @@ using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.HAL.X64.Pci;
+using Cosmos.Kernel.HAL.Pci;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Network;
 

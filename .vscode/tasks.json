@@ -161,7 +161,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "qemu-system-aarch64 -M virt -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
+        "qemu-system-aarch64 -M virt,highmem=off -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets-arm64.pcap -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {
@@ -247,52 +247,6 @@
         "-object", "filter-dump,id=dump0,netdev=net0,file=packets.pcap",
         "-no-reboot",
         "-no-shutdown"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Run QEMU ARM64 DevKernel",
-      "type": "shell",
-      "dependsOn": "Build ARM64 DevKernel",
-      "command": "qemu-system-aarch64",
-      "args": [
-        "-M", "virt",
-        "-cpu", "cortex-a53",
-        "-m", "1G",
-        "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
-        "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso",
-        "-device", "virtio-scsi-pci",
-        "-device", "scsi-cd,drive=cd,bootindex=0",
-        "-device", "virtio-keyboard-device",
-        "-device", "ramfb",
-        "-display", "gtk,show-cursor=on",
-        "-serial", "stdio"
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
-      "label": "Run QEMU macOS ARM64 DevKernel",
-      "type": "shell",
-      "dependsOn": "Build macOS ARM64 DevKernel",
-      "command": "qemu-system-aarch64",
-      "args": [
-        "-M", "virt",
-        "-cpu", "cortex-a53",
-        "-m", "1G",
-        "-bios", "/usr/share/AAVMF/AAVMF_CODE.fd",
-        "-drive", "if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_osx-arm64/cosmos/DevKernel.iso",
-        "-device", "virtio-scsi-pci",
-        "-device", "scsi-cd,drive=cd,bootindex=0",
-        "-device", "virtio-keyboard-device",
-        "-device", "ramfb",
-        "-display", "gtk,show-cursor=on",
-        "-serial", "stdio"
       ],
       "problemMatcher": [],
       "options": {
