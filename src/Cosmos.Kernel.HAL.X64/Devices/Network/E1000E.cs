@@ -233,6 +233,11 @@ public class E1000E : PciDevice, INetworkDevice
     }
 
     /// <summary>
+    /// INetworkDevice.Initialize implementation.
+    /// </summary>
+    void INetworkDevice.Initialize() => InitializeNetwork();
+
+    /// <summary>
     /// Initialize the E1000E network device.
     /// </summary>
     public unsafe void InitializeNetwork()
@@ -293,11 +298,6 @@ public class E1000E : PciDevice, INetworkDevice
         _networkInitialized = true;
         Serial.Write("[E1000E] Initialized\n");
     }
-
-    /// <summary>
-    /// INetworkDevice.Initialize implementation.
-    /// </summary>
-    void INetworkDevice.Initialize() => InitializeNetwork();
 
     /// <summary>
     /// Reset the device.

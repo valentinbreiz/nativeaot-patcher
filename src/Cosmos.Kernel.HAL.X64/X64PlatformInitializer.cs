@@ -74,7 +74,7 @@ public class X64PlatformInitializer : IPlatformInitializer
             if (_networkDevice != null)
             {
                 Serial.WriteString("[X64HAL] E1000E device found, initializing...\n");
-                _networkDevice.InitializeNetwork();
+                _networkDevice.Initialize();
                 _networkDevice.RegisterIRQHandler();
             }
             else
