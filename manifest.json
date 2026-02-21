@@ -1412,6 +1412,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.yml\" sourcestartlinenumber=\"1\">VirtIO Network Device Driver for ARM64 using MMIO transport.\nWorks with QEMU virt machine virtio-net-device.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml",
       "output": {
         ".html": {
@@ -2112,6 +2140,272 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.DeviceString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.DeviceString.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.DeviceString",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.ClassId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.ClassId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.ClassId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.Config.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.Config.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.Config",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.DeviceId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.DeviceId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.DeviceId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciBist.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciBist.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.PciBist",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciCommand.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciCommand.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.PciCommand",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciHeaderType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciHeaderType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.PciHeaderType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciInterruptPin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.PciInterruptPin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.PciInterruptPin",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.ProgramIf.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.ProgramIf.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.ProgramIf",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.SubclassId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.SubclassId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.SubclassId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.VendorId.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.VendorId.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums.VendorId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.Enums.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.Enums",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciBaseAddressBar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciBaseAddressBar.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciBaseAddressBar",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciDevice",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceBridge.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceBridge.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciDeviceBridge",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceCardBus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceCardBus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciDeviceCardBus",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceNormal.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciDeviceNormal.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciDeviceNormal",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.PciManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.PciManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.PlatformHAL.yml",
       "output": {
         ".html": {
@@ -2430,272 +2724,6 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.DeviceString.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.DeviceString.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.DeviceString",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.ClassId",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.Config.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.Config.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.Config",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.DeviceId",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciBist",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciCommand",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciHeaderType",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.PciInterruptPin",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.ProgramIf",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.SubclassId",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums.VendorId",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.Enums.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.Enums",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciBaseAddressBar",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDevice.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDevice.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDevice",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceBridge",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceCardBus",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciDeviceNormal",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.PciManager.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci.PciManager",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Pci.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Pci",
       "Summary": null
     },
     {
