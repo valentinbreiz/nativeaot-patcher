@@ -1398,20 +1398,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.yml\" sourcestartlinenumber=\"1\">Virtio-input mouse driver for ARM64.\nProvides mouse input via virtio-input device on QEMU virt machine.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.yml",
       "output": {
         ".html": {
@@ -1857,34 +1843,6 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all keyboard devices.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Devices.Input.MouseDevice",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all mouse devices.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler.yml\" sourcestartlinenumber=\"1\">Delegate for handling mouse events.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -2658,20 +2616,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.yml\" sourcestartlinenumber=\"1\">PS/2 Mouse driver.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.yml",
       "output": {
         ".html": {
@@ -3330,34 +3274,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Mouse.MouseManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Mouse.MouseManager.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Mouse.MouseManager",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Mouse.MouseManager.yml\" sourcestartlinenumber=\"1\">Manages mouse input from physical mouse devices.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Mouse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Mouse.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Mouse",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.ARP.ARPPacket.yml",
       "output": {
         ".html": {
@@ -3956,6 +3872,34 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Internal.Runtime.ClassLibFunctionId",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.CompilerHelpers.LibraryInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.CompilerHelpers.LibraryInitializer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Internal.Runtime.CompilerHelpers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Internal.Runtime.CompilerHelpers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Internal.Runtime.CompilerHelpers",
       "Summary": null
     },
     {

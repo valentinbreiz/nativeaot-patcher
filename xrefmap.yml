@@ -641,19 +641,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled
   nameWithType: CosmosFeatures.KeyboardEnabled
-- uid: Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled
-  name: MouseEnabled
-  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_MouseEnabled
-  commentId: P:Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled
-  fullName: Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled
-  nameWithType: CosmosFeatures.MouseEnabled
-- uid: Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled*
-  name: MouseEnabled
-  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_MouseEnabled_
-  commentId: Overload:Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled
-  isSpec: "True"
-  fullName: Cosmos.Kernel.Core.CosmosFeatures.MouseEnabled
-  nameWithType: CosmosFeatures.MouseEnabled
 - uid: Cosmos.Kernel.Core.CosmosFeatures.NetworkEnabled
   name: NetworkEnabled
   href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_NetworkEnabled
@@ -6504,19 +6491,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetKeyboardDevices
   nameWithType: ARM64PlatformInitializer.GetKeyboardDevices
-- uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices
-  name: GetMouseDevices()
-  href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_GetMouseDevices
-  commentId: M:Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices
-  fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices()
-  nameWithType: ARM64PlatformInitializer.GetMouseDevices()
-- uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices*
-  name: GetMouseDevices
-  href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_GetMouseDevices_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetMouseDevices
-  nameWithType: ARM64PlatformInitializer.GetMouseDevices
 - uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.GetNetworkDevice
   name: GetNetworkDevice()
   href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_GetNetworkDevice
@@ -7080,116 +7054,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds
   nameWithType: VirtioKeyboard.UpdateLeds
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse
-  name: VirtioMouse
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html
-  commentId: T:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse
-  nameWithType: VirtioMouse
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable
-  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable
-  nameWithType: VirtioMouse.DataAvailable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable*
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable
-  nameWithType: VirtioMouse.DataAvailable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable
-  name: Disable()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable()
-  nameWithType: VirtioMouse.Disable()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable*
-  name: Disable
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable
-  nameWithType: VirtioMouse.Disable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable
-  name: Enable()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable()
-  nameWithType: VirtioMouse.Enable()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable*
-  name: Enable
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable
-  nameWithType: VirtioMouse.Enable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  name: FindAndCreate()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate()
-  nameWithType: VirtioMouse.FindAndCreate()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate*
-  name: FindAndCreate
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  nameWithType: VirtioMouse.FindAndCreate
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
-  name: Initialize()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize()
-  nameWithType: VirtioMouse.Initialize()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize*
-  name: Initialize
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
-  nameWithType: VirtioMouse.Initialize
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance
-  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  nameWithType: VirtioMouse.Instance
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance*
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  nameWithType: VirtioMouse.Instance
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
-  name: Poll()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll()
-  nameWithType: VirtioMouse.Poll()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll*
-  name: Poll
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
-  nameWithType: VirtioMouse.Poll
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  name: RegisterIRQHandler()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler()
-  nameWithType: VirtioMouse.RegisterIRQHandler()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler*
-  name: RegisterIRQHandler
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  nameWithType: VirtioMouse.RegisterIRQHandler
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network
   name: Cosmos.Kernel.HAL.ARM64.Devices.Network
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.html
@@ -9267,161 +9131,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.WaitForKey
   nameWithType: KeyboardDevice.WaitForKey
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice
-  name: MouseDevice
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html
-  commentId: T:Cosmos.Kernel.HAL.Devices.Input.MouseDevice
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice
-  nameWithType: MouseDevice
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_DataAvailable
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable
-  nameWithType: MouseDevice.DataAvailable
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable*
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_DataAvailable_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.DataAvailable
-  nameWithType: MouseDevice.DataAvailable
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable
-  name: Disable()
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Disable
-  commentId: M:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable()
-  nameWithType: MouseDevice.Disable()
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable*
-  name: Disable
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Disable_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Disable
-  nameWithType: MouseDevice.Disable
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable
-  name: Enable()
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Enable
-  commentId: M:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable()
-  nameWithType: MouseDevice.Enable()
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable*
-  name: Enable
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Enable_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Enable
-  nameWithType: MouseDevice.Enable
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize
-  name: Initialize()
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Initialize
-  commentId: M:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize()
-  nameWithType: MouseDevice.Initialize()
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize*
-  name: Initialize
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Initialize_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Initialize
-  nameWithType: MouseDevice.Initialize
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton
-  name: LeftButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton
-  nameWithType: MouseDevice.LeftButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton*
-  name: LeftButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.LeftButton
-  nameWithType: MouseDevice.LeftButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton
-  name: MiddleButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton
-  nameWithType: MouseDevice.MiddleButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton*
-  name: MiddleButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.MiddleButton
-  nameWithType: MouseDevice.MiddleButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent
-  name: OnMouseEvent
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent
-  nameWithType: MouseDevice.OnMouseEvent
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent*
-  name: OnMouseEvent
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.OnMouseEvent
-  nameWithType: MouseDevice.OnMouseEvent
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll
-  name: Poll()
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Poll
-  commentId: M:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll()
-  nameWithType: MouseDevice.Poll()
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll*
-  name: Poll
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Poll_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Poll
-  nameWithType: MouseDevice.Poll
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
-  name: RightButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
-  nameWithType: MouseDevice.RightButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton*
-  name: RightButton
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
-  nameWithType: MouseDevice.RightButton
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
-  name: X
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
-  nameWithType: MouseDevice.X
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X*
-  name: X
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
-  nameWithType: MouseDevice.X
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y
-  name: Y
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y
-  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y
-  nameWithType: MouseDevice.Y
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y*
-  name: Y
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y_
-  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.Y
-  nameWithType: MouseDevice.Y
-- uid: Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler
-  name: MouseEventHandler
-  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler.html
-  commentId: T:Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler
-  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseEventHandler
-  nameWithType: MouseEventHandler
 - uid: Cosmos.Kernel.HAL.Devices.Network
   name: Cosmos.Kernel.HAL.Devices.Network
   href: api/Cosmos.Kernel.HAL.Devices.Network.html
@@ -10152,19 +9861,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.MiddleButton
   nameWithType: IMouseDevice.MiddleButton
-- uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll
-  name: Poll()
-  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_Poll
-  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll
-  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll()
-  nameWithType: IMouseDevice.Poll()
-- uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll*
-  name: Poll
-  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_Poll_
-  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll
-  nameWithType: IMouseDevice.Poll
 - uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.RightButton
   name: RightButton
   href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_RightButton
@@ -10657,19 +10353,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetKeyboardDevices
   nameWithType: IPlatformInitializer.GetKeyboardDevices
-- uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices
-  name: GetMouseDevices()
-  href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_GetMouseDevices
-  commentId: M:Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices
-  fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices()
-  nameWithType: IPlatformInitializer.GetMouseDevices()
-- uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices*
-  name: GetMouseDevices
-  href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_GetMouseDevices_
-  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices
-  nameWithType: IPlatformInitializer.GetMouseDevices
 - uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetNetworkDevice
   name: GetNetworkDevice()
   href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_GetNetworkDevice
@@ -13693,19 +13376,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetKeyboardDevices
   nameWithType: PS2Controller.GetKeyboardDevices
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices
-  name: GetMouseDevices()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Controller_GetMouseDevices
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices()
-  nameWithType: PS2Controller.GetMouseDevices()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices*
-  name: GetMouseDevices
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Controller_GetMouseDevices_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.GetMouseDevices
-  nameWithType: PS2Controller.GetMouseDevices
 - uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.Initialize(System.Boolean)
   name: Initialize(bool)
   href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Controller_Initialize_System_Boolean_
@@ -13985,103 +13655,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Keyboard.UpdateLeds
   nameWithType: PS2Keyboard.UpdateLeds
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse
-  name: PS2Mouse
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html
-  commentId: T:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse
-  nameWithType: PS2Mouse
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DataAvailable
-  commentId: P:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable
-  nameWithType: PS2Mouse.DataAvailable
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable*
-  name: DataAvailable
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DataAvailable_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DataAvailable
-  nameWithType: PS2Mouse.DataAvailable
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable
-  name: Disable()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Disable
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable()
-  nameWithType: PS2Mouse.Disable()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable*
-  name: Disable
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Disable_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Disable
-  nameWithType: PS2Mouse.Disable
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer
-  name: DrainBuffer()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DrainBuffer
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer()
-  nameWithType: PS2Mouse.DrainBuffer()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer*
-  name: DrainBuffer
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_DrainBuffer_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.DrainBuffer
-  nameWithType: PS2Mouse.DrainBuffer
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable
-  name: Enable()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Enable
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable()
-  nameWithType: PS2Mouse.Enable()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable*
-  name: Enable
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Enable_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Enable
-  nameWithType: PS2Mouse.Enable
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize
-  name: Initialize()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Initialize
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize()
-  nameWithType: PS2Mouse.Initialize()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize*
-  name: Initialize
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_Initialize_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.Initialize
-  nameWithType: PS2Mouse.Initialize
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port
-  name: PS2Port
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_PS2Port
-  commentId: P:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port
-  nameWithType: PS2Mouse.PS2Port
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port*
-  name: PS2Port
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_PS2Port_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.PS2Port
-  nameWithType: PS2Mouse.PS2Port
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler
-  name: RegisterIRQHandler()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_RegisterIRQHandler
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler()
-  nameWithType: PS2Mouse.RegisterIRQHandler()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler*
-  name: RegisterIRQHandler
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.html#Cosmos_Kernel_HAL_X64_Devices_Input_PS2Mouse_RegisterIRQHandler_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Mouse.RegisterIRQHandler
-  nameWithType: PS2Mouse.RegisterIRQHandler
 - uid: Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports
   name: PS2Ports
   href: api/Cosmos.Kernel.HAL.X64.Devices.Input.PS2Ports.html
@@ -14912,19 +14485,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetKeyboardDevices
   nameWithType: X64PlatformInitializer.GetKeyboardDevices
-- uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices
-  name: GetMouseDevices()
-  href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_GetMouseDevices
-  commentId: M:Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices
-  fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices()
-  nameWithType: X64PlatformInitializer.GetMouseDevices()
-- uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices*
-  name: GetMouseDevices
-  href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_GetMouseDevices_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetMouseDevices
-  nameWithType: X64PlatformInitializer.GetMouseDevices
 - uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetNetworkDevice
   name: GetNetworkDevice()
   href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_GetNetworkDevice
@@ -19108,206 +18668,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.InitKeys
   nameWithType: USStandardLayout.InitKeys
-- uid: Cosmos.Kernel.System.Mouse
-  name: Cosmos.Kernel.System.Mouse
-  href: api/Cosmos.Kernel.System.Mouse.html
-  commentId: N:Cosmos.Kernel.System.Mouse
-  fullName: Cosmos.Kernel.System.Mouse
-  nameWithType: Cosmos.Kernel.System.Mouse
-- uid: Cosmos.Kernel.System.Mouse.MouseManager
-  name: MouseManager
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html
-  commentId: T:Cosmos.Kernel.System.Mouse.MouseManager
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager
-  nameWithType: MouseManager
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Initialize
-  name: Initialize()
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Initialize
-  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.Initialize
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Initialize()
-  nameWithType: MouseManager.Initialize()
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Initialize*
-  name: Initialize
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Initialize_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.Initialize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Initialize
-  nameWithType: MouseManager.Initialize
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled
-  name: IsEnabled
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_IsEnabled
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled
-  nameWithType: MouseManager.IsEnabled
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled*
-  name: IsEnabled
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_IsEnabled_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled
-  nameWithType: MouseManager.IsEnabled
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.LeftButton
-  name: LeftButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_LeftButton
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.LeftButton
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.LeftButton
-  nameWithType: MouseManager.LeftButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.LeftButton*
-  name: LeftButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_LeftButton_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.LeftButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.LeftButton
-  nameWithType: MouseManager.LeftButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton
-  name: MiddleButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_MiddleButton
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton
-  nameWithType: MouseManager.MiddleButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton*
-  name: MiddleButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_MiddleButton_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton
-  nameWithType: MouseManager.MiddleButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Poll
-  name: Poll()
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Poll
-  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.Poll
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Poll()
-  nameWithType: MouseManager.Poll()
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Poll*
-  name: Poll
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Poll_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.Poll
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Poll
-  nameWithType: MouseManager.Poll
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice)
-  name: RegisterMouse(IMouseDevice)
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_RegisterMouse_Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_
-  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice)
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice)
-  nameWithType: MouseManager.RegisterMouse(IMouseDevice)
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse*
-  name: RegisterMouse
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_RegisterMouse_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse
-  nameWithType: MouseManager.RegisterMouse
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.RightButton
-  name: RightButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_RightButton
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.RightButton
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.RightButton
-  nameWithType: MouseManager.RightButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.RightButton*
-  name: RightButton
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_RightButton_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.RightButton
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.RightButton
-  nameWithType: MouseManager.RightButton
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight
-  name: ScreenHeight
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScreenHeight
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight
-  nameWithType: MouseManager.ScreenHeight
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight*
-  name: ScreenHeight
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScreenHeight_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight
-  nameWithType: MouseManager.ScreenHeight
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
-  name: ScreenWidth
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScreenWidth
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
-  nameWithType: MouseManager.ScreenWidth
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth*
-  name: ScreenWidth
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScreenWidth_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
-  nameWithType: MouseManager.ScreenWidth
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
-  name: Sensitivity
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Sensitivity
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
-  nameWithType: MouseManager.Sensitivity
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity*
-  name: Sensitivity
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Sensitivity_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
-  nameWithType: MouseManager.Sensitivity
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.SetPosition(System.Int32,System.Int32)
-  name: SetPosition(int, int)
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_SetPosition_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.SetPosition(System.Int32,System.Int32)
-  name.vb: SetPosition(Integer, Integer)
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.SetPosition(int, int)
-  fullName.vb: Cosmos.Kernel.System.Mouse.MouseManager.SetPosition(Integer, Integer)
-  nameWithType: MouseManager.SetPosition(int, int)
-  nameWithType.vb: MouseManager.SetPosition(Integer, Integer)
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.SetPosition*
-  name: SetPosition
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_SetPosition_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.SetPosition
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.SetPosition
-  nameWithType: MouseManager.SetPosition
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize(System.Int32,System.Int32)
-  name: SetScreenSize(int, int)
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_SetScreenSize_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize(System.Int32,System.Int32)
-  name.vb: SetScreenSize(Integer, Integer)
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize(int, int)
-  fullName.vb: Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize(Integer, Integer)
-  nameWithType: MouseManager.SetScreenSize(int, int)
-  nameWithType.vb: MouseManager.SetScreenSize(Integer, Integer)
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize*
-  name: SetScreenSize
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_SetScreenSize_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize
-  nameWithType: MouseManager.SetScreenSize
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.X
-  name: X
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_X
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.X
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.X
-  nameWithType: MouseManager.X
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.X*
-  name: X
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_X_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.X
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.X
-  nameWithType: MouseManager.X
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Y
-  name: Y
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Y
-  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.Y
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Y
-  nameWithType: MouseManager.Y
-- uid: Cosmos.Kernel.System.Mouse.MouseManager.Y*
-  name: Y
-  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Y_
-  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.Y
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Mouse.MouseManager.Y
-  nameWithType: MouseManager.Y
 - uid: Cosmos.Kernel.System.Network
   name: Cosmos.Kernel.System.Network
   href: api/Cosmos.Kernel.System.Network.html
@@ -22454,6 +21814,31 @@ references:
   commentId: F:Internal.Runtime.ClassLibFunctionId.ThreadEntryPoint
   fullName: Internal.Runtime.ClassLibFunctionId.ThreadEntryPoint
   nameWithType: ClassLibFunctionId.ThreadEntryPoint
+- uid: Internal.Runtime.CompilerHelpers
+  name: Internal.Runtime.CompilerHelpers
+  href: api/Internal.Runtime.CompilerHelpers.html
+  commentId: N:Internal.Runtime.CompilerHelpers
+  fullName: Internal.Runtime.CompilerHelpers
+  nameWithType: Internal.Runtime.CompilerHelpers
+- uid: Internal.Runtime.CompilerHelpers.LibraryInitializer
+  name: LibraryInitializer
+  href: api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html
+  commentId: T:Internal.Runtime.CompilerHelpers.LibraryInitializer
+  fullName: Internal.Runtime.CompilerHelpers.LibraryInitializer
+  nameWithType: LibraryInitializer
+- uid: Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary
+  name: InitializeLibrary()
+  href: api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html#Internal_Runtime_CompilerHelpers_LibraryInitializer_InitializeLibrary
+  commentId: M:Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary
+  fullName: Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary()
+  nameWithType: LibraryInitializer.InitializeLibrary()
+- uid: Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary*
+  name: InitializeLibrary
+  href: api/Internal.Runtime.CompilerHelpers.LibraryInitializer.html#Internal_Runtime_CompilerHelpers_LibraryInitializer_InitializeLibrary_
+  commentId: Overload:Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary
+  isSpec: "True"
+  fullName: Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary
+  nameWithType: LibraryInitializer.InitializeLibrary
 - uid: Internal.Runtime.ReadyToRunHeader
   name: ReadyToRunHeader
   href: api/Internal.Runtime.ReadyToRunHeader.html
