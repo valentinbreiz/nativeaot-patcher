@@ -945,40 +945,41 @@ public class Kernel : Sys.Kernel
         Console.ResetColor();
     }
 
+    // Static cursor pattern - allocated once, reused every frame
+    private static readonly int[] s_cursorPattern = new int[]
+    {
+        // Row by row pattern for arrow cursor
+        // Pattern: 1 = border (black), 2 = fill (white), 0 = transparent
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 2, 1, 0, 0, 0, 0, 0, 0, 0,
+        1, 2, 2, 1, 0, 0, 0, 0, 0, 0,
+        1, 2, 2, 2, 1, 0, 0, 0, 0, 0,
+        1, 2, 2, 2, 2, 1, 0, 0, 0, 0,
+        1, 2, 2, 2, 2, 2, 1, 0, 0, 0,
+        1, 2, 2, 2, 2, 2, 2, 1, 0, 0,
+        1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
+        1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+        1, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 2, 2, 1, 2, 2, 1, 0, 0, 0,
+        1, 2, 1, 0, 1, 2, 2, 1, 0, 0,
+        1, 1, 0, 0, 1, 2, 2, 1, 0, 0,
+        1, 0, 0, 0, 0, 1, 2, 2, 1, 0,
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
+    };
+
+    private const int CursorWidth = 10;
+    private const int CursorHeight = 16;
+
     /// <summary>
     /// Draws a simple arrow mouse cursor.
     /// </summary>
     private static void DrawMouseCursor(Canvas canvas, int x, int y)
     {
-        // Simple arrow cursor (10x16 pixels)
-        // Pattern: 1 = white, 0 = transparent
-        int[] cursor = new int[]
-        {
-            // Row by row pattern for arrow cursor
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-            1, 2, 1, 0, 0, 0, 0, 0, 0, 0,
-            1, 2, 2, 1, 0, 0, 0, 0, 0, 0,
-            1, 2, 2, 2, 1, 0, 0, 0, 0, 0,
-            1, 2, 2, 2, 2, 1, 0, 0, 0, 0,
-            1, 2, 2, 2, 2, 2, 1, 0, 0, 0,
-            1, 2, 2, 2, 2, 2, 2, 1, 0, 0,
-            1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-            1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-            1, 2, 2, 2, 2, 2, 1, 1, 1, 1,
-            1, 2, 2, 1, 2, 2, 1, 0, 0, 0,
-            1, 2, 1, 0, 1, 2, 2, 1, 0, 0,
-            1, 1, 0, 0, 1, 2, 2, 1, 0, 0,
-            1, 0, 0, 0, 0, 1, 2, 2, 1, 0,
-            0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
-        };
 
-        int cursorWidth = 10;
-        int cursorHeight = 16;
-
-        for (int cy = 0; cy < cursorHeight; cy++)
+        for (int cy = 0; cy < CursorHeight; cy++)
         {
-            for (int cx = 0; cx < cursorWidth; cx++)
+            for (int cx = 0; cx < CursorWidth; cx++)
             {
                 int px = x + cx;
                 int py = y + cy;
@@ -987,7 +988,7 @@ public class Kernel : Sys.Kernel
                 if (px < 0 || px >= canvas.Mode.Width || py < 0 || py >= canvas.Mode.Height)
                     continue;
 
-                int pixel = cursor[cy * cursorWidth + cx];
+                int pixel = s_cursorPattern[cy * CursorWidth + cx];
                 if (pixel == 1)
                 {
                     // Border (black)
