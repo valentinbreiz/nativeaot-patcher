@@ -172,6 +172,9 @@ public class Kernel : Sys.Kernel
 
                     Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
 
+                    // Set up mouse for cursor
+                    Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
+
                     int x = 10;
                     int y = 10;
                     int lineHeight = font.Height + 2;
@@ -242,6 +245,9 @@ public class Kernel : Sys.Kernel
                         rowY += lineHeight * 2;
 
                         canvas.DrawString("FPS: " + fps, font, Color.Yellow, x, rowY);
+
+                        // Draw mouse cursor
+                        DrawMouseCursor(canvas, Cosmos.Kernel.System.Mouse.MouseManager.X, Cosmos.Kernel.System.Mouse.MouseManager.Y);
 
                         if (frames % 100 == 0)
                         {
@@ -937,5 +943,63 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(message);
         Console.ResetColor();
+    }
+
+    /// <summary>
+    /// Draws a simple arrow mouse cursor.
+    /// </summary>
+    private static void DrawMouseCursor(Canvas canvas, int x, int y)
+    {
+        // Simple arrow cursor (10x16 pixels)
+        // Pattern: 1 = white, 0 = transparent
+        int[] cursor = new int[]
+        {
+            // Row by row pattern for arrow cursor
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 2, 1, 0, 0, 0, 0, 0, 0, 0,
+            1, 2, 2, 1, 0, 0, 0, 0, 0, 0,
+            1, 2, 2, 2, 1, 0, 0, 0, 0, 0,
+            1, 2, 2, 2, 2, 1, 0, 0, 0, 0,
+            1, 2, 2, 2, 2, 2, 1, 0, 0, 0,
+            1, 2, 2, 2, 2, 2, 2, 1, 0, 0,
+            1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
+            1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+            1, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+            1, 2, 2, 1, 2, 2, 1, 0, 0, 0,
+            1, 2, 1, 0, 1, 2, 2, 1, 0, 0,
+            1, 1, 0, 0, 1, 2, 2, 1, 0, 0,
+            1, 0, 0, 0, 0, 1, 2, 2, 1, 0,
+            0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
+        };
+
+        int cursorWidth = 10;
+        int cursorHeight = 16;
+
+        for (int cy = 0; cy < cursorHeight; cy++)
+        {
+            for (int cx = 0; cx < cursorWidth; cx++)
+            {
+                int px = x + cx;
+                int py = y + cy;
+
+                // Bounds check
+                if (px < 0 || px >= canvas.Mode.Width || py < 0 || py >= canvas.Mode.Height)
+                    continue;
+
+                int pixel = cursor[cy * cursorWidth + cx];
+                if (pixel == 1)
+                {
+                    // Border (black)
+                    canvas.DrawPoint(Color.Black, px, py);
+                }
+                else if (pixel == 2)
+                {
+                    // Fill (white)
+                    canvas.DrawPoint(Color.White, px, py);
+                }
+                // pixel == 0: transparent, don't draw
+            }
+        }
     }
 }

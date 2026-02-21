@@ -38,6 +38,11 @@ public interface IPlatformInitializer
     IKeyboardDevice[] GetKeyboardDevices();
 
     /// <summary>
+    /// Gets mouse devices available on this platform.
+    /// </summary>
+    IMouseDevice[] GetMouseDevices();
+
+    /// <summary>
     /// Gets network devices available on this platform.
     /// Returns null if no network device found.
     /// </summary>

@@ -14,6 +14,7 @@ using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Keyboard;
+using Cosmos.Kernel.System.Mouse;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Timer;
 
@@ -114,6 +115,18 @@ public class Kernel
             foreach (var keyboard in keyboards)
             {
                 KeyboardManager.RegisterKeyboard(keyboard);
+            }
+        }
+
+        // Initialize Mouse Manager and register platform mice
+        if (MouseManager.IsEnabled)
+        {
+            Serial.WriteString("[KERNEL]   - Initializing mouse manager...\n");
+            MouseManager.Initialize();
+            var mice = initializer.GetMouseDevices();
+            foreach (var mouse in mice)
+            {
+                MouseManager.RegisterMouse(mouse);
             }
         }
 

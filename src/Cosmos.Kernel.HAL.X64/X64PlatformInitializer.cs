@@ -58,8 +58,8 @@ public class X64PlatformInitializer : IPlatformInitializer
         _pit.Initialize();
         _pit.RegisterIRQHandler();
 
-        // Initialize PS/2 Controller (if keyboard feature enabled)
-        if (CosmosFeatures.KeyboardEnabled)
+        // Initialize PS/2 Controller (if keyboard or mouse feature enabled)
+        if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled)
         {
             Serial.WriteString("[X64HAL] Initializing PS/2 controller...\n");
             _ps2Controller = new PS2Controller();
@@ -101,6 +101,15 @@ public class X64PlatformInitializer : IPlatformInitializer
             return [];
         }
         return PS2Controller.GetKeyboardDevices();
+    }
+
+    public IMouseDevice[] GetMouseDevices()
+    {
+        if (_ps2Controller == null)
+        {
+            return [];
+        }
+        return PS2Controller.GetMouseDevices();
     }
 
     public INetworkDevice? GetNetworkDevice()

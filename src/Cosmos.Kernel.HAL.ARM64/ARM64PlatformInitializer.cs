@@ -20,6 +20,7 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 {
     private GenericTimer? _timer;
     private VirtioKeyboard? _virtioKeyboard;
+    private VirtioMouse? _virtioMouse;
     private VirtioNet? _networkDevice;
 
     public string PlatformName => "ARM64";
@@ -64,6 +65,18 @@ public class ARM64PlatformInitializer : IPlatformInitializer
             Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
         }
 
+        // Initialize virtio mouse
+        _virtioMouse = VirtioMouse.FindAndCreate();
+        if (_virtioMouse != null)
+        {
+            _virtioMouse.Initialize();
+            Serial.WriteString("[ARM64HAL] Virtio mouse initialized\n");
+        }
+        else
+        {
+            Serial.WriteString("[ARM64HAL] No virtio mouse found\n");
+        }
+
         // Try to find VirtioNet MMIO network device (if network feature enabled)
         if (CosmosFeatures.NetworkEnabled)
         {
@@ -96,6 +109,15 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         if (_virtioKeyboard != null && _virtioKeyboard.IsInitialized)
         {
             return [_virtioKeyboard];
+        }
+        return [];
+    }
+
+    public IMouseDevice[] GetMouseDevices()
+    {
+        if (_virtioMouse != null)
+        {
+            return [_virtioMouse];
         }
         return [];
     }
