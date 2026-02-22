@@ -1,3 +1,4 @@
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
@@ -21,15 +22,17 @@ namespace Internal.Runtime.CompilerHelpers
         /// </summary>
         public static void InitializeLibrary()
         {
-            // Initialize Timer Manager and register platform timer
-            Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
-            TimerManager.Initialize();
-
             var initializer = PlatformHAL.Initializer;
             if (initializer is not null)
             {
-                var timer = initializer.CreateTimer();
-                TimerManager.RegisterTimer(timer);
+                // Initialize Timer Manager (skipped if CosmosEnableTimer=false)
+                if (CosmosFeatures.TimerEnabled)
+                {
+                    Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
+                    TimerManager.Initialize();
+                    var timer = initializer.CreateTimer();
+                    TimerManager.RegisterTimer(timer);
+                }
 
                 using (InternalCpu.DisableInterruptsScope())
                 {

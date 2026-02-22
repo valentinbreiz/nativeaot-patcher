@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Interfaces;
@@ -21,6 +22,11 @@ public static class InterruptManager
     private static IInterruptController? s_controller;
 
     private const string NewLine = "\n";
+
+    /// <summary>
+    /// Whether interrupt support is enabled. Uses centralized feature flag.
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.InterruptsEnabled;
 
     /// <summary>
     /// Initializes the interrupt manager with a platform-specific controller.

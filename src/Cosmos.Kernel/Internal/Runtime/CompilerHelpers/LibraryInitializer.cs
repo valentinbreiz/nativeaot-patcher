@@ -6,6 +6,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Cpu;
 
 namespace Internal.Runtime.CompilerHelpers
 {
@@ -29,8 +30,11 @@ namespace Internal.Runtime.CompilerHelpers
             }
 
             // Initialize exception handlers (must be after InterruptManager)
-            Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
-            ExceptionHandler.Initialize();
+            if (InterruptManager.IsEnabled)
+            {
+                Serial.WriteString("[KERNEL]   - Initializing exception handlers...\n");
+                ExceptionHandler.Initialize();
+            }
 
             // Initialize Scheduler
             if (SchedulerManager.IsEnabled)

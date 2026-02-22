@@ -10,6 +10,23 @@ namespace Cosmos.Kernel.Core;
 public static class CosmosFeatures
 {
     /// <summary>
+    /// Controls interrupt setup (IDT/IRQ). Disabling this also disables Timer, Keyboard,
+    /// Mouse, Network, Scheduler, and Graphics via the MSBuild cascade in Sdk.targets.
+    /// Set via CosmosEnableInterrupts property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.HAL.Interrupts.Enabled")]
+    public static bool InterruptsEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls timer (PIT/HPET) initialization. Disabling this also disables Scheduler.
+    /// Set via CosmosEnableTimer property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Timer.Enabled")]
+    public static bool TimerEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Timer.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
     /// Controls keyboard support initialization.
     /// Set via CosmosEnableKeyboard property in csproj.
     /// </summary>

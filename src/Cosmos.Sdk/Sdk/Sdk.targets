@@ -1,4 +1,20 @@
 <Project>
+  <!-- Feature hierarchy: cascade disabled states downward.
+       Evaluated after the user's project properties, so user overrides are respected.
+       MSBuild evaluates items (RuntimeHostConfigurationOption) after all properties,
+       so the final cascaded values are what ILC sees via runtimeknob arguments. -->
+  <PropertyGroup>
+    <!-- Interrupts off → everything that needs IRQs is disabled -->
+    <CosmosEnableTimer     Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableTimer>
+    <CosmosEnableKeyboard  Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableKeyboard>
+    <CosmosEnableMouse     Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableMouse>
+    <CosmosEnableNetwork   Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableNetwork>
+    <CosmosEnableScheduler Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableScheduler>
+    <CosmosEnableGraphics  Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableGraphics>
+    <!-- Timer off → preemptive scheduler can't tick -->
+    <CosmosEnableScheduler Condition="'$(CosmosEnableTimer)' == 'false'">false</CosmosEnableScheduler>
+  </PropertyGroup>
+
   <!-- Disable standard ILLink - Cosmos uses custom NativeAOT compilation via Cosmos.Build.Ilc -->
   <!-- This prevents the "Missing predefined 'System.NotSupportedException' type" error -->
   <Target Name="_RunILLink" />

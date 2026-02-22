@@ -86,6 +86,9 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public ITimerDevice CreateTimer()
     {
+        if (!CosmosFeatures.TimerEnabled)
+            return null!;
+
         if (_pit == null)
         {
             _pit = new PIT();
@@ -96,19 +99,17 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public IKeyboardDevice[] GetKeyboardDevices()
     {
-        if (_ps2Controller == null)
-        {
+        if (!CosmosFeatures.KeyboardEnabled || _ps2Controller == null)
             return [];
-        }
+
         return PS2Controller.GetKeyboardDevices();
     }
 
     public IMouseDevice[] GetMouseDevices()
     {
-        if (_ps2Controller == null)
-        {
+        if (!CosmosFeatures.MouseEnabled || _ps2Controller == null)
             return [];
-        }
+
         return PS2Controller.GetMouseDevices();
     }
 
