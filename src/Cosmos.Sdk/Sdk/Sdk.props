@@ -102,6 +102,14 @@
              Version="[$(BundledNETCoreAppPackageVersion)]" />
   </ItemGroup>
 
+  <!-- Library Initializers to Run -->
+  <ItemGroup>
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.Core" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.HAL" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.System" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel" />
+  </ItemGroup>
+
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Cosmos.Build.Common" Version="3.0.37" />

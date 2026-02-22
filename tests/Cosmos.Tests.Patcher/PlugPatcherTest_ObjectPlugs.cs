@@ -5,6 +5,7 @@ using Mono.Cecil;
 
 namespace Cosmos.Tests.Patcher;
 
+[Collection("PatcherTests")]
 public class PlugPatcherTest_ObjectPlugs
 {
     private AssemblyDefinition CreateMockAssembly<T>()

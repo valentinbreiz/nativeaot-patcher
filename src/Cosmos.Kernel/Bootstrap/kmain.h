@@ -19,7 +19,6 @@ extern void* __Modules_end[];
 extern char* __kernel_start;
 
 // Managed code entry points
-extern void __Initialize_Kernel(void);
 extern void __managed__Startup(void);
 extern int __managed__Main(int argc, char* argv[]);
 extern void* RhpRegisterOsModule(void* osmodule);
