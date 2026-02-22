@@ -5,9 +5,9 @@ using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.Keyboard;
+using Cosmos.Kernel.System.Mouse;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.Kernel.System.Mouse;
 
 namespace Internal.Runtime.CompilerHelpers
 {
