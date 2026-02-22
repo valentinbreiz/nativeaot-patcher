@@ -20,7 +20,7 @@
 | Network interface | ✅ | ✅ | |
 | Timer / Clock | ✅ | ✅ | |
 | Keyboard Input | ✅ | ✅ | |
-| Mouse Input | ✅ | ❌ | |
+| Mouse Input | ✅ | ✅ | |
 | Audio interface | 🟡 | ❌ | No audio, sound, or speaker support. |
 
 ## Additional Gen3 Features
