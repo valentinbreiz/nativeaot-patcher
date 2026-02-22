@@ -1,21 +1,9 @@
 using System.Runtime.InteropServices;
-using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Boot.Limine;
-using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.Memory.GarbageCollector;
-using Cosmos.Kernel.Core.Runtime;
-using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.Core.Scheduler.Stride;
-using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-using Cosmos.Kernel.HAL.Pci;
-using Cosmos.Kernel.HAL.Pci;
-using Cosmos.Kernel.System.Keyboard;
-using Cosmos.Kernel.System.Network;
-using Cosmos.Kernel.System.Timer;
 
 namespace Cosmos.Kernel;
 
@@ -27,37 +15,7 @@ public class Kernel
     public const int VersionPatch = 0;
     public const string VersionString = "3.0.37";
     public const string Codename = "gen3";
-
-    /// <summary>
-    /// Gets the current platform HAL, if available.
-    /// </summary>
-    public static PlatformArchitecture Architecture => PlatformHAL.Architecture;
-
-    [UnmanagedCallersOnly(EntryPoint = "__Initialize_Kernel")]
-    public static unsafe void Initialize()
-    {
-        // Display version banner
-        Serial.WriteString("[KERNEL]   - CosmosOS v");
-        Serial.WriteString(VersionString);
-        Serial.WriteString(" (");
-        Serial.WriteString(Codename);
-        Serial.WriteString(") - Managed runtime active\n");        // Get the platform initializer (registered by HAL.X64 or HAL.ARM64 module initializer)
-    }
-
-    /// <summary>
-    /// Halt the CPU using platform-specific implementation.
-    /// </summary>
-    public static void Halt()
-    {
-        if (PlatformHAL.CpuOps != null)
-        {
-            PlatformHAL.CpuOps.Halt();
-        }
-        else
-        {
-            while (true) { }
-        }
-    }
+    public const string VersionBanner = $"CosmosOS v{VersionString} ({Codename}) - Managed runtime active";
 }
 
 public static unsafe class InterruptBridge
