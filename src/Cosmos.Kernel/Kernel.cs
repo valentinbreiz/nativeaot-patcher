@@ -2,9 +2,9 @@ using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
-
 namespace Cosmos.Kernel;
 
 public class Kernel
@@ -15,7 +15,22 @@ public class Kernel
     public const int VersionPatch = 0;
     public const string VersionString = "3.0.37";
     public const string Codename = "gen3";
-    public const string VersionBanner = $"CosmosOS v{VersionString} ({Codename}) - Managed runtime active";
+    public const string VersionBanner = $"CosmosOS v{VersionString} ({Codename}) - Managed runtime active\n";
+
+    /// <summary>
+    /// Halt the CPU using platform-specific implementation.
+    /// </summary>
+    public static void Halt()
+    {
+        if (PlatformHAL.CpuOps != null)
+        {
+            PlatformHAL.CpuOps.Halt();
+        }
+        else
+        {
+            while (true) { }
+        }
+    }
 }
 
 public static unsafe class InterruptBridge
