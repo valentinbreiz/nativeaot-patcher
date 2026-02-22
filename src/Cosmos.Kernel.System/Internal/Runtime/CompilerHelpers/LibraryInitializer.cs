@@ -7,6 +7,7 @@ using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Timer;
+using Cosmos.Kernel.System.Mouse;
 
 namespace Internal.Runtime.CompilerHelpers
 {
@@ -42,6 +43,18 @@ namespace Internal.Runtime.CompilerHelpers
                         foreach (var keyboard in keyboards)
                         {
                             KeyboardManager.RegisterKeyboard(keyboard);
+                        }
+                    }
+
+                    // Initialize Mouse Manager and register mouse
+                    if (MouseManager.IsEnabled)
+                    {
+                        Serial.WriteString("[KERNEL]   - Initializing mouse manager...\n");
+                        MouseManager.Initialize();
+                        var mice = initializer.GetMouseDevices();
+                        foreach (var mouse in mice)
+                        {
+                            MouseManager.RegisterMouse(mouse);
                         }
                     }
 

@@ -25,6 +25,7 @@
   <!-- Cosmos Feature Switches (defaults) -->
   <PropertyGroup>
     <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
+    <CosmosEnableMouse Condition="'$(CosmosEnableMouse)' == ''">true</CosmosEnableMouse>
     <CosmosEnableNetwork Condition="'$(CosmosEnableNetwork)' == ''">true</CosmosEnableNetwork>
     <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
@@ -64,6 +65,7 @@
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
     <!-- Cosmos Feature Switches -->
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Mouse.Enabled" Value="$(CosmosEnableMouse)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>

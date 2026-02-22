@@ -40,4 +40,12 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.System.Graphics.Enabled")]
     public static bool GraphicsEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.System.Graphics.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls mouse support initialization.
+    /// Set via CosmosEnableMouse property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Input.Mouse.Enabled")]
+    public static bool MouseEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Input.Mouse.Enabled", out bool enabled) ? enabled : true;
 }
