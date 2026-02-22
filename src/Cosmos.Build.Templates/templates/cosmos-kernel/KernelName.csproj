@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.37" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.38" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,8 +9,8 @@
 
   <!-- Core kernel packages -->
   <ItemGroup>
-    <PackageReference Include="Cosmos.Kernel" Version="3.0.37" />
-    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.37" />
+    <PackageReference Include="Cosmos.Kernel" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.38" />
   </ItemGroup>
 
 </Project>

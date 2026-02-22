@@ -9,7 +9,7 @@
     <testcase name="Test_IntegerComparison" classname="Cosmos.Kernel.Tests" time="0.000" />
     <system-out><![CDATA[
 ========================================
-  CosmosOS v3.0.37 (gen3)
+  CosmosOS v3.0.38 (gen3)
   Architecture: x86-64
 ========================================
 
@@ -38,7 +38,7 @@
 
 [KMAIN] Phase 3: Managed kernel initialization
 [ModuleHelpers] - RhpRegisterOsModule called for OS Module 0x4800131EB1358D48
-[KERNEL]   - CosmosOS v3.0.37 (gen3) - Managed runtime active
+[KERNEL]   - CosmosOS v3.0.38 (gen3) - Managed runtime active
 [KERNEL]   - Initializing heap...
 [PageAllocator] Initializing heap using Limine memory map...
 [PageAllocator] Memory map detected with 14 entries:

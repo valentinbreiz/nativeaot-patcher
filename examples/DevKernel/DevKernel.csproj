@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Cosmos.Sdk" Version="3.0.37" />
+  <Sdk Name="Cosmos.Sdk" Version="3.0.38" />
 
   <PropertyGroup>
     <CosmosEnableTimer>false</CosmosEnableTimer>

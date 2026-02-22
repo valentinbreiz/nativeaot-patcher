@@ -9,7 +9,7 @@ typedef unsigned int size_t;
 #define COSMOS_VERSION_MAJOR 3
 #define COSMOS_VERSION_MINOR 0
 #define COSMOS_VERSION_PATCH 0
-#define COSMOS_VERSION_STRING "3.0.37"
+#define COSMOS_VERSION_STRING "3.0.38"
 #define COSMOS_CODENAME "gen3"
 #define NULL (void*)0
 

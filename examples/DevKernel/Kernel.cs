@@ -323,7 +323,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.37 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.38 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
