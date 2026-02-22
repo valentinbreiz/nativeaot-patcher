@@ -5,13 +5,13 @@ using System.Runtime.CompilerServices;
 namespace Cosmos.Kernel.HAL.ARM64;
 
 /// <summary>
-/// Module initializer that registers the ARM64 platform initializer.
+/// Eager Constructor that registers the ARM64 platform initializer.
 /// This runs automatically when the assembly is loaded.
 /// </summary>
-internal static class ModuleInit
+[EagerStaticClassConstruction]
+internal static class EagerCtor
 {
-    [ModuleInitializer]
-    internal static void Initialize()
+    static EagerCtor()
     {
         PlatformHAL.SetInitializer(new ARM64PlatformInitializer());
     }

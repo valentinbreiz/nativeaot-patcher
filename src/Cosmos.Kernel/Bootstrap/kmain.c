@@ -64,16 +64,11 @@ void kmain()
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 3: Managed kernel initialization\n");
     RhpRegisterOsModule(__kernel_start);
-    __Initialize_Kernel();
-
-    // === Phase 4: Module Initialization ===
-    __cosmos_serial_write("\n");
-    __cosmos_serial_write("[KMAIN] Phase 4: Module initialization\n");
     __managed__Startup();
 
-    // === Phase 5: User Kernel ===
+    // === Phase 4: User Kernel ===
     __cosmos_serial_write("\n");
-    __cosmos_serial_write("[KMAIN] Phase 5: User kernel\n");
+    __cosmos_serial_write("[KMAIN] Phase 4: User kernel\n");
     char *argv[] = {"COSMOS", NULL};
     __managed__Main(1, argv);
 
