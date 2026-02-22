@@ -200,7 +200,20 @@ public class UartMessageParser
 
     private static void ParseTestSuiteEnd(byte[] payload, TestResults results)
     {
-        // Payload: [TotalTests:4][PassedTests:4][FailedTests:4][SkippedTests:4]
-        // This is a summary - we already have individual test results
+        // Payload: [Total:2][Passed:2][Failed:2]
+        if (payload.Length < 6) return;
+
+        ushort total = BitConverter.ToUInt16(payload, 0);
+        ushort passed = BitConverter.ToUInt16(payload, 2);
+        ushort failed = BitConverter.ToUInt16(payload, 4);
+
+        // Validate: total must equal passed + failed (catches corruption from timer interrupt interleaving)
+        if (total == (ushort)(passed + failed))
+        {
+            // Use the validated total from the end message as the authoritative expected count.
+            // This overrides the potentially corrupted value from TestSuiteStart.
+            results.ExpectedTestCount = total;
+            results.SuiteCompleted = true;
+        }
     }
 }
