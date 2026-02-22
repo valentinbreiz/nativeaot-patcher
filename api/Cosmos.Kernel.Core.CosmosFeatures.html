@@ -189,6 +189,41 @@ public static bool GraphicsEnabled { get; }</code></pre>
 
 
 
+  <a id="Cosmos_Kernel_Core_CosmosFeatures_InterruptsEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_InterruptsEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled">
+  InterruptsEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Controls interrupt setup (IDT/IRQ). Disabling this also disables Timer, Keyboard,
+Mouse, Network, Scheduler, and Graphics via the MSBuild cascade in Sdk.targets.
+Set via CosmosEnableInterrupts property in csproj.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.HAL.Interrupts.Enabled&quot;)]
+public static bool InterruptsEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_CosmosFeatures_KeyboardEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled*"></a>
 
   <h3 id="Cosmos_Kernel_Core_CosmosFeatures_KeyboardEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled">
@@ -306,6 +341,40 @@ Set via CosmosEnableScheduler property in csproj.</p>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.Core.Scheduler.Enabled&quot;)]
 public static bool SchedulerEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CosmosFeatures_TimerEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_TimerEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled">
+  TimerEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Controls timer (PIT/HPET) initialization. Disabling this also disables Scheduler.
+Set via CosmosEnableTimer property in csproj.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Timer.Enabled&quot;)]
+public static bool TimerEnabled { get; }</code></pre>
   </div>
 
 

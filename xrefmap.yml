@@ -628,6 +628,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled
   nameWithType: CosmosFeatures.GraphicsEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled
+  name: InterruptsEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_InterruptsEnabled
+  commentId: P:Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled
+  nameWithType: CosmosFeatures.InterruptsEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled*
+  name: InterruptsEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_InterruptsEnabled_
+  commentId: Overload:Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.InterruptsEnabled
+  nameWithType: CosmosFeatures.InterruptsEnabled
 - uid: Cosmos.Kernel.Core.CosmosFeatures.KeyboardEnabled
   name: KeyboardEnabled
   href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_KeyboardEnabled
@@ -680,6 +693,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.CosmosFeatures.SchedulerEnabled
   nameWithType: CosmosFeatures.SchedulerEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
+  name: TimerEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_TimerEnabled
+  commentId: P:Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
+  nameWithType: CosmosFeatures.TimerEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled*
+  name: TimerEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_TimerEnabled_
+  commentId: Overload:Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
+  nameWithType: CosmosFeatures.TimerEnabled
 - uid: Cosmos.Kernel.Core.Extensions
   name: Cosmos.Kernel.Core.Extensions
   href: api/Cosmos.Kernel.Core.Extensions.html
@@ -8756,6 +8782,19 @@ references:
   commentId: T:Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate
   fullName: Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate
   nameWithType: InterruptManager.IrqDelegate
+- uid: Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled
+  name: IsEnabled
+  href: api/Cosmos.Kernel.HAL.Cpu.InterruptManager.html#Cosmos_Kernel_HAL_Cpu_InterruptManager_IsEnabled
+  commentId: P:Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled
+  fullName: Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled
+  nameWithType: InterruptManager.IsEnabled
+- uid: Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled*
+  name: IsEnabled
+  href: api/Cosmos.Kernel.HAL.Cpu.InterruptManager.html#Cosmos_Kernel_HAL_Cpu_InterruptManager_IsEnabled_
+  commentId: Overload:Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Cpu.InterruptManager.IsEnabled
+  nameWithType: InterruptManager.IsEnabled
 - uid: Cosmos.Kernel.HAL.Cpu.InterruptManager.SetHandler(System.Byte,Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate)
   name: SetHandler(byte, IrqDelegate)
   href: api/Cosmos.Kernel.HAL.Cpu.InterruptManager.html#Cosmos_Kernel_HAL_Cpu_InterruptManager_SetHandler_System_Byte_Cosmos_Kernel_HAL_Cpu_InterruptManager_IrqDelegate_
