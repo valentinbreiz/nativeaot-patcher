@@ -116,6 +116,7 @@
 
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
+    <PackageReference Include="Cosmos.Build.Analyzer.Patcher" Version="3.0.38" />
     <PackageReference Include="Cosmos.Build.Common" Version="3.0.38" />
     <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.38" />
     <PackageReference Include="Cosmos.Build.Asm" Version="3.0.38" />
@@ -123,6 +124,7 @@
     <PackageReference Include="Cosmos.Build.GCC" Version="3.0.38" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+    <PackageReference Include="Cosmos.Build.Analyzer.Patcher" />
     <PackageReference Include="Cosmos.Build.Common" />
     <PackageReference Include="Cosmos.Build.Ilc" />
     <PackageReference Include="Cosmos.Build.Asm" />

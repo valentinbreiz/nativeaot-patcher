@@ -4,6 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Cosmos.Build.Analyzer.Patcher" Version="3.0.38" />
     <PackageVersion Include="Cosmos.Build.Asm" Version="3.0.38" />
     <PackageVersion Include="Cosmos.Build.Common" Version="3.0.38" />
     <PackageVersion Include="Cosmos.Build.GCC" Version="3.0.38" />
@@ -33,6 +34,7 @@
     <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.9" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="9.0.0" />
     <PackageVersion Include="MonoMod.Utils" Version="25.0.8" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="PolySharp" Version="1.15.0">

@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Build.Analyzer.Patcher.Extensions;
 using Cosmos.Build.Analyzer.Patcher.Models;
 using Cosmos.Build.API.Enum;
@@ -108,6 +112,21 @@ namespace Cosmos.Build.Analyzer.Patcher
             if (context.Node is not MemberAccessExpressionSyntax memberAccess)
             {
                 DebugLog("Node is not a MemberAccessExpressionSyntax");
+                return;
+            }
+
+            // Skip member accesses inside plug class implementations — plug code is kernel code
+            // and is free to call any native/platform methods without needing its own plugs.
+            ClassDeclarationSyntax? containingClass = memberAccess
+                .Ancestors()
+                .OfType<ClassDeclarationSyntax>()
+                .FirstOrDefault();
+            if (containingClass != null &&
+                containingClass.AttributeLists
+                    .SelectMany(al => al.Attributes)
+                    .Any(a => a.Name.ToString() is "Plug" or "PlugAttribute"))
+            {
+                DebugLog($"Skipping member access inside plug class {containingClass.Identifier.Text}");
                 return;
             }
 
@@ -239,13 +258,21 @@ namespace Cosmos.Build.Analyzer.Patcher
             }
 
             DebugLog($"Looking for type {targetName} in assembly {assemblyName}");
-            INamedTypeSymbol? symbol = string.IsNullOrEmpty(targetName) ? null : context.Compilation.GetTypeByMetadataName(targetName);
+            // Cosmos plug names may use '/' for nested types (e.g. "Interop/Sys"); convert to metadata '+' format.
+            string metadataName = targetName.Replace('/', '+');
+            INamedTypeSymbol? symbol = string.IsNullOrEmpty(metadataName) ? null : context.Compilation.GetTypeByMetadataName(metadataName);
+
+            // Reference assemblies don't expose internal types (System.ConsolePal, Internal.Runtime.*, etc.).
+            // Fall back to PEReader index which scans actual IL from NativeAOT ILC and host runtime assemblies.
+            bool existInNativeAotCoreLib = symbol == null && TypeExistsInCoreLibs(targetName);
+
             bool existInAssembly = symbol != null ||
+                                   existInNativeAotCoreLib ||
                                    context.Compilation.ExternalReferences.Any(x =>
                                        x.Display != null && x.Display == assemblyName);
 
             DebugLog($"Does type exist in assembly? {existInAssembly}");
-            if (!existInAssembly && attribute.GetArgument(context, "IsOptional", 1, out bool isOptional) && !isOptional)
+            if (!existInAssembly && attribute.GetArgument<bool>(context, "IsOptional", 1) != true)
             {
                 DebugLog($"Reporting TypeNotFound for {targetName}");
                 ReportDiagnostic(context, DiagnosticMessages.TypeNotFound, attribute.GetLocation(), null, targetName);
@@ -504,6 +531,133 @@ namespace Cosmos.Build.Analyzer.Patcher
             {
                 DebugLog($"Exception in SafeInvoke: {ex}");
             }
+        }
+
+        // ── NativeAOT / host runtime type index (PEReader) ────────────────────────────────────────
+
+        /// <summary>
+        /// Lazily built set of every type name found across all NativeAOT ILC SDK assemblies
+        /// and the host .NET runtime assemblies. Populated once per process; O(1) lookup.
+        /// Uses '/' as nested-type separator to match the Cosmos plug convention.
+        /// </summary>
+        private static readonly Lazy<HashSet<string>> s_allKnownTypeNames =
+            new Lazy<HashSet<string>>(BuildTypeIndex);
+
+        /// <summary>Returns true if the type exists in any indexed assembly.</summary>
+        private static bool TypeExistsInCoreLibs(string typeName)
+            => s_allKnownTypeNames.Value.Contains(typeName);
+
+        private static HashSet<string> BuildTypeIndex()
+        {
+            var types = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string assemblyPath in GetSearchableAssemblyPaths())
+                CollectTypesFromAssembly(assemblyPath, types);
+            return types;
+        }
+
+        /// <summary>
+        /// Enumerates all DLL paths that should be indexed: NativeAOT ILC SDK directories
+        /// (from the NuGet cache) and the host .NET runtime directory.
+        /// </summary>
+        private static IEnumerable<string> GetSearchableAssemblyPaths()
+        {
+            string nugetRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
+                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                                ".nuget", "packages");
+            string rid = GetCurrentRid();
+
+            // .NET 9: runtime.{rid}.microsoft.dotnet.ilcompiler/{ver}/sdk/*.dll
+            foreach (string dll in GetDllsFromPackageDir(
+                Path.Combine(nugetRoot, $"runtime.{rid}.microsoft.dotnet.ilcompiler"),
+                v => Path.Combine(v, "sdk")))
+                yield return dll;
+
+            // .NET 10+: microsoft.netcore.app.runtime.nativeaot.{rid}/{ver}/runtimes/{rid}/native/*.dll
+            foreach (string dll in GetDllsFromPackageDir(
+                Path.Combine(nugetRoot, $"microsoft.netcore.app.runtime.nativeaot.{rid}"),
+                v => Path.Combine(v, "runtimes", rid, "native")))
+                yield return dll;
+
+            // Host .NET runtime dir — reliable way to get System.ConsolePal, Interop/Sys, etc.
+            // Path.GetDirectoryName(typeof(object).Assembly.Location) points to the shared framework dir.
+            string objectLocation = typeof(object).Assembly.Location;
+            string runtimeDir = string.IsNullOrEmpty(objectLocation)
+                ? string.Empty
+                : Path.GetDirectoryName(objectLocation) ?? string.Empty;
+            if (!string.IsNullOrEmpty(runtimeDir) && Directory.Exists(runtimeDir))
+            {
+                foreach (string dll in Directory.EnumerateFiles(runtimeDir, "*.dll"))
+                    yield return dll;
+            }
+        }
+
+        /// <summary>
+        /// Yields all DLL paths inside the latest version sub-directory of a NuGet package,
+        /// selected by the <paramref name="subDirSelector"/> function.
+        /// </summary>
+        private static IEnumerable<string> GetDllsFromPackageDir(
+            string packageDir, Func<string, string> subDirSelector)
+        {
+            if (!Directory.Exists(packageDir))
+                yield break;
+            string? latestVersion = Directory.GetDirectories(packageDir)
+                .OrderByDescending(d => d)
+                .FirstOrDefault();
+            if (latestVersion == null)
+                yield break;
+            string searchDir = subDirSelector(latestVersion);
+            if (!Directory.Exists(searchDir))
+                yield break;
+            foreach (string dll in Directory.EnumerateFiles(searchDir, "*.dll"))
+                yield return dll;
+        }
+
+        /// <summary>
+        /// Reads every TypeDefinition from the given PE assembly and adds its full name
+        /// (using '/' nested-type separator) to <paramref name="types"/>.
+        /// </summary>
+        private static void CollectTypesFromAssembly(string assemblyPath, HashSet<string> types)
+        {
+            try
+            {
+                using FileStream stream = File.OpenRead(assemblyPath);
+                using PEReader peReader = new PEReader(stream);
+                if (!peReader.HasMetadata) return;
+                MetadataReader reader = peReader.GetMetadataReader();
+                foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
+                {
+                    string fullName = GetTypeFullName(reader, handle);
+                    if (fullName.Length > 0 && fullName != "<Module>")
+                        types.Add(fullName);
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Builds the full type name from PE metadata, using '/' as the nested-type separator
+        /// to match the Cosmos plug convention (e.g. "Interop/Sys", "System.ConsolePal").
+        /// </summary>
+        private static string GetTypeFullName(MetadataReader reader, TypeDefinitionHandle handle)
+        {
+            TypeDefinition typeDef = reader.GetTypeDefinition(handle);
+            string name = reader.GetString(typeDef.Name);
+            TypeDefinitionHandle declaringHandle = typeDef.GetDeclaringType();
+            if (!declaringHandle.IsNil)
+                return $"{GetTypeFullName(reader, declaringHandle)}/{name}";
+
+            string ns = reader.GetString(typeDef.Namespace);
+            return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+        }
+
+        private static string GetCurrentRid()
+        {
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            bool isOsx     = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            bool isArm64   = RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
+            string os   = isWindows ? "win" : isOsx ? "osx" : "linux";
+            string arch = isArm64 ? "arm64" : "x64";
+            return $"{os}-{arch}";
         }
     }
 }
