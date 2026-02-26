@@ -11,6 +11,21 @@
  ## Documentation
  - [Index](https://valentinbreiz.github.io/nativeaot-patcher/index.html)
 
+## Getting Help
+
+Having issues? Here's how to get help:
+
+1. **Check the [Documentation](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)** - Build guides, debugging tips, and more
+2. **Review [Existing Issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)** - Your question might already be answered
+3. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** - Common issues and troubleshooting
+4. **File a [New Issue](https://github.com/valentinbreiz/nativeaot-patcher/issues/new/choose)** - Use the issue templates for bug reports, features, or questions
+
+### Common Issues
+
+- **Build fails after cloning**: Run `./.devcontainer/postCreateCommand.sh [x64|arm64]` first
+- **QEMU errors**: Check architecture matches your build (x64 vs ARM64)
+- **Runtime errors**: NativeAOT has [limitations](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md) - no reflection or dynamic code
+
 ## Priority
 - [Priority Board](https://github.com/users/valentinbreiz/projects/2/views/2) 
    
