@@ -1,8 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices;
+using Cosmos.Kernel.HAL.Devices.Clock;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Clock;
 
@@ -54,11 +56,14 @@ public class RTC : Device
     /// </summary>
     public bool IsInitialized { get; private set; }
 
+    /// <summary>Mirrors the ARM64 RTC property name for cross-arch compatibility.</summary>
+    public bool IsAvailable => IsInitialized;
+
     /// <summary>
     /// Initialize the RTC and capture boot time.
     /// Should be called after TSC calibration.
     /// </summary>
-    public void Initialize()
+    public unsafe void Initialize()
     {
         if (IsInitialized)
             return;
@@ -70,14 +75,45 @@ public class RTC : Device
         // Capture current TSC as boot reference
         BootTsc = X64CpuOps.ReadTSC();
 
-        // Read current time from RTC
+        // Priority 1: EFI Runtime Services GetTime
+        if (EfiRtc.TryGetTime(out long efiTicks))
+        {
+            BootTimeTicks = efiTicks;
+            IsInitialized = true;
+            Serial.Write("[RTC] Initialized\n");
+            return;
+        }
+
+        // Priority 2: Limine boot time
+        if (Limine.BootTime.Response != null)
+        {
+            long unixSecs = Limine.BootTime.Response->BootTime;
+            if (unixSecs > 0)
+            {
+                BootTimeTicks = UnixEpochTicks + unixSecs * TicksPerSecond;
+                Serial.Write("[RTC] Boot time (Limine): ");
+                LogTime(BootTimeTicks);
+                IsInitialized = true;
+                Serial.Write("[RTC] Initialized\n");
+                return;
+            }
+        }
+
+        // Priority 3: CMOS RTC
         var (year, month, day, hour, minute, second) = ReadTime();
-
-        // Convert to DateTime ticks
-        // DateTime ticks are 100-nanosecond intervals since 0001-01-01
         BootTimeTicks = DateToTicks(year, month, day) + TimeToTicks(hour, minute, second);
+        Serial.Write("[RTC] Boot time (CMOS): ");
+        LogTime(BootTimeTicks);
 
-        Serial.Write("[RTC] Boot time: ");
+        IsInitialized = true;
+        Serial.Write("[RTC] Initialized\n");
+    }
+
+    private static void LogTime(long ticks)
+    {
+        var dt = new System.DateTime(ticks, System.DateTimeKind.Utc);
+        int year = dt.Year, month = dt.Month, day = dt.Day;
+        int hour = dt.Hour, minute = dt.Minute, second = dt.Second;
         Serial.WriteNumber((ulong)year);
         Serial.Write("-");
         if (month < 10) Serial.Write("0");
@@ -94,10 +130,7 @@ public class RTC : Device
         Serial.Write(":");
         if (second < 10) Serial.Write("0");
         Serial.WriteNumber((ulong)second);
-        Serial.Write("\n");
-
-        IsInitialized = true;
-        Serial.Write("[RTC] Initialized\n");
+        Serial.Write(" UTC\n");
     }
 
     /// <summary>
@@ -276,6 +309,7 @@ public class RTC : Device
 
     // DateTime tick constants
     private const long TicksPerSecond = 10_000_000L;
+    private const long UnixEpochTicks = 621_355_968_000_000_000L;
     private const long TicksPerMinute = TicksPerSecond * 60;
     private const long TicksPerHour = TicksPerMinute * 60;
     private const long TicksPerDay = TicksPerHour * 24;

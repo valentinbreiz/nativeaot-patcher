@@ -4,10 +4,17 @@ namespace Cosmos.Kernel.Boot.Limine;
 
 // Adapted from Azerou.
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct LimineHHDMRequest()
+public readonly unsafe struct LimineHHDMRequest()
 {
     public readonly LimineID ID = new(0x48dcf1cb8ad2b852, 0x63984e959a98244b);
     public readonly ulong Revision = 0;
+    public readonly LimineHHDMResponse* Response;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public readonly struct LimineHHDMResponse
+{
+    public readonly ulong Revision;
     public readonly ulong Offset;
 }
 

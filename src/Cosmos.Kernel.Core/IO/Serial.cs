@@ -83,15 +83,18 @@ public static class Serial
     /// </summary>
     public static void ComWrite(byte value)
     {
+        if (CosmosFeatures.UARTEnabled)
+        {
 #if ARCH_ARM64
-        // PL011: Wait until TX FIFO is not full
-        while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
-        Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
+            // PL011: Wait until TX FIFO is not full
+            while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
+            Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
 #else
-        // 16550: Wait for transmit buffer to be empty
-        while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
-        Native.IO.Write8(COM1_BASE + REG_DATA, value);
+            // 16550: Wait for transmit buffer to be empty
+            while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
+            Native.IO.Write8(COM1_BASE + REG_DATA, value);
 #endif
+        }
     }
 
     /// <summary>
@@ -100,46 +103,49 @@ public static class Serial
     /// </summary>
     public static void ComInit()
     {
+        if (CosmosFeatures.UARTEnabled)
+        {
 #if ARCH_ARM64
-        // === PL011 UART Initialization ===
+            // === PL011 UART Initialization ===
 
-        // Disable UART before configuration
-        Native.MMIO.Write32(PL011_BASE + PL011_CR, 0);
+            // Disable UART before configuration
+            Native.MMIO.Write32(PL011_BASE + PL011_CR, 0);
 
-        // Clear all interrupt masks
-        Native.MMIO.Write32(PL011_BASE + PL011_IMSC, 0);
+            // Clear all interrupt masks
+            Native.MMIO.Write32(PL011_BASE + PL011_IMSC, 0);
 
-        // Set baud rate to 115200 (24MHz clock)
-        Native.MMIO.Write32(PL011_BASE + PL011_IBRD, PL011_IBRD_115200);
-        Native.MMIO.Write32(PL011_BASE + PL011_FBRD, PL011_FBRD_115200);
+            // Set baud rate to 115200 (24MHz clock)
+            Native.MMIO.Write32(PL011_BASE + PL011_IBRD, PL011_IBRD_115200);
+            Native.MMIO.Write32(PL011_BASE + PL011_FBRD, PL011_FBRD_115200);
 
-        // Configure: 8 data bits, FIFO enabled
-        Native.MMIO.Write32(PL011_BASE + PL011_LCR_H, LCR_H_FEN | LCR_H_WLEN_8);
+            // Configure: 8 data bits, FIFO enabled
+            Native.MMIO.Write32(PL011_BASE + PL011_LCR_H, LCR_H_FEN | LCR_H_WLEN_8);
 
-        // Enable UART, TX, and RX
-        Native.MMIO.Write32(PL011_BASE + PL011_CR, CR_UARTEN | CR_TXE | CR_RXE);
+            // Enable UART, TX, and RX
+            Native.MMIO.Write32(PL011_BASE + PL011_CR, CR_UARTEN | CR_TXE | CR_RXE);
 #else
-        // === 16550 UART Initialization ===
+            // === 16550 UART Initialization ===
 
-        // Disable all interrupts
-        Native.IO.Write8(COM1_BASE + REG_IER, 0x00);
+            // Disable all interrupts
+            Native.IO.Write8(COM1_BASE + REG_IER, 0x00);
 
-        // Enable DLAB to set baud rate divisor
-        Native.IO.Write8(COM1_BASE + REG_LCR, LCR_DLAB);
+            // Enable DLAB to set baud rate divisor
+            Native.IO.Write8(COM1_BASE + REG_LCR, LCR_DLAB);
 
-        // Set baud rate divisor for 115200 baud
-        Native.IO.Write8(COM1_BASE + REG_DATA, BAUD_DIVISOR_LO);  // Divisor low byte
-        Native.IO.Write8(COM1_BASE + REG_IER, BAUD_DIVISOR_HI);   // Divisor high byte
+            // Set baud rate divisor for 115200 baud
+            Native.IO.Write8(COM1_BASE + REG_DATA, BAUD_DIVISOR_LO);  // Divisor low byte
+            Native.IO.Write8(COM1_BASE + REG_IER, BAUD_DIVISOR_HI);   // Divisor high byte
 
-        // Configure: 8 data bits, no parity, 1 stop bit (clears DLAB)
-        Native.IO.Write8(COM1_BASE + REG_LCR, LCR_8N1);
+            // Configure: 8 data bits, no parity, 1 stop bit (clears DLAB)
+            Native.IO.Write8(COM1_BASE + REG_LCR, LCR_8N1);
 
-        // Enable and clear FIFOs, set 14-byte threshold
-        Native.IO.Write8(COM1_BASE + REG_FCR, FCR_ENABLE);
+            // Enable and clear FIFOs, set 14-byte threshold
+            Native.IO.Write8(COM1_BASE + REG_FCR, FCR_ENABLE);
 
-        // Enable DTR, RTS, and OUT2 (required for interrupts)
-        Native.IO.Write8(COM1_BASE + REG_MCR, MCR_DTR_RTS_OUT2);
+            // Enable DTR, RTS, and OUT2 (required for interrupts)
+            Native.IO.Write8(COM1_BASE + REG_MCR, MCR_DTR_RTS_OUT2);
 #endif
+        }
     }
 
     public static unsafe void WriteString(string str)
@@ -148,6 +154,7 @@ public static class Serial
         {
             for (int i = 0; i < str.Length; i++)
             {
+                EarlyGop.PutChar(ptr[i]); // Echo to screen for early debugging
                 ComWrite((byte)ptr[i]);
             }
         }
@@ -157,6 +164,7 @@ public static class Serial
     {
         if (number == 0)
         {
+            EarlyGop.PutChar('0');
             ComWrite((byte)'0');
             return;
         }
@@ -184,6 +192,7 @@ public static class Serial
         // Write digits in reverse order
         for (int i = index - 1; i >= 0; i--)
         {
+            EarlyGop.PutChar((char)buffer[i]);
             ComWrite(buffer[i]);
         }
     }
@@ -197,6 +206,7 @@ public static class Serial
     {
         if (number < 0)
         {
+            EarlyGop.PutChar('-');
             ComWrite((byte)'-');
             WriteNumber((ulong)(-number), hex);
         }
@@ -210,6 +220,7 @@ public static class Serial
     {
         if (number < 0)
         {
+            EarlyGop.PutChar('-');
             ComWrite((byte)'-');
             WriteNumber((ulong)(-number), hex);
         }

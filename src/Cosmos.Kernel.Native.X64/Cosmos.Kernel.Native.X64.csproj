@@ -21,12 +21,6 @@
     <Content Include="CPU\*.asm" PackagePath="build\CPU" />
     <Content Include="Memory\*.asm" PackagePath="build\Memory" />
     <Content Include="Runtime\*.asm" PackagePath="build\Runtime" />
-    <Content Include="ACPI\*.c" PackagePath="build\ACPI" />
-    <Content Include="ACPI\lai\core\*.c" PackagePath="build\ACPI\lai\core" />
-    <Content Include="ACPI\lai\core\*.h" PackagePath="build\ACPI\lai\core" />
-    <Content Include="ACPI\lai\helpers\*.c" PackagePath="build\ACPI\lai\helpers" />
-    <Content Include="ACPI\lai\drivers\*.c" PackagePath="build\ACPI\lai\drivers" />
-    <Content Include="ACPI\lai\include\**\*.h" PackagePath="build\ACPI\lai\include" />
   </ItemGroup>
 
 </Project>

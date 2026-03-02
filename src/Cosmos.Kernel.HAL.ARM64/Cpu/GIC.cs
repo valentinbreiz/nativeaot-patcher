@@ -1,52 +1,54 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.ARM64.Acpi;
 
 namespace Cosmos.Kernel.HAL.ARM64.Cpu;
 
 /// <summary>
-/// ARM Generic Interrupt Controller v2 (GICv2) implementation.
-/// Used on QEMU virt machine and many ARM64 platforms.
+/// Unified GIC facade that auto-detects GICv2 or GICv3 at runtime
+/// and delegates to the appropriate implementation.
+/// Supports configurable base addresses for real hardware (from DTB).
 /// </summary>
 public static class GIC
 {
-    // QEMU virt machine GIC base addresses
-    private const ulong GICD_BASE = 0x08000000;  // Distributor
-    private const ulong GICC_BASE = 0x08010000;  // CPU Interface
+    // Interrupt type constants (common to v2 and v3)
+    public const uint SGI_START = 0;
+    public const uint PPI_START = 16;
+    public const uint SPI_START = 32;
 
-    // Distributor registers (offsets from GICD_BASE)
-    private const uint GICD_CTLR = 0x000;        // Distributor Control
-    private const uint GICD_TYPER = 0x004;       // Interrupt Controller Type
-    private const uint GICD_ISENABLER = 0x100;   // Interrupt Set-Enable (base)
-    private const uint GICD_ICENABLER = 0x180;   // Interrupt Clear-Enable (base)
-    private const uint GICD_ISPENDR = 0x200;     // Interrupt Set-Pending (base)
-    private const uint GICD_ICPENDR = 0x280;     // Interrupt Clear-Pending (base)
-    private const uint GICD_IPRIORITYR = 0x400;  // Interrupt Priority (base)
-    private const uint GICD_ITARGETSR = 0x800;   // Interrupt Processor Targets (base)
-    private const uint GICD_ICFGR = 0xC00;       // Interrupt Configuration (base)
+    // Timer interrupt IDs (PPIs - same for v2 and v3)
+    public const uint TIMER_SECURE_PHYS = 29;
+    public const uint TIMER_NONSEC_PHYS = 30;
+    public const uint TIMER_VIRT = 27;
+    public const uint TIMER_HYP = 26;
 
-    // CPU Interface registers (offsets from GICC_BASE)
-    private const uint GICC_CTLR = 0x000;        // CPU Interface Control
-    private const uint GICC_PMR = 0x004;         // Priority Mask
-    private const uint GICC_BPR = 0x008;         // Binary Point
-    private const uint GICC_IAR = 0x00C;         // Interrupt Acknowledge
-    private const uint GICC_EOIR = 0x010;        // End of Interrupt
-    private const uint GICC_RPR = 0x014;         // Running Priority
-    private const uint GICC_HPPIR = 0x018;       // Highest Priority Pending Interrupt
+    // Default QEMU virt machine addresses (used if DTB not available)
+    private const ulong DEFAULT_GICD_BASE = 0x08000000;
 
-    // Interrupt type constants
-    public const uint SGI_START = 0;             // Software Generated Interrupts (0-15)
-    public const uint PPI_START = 16;            // Private Peripheral Interrupts (16-31)
-    public const uint SPI_START = 32;            // Shared Peripheral Interrupts (32+)
-
-    // Timer interrupt IDs (PPIs)
-    public const uint TIMER_SECURE_PHYS = 29;    // Secure Physical Timer
-    public const uint TIMER_NONSEC_PHYS = 30;    // Non-secure Physical Timer
-    public const uint TIMER_VIRT = 27;           // Virtual Timer
-    public const uint TIMER_HYP = 26;            // Hypervisor Timer
-
+    private static bool _isV3;
     private static bool _initialized;
+    private static ulong _distBase;
+
+    /// <summary>
+    /// Translates a physical address to a virtual address using Limine's HHDM offset.
+    /// MMIO and ACPI physical addresses must go through this to be dereferenceable.
+    /// If the address is already in the higher half, it's returned as-is.
+    /// </summary>
+    private static unsafe ulong PhysToVirt(ulong phys)
+    {
+        if (phys == 0) return 0;
+
+        ulong hhdmOffset = 0;
+        if (Limine.HHDM.Response != null)
+            hhdmOffset = Limine.HHDM.Response->Offset;
+
+        // Already virtual (above HHDM)?
+        if (hhdmOffset != 0 && phys >= hhdmOffset) return phys;
+
+        return phys + hhdmOffset;
+    }
 
     /// <summary>
     /// Whether the GIC has been initialized.
@@ -54,229 +56,183 @@ public static class GIC
     public static bool IsInitialized => _initialized;
 
     /// <summary>
-    /// Initializes the GIC distributor and CPU interface.
+    /// Whether GICv3 is being used (false = GICv2).
     /// </summary>
-    public static void Initialize()
+    public static bool IsVersion3 => _isV3;
+
+    /// <summary>
+    /// Initializes the GIC, auto-detecting v2 or v3.
+    /// Discovery priority: ACPI MADT → default QEMU addresses.
+    /// </summary>
+    public static unsafe void Initialize()
     {
-        Serial.Write("[GIC] Initializing GICv2...\n");
-
-        // Read GIC type to get number of interrupt lines
-        uint typer = ReadDistributor(GICD_TYPER);
-        uint itLinesNumber = typer & 0x1F;
-        uint maxInterrupts = 32 * (itLinesNumber + 1);
-        Serial.Write("[GIC] Max interrupts: ");
-        Serial.WriteNumber(maxInterrupts);
-        Serial.Write("\n");
-
-        // Disable distributor during configuration
-        WriteDistributor(GICD_CTLR, 0);
-
-        // Configure all SPIs (shared peripheral interrupts)
-        // For PPIs (16-31), they are banked per-CPU and need different handling
-        for (uint i = SPI_START; i < maxInterrupts; i += 32)
+        // Priority 1: Try ACPI MADT (parsed by C code in kmain via acpi_early_init)
+        var acpiGic = AcpiGIC.GetGicInfo();
+        if (acpiGic != null && acpiGic->Found != 0)
         {
-            // Disable all interrupts in this group
-            WriteDistributor(GICD_ICENABLER + ((i / 32) * 4), 0xFFFFFFFF);
-            // Clear all pending
-            WriteDistributor(GICD_ICPENDR + ((i / 32) * 4), 0xFFFFFFFF);
+            _distBase = acpiGic->DistBase;
+            _isV3 = acpiGic->Version >= 3;
+
+            if (_isV3 && acpiGic->RedistBase != 0)
+            {
+                // Real hardware GICv3: use sysreg-only mode (MMIO may be inaccessible)
+                Serial.Write("[GIC] ACPI: GICv3 GICD=0x");
+                Serial.WriteHex(acpiGic->DistBase);
+                Serial.Write(" GICR=0x");
+                Serial.WriteHex(acpiGic->RedistBase);
+                Serial.Write(" (sysreg-only)\n");
+                GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
+                GICv3.Initialize(sysregOnly: true);
+            }
+            else if (_isV3)
+            {
+                // GICv3 but no GICR in MADT - still use sysreg-only
+                Serial.Write("[GIC] ACPI: GICv3 detected (no GICR in MADT, sysreg-only)\n");
+                GICv3.Initialize(sysregOnly: true);
+            }
+            else if (!_isV3 && acpiGic->CpuIfBase != 0)
+            {
+                // GICv2 always needs MMIO
+                DeviceMapper.EnsureMapped(acpiGic->DistBase);
+                DeviceMapper.EnsureMapped(acpiGic->CpuIfBase);
+                Serial.Write("[GIC] ACPI: GICv2 GICD=0x");
+                Serial.WriteHex(acpiGic->DistBase);
+                Serial.Write(" GICC=0x");
+                Serial.WriteHex(acpiGic->CpuIfBase);
+                Serial.Write("\n");
+                GICv2.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->CpuIfBase));
+                GICv2.Initialize();
+            }
+            else
+            {
+                // GICv2 but no GICC in MADT - try with MMIO
+                DeviceMapper.EnsureMapped(acpiGic->DistBase);
+                Serial.Write("[GIC] ACPI: GICv2 detected (no GICC in MADT)\n");
+                GICv2.Initialize();
+            }
+
+            _initialized = true;
+            return;
         }
 
-        // Set all SPI priorities to default (lower value = higher priority)
-        for (uint i = SPI_START; i < maxInterrupts; i += 4)
+        // Priority 3: Default QEMU virt machine addresses (no DTB, no ACPI)
+        Serial.Write("[GIC] No DTB/ACPI, using default QEMU addresses\n");
+        _distBase = PhysToVirt(DEFAULT_GICD_BASE);
+
+        // Map device MMIO into TTBR1 page tables before any MMIO access
+        DeviceMapper.EnsureMapped(DEFAULT_GICD_BASE);
+
+        // Detect GIC version via distributor PIDR2.ArchRev
+        _isV3 = GICv3.IsGICv3Available(_distBase);
+
+        if (_isV3)
         {
-            WriteDistributor(GICD_IPRIORITYR + i, 0xA0A0A0A0);
+            Serial.Write("[GIC] Detected GICv3\n");
+            GICv3.Initialize();
         }
-
-        // Target all SPIs to CPU 0
-        for (uint i = SPI_START; i < maxInterrupts; i += 4)
+        else
         {
-            WriteDistributor(GICD_ITARGETSR + i, 0x01010101);
+            Serial.Write("[GIC] Detected GICv2\n");
+            GICv2.Initialize();
         }
-
-        // Configure all SPIs as level-triggered
-        for (uint i = SPI_START; i < maxInterrupts; i += 16)
-        {
-            WriteDistributor(GICD_ICFGR + ((i / 16) * 4), 0);
-        }
-
-        // Enable distributor
-        WriteDistributor(GICD_CTLR, 1);
-
-        // Initialize CPU interface
-        InitializeCpuInterface();
 
         _initialized = true;
-        Serial.Write("[GIC] GICv2 initialized\n");
     }
 
     /// <summary>
-    /// Initializes the GIC CPU interface for the current CPU.
+    /// Initializes the CPU interface for the current CPU.
     /// </summary>
     public static void InitializeCpuInterface()
     {
-        Serial.Write("[GIC] Initializing CPU interface...\n");
-
-        // Disable CPU interface during configuration
-        WriteCpuInterface(GICC_CTLR, 0);
-
-        // Set priority mask to allow all priorities (0xFF = lowest priority threshold)
-        WriteCpuInterface(GICC_PMR, 0xFF);
-
-        // Set binary point to 0 (all priority bits used for preemption)
-        WriteCpuInterface(GICC_BPR, 0);
-
-        // Enable CPU interface
-        WriteCpuInterface(GICC_CTLR, 1);
-
-        Serial.Write("[GIC] CPU interface initialized\n");
+        if (_isV3)
+            GICv3.InitializeCpuInterface();
+        else
+            GICv2.InitializeCpuInterface();
     }
 
     /// <summary>
     /// Enables a specific interrupt.
     /// </summary>
-    /// <param name="intId">Interrupt ID (0-1019).</param>
     public static void EnableInterrupt(uint intId)
     {
-        uint regOffset = GICD_ISENABLER + ((intId / 32) * 4);
-        uint bit = 1u << (int)(intId % 32);
-        WriteDistributor(regOffset, bit);
-
-        Serial.Write("[GIC] Enabled interrupt ");
-        Serial.WriteNumber(intId);
-        Serial.Write("\n");
+        if (_isV3)
+            GICv3.EnableInterrupt(intId);
+        else
+            GICv2.EnableInterrupt(intId);
     }
 
     /// <summary>
     /// Disables a specific interrupt.
     /// </summary>
-    /// <param name="intId">Interrupt ID.</param>
     public static void DisableInterrupt(uint intId)
     {
-        uint regOffset = GICD_ICENABLER + ((intId / 32) * 4);
-        uint bit = 1u << (int)(intId % 32);
-        WriteDistributor(regOffset, bit);
+        if (_isV3)
+            GICv3.DisableInterrupt(intId);
+        else
+            GICv2.DisableInterrupt(intId);
     }
 
     /// <summary>
     /// Sets the priority of an interrupt.
     /// </summary>
-    /// <param name="intId">Interrupt ID.</param>
-    /// <param name="priority">Priority (0 = highest, 0xFF = lowest).</param>
     public static void SetPriority(uint intId, byte priority)
     {
-        uint regOffset = GICD_IPRIORITYR + intId;
-        // Write single byte at the correct offset
-        unsafe
-        {
-            byte* ptr = (byte*)(GICD_BASE + regOffset);
-            *ptr = priority;
-        }
+        if (_isV3)
+            GICv3.SetPriority(intId, priority);
+        else
+            GICv2.SetPriority(intId, priority);
     }
 
     /// <summary>
     /// Acknowledges an interrupt and returns its ID.
-    /// Must be called at the start of interrupt handling.
     /// </summary>
-    /// <returns>The interrupt ID, or 1023 if spurious.</returns>
     public static uint AcknowledgeInterrupt()
     {
-        return ReadCpuInterface(GICC_IAR) & 0x3FF;
+        return _isV3
+            ? GICv3.AcknowledgeInterrupt()
+            : GICv2.AcknowledgeInterrupt();
     }
 
     /// <summary>
     /// Signals the end of interrupt processing.
-    /// Must be called at the end of interrupt handling.
     /// </summary>
-    /// <param name="intId">The interrupt ID that was acknowledged.</param>
     public static void EndOfInterrupt(uint intId)
     {
-        WriteCpuInterface(GICC_EOIR, intId);
+        if (_isV3)
+            GICv3.EndOfInterrupt(intId);
+        else
+            GICv2.EndOfInterrupt(intId);
     }
 
     /// <summary>
     /// Checks if an interrupt is pending.
     /// </summary>
-    /// <param name="intId">Interrupt ID.</param>
-    /// <returns>True if pending.</returns>
     public static bool IsInterruptPending(uint intId)
     {
-        uint regOffset = GICD_ISPENDR + ((intId / 32) * 4);
-        uint bit = 1u << (int)(intId % 32);
-        return (ReadDistributor(regOffset) & bit) != 0;
+        return _isV3
+            ? GICv3.IsInterruptPending(intId)
+            : GICv2.IsInterruptPending(intId);
     }
 
     /// <summary>
     /// Clears a pending interrupt.
     /// </summary>
-    /// <param name="intId">Interrupt ID.</param>
     public static void ClearPending(uint intId)
     {
-        uint regOffset = GICD_ICPENDR + ((intId / 32) * 4);
-        uint bit = 1u << (int)(intId % 32);
-        WriteDistributor(regOffset, bit);
+        if (_isV3)
+            GICv3.ClearPending(intId);
+        else
+            GICv2.ClearPending(intId);
     }
 
     /// <summary>
     /// Configures an interrupt as edge-triggered or level-triggered.
     /// </summary>
-    /// <param name="intId">Interrupt ID.</param>
-    /// <param name="edgeTriggered">True for edge-triggered, false for level-triggered.</param>
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
-        uint regOffset = GICD_ICFGR + ((intId / 16) * 4);
-        uint shift = (intId % 16) * 2;
-        uint value = ReadDistributor(regOffset);
-
-        if (edgeTriggered)
-        {
-            value |= (2u << (int)shift);  // Edge-triggered
-        }
+        if (_isV3)
+            GICv3.ConfigureInterrupt(intId, edgeTriggered);
         else
-        {
-            value &= ~(2u << (int)shift); // Level-triggered
-        }
-
-        WriteDistributor(regOffset, value);
-    }
-
-    // Helper methods for memory-mapped I/O
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoInlining)]
-    private static uint ReadDistributor(uint offset)
-    {
-        unsafe
-        {
-            uint* ptr = (uint*)(GICD_BASE + offset);
-            return System.Threading.Volatile.Read(ref *ptr);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoInlining)]
-    private static void WriteDistributor(uint offset, uint value)
-    {
-        unsafe
-        {
-            uint* ptr = (uint*)(GICD_BASE + offset);
-            System.Threading.Volatile.Write(ref *ptr, value);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoInlining)]
-    private static uint ReadCpuInterface(uint offset)
-    {
-        unsafe
-        {
-            uint* ptr = (uint*)(GICC_BASE + offset);
-            return System.Threading.Volatile.Read(ref *ptr);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoInlining)]
-    private static void WriteCpuInterface(uint offset, uint value)
-    {
-        unsafe
-        {
-            uint* ptr = (uint*)(GICC_BASE + offset);
-            System.Threading.Volatile.Write(ref *ptr, value);
-        }
+            GICv2.ConfigureInterrupt(intId, edgeTriggered);
     }
 }
