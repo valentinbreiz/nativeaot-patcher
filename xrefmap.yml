@@ -14861,6 +14861,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.Instance
   nameWithType: RTC.Instance
+- uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable
+  name: IsAvailable
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_IsAvailable
+  commentId: P:Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable
+  nameWithType: RTC.IsAvailable
+- uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable*
+  name: IsAvailable
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_IsAvailable_
+  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsAvailable
+  nameWithType: RTC.IsAvailable
 - uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.IsInitialized
   name: IsInitialized
   href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_IsInitialized
