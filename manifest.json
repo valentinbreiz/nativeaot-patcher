@@ -12,6 +12,62 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.EfiRuntimeServices",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.yml\" sourcestartlinenumber=\"1\">Minimal layout of EFI_RUNTIME_SERVICES up to and including GetTime.\nGetTime is the first function pointer after the table header (offset 24).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.EfiSystemTable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.yml\" sourcestartlinenumber=\"1\">Minimal layout of EFI_SYSTEM_TABLE up to and including RuntimeServices.\nRuntimeServices pointer is at offset 88.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.EfiTableHeader",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.yml\" sourcestartlinenumber=\"1\">Common header present at the start of every EFI table.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiTime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.EfiTime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.EfiTime",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.EfiTime.yml\" sourcestartlinenumber=\"1\">EFI_TIME as defined in the UEFI specification.\nSize = 16 bytes.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.Limine.yml",
       "output": {
         ".html": {
@@ -22,6 +78,90 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Boot.Limine.Limine",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.yml\" sourcestartlinenumber=\"1\">Limine Boot Time request.\nProvides the Unix timestamp (seconds since 1970-01-01 UTC) at the time of boot.\nAvailable on all platforms where Limine is the bootloader.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineDTBRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.yml\" sourcestartlinenumber=\"1\">Limine Device Tree Blob (DTB) request.\nProvides the address of the flattened device tree passed by firmware.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineDTBResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineDTBResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineDTBResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.yml\" sourcestartlinenumber=\"1\">Limine EFI System Table request.\nProvides a pointer to the EFI system table, allowing access to EFI Runtime Services\n(e.g. GetTime) which remain valid even after ExitBootServices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse",
       "Summary": null
     },
     {
@@ -92,6 +232,20 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Boot.Limine.LimineHHDMRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineHHDMResponse",
       "Summary": null
     },
     {
@@ -289,6 +443,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Extensions",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.IO.EarlyGop.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.IO.EarlyGop.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.IO.EarlyGop",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.IO.EarlyGop.yml\" sourcestartlinenumber=\"1\">Minimal early-boot GOP text renderer.\nWrites directly to the Limine linear framebuffer with a hardcoded 8x8 bitmap font.\nNo back buffer, no swap, no KernelConsole dependency.\nSafe to call from the very first kernel instruction as long as Limine has filled in\nthe framebuffer response (i.e. as soon as static fields are accessible).</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1342,6 +1510,48 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.yml\" sourcestartlinenumber=\"1\">Mirrors the C struct acpi_gic_info_t from ACPI/acpi_wrapper.c.\nMust match the native layout exactly.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.yml\" sourcestartlinenumber=\"1\">C# bridge to native ACPI GIC discovery (acpi_wrapper.c in MultiArch).\nThe native code is called during early boot (kmain) and parses the MADT\nto extract GICD/GICR/GICC addresses. This class just retrieves the result.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.yml",
       "output": {
         ".html": {
@@ -1356,6 +1566,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.yml\" sourcestartlinenumber=\"1\">Adds Device MMIO mappings into Limine's existing TTBR1 page tables.\nLimine's HHDM only covers RAM; device MMIO regions (GIC, timers, etc.)\nare NOT mapped. This class walks the TTBR1 page tables and inserts\n2MiB block descriptors with Device-nGnRnE/nGnRE attributes so the\nHHDM virtual address (phys + HHDM_OFFSET) can be dereferenced for MMIO.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml",
       "output": {
         ".html": {
@@ -1366,7 +1590,35 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GIC",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v2 (GICv2) implementation.\nUsed on QEMU virt machine and many ARM64 platforms.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml\" sourcestartlinenumber=\"1\">Unified GIC facade that auto-detects GICv2 or GICv3 at runtime\nand delegates to the appropriate implementation.\nSupports configurable base addresses for real hardware (from DTB).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GICv2",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v2 (GICv2) implementation.\nUsed on QEMU virt machine and many ARM64 platforms.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GICv3",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v3 (GICv3) implementation.\nGICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO,\nand adds a Redistributor component (one per CPU).\nBase addresses are configurable to support both QEMU and real hardware.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1380,6 +1632,34 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.ARM64.Cpu",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.yml\" sourcestartlinenumber=\"1\">ARM64 Real-Time Clock implementation.\nReads boot time from the PL031 RTC (ARM Primecell RTC, present on QEMU virt machine).\nUses the ARM64 Generic Timer counter for sub-second elapsed time tracking.</p>\n<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.yml\" sourcestartlinenumber=\"5\">PL031 RTCDR register provides Unix time (seconds since 1970-01-01 UTC).\nQEMU virt machine maps PL031 at physical address 0x09010000.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Clock",
       "Summary": null
     },
     {
@@ -1786,6 +2066,34 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.DebugInfo",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Clock.EfiRtc",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.yml\" sourcestartlinenumber=\"1\">Shared helper for reading wall-clock time via EFI Runtime Services GetTime().\nWorks on any UEFI platform (x64 or ARM64) after ExitBootServices because\nEFI Runtime Services remain valid indefinitely.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Clock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Clock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Clock",
       "Summary": null
     },
     {

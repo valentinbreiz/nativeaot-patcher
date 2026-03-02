@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Device | Cosmos Gen 3 </title>
+      <title>Class EarlyGop | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Device | Cosmos Gen 3 ">
+      <meta name="title" content="Class EarlyGop | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all hardware devices.">
+      <meta name="description" content="Minimal early-boot GOP text renderer. Writes directly to the Limine linear framebuffer with a hardcoded 8x8 bitmap font. No back buffer, no swap, no KernelConsole dependency. Safe to call from the very first kernel instruction as long as Limine has filled in the framebuffer response (i.e. as soon as static fields are accessible).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,29 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Devices.Device">
+        <article data-uid="Cosmos.Kernel.Core.IO.EarlyGop">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Devices_Device" data-uid="Cosmos.Kernel.HAL.Devices.Device" class="text-break">
-Class Device  
+  <h1 id="Cosmos_Kernel_Core_IO_EarlyGop" data-uid="Cosmos.Kernel.Core.IO.EarlyGop" class="text-break">
+Class EarlyGop  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.IO.html">IO</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Base class for all hardware devices.</p>
+  <div class="markdown summary"><p>Minimal early-boot GOP text renderer.
+Writes directly to the Limine linear framebuffer with a hardcoded 8x8 bitmap font.
+No back buffer, no swap, no KernelConsole dependency.
+Safe to call from the very first kernel instruction as long as Limine has filled in
+the framebuffer response (i.e. as soon as static fields are accessible).</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Device</code></pre>
+    <pre><code class="lang-csharp hljs">public static class EarlyGop</code></pre>
   </div>
 
 
@@ -112,25 +116,11 @@ Class Device
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Device</span></div>
+      <div><span class="xref">EarlyGop</span></div>
     </dd>
   </dl>
 
 
-  <dl class="typelist derived">
-    <dt>Derived</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.html">GraphicDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html">KeyboardDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.html">NetworkDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html">TimerDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html">PS2Controller</a></div>
-    </dd>
-  </dl>
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
@@ -157,6 +147,166 @@ Class Device
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Core_IO_EarlyGop_CharH" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.CharH">
+  CharH
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int CharH = 8</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_IO_EarlyGop_CharW" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.CharW">
+  CharW
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int CharW = 8</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_IO_EarlyGop_Enabled" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.Enabled">
+  Enabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set to false to stop mirroring serial output to the screen.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool Enabled</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_IO_EarlyGop_Initialize_" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_EarlyGop_Initialize" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize the early GOP renderer. Called lazily on first PutChar if not called explicitly.
+For round displays the usable text area is inset to fit inside the visible circle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_IO_EarlyGop_PutChar_" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.PutChar*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_EarlyGop_PutChar_System_Char_" data-uid="Cosmos.Kernel.Core.IO.EarlyGop.PutChar(System.Char)">
+  PutChar(char)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a single character directly to the linear framebuffer.
+Handles '\n' (line feed) and '\r' (carriage return).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void PutChar(char c)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>c</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
 
 
 

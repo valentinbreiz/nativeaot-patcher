@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class GIC | Cosmos Gen 3 </title>
+      <title>Class GICv3 | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class GIC | Cosmos Gen 3 ">
+      <meta name="title" content="Class GICv3 | Cosmos Gen 3 ">
       
-      <meta name="description" content="Unified GIC facade that auto-detects GICv2 or GICv3 at runtime and delegates to the appropriate implementation. Supports configurable base addresses for real hardware (from DTB).">
+      <meta name="description" content="ARM Generic Interrupt Controller v3 (GICv3) implementation. GICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO, and adds a Redistributor component (one per CPU). Base addresses are configurable to support both QEMU and real hardware.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,12 +84,12 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC">
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC" class="text-break">
-Class GIC  
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3" class="text-break">
+Class GICv3  
   </h1>
 
   <div class="facts text-secondary">
@@ -97,14 +97,15 @@ Class GIC
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Unified GIC facade that auto-detects GICv2 or GICv3 at runtime
-and delegates to the appropriate implementation.
-Supports configurable base addresses for real hardware (from DTB).</p>
+  <div class="markdown summary"><p>ARM Generic Interrupt Controller v3 (GICv3) implementation.
+GICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO,
+and adds a Redistributor component (one per CPU).
+Base addresses are configurable to support both QEMU and real hardware.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class GIC</code></pre>
+    <pre><code class="lang-csharp hljs">public static class GICv3</code></pre>
   </div>
 
 
@@ -114,7 +115,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">GIC</span></div>
+      <div><span class="xref">GICv3</span></div>
     </dd>
   </dl>
 
@@ -156,7 +157,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_PPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.PPI_START">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_PPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.PPI_START">
   PPI_START
   
   </h3>
@@ -186,7 +187,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SGI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SGI_START">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SGI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SGI_START">
   SGI_START
   
   </h3>
@@ -216,7 +217,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SPI_START">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SPI_START" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SPI_START">
   SPI_START
   
   </h3>
@@ -246,7 +247,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_HYP" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_HYP">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_HYP" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_HYP">
   TIMER_HYP
   
   </h3>
@@ -276,7 +277,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_NONSEC_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_NONSEC_PHYS">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_NONSEC_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_NONSEC_PHYS">
   TIMER_NONSEC_PHYS
   
   </h3>
@@ -306,7 +307,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_SECURE_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_SECURE_PHYS">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_SECURE_PHYS" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_SECURE_PHYS">
   TIMER_SECURE_PHYS
   
   </h3>
@@ -336,7 +337,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_TIMER_VIRT" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_VIRT">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_VIRT" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT">
   TIMER_VIRT
   
   </h3>
@@ -369,14 +370,14 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInitialized_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInitialized" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized">
   IsInitialized
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Whether the GIC has been initialized.</p>
+  <div class="markdown level1 summary"><p>Whether the GICv3 has been initialized.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -401,19 +402,20 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsMmioAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3">
-  IsVersion3
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsMmioAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable">
+  IsMmioAvailable
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Whether GICv3 is being used (false = GICv2).</p>
+  <div class="markdown level1 summary"><p>Whether GICD/GICR MMIO is accessible. False on devices where
+the GIC bus doesn't respond (e.g., Qualcomm wearable SoCs).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool IsVersion3 { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool IsMmioAvailable { get; }</code></pre>
   </div>
 
 
@@ -437,14 +439,15 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_AcknowledgeInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.AcknowledgeInterrupt*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_AcknowledgeInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_AcknowledgeInterrupt" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.AcknowledgeInterrupt">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_AcknowledgeInterrupt" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt">
   AcknowledgeInterrupt()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Acknowledges an interrupt and returns its ID.</p>
+  <div class="markdown level1 summary"><p>Acknowledges an interrupt and returns its ID.
+Uses ICC_IAR1_EL1 system register.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -456,7 +459,8 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>The interrupt ID, or 1023 if spurious.</p>
+</dd>
   </dl>
 
 
@@ -469,14 +473,15 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ClearPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ClearPending*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ClearPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ClearPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ClearPending(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ClearPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending(System.UInt32)">
   ClearPending(uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Clears a pending interrupt.</p>
+  <div class="markdown level1 summary"><p>Clears a pending interrupt.
+In sysreg-only mode, this is a no-op.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -487,7 +492,8 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID.</p>
+</dd>
   </dl>
 
 
@@ -501,14 +507,52 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ConfigureInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ConfigureInterrupt*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Configure_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_ConfigureInterrupt_System_UInt32_System_Boolean_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.ConfigureInterrupt(System.UInt32,System.Boolean)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Configure_System_UInt64_System_UInt64_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure(System.UInt64,System.UInt64)">
+  Configure(ulong, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configures the GICv3 base addresses. Must be called before Initialize()
+if running on hardware with non-QEMU addresses (e.g., from DTB).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Configure(ulong distBase, ulong redistBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>distBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>GICD base address.</p>
+</dd>
+    <dt><code>redistBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>GICR base address.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ConfigureInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ConfigureInterrupt_System_UInt32_System_Boolean_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt(System.UInt32,System.Boolean)">
   ConfigureInterrupt(uint, bool)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Configures an interrupt as edge-triggered or level-triggered.</p>
+  <div class="markdown level1 summary"><p>Configures an interrupt as edge-triggered or level-triggered.
+In sysreg-only mode, this is a no-op (firmware config is trusted).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -519,9 +563,11 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID.</p>
+</dd>
     <dt><code>edgeTriggered</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>True for edge-triggered, false for level-triggered.</p>
+</dd>
   </dl>
 
 
@@ -535,14 +581,15 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_DisableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.DisableInterrupt*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_DisableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_DisableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.DisableInterrupt(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_DisableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt(System.UInt32)">
   DisableInterrupt(uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disables a specific interrupt.</p>
+  <div class="markdown level1 summary"><p>Disables a specific interrupt.
+In sysreg-only mode, this is a no-op.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -553,7 +600,8 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID.</p>
+</dd>
   </dl>
 
 
@@ -567,14 +615,15 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EnableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EnableInterrupt*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EnableInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EnableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EnableInterrupt(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EnableInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt(System.UInt32)">
   EnableInterrupt(uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Enables a specific interrupt.</p>
+  <div class="markdown level1 summary"><p>Enables a specific interrupt.
+In sysreg-only mode, this is a no-op (firmware config is trusted).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -585,7 +634,8 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID (0-1019).</p>
+</dd>
   </dl>
 
 
@@ -599,14 +649,15 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EndOfInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EndOfInterrupt*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EndOfInterrupt_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_EndOfInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.EndOfInterrupt(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EndOfInterrupt_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt(System.UInt32)">
   EndOfInterrupt(uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Signals the end of interrupt processing.</p>
+  <div class="markdown level1 summary"><p>Signals the end of interrupt processing.
+Uses ICC_EOIR1_EL1 system register.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -617,7 +668,8 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>The interrupt ID that was acknowledged.</p>
+</dd>
   </dl>
 
 
@@ -631,22 +683,31 @@ Supports configurable base addresses for real hardware (from DTB).</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.Initialize*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.Initialize">
-  Initialize()
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Initialize_System_Boolean_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize(System.Boolean)">
+  Initialize(bool)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the GIC, auto-detecting v2 or v3.
-Discovery priority: ACPI MADT → default QEMU addresses.</p>
+  <div class="markdown level1 summary"><p>Initializes the GICv3 distributor, redistributor, and CPU interface.
+On real hardware (Snapdragon, Exynos), the secure firmware (EL3/TZ) owns the
+distributor. We must NOT disable it entirely — only configure NS Group 1.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Initialize(bool sysregOnly = false)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sysregOnly</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>If true, skip all GICD/GICR MMIO and only configure
+the CPU interface via ICC_* system registers. Use this on platforms where
+GIC MMIO causes a bus hang (e.g., Qualcomm wearable SoCs).</p>
+</dd>
+  </dl>
 
 
 
@@ -659,14 +720,14 @@ Discovery priority: ACPI MADT → default QEMU addresses.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeCpuInterface_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_InitializeCpuInterface_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeCpuInterface" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_InitializeCpuInterface" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface">
   InitializeCpuInterface()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the CPU interface for the current CPU.</p>
+  <div class="markdown level1 summary"><p>Initializes the GICv3 CPU interface via system registers.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -686,14 +747,58 @@ Discovery priority: ACPI MADT → default QEMU addresses.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInterruptPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInterruptPending*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsGICv3Available_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInterruptPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInterruptPending(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsGICv3Available_System_UInt64_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available(System.UInt64)">
+  IsGICv3Available(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Detects whether the system has GICv3 support by reading GICD_PIDR2.ArchRev.
+Uses a two-step probe: first reads at the GICv2-compatible offset (0xFE8, within
+the 4KB page - always safe), then falls back to the GICv3 offset (0xFFE8, within
+the 64KB page) if the first read returns zero (GICv3 returns RAZ for reserved
+offsets in its first 4KB).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsGICv3Available(ulong distBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>distBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>GICD base address to probe.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True if GICv3 (ArchRev &gt;= 3).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInterruptPending_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInterruptPending_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending(System.UInt32)">
   IsInterruptPending(uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Checks if an interrupt is pending.</p>
+  <div class="markdown level1 summary"><p>Checks if an interrupt is pending.
+In sysreg-only mode, uses ICC_HPPIR1_EL1 to check highest pending.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -704,13 +809,15 @@ Discovery priority: ACPI MADT → default QEMU addresses.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>True if pending.</p>
+</dd>
   </dl>
 
 
@@ -723,14 +830,52 @@ Discovery priority: ACPI MADT → default QEMU addresses.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SetPriority_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SetPriority*"></a>
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SendSGI_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_SetPriority_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.SetPriority(System.UInt32,System.Byte)">
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SendSGI_System_UInt32_System_Boolean_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI(System.UInt32,System.Boolean)">
+  SendSGI(uint, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sends a Software Generated Interrupt (SGI) to the specified target.
+GICv3 uses ICC_SGI1R_EL1 for SGI generation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SendSGI(uint sgiId, bool targetSelf)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sgiId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>SGI ID (0-15).</p>
+</dd>
+    <dt><code>targetSelf</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>If true, target the current CPU.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SetPriority_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SetPriority_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority(System.UInt32,System.Byte)">
   SetPriority(uint, byte)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Sets the priority of an interrupt.</p>
+  <div class="markdown level1 summary"><p>Sets the priority of an interrupt.
+In sysreg-only mode, this is a no-op (firmware config is trusted).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -741,9 +886,11 @@ Discovery priority: ACPI MADT → default QEMU addresses.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Interrupt ID.</p>
+</dd>
     <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
+    <dd><p>Priority (0 = highest, 0xFF = lowest).</p>
+</dd>
   </dl>
 
 

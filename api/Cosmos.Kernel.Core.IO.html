@@ -95,6 +95,15 @@
 Classes
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.IO.EarlyGop.html">EarlyGop</a></dt>
+      <dd><p>Minimal early-boot GOP text renderer.
+Writes directly to the Limine linear framebuffer with a hardcoded 8x8 bitmap font.
+No back buffer, no swap, no KernelConsole dependency.
+Safe to call from the very first kernel instruction as long as Limine has filled in
+the framebuffer response (i.e. as soon as static fields are accessible).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.IO.Serial.html">Serial</a></dt>
       <dd><p>Multi-architecture serial port driver.</p>
 <ul>

@@ -100,9 +100,33 @@ Classes
 </dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html">DeviceMapper</a></dt>
+      <dd><p>Adds Device MMIO mappings into Limine's existing TTBR1 page tables.
+Limine's HHDM only covers RAM; device MMIO regions (GIC, timers, etc.)
+are NOT mapped. This class walks the TTBR1 page tables and inserts
+2MiB block descriptors with Device-nGnRnE/nGnRE attributes so the
+HHDM virtual address (phys + HHDM_OFFSET) can be dereferenced for MMIO.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html">GIC</a></dt>
+      <dd><p>Unified GIC facade that auto-detects GICv2 or GICv3 at runtime
+and delegates to the appropriate implementation.
+Supports configurable base addresses for real hardware (from DTB).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html">GICv2</a></dt>
       <dd><p>ARM Generic Interrupt Controller v2 (GICv2) implementation.
 Used on QEMU virt machine and many ARM64 platforms.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html">GICv3</a></dt>
+      <dd><p>ARM Generic Interrupt Controller v3 (GICv3) implementation.
+GICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO,
+and adds a Redistributor component (one per CPU).
+Base addresses are configurable to support both QEMU and real hardware.</p>
 </dd>
     </dl>
 

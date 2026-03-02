@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Device | Cosmos Gen 3 </title>
+      <title>Namespace Cosmos.Kernel.HAL.ARM64.Devices.Clock | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Device | Cosmos Gen 3 ">
+      <meta name="title" content="Namespace Cosmos.Kernel.HAL.ARM64.Devices.Clock | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all hardware devices.">
+      
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,84 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Devices.Device">
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock">
 
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock" class="text-break">Namespace Cosmos.Kernel.HAL.ARM64.Devices.Clock</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
 
-
-  <h1 id="Cosmos_Kernel_HAL_Devices_Device" data-uid="Cosmos.Kernel.HAL.Devices.Device" class="text-break">
-Class Device  
-  </h1>
-
-  <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
-  </div>
-
-  <div class="markdown summary"><p>Base class for all hardware devices.</p>
-</div>
-  <div class="markdown conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Device</code></pre>
-  </div>
-
-
-
-
-  <dl class="typelist inheritance">
-    <dt>Inheritance</dt>
-    <dd>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Device</span></div>
-    </dd>
-  </dl>
-
-
-  <dl class="typelist derived">
-    <dt>Derived</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.html">GraphicDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html">KeyboardDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.html">NetworkDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html">TimerDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html">PS2Controller</a></div>
-    </dd>
-  </dl>
-
-  <dl class="typelist inheritedMembers">
-    <dt>Inherited Members</dt>
-    <dd>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-  </dd></dl>
-
-
-
-
-
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html">RTC</a></dt>
+      <dd><p>ARM64 Real-Time Clock implementation.
+Reads boot time from the PL031 RTC (ARM Primecell RTC, present on QEMU virt machine).
+Uses the ARM64 Generic Timer counter for sub-second elapsed time tracking.</p>
+<p>PL031 RTCDR register provides Unix time (seconds since 1970-01-01 UTC).
+QEMU virt machine maps PL031 at physical address 0x09010000.</p>
+</dd>
+    </dl>
 
 
 </article>
