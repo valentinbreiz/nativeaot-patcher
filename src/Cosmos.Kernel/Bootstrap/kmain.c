@@ -10,9 +10,6 @@ void kmain()
     // Without optimizations (-O), ILC generates XMM instructions even in simple functions
     _native_enable_simd();
 
-    // Initialize serial port (115200 baud, 8N1)
-    __cosmos_serial_init();
-
     // === Boot Banner ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("========================================\n");
@@ -38,27 +35,27 @@ void kmain()
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 2: Platform initialization\n");
 
-#ifdef ARCH_X64
     __cosmos_serial_write("[KMAIN]   - Querying Limine for RSDP...\n");
     void* rsdp_address = __get_limine_rsdp_address();
+    uint64_t hhdm_offset = __get_limine_hhdm_offset();
 
     if (rsdp_address != 0)
     {
         __cosmos_serial_write("[KMAIN]   - RSDP found at: 0x");
         __cosmos_serial_write_hex_u64((uint64_t)rsdp_address);
         __cosmos_serial_write("\n");
+        __cosmos_serial_write("[KMAIN]   - HHDM offset: 0x");
+        __cosmos_serial_write_hex_u64(hhdm_offset);
+        __cosmos_serial_write("\n");
 
-        __cosmos_serial_write("[KMAIN]   - Initializing ACPI (LAI)...\n");
-        acpi_early_init(rsdp_address);
+        __cosmos_serial_write("[KMAIN]   - Initializing ACPI...\n");
+        acpi_early_init(rsdp_address, hhdm_offset);
         __cosmos_serial_write("[KMAIN]   - ACPI initialized\n");
     }
     else
     {
         __cosmos_serial_write("[KMAIN]   - WARNING: RSDP not found!\n");
     }
-#else
-    __cosmos_serial_write("[KMAIN]   - ARM64: No ACPI early init required\n");
-#endif
 
     // === Phase 3: Managed Kernel Initialization ===
     __cosmos_serial_write("\n");

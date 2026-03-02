@@ -19,6 +19,14 @@ public static class CosmosFeatures
         AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled) ? enabled : true;
 
     /// <summary>
+    /// Controls PCI support initialization.
+    /// Set via CosmosEnablePCI property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.HAL.PCI.Enabled")]
+    public static bool PCIEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.HAL.PCI.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
     /// Controls timer (PIT/HPET) initialization. Disabling this also disables Scheduler.
     /// Set via CosmosEnableTimer property in csproj.
     /// </summary>

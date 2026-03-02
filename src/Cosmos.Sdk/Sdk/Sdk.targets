@@ -11,6 +11,7 @@
     <CosmosEnableNetwork   Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableNetwork>
     <CosmosEnableScheduler Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableScheduler>
     <CosmosEnableGraphics  Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableGraphics>
+    <CosmosEnablePCI       Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnablePCI>
     <!-- Timer off → preemptive scheduler can't tick -->
     <CosmosEnableScheduler Condition="'$(CosmosEnableTimer)' == 'false'">false</CosmosEnableScheduler>
   </PropertyGroup>

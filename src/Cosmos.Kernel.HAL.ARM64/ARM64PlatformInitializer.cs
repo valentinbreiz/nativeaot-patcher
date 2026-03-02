@@ -41,9 +41,12 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         Serial.WriteString("[ARM64HAL] Registering timer interrupt handler...\n");
         _timer.RegisterIRQHandler();
 
-        // Scan for virtio devices
-        Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
-        VirtioMMIO.ScanDevices();
+        if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
+        {
+            // Scan for virtio devices
+            Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
+            VirtioMMIO.ScanDevices();
+        }
 
         // Initialize virtio keyboard (if keyboard feature enabled)
         if (CosmosFeatures.KeyboardEnabled)
