@@ -16,6 +16,8 @@ public static partial class Serial
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ComWrite(byte value)
     {
+        if (CosmosFeatures.UARTEnabled)
+        {
 #if ARCH_ARM64
             // PL011: Wait until TX FIFO is not full
             while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
@@ -25,6 +27,7 @@ public static partial class Serial
             while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
             Native.IO.Write8(COM1_BASE + REG_DATA, value);
 #endif
+        }
     }
 
     public static unsafe void WriteString(string str)
