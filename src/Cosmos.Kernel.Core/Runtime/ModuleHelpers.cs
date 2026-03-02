@@ -1,5 +1,6 @@
 using System.Runtime;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -30,7 +31,7 @@ internal static unsafe class ModuleHelpers
     [RuntimeExport("RhpCreateTypeManager")]
     internal static unsafe TypeManagerHandle RhpCreateTypeManager(IntPtr osModule, ReadyToRunHeader* moduleHeader, void** pClasslibFunctions, uint nClasslibFunctions)
     {
-        TypeManager* tm = (TypeManager*)Memory.RhpNewFast(MethodTable.Of<TypeManager>());
+        TypeManager* tm = (TypeManager*)MemoryOp.Alloc((uint)sizeof(TypeManager));
         tm->OsHandle = osModule;
         tm->Header = moduleHeader;
         tm->m_pClasslibFunctions = pClasslibFunctions;

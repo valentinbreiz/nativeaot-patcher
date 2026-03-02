@@ -208,7 +208,7 @@ jobs:
           else
             ARCH_DEFINE="ARCH_X64"
           fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=${{ matrix.arch }} --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         run: |
@@ -302,7 +302,7 @@ jobs:
           } else {
             $ARCH_DEFINE = "ARCH_X64"
           }
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants=$ARCH_DEFINE -p:CosmosArch=${{ matrix.arch }} --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         shell: pwsh
@@ -376,7 +376,7 @@ jobs:
           else
             ARCH_DEFINE="ARCH_X64"
           fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
+          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=${{ matrix.arch }} --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
 
       - name: 🕵️‍♂️ Verify Output
         run: |

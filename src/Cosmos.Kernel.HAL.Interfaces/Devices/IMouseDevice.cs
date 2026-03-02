@@ -51,4 +51,9 @@ public interface IMouseDevice
     /// Disable the mouse.
     /// </summary>
     void Disable();
+
+    /// <summary>
+    /// Poll for mouse events (for devices that don't use interrupts reliably).
+    /// </summary>
+    void Poll();
 }

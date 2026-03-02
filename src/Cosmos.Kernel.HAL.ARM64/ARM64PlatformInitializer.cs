@@ -1,9 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Input;
+using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 using Cosmos.Kernel.HAL.Interfaces;
@@ -18,6 +20,8 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 {
     private GenericTimer? _timer;
     private VirtioKeyboard? _virtioKeyboard;
+    private VirtioMouse? _virtioMouse;
+    private VirtioNet? _networkDevice;
 
     public string PlatformName => "ARM64";
     public PlatformArchitecture Architecture => PlatformArchitecture.ARM64;
@@ -41,29 +45,66 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
         VirtioMMIO.ScanDevices();
 
-        // Initialize virtio keyboard
-        _virtioKeyboard = VirtioKeyboard.FindAndCreate();
-        if (_virtioKeyboard != null)
+        // Initialize virtio keyboard (if keyboard feature enabled)
+        if (CosmosFeatures.KeyboardEnabled)
         {
-            _virtioKeyboard.Initialize();
-            if (_virtioKeyboard.IsInitialized)
+            _virtioKeyboard = VirtioKeyboard.FindAndCreate();
+            if (_virtioKeyboard != null)
             {
-                Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
+                _virtioKeyboard.Initialize();
+                if (_virtioKeyboard.IsInitialized)
+                {
+                    Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
+                }
+                else
+                {
+                    Serial.WriteString("[ARM64HAL] Virtio keyboard initialization failed\n");
+                    _virtioKeyboard = null;
+                }
             }
             else
             {
-                Serial.WriteString("[ARM64HAL] Virtio keyboard initialization failed\n");
-                _virtioKeyboard = null;
+                Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
             }
         }
-        else
+
+        // Initialize virtio mouse (if mouse feature enabled)
+        if (CosmosFeatures.MouseEnabled)
         {
-            Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
+            _virtioMouse = VirtioMouse.FindAndCreate();
+            if (_virtioMouse != null)
+            {
+                _virtioMouse.Initialize();
+                Serial.WriteString("[ARM64HAL] Virtio mouse initialized\n");
+            }
+            else
+            {
+                Serial.WriteString("[ARM64HAL] No virtio mouse found\n");
+            }
+        }
+
+        // Try to find VirtioNet MMIO network device (if network feature enabled)
+        if (CosmosFeatures.NetworkEnabled)
+        {
+            Serial.WriteString("[ARM64HAL] Looking for VirtioNet MMIO network device...\n");
+            _networkDevice = VirtioNet.FindAndCreate();
+            if (_networkDevice != null)
+            {
+                Serial.WriteString("[ARM64HAL] VirtioNet MMIO device found, initializing...\n");
+                _networkDevice.Initialize();
+            }
+            else
+            {
+                Serial.WriteString("[ARM64HAL] No VirtioNet MMIO device found\n");
+            }
         }
     }
 
     public ITimerDevice CreateTimer()
     {
+        if (!CosmosFeatures.TimerEnabled)
+            return null!;
+
         if (_timer == null)
         {
             _timer = new GenericTimer();
@@ -74,17 +115,23 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
     public IKeyboardDevice[] GetKeyboardDevices()
     {
-        if (_virtioKeyboard != null && _virtioKeyboard.IsInitialized)
-        {
-            return [_virtioKeyboard];
-        }
-        return [];
+        if (!CosmosFeatures.KeyboardEnabled || _virtioKeyboard == null || !_virtioKeyboard.IsInitialized)
+            return [];
+
+        return [_virtioKeyboard];
+    }
+
+    public IMouseDevice[] GetMouseDevices()
+    {
+        if (!CosmosFeatures.MouseEnabled || _virtioMouse == null)
+            return [];
+
+        return [_virtioMouse];
     }
 
     public INetworkDevice? GetNetworkDevice()
     {
-        // No network device implemented for ARM64 yet
-        return null;
+        return _networkDevice;
     }
 
     public uint GetCpuCount()

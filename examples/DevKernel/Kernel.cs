@@ -3,7 +3,12 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.X64.Devices.Clock;
+#endif
 using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Graphics.Fonts;
+using System.Drawing;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -115,7 +120,6 @@ public class Kernel : Sys.Kernel
                     Stop();
                     break;
 
-#if ARCH_X64
                 case "netconfig":
                     ConfigureNetwork();
                     break;
@@ -143,11 +147,116 @@ public class Kernel : Sys.Kernel
                         PrintError("Usage: dns <domain>");
                     break;
 
-#endif
-
-
                 case "meminfo":
                     ShowMemoryInfo();
+                    break;
+
+
+                case "free":
+                    Console.WriteLine(Cosmos.Kernel.Core.Memory.Heap.Heap.Collect() + " objects collected.");
+                    break;
+
+                case "startx":
+                    /* First test with the DefaultMode */
+                    Canvas canvas = KernelConsole.Canvas;
+                    var font = PCScreenFont.DefaultFont;
+
+                    int fps = 0;
+                    int frames = 0;
+                    int framesSinceFps = 0;
+                    long lastFpsTicks = 0;
+                    const long ticksPerSecond = 10_000_000;
+#if ARCH_X64
+                    bool rtcAvailable = RTC.Instance != null && RTC.Instance.IsInitialized;
+#endif
+
+                    Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
+
+                    // Set up mouse for cursor
+                    Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
+
+                    int x = 10;
+                    int y = 10;
+                    int lineHeight = font.Height + 2;
+                    int panelWidth = 360;
+                    int panelHeight = lineHeight * 9 + 8;
+
+                    while (true)
+                    {
+                        canvas.Clear(Color.Black);
+
+                        frames++;
+                        framesSinceFps++;
+
+#if ARCH_X64
+                        if (rtcAvailable)
+                        {
+                            long nowTicks = RTC.Instance!.GetCurrentTicks();
+                            if (lastFpsTicks == 0)
+                            {
+                                lastFpsTicks = nowTicks;
+                            }
+                            else if (nowTicks - lastFpsTicks >= ticksPerSecond)
+                            {
+                                fps = (int)(framesSinceFps * ticksPerSecond / (nowTicks - lastFpsTicks));
+                                framesSinceFps = 0;
+                                lastFpsTicks = nowTicks;
+                            }
+                        }
+                        else
+#endif
+                        {
+                            if (framesSinceFps >= 60)
+                            {
+                                fps = framesSinceFps;
+                                framesSinceFps = 0;
+                            }
+                        }
+
+                        ulong totalPages = PageAllocator.TotalPageCount;
+                        ulong freePages = PageAllocator.FreePageCount;
+                        ulong usedPages = totalPages - freePages;
+                        ulong pageSize = PageAllocator.PageSize;
+
+                        ulong totalBytes = totalPages * pageSize;
+                        ulong usedBytes = usedPages * pageSize;
+                        ulong freeBytes = freePages * pageSize;
+
+                        Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
+
+                        int rowY = y;
+
+                        canvas.DrawString("Meminfo", font, Color.Cyan, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Total: " + (totalBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Used : " + (usedBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Free : " + (freeBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Pages: " + usedPages + "/" + totalPages, font, Color.White, x, rowY);
+                        rowY += lineHeight * 2;
+
+                        canvas.DrawString("GCinfo", font, Color.Cyan, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Collections: " + totalCollections, font, Color.White, x, rowY);
+                        rowY += lineHeight;
+                        canvas.DrawString("Objects Freed: " + totalObjectsFreed, font, Color.White, x, rowY);
+                        rowY += lineHeight * 2;
+
+                        canvas.DrawString("FPS: " + fps, font, Color.Yellow, x, rowY);
+
+                        // Draw mouse cursor
+                        DrawMouseCursor(canvas, Cosmos.Kernel.System.Mouse.MouseManager.X, Cosmos.Kernel.System.Mouse.MouseManager.Y);
+
+                        if (frames % 100 == 0)
+                        {
+                            Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
+                        }
+
+                        canvas.Display();
+                    }
+
                     break;
 
                 default:
@@ -193,14 +302,12 @@ public class Kernel : Sys.Kernel
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
         PrintCommand("halt", "Halt the system");
-#if ARCH_X64
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
         PrintCommand("netlisten", "Listen for UDP packets");
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
-#endif
     }
 
     private void PrintCommand(string cmd, string description)
@@ -216,7 +323,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", "CosmosOS v3.0.36 (gen3)");
+        PrintInfoLine("OS", "CosmosOS v3.0.38 (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");
@@ -550,7 +657,6 @@ public class Kernel : Sys.Kernel
         }
     }
 
-#if ARCH_X64
     // Network configuration
     private Address? _localIP;
     private Address? _gatewayIP;
@@ -828,7 +934,6 @@ public class Kernel : Sys.Kernel
         dnsClient.Close();
         Console.WriteLine();
     }
-#endif
 
     private void PrintInfo(string message)
     {
@@ -854,5 +959,64 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(message);
         Console.ResetColor();
+    }
+
+    // Static cursor pattern - allocated once, reused every frame
+    private static readonly int[] s_cursorPattern = new int[]
+    {
+        // Row by row pattern for arrow cursor
+        // Pattern: 1 = border (black), 2 = fill (white), 0 = transparent
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 2, 1, 0, 0, 0, 0, 0, 0, 0,
+        1, 2, 2, 1, 0, 0, 0, 0, 0, 0,
+        1, 2, 2, 2, 1, 0, 0, 0, 0, 0,
+        1, 2, 2, 2, 2, 1, 0, 0, 0, 0,
+        1, 2, 2, 2, 2, 2, 1, 0, 0, 0,
+        1, 2, 2, 2, 2, 2, 2, 1, 0, 0,
+        1, 2, 2, 2, 2, 2, 2, 2, 1, 0,
+        1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+        1, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 2, 2, 1, 2, 2, 1, 0, 0, 0,
+        1, 2, 1, 0, 1, 2, 2, 1, 0, 0,
+        1, 1, 0, 0, 1, 2, 2, 1, 0, 0,
+        1, 0, 0, 0, 0, 1, 2, 2, 1, 0,
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
+    };
+
+    private const int CursorWidth = 10;
+    private const int CursorHeight = 16;
+
+    /// <summary>
+    /// Draws a simple arrow mouse cursor.
+    /// </summary>
+    private static void DrawMouseCursor(Canvas canvas, int x, int y)
+    {
+
+        for (int cy = 0; cy < CursorHeight; cy++)
+        {
+            for (int cx = 0; cx < CursorWidth; cx++)
+            {
+                int px = x + cx;
+                int py = y + cy;
+
+                // Bounds check
+                if (px < 0 || px >= canvas.Mode.Width || py < 0 || py >= canvas.Mode.Height)
+                    continue;
+
+                int pixel = s_cursorPattern[cy * CursorWidth + cx];
+                if (pixel == 1)
+                {
+                    // Border (black)
+                    canvas.DrawPoint(Color.Black, px, py);
+                }
+                else if (pixel == 2)
+                {
+                    // Fill (white)
+                    canvas.DrawPoint(Color.White, px, py);
+                }
+                // pixel == 0: transparent, don't draw
+            }
+        }
     }
 }

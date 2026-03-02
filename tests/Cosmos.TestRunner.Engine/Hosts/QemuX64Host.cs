@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -131,7 +132,7 @@ public class QemuX64Host : IQemuHost
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
             {
-                uartLog = await File.ReadAllTextAsync(uartLogPath);
+                uartLog = await File.ReadAllTextAsync(uartLogPath, Encoding.Latin1);
             }
 
             return new QemuRunResult
@@ -163,7 +164,7 @@ public class QemuX64Host : IQemuHost
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
             {
-                uartLog = await File.ReadAllTextAsync(uartLogPath);
+                uartLog = await File.ReadAllTextAsync(uartLogPath, Encoding.Latin1);
             }
 
             return new QemuRunResult

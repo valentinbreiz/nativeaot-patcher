@@ -443,7 +443,6 @@ public class GopCanvas : Canvas
 
     public override void Display()
     {
-        Serial.WriteString("GopCanvas Display called\n");
         driver.Swap();
     }
 

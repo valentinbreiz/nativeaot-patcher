@@ -169,20 +169,33 @@ public partial class Engine
         results.UartLog = qemuResult.UartLog;
         results.ErrorMessage = qemuResult.ErrorMessage;
 
-        // If expected test count was provided and not all tests ran, add missing tests as failures
-        if (results.ExpectedTestCount > 0 && results.Tests.Count < results.ExpectedTestCount)
+        // If the suite completed normally (TestSuiteEnd received and validated), all tests ran —
+        // no need to synthesise failures for missing tests.
+        if (!results.SuiteCompleted && results.ExpectedTestCount > 0 && results.Tests.Count < results.ExpectedTestCount)
         {
             int actualCount = results.Tests.Count;
-            for (int i = actualCount + 1; i <= results.ExpectedTestCount; i++)
+
+            // Sanity check: timer interrupts can corrupt the ExpectedTestCount field in the
+            // TestSuiteStart message (high byte replaced by '[' = 0x5B from "[GenericTimer]" text).
+            // If the expected count is implausibly large compared to what actually ran, ignore it.
+            int maxPlausible = actualCount + 10000;
+            if (results.ExpectedTestCount > maxPlausible)
             {
-                results.Tests.Add(new TestResult
+                Console.WriteLine($"[ParseResults] Warning: ExpectedTestCount={results.ExpectedTestCount} seems corrupted (actual={actualCount}), ignoring.");
+            }
+            else
+            {
+                for (int i = actualCount + 1; i <= results.ExpectedTestCount; i++)
                 {
-                    TestNumber = i,
-                    TestName = $"Test {i}",
-                    Status = TestStatus.Failed,
-                    ErrorMessage = "Test did not execute (kernel crashed or timed out)",
-                    DurationMs = 0
-                });
+                    results.Tests.Add(new TestResult
+                    {
+                        TestNumber = i,
+                        TestName = $"Test {i}",
+                        Status = TestStatus.Failed,
+                        ErrorMessage = "Test did not execute (kernel crashed or timed out)",
+                        DurationMs = 0
+                    });
+                }
             }
         }
 

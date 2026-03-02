@@ -5,18 +5,14 @@
     <projectFile>examples/KernelExample/KernelExample.csproj</projectFile>
     <projectFile>src/Cosmos.Patcher/Cosmos.Patcher.csproj</projectFile>
     <projectFile>src/Cosmos.Tools/Cosmos.Tools.csproj</projectFile>
+    <projectFile>tests/ConsoleApp1/ConsoleApp1.csproj</projectFile>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="commit to show">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/build/Cosmos.Kernel.Core.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/build/Cosmos.Kernel.Core.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,6 +28,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/610c920d4ead4a5383016370f496a00b4000/fc/6a0314c9/Console.cs" root0="FORCE_HIGHLIGHTING" />

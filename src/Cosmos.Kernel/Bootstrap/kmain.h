@@ -9,7 +9,7 @@ typedef unsigned int size_t;
 #define COSMOS_VERSION_MAJOR 3
 #define COSMOS_VERSION_MINOR 0
 #define COSMOS_VERSION_PATCH 0
-#define COSMOS_VERSION_STRING "3.0.36"
+#define COSMOS_VERSION_STRING "3.0.38"
 #define COSMOS_CODENAME "gen3"
 #define NULL (void*)0
 
@@ -19,7 +19,6 @@ extern void* __Modules_end[];
 extern char* __kernel_start;
 
 // Managed code entry points
-extern void __Initialize_Kernel(void);
 extern void __managed__Startup(void);
 extern int __managed__Main(int argc, char* argv[]);
 extern void* RhpRegisterOsModule(void* osmodule);

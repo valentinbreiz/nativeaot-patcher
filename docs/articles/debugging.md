@@ -2,24 +2,11 @@
 
 ## Setting Up Debugging
 
-When debugging the kernel with VSCode and QEMU, you need to manually set breakpoints for the debugging functions.
+Debugging the kernel with VSCode and QEMU uses remote GDB debugging. Breakpoints can be set directly in the editor as with any standard debugging session.
 
-### Required Manual Breakpoint
-
-Due to limitations with VSCode's remote GDB debugging for kernel development, you must manually set a breakpoint at:
-
-```
-_native_debug_breakpoint_soft
-```
-
-### How to Set the Breakpoint
-
-**Important:** You must set the breakpoint BEFORE starting the debugging session.
+### How to Debug
 
 1. Open the RUN AND DEBUG view in VSCode
-2. Before the kernel starts executing, set this breakpoint under BREAKPOINTS:
-   ```
-   _native_debug_breakpoint_soft
-   ```
-3. Start your debugging session (F5)
-4. The kernel will now stop at this breakpoint when it's reached
+2. Set breakpoints anywhere in your kernel source code
+3. Start your debugging session (F5) — for example, select **Debug x64 DevKernel** from the RUN AND DEBUG dropdown
+4. Qemu will launchs and the kernel will stop at your breakpoints as expected

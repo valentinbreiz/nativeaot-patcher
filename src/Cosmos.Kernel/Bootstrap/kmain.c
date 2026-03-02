@@ -6,7 +6,11 @@ int g_cpuFeatures = 0;
 // Entry point
 void kmain()
 {
-    // Initialize serial port FIRST (115200 baud, 8N1)
+    // Enable SIMD/XMM FIRST before ANY code execution
+    // Without optimizations (-O), ILC generates XMM instructions even in simple functions
+    _native_enable_simd();
+
+    // Initialize serial port (115200 baud, 8N1)
     __cosmos_serial_init();
 
     // === Boot Banner ===
@@ -23,14 +27,6 @@ void kmain()
 
     // === Phase 1: CPU Initialization ===
     __cosmos_serial_write("[KMAIN] Phase 1: CPU initialization\n");
-
-#ifdef __aarch64__
-    __cosmos_serial_write("[KMAIN]   - Enabling NEON/SIMD...\n");
-#else
-    __cosmos_serial_write("[KMAIN]   - Enabling SSE/AVX...\n");
-#endif
-    _native_enable_simd();
-    __cosmos_serial_write("[KMAIN]   - SIMD enabled\n");
 
 #ifdef __aarch64__
     __cosmos_serial_write("[KMAIN]   - Disabling alignment check (SCTLR_EL1.A)...\n");
@@ -68,16 +64,11 @@ void kmain()
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 3: Managed kernel initialization\n");
     RhpRegisterOsModule(__kernel_start);
-    __Initialize_Kernel();
-
-    // === Phase 4: Module Initialization ===
-    __cosmos_serial_write("\n");
-    __cosmos_serial_write("[KMAIN] Phase 4: Module initialization\n");
     __managed__Startup();
 
-    // === Phase 5: User Kernel ===
+    // === Phase 4: User Kernel ===
     __cosmos_serial_write("\n");
-    __cosmos_serial_write("[KMAIN] Phase 5: User kernel\n");
+    __cosmos_serial_write("[KMAIN] Phase 4: User kernel\n");
     char *argv[] = {"COSMOS", NULL};
     __managed__Main(1, argv);
 

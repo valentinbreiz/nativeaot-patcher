@@ -1,37 +1,35 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
 
-public static class Memory
+
+public static unsafe class Memory
 {
+    [RuntimeExport("RhNewArray")]
+    internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
+    {
+        RhAllocateNewArray(pEEType, (uint)length, 0, out void* result);
+        return result;
+    }
+
     [RuntimeExport("RhAllocateNewArray")]
-    internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, uint flags,
+    internal static unsafe void RhAllocateNewArray(MethodTable* pArrayEEType, uint numElements, GC_ALLOC_FLAGS flags,
         out void* pResult)
     {
         uint size = pArrayEEType->BaseSize + numElements * pArrayEEType->ComponentSize;
 
-        /*
-        Serial.WriteString("AllocArray Base: ");
-        Serial.WriteNumber(pArrayEEType->BaseSize);
-        Serial.WriteString(" Comp: ");
-        Serial.WriteNumber(pArrayEEType->ComponentSize);
-        Serial.WriteString(" Num: ");
-        Serial.WriteNumber(numElements);
-        Serial.WriteString(" Size: ");
-        Serial.WriteNumber(size);
-        Serial.WriteString("\n");
-        */
+        GCObject* result = AllocObject(size, flags);
 
-        MethodTable** result = AllocObject(size);
-        MemoryOp.MemSet((byte*)result, 0, (int)size);
-        *result = pArrayEEType;
-        *(int*)(result + 1) = (int)numElements;
+        result->MethodTable = pArrayEEType;
+        result->Length = (int)numElements;
+
         pResult = result;
-        // as some point we should set flags
     }
 
     [RuntimeExport("RhpNewArray")]
@@ -42,26 +40,11 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
-        /*
-        if (length < 10)
-        {
-            Serial.WriteString("RhpNewArray Base: ");
-            Serial.WriteNumber(pMT->BaseSize);
-            Serial.WriteString(" Comp: ");
-            Serial.WriteNumber(pMT->ComponentSize);
-            Serial.WriteString(" Len: ");
-            Serial.WriteNumber((uint)length);
-            Serial.WriteString(" Size: ");
-            Serial.WriteNumber(size);
-            Serial.WriteString("\n");
-        }
-        */
+        GCObject* result = AllocObject(size);
 
-        MethodTable** result = AllocObject(size);
-        MemoryOp.MemSet((byte*)result, 0, (int)size);
+        result->MethodTable = pMT;
+        result->Length = length;
 
-        *result = pMT;
-        *(int*)(result + 1) = length;
         return result;
     }
 
@@ -73,26 +56,11 @@ public static class Memory
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
-        /*
-        if (length < 10)
-        {
-            Serial.WriteString("RhpNewPtrArrayFast Base: ");
-            Serial.WriteNumber(pMT->BaseSize);
-            Serial.WriteString(" Comp: ");
-            Serial.WriteNumber(pMT->ComponentSize);
-            Serial.WriteString(" Len: ");
-            Serial.WriteNumber((uint)length);
-            Serial.WriteString(" Size: ");
-            Serial.WriteNumber(size);
-            Serial.WriteString("\n");
-        }
-        */
+        GCObject* result = AllocObject(size);
 
-        MethodTable** result = AllocObject(size);
-        MemoryOp.MemSet((byte*)result, 0, (int)size);
+        result->MethodTable = pMT;
+        result->Length = length;
 
-        *result = pMT;
-        *(int*)(result + 1) = length;
         return result;
     }
     [RuntimeExport("RhpNewArrayFast")]
@@ -102,11 +70,11 @@ public static class Memory
             return null;
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
-        MethodTable** result = AllocObject(size);
-        MemoryOp.MemSet((byte*)result, 0, (int)size);
 
-        *result = pMT;
-        *(int*)(result + 1) = length;
+        GCObject* result = AllocObject(size);
+        result->MethodTable = pMT;
+        result->Length = length;
+
         return result;
     }
 
@@ -117,9 +85,12 @@ public static class Memory
     }
 
     [RuntimeExport("RhAllocateNewObject")]
-    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, uint flags, void* pResult)
+    internal static unsafe void RhAllocateNewObject(MethodTable* pEEType, GC_ALLOC_FLAGS flags, void* pResult)
     {
-        *(void**)pResult = RhpNewFast(pEEType);
+        GCObject* result = AllocObject(pEEType->RawBaseSize, flags);
+        result->MethodTable = pEEType;
+
+        *(void**)pResult = result;
         // as some point we should set flags   
     }
 
@@ -135,25 +106,10 @@ public static class Memory
     {
         // Use RawBaseSize instead of BaseSize because BaseSize only works for canonical/array types
         // For generic type definitions, BaseSize contains parameter count, not the actual size
-        MethodTable** result = AllocObject(pMT->RawBaseSize);
-        MemoryOp.MemSet((byte*)result, 0, (int)pMT->RawBaseSize);
-        *result = pMT;
-        return result;
+        GCObject* result = AllocObject(pMT->RawBaseSize);
+        result->MethodTable = pMT;
+        return (byte*)result;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe MethodTable** AllocObject(uint size)
-    {
-        return (MethodTable**)MemoryOp.Alloc(size);
-    }
-
-    internal static unsafe MethodTable* GetMethodTable(object obj)
-    {
-        // The MethodTable pointer is stored at the beginning of every object
-        // RhpNewFast sets: *result = pMT; where result is the allocated address
-        return *(MethodTable**)Unsafe.AsPointer(ref obj);
-    }
-
 
     [RuntimeExport("RhSpanHelpers_MemCopy")]
     private static unsafe void RhSpanHelpers_MemCopy(byte* dest, byte* src, UIntPtr len)
@@ -182,11 +138,61 @@ public static class Memory
     [RuntimeExport("RhRegisterFrozenSegment")]
     static unsafe IntPtr RhRegisterFrozenSegment(void* pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
     {
-        return IntPtr.Zero;
+        if (GarbageCollector.IsEnabled)
+        {
+            return GarbageCollector.RegisterFrozenSegment((IntPtr)pSegmentStart, allocSize, commitSize, reservedSize);
+        }
+        else
+        {
+            return (IntPtr)pSegmentStart;
+        }
     }
 
     [RuntimeExport("RhUpdateFrozenSegment")]
     static unsafe void RhUpdateFrozenSegment(IntPtr seg, void* allocated, void* committed)
     {
+        if (GarbageCollector.IsEnabled)
+        {
+            GarbageCollector.UpdateFrozenSegment((nint)seg, (nint)allocated, (nint)committed);
+        }
+    }
+
+    [RuntimeExport("RhHandleSet")]
+    static IntPtr RhHandleSet(object obj)
+    {
+        return IntPtr.Zero;
+    }
+
+    [RuntimeExport("RhHandleFree")]
+    static void RhHandleFree(IntPtr handle)
+    {
+        GarbageCollector.FreeHandle(handle);
+    }
+
+    [RuntimeExport("RhpHandleAlloc")]
+    static IntPtr RhpHandleAlloc(GCObject* obj, GCHandleType handleType)
+    {
+        return GarbageCollector.AllocateHandler(obj, handleType, UIntPtr.Zero);
+    }
+
+    [RuntimeExport("RhpHandleAllocDependent")]
+    static IntPtr RhpHandleAllocDependent(GCObject* primary, GCObject* secondary)
+    {
+        return GarbageCollector.AllocateHandler(primary, GCHandleType.Normal, (nuint)secondary);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe GCObject* AllocObject(uint size, GC_ALLOC_FLAGS flags = GC_ALLOC_FLAGS.GC_ALLOC_NO_FLAGS)
+    {
+        if (GarbageCollector.IsEnabled)
+        {
+            return GarbageCollector.AllocObject((nint)size, flags);
+        }
+        else
+        {
+            var result = MemoryOp.Alloc(size);
+            MemoryOp.MemSet((byte*)result, 0, (int)size);
+            return (GCObject*)result;
+        }
     }
 }

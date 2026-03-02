@@ -1,56 +1,45 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+
   "metadata": [
     {
       "src": [
-        {
-          "src": "./../Liquip/src",
-          "files": [
-            "**/*.csproj"
-          ],
-            "exclude": [
-                "**/bin/**",
-                "**/obj/**"
-            ]
-        }
+        { "src": "../src/Cosmos.Kernel.Boot.Limine", "files": [ "Cosmos.Kernel.Boot.Limine.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.Core", "files": [ "Cosmos.Kernel.Core.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.Debug", "files": [ "Cosmos.Kernel.Debug.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.HAL", "files": [ "Cosmos.Kernel.HAL.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.HAL.ARM64", "files": [ "Cosmos.Kernel.HAL.ARM64.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.HAL.Interfaces", "files": [ "Cosmos.Kernel.HAL.Interfaces.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.HAL.X64", "files": [ "Cosmos.Kernel.HAL.X64.csproj" ] },
+        { "src": "../src/Cosmos.Kernel.System", "files": [ "Cosmos.Kernel.System.csproj" ] }
       ],
-      "dest": "api"
+      "dest": "api",
+      "disableGitFeatures": true,
+      "allowCompilationErrors": true
     }
   ],
+
   "build": {
     "content": [
       {
-        "files": [
-          "**/*.{md,yml}"
-        ],
-        "exclude": [
-          "_site/**"
-        ]
+        "src": ".",
+        "files": [ "**/*.md", "**/*.yml" ],
+        "exclude": [ "_site/**" ]
       }
     ],
     "resource": [
       {
-        "files": [
-          "images/**"
-        ]
+        "src": ".",
+        "files": [ "images/**" ]
       }
     ],
     "output": "_site",
-    "template": [
-      "default",
-      "modern"
-    ],
+    "template": [ "default", "modern" ],
     "globalMetadata": {
       "_appName": "Cosmos Gen 3",
       "_appTitle": "Cosmos Gen 3",
       "_enableSearch": true,
       "pdf": false
-    },
-      "postProcessors": [],
-      "markdownEngineName": "markdig",
-      "noLangKeyword": false,
-      "keepFileLink": false,
-      "cleanupCacheHistory": false,
-      "disableGitFeatures": false
+    }
   }
 }

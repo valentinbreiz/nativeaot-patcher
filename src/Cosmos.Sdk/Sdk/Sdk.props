@@ -24,7 +24,10 @@
 
   <!-- Cosmos Feature Switches (defaults) -->
   <PropertyGroup>
+    <CosmosEnableInterrupts Condition="'$(CosmosEnableInterrupts)' == ''">true</CosmosEnableInterrupts>
+    <CosmosEnableTimer Condition="'$(CosmosEnableTimer)' == ''">true</CosmosEnableTimer>
     <CosmosEnableKeyboard Condition="'$(CosmosEnableKeyboard)' == ''">true</CosmosEnableKeyboard>
+    <CosmosEnableMouse Condition="'$(CosmosEnableMouse)' == ''">true</CosmosEnableMouse>
     <CosmosEnableNetwork Condition="'$(CosmosEnableNetwork)' == ''">true</CosmosEnableNetwork>
     <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
@@ -63,7 +66,10 @@
     <IlcArg Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false"/>
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel"/>
     <!-- Cosmos Feature Switches -->
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.HAL.Interrupts.Enabled" Value="$(CosmosEnableInterrupts)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Timer.Enabled" Value="$(CosmosEnableTimer)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Keyboard.Enabled" Value="$(CosmosEnableKeyboard)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Input.Mouse.Enabled" Value="$(CosmosEnableMouse)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
@@ -100,13 +106,21 @@
              Version="[$(BundledNETCoreAppPackageVersion)]" />
   </ItemGroup>
 
+  <!-- Library Initializers to Run -->
+  <ItemGroup>
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.Core" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.HAL" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.System" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel" />
+  </ItemGroup>
+
   <!-- Build tools (with versions for non-CPM consumers, CPM projects get versions from Directory.Packages.props) -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Build.Common" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.36" />
+    <PackageReference Include="Cosmos.Build.Common" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Build.Ilc" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Build.Asm" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Build.Patcher" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Build.GCC" Version="3.0.38" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Build.Common" />
@@ -118,11 +132,11 @@
 
   <!-- Both arch packages installed; RuntimeIdentifier selects at build time -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
-    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Kernel.Native.MultiArch" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.36" />
-    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.36" />
+    <PackageReference Include="Cosmos.Kernel.Native.X64" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Kernel.Native.ARM64" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Kernel.Native.MultiArch" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Kernel.HAL.X64" Version="3.0.38" />
+    <PackageReference Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.38" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" />

@@ -79,29 +79,39 @@ public static class VirtioMMIO
             ulong baseAddr = VIRTIO_MMIO_BASE + (i * VIRTIO_MMIO_SIZE);
 
             uint magic = Read32(baseAddr, REG_MAGIC);
+            Serial.Write("[VirtioMMIO] Slot ");
+            Serial.WriteNumber(i);
+            Serial.Write(": base=0x");
+            Serial.WriteHex(baseAddr);
+            Serial.Write(", magic=0x");
+            Serial.WriteHex(magic);
+
             if (magic != VIRTIO_MAGIC)
+            {
+                Serial.Write(" (not virtio)\n");
                 continue;
+            }
 
             uint version = Read32(baseAddr, REG_VERSION);
             uint deviceId = Read32(baseAddr, REG_DEVICE_ID);
             uint vendorId = Read32(baseAddr, REG_VENDOR_ID);
 
-            if (deviceId == 0)
-                continue;  // No device at this slot
-
-            Serial.Write("[VirtioMMIO] Device ");
-            Serial.WriteNumber((uint)i);
-            Serial.Write(" at 0x");
-            Serial.WriteHex(baseAddr);
-            Serial.Write(": type=");
+            Serial.Write(", deviceId=");
             Serial.WriteNumber(deviceId);
-            Serial.Write(" (");
-            WriteDeviceTypeName(deviceId);
-            Serial.Write(") version=");
-            Serial.WriteNumber(version);
-            Serial.Write(" vendor=0x");
+            Serial.Write(", vendorId=0x");
             Serial.WriteHex(vendorId);
-            Serial.Write(" IRQ=");
+            Serial.Write(", version=");
+            Serial.WriteNumber(version);
+
+            if (deviceId == 0)
+            {
+                Serial.Write(" (empty)\n");
+                continue;  // No device at this slot
+            }
+
+            Serial.Write(" (type: ");
+            WriteDeviceTypeName(deviceId);
+            Serial.Write(") IRQ=");
             Serial.WriteNumber(VIRTIO_IRQ_BASE + (uint)i);
             Serial.Write("\n");
         }
@@ -162,6 +172,18 @@ public static class VirtioMMIO
     public static void Write32(ulong baseAddr, uint offset, uint value)
     {
         Native.MMIO.Write32(baseAddr + offset, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ushort Read16(ulong baseAddr, uint offset)
+    {
+        return Native.MMIO.Read16(baseAddr + offset);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Write16(ulong baseAddr, uint offset, ushort value)
+    {
+        Native.MMIO.Write16(baseAddr + offset, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

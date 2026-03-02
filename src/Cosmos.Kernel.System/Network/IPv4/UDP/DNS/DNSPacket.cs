@@ -213,7 +213,7 @@ public class DNSPacketAsk : DNSPacket
     /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
     /// </summary>
     public DNSPacketAsk(Address source, Address dest, string url)
-        : base(source, dest, 1, (ushort)(5 + url.Length + 1))
+        : base(source, dest, 1, (ushort)(url.Length + url.Split('.').Length + 1 + 4))
     {
         int b = 0;
 

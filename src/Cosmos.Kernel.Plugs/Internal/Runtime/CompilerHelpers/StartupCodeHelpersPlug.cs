@@ -1,4 +1,7 @@
 using Cosmos.Build.API.Attributes;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Runtime;
+using Internal.Runtime;
 
 namespace Cosmos.Kernel.Plugs.Internal.Runtime.CompilerHelpers;
 
@@ -8,6 +11,12 @@ public unsafe partial class StartupCodeHelpersPlug
     [PlugMember]
     public static void RunModuleInitializers()
     {
-        // Already run early in ManagedModule.InitializeModules()
+        ManagedModule.RunModuleInitializers();
+    }
+
+    [PlugMember]
+    internal static int GetLoadedModules(TypeManagerHandle[] outputModules)
+    {
+        return ManagedModule.GetLoadedModules(outputModules);
     }
 }

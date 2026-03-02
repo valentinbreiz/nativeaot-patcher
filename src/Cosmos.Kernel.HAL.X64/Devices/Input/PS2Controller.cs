@@ -166,11 +166,23 @@ public class PS2Controller : Device
 
         if (ReadByteAfterAckWithTimeout(ref firstByte))
         {
-            // Mouse device types: 0x00, 0x03, 0x04, 0x50
-            // We skip mouse for now, only implement keyboard
+            // Mouse device types: 0x00 (standard), 0x03 (scroll wheel), 0x04 (5-button)
+            bool isMouse = firstByte == 0x00 || firstByte == 0x03 || firstByte == 0x04;
 
+            if (isMouse)
+            {
+                Serial.WriteString("[PS2Controller] Mouse detected on port ");
+                Serial.WriteNumber(port);
+                Serial.WriteString(" (ID: 0x");
+                Serial.WriteHex(firstByte);
+                Serial.WriteString(")\n");
+
+                var mouse = new PS2Mouse(port, this);
+                mouse.Initialize();
+                device = mouse;
+            }
             // Keyboard identification: 0xAB followed by 0x41, 0xC1, or 0x83
-            if (firstByte == 0xAB && ReadDataWithTimeout(ref secondByte))
+            else if (firstByte == 0xAB && ReadDataWithTimeout(ref secondByte))
             {
                 bool isKeyboard = secondByte == 0x41 || secondByte == 0xC1 || secondByte == 0x83;
 
@@ -520,5 +532,40 @@ public class PS2Controller : Device
         }
 
         return keyboards;
+    }
+
+    /// <summary>
+    /// Gets all mouse devices connected to this controller.
+    /// </summary>
+    public static MouseDevice[] GetMouseDevices()
+    {
+        if (Instance == null)
+        {
+            return Array.Empty<MouseDevice>();
+        }
+
+        bool hasFirst = Instance.FirstDevice is MouseDevice;
+        bool hasSecond = Instance.SecondDevice is MouseDevice;
+
+        if (!hasFirst && !hasSecond)
+        {
+            return Array.Empty<MouseDevice>();
+        }
+
+        int count = (hasFirst ? 1 : 0) + (hasSecond ? 1 : 0);
+        var mice = new MouseDevice[count];
+        int index = 0;
+
+        if (hasFirst)
+        {
+            mice[index++] = (MouseDevice)Instance.FirstDevice!;
+        }
+
+        if (hasSecond)
+        {
+            mice[index++] = (MouseDevice)Instance.SecondDevice!;
+        }
+
+        return mice;
     }
 }

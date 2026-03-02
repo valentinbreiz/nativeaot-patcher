@@ -27,12 +27,6 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
 
         try
         {
-            HashSet<string> systemAssemblies = new(
-                AssemblyNames
-                    .Select(a => a.ItemSpec)
-                    .Where(n => n.StartsWith("System.", StringComparison.OrdinalIgnoreCase)),
-                StringComparer.OrdinalIgnoreCase);
-
             HashSet<string> requestedAssemblies = new(
                 AssemblyNames.Select(a => a.ItemSpec),
                 StringComparer.OrdinalIgnoreCase);
@@ -81,7 +75,6 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                     if (!requestedAssemblies.Contains(asm.Name.Name))
                         continue;
 
-
                     allAssemblies.Add(kvp.Key);
 
                     // Only consider dependencies that are also part of AssemblyNames
@@ -97,13 +90,9 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
             Log.LogMessage(MessageImportance.Low, "Performing topological sort on assembly dependency graph...");
             List<string> sorted = TopologicalSort(graph, allAssemblies);
 
-            // Non-System assemblies requested for sorting
-            HashSet<string> nonSystemRequested = new(
-                requestedAssemblies.Where(a => !systemAssemblies.Contains(a)),
-                StringComparer.OrdinalIgnoreCase);
-
-            HashSet<string> sortedSet = new(sorted, StringComparer.OrdinalIgnoreCase);
-            List<string> missing = nonSystemRequested.Where(name => !sortedSet.Contains(name)).ToList();
+            List<string> missing = requestedAssemblies
+                .Where(name => !sorted.Contains(name, StringComparer.OrdinalIgnoreCase))
+                .ToList();
 
             if (missing.Count > 0)
             {
@@ -114,9 +103,9 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                 }
             }
 
-            // System.* assemblies must always come first
-            TaskItem[] ordered = systemAssemblies
-                .Concat(sorted.Where(nonSystemRequested.Contains))
+            // System.* and sorted assemblies
+            TaskItem[] ordered = sorted
+                .Where(requestedAssemblies.Contains)
                 .Concat(missing)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Select(n => new TaskItem(n))
@@ -140,13 +129,12 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
         foreach (string node in allNodes)
             inDegree[node] = 0;
 
-        foreach (HashSet<string> deps in graph.Values)
+        foreach (KeyValuePair<string, HashSet<string>> kvp in graph)
         {
-            foreach (string dep in deps)
-            {
-                if (inDegree.ContainsKey(dep))
-                    inDegree[dep]++;
-            }
+            string node = kvp.Key;
+            HashSet<string> deps = kvp.Value;
+            // If node depends on deps, then node's in-degree increases
+            inDegree[node] = deps.Count(dep => inDegree.ContainsKey(dep));
         }
 
         Queue<string> queue = new(
@@ -159,11 +147,16 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
             string node = queue.Dequeue();
             result.Add(node);
 
-            if (!graph.TryGetValue(node, out HashSet<string> deps)) continue;
-            foreach (string dep in deps)
+            // Find all nodes that depend on this node
+            foreach (KeyValuePair<string, HashSet<string>> kvp in graph)
             {
-                if (--inDegree[dep] == 0)
-                    queue.Enqueue(dep);
+                string dependent = kvp.Key;
+                HashSet<string> deps = kvp.Value;
+                if (deps.Contains(node))
+                {
+                    if (--inDegree[dependent] == 0)
+                        queue.Enqueue(dependent);
+                }
             }
         }
 

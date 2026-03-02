@@ -125,10 +125,17 @@ namespace Cosmos.TestRunner.Framework
         private const byte TestRegister = 106; // New: register a test before execution
 
         /// <summary>
-        /// Send a protocol message with format: [Command:1][Length:2][Payload:N]
+        /// Send a protocol message with format: [MAGIC:4][Command:1][Length:2][Payload:N]
+        /// Magic signature = 0x19740807 (SerialSignature from Consts.cs)
         /// </summary>
         private static void SendMessage(byte command, byte[] payload)
         {
+            // Send magic signature (0x19740807 little-endian)
+            Serial.ComWrite(0x07);
+            Serial.ComWrite(0x08);
+            Serial.ComWrite(0x74);
+            Serial.ComWrite(0x19);
+
             // Send command byte
             Serial.ComWrite(command);
 

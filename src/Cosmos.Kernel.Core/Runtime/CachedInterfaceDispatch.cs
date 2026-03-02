@@ -25,6 +25,8 @@ namespace Cosmos.Kernel.Core.Runtime
         public const int IDC_CachePointerIsInterfacePointerOrMetadataToken = 0x1;
         public const int IDC_CachePointerIsIndirectedInterfaceRelativePointer = 0x2;
         public const int IDC_CachePointerIsInterfaceRelativePointer = 0x3;
+        // Small values with flags==0 are VTable byte offsets, not cache pointers (from rhbinder.h)
+        public const nuint IDC_MaxVTableOffsetPlusOne = 0x1000;
     }
 
     /// <summary>
@@ -38,7 +40,7 @@ namespace Cosmos.Kernel.Core.Runtime
         public ushort InterfaceSlot;
         public byte HasCache;
         public uint MetadataToken;
-        public byte VTableOffset;
+        public uint VTableOffset;
     }
 
     internal enum DispatchCellType : byte
@@ -57,7 +59,7 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhpCidResolve")]
         private static unsafe IntPtr RhpCidResolve(object pObject, IntPtr pCell)
         {
-            Serial.WriteString("[CID] Start\n");
+            //Serial.WriteString("[CID] Start\n");
 
             if (pObject == null)
             {
@@ -68,20 +70,26 @@ namespace Cosmos.Kernel.Core.Runtime
             // Get cell info without calling any complex methods
             RhpGetDispatchCellInfo(pCell, out DispatchCellInfo cellInfo);
 
+            /*
             Serial.WriteString("[CID] Slot=");
             Serial.WriteHex((ushort)cellInfo.InterfaceSlot);
             Serial.WriteString("\n");
+            */
 
             // Resolve the dispatch
             IntPtr pTargetCode = RhResolveDispatchWorker(pObject, (void*)pCell, ref cellInfo);
 
             if (pTargetCode != IntPtr.Zero)
             {
-                Serial.WriteString("[CID] OK\n");
+                //Serial.WriteString("[CID] OK\n");
                 return pTargetCode;
             }
 
-            Serial.WriteString("[CID] FAIL\n");
+            Serial.WriteString("[CID] FAIL Cell=");
+            Serial.WriteHex((ulong)pCell);
+            Serial.WriteString(" Slot=");
+            Serial.WriteHex(cellInfo.InterfaceSlot);
+            Serial.WriteString("\n");
             throw new EntryPointNotFoundException("Could not find implementation for interface method");
         }
 
@@ -135,59 +143,13 @@ namespace Cosmos.Kernel.Core.Runtime
             // Type of object we're dispatching on.
             MethodTable* pInstanceType = pObject.GetMethodTable();
 
-            Serial.WriteString("[Resolve] MT=");
-            Serial.WriteHex((ulong)pInstanceType);
-            Serial.WriteString("\n");
-
-            // Dump first 64 bytes of MethodTable to see its structure
-            Serial.WriteString("[Resolve] MT dump: ");
-            byte* mtBytes = (byte*)pInstanceType;
-            for (int i = 0; i < 64; i++)
-            {
-                Serial.WriteHex(mtBytes[i]);
-                if (i < 63) Serial.WriteString(" ");
-            }
-            Serial.WriteString("\n");
-
-            // Check if the first field is a pointer to the real MethodTable
-            MethodTable* possibleRealMT = *(MethodTable**)pInstanceType;
-            if (possibleRealMT != null && possibleRealMT != pInstanceType)
-            {
-                Serial.WriteString("[Resolve] Possible canonical MT redirect to: ");
-                Serial.WriteHex((ulong)possibleRealMT);
-                Serial.WriteString("\n");
-
-                Serial.WriteString("[Resolve] Real MT dump: ");
-                byte* realMtBytes = (byte*)possibleRealMT;
-                for (int i = 0; i < 64; i++)
-                {
-                    Serial.WriteHex(realMtBytes[i]);
-                    if (i < 63) Serial.WriteString(" ");
-                }
-                Serial.WriteString("\n");
-
-                // Try using the real MT
-                pInstanceType = possibleRealMT;
-            }
-
             if (cellInfo.CellType == DispatchCellType.InterfaceAndSlot)
             {
-                Serial.WriteString("[Resolve] Itf=");
-                Serial.WriteHex((ulong)cellInfo.InterfaceType);
-                Serial.WriteString(" Slot=");
-                Serial.WriteHex(cellInfo.InterfaceSlot);
-                Serial.WriteString("\n");
-
                 IntPtr pTargetCode = DispatchResolve.FindInterfaceMethodImplementationTarget(pInstanceType,
                                                                               cellInfo.InterfaceType,
                                                                               cellInfo.InterfaceSlot,
                                                                               flags: default,
                                                                               ppGenericContext: null);
-
-                Serial.WriteString("[Resolve] Code=");
-                Serial.WriteHex((ulong)pTargetCode);
-                Serial.WriteString("\n");
-
                 return pTargetCode;
             }
             else if (cellInfo.CellType == DispatchCellType.VTableOffset)
@@ -198,7 +160,7 @@ namespace Cosmos.Kernel.Core.Runtime
             else
             {
                 // MetadataToken dispatch not supported in Cosmos
-                Serial.WriteString("[Resolve] BadType\n");
+                Serial.WriteString("[CID] BadCellType\n");
                 throw new NotSupportedException("Metadata token dispatch not supported");
             }
         }
@@ -212,30 +174,21 @@ namespace Cosmos.Kernel.Core.Runtime
 
             InterfaceDispatchCell* pDispatchCell = (InterfaceDispatchCell*)pCell;
 
-            Serial.WriteString("[GetCellInfo] Cell=");
-            Serial.WriteHex((ulong)pCell);
-            Serial.WriteString("\n");
-
             // Extract the cache pointer and check flags
             nuint cachePointer = pDispatchCell[0].m_pCache;
-            nuint stubPointer = pDispatchCell[0].m_pStub;
-
-            Serial.WriteString("[GetCellInfo] Cell[0].Stub=");
-            Serial.WriteHex((ulong)stubPointer);
-            Serial.WriteString(" Cache=");
-            Serial.WriteHex((ulong)cachePointer);
-            Serial.WriteString("\n");
-
-            Serial.WriteString("[GetCellInfo] Cell[1].Stub=");
-            Serial.WriteHex((ulong)pDispatchCell[1].m_pStub);
-            Serial.WriteString(" Cache=");
-            Serial.WriteHex((ulong)pDispatchCell[1].m_pCache);
-            Serial.WriteString("\n");
 
             int flags = (int)(cachePointer & InterfaceDispatchCell.IDC_CachePointerMask);
 
-            Serial.WriteString("[GetCellInfo] Flags=");
-            Serial.WriteHex((uint)flags);
+            // VTable offset fast-path (from rhbinder.h IDC_MaxVTableOffsetPlusOne):
+            // A small m_pCache value with flags==0 encodes a VTable byte offset directly,
+            // not a pointer to a cache structure.
+            if (cachePointer < InterfaceDispatchCell.IDC_MaxVTableOffsetPlusOne &&
+                flags == InterfaceDispatchCell.IDC_CachePointerPointsAtCache)
+            {
+                cellInfo.CellType = DispatchCellType.VTableOffset;
+                cellInfo.VTableOffset = (uint)cachePointer;
+                return;
+            }
 
             // Find the slot number - walk forward to find terminating cell (m_pStub == 0)
             InterfaceDispatchCell* currentCell = pDispatchCell;
@@ -245,18 +198,9 @@ namespace Cosmos.Kernel.Core.Runtime
             }
             nuint cachePointerValueFlags = currentCell->m_pCache;
 
-            Serial.WriteString(" TermCell.Cache=");
-            Serial.WriteHex((ulong)cachePointerValueFlags);
-
             // Extract cell type and slot from terminating cell
             DispatchCellType cellType = (DispatchCellType)(cachePointerValueFlags >> 16);
             ushort interfaceSlot = (ushort)(cachePointerValueFlags & 0xFFFF);
-
-            Serial.WriteString(" Type=");
-            Serial.WriteHex((uint)cellType);
-            Serial.WriteString(" Slot=");
-            Serial.WriteHex(interfaceSlot);
-            Serial.WriteString("\n");
 
             cellInfo.CellType = cellType;
             cellInfo.InterfaceSlot = interfaceSlot;
@@ -276,11 +220,6 @@ namespace Cosmos.Kernel.Core.Runtime
             else if (flags == InterfaceDispatchCell.IDC_CachePointerIsInterfaceRelativePointer ||
                      flags == InterfaceDispatchCell.IDC_CachePointerIsIndirectedInterfaceRelativePointer)
             {
-                // From dotnet/runtime CachedInterfaceDispatch implementation:
-                // UIntTarget interfacePointerValue = (UIntTarget)&m_pCache + (int32_t)cachePointerValue;
-                // interfacePointerValue &= ~IDC_CachePointerMask;
-                // cellInfo.InterfaceType = *(MethodTable**)interfacePointerValue;
-
                 // Calculate address of m_pCache field (8 bytes after cell start)
                 nuint cacheFieldAddress = (nuint)pCell + 8;
 
@@ -291,67 +230,28 @@ namespace Cosmos.Kernel.Core.Runtime
                 // NOW mask off the low bits
                 interfacePointerValue &= ~(nuint)InterfaceDispatchCell.IDC_CachePointerMask;
 
-                Serial.WriteString("[GetCellInfo] Indirected! CacheField=");
-                Serial.WriteHex((ulong)cacheFieldAddress);
-                Serial.WriteString(" SignedOff=");
-                Serial.WriteHex((uint)signedOffset);
-                Serial.WriteString(" PtrVal=");
-                Serial.WriteHex((ulong)interfacePointerValue);
-
-                // Dump memory around this location to see what's there
-                byte* memPtr = (byte*)interfacePointerValue;
-                Serial.WriteString(" Bytes[");
-                for (int i = 0; i < 16; i++)
-                {
-                    Serial.WriteHex(memPtr[i]);
-                    if (i < 15) Serial.WriteString(" ");
-                }
-                Serial.WriteString("]");
-
-                // Read what's at this address
-                ulong valueAt = *(ulong*)interfacePointerValue;
-                uint valueAt32 = *(uint*)interfacePointerValue;
-
-                Serial.WriteString(" [32]=");
-                Serial.WriteHex(valueAt32);
-                Serial.WriteString(" [64]=");
-                Serial.WriteHex(valueAt);
-
                 // Check which subcase: direct (0x3) or indirected (0x2)
                 MethodTable* actualInterfaceType;
                 if (flags == InterfaceDispatchCell.IDC_CachePointerIsInterfaceRelativePointer)
                 {
                     // 0x3: The calculated address IS the MethodTable (direct)
                     actualInterfaceType = (MethodTable*)interfacePointerValue;
-                    Serial.WriteString(" (direct)");
                 }
                 else
                 {
                     // 0x2: The calculated address points to the MethodTable (indirected)
                     actualInterfaceType = *(MethodTable**)interfacePointerValue;
-                    Serial.WriteString(" (indir)");
                 }
-
-                Serial.WriteString(" Final=");
-                Serial.WriteHex((ulong)actualInterfaceType);
-                Serial.WriteString("\n");
 
                 cellInfo.InterfaceType = actualInterfaceType;
                 cellInfo.HasCache = 0;
             }
             else
             {
-                // Unknown format
-                Serial.WriteString("[GetCellInfo] Unknown flags!\n");
+                // Unknown format - should not happen
                 cellInfo.InterfaceType = (MethodTable*)(cachePointer & ~(nuint)InterfaceDispatchCell.IDC_CachePointerMask);
                 cellInfo.HasCache = 0;
             }
-
-            Serial.WriteString("[GetCellInfo] Result: Type=");
-            Serial.WriteHex((ulong)cellInfo.InterfaceType);
-            Serial.WriteString(" Slot=");
-            Serial.WriteHex(cellInfo.InterfaceSlot);
-            Serial.WriteString("\n");
         }
 
         /// <summary>
