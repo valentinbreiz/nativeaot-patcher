@@ -178,7 +178,7 @@ public static class ThreadPlug
 
         // Re-query current thread for exit (local vars may be corrupted after exception)
         var exitCpuState = SchedulerManager.GetCpuState(0);
-        var exitThread = exitCpuState?.CurrentThread;
+        var exitThread = exitCpuState.CurrentThread;
         uint exitThreadId = exitThread?.Id ?? 0;
 
         Serial.WriteString("[ThreadPlug] Thread ");
