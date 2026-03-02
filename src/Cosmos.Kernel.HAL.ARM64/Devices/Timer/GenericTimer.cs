@@ -81,6 +81,11 @@ public partial class GenericTimer : TimerDevice
     {
     }
 
+    /// <summary>
+    /// The hardware counter frequency in Hz (CNTFRQ_EL0).
+    /// </summary>
+    public ulong TimerFrequency => _timerFrequency;
+
     /// <inheritdoc/>
     public override uint Frequency => (uint)(1_000_000_000UL / _periodNs);
 

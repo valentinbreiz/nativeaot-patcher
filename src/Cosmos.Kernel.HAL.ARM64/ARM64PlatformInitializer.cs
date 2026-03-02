@@ -4,6 +4,7 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.ARM64.Cpu;
+using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
 using Cosmos.Kernel.HAL.ARM64.Devices.Input;
 using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
@@ -40,6 +41,10 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         // Register timer interrupt handler
         Serial.WriteString("[ARM64HAL] Registering timer interrupt handler...\n");
         _timer.RegisterIRQHandler();
+
+        // Initialize RTC (reads boot wall-clock time from PL031 if available)
+        Serial.WriteString("[ARM64HAL] Initializing RTC...\n");
+        new RTC().Initialize();
 
         if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
         {
