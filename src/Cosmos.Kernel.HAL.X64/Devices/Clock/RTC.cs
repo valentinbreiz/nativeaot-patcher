@@ -56,6 +56,9 @@ public class RTC : Device
     /// </summary>
     public bool IsInitialized { get; private set; }
 
+    /// <summary>Mirrors the ARM64 RTC property name for cross-arch compatibility.</summary>
+    public bool IsAvailable => IsInitialized;
+
     /// <summary>
     /// Initialize the RTC and capture boot time.
     /// Should be called after TSC calibration.
