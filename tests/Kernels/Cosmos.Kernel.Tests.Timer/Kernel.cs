@@ -9,6 +9,8 @@ using TR = Cosmos.TestRunner.Framework.TestRunner;
 using Cosmos.Kernel.HAL.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
+#else
+using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
 #endif
 
 namespace Cosmos.Kernel.Tests.Timer;
@@ -48,9 +50,15 @@ public class Kernel : Sys.Kernel
         TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        TR.Start("Timer Tests", expectedTests: 2);
+        TR.Start("Timer Tests", expectedTests: 6);
         TR.Run("TimerManager_Initialized", TestTimerManagerInitializedARM64);
         TR.Run("TimerManager_Basic", TestTimerManagerBasicARM64);
+
+        // DateTime/RTC Tests
+        TR.Run("RTC_Initialized", TestRTCInitialized);
+        TR.Run("DateTime_Now_Valid", TestDateTimeNowValid);
+        TR.Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
+        TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
 #endif
 
         Serial.WriteString("[Timer Tests] All tests completed\n");
@@ -249,12 +257,14 @@ public class Kernel : Sys.Kernel
         Assert.True(proportional, "LAPIC: 200ms should take ~2x ticks of 100ms");
     }
 
+#else
+
     // ==================== DateTime/RTC Tests ====================
 
     private static void TestRTCInitialized()
     {
         Assert.True(RTC.Instance != null, "RTC: Instance should be initialized");
-        Assert.True(RTC.Instance!.IsInitialized, "RTC: Should be initialized");
+        Assert.True(RTC.Instance!.IsAvailable, "RTC: Should be initialized");
 
         Serial.WriteString("[Timer Tests] RTC boot time ticks: ");
         Serial.WriteNumber((ulong)RTC.Instance.BootTimeTicks);
@@ -291,8 +301,7 @@ public class Kernel : Sys.Kernel
     {
         DateTime dt1 = DateTime.Now;
 
-        // Wait a bit using LAPIC timer
-        LocalApic.Wait(100);
+        Thread.Sleep(100);
 
         DateTime dt2 = DateTime.Now;
 
@@ -329,7 +338,6 @@ public class Kernel : Sys.Kernel
         Assert.True(utcNow.Year >= 2020, "DateTime: UtcNow year should be >= 2020");
     }
 
-#else
     // ==================== ARM64 Timer Tests ====================
 
     private static void TestTimerManagerInitializedARM64()
