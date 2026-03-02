@@ -1720,34 +1720,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.yml\" sourcestartlinenumber=\"1\">Parsed GIC information from the device tree.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.FDTParser.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.FDTParser.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.FDTParser",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.FDTParser.yml\" sourcestartlinenumber=\"1\">Minimal Flattened Device Tree (FDT) parser for extracting GIC base addresses.\nParses the DTB binary format (big-endian) to find the interrupt-controller node\nand read its reg property for GICD/GICR/GICC addresses.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.yml",
       "output": {
         ".html": {

@@ -639,7 +639,7 @@ Supports configurable base addresses for real hardware (from DTB).</p>
   </h3>
 
   <div class="markdown level1 summary"><p>Initializes the GIC, auto-detecting v2 or v3.
-Discovery priority: DTB → ACPI MADT → default QEMU addresses.</p>
+Discovery priority: ACPI MADT → default QEMU addresses.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -674,40 +674,6 @@ Discovery priority: DTB → ACPI MADT → default QEMU addresses.</p>
     <pre><code class="lang-csharp hljs">public static void InitializeCpuInterface()</code></pre>
   </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_System_Void__" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)">
-  InitializeFromDTB(void*)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the GIC using addresses from a DTB.
-Call this when a device tree is available (real hardware).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void InitializeFromDTB(void* dtbAddress)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>dtbAddress</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
-    <dd><p>Pointer to the DTB blob in memory.</p>
-</dd>
-  </dl>
 
 
 

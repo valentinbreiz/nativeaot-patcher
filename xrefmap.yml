@@ -7104,22 +7104,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface
   nameWithType: GIC.InitializeCpuInterface
-- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)
-  name: InitializeFromDTB(void*)
-  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_System_Void__
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)
-  name.vb: InitializeFromDTB(Void*)
-  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(void*)
-  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(Void*)
-  nameWithType: GIC.InitializeFromDTB(void*)
-  nameWithType.vb: GIC.InitializeFromDTB(Void*)
-- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB*
-  name: InitializeFromDTB
-  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB
-  nameWithType: GIC.InitializeFromDTB
 - uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized
   name: IsInitialized
   href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized
@@ -9056,94 +9040,6 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.Len
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.Len
   nameWithType: Virtqueue.VringUsedElem.Len
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser
-  name: FDTParser
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html
-  commentId: T:Cosmos.Kernel.HAL.ARM64.FDTParser
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser
-  nameWithType: FDTParser
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
-  name: FDTParser.GICInfo
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html
-  commentId: T:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
-  nameWithType: FDTParser.GICInfo
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
-  name: CpuBase
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_CpuBase
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
-  nameWithType: FDTParser.GICInfo.CpuBase
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
-  name: CpuSize
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_CpuSize
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
-  nameWithType: FDTParser.GICInfo.CpuSize
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
-  name: DistBase
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_DistBase
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
-  nameWithType: FDTParser.GICInfo.DistBase
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
-  name: DistSize
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_DistSize
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
-  nameWithType: FDTParser.GICInfo.DistSize
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
-  name: Found
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_Found
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
-  nameWithType: FDTParser.GICInfo.Found
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
-  name: HypBase
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_HypBase
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
-  nameWithType: FDTParser.GICInfo.HypBase
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
-  name: HypSize
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_HypSize
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
-  nameWithType: FDTParser.GICInfo.HypSize
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
-  name: VcpuBase
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_VcpuBase
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
-  nameWithType: FDTParser.GICInfo.VcpuBase
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
-  name: VcpuSize
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_VcpuSize
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
-  nameWithType: FDTParser.GICInfo.VcpuSize
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
-  name: Version
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_Version
-  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
-  nameWithType: FDTParser.GICInfo.Version
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(System.Void*)
-  name: ParseGIC(void*)
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html#Cosmos_Kernel_HAL_ARM64_FDTParser_ParseGIC_System_Void__
-  commentId: M:Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(System.Void*)
-  name.vb: ParseGIC(Void*)
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(void*)
-  fullName.vb: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(Void*)
-  nameWithType: FDTParser.ParseGIC(void*)
-  nameWithType.vb: FDTParser.ParseGIC(Void*)
-- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC*
-  name: ParseGIC
-  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html#Cosmos_Kernel_HAL_ARM64_FDTParser_ParseGIC_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC
-  nameWithType: FDTParser.ParseGIC
 - uid: Cosmos.Kernel.HAL.Acpi
   name: Cosmos.Kernel.HAL.Acpi
   href: api/Cosmos.Kernel.HAL.Acpi.html
