@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Device | Cosmos Gen 3 </title>
+      <title>Class RTC | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Device | Cosmos Gen 3 ">
+      <meta name="title" content="Class RTC | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all hardware devices.">
+      <meta name="description" content="ARM64 Real-Time Clock implementation. Reads boot time from the PL031 RTC (ARM Primecell RTC, present on QEMU virt machine). Uses the ARM64 Generic Timer counter for sub-second elapsed time tracking. PL031 RTCDR register provides Unix time (seconds since 1970-01-01 UTC). QEMU virt machine maps PL031 at physical address 0x09010000.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,29 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Devices.Device">
+        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Devices_Device" data-uid="Cosmos.Kernel.HAL.Devices.Device" class="text-break">
-Class Device  
+  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC" class="text-break">
+Class RTC  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.html">Clock</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Base class for all hardware devices.</p>
+  <div class="markdown summary"><p>ARM64 Real-Time Clock implementation.
+Reads boot time from the PL031 RTC (ARM Primecell RTC, present on QEMU virt machine).
+Uses the ARM64 Generic Timer counter for sub-second elapsed time tracking.</p>
+<p>PL031 RTCDR register provides Unix time (seconds since 1970-01-01 UTC).
+QEMU virt machine maps PL031 at physical address 0x09010000.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Device</code></pre>
+    <pre><code class="lang-csharp hljs">public class RTC : Device</code></pre>
   </div>
 
 
@@ -112,25 +116,12 @@ Class Device
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Device</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><span class="xref">RTC</span></div>
     </dd>
   </dl>
 
 
-  <dl class="typelist derived">
-    <dt>Derived</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.html">GraphicDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.KeyboardDevice.html">KeyboardDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.html">NetworkDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html">TimerDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html">RTC</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Input.PS2Controller.html">PS2Controller</a></div>
-    </dd>
-  </dl>
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
@@ -157,6 +148,172 @@ Class Device
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_BootTimeTicks_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_BootTimeTicks" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks">
+  BootTimeTicks
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Boot time in DateTime ticks (UTC).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long BootTimeTicks { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Instance_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Instance" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance">
+  Instance
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Singleton instance of the RTC.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static RTC? Instance { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html">RTC</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_IsAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_IsAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable">
+  IsAvailable
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the PL031 RTC was successfully detected and read.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsAvailable { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetCurrentTicks_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetCurrentTicks" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks">
+  GetCurrentTicks()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the current time as DateTime ticks (UTC).
+Uses boot time + elapsed Generic Timer ticks converted to 100-ns intervals.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long GetCurrentTicks()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the ARM64 RTC. Reads boot wall-clock time from PL031 if available,
+otherwise uses a fixed fallback epoch. Captures the GenericTimer counter for
+elapsed-time tracking.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
 
 
 

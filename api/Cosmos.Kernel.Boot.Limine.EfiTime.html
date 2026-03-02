@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Limine | Cosmos Gen 3 </title>
+      <title>Struct EfiTime | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Limine | Cosmos Gen 3 ">
+      <meta name="title" content="Struct EfiTime | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="EFI_TIME as defined in the UEFI specification. Size = 16 bytes.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,12 +84,12 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Boot.Limine.Limine">
+        <article data-uid="Cosmos.Kernel.Boot.Limine.EfiTime">
 
 
 
-  <h1 id="Cosmos_Kernel_Boot_Limine_Limine" data-uid="Cosmos.Kernel.Boot.Limine.Limine" class="text-break">
-Class Limine  
+  <h1 id="Cosmos_Kernel_Boot_Limine_EfiTime" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime" class="text-break">
+Struct EfiTime  
   </h1>
 
   <div class="facts text-secondary">
@@ -97,23 +97,18 @@ Class Limine
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Boot.Limine.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>EFI_TIME as defined in the UEFI specification.
+Size = 16 bytes.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class Limine</code></pre>
+    <pre><code class="lang-csharp hljs">public struct EfiTime</code></pre>
   </div>
 
 
 
 
-  <dl class="typelist inheritance">
-    <dt>Inheritance</dt>
-    <dd>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Limine</span></div>
-    </dd>
-  </dl>
 
 
 
@@ -121,25 +116,22 @@ Class Limine
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -153,8 +145,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_BootTime" data-uid="Cosmos.Kernel.Boot.Limine.Limine.BootTime">
-  BootTime
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Day" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Day">
+  Day
   
   </h3>
 
@@ -162,7 +154,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineBootTimeRequest BootTime</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Day</code></pre>
   </div>
 
 
@@ -170,7 +162,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html">LimineBootTimeRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -183,8 +175,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_DTB" data-uid="Cosmos.Kernel.Boot.Limine.Limine.DTB">
-  DTB
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Daylight" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Daylight">
+  Daylight
   
   </h3>
 
@@ -192,7 +184,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineDTBRequest DTB</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Daylight</code></pre>
   </div>
 
 
@@ -200,7 +192,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html">LimineDTBRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -213,8 +205,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_EfiSystemTable" data-uid="Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable">
-  EfiSystemTable
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Hour" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Hour">
+  Hour
   
   </h3>
 
@@ -222,7 +214,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineEfiSystemTableRequest EfiSystemTable</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Hour</code></pre>
   </div>
 
 
@@ -230,7 +222,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html">LimineEfiSystemTableRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -243,8 +235,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_Framebuffer" data-uid="Cosmos.Kernel.Boot.Limine.Limine.Framebuffer">
-  Framebuffer
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Minute" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Minute">
+  Minute
   
   </h3>
 
@@ -252,7 +244,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineFramebufferRequest Framebuffer</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Minute</code></pre>
   </div>
 
 
@@ -260,7 +252,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineFramebufferRequest.html">LimineFramebufferRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -273,8 +265,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_HHDM" data-uid="Cosmos.Kernel.Boot.Limine.Limine.HHDM">
-  HHDM
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Month" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Month">
+  Month
   
   </h3>
 
@@ -282,7 +274,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineHHDMRequest HHDM</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Month</code></pre>
   </div>
 
 
@@ -290,7 +282,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.html">LimineHHDMRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -303,8 +295,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_MemoryMap" data-uid="Cosmos.Kernel.Boot.Limine.Limine.MemoryMap">
-  MemoryMap
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Nanosecond" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Nanosecond">
+  Nanosecond
   
   </h3>
 
@@ -312,7 +304,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineMemmapRequest MemoryMap</code></pre>
+    <pre><code class="lang-csharp hljs">public uint Nanosecond</code></pre>
   </div>
 
 
@@ -320,7 +312,7 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineMemmapRequest.html">LimineMemmapRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
   </dl>
 
@@ -333,8 +325,8 @@ Class Limine
 
 
 
-  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_Rsdp" data-uid="Cosmos.Kernel.Boot.Limine.Limine.Rsdp">
-  Rsdp
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Pad1" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Pad1">
+  Pad1
   
   </h3>
 
@@ -342,7 +334,7 @@ Class Limine
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static readonly LimineRsdpRequest Rsdp</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Pad1</code></pre>
   </div>
 
 
@@ -350,7 +342,127 @@ Class Limine
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineRsdpRequest.html">LimineRsdpRequest</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Pad2" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Pad2">
+  Pad2
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte Pad2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Second" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Second">
+  Second
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte Second</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_TimeZone" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.TimeZone">
+  TimeZone
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public short TimeZone</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_EfiTime_Year" data-uid="Cosmos.Kernel.Boot.Limine.EfiTime.Year">
+  Year
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort Year</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 

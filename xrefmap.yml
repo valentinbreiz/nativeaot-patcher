@@ -7,18 +7,222 @@ references:
   commentId: N:Cosmos.Kernel.Boot.Limine
   fullName: Cosmos.Kernel.Boot.Limine
   nameWithType: Cosmos.Kernel.Boot.Limine
+- uid: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices
+  name: EfiRuntimeServices
+  href: api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.EfiRuntimeServices
+  fullName: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices
+  nameWithType: EfiRuntimeServices
+- uid: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.GetTime
+  name: GetTime
+  href: api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.html#Cosmos_Kernel_Boot_Limine_EfiRuntimeServices_GetTime
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.GetTime
+  fullName: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.GetTime
+  nameWithType: EfiRuntimeServices.GetTime
+- uid: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.Hdr
+  name: Hdr
+  href: api/Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.html#Cosmos_Kernel_Boot_Limine_EfiRuntimeServices_Hdr
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.Hdr
+  fullName: Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.Hdr
+  nameWithType: EfiRuntimeServices.Hdr
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable
+  name: EfiSystemTable
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.EfiSystemTable
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable
+  nameWithType: EfiSystemTable
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConIn
+  name: ConIn
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_ConIn
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConIn
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConIn
+  nameWithType: EfiSystemTable.ConIn
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConOut
+  name: ConOut
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_ConOut
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConOut
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConOut
+  nameWithType: EfiSystemTable.ConOut
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleInHandle
+  name: ConsoleInHandle
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_ConsoleInHandle
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleInHandle
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleInHandle
+  nameWithType: EfiSystemTable.ConsoleInHandle
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleOutHandle
+  name: ConsoleOutHandle
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_ConsoleOutHandle
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleOutHandle
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.ConsoleOutHandle
+  nameWithType: EfiSystemTable.ConsoleOutHandle
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareRevision
+  name: FirmwareRevision
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_FirmwareRevision
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareRevision
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareRevision
+  nameWithType: EfiSystemTable.FirmwareRevision
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareVendor
+  name: FirmwareVendor
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_FirmwareVendor
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareVendor
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.FirmwareVendor
+  nameWithType: EfiSystemTable.FirmwareVendor
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.Hdr
+  name: Hdr
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_Hdr
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.Hdr
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.Hdr
+  nameWithType: EfiSystemTable.Hdr
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.RuntimeServices
+  name: RuntimeServices
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_RuntimeServices
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.RuntimeServices
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.RuntimeServices
+  nameWithType: EfiSystemTable.RuntimeServices
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.StandardErrorHandle
+  name: StandardErrorHandle
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_StandardErrorHandle
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.StandardErrorHandle
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.StandardErrorHandle
+  nameWithType: EfiSystemTable.StandardErrorHandle
+- uid: Cosmos.Kernel.Boot.Limine.EfiSystemTable.StdErr
+  name: StdErr
+  href: api/Cosmos.Kernel.Boot.Limine.EfiSystemTable.html#Cosmos_Kernel_Boot_Limine_EfiSystemTable_StdErr
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiSystemTable.StdErr
+  fullName: Cosmos.Kernel.Boot.Limine.EfiSystemTable.StdErr
+  nameWithType: EfiSystemTable.StdErr
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader
+  name: EfiTableHeader
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.EfiTableHeader
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader
+  nameWithType: EfiTableHeader
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader.CRC32
+  name: CRC32
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html#Cosmos_Kernel_Boot_Limine_EfiTableHeader_CRC32
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTableHeader.CRC32
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader.CRC32
+  nameWithType: EfiTableHeader.CRC32
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader.HeaderSize
+  name: HeaderSize
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html#Cosmos_Kernel_Boot_Limine_EfiTableHeader_HeaderSize
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTableHeader.HeaderSize
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader.HeaderSize
+  nameWithType: EfiTableHeader.HeaderSize
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Reserved
+  name: Reserved
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html#Cosmos_Kernel_Boot_Limine_EfiTableHeader_Reserved
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTableHeader.Reserved
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Reserved
+  nameWithType: EfiTableHeader.Reserved
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html#Cosmos_Kernel_Boot_Limine_EfiTableHeader_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTableHeader.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Revision
+  nameWithType: EfiTableHeader.Revision
+- uid: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Signature
+  name: Signature
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTableHeader.html#Cosmos_Kernel_Boot_Limine_EfiTableHeader_Signature
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTableHeader.Signature
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTableHeader.Signature
+  nameWithType: EfiTableHeader.Signature
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime
+  name: EfiTime
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.EfiTime
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime
+  nameWithType: EfiTime
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Day
+  name: Day
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Day
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Day
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Day
+  nameWithType: EfiTime.Day
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Daylight
+  name: Daylight
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Daylight
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Daylight
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Daylight
+  nameWithType: EfiTime.Daylight
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Hour
+  name: Hour
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Hour
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Hour
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Hour
+  nameWithType: EfiTime.Hour
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Minute
+  name: Minute
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Minute
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Minute
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Minute
+  nameWithType: EfiTime.Minute
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Month
+  name: Month
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Month
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Month
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Month
+  nameWithType: EfiTime.Month
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Nanosecond
+  name: Nanosecond
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Nanosecond
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Nanosecond
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Nanosecond
+  nameWithType: EfiTime.Nanosecond
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Pad1
+  name: Pad1
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Pad1
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Pad1
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Pad1
+  nameWithType: EfiTime.Pad1
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Pad2
+  name: Pad2
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Pad2
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Pad2
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Pad2
+  nameWithType: EfiTime.Pad2
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Second
+  name: Second
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Second
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Second
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Second
+  nameWithType: EfiTime.Second
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.TimeZone
+  name: TimeZone
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_TimeZone
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.TimeZone
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.TimeZone
+  nameWithType: EfiTime.TimeZone
+- uid: Cosmos.Kernel.Boot.Limine.EfiTime.Year
+  name: Year
+  href: api/Cosmos.Kernel.Boot.Limine.EfiTime.html#Cosmos_Kernel_Boot_Limine_EfiTime_Year
+  commentId: F:Cosmos.Kernel.Boot.Limine.EfiTime.Year
+  fullName: Cosmos.Kernel.Boot.Limine.EfiTime.Year
+  nameWithType: EfiTime.Year
 - uid: Cosmos.Kernel.Boot.Limine.Limine
   name: Limine
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html
   commentId: T:Cosmos.Kernel.Boot.Limine.Limine
   fullName: Cosmos.Kernel.Boot.Limine.Limine
   nameWithType: Limine
+- uid: Cosmos.Kernel.Boot.Limine.Limine.BootTime
+  name: BootTime
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_BootTime
+  commentId: F:Cosmos.Kernel.Boot.Limine.Limine.BootTime
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.BootTime
+  nameWithType: Limine.BootTime
 - uid: Cosmos.Kernel.Boot.Limine.Limine.DTB
   name: DTB
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_DTB
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.DTB
   fullName: Cosmos.Kernel.Boot.Limine.Limine.DTB
   nameWithType: Limine.DTB
+- uid: Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable
+  name: EfiSystemTable
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_EfiSystemTable
+  commentId: F:Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable
+  nameWithType: Limine.EfiSystemTable
 - uid: Cosmos.Kernel.Boot.Limine.Limine.Framebuffer
   name: Framebuffer
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_Framebuffer
@@ -43,6 +247,67 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   fullName: Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   nameWithType: Limine.Rsdp
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest
+  name: LimineBootTimeRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest
+  nameWithType: LimineBootTimeRequest
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.#ctor
+  name: LimineBootTimeRequest()
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeRequest__ctor
+  commentId: M:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.LimineBootTimeRequest()
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.New()
+  nameWithType: LimineBootTimeRequest.LimineBootTimeRequest()
+  nameWithType.vb: LimineBootTimeRequest.New()
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.#ctor*
+  name: LimineBootTimeRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeRequest__ctor_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.LimineBootTimeRequest
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.New
+  nameWithType: LimineBootTimeRequest.LimineBootTimeRequest
+  nameWithType.vb: LimineBootTimeRequest.New
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.ID
+  name: ID
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeRequest_ID
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.ID
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.ID
+  nameWithType: LimineBootTimeRequest.ID
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Response
+  nameWithType: LimineBootTimeRequest.Response
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeRequest_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.Revision
+  nameWithType: LimineBootTimeRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse
+  name: LimineBootTimeResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse
+  nameWithType: LimineBootTimeResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.BootTime
+  name: BootTime
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeResponse_BootTime
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.BootTime
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.BootTime
+  nameWithType: LimineBootTimeResponse.BootTime
+- uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.html#Cosmos_Kernel_Boot_Limine_LimineBootTimeResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.Revision
+  nameWithType: LimineBootTimeResponse.Revision
 - uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest
   name: LimineDTBRequest
   href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html
@@ -104,6 +369,67 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Revision
   fullName: Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Revision
   nameWithType: LimineDTBResponse.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest
+  name: LimineEfiSystemTableRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest
+  nameWithType: LimineEfiSystemTableRequest
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.#ctor
+  name: LimineEfiSystemTableRequest()
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableRequest__ctor
+  commentId: M:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.LimineEfiSystemTableRequest()
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.New()
+  nameWithType: LimineEfiSystemTableRequest.LimineEfiSystemTableRequest()
+  nameWithType.vb: LimineEfiSystemTableRequest.New()
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.#ctor*
+  name: LimineEfiSystemTableRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableRequest__ctor_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.LimineEfiSystemTableRequest
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.New
+  nameWithType: LimineEfiSystemTableRequest.LimineEfiSystemTableRequest
+  nameWithType.vb: LimineEfiSystemTableRequest.New
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.ID
+  name: ID
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableRequest_ID
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.ID
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.ID
+  nameWithType: LimineEfiSystemTableRequest.ID
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Response
+  nameWithType: LimineEfiSystemTableRequest.Response
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableRequest_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.Revision
+  nameWithType: LimineEfiSystemTableRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse
+  name: LimineEfiSystemTableResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse
+  nameWithType: LimineEfiSystemTableResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Address
+  name: Address
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableResponse_Address
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Address
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Address
+  nameWithType: LimineEfiSystemTableResponse.Address
+- uid: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.html#Cosmos_Kernel_Boot_Limine_LimineEfiSystemTableResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Revision
+  nameWithType: LimineEfiSystemTableResponse.Revision
 - uid: Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel
   name: LimineFbMemoryModel
   href: api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.html
@@ -7708,6 +8034,83 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
   nameWithType: GICv3.TIMER_VIRT
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock
+  name: Cosmos.Kernel.HAL.ARM64.Devices.Clock
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.html
+  commentId: N:Cosmos.Kernel.HAL.ARM64.Devices.Clock
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock
+  nameWithType: Cosmos.Kernel.HAL.ARM64.Devices.Clock
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC
+  name: RTC
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC
+  nameWithType: RTC
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks
+  name: BootTimeTicks
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_BootTimeTicks
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks
+  nameWithType: RTC.BootTimeTicks
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks*
+  name: BootTimeTicks
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_BootTimeTicks_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.BootTimeTicks
+  nameWithType: RTC.BootTimeTicks
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks
+  name: GetCurrentTicks()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetCurrentTicks
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks()
+  nameWithType: RTC.GetCurrentTicks()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks*
+  name: GetCurrentTicks
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetCurrentTicks_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks
+  nameWithType: RTC.GetCurrentTicks
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize
+  name: Initialize()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Initialize
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize()
+  nameWithType: RTC.Initialize()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Initialize_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize
+  nameWithType: RTC.Initialize
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance
+  name: Instance
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Instance
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance
+  nameWithType: RTC.Instance
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance*
+  name: Instance
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Instance_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Instance
+  nameWithType: RTC.Instance
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable
+  name: IsAvailable
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_IsAvailable
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable
+  nameWithType: RTC.IsAvailable
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable*
+  name: IsAvailable
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_IsAvailable_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.IsAvailable
+  nameWithType: RTC.IsAvailable
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input
   name: Cosmos.Kernel.HAL.ARM64.Devices.Input
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.html
@@ -8323,6 +8726,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Stop
   nameWithType: GenericTimer.Stop
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency
+  name: TimerFrequency
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.html#Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_TimerFrequency
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency
+  nameWithType: GenericTimer.TimerFrequency
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency*
+  name: TimerFrequency
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.html#Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_TimerFrequency_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.TimerFrequency
+  nameWithType: GenericTimer.TimerFrequency
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.Wait(System.UInt32)
   name: Wait(uint)
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.html#Cosmos_Kernel_HAL_ARM64_Devices_Timer_GenericTimer_Wait_System_UInt32_
@@ -9622,6 +10038,34 @@ references:
   commentId: N:Cosmos.Kernel.HAL.Devices
   fullName: Cosmos.Kernel.HAL.Devices
   nameWithType: Cosmos.Kernel.HAL.Devices
+- uid: Cosmos.Kernel.HAL.Devices.Clock
+  name: Cosmos.Kernel.HAL.Devices.Clock
+  href: api/Cosmos.Kernel.HAL.Devices.Clock.html
+  commentId: N:Cosmos.Kernel.HAL.Devices.Clock
+  fullName: Cosmos.Kernel.HAL.Devices.Clock
+  nameWithType: Cosmos.Kernel.HAL.Devices.Clock
+- uid: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc
+  name: EfiRtc
+  href: api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Clock.EfiRtc
+  fullName: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc
+  nameWithType: EfiRtc
+- uid: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime(System.Int64@)
+  name: TryGetTime(out long)
+  href: api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.html#Cosmos_Kernel_HAL_Devices_Clock_EfiRtc_TryGetTime_System_Int64__
+  commentId: M:Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime(System.Int64@)
+  name.vb: TryGetTime(Long)
+  fullName: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime(out long)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime(Long)
+  nameWithType: EfiRtc.TryGetTime(out long)
+  nameWithType.vb: EfiRtc.TryGetTime(Long)
+- uid: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime*
+  name: TryGetTime
+  href: api/Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.html#Cosmos_Kernel_HAL_Devices_Clock_EfiRtc_TryGetTime_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Clock.EfiRtc.TryGetTime
+  nameWithType: EfiRtc.TryGetTime
 - uid: Cosmos.Kernel.HAL.Devices.Device
   name: Device
   href: api/Cosmos.Kernel.HAL.Devices.Device.html

@@ -102,6 +102,40 @@ Classes
 Structs
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.EfiRuntimeServices.html">EfiRuntimeServices</a></dt>
+      <dd><p>Minimal layout of EFI_RUNTIME_SERVICES up to and including GetTime.
+GetTime is the first function pointer after the table header (offset 24).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.EfiSystemTable.html">EfiSystemTable</a></dt>
+      <dd><p>Minimal layout of EFI_SYSTEM_TABLE up to and including RuntimeServices.
+RuntimeServices pointer is at offset 88.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.EfiTableHeader.html">EfiTableHeader</a></dt>
+      <dd><p>Common header present at the start of every EFI table.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.EfiTime.html">EfiTime</a></dt>
+      <dd><p>EFI_TIME as defined in the UEFI specification.
+Size = 16 bytes.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html">LimineBootTimeRequest</a></dt>
+      <dd><p>Limine Boot Time request.
+Provides the Unix timestamp (seconds since 1970-01-01 UTC) at the time of boot.
+Available on all platforms where Limine is the bootloader.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineBootTimeResponse.html">LimineBootTimeResponse</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html">LimineDTBRequest</a></dt>
       <dd><p>Limine Device Tree Blob (DTB) request.
 Provides the address of the flattened device tree passed by firmware.</p>
@@ -109,6 +143,17 @@ Provides the address of the flattened device tree passed by firmware.</p>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineDTBResponse.html">LimineDTBResponse</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableRequest.html">LimineEfiSystemTableRequest</a></dt>
+      <dd><p>Limine EFI System Table request.
+Provides a pointer to the EFI system table, allowing access to EFI Runtime Services
+(e.g. GetTime) which remain valid even after ExitBootServices.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.html">LimineEfiSystemTableResponse</a></dt>
       <dd></dd>
     </dl>
     <dl class="jumplist">
