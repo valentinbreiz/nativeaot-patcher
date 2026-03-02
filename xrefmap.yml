@@ -13,6 +13,12 @@ references:
   commentId: T:Cosmos.Kernel.Boot.Limine.Limine
   fullName: Cosmos.Kernel.Boot.Limine.Limine
   nameWithType: Limine
+- uid: Cosmos.Kernel.Boot.Limine.Limine.DTB
+  name: DTB
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_DTB
+  commentId: F:Cosmos.Kernel.Boot.Limine.Limine.DTB
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.DTB
+  nameWithType: Limine.DTB
 - uid: Cosmos.Kernel.Boot.Limine.Limine.Framebuffer
   name: Framebuffer
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_Framebuffer
@@ -37,6 +43,67 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   fullName: Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   nameWithType: Limine.Rsdp
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest
+  name: LimineDTBRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineDTBRequest
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest
+  nameWithType: LimineDTBRequest
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.#ctor
+  name: LimineDTBRequest()
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html#Cosmos_Kernel_Boot_Limine_LimineDTBRequest__ctor
+  commentId: M:Cosmos.Kernel.Boot.Limine.LimineDTBRequest.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.LimineDTBRequest()
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.New()
+  nameWithType: LimineDTBRequest.LimineDTBRequest()
+  nameWithType.vb: LimineDTBRequest.New()
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.#ctor*
+  name: LimineDTBRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html#Cosmos_Kernel_Boot_Limine_LimineDTBRequest__ctor_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.LimineDTBRequest.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.LimineDTBRequest
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.New
+  nameWithType: LimineDTBRequest.LimineDTBRequest
+  nameWithType.vb: LimineDTBRequest.New
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.ID
+  name: ID
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html#Cosmos_Kernel_Boot_Limine_LimineDTBRequest_ID
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBRequest.ID
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.ID
+  nameWithType: LimineDTBRequest.ID
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html#Cosmos_Kernel_Boot_Limine_LimineDTBRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Response
+  nameWithType: LimineDTBRequest.Response
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBRequest.html#Cosmos_Kernel_Boot_Limine_LimineDTBRequest_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBRequest.Revision
+  nameWithType: LimineDTBRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBResponse
+  name: LimineDTBResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineDTBResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBResponse
+  nameWithType: LimineDTBResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Address
+  name: Address
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBResponse.html#Cosmos_Kernel_Boot_Limine_LimineDTBResponse_Address
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Address
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Address
+  nameWithType: LimineDTBResponse.Address
+- uid: Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineDTBResponse.html#Cosmos_Kernel_Boot_Limine_LimineDTBResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineDTBResponse.Revision
+  nameWithType: LimineDTBResponse.Revision
 - uid: Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel
   name: LimineFbMemoryModel
   href: api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.html
@@ -237,18 +304,36 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.ID
   fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.ID
   nameWithType: LimineHHDMRequest.ID
-- uid: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Offset
-  name: Offset
-  href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.html#Cosmos_Kernel_Boot_Limine_LimineHHDMRequest_Offset
-  commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Offset
-  fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Offset
-  nameWithType: LimineHHDMRequest.Offset
+- uid: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.html#Cosmos_Kernel_Boot_Limine_LimineHHDMRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Response
+  nameWithType: LimineHHDMRequest.Response
 - uid: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Revision
   name: Revision
   href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.html#Cosmos_Kernel_Boot_Limine_LimineHHDMRequest_Revision
   commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Revision
   fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMRequest.Revision
   nameWithType: LimineHHDMRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse
+  name: LimineHHDMResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineHHDMResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse
+  nameWithType: LimineHHDMResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Offset
+  name: Offset
+  href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.html#Cosmos_Kernel_Boot_Limine_LimineHHDMResponse_Offset
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Offset
+  fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Offset
+  nameWithType: LimineHHDMResponse.Offset
+- uid: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.html#Cosmos_Kernel_Boot_Limine_LimineHHDMResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineHHDMResponse.Revision
+  nameWithType: LimineHHDMResponse.Revision
 - uid: Cosmos.Kernel.Boot.Limine.LimineID
   name: LimineID
   href: api/Cosmos.Kernel.Boot.Limine.LimineID.html
@@ -680,6 +765,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.CosmosFeatures.NetworkEnabled
   nameWithType: CosmosFeatures.NetworkEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled
+  name: PCIEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_PCIEnabled
+  commentId: P:Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled
+  nameWithType: CosmosFeatures.PCIEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled*
+  name: PCIEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_PCIEnabled_
+  commentId: Overload:Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.PCIEnabled
+  nameWithType: CosmosFeatures.PCIEnabled
 - uid: Cosmos.Kernel.Core.CosmosFeatures.SchedulerEnabled
   name: SchedulerEnabled
   href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_SchedulerEnabled
@@ -706,6 +804,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.CosmosFeatures.TimerEnabled
   nameWithType: CosmosFeatures.TimerEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled
+  name: UARTEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_UARTEnabled
+  commentId: P:Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled
+  nameWithType: CosmosFeatures.UARTEnabled
+- uid: Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled*
+  name: UARTEnabled
+  href: api/Cosmos.Kernel.Core.CosmosFeatures.html#Cosmos_Kernel_Core_CosmosFeatures_UARTEnabled_
+  commentId: Overload:Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.CosmosFeatures.UARTEnabled
+  nameWithType: CosmosFeatures.UARTEnabled
 - uid: Cosmos.Kernel.Core.Extensions
   name: Cosmos.Kernel.Core.Extensions
   href: api/Cosmos.Kernel.Core.Extensions.html
@@ -861,6 +972,59 @@ references:
   commentId: N:Cosmos.Kernel.Core.IO
   fullName: Cosmos.Kernel.Core.IO
   nameWithType: Cosmos.Kernel.Core.IO
+- uid: Cosmos.Kernel.Core.IO.EarlyGop
+  name: EarlyGop
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html
+  commentId: T:Cosmos.Kernel.Core.IO.EarlyGop
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop
+  nameWithType: EarlyGop
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.CharH
+  name: CharH
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_CharH
+  commentId: F:Cosmos.Kernel.Core.IO.EarlyGop.CharH
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.CharH
+  nameWithType: EarlyGop.CharH
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.CharW
+  name: CharW
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_CharW
+  commentId: F:Cosmos.Kernel.Core.IO.EarlyGop.CharW
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.CharW
+  nameWithType: EarlyGop.CharW
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.Enabled
+  name: Enabled
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_Enabled
+  commentId: F:Cosmos.Kernel.Core.IO.EarlyGop.Enabled
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.Enabled
+  nameWithType: EarlyGop.Enabled
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.Initialize
+  name: Initialize()
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_Initialize
+  commentId: M:Cosmos.Kernel.Core.IO.EarlyGop.Initialize
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.Initialize()
+  nameWithType: EarlyGop.Initialize()
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_Initialize_
+  commentId: Overload:Cosmos.Kernel.Core.IO.EarlyGop.Initialize
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.Initialize
+  nameWithType: EarlyGop.Initialize
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.PutChar(System.Char)
+  name: PutChar(char)
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_PutChar_System_Char_
+  commentId: M:Cosmos.Kernel.Core.IO.EarlyGop.PutChar(System.Char)
+  name.vb: PutChar(Char)
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.PutChar(char)
+  fullName.vb: Cosmos.Kernel.Core.IO.EarlyGop.PutChar(Char)
+  nameWithType: EarlyGop.PutChar(char)
+  nameWithType.vb: EarlyGop.PutChar(Char)
+- uid: Cosmos.Kernel.Core.IO.EarlyGop.PutChar*
+  name: PutChar
+  href: api/Cosmos.Kernel.Core.IO.EarlyGop.html#Cosmos_Kernel_Core_IO_EarlyGop_PutChar_
+  commentId: Overload:Cosmos.Kernel.Core.IO.EarlyGop.PutChar
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.IO.EarlyGop.PutChar
+  nameWithType: EarlyGop.PutChar
 - uid: Cosmos.Kernel.Core.IO.Serial
   name: Serial
   href: api/Cosmos.Kernel.Core.IO.Serial.html
@@ -6598,6 +6762,73 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.StartSchedulerTimer
   nameWithType: ARM64PlatformInitializer.StartSchedulerTimer
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi
+  name: Cosmos.Kernel.HAL.ARM64.Acpi
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.html
+  commentId: N:Cosmos.Kernel.HAL.ARM64.Acpi
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi
+  nameWithType: Cosmos.Kernel.HAL.ARM64.Acpi
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC
+  name: AcpiGIC
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC
+  nameWithType: AcpiGIC
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo
+  name: GetGicInfo()
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GetGicInfo
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo()
+  nameWithType: AcpiGIC.GetGicInfo()
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo*
+  name: GetGicInfo
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GetGicInfo_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo
+  nameWithType: AcpiGIC.GetGicInfo
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo
+  name: AcpiGIC.GicInfo
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo
+  nameWithType: AcpiGIC.GicInfo
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.CpuIfBase
+  name: CpuIfBase
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_CpuIfBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.CpuIfBase
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.CpuIfBase
+  nameWithType: AcpiGIC.GicInfo.CpuIfBase
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.DistBase
+  name: DistBase
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_DistBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.DistBase
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.DistBase
+  nameWithType: AcpiGIC.GicInfo.DistBase
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Found
+  name: Found
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_Found
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Found
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Found
+  nameWithType: AcpiGIC.GicInfo.Found
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistBase
+  name: RedistBase
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_RedistBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistBase
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistBase
+  nameWithType: AcpiGIC.GicInfo.RedistBase
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistLength
+  name: RedistLength
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_RedistLength
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistLength
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistLength
+  nameWithType: AcpiGIC.GicInfo.RedistLength
+- uid: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Version
+  name: Version
+  href: api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html#Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_Version
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Version
+  fullName: Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Version
+  nameWithType: AcpiGIC.GicInfo.Version
 - uid: Cosmos.Kernel.HAL.ARM64.Cpu
   name: Cosmos.Kernel.HAL.ARM64.Cpu
   href: api/Cosmos.Kernel.HAL.ARM64.Cpu.html
@@ -6726,6 +6957,28 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.SendEOI
   nameWithType: ARM64InterruptController.SendEOI
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper
+  name: DeviceMapper
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper
+  nameWithType: DeviceMapper
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped(System.UInt64)
+  name: EnsureMapped(ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html#Cosmos_Kernel_HAL_ARM64_Cpu_DeviceMapper_EnsureMapped_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped(System.UInt64)
+  name.vb: EnsureMapped(ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped(ULong)
+  nameWithType: DeviceMapper.EnsureMapped(ulong)
+  nameWithType.vb: DeviceMapper.EnsureMapped(ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped*
+  name: EnsureMapped
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html#Cosmos_Kernel_HAL_ARM64_Cpu_DeviceMapper_EnsureMapped_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.EnsureMapped
+  nameWithType: DeviceMapper.EnsureMapped
 - uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC
   name: GIC
   href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html
@@ -6851,6 +7104,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeCpuInterface
   nameWithType: GIC.InitializeCpuInterface
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)
+  name: InitializeFromDTB(void*)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_System_Void__
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)
+  name.vb: InitializeFromDTB(Void*)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(void*)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(Void*)
+  nameWithType: GIC.InitializeFromDTB(void*)
+  nameWithType.vb: GIC.InitializeFromDTB(Void*)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB*
+  name: InitializeFromDTB
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB
+  nameWithType: GIC.InitializeFromDTB
 - uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInitialized
   name: IsInitialized
   href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsInitialized
@@ -6880,6 +7149,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsInterruptPending
   nameWithType: GIC.IsInterruptPending
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3
+  name: IsVersion3
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3
+  nameWithType: GIC.IsVersion3
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3*
+  name: IsVersion3
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3
+  nameWithType: GIC.IsVersion3
 - uid: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.PPI_START
   name: PPI_START
   href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html#Cosmos_Kernel_HAL_ARM64_Cpu_GIC_PPI_START
@@ -6938,6 +7220,510 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_VIRT
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GIC.TIMER_VIRT
   nameWithType: GIC.TIMER_VIRT
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2
+  name: GICv2
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2
+  nameWithType: GICv2
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt
+  name: AcknowledgeInterrupt()
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_AcknowledgeInterrupt
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt()
+  nameWithType: GICv2.AcknowledgeInterrupt()
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt*
+  name: AcknowledgeInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_AcknowledgeInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.AcknowledgeInterrupt
+  nameWithType: GICv2.AcknowledgeInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending(System.UInt32)
+  name: ClearPending(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_ClearPending_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending(System.UInt32)
+  name.vb: ClearPending(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending(UInteger)
+  nameWithType: GICv2.ClearPending(uint)
+  nameWithType.vb: GICv2.ClearPending(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending*
+  name: ClearPending
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_ClearPending_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ClearPending
+  nameWithType: GICv2.ClearPending
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure(System.UInt64,System.UInt64)
+  name: Configure(ulong, ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_Configure_System_UInt64_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure(System.UInt64,System.UInt64)
+  name.vb: Configure(ULong, ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure(ulong, ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure(ULong, ULong)
+  nameWithType: GICv2.Configure(ulong, ulong)
+  nameWithType.vb: GICv2.Configure(ULong, ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure*
+  name: Configure
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_Configure_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Configure
+  nameWithType: GICv2.Configure
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt(System.UInt32,System.Boolean)
+  name: ConfigureInterrupt(uint, bool)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_ConfigureInterrupt_System_UInt32_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt(System.UInt32,System.Boolean)
+  name.vb: ConfigureInterrupt(UInteger, Boolean)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt(uint, bool)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt(UInteger, Boolean)
+  nameWithType: GICv2.ConfigureInterrupt(uint, bool)
+  nameWithType.vb: GICv2.ConfigureInterrupt(UInteger, Boolean)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt*
+  name: ConfigureInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_ConfigureInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.ConfigureInterrupt
+  nameWithType: GICv2.ConfigureInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt(System.UInt32)
+  name: DisableInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_DisableInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt(System.UInt32)
+  name.vb: DisableInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt(UInteger)
+  nameWithType: GICv2.DisableInterrupt(uint)
+  nameWithType.vb: GICv2.DisableInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt*
+  name: DisableInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_DisableInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.DisableInterrupt
+  nameWithType: GICv2.DisableInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt(System.UInt32)
+  name: EnableInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_EnableInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt(System.UInt32)
+  name.vb: EnableInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt(UInteger)
+  nameWithType: GICv2.EnableInterrupt(uint)
+  nameWithType.vb: GICv2.EnableInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt*
+  name: EnableInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_EnableInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EnableInterrupt
+  nameWithType: GICv2.EnableInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt(System.UInt32)
+  name: EndOfInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_EndOfInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt(System.UInt32)
+  name.vb: EndOfInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt(UInteger)
+  nameWithType: GICv2.EndOfInterrupt(uint)
+  nameWithType.vb: GICv2.EndOfInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt*
+  name: EndOfInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_EndOfInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.EndOfInterrupt
+  nameWithType: GICv2.EndOfInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize
+  name: Initialize()
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_Initialize
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize()
+  nameWithType: GICv2.Initialize()
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_Initialize_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.Initialize
+  nameWithType: GICv2.Initialize
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface
+  name: InitializeCpuInterface()
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_InitializeCpuInterface
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface()
+  nameWithType: GICv2.InitializeCpuInterface()
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface*
+  name: InitializeCpuInterface
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_InitializeCpuInterface_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.InitializeCpuInterface
+  nameWithType: GICv2.InitializeCpuInterface
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized
+  name: IsInitialized
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_IsInitialized
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized
+  nameWithType: GICv2.IsInitialized
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized*
+  name: IsInitialized
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_IsInitialized_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInitialized
+  nameWithType: GICv2.IsInitialized
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending(System.UInt32)
+  name: IsInterruptPending(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_IsInterruptPending_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending(System.UInt32)
+  name.vb: IsInterruptPending(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending(UInteger)
+  nameWithType: GICv2.IsInterruptPending(uint)
+  nameWithType.vb: GICv2.IsInterruptPending(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending*
+  name: IsInterruptPending
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_IsInterruptPending_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.IsInterruptPending
+  nameWithType: GICv2.IsInterruptPending
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.PPI_START
+  name: PPI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_PPI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.PPI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.PPI_START
+  nameWithType: GICv2.PPI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SGI_START
+  name: SGI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_SGI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SGI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SGI_START
+  nameWithType: GICv2.SGI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SPI_START
+  name: SPI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_SPI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SPI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SPI_START
+  nameWithType: GICv2.SPI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority(System.UInt32,System.Byte)
+  name: SetPriority(uint, byte)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_SetPriority_System_UInt32_System_Byte_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority(System.UInt32,System.Byte)
+  name.vb: SetPriority(UInteger, Byte)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority(uint, byte)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority(UInteger, Byte)
+  nameWithType: GICv2.SetPriority(uint, byte)
+  nameWithType.vb: GICv2.SetPriority(UInteger, Byte)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority*
+  name: SetPriority
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_SetPriority_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.SetPriority
+  nameWithType: GICv2.SetPriority
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_HYP
+  name: TIMER_HYP
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_TIMER_HYP
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_HYP
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_HYP
+  nameWithType: GICv2.TIMER_HYP
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_NONSEC_PHYS
+  name: TIMER_NONSEC_PHYS
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_TIMER_NONSEC_PHYS
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_NONSEC_PHYS
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_NONSEC_PHYS
+  nameWithType: GICv2.TIMER_NONSEC_PHYS
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_SECURE_PHYS
+  name: TIMER_SECURE_PHYS
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_TIMER_SECURE_PHYS
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_SECURE_PHYS
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_SECURE_PHYS
+  nameWithType: GICv2.TIMER_SECURE_PHYS
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_VIRT
+  name: TIMER_VIRT
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv2_TIMER_VIRT
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_VIRT
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.TIMER_VIRT
+  nameWithType: GICv2.TIMER_VIRT
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3
+  name: GICv3
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3
+  nameWithType: GICv3
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt
+  name: AcknowledgeInterrupt()
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_AcknowledgeInterrupt
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt()
+  nameWithType: GICv3.AcknowledgeInterrupt()
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt*
+  name: AcknowledgeInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_AcknowledgeInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.AcknowledgeInterrupt
+  nameWithType: GICv3.AcknowledgeInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending(System.UInt32)
+  name: ClearPending(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ClearPending_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending(System.UInt32)
+  name.vb: ClearPending(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending(UInteger)
+  nameWithType: GICv3.ClearPending(uint)
+  nameWithType.vb: GICv3.ClearPending(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending*
+  name: ClearPending
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ClearPending_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ClearPending
+  nameWithType: GICv3.ClearPending
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure(System.UInt64,System.UInt64)
+  name: Configure(ulong, ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Configure_System_UInt64_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure(System.UInt64,System.UInt64)
+  name.vb: Configure(ULong, ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure(ulong, ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure(ULong, ULong)
+  nameWithType: GICv3.Configure(ulong, ulong)
+  nameWithType.vb: GICv3.Configure(ULong, ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure*
+  name: Configure
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Configure_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Configure
+  nameWithType: GICv3.Configure
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt(System.UInt32,System.Boolean)
+  name: ConfigureInterrupt(uint, bool)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ConfigureInterrupt_System_UInt32_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt(System.UInt32,System.Boolean)
+  name.vb: ConfigureInterrupt(UInteger, Boolean)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt(uint, bool)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt(UInteger, Boolean)
+  nameWithType: GICv3.ConfigureInterrupt(uint, bool)
+  nameWithType.vb: GICv3.ConfigureInterrupt(UInteger, Boolean)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt*
+  name: ConfigureInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_ConfigureInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.ConfigureInterrupt
+  nameWithType: GICv3.ConfigureInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt(System.UInt32)
+  name: DisableInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_DisableInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt(System.UInt32)
+  name.vb: DisableInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt(UInteger)
+  nameWithType: GICv3.DisableInterrupt(uint)
+  nameWithType.vb: GICv3.DisableInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt*
+  name: DisableInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_DisableInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.DisableInterrupt
+  nameWithType: GICv3.DisableInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt(System.UInt32)
+  name: EnableInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EnableInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt(System.UInt32)
+  name.vb: EnableInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt(UInteger)
+  nameWithType: GICv3.EnableInterrupt(uint)
+  nameWithType.vb: GICv3.EnableInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt*
+  name: EnableInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EnableInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EnableInterrupt
+  nameWithType: GICv3.EnableInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt(System.UInt32)
+  name: EndOfInterrupt(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EndOfInterrupt_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt(System.UInt32)
+  name.vb: EndOfInterrupt(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt(UInteger)
+  nameWithType: GICv3.EndOfInterrupt(uint)
+  nameWithType.vb: GICv3.EndOfInterrupt(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt*
+  name: EndOfInterrupt
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_EndOfInterrupt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.EndOfInterrupt
+  nameWithType: GICv3.EndOfInterrupt
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize(System.Boolean)
+  name: Initialize(bool)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Initialize_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize(System.Boolean)
+  name.vb: Initialize(Boolean)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize(bool)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize(Boolean)
+  nameWithType: GICv3.Initialize(bool)
+  nameWithType.vb: GICv3.Initialize(Boolean)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize*
+  name: Initialize
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_Initialize_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.Initialize
+  nameWithType: GICv3.Initialize
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface
+  name: InitializeCpuInterface()
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_InitializeCpuInterface
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface()
+  nameWithType: GICv3.InitializeCpuInterface()
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface*
+  name: InitializeCpuInterface
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_InitializeCpuInterface_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.InitializeCpuInterface
+  nameWithType: GICv3.InitializeCpuInterface
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available(System.UInt64)
+  name: IsGICv3Available(ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsGICv3Available_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available(System.UInt64)
+  name.vb: IsGICv3Available(ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available(ULong)
+  nameWithType: GICv3.IsGICv3Available(ulong)
+  nameWithType.vb: GICv3.IsGICv3Available(ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available*
+  name: IsGICv3Available
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsGICv3Available_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsGICv3Available
+  nameWithType: GICv3.IsGICv3Available
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized
+  name: IsInitialized
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInitialized
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized
+  nameWithType: GICv3.IsInitialized
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized*
+  name: IsInitialized
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInitialized_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInitialized
+  nameWithType: GICv3.IsInitialized
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending(System.UInt32)
+  name: IsInterruptPending(uint)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInterruptPending_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending(System.UInt32)
+  name.vb: IsInterruptPending(UInteger)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending(uint)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending(UInteger)
+  nameWithType: GICv3.IsInterruptPending(uint)
+  nameWithType.vb: GICv3.IsInterruptPending(UInteger)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending*
+  name: IsInterruptPending
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsInterruptPending_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsInterruptPending
+  nameWithType: GICv3.IsInterruptPending
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable
+  name: IsMmioAvailable
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsMmioAvailable
+  commentId: P:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable
+  nameWithType: GICv3.IsMmioAvailable
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable*
+  name: IsMmioAvailable
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_IsMmioAvailable_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.IsMmioAvailable
+  nameWithType: GICv3.IsMmioAvailable
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.PPI_START
+  name: PPI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_PPI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.PPI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.PPI_START
+  nameWithType: GICv3.PPI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SGI_START
+  name: SGI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SGI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SGI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SGI_START
+  nameWithType: GICv3.SGI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SPI_START
+  name: SPI_START
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SPI_START
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SPI_START
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SPI_START
+  nameWithType: GICv3.SPI_START
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI(System.UInt32,System.Boolean)
+  name: SendSGI(uint, bool)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SendSGI_System_UInt32_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI(System.UInt32,System.Boolean)
+  name.vb: SendSGI(UInteger, Boolean)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI(uint, bool)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI(UInteger, Boolean)
+  nameWithType: GICv3.SendSGI(uint, bool)
+  nameWithType.vb: GICv3.SendSGI(UInteger, Boolean)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI*
+  name: SendSGI
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SendSGI_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SendSGI
+  nameWithType: GICv3.SendSGI
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority(System.UInt32,System.Byte)
+  name: SetPriority(uint, byte)
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SetPriority_System_UInt32_System_Byte_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority(System.UInt32,System.Byte)
+  name.vb: SetPriority(UInteger, Byte)
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority(uint, byte)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority(UInteger, Byte)
+  nameWithType: GICv3.SetPriority(uint, byte)
+  nameWithType.vb: GICv3.SetPriority(UInteger, Byte)
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority*
+  name: SetPriority
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_SetPriority_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.SetPriority
+  nameWithType: GICv3.SetPriority
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_HYP
+  name: TIMER_HYP
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_HYP
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_HYP
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_HYP
+  nameWithType: GICv3.TIMER_HYP
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_NONSEC_PHYS
+  name: TIMER_NONSEC_PHYS
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_NONSEC_PHYS
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_NONSEC_PHYS
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_NONSEC_PHYS
+  nameWithType: GICv3.TIMER_NONSEC_PHYS
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_SECURE_PHYS
+  name: TIMER_SECURE_PHYS
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_SECURE_PHYS
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_SECURE_PHYS
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_SECURE_PHYS
+  nameWithType: GICv3.TIMER_SECURE_PHYS
+- uid: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
+  name: TIMER_VIRT
+  href: api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html#Cosmos_Kernel_HAL_ARM64_Cpu_GICv3_TIMER_VIRT
+  commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
+  fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
+  nameWithType: GICv3.TIMER_VIRT
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input
   name: Cosmos.Kernel.HAL.ARM64.Devices.Input
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.html
@@ -8270,6 +9056,94 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.Len
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.Len
   nameWithType: Virtqueue.VringUsedElem.Len
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser
+  name: FDTParser
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.FDTParser
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser
+  nameWithType: FDTParser
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
+  name: FDTParser.GICInfo
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo
+  nameWithType: FDTParser.GICInfo
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
+  name: CpuBase
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_CpuBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuBase
+  nameWithType: FDTParser.GICInfo.CpuBase
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
+  name: CpuSize
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_CpuSize
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.CpuSize
+  nameWithType: FDTParser.GICInfo.CpuSize
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
+  name: DistBase
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_DistBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistBase
+  nameWithType: FDTParser.GICInfo.DistBase
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
+  name: DistSize
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_DistSize
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.DistSize
+  nameWithType: FDTParser.GICInfo.DistSize
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
+  name: Found
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_Found
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Found
+  nameWithType: FDTParser.GICInfo.Found
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
+  name: HypBase
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_HypBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypBase
+  nameWithType: FDTParser.GICInfo.HypBase
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
+  name: HypSize
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_HypSize
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.HypSize
+  nameWithType: FDTParser.GICInfo.HypSize
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
+  name: VcpuBase
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_VcpuBase
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuBase
+  nameWithType: FDTParser.GICInfo.VcpuBase
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
+  name: VcpuSize
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_VcpuSize
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.VcpuSize
+  nameWithType: FDTParser.GICInfo.VcpuSize
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
+  name: Version
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.html#Cosmos_Kernel_HAL_ARM64_FDTParser_GICInfo_Version
+  commentId: F:Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.GICInfo.Version
+  nameWithType: FDTParser.GICInfo.Version
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(System.Void*)
+  name: ParseGIC(void*)
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html#Cosmos_Kernel_HAL_ARM64_FDTParser_ParseGIC_System_Void__
+  commentId: M:Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(System.Void*)
+  name.vb: ParseGIC(Void*)
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(void*)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC(Void*)
+  nameWithType: FDTParser.ParseGIC(void*)
+  nameWithType.vb: FDTParser.ParseGIC(Void*)
+- uid: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC*
+  name: ParseGIC
+  href: api/Cosmos.Kernel.HAL.ARM64.FDTParser.html#Cosmos_Kernel_HAL_ARM64_FDTParser_ParseGIC_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.FDTParser.ParseGIC
+  nameWithType: FDTParser.ParseGIC
 - uid: Cosmos.Kernel.HAL.Acpi
   name: Cosmos.Kernel.HAL.Acpi
   href: api/Cosmos.Kernel.HAL.Acpi.html

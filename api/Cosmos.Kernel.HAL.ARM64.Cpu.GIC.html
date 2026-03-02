@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class GIC | Cosmos Gen 3 ">
       
-      <meta name="description" content="ARM Generic Interrupt Controller v2 (GICv2) implementation. Used on QEMU virt machine and many ARM64 platforms.">
+      <meta name="description" content="Unified GIC facade that auto-detects GICv2 or GICv3 at runtime and delegates to the appropriate implementation. Supports configurable base addresses for real hardware (from DTB).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,8 +97,9 @@ Class GIC
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>ARM Generic Interrupt Controller v2 (GICv2) implementation.
-Used on QEMU virt machine and many ARM64 platforms.</p>
+  <div class="markdown summary"><p>Unified GIC facade that auto-detects GICv2 or GICv3 at runtime
+and delegates to the appropriate implementation.
+Supports configurable base addresses for real hardware (from DTB).</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -400,6 +401,38 @@ Used on QEMU virt machine and many ARM64 platforms.</p>
 
 
 
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_IsVersion3" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.IsVersion3">
+  IsVersion3
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether GICv3 is being used (false = GICv2).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsVersion3 { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 
@@ -411,8 +444,7 @@ Used on QEMU virt machine and many ARM64 platforms.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Acknowledges an interrupt and returns its ID.
-Must be called at the start of interrupt handling.</p>
+  <div class="markdown level1 summary"><p>Acknowledges an interrupt and returns its ID.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -424,8 +456,7 @@ Must be called at the start of interrupt handling.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>The interrupt ID, or 1023 if spurious.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -456,8 +487,7 @@ Must be called at the start of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -489,11 +519,9 @@ Must be called at the start of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID.</p>
-</dd>
+    <dd></dd>
     <dt><code>edgeTriggered</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>True for edge-triggered, false for level-triggered.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -525,8 +553,7 @@ Must be called at the start of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -558,8 +585,7 @@ Must be called at the start of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID (0-1019).</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -580,8 +606,7 @@ Must be called at the start of interrupt handling.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Signals the end of interrupt processing.
-Must be called at the end of interrupt handling.</p>
+  <div class="markdown level1 summary"><p>Signals the end of interrupt processing.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -592,8 +617,7 @@ Must be called at the end of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>The interrupt ID that was acknowledged.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -614,7 +638,8 @@ Must be called at the end of interrupt handling.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the GIC distributor and CPU interface.</p>
+  <div class="markdown level1 summary"><p>Initializes the GIC, auto-detecting v2 or v3.
+Discovery priority: DTB → ACPI MADT → default QEMU addresses.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -641,7 +666,7 @@ Must be called at the end of interrupt handling.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the GIC CPU interface for the current CPU.</p>
+  <div class="markdown level1 summary"><p>Initializes the CPU interface for the current CPU.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -649,6 +674,40 @@ Must be called at the end of interrupt handling.</p>
     <pre><code class="lang-csharp hljs">public static void InitializeCpuInterface()</code></pre>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_ARM64_Cpu_GIC_InitializeFromDTB_System_Void__" data-uid="Cosmos.Kernel.HAL.ARM64.Cpu.GIC.InitializeFromDTB(System.Void*)">
+  InitializeFromDTB(void*)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes the GIC using addresses from a DTB.
+Call this when a device tree is available (real hardware).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void InitializeFromDTB(void* dtbAddress)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dtbAddress</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd><p>Pointer to the DTB blob in memory.</p>
+</dd>
+  </dl>
 
 
 
@@ -679,15 +738,13 @@ Must be called at the end of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID.</p>
-</dd>
+    <dd></dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>True if pending.</p>
-</dd>
+    <dd></dd>
   </dl>
 
 
@@ -718,11 +775,9 @@ Must be called at the end of interrupt handling.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>intId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Interrupt ID.</p>
-</dd>
+    <dd></dd>
     <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>Priority (0 = highest, 0xFF = lowest).</p>
-</dd>
+    <dd></dd>
   </dl>
 
 

@@ -181,10 +181,7 @@ Class PageAllocator
 
 
   <h4 class="section" id="Cosmos_Kernel_Core_Memory_PageAllocator_PageSize_remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><ul>
-  <li>x86 Page Size: 4k, 2m (PAE only), 4m.</li>
-  <li>x64 Page Size: 4k, 2m</li>
-</ul>
+  <div class="markdown level1 remarks"><ul><li>x86 Page Size: 4k, 2m (PAE only), 4m.</li><li>x64 Page Size: 4k, 2m</li></ul>
 </div>
 
 
@@ -599,8 +596,9 @@ This follows the Cosmos OS memory structure with RAT at the END of heap.</p>
   <h4 class="section">Exceptions</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
-    <dd><p>Thrown if:
-<ul><li>No usable memory found.</li><li>RAM start or size is not page aligned.</li></ul>
+    <dd><p>Thrown if:</p>
+<pre><code>&lt;ul&gt;&lt;li&gt;No usable memory found.&lt;/li&gt;&lt;li&gt;RAM start or size is not page aligned.&lt;/li&gt;&lt;/ul&gt;
+</code></pre>
 </dd>
   </dl>
 
