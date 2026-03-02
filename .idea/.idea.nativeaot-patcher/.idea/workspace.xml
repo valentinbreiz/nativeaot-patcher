@@ -10,17 +10,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="commit to show">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/build/Cosmos.Kernel.Core.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/build/Cosmos.Kernel.Core.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -66,6 +61,7 @@
     <setting file="file://$PROJECT_DIR$/.vscode/launch.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/.vscode/tasks.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Bootstrap/main.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/MiscHelpers.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/thread.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/vm/methodtablebuilder.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -76,6 +72,7 @@
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/LibraryInitializer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/CachedInterfaceDispatch.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="FORCE_HIGHLIGHTING" />
@@ -135,8 +132,20 @@
       <workItem from="1770620597709" duration="28155000" />
       <workItem from="1770779737218" duration="4628000" />
       <workItem from="1770796896969" duration="295000" />
-      <workItem from="1770853387226" duration="4584000" />
+      <workItem from="1770853387226" duration="6453000" />
+      <workItem from="1770862467036" duration="12769000" />
+      <workItem from="1770893008111" duration="3589000" />
+      <workItem from="1771892346957" duration="579000" />
     </task>
+    <task id="LOCAL-00001" summary="commit to show">
+      <option name="closed" value="true" />
+      <created>1770858521311</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1770858521311</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -154,5 +163,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="commit to show" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit to show" />
   </component>
 </project>

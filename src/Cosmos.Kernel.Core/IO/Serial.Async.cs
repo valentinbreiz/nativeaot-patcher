@@ -2,7 +2,9 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Async;
+using Cosmos.Kernel.Core.CPU;
 
 namespace Cosmos.Kernel.Core.IO;
 
@@ -234,7 +236,7 @@ public static partial class Serial
         UseThread = true;
     }
 
-    private static ConcurrentQueue<Action> s_queue = new ConcurrentQueue<Action>();
+    private static Queue<Action> s_queue = new Queue<Action>();
 
     private static void Queue(Action callback)
     {
@@ -260,8 +262,7 @@ public static partial class Serial
 
             try
             {
-                s_queue.TryDequeue(out Action? action);
-                action?.Invoke();
+                s_queue.Dequeue()();
             }
             catch
             {
