@@ -64,7 +64,7 @@ public class PCScreenFont : Font
                     {
                         Serial.WriteString("Loading default PSF font from resources...\n");
                         Serial.WriteString($"Font Key: {embeddedResourceName}");
-                        Serial.WriteString($"Font size: {resourceSpan.Length.ToString()} bytes\n");
+                        Serial.WriteString("Font size:" + resourceSpan.Length + "bytes\n");
                         _Default = LoadFont(resourceSpan.ToArray());
                         return _Default;
                     }
