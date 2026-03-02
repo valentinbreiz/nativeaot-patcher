@@ -3,8 +3,10 @@
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.Devices;
+using Cosmos.Kernel.HAL.Devices.Clock;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Clock;
 
@@ -81,45 +83,102 @@ public class RTC : Device
         Serial.WriteNumber(_timerFrequency);
         Serial.Write(" Hz\n");
 
-        // Try to read from PL031 RTC
-        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        ulong pl031Virt = PL031_BASE_PHYS + hhdmOffset;
-
-        if (TryReadPL031(pl031Virt, out uint unixSeconds))
+        // Priority 1: EFI Runtime Services GetTime (works on real UEFI hardware)
+        if (EfiRtc.TryGetTime(out long efiTicks))
         {
-            BootTimeTicks = UnixEpochTicks + (long)unixSeconds * TicksPerSecond;
+            BootTimeTicks = efiTicks;
             IsAvailable = true;
+            Serial.Write("[RTC] Initialized\n");
+            return;
+        }
 
-            // Log the boot time
-            UnixSecondsToDate(unixSeconds, out int year, out int month, out int day,
-                              out int hour, out int minute, out int second);
-            Serial.Write("[RTC] Boot time: ");
-            Serial.WriteNumber((ulong)year);
-            Serial.Write("-");
-            if (month < 10) Serial.Write("0");
-            Serial.WriteNumber((ulong)month);
-            Serial.Write("-");
-            if (day < 10) Serial.Write("0");
-            Serial.WriteNumber((ulong)day);
-            Serial.Write(" ");
-            if (hour < 10) Serial.Write("0");
-            Serial.WriteNumber((ulong)hour);
-            Serial.Write(":");
-            if (minute < 10) Serial.Write("0");
-            Serial.WriteNumber((ulong)minute);
-            Serial.Write(":");
-            if (second < 10) Serial.Write("0");
-            Serial.WriteNumber((ulong)second);
-            Serial.Write(" UTC\n");
+        // Priority 2: Limine boot time
+        if (Limine.BootTime.Response != null)
+        {
+            long unixSecs = Limine.BootTime.Response->BootTime;
+            Serial.Write("[RTC] Limine BootTime response: ");
+            Serial.WriteNumber((ulong)unixSecs);
+            Serial.Write("\n");
+            if (unixSecs > 0)
+            {
+                BootTimeTicks = UnixEpochTicks + unixSecs * TicksPerSecond;
+                IsAvailable = true;
+
+                UnixSecondsToDate((uint)unixSecs, out int year, out int month, out int day,
+                                  out int hour, out int minute, out int second);
+                Serial.Write("[RTC] Boot time (Limine): ");
+                Serial.WriteNumber((ulong)year);
+                Serial.Write("-");
+                if (month < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)month);
+                Serial.Write("-");
+                if (day < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)day);
+                Serial.Write(" ");
+                if (hour < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)hour);
+                Serial.Write(":");
+                if (minute < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)minute);
+                Serial.Write(":");
+                if (second < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)second);
+                Serial.Write(" UTC\n");
+
+                Serial.Write("[RTC] Initialized\n");
+                return;
+            }
+            else
+            {
+                Serial.Write("[RTC] Limine BootTime response present but BootTime <= 0, skipping\n");
+            }
         }
         else
         {
-            // No PL031 available — use fallback epoch
-            BootTimeTicks = FallbackBootTicks;
-            IsAvailable = false;
-            Serial.Write("[RTC] PL031 not found, using fallback epoch (2024-01-01)\n");
+            Serial.Write("[RTC] Limine BootTime response is null (feature unsupported by bootloader)\n");
         }
 
+        // Priority 3: PL031 MMIO RTC (QEMU virt only — skip on real hardware)
+        if (GICv3.IsMmioAvailable)
+        {
+            ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+            ulong pl031Virt = PL031_BASE_PHYS + hhdmOffset;
+
+            if (TryReadPL031(pl031Virt, out uint unixSeconds))
+            {
+                BootTimeTicks = UnixEpochTicks + (long)unixSeconds * TicksPerSecond;
+                IsAvailable = true;
+
+                UnixSecondsToDate(unixSeconds, out int year, out int month, out int day,
+                                  out int hour, out int minute, out int second);
+                Serial.Write("[RTC] Boot time (PL031): ");
+                Serial.WriteNumber((ulong)year);
+                Serial.Write("-");
+                if (month < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)month);
+                Serial.Write("-");
+                if (day < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)day);
+                Serial.Write(" ");
+                if (hour < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)hour);
+                Serial.Write(":");
+                if (minute < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)minute);
+                Serial.Write(":");
+                if (second < 10) Serial.Write("0");
+                Serial.WriteNumber((ulong)second);
+                Serial.Write(" UTC\n");
+
+                Serial.Write("[RTC] Initialized\n");
+                return;
+            }
+        }
+
+        // Priority 4: Fallback epoch
+        BootTimeTicks = FallbackBootTicks;
+        IsAvailable = false;
+        Serial.Write("[RTC] No time source found, using fallback epoch (2024-01-01)\n");
         Serial.Write("[RTC] Initialized\n");
     }
 
