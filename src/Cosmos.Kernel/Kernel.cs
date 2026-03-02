@@ -12,7 +12,7 @@ public class Kernel
     // CosmosOS version - keep in sync with kmain.h
     public const int VersionMajor = 3;
     public const int VersionMinor = 0;
-    public const int VersionPatch = 38;
+    public const int VersionPatch = 0;
     public const string VersionString = "3.0.38";
     public const string Codename = "gen3";
     public const string VersionBanner = $"CosmosOS v{VersionString} ({Codename}) - Managed runtime active\n";
