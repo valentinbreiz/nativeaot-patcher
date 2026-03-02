@@ -19,6 +19,14 @@ public static class CosmosFeatures
         AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled) ? enabled : true;
 
     /// <summary>
+    /// Controls UART support initialization.
+    /// Set via CosmosEnableUART property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.HAL.UART.Enabled")]
+    public static bool UARTEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.HAL.UART.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
     /// Controls PCI support initialization.
     /// Set via CosmosEnablePCI property in csproj.
     /// </summary>

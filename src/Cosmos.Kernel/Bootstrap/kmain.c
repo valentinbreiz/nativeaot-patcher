@@ -10,6 +10,9 @@ void kmain()
     // Without optimizations (-O), ILC generates XMM instructions even in simple functions
     _native_enable_simd();
 
+    // Initialize serial port (115200 baud, 8N1)
+    __cosmos_serial_init();
+
     // === Boot Banner ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("========================================\n");
