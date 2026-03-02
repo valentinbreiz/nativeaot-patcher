@@ -1,6 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.ARM64.Acpi;
@@ -62,71 +61,12 @@ public static class GIC
     public static bool IsVersion3 => _isV3;
 
     /// <summary>
-    /// Initializes the GIC using addresses from a DTB.
-    /// Call this when a device tree is available (real hardware).
-    /// </summary>
-    /// <param name="dtbAddress">Pointer to the DTB blob in memory.</param>
-    public static unsafe void InitializeFromDTB(void* dtbAddress)
-    {
-        var gicInfo = FDTParser.ParseGIC(dtbAddress);
-
-        if (gicInfo.Found)
-        {
-            _distBase = gicInfo.DistBase;
-            _isV3 = gicInfo.Version >= 3;
-
-            if (_isV3)
-            {
-                // Real hardware GICv3: use sysreg-only mode (MMIO may be inaccessible)
-                Serial.Write("[GIC] DTB: GICv3 GICD=0x");
-                Serial.WriteHex(gicInfo.DistBase);
-                Serial.Write(" GICR=0x");
-                Serial.WriteHex(gicInfo.CpuBase);
-                Serial.Write(" (sysreg-only)\n");
-                GICv3.Configure(PhysToVirt(gicInfo.DistBase), PhysToVirt(gicInfo.CpuBase));
-                GICv3.Initialize(sysregOnly: true);
-            }
-            else
-            {
-                // GICv2 always needs MMIO
-                DeviceMapper.EnsureMapped(gicInfo.DistBase);
-                DeviceMapper.EnsureMapped(gicInfo.CpuBase);
-                Serial.Write("[GIC] DTB: GICv2 GICD=0x");
-                Serial.WriteHex(gicInfo.DistBase);
-                Serial.Write(" GICC=0x");
-                Serial.WriteHex(gicInfo.CpuBase);
-                Serial.Write("\n");
-                GICv2.Configure(PhysToVirt(gicInfo.DistBase), PhysToVirt(gicInfo.CpuBase));
-                GICv2.Initialize();
-            }
-        }
-        else
-        {
-            Serial.Write("[GIC] DTB: GIC not found, falling back to auto-detect\n");
-            Initialize();
-            return;
-        }
-
-        _initialized = true;
-    }
-
-    /// <summary>
     /// Initializes the GIC, auto-detecting v2 or v3.
-    /// Discovery priority: DTB → ACPI MADT → default QEMU addresses.
+    /// Discovery priority: ACPI MADT → default QEMU addresses.
     /// </summary>
     public static unsafe void Initialize()
     {
-        // Priority 1: Try DTB from Limine bootloader
-        if (Limine.DTB.Response != null && Limine.DTB.Response->Address != null)
-        {
-            Serial.Write("[GIC] Limine DTB available at 0x");
-            Serial.WriteHex((ulong)Limine.DTB.Response->Address);
-            Serial.Write("\n");
-            InitializeFromDTB(Limine.DTB.Response->Address);
-            return;
-        }
-
-        // Priority 2: Try ACPI MADT (parsed by C code in kmain via acpi_early_init)
+        // Priority 1: Try ACPI MADT (parsed by C code in kmain via acpi_early_init)
         var acpiGic = AcpiGIC.GetGicInfo();
         if (acpiGic != null && acpiGic->Found != 0)
         {
