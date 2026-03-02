@@ -15,8 +15,8 @@ public static class EfiRtc
 {
     private const long TicksPerSecond = 10_000_000L;
     private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour   = TicksPerMinute * 60;
-    private const long TicksPerDay    = TicksPerHour   * 24;
+    private const long TicksPerHour = TicksPerMinute * 60;
+    private const long TicksPerDay = TicksPerHour * 24;
 
     /// <summary>
     /// Attempts to read the current wall-clock time via EFI Runtime Services.

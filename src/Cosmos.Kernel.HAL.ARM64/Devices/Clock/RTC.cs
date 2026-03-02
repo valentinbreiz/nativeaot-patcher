@@ -26,9 +26,9 @@ public class RTC : Device
     private const ulong PL031_BASE_PHYS = 0x09010000;
 
     // PL031 register offsets
-    private const ulong RTCDR  = 0x000; // Data register: seconds since Unix epoch (read-only)
-    private const ulong RTCLR  = 0x008; // Load register
-    private const ulong RTCCR  = 0x00C; // Control register (bit 0 = enable)
+    private const ulong RTCDR = 0x000; // Data register: seconds since Unix epoch (read-only)
+    private const ulong RTCLR = 0x008; // Load register
+    private const ulong RTCCR = 0x00C; // Control register (bit 0 = enable)
 
     // PL031 PrimeCell ID bytes (at offsets 0xFF0-0xFFC) for detection
     private const ulong RTCPCELLID0 = 0xFF0;
@@ -39,8 +39,8 @@ public class RTC : Device
     // DateTime ticks per second (100-nanosecond intervals)
     private const long TicksPerSecond = 10_000_000L;
     private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour   = TicksPerMinute * 60;
-    private const long TicksPerDay    = TicksPerHour   * 24;
+    private const long TicksPerHour = TicksPerMinute * 60;
+    private const long TicksPerDay = TicksPerHour * 24;
 
     // Unix epoch as DateTime ticks (1970-01-01 00:00:00 UTC)
     // DateTime(1970,1,1).Ticks = 621355968000000000L
@@ -75,7 +75,7 @@ public class RTC : Device
         // Capture GenericTimer reference point for elapsed time
         if (GenericTimer.Instance != null)
         {
-            _bootCounter    = GenericTimer.Instance.GetCurrentCounter();
+            _bootCounter = GenericTimer.Instance.GetCurrentCounter();
             _timerFrequency = GenericTimer.Instance.TimerFrequency;
         }
 
@@ -263,7 +263,7 @@ public class RTC : Device
     {
         second = (int)(unixSeconds % 60); unixSeconds /= 60;
         minute = (int)(unixSeconds % 60); unixSeconds /= 60;
-        hour   = (int)(unixSeconds % 24); unixSeconds /= 24;
+        hour = (int)(unixSeconds % 24); unixSeconds /= 24;
 
         // Days since 1970-01-01
         uint days = unixSeconds;

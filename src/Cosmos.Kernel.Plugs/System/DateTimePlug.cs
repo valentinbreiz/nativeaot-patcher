@@ -24,7 +24,7 @@ public static partial class DateTimePlug
     {
         if (CosmosFeatures.TimerEnabled)
         {
-            if (RTC.Instance == null) 
+            if (RTC.Instance == null)
                 return 0;
             return RTC.Instance.GetCurrentTicks();
         }

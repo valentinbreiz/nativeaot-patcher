@@ -19,10 +19,10 @@ public static unsafe partial class DeviceMapper
     // Page table descriptor bits
     private const ulong DESC_VALID = 1UL << 0;
     private const ulong DESC_TABLE = 1UL << 1;  // 1 = table, 0 = block
-    private const ulong DESC_AF    = 1UL << 10;
-    private const ulong DESC_PXN   = 1UL << 53;
-    private const ulong DESC_UXN   = 1UL << 54;
-    private const ulong ADDR_MASK  = 0x0000FFFFFFFFF000UL;
+    private const ulong DESC_AF = 1UL << 10;
+    private const ulong DESC_PXN = 1UL << 53;
+    private const ulong DESC_UXN = 1UL << 54;
+    private const ulong ADDR_MASK = 0x0000FFFFFFFFF000UL;
     private const ulong BLOCK_2MB_ADDR_MASK = 0x0000FFFFFFE00000UL;
     private const ulong BLOCK_1GB_ADDR_MASK = 0x0000FFFFC0000000UL;
 

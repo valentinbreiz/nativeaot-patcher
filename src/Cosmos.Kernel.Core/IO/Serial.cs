@@ -143,7 +143,7 @@ public static class Serial
             Native.IO.Write8(COM1_BASE + REG_FCR, FCR_ENABLE);
 
             // Enable DTR, RTS, and OUT2 (required for interrupts)
-        Native.IO.Write8(COM1_BASE + REG_MCR, MCR_DTR_RTS_OUT2);
+            Native.IO.Write8(COM1_BASE + REG_MCR, MCR_DTR_RTS_OUT2);
 #endif
         }
     }

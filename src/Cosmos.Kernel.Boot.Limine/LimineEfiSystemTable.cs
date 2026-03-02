@@ -32,10 +32,10 @@ public readonly unsafe struct LimineEfiSystemTableResponse
 public struct EfiTableHeader
 {
     public ulong Signature;
-    public uint  Revision;
-    public uint  HeaderSize;
-    public uint  CRC32;
-    public uint  Reserved;
+    public uint Revision;
+    public uint HeaderSize;
+    public uint CRC32;
+    public uint Reserved;
 }
 
 /// <summary>
@@ -46,16 +46,16 @@ public struct EfiTableHeader
 public struct EfiTime
 {
     public ushort Year;        // 1900–9999
-    public byte   Month;       // 1–12
-    public byte   Day;         // 1–31
-    public byte   Hour;        // 0–23
-    public byte   Minute;      // 0–59
-    public byte   Second;      // 0–59
-    public byte   Pad1;
-    public uint   Nanosecond;  // 0–999,999,999
-    public short  TimeZone;    // minutes offset from UTC; 0x07FF = unspecified
-    public byte   Daylight;
-    public byte   Pad2;
+    public byte Month;       // 1–12
+    public byte Day;         // 1–31
+    public byte Hour;        // 0–23
+    public byte Minute;      // 0–59
+    public byte Second;      // 0–59
+    public byte Pad1;
+    public uint Nanosecond;  // 0–999,999,999
+    public short TimeZone;    // minutes offset from UTC; 0x07FF = unspecified
+    public byte Daylight;
+    public byte Pad2;
 }
 
 /// <summary>
@@ -81,15 +81,15 @@ public unsafe struct EfiRuntimeServices
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EfiSystemTable
 {
-    public EfiTableHeader       Hdr;                   // offset  0, size 24
-    public char*                FirmwareVendor;        // offset 24, size  8
-    public uint                 FirmwareRevision;      // offset 32, size  4
-    private uint                _pad;                  // offset 36, size  4 (alignment)
-    public void*                ConsoleInHandle;       // offset 40, size  8
-    public void*                ConIn;                 // offset 48, size  8
-    public void*                ConsoleOutHandle;      // offset 56, size  8
-    public void*                ConOut;                // offset 64, size  8
-    public void*                StandardErrorHandle;   // offset 72, size  8
-    public void*                StdErr;                // offset 80, size  8
-    public EfiRuntimeServices*  RuntimeServices;       // offset 88, size  8
+    public EfiTableHeader Hdr;                   // offset  0, size 24
+    public char* FirmwareVendor;        // offset 24, size  8
+    public uint FirmwareRevision;      // offset 32, size  4
+    private uint _pad;                  // offset 36, size  4 (alignment)
+    public void* ConsoleInHandle;       // offset 40, size  8
+    public void* ConIn;                 // offset 48, size  8
+    public void* ConsoleOutHandle;      // offset 56, size  8
+    public void* ConOut;                // offset 64, size  8
+    public void* StandardErrorHandle;   // offset 72, size  8
+    public void* StdErr;                // offset 80, size  8
+    public EfiRuntimeServices* RuntimeServices;       // offset 88, size  8
 }
