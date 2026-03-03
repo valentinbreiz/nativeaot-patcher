@@ -35,11 +35,10 @@ extern void _native_enable_simd(void);
 extern void _native_arm64_disable_alignment_check(void);
 #endif
 
-#ifdef ARCH_X64
-// ACPI early initialization (x64 only)
-extern void acpi_early_init(void* rsdp_address);
+// ACPI early initialization (shared - MADT parsing)
+extern void acpi_early_init(void* rsdp_address, uint64_t hhdm_offset);
 extern void* __get_limine_rsdp_address(void);
-#endif
+extern uint64_t __get_limine_hhdm_offset(void);
 
 // Serial logging (C# functions)
 extern void __cosmos_serial_init(void);

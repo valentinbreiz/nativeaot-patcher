@@ -73,6 +73,7 @@ public static unsafe class KernelBridge
         byte* p = str;
         while (*p != 0)
         {
+            EarlyGop.PutChar((char)*p); // Echo to screen for early debugging
             Serial.ComWrite(*p);
             p++;
         }
@@ -171,5 +172,18 @@ public static unsafe class AcpiBridge
             return Limine.Rsdp.Response->Address;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Expose Limine HHDM offset to C bootstrap for physical-to-virtual address translation.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__get_limine_hhdm_offset")]
+    public static ulong GetLimineHhdmOffset()
+    {
+        if (Limine.HHDM.Response != null)
+        {
+            return Limine.HHDM.Response->Offset;
+        }
+        return 0;
     }
 }

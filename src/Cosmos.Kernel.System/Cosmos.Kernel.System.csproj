@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Graphics\Fonts\CustomFont.psf" />
+    <EmbeddedResource Include="Graphics\Fonts\DefaultFont.psf" />
   </ItemGroup>
 
   <!-- Multi-arch packaging support -->
