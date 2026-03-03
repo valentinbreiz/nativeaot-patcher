@@ -240,22 +240,22 @@ public class Bitmap : Image
 
         // Assume that we are using the BMP (Windows) V3 header format
         // reading magic number to identify if BMP file (BM as string - 42 4D as Hex) - bytes 0 -> 2
-        stream.Read(buffer16, 0, 2);
+        stream.ReadExactly(buffer16, 0, 2);
         if ("42-4D" != BitConverter.ToString(buffer16))
         {
             throw new Exception("Header is not from a BMP");
         }
 
         // read size of BMP file - byte 2 -> 6
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
 
         stream.Position = 10;
         // read header - bytes 10 -> 14 is the offset of the bitmap image data
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint pixelTableOffset = BitConverter.ToUInt32(buffer32, 0);
 
         // now reading size of BITMAPINFOHEADER should be 40 - bytes 14 -> 18
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint infoHeaderSize = BitConverter.ToUInt32(buffer32, 0);
         if (infoHeaderSize is not 40 and not 56 and not 124) // 124 - is BITMAPV5INFOHEADER, 56 - is BITMAPV3INFOHEADER, where we ignore the additional values see https://web.archive.org/web/20150127132443/https://forums.adobe.com/message/3272950
         {
@@ -263,15 +263,15 @@ public class Bitmap : Image
         }
 
         // Now reading width of image in pixels - bytes 18 -> 22
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint imageWidth = BitConverter.ToUInt32(buffer32, 0);
 
         // Now reading height of image in pixels - byte 22 -> 26
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint imageHeight = BitConverter.ToUInt32(buffer32, 0);
 
         // Now reading number of planes should be 1 - byte 26 -> 28
-        stream.Read(buffer16, 0, 2);
+        stream.ReadExactly(buffer16, 0, 2);
         ushort planes = BitConverter.ToUInt16(buffer16, 0);
         if (planes != 1)
         {
@@ -279,7 +279,7 @@ public class Bitmap : Image
         }
 
         // Now reading size of bits per pixel (1, 4, 8, 24, 32) - bytes 28 - 30
-        stream.Read(buffer16, 0, 2);
+        stream.ReadExactly(buffer16, 0, 2);
         ushort pixelSize = BitConverter.ToUInt16(buffer16, 0);
 
         //TODO: Be able to handle other pixel sizes
@@ -289,7 +289,7 @@ public class Bitmap : Image
         }
 
         //now reading compression type - bytes 30 -> 34
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint compression = BitConverter.ToUInt32(buffer32, 0);
 
         // TODO: Be able to handle compressed files
@@ -300,7 +300,7 @@ public class Bitmap : Image
         }
 
         // Now reading total image data size(including padding) - bytes 34 -> 38
-        stream.Read(buffer32, 0, 4);
+        stream.ReadExactly(buffer32, 0, 4);
         uint totalImageSize = BitConverter.ToUInt32(buffer32, 0);
         if (totalImageSize == 0)
         {
@@ -342,7 +342,7 @@ public class Bitmap : Image
         stream.Position = (int)pixelTableOffset;
         int position = 0;
         byte[] pixelData = new byte[pureImageSize];
-        stream.Read(pixelData, 0, pureImageSize);
+        stream.ReadExactly(pixelData, 0, pureImageSize);
         byte[] pixel = new byte[4]; // All must have the same size
 
         for (int y = 0; y < imageHeight; y++)

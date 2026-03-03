@@ -11,17 +11,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/SerialAsync.Callback.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
-    </list>
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="add SerialAsync.StartThread()" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -142,7 +132,7 @@
       <workItem from="1770862467036" duration="12769000" />
       <workItem from="1770893008111" duration="3589000" />
       <workItem from="1771892346957" duration="579000" />
-      <workItem from="1772462740277" duration="8744000" />
+      <workItem from="1772462740277" duration="9356000" />
     </task>
     <task id="LOCAL-00001" summary="commit to show">
       <option name="closed" value="true" />
@@ -160,7 +150,31 @@
       <option name="project" value="LOCAL" />
       <updated>1772450821868</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="move SerialAsync">
+      <option name="closed" value="true" />
+      <created>1772506153086</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1772506153086</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Merge main">
+      <option name="closed" value="true" />
+      <created>1772506254554</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1772506254554</updated>
+    </task>
+    <task id="LOCAL-00005" summary="add SerialAsync.StartThread()">
+      <option name="closed" value="true" />
+      <created>1772506366418</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1772506366418</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -182,6 +196,9 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit to show" />
     <MESSAGE value="merge in main" />
-    <option name="LAST_COMMIT_MESSAGE" value="merge in main" />
+    <MESSAGE value="move SerialAsync" />
+    <MESSAGE value="Merge main" />
+    <MESSAGE value="add SerialAsync.StartThread()" />
+    <option name="LAST_COMMIT_MESSAGE" value="add SerialAsync.StartThread()" />
   </component>
 </project>
