@@ -47,7 +47,7 @@ public class PCScreenFont : Font
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
     }
 
-    static PCScreenFont _Default = null;
+    static PCScreenFont? _Default = null;
     public static PCScreenFont DefaultFont
     {
         get

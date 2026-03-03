@@ -13,7 +13,7 @@ public static class KernelConsole
     // Lock for thread-safe console access
     private static Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
 
-    private static Canvas _canvas;
+    private static Canvas? _canvas;
 
     // Cursor position in character coordinates (column, row)
     private static int _cursorX;
@@ -78,7 +78,8 @@ public static class KernelConsole
     /// <summary>
     /// Gets or sets the font used in the graphics console.
     /// </summary>
-    public static Font Font {
+    public static Font Font
+    {
         get => _font;
         set
         {
@@ -87,7 +88,7 @@ public static class KernelConsole
 
             CursorX = 0;
             CursorY = 0;
-            
+
             _cols = (int)_canvas.Mode.Width / CharWidth;
             _rows = (int)_canvas.Mode.Height / CharHeight;
             _cells = new Cell[_cols * _rows];
@@ -98,7 +99,7 @@ public static class KernelConsole
             _canvas.Display();
 
             _font = value;
-        } 
+        }
     }
 
     /// <summary>
