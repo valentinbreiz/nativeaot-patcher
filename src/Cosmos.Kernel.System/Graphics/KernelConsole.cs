@@ -1,5 +1,4 @@
 using System.Drawing;
-using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.System.Graphics.Fonts;
 
@@ -25,8 +24,8 @@ public static class KernelConsole
     private static int _rows;
 
     // Character dimensions from font
-    private static int CharWidth => PCScreenFont.DefaultFont.Width;
-    private static int CharHeight => PCScreenFont.DefaultFont.Height;
+    private static int CharWidth => Font.Width;
+    private static int CharHeight => Font.Height;
 
     // Cell buffer - stores all characters and their colors
     private static Cell[]? _cells;
@@ -67,12 +66,17 @@ public static class KernelConsole
     /// Gets whether graphics console is available and initialized.
     /// </summary>
     //public static unsafe bool IsAvailable => _isInitialized && Canvas.Address != null;
-    public static unsafe bool IsAvailable => _isInitialized;
+    public static bool IsAvailable => _isInitialized;
 
     /// <summary>
     /// Gets whether the graphics console has been initialized.
     /// </summary>
     public static bool IsInitialized => _isInitialized;
+
+    /// <summary>
+    /// Gets or sets the font used in the graphics console.
+    /// </summary>
+    public static Font Font { get; set; } = PCScreenFont.DefaultFont;
 
     /// <summary>
     /// Gets or sets the cursor X position (column).
@@ -184,9 +188,9 @@ public static class KernelConsole
     /// <summary>
     /// Initializes the graphics framebuffer and console.
     /// </summary>
-    public static unsafe bool Initialize()
+    public static bool Initialize()
     {
-        if (!Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled)
+        if (!Core.CosmosFeatures.GraphicsEnabled)
         {
             return false;
         }
@@ -326,7 +330,7 @@ public static class KernelConsole
         // Draw character if not empty
         if (cell.Char != '\0' && cell.Char != '\n')
         {
-            _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
+            _canvas.DrawChar(cell.Char, Font, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
         }
     }
 
@@ -378,7 +382,7 @@ public static class KernelConsole
                 {
                     int pixelX = col * CharWidth;
                     int pixelY = row * CharHeight;
-                    _canvas.DrawChar(cell.Char, PCScreenFont.DefaultFont, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
+                    _canvas.DrawChar(cell.Char, Font, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
                 }
             }
         }
