@@ -48,6 +48,7 @@ namespace Internal.Runtime.CompilerHelpers
             {
                 Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
                 initializer.StartSchedulerTimer(10);  // 10ms quantum
+                SerialAsync.StartThread();
             }
         }
 
