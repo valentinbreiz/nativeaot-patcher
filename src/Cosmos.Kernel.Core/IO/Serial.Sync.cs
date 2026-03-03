@@ -1,14 +1,9 @@
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-
 
 namespace Cosmos.Kernel.Core.IO;
 
-
 public static partial class Serial
 {
-
-
     /// <summary>
     /// Write a single byte to the serial port.
     /// Waits for transmit buffer to be ready before writing.
@@ -17,27 +12,28 @@ public static partial class Serial
     public static void ComWrite(byte value)
     {
 #if ARCH_ARM64
-            // PL011: Wait until TX FIFO is not full
-            while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
-            Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
+        // PL011: Wait until TX FIFO is not full
+        while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) { }
+        Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
 #else
-            // 16550: Wait for transmit buffer to be empty
-            while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
-            Native.IO.Write8(COM1_BASE + REG_DATA, value);
+        // 16550: Wait for transmit buffer to be empty
+        while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) { }
+        Native.IO.Write8(COM1_BASE + REG_DATA, value);
 #endif
     }
 
+    /// <summary>Writes the string as bytes (char truncated to byte). Hot path: inlined by NativeAOT.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void WriteString(string str)
     {
         fixed (char* ptr = str)
         {
             for (int i = 0; i < str.Length; i++)
-            {
                 ComWrite((byte)ptr[i]);
-            }
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void WriteNumber(ulong number, bool hex = false)
     {
         if (number == 0)
@@ -73,11 +69,10 @@ public static partial class Serial
         }
     }
 
-    public static void WriteNumber(uint number, bool hex = false)
-    {
-        WriteNumber((ulong)number, hex);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteNumber(uint number, bool hex = false) => WriteNumber((ulong)number, hex);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteNumber(int number, bool hex = false)
     {
         if (number < 0)
@@ -91,6 +86,7 @@ public static partial class Serial
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteNumber(long number, bool hex = false)
     {
         if (number < 0)
@@ -99,33 +95,31 @@ public static partial class Serial
             WriteNumber((ulong)(-number), hex);
         }
         else
-        {
             WriteNumber((ulong)number, hex);
-        }
     }
 
-    public static void WriteHex(ulong number)
-    {
-        WriteNumber(number, true);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteHex(ulong number) => WriteNumber(number, true);
 
-    public static void WriteHex(uint number)
-    {
-        WriteNumber((ulong)number, true);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteHex(uint number) => WriteNumber((ulong)number, true);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteHexWithPrefix(ulong number)
     {
         WriteString("0x");
         WriteNumber(number, true);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteHexWithPrefix(uint number)
     {
         WriteString("0x");
         WriteNumber((ulong)number, true);
     }
 
+    /// <summary>Varargs write. Allocates (params array) and boxes; avoid on hot path—use WriteString/WriteNumber directly.</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void Write(params object?[] args)
     {
         for (int i = 0; i < args.Length; i++)
@@ -139,7 +133,7 @@ public static partial class Serial
                     WriteString(s);
                     break;
                 case char c:
-                    WriteString(c.ToString());
+                    ComWrite((byte)c);
                     break;
                 case short @short:
                     WriteNumber(@short);

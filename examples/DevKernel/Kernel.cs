@@ -526,7 +526,7 @@ public class Kernel : Sys.Kernel
             {
                 i++;
                 int ii = 0;
-                Serial.WriteStringAsync("[Thread] Hello from thread delegate!\n", (_) => { });
+                SerialAsync.WriteString("[Thread] Hello from thread delegate!\n");
                 Console.WriteLine($"Hello from thread {i}!");
                 while (true)
                 {
@@ -536,7 +536,7 @@ public class Kernel : Sys.Kernel
                     }
 
                     ii++;
-                    Serial.WriteStringAsync("[Thread "+ i +"] some text "+ ii +" \n", (e) => { });
+                    SerialAsync.WriteString("[Thread "+ i +"] some text "+ ii +" \n");
                 }
             });
 

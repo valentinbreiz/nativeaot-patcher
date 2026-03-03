@@ -43,16 +43,19 @@ namespace Internal.Runtime.CompilerHelpers
             // Initialize interrupts (skipped if CosmosEnableInterrupts=false)
             if (InterruptManager.IsEnabled)
             {
-                Serial.WriteString("[KERNEL]   - Initializing interrupts...\n");
+                SerialAsync.WriteString("[KERNEL]   - Initializing interrupts...\n");
                 InterruptManager.Initialize(initializer.CreateInterruptController());
 
                 // Initialize PCI (requires interrupts for MSI/MSI-X)
-                Serial.WriteString("[KERNEL]   - Initializing PCI...\n");
+                SerialAsync.WriteString("[KERNEL]   - Initializing PCI...\n");
                 PciManager.Setup();
 
                 // Initialize platform-specific hardware (ACPI, APIC, GIC, timers, etc.)
-                Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
+                SerialAsync.WriteString("[KERNEL]   - Initializing platform hardware...\n");
                 initializer.InitializeHardware();
+
+                //SerialAsync.StartThread();
+
             }
         }
     }

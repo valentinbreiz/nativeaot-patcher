@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
-using Cosmos.Kernel.Core.Async;
-
 namespace Cosmos.Kernel.Core.IO;
 
 /// <summary>
@@ -33,6 +29,7 @@ public static partial class Serial
 
     // Line Status Register bits
     private const byte LSR_TX_EMPTY = 0x20;      // Transmit buffer empty
+    private const byte LSR_DATA_READY = 0x01;    // Data ready in receive buffer
 
     // Line Control Register values
     private const byte LCR_DLAB = 0x80;          // Divisor Latch Access Bit
@@ -66,6 +63,7 @@ public static partial class Serial
 
     // Flag Register bits
     private const uint FR_TXFF = 1 << 5;         // TX FIFO Full
+    private const uint FR_RXFE = 1 << 4;         // RX FIFO Empty (data available when clear)
 
     // Line Control Register bits
     private const uint LCR_H_FEN = 1 << 4;       // FIFO Enable

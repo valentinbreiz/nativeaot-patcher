@@ -11,8 +11,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="commit to show">
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/SerialAsync.Callback.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Sync.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +41,8 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/610c920d4ead4a5383016370f496a00b4000/fc/6a0314c9/Console.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/634d394f35624b84a6c0460bb34bdec02d600/ab/a242686f/Console.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9e2c6e1a6704446ca8e4298313619a1fdb2800/72/c2e22603/Utf8.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9e2c6e1a6704446ca8e4298313619a1fdb2800/a3/1bb1965d/String.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/a4bfc8531df84d29a77d1df0b47f1e453600/8a/e96d9ff4/Thread.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/3c/45404ffa/FileStream.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b832f0c84d8f4194ba80da6636282d1bd0200/54/1001bc57/SafeFileHandle.cs" root0="FORCE_HIGHLIGHTING" />
@@ -53,6 +63,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/a9/c448662e/IEqualityComparer`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/c0/07e95fd2/IReadOnlyCollection`1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e5dc8eae61ff44c981c6826267507cdcdb2a00/c0/4e2d7768/TextWriter.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/edd6b518fc4a4b53816d3b486c54c198d0200/94/8979efd5/Span`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/f278014b8f8d49968d5dd0f64f0bae19d0200/61/22331438/ValueTask`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/.mcp.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/.vscode/launch.json" root0="FORCE_HIGHLIGHTING" />
@@ -66,10 +77,8 @@
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/IO/Serial.Async.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/LibraryInitializer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/CachedInterfaceDispatch.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" root0="FORCE_HIGHLIGHTING" />
@@ -133,6 +142,7 @@
       <workItem from="1770862467036" duration="12769000" />
       <workItem from="1770893008111" duration="3589000" />
       <workItem from="1771892346957" duration="579000" />
+      <workItem from="1772462740277" duration="8744000" />
     </task>
     <task id="LOCAL-00001" summary="commit to show">
       <option name="closed" value="true" />
@@ -142,7 +152,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770858521311</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="merge in main">
+      <option name="closed" value="true" />
+      <created>1772450821868</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1772450821868</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -163,6 +181,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit to show" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit to show" />
+    <MESSAGE value="merge in main" />
+    <option name="LAST_COMMIT_MESSAGE" value="merge in main" />
   </component>
 </project>
