@@ -24,8 +24,8 @@ public static class KernelConsole
     private static int _rows;
 
     // Character dimensions from font
-    private static int CharWidth => Font.Width;
-    private static int CharHeight => Font.Height;
+    private static int CharWidth;
+    private static int CharHeight;
 
     // Cell buffer - stores all characters and their colors
     private static Cell[]? _cells;
@@ -73,10 +73,33 @@ public static class KernelConsole
     /// </summary>
     public static bool IsInitialized => _isInitialized;
 
+    private static Font _font = PCScreenFont.DefaultFont;
+
     /// <summary>
     /// Gets or sets the font used in the graphics console.
     /// </summary>
-    public static Font Font { get; set; } = PCScreenFont.DefaultFont;
+    public static Font Font {
+        get => _font;
+        set
+        {
+            CharWidth = value.Width;
+            CharHeight = value.Height;
+
+            CursorX = 0;
+            CursorY = 0;
+            
+            _cols = (int)_canvas.Mode.Width / CharWidth;
+            _rows = (int)_canvas.Mode.Height / CharHeight;
+            _cells = new Cell[_cols * _rows];
+
+            ClearCells();
+
+            _canvas.Clear((int)_backgroundColor);
+            _canvas.Display();
+
+            _font = value;
+        } 
+    }
 
     /// <summary>
     /// Gets or sets the cursor X position (column).
@@ -201,6 +224,9 @@ public static class KernelConsole
         _isInitialized = true;
 
         _canvas = FullScreenCanvas.GetFullScreenCanvas();    // canvas = GetFullScreenCanvas(start);
+
+        CharWidth = Font.Width;
+        CharHeight = Font.Height;
 
         /* Clear the Screen with the color 'Blue' */
         _canvas.Clear(Color.Blue);
