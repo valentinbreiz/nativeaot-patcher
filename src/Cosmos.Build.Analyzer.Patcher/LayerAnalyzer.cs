@@ -148,12 +148,12 @@ namespace Cosmos.Build.Analyzer.Patcher
         {
             return current switch
             {
-                KernelLayer.User   => referenced == KernelLayer.System,
+                KernelLayer.User => referenced == KernelLayer.System,
                 KernelLayer.System => referenced == KernelLayer.Hal,
-                KernelLayer.Hal    => referenced == KernelLayer.Hal || referenced == KernelLayer.Core,
-                KernelLayer.Core   => referenced == KernelLayer.Native,
+                KernelLayer.Hal => referenced == KernelLayer.Hal || referenced == KernelLayer.Core,
+                KernelLayer.Core => referenced == KernelLayer.Native,
                 KernelLayer.Native => false,
-                _                  => true
+                _ => true
             };
         }
 
