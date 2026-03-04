@@ -262,6 +262,11 @@ namespace Cosmos.Build.Analyzer.Patcher
 
             DebugLog($"Checking plug class name for target {name} (simple: {simpleClassName})");
             AnalyzePlugClass(plugClass, simpleClassName, context);
+
+            // Resolve the target type and analyse plug members (NAOT0005, NAOT0006, …)
+            string metadataName = name.Replace('/', '+');
+            INamedTypeSymbol? targetSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName(metadataName);
+            AnalyzePluggedClass(targetSymbol, plugClass, context, pluggedClasses);
         }
 
         /// <summary>
