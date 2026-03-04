@@ -4,7 +4,6 @@
     - Test1
 - **Cosmos.Tests.Build.Analyzer.Patcher**:
   Validates that code does not contain plug architecture errors.
-    - Test_TypeNotFoundDiagnostic
     - Test_AnalyzeAccessedMember
     - Test_MethodNotImplemented
     - Test_StaticConstructorTooManyParameters
