@@ -1,0 +1,132 @@
+name: Post Kernel Test Results
+
+on:
+  workflow_call:
+    inputs:
+      suite_name:
+        description: 'Display name (e.g. HelloWorld)'
+        required: true
+        type: string
+      suite_id:
+        description: 'Slug identifier (e.g. helloworld)'
+        required: true
+        type: string
+
+jobs:
+  post-results:
+    name: ${{ inputs.suite_name }} Results
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ inputs.suite_id }}-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ inputs.suite_id }}-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          parse_xml() {
+            local file=$1
+            if [ -f "$file" ]; then
+              tests=$(grep -oP 'tests="\K[^"]+' "$file" | head -1)
+              failures=$(grep -oP 'failures="\K[^"]+' "$file" | head -1)
+              skipped=$(grep -oP 'skipped="\K[^"]+' "$file" | head -1)
+              time=$(grep -oP 'time="\K[^"]+' "$file" | head -1)
+              actual_tests=$(grep -c '<testcase' "$file" || echo "0")
+              passed=$((actual_tests - failures - skipped))
+              if [ "$failures" != "0" ]; then
+                status="❌ Failed"
+              elif [ "$actual_tests" -lt "$tests" ]; then
+                status="❌ Failed"
+              else
+                status="✅ Passed"
+              fi
+              echo "$tests|$passed|$failures|$skipped|${time}s|$status"
+            else
+              echo "0|0|0|0|N/A|⚠️ No results"
+            fi
+          }
+
+          x64_result=$(parse_xml "results-x64/test-results-${{ inputs.suite_id }}-x64.xml")
+          arm64_result=$(parse_xml "results-arm64/test-results-${{ inputs.suite_id }}-arm64.xml")
+
+          echo "x64_result=$x64_result" >> $GITHUB_OUTPUT
+          echo "arm64_result=$arm64_result" >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          script: |
+            const suiteName = '${{ inputs.suite_name }}';
+            const suiteId = '${{ inputs.suite_id }}';
+            const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
+            const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = `## 🧪 ${suiteName} Tests
+
+| Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+|--------------|-------|--------|--------|---------|----------|--------|
+| x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+| arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+
+### 📎 Artifacts
+| Architecture | Test Results | UART Log | Kernel ISO |
+|--------------|--------------|----------|------------|
+| x64 | [XML](${getArtifactUrl(`test-results-${suiteId}-x64`)}) | [Log](${getArtifactUrl(`uart-log-${suiteId}-x64`)}) | [ISO](${getArtifactUrl(`${suiteName}-Test-ISO-x64`)}) |
+| arm64 | [XML](${getArtifactUrl(`test-results-${suiteId}-arm64`)}) | [Log](${getArtifactUrl(`uart-log-${suiteId}-arm64`)}) | [ISO](${getArtifactUrl(`${suiteName}-Test-ISO-arm64`)}) |
+
+📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+`;
+
+            const marker = `## 🧪 ${suiteName} Tests`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes(marker));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

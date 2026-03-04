@@ -1,0 +1,135 @@
+name: Run Kernel Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      suite_name:
+        description: 'Display name (e.g. HelloWorld)'
+        required: true
+        type: string
+      suite_id:
+        description: 'Slug identifier (e.g. helloworld)'
+        required: true
+        type: string
+      kernel_path:
+        description: 'Path to kernel test project'
+        required: true
+        type: string
+      timeout_x64:
+        description: 'QEMU timeout for x64 (seconds)'
+        required: true
+        type: number
+      timeout_arm64:
+        description: 'QEMU timeout for arm64 (seconds)'
+        required: true
+        type: number
+      step_timeout_minutes:
+        description: 'GitHub step timeout in minutes'
+        required: true
+        type: number
+
+jobs:
+  run-tests:
+    name: ${{ inputs.suite_name }} Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+        include:
+          - arch: x64
+            rid: linux-x64
+            qemu-package: qemu-system-x86
+          - arch: arm64
+            rid: linux-arm64
+            qemu-package: qemu-system-arm
+            qemu-firmware: qemu-efi-aarch64
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 🗑️ Clear NuGet Cache
+        run: dotnet nuget locals all --clear
+
+      - name: 📦 Build and Install Cosmos Packages (multi-arch)
+        run: ./.devcontainer/postCreateCommand.sh
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+      - name: 🔧 Install QEMU and Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          else
+            sudo apt-get install -y yasm
+          fi
+
+      - name: 🔍 Verify QEMU Installation
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            qemu-system-aarch64 --version
+          else
+            qemu-system-x86_64 --version
+          fi
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run ${{ inputs.suite_name }} Kernel Tests
+        id: run-tests
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            TIMEOUT=${{ inputs.timeout_arm64 }}
+          else
+            TIMEOUT=${{ inputs.timeout_x64 }}
+          fi
+          echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- ${{ inputs.kernel_path }} \
+            ${{ matrix.arch }} \
+            $TIMEOUT \
+            test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
+            ci
+        timeout-minutes: ${{ inputs.step_timeout_minutes }}
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.suite_name }}-Test-ISO-${{ matrix.arch }}
+          path: |
+            ${{ inputs.kernel_path }}/output-${{ matrix.arch }}/*.iso
+            ${{ inputs.kernel_path }}/output-${{ matrix.arch }}/*.elf
+          retention-days: 7
