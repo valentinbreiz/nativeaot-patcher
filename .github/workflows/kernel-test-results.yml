@@ -93,19 +93,19 @@ jobs:
 
             const body = `## 🧪 ${suiteName} Tests
 
-| Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
-|--------------|-------|--------|--------|---------|----------|--------|
-| x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
-| arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
+            | Architecture | Tests | Passed | Failed | Skipped | Duration | Status |
+            |--------------|-------|--------|--------|---------|----------|--------|
+            | x64 | ${x64[0]} | ${x64[1]} | ${x64[2]} | ${x64[3]} | ${x64[4]} | ${x64[5]} |
+            | arm64 | ${arm64[0]} | ${arm64[1]} | ${arm64[2]} | ${arm64[3]} | ${arm64[4]} | ${arm64[5]} |
 
-### 📎 Artifacts
-| Architecture | Test Results | UART Log | Kernel ISO |
-|--------------|--------------|----------|------------|
-| x64 | [XML](${getArtifactUrl(`test-results-${suiteId}-x64`)}) | [Log](${getArtifactUrl(`uart-log-${suiteId}-x64`)}) | [ISO](${getArtifactUrl(`${suiteName}-Test-ISO-x64`)}) |
-| arm64 | [XML](${getArtifactUrl(`test-results-${suiteId}-arm64`)}) | [Log](${getArtifactUrl(`uart-log-${suiteId}-arm64`)}) | [ISO](${getArtifactUrl(`${suiteName}-Test-ISO-arm64`)}) |
+            ### 📎 Artifacts
+            | Architecture | Test Results | UART Log | Kernel ISO |
+            |--------------|--------------|----------|------------|
+            | x64 | [XML](${getArtifactUrl(\`test-results-${suiteId}-x64\`)}) | [Log](${getArtifactUrl(\`uart-log-${suiteId}-x64\`)}) | [ISO](${getArtifactUrl(\`${suiteName}-Test-ISO-x64\`)}) |
+            | arm64 | [XML](${getArtifactUrl(\`test-results-${suiteId}-arm64\`)}) | [Log](${getArtifactUrl(\`uart-log-${suiteId}-arm64\`)}) | [ISO](${getArtifactUrl(\`${suiteName}-Test-ISO-arm64\`)}) |
 
-📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
-`;
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            `;
 
             const marker = `## 🧪 ${suiteName} Tests`;
             const { data: comments } = await github.rest.issues.listComments({
