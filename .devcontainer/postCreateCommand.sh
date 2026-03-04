@@ -35,6 +35,7 @@ dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release --no-increm
 dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
 

@@ -65,12 +65,17 @@ namespace Cosmos.Build.Analyzer.Patcher
                     nodeContext => AnalyzePlugAttribute(nodeContext, pluggedClasses),
                     SyntaxKind.Attribute);
 
-                compilationContext.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeAccessedMember(nodeContext, pluggedClasses, currentArchitecture),
-                    SyntaxKind.SimpleMemberAccessExpression);
+                // NAOT0002 is guidance for user kernel developers only.
+                // Framework assemblies (Cosmos.*) call native methods directly and don't use plugs.
+                if (!assemblyName.StartsWith("Cosmos.", StringComparison.Ordinal))
+                {
+                    compilationContext.RegisterSyntaxNodeAction(
+                        nodeContext => AnalyzeAccessedMember(nodeContext, pluggedClasses, currentArchitecture),
+                        SyntaxKind.SimpleMemberAccessExpression);
 
-                compilationContext.RegisterSyntaxTreeAction(
-                    treeContext => AnalyzeSyntaxTree(treeContext, pluggedClasses));
+                    compilationContext.RegisterSyntaxTreeAction(
+                        treeContext => AnalyzeSyntaxTree(treeContext, pluggedClasses));
+                }
 
                 DebugLog($"Registered syntax node actions for compilation {assemblyName}");
             });
@@ -108,6 +113,21 @@ namespace Cosmos.Build.Analyzer.Patcher
             if (context.Node is not MemberAccessExpressionSyntax memberAccess)
             {
                 DebugLog("Node is not a MemberAccessExpressionSyntax");
+                return;
+            }
+
+            // Skip member accesses inside plug class implementations — plug code is kernel code
+            // and is free to call any native/platform methods without needing its own plugs.
+            ClassDeclarationSyntax? containingClass = memberAccess
+                .Ancestors()
+                .OfType<ClassDeclarationSyntax>()
+                .FirstOrDefault();
+            if (containingClass != null &&
+                containingClass.AttributeLists
+                    .SelectMany(al => al.Attributes)
+                    .Any(a => a.Name.ToString() is "Plug" or "PlugAttribute"))
+            {
+                DebugLog($"Skipping member access inside plug class {containingClass.Identifier.Text}");
                 return;
             }
 
@@ -229,38 +249,24 @@ namespace Cosmos.Build.Analyzer.Patcher
                 return;
             }
 
-            string assemblyName = context.Compilation.AssemblyName ?? string.Empty;
-            if (targetName.Contains(','))
-            {
-                DebugLog("Splitting targetName with comma");
-                string[] statement = targetName.Split(',');
-                targetName = statement[0].Trim();
-                assemblyName = statement.Last().Trim();
-            }
+            // Non-null guaranteed by IsNullOrEmpty guard above.
+            string name = targetName;
 
-            DebugLog($"Looking for type {targetName} in assembly {assemblyName}");
-            INamedTypeSymbol? symbol = string.IsNullOrEmpty(targetName) ? null : context.Compilation.GetTypeByMetadataName(targetName);
-            bool existInAssembly = symbol != null ||
-                                   context.Compilation.ExternalReferences.Any(x =>
-                                       x.Display != null && x.Display == assemblyName);
+            // Strip assembly qualifier if present ("Full.Type.Name, AssemblyName")
+            if (name.Contains(','))
+                name = name.Split(',')[0].Trim();
 
-            DebugLog($"Does type exist in assembly? {existInAssembly}");
-            if (!existInAssembly && attribute.GetArgument(context, "IsOptional", 1, out bool isOptional) && !isOptional)
-            {
-                DebugLog($"Reporting TypeNotFound for {targetName}");
-                ReportDiagnostic(context, DiagnosticMessages.TypeNotFound, attribute.GetLocation(), null, targetName);
-                return;
-            }
+            // Derive simple class name from the fully-qualified target name.
+            // Handles dot-separated namespaces and '/' nested-type separators.
+            string simpleClassName = name.Replace('/', '.').Split('.')[^1];
 
-            if (symbol == null)
-            {
-                DebugLog("Symbol is null");
-                return;
-            }
+            DebugLog($"Checking plug class name for target {name} (simple: {simpleClassName})");
+            AnalyzePlugClass(plugClass, simpleClassName, context);
 
-            DebugLog($"Analyzing plug class {plugClass.Identifier.Text} for {symbol.Name}");
-            AnalyzePlugClass(plugClass, symbol.Name, context);
-            AnalyzePluggedClass(symbol, plugClass, context, pluggedClasses);
+            // Resolve the target type and analyse plug members (NAOT0005, NAOT0006, …)
+            string metadataName = name.Replace('/', '+');
+            INamedTypeSymbol? targetSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName(metadataName);
+            AnalyzePluggedClass(targetSymbol, plugClass, context, pluggedClasses);
         }
 
         /// <summary>

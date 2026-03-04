@@ -6,7 +6,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Cosmos.Build.Analyzer.Patcher</PackageId>
-    <PackageVersion>3.0.0</PackageVersion>
+    <PackageVersion>3.0.38</PackageVersion>
     <PackageLicenseUrl>https://github.com/valentinbreiz/nativeaot-patcher/blob/main/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</PackageProjectUrl>
     <!-- <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl> -->

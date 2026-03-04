@@ -13,7 +13,7 @@ public static class AttributeExtensions
                 ? attribute.ArgumentList.Arguments[positional].Expression
             : attribute.ArgumentList?.Arguments
                 .FirstOrDefault(a => string.Equals((a.NameEquals?.Name ?? a.NameColon?.Name)?.ToString(), named, StringComparison.InvariantCultureIgnoreCase))
-                .Expression;
+                ?.Expression;
 
         return expression switch
         {
