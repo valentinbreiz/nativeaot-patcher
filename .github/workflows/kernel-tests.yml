@@ -19,6 +19,15 @@ on:
       - '.github/workflows/kernel-tests.yml'
       - '.github/workflows/kernel-test-run.yml'
       - '.github/workflows/kernel-test-results.yml'
+  pull_request_target:
+    branches: [ "**" ]
+    paths:
+      - 'src/**'
+      - 'tests/Cosmos.TestRunner.**'
+      - 'tests/Kernels/**'
+      - '.github/workflows/kernel-tests.yml'
+      - '.github/workflows/kernel-test-run.yml'
+      - '.github/workflows/kernel-test-results.yml'
   workflow_dispatch:
     inputs:
       architecture:
@@ -56,6 +65,7 @@ jobs:
     with:
       suite_name: HelloWorld
       suite_id: helloworld
+      event_name: ${{ github.event_name }}
 
   # ── Memory ────────────────────────────────────────────────────────────────────
   memory-tests:
@@ -75,6 +85,7 @@ jobs:
     with:
       suite_name: Memory
       suite_id: memory
+      event_name: ${{ github.event_name }}
 
   # ── TypeCasting ───────────────────────────────────────────────────────────────
   typecasting-tests:
@@ -94,6 +105,7 @@ jobs:
     with:
       suite_name: TypeCasting
       suite_id: typecasting
+      event_name: ${{ github.event_name }}
 
   # ── Timer ─────────────────────────────────────────────────────────────────────
   timer-tests:
@@ -113,6 +125,7 @@ jobs:
     with:
       suite_name: Timer
       suite_id: timer
+      event_name: ${{ github.event_name }}
 
   # ── Network ───────────────────────────────────────────────────────────────────
   network-tests:
@@ -132,6 +145,7 @@ jobs:
     with:
       suite_name: Network
       suite_id: network
+      event_name: ${{ github.event_name }}
 
   # ── Threading ─────────────────────────────────────────────────────────────────
   threading-tests:
@@ -151,6 +165,7 @@ jobs:
     with:
       suite_name: Threading
       suite_id: threading
+      event_name: ${{ github.event_name }}
 
   # ── Graphic ───────────────────────────────────────────────────────────────────
   graphic-tests:
@@ -170,6 +185,7 @@ jobs:
     with:
       suite_name: Graphic
       suite_id: graphic
+      event_name: ${{ github.event_name }}
 
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:
