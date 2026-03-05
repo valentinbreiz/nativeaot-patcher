@@ -53,7 +53,7 @@ Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and c
 | Suite | Tests | Description |
 |-------|-------|-------------|
 | **HelloWorld** | 3 | Basic arithmetic, boolean logic, integer comparison |
-| **Memory** | 18 (3 skipped) | Boxing/unboxing, memory allocation, generic collections |
+| **Memory** | 85 | Boxing/unboxing, memory allocation, collections, memory copy, GC |
 
 #### HelloWorld Tests
 
@@ -63,21 +63,50 @@ Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and c
 
 #### Memory Tests
 
-**Boxing/Unboxing (8 tests):**
+**Boxing/Unboxing (11 tests):**
 - `Boxing_Char`, `Boxing_Int32`, `Boxing_Byte`, `Boxing_Long`
 - `Boxing_Nullable`, `Boxing_Interface`, `Boxing_CustomStruct`
-- `Boxing_ArrayCopy` – Array.Copy with automatic boxing
+- `Boxing_ArrayCopy`, `Boxing_Enum`, `Boxing_ValueTuple`, `Boxing_NullInterface`
 
-**Memory Allocation (3 tests, 2 skipped):**
+**Memory Allocation (8 tests):**
 - `Memory_CharArray`, `Memory_StringAllocation`, `Memory_IntArray`
-- ~~`Memory_StringConcat`~~ – Skipped: triggers #UD exception
-- ~~`Memory_StringBuilder`~~ – Skipped: triggers #UD exception
+- `Memory_StringConcat`, `Memory_StringBuilder`
+- `Memory_ZeroLengthArray`, `Memory_EmptyString`, `Memory_LargeAllocation`
 
-**Generic Collections (7 tests, 1 skipped):**
+**Generic Collections – List (14 tests):**
 - `Collections_ListInt`, `Collections_ListString`, `Collections_ListByte`
 - `Collections_ListLong`, `Collections_ListStruct`
-- `Collections_ListContains`, `Collections_ListIndexOf`
-- ~~`Collections_ListRemoveAt`~~ – Skipped: Array.Copy triggers #UD exception
+- `Collections_ListContains`, `Collections_ListIndexOf`, `Collections_ListRemoveAt`
+- `Collections_ListInsert`, `Collections_ListRemove`, `Collections_ListClear`
+- `Collections_ListToArray`, `Collections_ListForeach`, `Collections_ListEmpty`
+
+**Generic Collections – Dictionary (9 tests):**
+- `Collections_DictCustomComparer`, `Collections_DictAddGet`, `Collections_DictIndexer`
+- `Collections_DictContains`, `Collections_DictRemove`, `Collections_DictClear`
+- `Collections_DictTryGetValue`, `Collections_DictKeysValues`, `Collections_DictEmpty`
+
+**Generic Collections – IEnumerable (1 test):**
+- `Collections_IEnumerable`
+
+**Memory Copy / SIMD (15 tests):**
+- `MemCopy_8Bytes`, `MemCopy_16Bytes`, `MemCopy_24Bytes`, `MemCopy_32Bytes`
+- `MemCopy_48Bytes`, `MemCopy_64Bytes`, `MemCopy_80Bytes`, `MemCopy_128Bytes`
+- `MemCopy_256Bytes`, `MemCopy_264Bytes`
+- `MemSet_64Bytes`, `MemMove_Overlap`, `MemMove_Overlap_DestBeforeSrc`
+- `MemCopy_0Bytes`, `MemCopy_1Byte`
+
+**Array.Copy (5 tests):**
+- `ArrayCopy_IntArray`, `ArrayCopy_ByteArray`, `ArrayCopy_LargeArray`
+- `ArrayCopy_ZeroLength`, `ArrayCopy_Overlap`
+
+**Garbage Collection (22 tests):**
+- `GC_IsEnabled`, `GC_GetStats`, `GC_CollectBasic`, `GC_StatsIncrement`
+- `GC_ExactCollectionCount`, `GC_ObjectSurvival`, `GC_StringSurvival`
+- `GC_ArraySurvival`, `GC_ListSurvival`, `GC_UnreachableExactCount`
+- `GC_ObjectGraphSurvival`, `GC_MixedTypeSurvival`, `GC_AllocAfterCollect`
+- `GC_WeakReference`, `GC_LargeAllocCollect`, `GC_StructArraySurvival`
+- `GC_DictSurvival`, `GC_PageAccounting`, `GC_DependentHandle`
+- `GC_DependentHandleCleanup`, `GC_HandleStoreIntegrity`, `GC_PinnedHeapReuse`
 
 ### Running Kernel Tests
 
@@ -127,7 +156,7 @@ dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csp
 | Suite | x64 | ARM64 |
 |-------|-----|-------|
 | HelloWorld | 60 s | 90 s |
-| Memory | 120 s | 180 s |
+| Memory | 180 s | 300 s |
 
 ### Output Formats
 
@@ -284,67 +313,96 @@ tests/
 
 ### Minimal Example
 
+Test kernels inherit from `Cosmos.Kernel.System.Kernel` and run all tests inside `BeforeRun()`. Use the `TR` alias for `TestRunner` and `Assert` for assertions.
+
 ```csharp
+using Cosmos.Kernel.Core.IO;
 using Cosmos.TestRunner.Framework;
-using static Cosmos.TestRunner.Framework.TestRunner;
-using static Cosmos.TestRunner.Framework.Assert;
+using Sys = Cosmos.Kernel.System;
+using TR = Cosmos.TestRunner.Framework.TestRunner;
 
-internal unsafe static partial class Program
+namespace Cosmos.Kernel.Tests.MyTests;
+
+public class Kernel : Sys.Kernel
 {
-    [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
-    private static void KernelMain() => Main();
-
-    private static void Main()
+    protected override void BeforeRun()
     {
-        Start("My Test Suite");
+        // Initialize test suite (expectedTests must equal the total number of TR.Run + TR.Skip calls)
+        TR.Start("My Test Suite", expectedTests: 3);
 
-        Run("Test_Addition", () =>
+        TR.Run("Test_Addition", () =>
         {
             int result = 2 + 2;
-            Equal(4, result);
+            Assert.Equal(4, result);
         });
 
-        Run("Test_StringOps", () =>
+        TR.Run("Test_StringOps", () =>
         {
             string str = "Hello";
-            Equal("Hello", str);
-            NotNull(str);
+            Assert.Equal("Hello", str);
+            Assert.NotNull(str);
         });
 
         // Mark unsupported operations as skipped rather than letting them crash
-        Skip("Test_Unsupported", "Feature not implemented");
+        TR.Skip("Test_Unsupported", "Feature not implemented");
 
-        Finish();
-        while (true) ;  // Halt
+        TR.Finish();
+
+        Serial.WriteString("[Tests Complete - System Halting]\n");
+        Stop();
+    }
+
+    protected override void Run()
+    {
+        // Tests completed in BeforeRun, nothing to do here
+    }
+
+    protected override void AfterRun()
+    {
+        Cosmos.Kernel.Kernel.Halt();
     }
 }
 ```
 
+### Kernel Lifecycle
+
+The `Sys.Kernel` base class drives a fixed lifecycle:
+
+1. `OnBoot()` – system initialisation (called automatically, rarely overridden)
+2. `BeforeRun()` – **run all tests here**, then call `Stop()`
+3. `Run()` – called in a loop until `Stop()` is invoked; leave empty for test kernels
+4. `AfterRun()` – called once after the loop exits; call `Cosmos.Kernel.Kernel.Halt()` here
+
 ### Available Assertions
 
 ```csharp
+// Equality – typed overloads (int, uint, long, byte, bool, string, byte[], int[])
 Assert.Equal(expected, actual);
-Assert.Equal<T>(expected, actual);   // Generic overload
+Assert.Equal<T>(expected, actual);   // Generic overload (requires IEquatable<T>)
 
+// Null checks
 Assert.Null(obj);
 Assert.NotNull(obj);
 
+// Boolean
 Assert.True(condition);
 Assert.True(condition, "message");
 Assert.False(condition);
 
-Assert.Throws<TException>(() => { /* code that should throw */ });
-
+// Manual failure
 Assert.Fail("Custom error message");
 ```
+
+> **Note:** `Assert` uses static failure state (no exceptions) for NativeAOT compatibility.
+> Only the first failure per test is recorded; subsequent assertions in the same `Run` block are still evaluated.
 
 ### Test Status
 
 | Status | When |
 |--------|------|
 | **Passed** | Test completed without assertion failures |
-| **Failed** | Assertion failed or exception thrown inside `Run` |
-| **Skipped** | Test explicitly marked via `Skip(name, reason)` |
+| **Failed** | Assertion set the failure state inside `Run` |
+| **Skipped** | Test explicitly marked via `TR.Skip(name, reason)` |
 
 ### Adding a New Test Suite
 
@@ -411,7 +469,7 @@ The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration t
 |-------|-----|-------|
 | Kernel build | ~60 s | ~70 s |
 | HelloWorld execution | 2–5 s | 5–10 s |
-| Memory execution | 30–40 s | 60–90 s |
+| Memory execution | 60–120 s | 120–240 s |
 
 ---
 
@@ -433,7 +491,4 @@ The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration t
 - Use a longer timeout (90 s+ for HelloWorld, 180 s+ for Memory)
 
 ### #UD Exceptions (Invalid Opcode)
-Some operations are not yet implemented in the kernel runtime and trigger an Invalid Opcode fault. Use `Skip()` to mark them instead of letting the kernel crash:
-- String concatenation (`+` operator)
-- `StringBuilder` operations
-- `List.RemoveAt` (uses `Array.Copy` internally)
+Some operations may trigger Invalid Opcode faults depending on the runtime state. Use `TR.Skip()` to mark them instead of letting the kernel crash.
