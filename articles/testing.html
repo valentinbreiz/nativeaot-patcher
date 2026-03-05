@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title> | Cosmos Gen 3 </title>
+      <title>Testing | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content=" | Cosmos Gen 3 ">
+      <meta name="title" content="Testing | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -85,57 +85,598 @@
         </div>
 
         <article data-uid="">
+<h1 id="testing">Testing</h1>
 
-<h2 id="available-unit-tests">Available Unit Tests</h2>
-<ul>
-<li><strong>Cosmos.Tests.Build.Asm</strong>:
-Verifies the assembly build task runs via Yasm.
-<ul>
-<li>Test1</li>
-</ul>
-</li>
-<li><strong>Cosmos.Tests.Build.Analyzer.Patcher</strong>:
-Validates that code does not contain plug architecture errors.
-<ul>
-<li>Test_AnalyzeAccessedMember</li>
-<li>Test_MethodNotImplemented</li>
-<li>Test_StaticConstructorTooManyParameters</li>
-<li>Test_StaticConstructorNotImplemented</li>
-</ul>
-</li>
-<li><strong>Cosmos.Tests.Scanner</strong>:
-Validates that all required plugs are detected correctly.
-<ul>
-<li>LoadPlugMethods_ShouldReturnPublicStaticMethods</li>
-<li>LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist</li>
-<li>LoadPlugMethods_ShouldContainAddMethod_WhenPlugged</li>
-<li>LoadPlugs_ShouldFindPluggedClasses</li>
-<li>LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute</li>
-<li>LoadPlugs_ShouldHandleOptionalPlugs</li>
-<li>FindPluggedAssemblies_ShouldReturnMatchingAssemblies</li>
-</ul>
-</li>
-<li><strong>Cosmos.Tests.Patcher</strong>:
-Ensures that plugs are applied successfully to target methods and types.
-<ul>
-<li>PatchAssembly_ShouldSkipWhenNoMatchingPlugs</li>
-<li>PatchObjectWithAThis_ShouldPlugInstanceCorrectly</li>
-<li>PatchConstructor_ShouldPlugCtorCorrectly</li>
-<li>PatchProperty_ShouldPlugProperty</li>
-<li>PatchType_ShouldReplaceAllMethodsCorrectly</li>
-<li>PatchType_ShouldPlugAssembly</li>
-<li>AddMethod_BehaviorBeforeAndAfterPlug</li>
-</ul>
-</li>
-<li><strong>Cosmos.Tests.NativeWrapper</strong>:
-Contains runtime assets but no unit tests.</li>
-<li><strong>Cosmos.Tests.NativeLibrary</strong>:
-Provides native code used in tests; no unit tests.</li>
-</ul>
-<h2 id="running-tests">Running Tests</h2>
-<p>You can run the test suite from the repository root:</p>
-<pre><code>dotnet test
+<p>NativeAOT-Patcher has two complementary testing layers: <strong>unit tests</strong> that validate the build-time toolchain (patcher, scanner, analyzer) and <strong>kernel integration tests</strong> that run compiled kernel images inside QEMU and report results over a binary UART protocol.</p>
+<hr>
+<h2 id="unit-tests">Unit Tests</h2>
+<p>Unit tests live in <code>tests/Cosmos.Tests.*</code> projects and are run with the standard .NET test runner. They do not require QEMU or any special infrastructure.</p>
+<h3 id="running-unit-tests">Running Unit Tests</h3>
+<pre><code class="lang-bash">dotnet test
 </code></pre>
+<h3 id="test-projects">Test Projects</h3>
+<ul>
+<li><strong>Cosmos.Tests.Build.Asm</strong> – Verifies the assembly build task runs via Yasm.
+<ul>
+<li><code>Test1</code></li>
+</ul>
+</li>
+<li><strong>Cosmos.Tests.Build.Analyzer.Patcher</strong> – Validates that code does not contain plug architecture errors.
+<ul>
+<li><code>Test_AnalyzeAccessedMember</code></li>
+<li><code>Test_MethodNotImplemented</code></li>
+<li><code>Test_StaticConstructorTooManyParameters</code></li>
+<li><code>Test_StaticConstructorNotImplemented</code></li>
+</ul>
+</li>
+<li><strong>Cosmos.Tests.Scanner</strong> – Validates that all required plugs are detected correctly.
+<ul>
+<li><code>LoadPlugMethods_ShouldReturnPublicStaticMethods</code></li>
+<li><code>LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist</code></li>
+<li><code>LoadPlugMethods_ShouldContainAddMethod_WhenPlugged</code></li>
+<li><code>LoadPlugs_ShouldFindPluggedClasses</code></li>
+<li><code>LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute</code></li>
+<li><code>LoadPlugs_ShouldHandleOptionalPlugs</code></li>
+<li><code>FindPluggedAssemblies_ShouldReturnMatchingAssemblies</code></li>
+</ul>
+</li>
+<li><strong>Cosmos.Tests.Patcher</strong> – Ensures that plugs are applied successfully to target methods and types.
+<ul>
+<li><code>PatchAssembly_ShouldSkipWhenNoMatchingPlugs</code></li>
+<li><code>PatchObjectWithAThis_ShouldPlugInstanceCorrectly</code></li>
+<li><code>PatchConstructor_ShouldPlugCtorCorrectly</code></li>
+<li><code>PatchProperty_ShouldPlugProperty</code></li>
+<li><code>PatchType_ShouldReplaceAllMethodsCorrectly</code></li>
+<li><code>PatchType_ShouldPlugAssembly</code></li>
+<li><code>AddMethod_BehaviorBeforeAndAfterPlug</code></li>
+</ul>
+</li>
+<li><strong>Cosmos.Tests.NativeWrapper</strong> – Contains runtime assets; no unit tests.</li>
+<li><strong>Cosmos.Tests.NativeLibrary</strong> – Provides native code used in tests; no unit tests.</li>
+</ul>
+<hr>
+<h2 id="kernel-integration-tests">Kernel Integration Tests</h2>
+<p>Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and communicate results back to the host over a binary UART protocol. These tests exercise the full build and runtime pipeline.</p>
+<h3 id="test-suites">Test Suites</h3>
+<table>
+<thead>
+<tr>
+<th>Suite</th>
+<th>Tests</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HelloWorld</strong></td>
+<td>3</td>
+<td>Basic arithmetic, boolean logic, integer comparison</td>
+</tr>
+<tr>
+<td><strong>Memory</strong></td>
+<td>85</td>
+<td>Boxing/unboxing, memory allocation, collections, memory copy, GC</td>
+</tr>
+</tbody>
+</table>
+<h4 id="helloworld-tests">HelloWorld Tests</h4>
+<ul>
+<li><code>Test_BasicArithmetic</code> – Addition (2+2=4)</li>
+<li><code>Test_BooleanLogic</code> – True/False assertions</li>
+<li><code>Test_IntegerComparison</code> – Equality and comparison operators</li>
+</ul>
+<h4 id="memory-tests">Memory Tests</h4>
+<p><strong>Boxing/Unboxing (11 tests):</strong></p>
+<ul>
+<li><code>Boxing_Char</code>, <code>Boxing_Int32</code>, <code>Boxing_Byte</code>, <code>Boxing_Long</code></li>
+<li><code>Boxing_Nullable</code>, <code>Boxing_Interface</code>, <code>Boxing_CustomStruct</code></li>
+<li><code>Boxing_ArrayCopy</code>, <code>Boxing_Enum</code>, <code>Boxing_ValueTuple</code>, <code>Boxing_NullInterface</code></li>
+</ul>
+<p><strong>Memory Allocation (8 tests):</strong></p>
+<ul>
+<li><code>Memory_CharArray</code>, <code>Memory_StringAllocation</code>, <code>Memory_IntArray</code></li>
+<li><code>Memory_StringConcat</code>, <code>Memory_StringBuilder</code></li>
+<li><code>Memory_ZeroLengthArray</code>, <code>Memory_EmptyString</code>, <code>Memory_LargeAllocation</code></li>
+</ul>
+<p><strong>Generic Collections – List (14 tests):</strong></p>
+<ul>
+<li><code>Collections_ListInt</code>, <code>Collections_ListString</code>, <code>Collections_ListByte</code></li>
+<li><code>Collections_ListLong</code>, <code>Collections_ListStruct</code></li>
+<li><code>Collections_ListContains</code>, <code>Collections_ListIndexOf</code>, <code>Collections_ListRemoveAt</code></li>
+<li><code>Collections_ListInsert</code>, <code>Collections_ListRemove</code>, <code>Collections_ListClear</code></li>
+<li><code>Collections_ListToArray</code>, <code>Collections_ListForeach</code>, <code>Collections_ListEmpty</code></li>
+</ul>
+<p><strong>Generic Collections – Dictionary (9 tests):</strong></p>
+<ul>
+<li><code>Collections_DictCustomComparer</code>, <code>Collections_DictAddGet</code>, <code>Collections_DictIndexer</code></li>
+<li><code>Collections_DictContains</code>, <code>Collections_DictRemove</code>, <code>Collections_DictClear</code></li>
+<li><code>Collections_DictTryGetValue</code>, <code>Collections_DictKeysValues</code>, <code>Collections_DictEmpty</code></li>
+</ul>
+<p><strong>Generic Collections – IEnumerable (1 test):</strong></p>
+<ul>
+<li><code>Collections_IEnumerable</code></li>
+</ul>
+<p><strong>Memory Copy / SIMD (15 tests):</strong></p>
+<ul>
+<li><code>MemCopy_8Bytes</code>, <code>MemCopy_16Bytes</code>, <code>MemCopy_24Bytes</code>, <code>MemCopy_32Bytes</code></li>
+<li><code>MemCopy_48Bytes</code>, <code>MemCopy_64Bytes</code>, <code>MemCopy_80Bytes</code>, <code>MemCopy_128Bytes</code></li>
+<li><code>MemCopy_256Bytes</code>, <code>MemCopy_264Bytes</code></li>
+<li><code>MemSet_64Bytes</code>, <code>MemMove_Overlap</code>, <code>MemMove_Overlap_DestBeforeSrc</code></li>
+<li><code>MemCopy_0Bytes</code>, <code>MemCopy_1Byte</code></li>
+</ul>
+<p><strong>Array.Copy (5 tests):</strong></p>
+<ul>
+<li><code>ArrayCopy_IntArray</code>, <code>ArrayCopy_ByteArray</code>, <code>ArrayCopy_LargeArray</code></li>
+<li><code>ArrayCopy_ZeroLength</code>, <code>ArrayCopy_Overlap</code></li>
+</ul>
+<p><strong>Garbage Collection (22 tests):</strong></p>
+<ul>
+<li><code>GC_IsEnabled</code>, <code>GC_GetStats</code>, <code>GC_CollectBasic</code>, <code>GC_StatsIncrement</code></li>
+<li><code>GC_ExactCollectionCount</code>, <code>GC_ObjectSurvival</code>, <code>GC_StringSurvival</code></li>
+<li><code>GC_ArraySurvival</code>, <code>GC_ListSurvival</code>, <code>GC_UnreachableExactCount</code></li>
+<li><code>GC_ObjectGraphSurvival</code>, <code>GC_MixedTypeSurvival</code>, <code>GC_AllocAfterCollect</code></li>
+<li><code>GC_WeakReference</code>, <code>GC_LargeAllocCollect</code>, <code>GC_StructArraySurvival</code></li>
+<li><code>GC_DictSurvival</code>, <code>GC_PageAccounting</code>, <code>GC_DependentHandle</code></li>
+<li><code>GC_DependentHandleCleanup</code>, <code>GC_HandleStoreIntegrity</code>, <code>GC_PinnedHeapReuse</code></li>
+</ul>
+<h3 id="running-kernel-tests">Running Kernel Tests</h3>
+<h4 id="from-vs-code">From VS Code</h4>
+<p><strong>Using Tasks (recommended):</strong></p>
+<ol>
+<li>Press <code>Ctrl+Shift+P</code> → &quot;Tasks: Run Task&quot;</li>
+<li>Select one of:
+<ul>
+<li><strong>Run Test: HelloWorld (x64)</strong> – Console + XML output</li>
+<li><strong>Run Test: HelloWorld (x64, Console Only)</strong> – Console output only</li>
+<li><strong>Run Test: HelloWorld (ARM64)</strong> – ARM64 test with XML output</li>
+<li><strong>Dev Test: HelloWorld (x64)</strong> – Developer mode with verbose output</li>
+</ul>
+</li>
+</ol>
+<p><strong>Debug test runner:</strong></p>
+<ol>
+<li>Open the Run &amp; Debug panel (<code>Ctrl+Shift+D</code>)</li>
+<li>Select a configuration:
+<ul>
+<li><strong>Debug Test Runner (HelloWorld x64)</strong></li>
+<li><strong>Debug Test Runner (HelloWorld ARM64)</strong></li>
+</ul>
+</li>
+<li>Press <code>F5</code></li>
+</ol>
+<h4 id="from-the-command-line">From the Command Line</h4>
+<pre><code class="lang-bash"># Run test with XML output
+dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+  tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+  x64 \
+  60 \
+  test-results.xml
+
+# Run test with console output only
+dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+  tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+  x64 \
+  60
+</code></pre>
+<p><strong>Arguments:</strong></p>
+<ol>
+<li>Kernel project path (absolute or relative)</li>
+<li>Architecture: <code>x64</code> or <code>arm64</code></li>
+<li>Timeout in seconds</li>
+<li><em>(Optional)</em> XML output path (JUnit format)</li>
+<li><em>(Optional)</em> Mode: <code>ci</code> or <code>dev</code></li>
+</ol>
+<p><strong>Recommended timeouts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Suite</th>
+<th>x64</th>
+<th>ARM64</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HelloWorld</td>
+<td>60 s</td>
+<td>90 s</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>180 s</td>
+<td>300 s</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-formats">Output Formats</h3>
+<h4 id="console-colored">Console (colored)</h4>
+<pre><code>================================================================================
+Starting test suite: HelloWorld Basic Tests
+Architecture: x64
+Time: 2025-11-05 04:06:48
+================================================================================
+[1] Test_BasicArithmetic: PASSED (15ms)
+[2] Test_BooleanLogic: PASSED (12ms)
+[3] Test_IntegerComparison: PASSED (10ms)
+================================================================================
+Suite: HelloWorld Basic Tests
+Total tests: 3 | Passed: 3 | Failed: 0 | Skipped: 0 | Duration: 0.04s
+================================================================================
+ALL TESTS PASSED
+================================================================================
+</code></pre>
+<h4 id="xml-junit-format">XML (JUnit format)</h4>
+<pre><code class="lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+&lt;testsuites name=&quot;HelloWorld Basic Tests&quot; tests=&quot;3&quot; failures=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.037&quot;&gt;
+  &lt;testsuite name=&quot;HelloWorld Basic Tests&quot; tests=&quot;3&quot; failures=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.037&quot;&gt;
+    &lt;properties&gt;
+      &lt;property name=&quot;architecture&quot; value=&quot;x64&quot; /&gt;
+    &lt;/properties&gt;
+    &lt;testcase name=&quot;Test_BasicArithmetic&quot; classname=&quot;HelloWorld Basic Tests&quot; time=&quot;0.015&quot; /&gt;
+    &lt;testcase name=&quot;Test_BooleanLogic&quot; classname=&quot;HelloWorld Basic Tests&quot; time=&quot;0.012&quot; /&gt;
+    &lt;testcase name=&quot;Test_IntegerComparison&quot; classname=&quot;HelloWorld Basic Tests&quot; time=&quot;0.010&quot; /&gt;
+  &lt;/testsuite&gt;
+&lt;/testsuites&gt;
+</code></pre>
+<h3 id="exit-codes">Exit Codes</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>All tests passed (skipped tests are acceptable)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Tests failed or execution error</td>
+</tr>
+<tr>
+<td>137</td>
+<td>Timeout (SIGKILL)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="uart-debug-protocol">UART Debug Protocol</h2>
+<p>Test kernels communicate results back to the host engine over a binary protocol embedded in the QEMU serial (UART) stream. The protocol is defined in <code>tests/Cosmos.TestRunner.Protocol/</code> and is ported from the CosmosOS debug connector.</p>
+<h3 id="framing">Framing</h3>
+<p>Every message is prefixed with a 4-byte magic signature, followed by the command byte and a 2-byte little-endian payload length:</p>
+<pre><code>[Magic: 4 bytes][Command: 1 byte][Length: 2 bytes LE][Payload: N bytes]
+</code></pre>
+<ul>
+<li><strong>Magic</strong>: <code>0x07 0x08 0x74 0x19</code> (i.e. <code>0x19740807</code> in little-endian, <code>SerialSignature</code> in <code>Consts.cs</code>)</li>
+<li><strong>Command</strong>: one of the <code>Ds2Vs</code> constants (see table below)</li>
+<li><strong>Length</strong>: number of payload bytes that follow</li>
+</ul>
+<p>After the final <code>TestSuiteEnd</code> message the kernel also sends an 8-byte termination marker (<code>0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE</code>) so the engine can kill QEMU immediately without waiting for the full timeout.</p>
+<h3 id="commands-kernel--host-ds2vs">Commands (Kernel → Host, <code>Ds2Vs</code>)</h3>
+<p>Test-runner-specific commands occupy the range <strong>100–106</strong>. The original CosmosOS debug commands (0–25) are also defined but are not used by the test runner.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Value</th>
+<th>Payload format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TestSuiteStart</code></td>
+<td>100</td>
+<td><code>[ExpectedTests: 2 LE][SuiteName: UTF-8]</code></td>
+<td>Sent once when the test suite begins</td>
+</tr>
+<tr>
+<td><code>TestStart</code></td>
+<td>101</td>
+<td><code>[TestNumber: 2 LE][TestName: UTF-8]</code></td>
+<td>Sent before each test executes</td>
+</tr>
+<tr>
+<td><code>TestPass</code></td>
+<td>102</td>
+<td><code>[TestNumber: 2 LE][DurationMs: 4 LE]</code></td>
+<td>Sent when a test passes</td>
+</tr>
+<tr>
+<td><code>TestFail</code></td>
+<td>103</td>
+<td><code>[TestNumber: 2 LE][ErrorMessage: UTF-8]</code></td>
+<td>Sent when an assertion fails</td>
+</tr>
+<tr>
+<td><code>TestSkip</code></td>
+<td>104</td>
+<td><code>[TestNumber: 2 LE][SkipReason: UTF-8]</code></td>
+<td>Sent when a test is explicitly skipped</td>
+</tr>
+<tr>
+<td><code>TestSuiteEnd</code></td>
+<td>105</td>
+<td><code>[Total: 2 LE][Passed: 2 LE][Failed: 2 LE]</code></td>
+<td>Sent once when the test suite ends</td>
+</tr>
+<tr>
+<td><code>ArchitectureInfo</code></td>
+<td>106</td>
+<td><code>[ArchId: 1][CpuCount: 1]</code></td>
+<td>Sent on kernel startup (arch IDs: 1=x86, 2=x64, 3=ARM32, 4=ARM64)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="message-flow">Message Flow</h3>
+<p>A typical session looks like this:</p>
+<pre><code>→ TestSuiteStart  (suiteName=&quot;HelloWorld Basic Tests&quot;, expectedTests=3)
+→ TestStart       (testNumber=1, testName=&quot;Test_BasicArithmetic&quot;)
+→ TestPass        (testNumber=1, durationMs=15)
+→ TestStart       (testNumber=2, testName=&quot;Test_BooleanLogic&quot;)
+→ TestPass        (testNumber=2, durationMs=12)
+→ TestStart       (testNumber=3, testName=&quot;Test_IntegerComparison&quot;)
+→ TestPass        (testNumber=3, durationMs=10)
+→ TestSuiteEnd    (total=3, passed=3, failed=0)
+→ [0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE]  ← termination marker
+</code></pre>
+<h3 id="parser">Parser</h3>
+<p><code>tests/Cosmos.TestRunner.Engine/Protocol/UartMessageParser.cs</code> reads the raw UART log captured by QEMU (<code>uart-output.log</code>), scans byte-by-byte for the magic signature, validates the command byte and length, then dispatches to the appropriate parse helper.</p>
+<p>Corruption detection: the <code>TestSuiteEnd</code> payload is validated by checking <code>total == passed + failed</code>. If this invariant does not hold (e.g. due to a timer-interrupt interleave corrupting UART bytes), the end message is ignored and results fall back to the individually tracked counters.</p>
+<h3 id="host--kernel-commands-vs2ds">Host → Kernel Commands (<code>Vs2Ds</code>)</h3>
+<p>The test runner currently does not send commands to the kernel. The <code>Vs2Ds</code> class (<code>Noop=0</code>, <code>Continue=4</code>, <code>Ping=17</code>) is inherited from the CosmosOS debug connector and reserved for future use.</p>
+<hr>
+<h2 id="project-structure">Project Structure</h2>
+<pre><code>tests/
+├── Cosmos.TestRunner.Engine/        # Host-side test runner
+│   ├── Engine.cs                    # Main orchestration
+│   ├── Engine.Build.cs              # NativeAOT build pipeline
+│   ├── Program.cs                   # CLI entry point
+│   ├── TestConfiguration.cs         # Configuration
+│   ├── TestResults.cs               # Result model
+│   ├── Hosts/                       # QEMU host implementations
+│   │   ├── IQemuHost.cs
+│   │   ├── QemuX64Host.cs
+│   │   └── QemuARM64Host.cs
+│   ├── OutputHandlers/              # Result output formats
+│   │   ├── OutputHandlerBase.cs
+│   │   ├── OutputHandlerConsole.cs  # Colored terminal output
+│   │   ├── OutputHandlerXml.cs      # JUnit XML output
+│   │   └── MultiplexingOutputHandler.cs
+│   └── Protocol/
+│       └── UartMessageParser.cs     # Binary message parser
+├── Cosmos.TestRunner.Framework/     # In-kernel test framework
+│   ├── TestRunner.cs                # Start / Run / Skip / Finish
+│   └── Assert.cs                    # Assertion helpers
+├── Cosmos.TestRunner.Protocol/      # Shared protocol definitions
+│   ├── Consts.cs                    # Magic signature and constants
+│   └── Messages.cs                  # Typed message classes
+├── Cosmos.Tests.Build.Asm/          # Unit tests – Yasm build task
+├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests – plug analyzer
+├── Cosmos.Tests.Scanner/            # Unit tests – plug scanner
+├── Cosmos.Tests.Patcher/            # Unit tests – IL patcher
+├── Cosmos.Tests.NativeWrapper/      # Runtime assets (no tests)
+├── Cosmos.Tests.NativeLibrary/      # Native code for tests (no tests)
+└── Kernels/                         # Kernel test projects
+    ├── Cosmos.Kernel.Tests.HelloWorld/
+    │   ├── Kernel.cs
+    │   └── Bootloader/limine.conf
+    └── Cosmos.Kernel.Tests.Memory/
+        ├── Kernel.cs
+        └── Bootloader/limine.conf
+</code></pre>
+<hr>
+<h2 id="writing-a-test-kernel">Writing a Test Kernel</h2>
+<h3 id="minimal-example">Minimal Example</h3>
+<p>Test kernels inherit from <code>Cosmos.Kernel.System.Kernel</code> and run all tests inside <code>BeforeRun()</code>. Use the <code>TR</code> alias for <code>TestRunner</code> and <code>Assert</code> for assertions.</p>
+<pre><code class="lang-csharp">using Cosmos.Kernel.Core.IO;
+using Cosmos.TestRunner.Framework;
+using Sys = Cosmos.Kernel.System;
+using TR = Cosmos.TestRunner.Framework.TestRunner;
+
+namespace Cosmos.Kernel.Tests.MyTests;
+
+public class Kernel : Sys.Kernel
+{
+    protected override void BeforeRun()
+    {
+        // Initialize test suite (expectedTests must equal the total number of TR.Run + TR.Skip calls)
+        TR.Start(&quot;My Test Suite&quot;, expectedTests: 3);
+
+        TR.Run(&quot;Test_Addition&quot;, () =&gt;
+        {
+            int result = 2 + 2;
+            Assert.Equal(4, result);
+        });
+
+        TR.Run(&quot;Test_StringOps&quot;, () =&gt;
+        {
+            string str = &quot;Hello&quot;;
+            Assert.Equal(&quot;Hello&quot;, str);
+            Assert.NotNull(str);
+        });
+
+        // Mark unsupported operations as skipped rather than letting them crash
+        // TR.Skip also counts toward expectedTests
+        TR.Skip(&quot;Test_Unsupported&quot;, &quot;Feature not implemented&quot;);
+
+        TR.Finish();
+
+        Serial.WriteString(&quot;[Tests Complete - System Halting]\n&quot;);
+        Stop();
+    }
+
+    protected override void Run()
+    {
+        // Tests completed in BeforeRun, nothing to do here
+    }
+
+    protected override void AfterRun()
+    {
+        Cosmos.Kernel.Kernel.Halt();
+    }
+}
+</code></pre>
+<h3 id="kernel-lifecycle">Kernel Lifecycle</h3>
+<p>The <code>Sys.Kernel</code> base class drives a fixed lifecycle:</p>
+<ol>
+<li><code>OnBoot()</code> – system initialization (called automatically, rarely overridden)</li>
+<li><code>BeforeRun()</code> – <strong>run all tests here</strong>, then call <code>Stop()</code></li>
+<li><code>Run()</code> – called in a loop until <code>Stop()</code> is invoked; leave empty for test kernels</li>
+<li><code>AfterRun()</code> – called once after the loop exits; call <code>Cosmos.Kernel.Kernel.Halt()</code> here</li>
+</ol>
+<h3 id="available-assertions">Available Assertions</h3>
+<pre><code class="lang-csharp">// Equality – typed overloads (int, uint, long, byte, bool, string, byte[], int[])
+Assert.Equal(expected, actual);
+Assert.Equal&lt;T&gt;(expected, actual);   // Generic overload (requires IEquatable&lt;T&gt;)
+
+// Null checks
+Assert.Null(obj);
+Assert.NotNull(obj);
+
+// Boolean
+Assert.True(condition);
+Assert.True(condition, &quot;message&quot;);
+Assert.False(condition);
+
+// Manual failure
+Assert.Fail(&quot;Custom error message&quot;);
+</code></pre>
+<blockquote>
+<p><strong>Note:</strong> <code>Assert</code> uses static failure state (no exceptions) for NativeAOT compatibility.
+Only the first failure per test is recorded; subsequent assertions in the same <code>TR.Run</code> block are still evaluated.</p>
+</blockquote>
+<h3 id="test-status">Test Status</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Passed</strong></td>
+<td>Test completed without assertion failures</td>
+</tr>
+<tr>
+<td><strong>Failed</strong></td>
+<td>Assertion set the failure state inside <code>TR.Run</code></td>
+</tr>
+<tr>
+<td><strong>Skipped</strong></td>
+<td>Test explicitly marked via <code>TR.Skip(name, reason)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="adding-a-new-test-suite">Adding a New Test Suite</h3>
+<ol>
+<li>Create a kernel project under <code>tests/Kernels/Cosmos.Kernel.Tests.{Name}/</code></li>
+<li>Copy <code>.csproj</code> and <code>Bootloader/limine.conf</code> from an existing suite; update the ELF path in <code>limine.conf</code></li>
+<li>Implement tests using <code>TestRunner.Framework</code></li>
+<li>Add a CI job in <code>.github/workflows/kernel-tests.yml</code>:
+<ul>
+<li>Copy an existing <code>*-tests</code> job, rename it, and update the kernel path</li>
+<li>Add a corresponding <code>{name}-results</code> job for PR comments</li>
+<li>Add the new job to the <code>test-summary</code> dependencies</li>
+</ul>
+</li>
+<li>Add VS Code tasks in <code>.vscode/tasks.json</code></li>
+</ol>
+<hr>
+<h2 id="ci-integration">CI Integration</h2>
+<p>The CI workflow (<code>.github/workflows/kernel-tests.yml</code>) runs kernel integration tests on both x64 and ARM64.</p>
+<p><strong>Jobs:</strong></p>
+<ul>
+<li><code>helloworld-tests</code> – Matrix build for x64/arm64</li>
+<li><code>helloworld-results</code> – Combined PR comment</li>
+<li><code>memory-tests</code> – Matrix build for x64/arm64</li>
+<li><code>memory-results</code> – Combined PR comment</li>
+<li><code>test-summary</code> – Final status summary</li>
+</ul>
+<p><strong>Triggers:</strong></p>
+<ul>
+<li>Push to <code>main</code></li>
+<li>Pull requests (any branch)</li>
+<li>Manual dispatch with architecture selection</li>
+</ul>
+<p><strong>PR Comments:</strong> Each test suite posts a comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts.</p>
+<p><strong>Artifacts (30-day retention):</strong></p>
+<ul>
+<li><code>test-results-{suite}-{arch}.xml</code> – JUnit XML results</li>
+<li><code>uart-log-{suite}-{arch}</code> – Full UART output</li>
+<li><code>{Suite}-Test-ISO-{arch}</code> – Bootable kernel ISO + ELF</li>
+</ul>
+<h3 id="example-ci-step">Example CI Step</h3>
+<pre><code class="lang-yaml">- name: Run Cosmos Tests
+  run: |
+    dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+      tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+      x64 \
+      120 \
+      test-results.xml \
+      ci
+
+- name: Publish Test Results
+  uses: dorny/test-reporter@v1
+  if: always()
+  with:
+    name: Cosmos Tests
+    path: test-results.xml
+    reporter: java-junit
+</code></pre>
+<hr>
+<h2 id="performance-reference">Performance Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>x64</th>
+<th>ARM64</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kernel build</td>
+<td>~60 s</td>
+<td>~70 s</td>
+</tr>
+<tr>
+<td>HelloWorld execution</td>
+<td>2–5 s</td>
+<td>5–10 s</td>
+</tr>
+<tr>
+<td>Memory execution</td>
+<td>60–120 s</td>
+<td>120–240 s</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="timeout">Timeout</h3>
+<ul>
+<li>Increase the timeout argument</li>
+<li>Check <code>uart-output.log</code> for boot issues</li>
+<li>Verify QEMU is installed: <code>qemu-system-x86_64 --version</code></li>
+</ul>
+<h3 id="build-failures">Build Failures</h3>
+<ul>
+<li>Run <code>.devcontainer/postCreateCommand.sh</code> to rebuild the framework</li>
+<li>Restore NuGet packages: <code>dotnet restore</code></li>
+<li>Verify .NET 9 SDK is installed</li>
+</ul>
+<h3 id="arm64-issues">ARM64 Issues</h3>
+<ul>
+<li>Ensure UEFI firmware is present: <code>/usr/share/qemu-efi-aarch64/QEMU_EFI.fd</code></li>
+<li>Install on Ubuntu: <code>sudo apt install qemu-efi-aarch64</code></li>
+<li>Use a longer timeout (90 s+ for HelloWorld, 180 s+ for Memory)</li>
+</ul>
+<h3 id="ud-exceptions-invalid-opcode">#UD Exceptions (Invalid Opcode)</h3>
+<p>Some operations may trigger Invalid Opcode faults depending on the runtime state. Use <code>TR.Skip()</code> to mark them instead of letting the kernel crash.</p>
 
 </article>
 
