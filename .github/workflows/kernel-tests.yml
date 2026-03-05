@@ -65,7 +65,9 @@ jobs:
     with:
       suite_name: HelloWorld
       suite_id: helloworld
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.HelloWorld
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Memory ────────────────────────────────────────────────────────────────────
   memory-tests:
@@ -85,7 +87,9 @@ jobs:
     with:
       suite_name: Memory
       suite_id: memory
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Memory
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── TypeCasting ───────────────────────────────────────────────────────────────
   typecasting-tests:
@@ -105,7 +109,9 @@ jobs:
     with:
       suite_name: TypeCasting
       suite_id: typecasting
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.TypeCasting
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Timer ─────────────────────────────────────────────────────────────────────
   timer-tests:
@@ -125,7 +131,9 @@ jobs:
     with:
       suite_name: Timer
       suite_id: timer
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Timer
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Network ───────────────────────────────────────────────────────────────────
   network-tests:
@@ -145,7 +153,9 @@ jobs:
     with:
       suite_name: Network
       suite_id: network
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Network
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Threading ─────────────────────────────────────────────────────────────────
   threading-tests:
@@ -165,7 +175,9 @@ jobs:
     with:
       suite_name: Threading
       suite_id: threading
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Threading
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Graphic ───────────────────────────────────────────────────────────────────
   graphic-tests:
@@ -185,7 +197,9 @@ jobs:
     with:
       suite_name: Graphic
       suite_id: graphic
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Graphic
       event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
 
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:

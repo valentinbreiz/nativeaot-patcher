@@ -15,6 +15,14 @@ on:
         description: 'Calling workflow event name (github.event_name)'
         required: true
         type: string
+      kernel_path:
+        description: 'Path to kernel test project (e.g. tests/Kernels/Cosmos.Kernel.Tests.HelloWorld)'
+        required: true
+        type: string
+      head_ref:
+        description: 'Branch or ref name for source links'
+        required: true
+        type: string
 
 jobs:
   post-results:
@@ -74,6 +82,7 @@ jobs:
           script: |
             const suiteName = '${{ inputs.suite_name }}';
             const suiteId = '${{ inputs.suite_id }}';
+            const kernelSrcUrl = 'https://github.com/${{ github.repository }}/blob/${{ inputs.head_ref }}/${{ inputs.kernel_path }}/Kernel.cs';
             const x64 = '${{ steps.parse.outputs.x64_result }}'.split('|');
             const arm64 = '${{ steps.parse.outputs.arm64_result }}'.split('|');
             const runId = '${{ github.run_id }}';
@@ -108,7 +117,7 @@ jobs:
             | x64 | [XML](${getArtifactUrl('test-results-' + suiteId + '-x64')}) | [Log](${getArtifactUrl('uart-log-' + suiteId + '-x64')}) | [ISO](${getArtifactUrl(suiteName + '-Test-ISO-x64')}) |
             | arm64 | [XML](${getArtifactUrl('test-results-' + suiteId + '-arm64')}) | [Log](${getArtifactUrl('uart-log-' + suiteId + '-arm64')}) | [ISO](${getArtifactUrl(suiteName + '-Test-ISO-arm64')}) |
 
-            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId})
+            📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId}) | 📄 [Kernel.cs](${kernelSrcUrl})
             `;
 
             const marker = `## 🧪 ${suiteName} Tests`;
