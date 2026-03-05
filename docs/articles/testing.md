@@ -1,39 +1,439 @@
-## Available Unit Tests
-- **Cosmos.Tests.Build.Asm**:
-  Verifies the assembly build task runs via Yasm.
-    - Test1
-- **Cosmos.Tests.Build.Analyzer.Patcher**:
-  Validates that code does not contain plug architecture errors.
-    - Test_AnalyzeAccessedMember
-    - Test_MethodNotImplemented
-    - Test_StaticConstructorTooManyParameters
-    - Test_StaticConstructorNotImplemented
-- **Cosmos.Tests.Scanner**:
-  Validates that all required plugs are detected correctly.
-    - LoadPlugMethods_ShouldReturnPublicStaticMethods
-    - LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist
-    - LoadPlugMethods_ShouldContainAddMethod_WhenPlugged
-    - LoadPlugs_ShouldFindPluggedClasses
-    - LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute
-    - LoadPlugs_ShouldHandleOptionalPlugs
-    - FindPluggedAssemblies_ShouldReturnMatchingAssemblies
-- **Cosmos.Tests.Patcher**:
-  Ensures that plugs are applied successfully to target methods and types.
-    - PatchAssembly_ShouldSkipWhenNoMatchingPlugs
-    - PatchObjectWithAThis_ShouldPlugInstanceCorrectly
-    - PatchConstructor_ShouldPlugCtorCorrectly
-    - PatchProperty_ShouldPlugProperty
-    - PatchType_ShouldReplaceAllMethodsCorrectly
-    - PatchType_ShouldPlugAssembly
-    - AddMethod_BehaviorBeforeAndAfterPlug
-- **Cosmos.Tests.NativeWrapper**:
-  Contains runtime assets but no unit tests.
-- **Cosmos.Tests.NativeLibrary**:
-  Provides native code used in tests; no unit tests.
+# Testing
 
-## Running Tests
-You can run the test suite from the repository root:
+NativeAOT-Patcher has two complementary testing layers: **unit tests** that validate the build-time toolchain (patcher, scanner, analyzer) and **kernel integration tests** that run compiled kernel images inside QEMU and report results over a binary UART protocol.
 
-```
+---
+
+## Unit Tests
+
+Unit tests live in `tests/Cosmos.Tests.*` projects and are run with the standard .NET test runner. They do not require QEMU or any special infrastructure.
+
+### Running Unit Tests
+
+```bash
 dotnet test
 ```
+
+### Test Projects
+
+- **Cosmos.Tests.Build.Asm** – Verifies the assembly build task runs via Yasm.
+  - `Test1`
+- **Cosmos.Tests.Build.Analyzer.Patcher** – Validates that code does not contain plug architecture errors.
+  - `Test_AnalyzeAccessedMember`
+  - `Test_MethodNotImplemented`
+  - `Test_StaticConstructorTooManyParameters`
+  - `Test_StaticConstructorNotImplemented`
+- **Cosmos.Tests.Scanner** – Validates that all required plugs are detected correctly.
+  - `LoadPlugMethods_ShouldReturnPublicStaticMethods`
+  - `LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist`
+  - `LoadPlugMethods_ShouldContainAddMethod_WhenPlugged`
+  - `LoadPlugs_ShouldFindPluggedClasses`
+  - `LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute`
+  - `LoadPlugs_ShouldHandleOptionalPlugs`
+  - `FindPluggedAssemblies_ShouldReturnMatchingAssemblies`
+- **Cosmos.Tests.Patcher** – Ensures that plugs are applied successfully to target methods and types.
+  - `PatchAssembly_ShouldSkipWhenNoMatchingPlugs`
+  - `PatchObjectWithAThis_ShouldPlugInstanceCorrectly`
+  - `PatchConstructor_ShouldPlugCtorCorrectly`
+  - `PatchProperty_ShouldPlugProperty`
+  - `PatchType_ShouldReplaceAllMethodsCorrectly`
+  - `PatchType_ShouldPlugAssembly`
+  - `AddMethod_BehaviorBeforeAndAfterPlug`
+- **Cosmos.Tests.NativeWrapper** – Contains runtime assets; no unit tests.
+- **Cosmos.Tests.NativeLibrary** – Provides native code used in tests; no unit tests.
+
+---
+
+## Kernel Integration Tests
+
+Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and communicate results back to the host over a binary UART protocol. These tests exercise the full build and runtime pipeline.
+
+### Test Suites
+
+| Suite | Tests | Description |
+|-------|-------|-------------|
+| **HelloWorld** | 3 | Basic arithmetic, boolean logic, integer comparison |
+| **Memory** | 18 (3 skipped) | Boxing/unboxing, memory allocation, generic collections |
+
+#### HelloWorld Tests
+
+- `Test_BasicArithmetic` – Addition (2+2=4)
+- `Test_BooleanLogic` – True/False assertions
+- `Test_IntegerComparison` – Equality and comparison operators
+
+#### Memory Tests
+
+**Boxing/Unboxing (8 tests):**
+- `Boxing_Char`, `Boxing_Int32`, `Boxing_Byte`, `Boxing_Long`
+- `Boxing_Nullable`, `Boxing_Interface`, `Boxing_CustomStruct`
+- `Boxing_ArrayCopy` – Array.Copy with automatic boxing
+
+**Memory Allocation (3 tests, 2 skipped):**
+- `Memory_CharArray`, `Memory_StringAllocation`, `Memory_IntArray`
+- ~~`Memory_StringConcat`~~ – Skipped: triggers #UD exception
+- ~~`Memory_StringBuilder`~~ – Skipped: triggers #UD exception
+
+**Generic Collections (7 tests, 1 skipped):**
+- `Collections_ListInt`, `Collections_ListString`, `Collections_ListByte`
+- `Collections_ListLong`, `Collections_ListStruct`
+- `Collections_ListContains`, `Collections_ListIndexOf`
+- ~~`Collections_ListRemoveAt`~~ – Skipped: Array.Copy triggers #UD exception
+
+### Running Kernel Tests
+
+#### From VS Code
+
+**Using Tasks (recommended):**
+1. Press `Ctrl+Shift+P` → "Tasks: Run Task"
+2. Select one of:
+   - **Run Test: HelloWorld (x64)** – Console + XML output
+   - **Run Test: HelloWorld (x64, Console Only)** – Console output only
+   - **Run Test: HelloWorld (ARM64)** – ARM64 test with XML output
+   - **Dev Test: HelloWorld (x64)** – Developer mode with verbose output
+
+**Debug test runner:**
+1. Open the Run & Debug panel (`Ctrl+Shift+D`)
+2. Select a configuration:
+   - **Debug Test Runner (HelloWorld x64)**
+   - **Debug Test Runner (HelloWorld ARM64)**
+3. Press `F5`
+
+#### From the Command Line
+
+```bash
+# Run test with XML output
+dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+  tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+  x64 \
+  60 \
+  test-results.xml
+
+# Run test with console output only
+dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+  tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+  x64 \
+  60
+```
+
+**Arguments:**
+1. Kernel project path (absolute or relative)
+2. Architecture: `x64` or `arm64`
+3. Timeout in seconds
+4. *(Optional)* XML output path (JUnit format)
+5. *(Optional)* Mode: `ci` or `dev`
+
+**Recommended timeouts:**
+
+| Suite | x64 | ARM64 |
+|-------|-----|-------|
+| HelloWorld | 60 s | 90 s |
+| Memory | 120 s | 180 s |
+
+### Output Formats
+
+#### Console (colored)
+
+```
+================================================================================
+Starting test suite: HelloWorld Basic Tests
+Architecture: x64
+Time: 2025-11-05 04:06:48
+================================================================================
+[1] Test_BasicArithmetic: PASSED (15ms)
+[2] Test_BooleanLogic: PASSED (12ms)
+[3] Test_IntegerComparison: PASSED (10ms)
+================================================================================
+Suite: HelloWorld Basic Tests
+Total tests: 3 | Passed: 3 | Failed: 0 | Skipped: 0 | Duration: 0.04s
+================================================================================
+ALL TESTS PASSED
+================================================================================
+```
+
+#### XML (JUnit format)
+
+```xml
+<?xml version="1.0" encoding="utf-16"?>
+<testsuites name="HelloWorld Basic Tests" tests="3" failures="0" skipped="0" time="0.037">
+  <testsuite name="HelloWorld Basic Tests" tests="3" failures="0" skipped="0" time="0.037">
+    <properties>
+      <property name="architecture" value="x64" />
+    </properties>
+    <testcase name="Test_BasicArithmetic" classname="HelloWorld Basic Tests" time="0.015" />
+    <testcase name="Test_BooleanLogic" classname="HelloWorld Basic Tests" time="0.012" />
+    <testcase name="Test_IntegerComparison" classname="HelloWorld Basic Tests" time="0.010" />
+  </testsuite>
+</testsuites>
+```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All tests passed (skipped tests are acceptable) |
+| 1 | Tests failed or execution error |
+| 137 | Timeout (SIGKILL) |
+
+---
+
+## UART Debug Protocol
+
+Test kernels communicate results back to the host engine over a binary protocol embedded in the QEMU serial (UART) stream. The protocol is defined in `tests/Cosmos.TestRunner.Protocol/` and is ported from the CosmosOS debug connector.
+
+### Framing
+
+Every message is prefixed with a 4-byte magic signature, followed by the command byte and a 2-byte little-endian payload length:
+
+```
+[Magic: 4 bytes][Command: 1 byte][Length: 2 bytes LE][Payload: N bytes]
+```
+
+- **Magic**: `0x07 0x08 0x74 0x19` (i.e. `0x19740807` in little-endian, `SerialSignature` in `Consts.cs`)
+- **Command**: one of the `Ds2Vs` constants (see table below)
+- **Length**: number of payload bytes that follow
+
+After the final `TestSuiteEnd` message the kernel also sends an 8-byte termination marker (`0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE`) so the engine can kill QEMU immediately without waiting for the full timeout.
+
+### Commands (Kernel → Host, `Ds2Vs`)
+
+Test-runner-specific commands occupy the range **100–106**. The original CosmosOS debug commands (0–25) are also defined but are not used by the test runner.
+
+| Command | Value | Payload format | Description |
+|---------|-------|----------------|-------------|
+| `TestSuiteStart` | 100 | `[ExpectedTests: 2 LE][SuiteName: UTF-8]` | Sent once when the test suite begins |
+| `TestStart` | 101 | `[TestNumber: 2 LE][TestName: UTF-8]` | Sent before each test executes |
+| `TestPass` | 102 | `[TestNumber: 2 LE][DurationMs: 4 LE]` | Sent when a test passes |
+| `TestFail` | 103 | `[TestNumber: 2 LE][ErrorMessage: UTF-8]` | Sent when an assertion fails |
+| `TestSkip` | 104 | `[TestNumber: 2 LE][SkipReason: UTF-8]` | Sent when a test is explicitly skipped |
+| `TestSuiteEnd` | 105 | `[Total: 2 LE][Passed: 2 LE][Failed: 2 LE]` | Sent once when the test suite ends |
+| `ArchitectureInfo` | 106 | `[ArchId: 1][CpuCount: 1]` | Sent on kernel startup (arch IDs: 1=x86, 2=x64, 3=ARM32, 4=ARM64) |
+
+### Message Flow
+
+A typical session looks like this:
+
+```
+→ TestSuiteStart  (suiteName="HelloWorld Basic Tests", expectedTests=3)
+→ TestStart       (testNumber=1, testName="Test_BasicArithmetic")
+→ TestPass        (testNumber=1, durationMs=15)
+→ TestStart       (testNumber=2, testName="Test_BooleanLogic")
+→ TestPass        (testNumber=2, durationMs=12)
+→ TestStart       (testNumber=3, testName="Test_IntegerComparison")
+→ TestPass        (testNumber=3, durationMs=10)
+→ TestSuiteEnd    (total=3, passed=3, failed=0)
+→ [0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE]  ← termination marker
+```
+
+### Parser
+
+`tests/Cosmos.TestRunner.Engine/Protocol/UartMessageParser.cs` reads the raw UART log captured by QEMU (`uart-output.log`), scans byte-by-byte for the magic signature, validates the command byte and length, then dispatches to the appropriate parse helper.
+
+Corruption detection: the `TestSuiteEnd` payload is validated by checking `total == passed + failed`. If this invariant does not hold (e.g. due to a timer-interrupt interleave corrupting UART bytes), the end message is ignored and results fall back to the individually tracked counters.
+
+### Host → Kernel Commands (`Vs2Ds`)
+
+The test runner currently does not send commands to the kernel. The `Vs2Ds` class (`Noop=0`, `Continue=4`, `Ping=17`) is inherited from the CosmosOS debug connector and reserved for future use.
+
+---
+
+## Project Structure
+
+```
+tests/
+├── Cosmos.TestRunner.Engine/        # Host-side test runner
+│   ├── Engine.cs                    # Main orchestration
+│   ├── Engine.Build.cs              # NativeAOT build pipeline
+│   ├── Program.cs                   # CLI entry point
+│   ├── TestConfiguration.cs         # Configuration
+│   ├── TestResults.cs               # Result model
+│   ├── Hosts/                       # QEMU host implementations
+│   │   ├── IQemuHost.cs
+│   │   ├── QemuX64Host.cs
+│   │   └── QemuARM64Host.cs
+│   ├── OutputHandlers/              # Result output formats
+│   │   ├── OutputHandlerBase.cs
+│   │   ├── OutputHandlerConsole.cs  # Colored terminal output
+│   │   ├── OutputHandlerXml.cs      # JUnit XML output
+│   │   └── MultiplexingOutputHandler.cs
+│   └── Protocol/
+│       └── UartMessageParser.cs     # Binary message parser
+├── Cosmos.TestRunner.Framework/     # In-kernel test framework
+│   ├── TestRunner.cs                # Start / Run / Skip / Finish
+│   └── Assert.cs                    # Assertion helpers
+├── Cosmos.TestRunner.Protocol/      # Shared protocol definitions
+│   ├── Consts.cs                    # Magic signature and constants
+│   └── Messages.cs                  # Typed message classes
+├── Cosmos.Tests.Build.Asm/          # Unit tests – Yasm build task
+├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests – plug analyzer
+├── Cosmos.Tests.Scanner/            # Unit tests – plug scanner
+├── Cosmos.Tests.Patcher/            # Unit tests – IL patcher
+├── Cosmos.Tests.NativeWrapper/      # Runtime assets (no tests)
+├── Cosmos.Tests.NativeLibrary/      # Native code for tests (no tests)
+└── Kernels/                         # Kernel test projects
+    ├── Cosmos.Kernel.Tests.HelloWorld/
+    │   ├── Kernel.cs
+    │   └── Bootloader/limine.conf
+    └── Cosmos.Kernel.Tests.Memory/
+        ├── Kernel.cs
+        └── Bootloader/limine.conf
+```
+
+---
+
+## Writing a Test Kernel
+
+### Minimal Example
+
+```csharp
+using Cosmos.TestRunner.Framework;
+using static Cosmos.TestRunner.Framework.TestRunner;
+using static Cosmos.TestRunner.Framework.Assert;
+
+internal unsafe static partial class Program
+{
+    [UnmanagedCallersOnly(EntryPoint = "__managed__Main")]
+    private static void KernelMain() => Main();
+
+    private static void Main()
+    {
+        Start("My Test Suite");
+
+        Run("Test_Addition", () =>
+        {
+            int result = 2 + 2;
+            Equal(4, result);
+        });
+
+        Run("Test_StringOps", () =>
+        {
+            string str = "Hello";
+            Equal("Hello", str);
+            NotNull(str);
+        });
+
+        // Mark unsupported operations as skipped rather than letting them crash
+        Skip("Test_Unsupported", "Feature not implemented");
+
+        Finish();
+        while (true) ;  // Halt
+    }
+}
+```
+
+### Available Assertions
+
+```csharp
+Assert.Equal(expected, actual);
+Assert.Equal<T>(expected, actual);   // Generic overload
+
+Assert.Null(obj);
+Assert.NotNull(obj);
+
+Assert.True(condition);
+Assert.True(condition, "message");
+Assert.False(condition);
+
+Assert.Throws<TException>(() => { /* code that should throw */ });
+
+Assert.Fail("Custom error message");
+```
+
+### Test Status
+
+| Status | When |
+|--------|------|
+| **Passed** | Test completed without assertion failures |
+| **Failed** | Assertion failed or exception thrown inside `Run` |
+| **Skipped** | Test explicitly marked via `Skip(name, reason)` |
+
+### Adding a New Test Suite
+
+1. Create a kernel project under `tests/Kernels/Cosmos.Kernel.Tests.{Name}/`
+2. Copy `.csproj` and `Bootloader/limine.conf` from an existing suite; update the ELF path in `limine.conf`
+3. Implement tests using `TestRunner.Framework`
+4. Add a CI job in `.github/workflows/kernel-tests.yml`:
+   - Copy an existing `*-tests` job, rename it, and update the kernel path
+   - Add a corresponding `{name}-results` job for PR comments
+   - Add the new job to the `test-summary` dependencies
+5. Add VS Code tasks in `.vscode/tasks.json`
+
+---
+
+## CI Integration
+
+The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration tests on both x64 and ARM64.
+
+**Jobs:**
+- `helloworld-tests` – Matrix build for x64/arm64
+- `helloworld-results` – Combined PR comment
+- `memory-tests` – Matrix build for x64/arm64
+- `memory-results` – Combined PR comment
+- `test-summary` – Final status summary
+
+**Triggers:**
+- Push to `main`
+- Pull requests (any branch)
+- Manual dispatch with architecture selection
+
+**PR Comments:** Each test suite posts a comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts.
+
+**Artifacts (30-day retention):**
+- `test-results-{suite}-{arch}.xml` – JUnit XML results
+- `uart-log-{suite}-{arch}` – Full UART output
+- `{Suite}-Test-ISO-{arch}` – Bootable kernel ISO + ELF
+
+### Example CI Step
+
+```yaml
+- name: Run Cosmos Tests
+  run: |
+    dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -- \
+      tests/Kernels/Cosmos.Kernel.Tests.HelloWorld \
+      x64 \
+      120 \
+      test-results.xml \
+      ci
+
+- name: Publish Test Results
+  uses: dorny/test-reporter@v1
+  if: always()
+  with:
+    name: Cosmos Tests
+    path: test-results.xml
+    reporter: java-junit
+```
+
+---
+
+## Performance Reference
+
+| Stage | x64 | ARM64 |
+|-------|-----|-------|
+| Kernel build | ~60 s | ~70 s |
+| HelloWorld execution | 2–5 s | 5–10 s |
+| Memory execution | 30–40 s | 60–90 s |
+
+---
+
+## Troubleshooting
+
+### Timeout
+- Increase the timeout argument
+- Check `uart-output.log` for boot issues
+- Verify QEMU is installed: `qemu-system-x86_64 --version`
+
+### Build Failures
+- Run `.devcontainer/postCreateCommand.sh` to rebuild the framework
+- Restore NuGet packages: `dotnet restore`
+- Verify .NET 9 SDK is installed
+
+### ARM64 Issues
+- Ensure UEFI firmware is present: `/usr/share/qemu-efi-aarch64/QEMU_EFI.fd`
+- Install on Ubuntu: `sudo apt install qemu-efi-aarch64`
+- Use a longer timeout (90 s+ for HelloWorld, 180 s+ for Memory)
+
+### #UD Exceptions (Invalid Opcode)
+Some operations are not yet implemented in the kernel runtime and trigger an Invalid Opcode fault. Use `Skip()` to mark them instead of letting the kernel crash:
+- String concatenation (`+` operator)
+- `StringBuilder` operations
+- `List.RemoveAt` (uses `Array.Copy` internally)
