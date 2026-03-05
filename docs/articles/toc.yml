@@ -1,7 +1,7 @@
 - name: Installation (Cosmos VS Code Extension)
   href: install.md
 - name: Dev Container Setup
-  href: devcontainer-setup.md
+  href: install-dev.md
 - name: Kernel Compilation Steps
   href: build/kernel-compilation-steps.md
 - name: Debugging with VSCode and QEMU
