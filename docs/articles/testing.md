@@ -344,6 +344,7 @@ public class Kernel : Sys.Kernel
         });
 
         // Mark unsupported operations as skipped rather than letting them crash
+        // TR.Skip also counts toward expectedTests
         TR.Skip("Test_Unsupported", "Feature not implemented");
 
         TR.Finish();
@@ -368,7 +369,7 @@ public class Kernel : Sys.Kernel
 
 The `Sys.Kernel` base class drives a fixed lifecycle:
 
-1. `OnBoot()` – system initialisation (called automatically, rarely overridden)
+1. `OnBoot()` – system initialization (called automatically, rarely overridden)
 2. `BeforeRun()` – **run all tests here**, then call `Stop()`
 3. `Run()` – called in a loop until `Stop()` is invoked; leave empty for test kernels
 4. `AfterRun()` – called once after the loop exits; call `Cosmos.Kernel.Kernel.Halt()` here
@@ -394,14 +395,14 @@ Assert.Fail("Custom error message");
 ```
 
 > **Note:** `Assert` uses static failure state (no exceptions) for NativeAOT compatibility.
-> Only the first failure per test is recorded; subsequent assertions in the same `Run` block are still evaluated.
+> Only the first failure per test is recorded; subsequent assertions in the same `TR.Run` block are still evaluated.
 
 ### Test Status
 
 | Status | When |
 |--------|------|
 | **Passed** | Test completed without assertion failures |
-| **Failed** | Assertion set the failure state inside `Run` |
+| **Failed** | Assertion set the failure state inside `TR.Run` |
 | **Skipped** | Test explicitly marked via `TR.Skip(name, reason)` |
 
 ### Adding a New Test Suite
