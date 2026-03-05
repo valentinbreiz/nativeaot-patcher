@@ -2,6 +2,8 @@
 
 When developing or contributing to gen3, a [Dev Container](https://containers.dev/) is provided to set up a consistent environment with all required tools. After the container is created, the `postCreateCommand` script builds all Cosmos packages and installs the necessary global tools.
 
+If you don't want to use Docker you can install the framework directly to your host machine by running the script manually.
+
 ## Linux / macOS (`postCreateCommand.sh`)
 
 Run the script from the root of the repository:
