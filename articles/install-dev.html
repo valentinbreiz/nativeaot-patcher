@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Dev Container Setup | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Dev Container Setup | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/install-dev.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="dev-container-setup">Dev Container Setup</h1>
+
+<p>When developing or contributing to gen3, a <a href="https://containers.dev/">Dev Container</a> is provided to set up a consistent environment with all required tools. After the container is created, the <code>postCreateCommand</code> script builds all Cosmos packages and installs the necessary global tools.</p>
+<h2 id="linux--macos-postcreatecommandsh">Linux / macOS (<code>postCreateCommand.sh</code>)</h2>
+<p>Run the script from the root of the repository:</p>
+<pre><code class="lang-bash">./.devcontainer/postCreateCommand.sh
+</code></pre>
+<h3 id="what-it-does">What it does</h3>
+<ol>
+<li><strong>Clears the NuGet cache</strong> for any existing <code>cosmos.*</code> packages to ensure a clean restore.</li>
+<li><strong>Removes all build artifacts</strong> (<code>artifacts/</code>) and intermediate <code>obj</code> folders under <code>src/</code>.</li>
+<li><strong>Registers a local NuGet source</strong> at <code>artifacts/package/release</code> so that locally built packages are preferred during restore.</li>
+<li><strong>Builds and packs every Cosmos package</strong> in dependency order:
+<ul>
+<li>Base libraries (<code>Cosmos.Build.API</code>, <code>Cosmos.Build.Common</code>)</li>
+<li>Build tools (<code>Cosmos.Build.Asm</code>, <code>Cosmos.Build.GCC</code>, <code>Cosmos.Build.Ilc</code>, <code>Cosmos.Build.Patcher</code>, <code>Cosmos.Patcher</code>, <code>Cosmos.Tools</code>)</li>
+<li>Native runtime packages for x64 and ARM64 (<code>Cosmos.Kernel.Native.*</code>)</li>
+<li>Architecture-independent kernel packages (<code>Cosmos.Kernel.HAL.Interfaces</code>, <code>Cosmos.Kernel.Debug</code>, <code>Cosmos.Kernel.Boot.Limine</code>)</li>
+<li>Architecture-specific HAL packages (<code>Cosmos.Kernel.HAL.X64</code>, <code>Cosmos.Kernel.HAL.ARM64</code>)</li>
+<li>Multi-arch kernel packages built for both <code>linux-x64</code> and <code>linux-arm64</code> (<code>Cosmos.Kernel.Core</code>, <code>Cosmos.Kernel.HAL</code>, <code>Cosmos.Kernel.System</code>, <code>Cosmos.Kernel.Plugs</code>, <code>Cosmos.Kernel</code>)</li>
+<li>SDK and templates (<code>Cosmos.Sdk</code>, <code>Cosmos.Build.Templates</code>)</li>
+</ul>
+</li>
+<li><strong>Restores</strong> the main solution (<code>nativeaot-patcher.slnx</code>).</li>
+<li><strong>Installs global .NET tools</strong>: <code>ilc</code>, <code>Cosmos.Patcher</code>, and <code>Cosmos.Tools</code>.</li>
+</ol>
+<h2 id="windows-postcreatecommandps1">Windows (<code>postCreateCommand.ps1</code>)</h2>
+<p>Run the PowerShell script from the root of the repository:</p>
+<pre><code class="lang-powershell">.\.devcontainer\postCreateCommand.ps1
+</code></pre>
+<p>The Windows script performs the same steps as the Linux script using PowerShell equivalents:</p>
+<ol>
+<li><strong>Clears the NuGet cache</strong> under <code>%USERPROFILE%\.nuget\packages\cosmos.*</code>.</li>
+<li><strong>Removes all build artifacts</strong> and <code>obj</code> folders under <code>src/</code>.</li>
+<li><strong>Registers the local NuGet source</strong> at <code>artifacts/package/release</code>.</li>
+<li><strong>Builds and packs every Cosmos package</strong> in the same dependency order as on Linux.</li>
+<li><strong>Restores</strong> the main solution.</li>
+<li><strong>Installs global .NET tools</strong>: <code>ilc</code>, <code>Cosmos.Patcher</code>, and <code>Cosmos.Tools</code>.</li>
+</ol>
+<h2 id="verifying-the-setup">Verifying the Setup</h2>
+<p>After the script completes, confirm that the packages were created:</p>
+<pre><code class="lang-bash">ls artifacts/package/release/*.nupkg
+</code></pre>
+<p>And verify the global tools are available:</p>
+<pre><code class="lang-bash">ilc --version
+cosmos.patcher --version
+cosmos --version
+</code></pre>
+<p>If any step fails, re-run the script — it is designed to be idempotent and will clean up previous state before rebuilding.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/install-dev.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

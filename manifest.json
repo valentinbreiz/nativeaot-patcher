@@ -4529,6 +4529,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/install-dev.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/install-dev.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/install.md",
       "output": {
         ".html": {
