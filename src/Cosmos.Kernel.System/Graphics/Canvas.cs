@@ -85,6 +85,22 @@ public unsafe class Canvas
     }
 
     /// <summary>
+    /// Gets the hardware-backed full-screen canvas using the default graphics mode.
+    /// </summary>
+    public static Canvas GetFullScreen()
+    {
+        return FullScreenCanvas.GetFullScreenCanvas();
+    }
+
+    /// <summary>
+    /// Gets the hardware-backed full-screen canvas using the specified mode.
+    /// </summary>
+    public static Canvas GetFullScreen(Mode mode)
+    {
+        return FullScreenCanvas.GetFullScreenCanvas(mode);
+    }
+
+    /// <summary>
     /// Creates a virtual (buffer-backed) canvas of the given size.
     /// </summary>
     /// <param name="width">The width of the canvas in pixels.</param>

@@ -99,7 +99,7 @@ public class Kernel : Sys.Kernel
     private static void TestCanvasDrawing()
     {
         /* First test with the DefaultMode */
-        Canvas canvas = KernelConsole.Canvas;
+        Canvas canvas = KernelConsole.Default.Canvas;
 
         Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
         canvas.Clear(Color.Blue);
@@ -228,7 +228,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestVirtualCanvas()
     {
-        Canvas screen = KernelConsole.Canvas;
+        Canvas screen = KernelConsole.Default.Canvas;
 
         // Create a virtual canvas (not tied to framebuffer)
         var vCanvas = new Canvas(200, 100);

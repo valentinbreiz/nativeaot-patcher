@@ -44,10 +44,10 @@ public class ConsolePlug
     [PlugMember]
     public static void Clear()
     {
-        KernelConsole.Clear();
-        if (KernelConsole.IsAvailable)
+        KernelConsole.Default.Clear();
+        if (KernelConsole.Default.IsAvailable)
         {
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
         }
     }
 
@@ -61,7 +61,7 @@ public class ConsolePlug
     [PlugMember]
     public static void set_ForegroundColor(ConsoleColor value)
     {
-        KernelConsole.SetForegroundColor(value);
+        KernelConsole.Default.SetForegroundColor(value);
     }
 
     [PlugMember]
@@ -74,79 +74,79 @@ public class ConsolePlug
     [PlugMember]
     public static void set_BackgroundColor(ConsoleColor value)
     {
-        KernelConsole.SetBackgroundColor(value);
+        KernelConsole.Default.SetBackgroundColor(value);
     }
 
     [PlugMember]
     public static void ResetColor()
     {
-        KernelConsole.ResetColors();
+        KernelConsole.Default.ResetColors();
     }
 
     [PlugMember]
     public static int get_CursorLeft()
     {
-        return KernelConsole.CursorX;
+        return KernelConsole.Default.CursorX;
     }
 
     [PlugMember]
     public static void set_CursorLeft(int value)
     {
-        KernelConsole.CursorX = value;
+        KernelConsole.Default.CursorX = value;
     }
 
     [PlugMember]
     public static int get_CursorTop()
     {
-        return KernelConsole.CursorY;
+        return KernelConsole.Default.CursorY;
     }
 
     [PlugMember]
     public static void set_CursorTop(int value)
     {
-        KernelConsole.CursorY = value;
+        KernelConsole.Default.CursorY = value;
     }
 
     [PlugMember]
     public static void SetCursorPosition(int left, int top)
     {
-        KernelConsole.SetCursorPosition(left, top);
+        KernelConsole.Default.SetCursorPosition(left, top);
     }
 
     [PlugMember]
     public static bool get_CursorVisible()
     {
-        return KernelConsole.CursorVisible;
+        return KernelConsole.Default.CursorVisible;
     }
 
     [PlugMember]
     public static void set_CursorVisible(bool value)
     {
-        KernelConsole.CursorVisible = value;
+        KernelConsole.Default.CursorVisible = value;
     }
 
     [PlugMember]
     public static int get_WindowWidth()
     {
-        return KernelConsole.Cols;
+        return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_WindowHeight()
     {
-        return KernelConsole.Rows;
+        return KernelConsole.Default.Rows;
     }
 
     [PlugMember]
     public static int get_BufferWidth()
     {
-        return KernelConsole.Cols;
+        return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_BufferHeight()
     {
-        return KernelConsole.Rows;
+        return KernelConsole.Default.Rows;
     }
 
     [PlugMember]
@@ -168,10 +168,10 @@ public class ConsolePlug
 
         if (!intercept && keyEvent.KeyChar != '\0')
         {
-            KernelConsole.Write(keyEvent.KeyChar);
-            if (KernelConsole.IsAvailable)
+            KernelConsole.Default.Write(keyEvent.KeyChar);
+            if (KernelConsole.Default.IsAvailable)
             {
-                KernelConsole.Canvas.Display();
+                KernelConsole.Default.Canvas.Display();
             }
         }
 
