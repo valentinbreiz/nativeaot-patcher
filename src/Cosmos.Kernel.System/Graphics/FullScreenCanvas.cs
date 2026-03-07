@@ -32,7 +32,7 @@ public static class FullScreenCanvas
         VGADriver
     }
 
-    private static Canvas videoDriver = null;
+    private static Canvas? videoDriver = null;
 
     /// <summary>
     /// Gets a <see cref="Canvas"/> instance, using an implementation based on
