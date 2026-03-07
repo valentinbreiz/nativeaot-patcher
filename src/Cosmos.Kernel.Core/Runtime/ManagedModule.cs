@@ -134,7 +134,7 @@ public static unsafe partial class ManagedModule
 
             var spine = InitializeStatics(gcStaticBase, length);
             ref object rawSpineIndexData = ref MemoryMarshal.GetArrayDataReference(gcStaticBaseSpines);
-            //ref object rawSpineIndexData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(gcStaticBaseSpines).Data);            
+            //ref object rawSpineIndexData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(gcStaticBaseSpines).Data);
             // Avoid type check
             //gcStaticBaseSpines[moduleIndex] = spine;
             Unsafe.Add(ref rawSpineIndexData, moduleIndex) = spine;
@@ -172,7 +172,7 @@ public static unsafe partial class ManagedModule
         Serial.WriteString(" initializers for section ");
         Serial.WriteNumber((int)section);
         Serial.WriteString("\n");
-
+        ulong debug_index = 0;
         for (byte* pCurrent = pInitializers;
             pCurrent < (pInitializers + length);
             pCurrent += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
@@ -180,11 +180,15 @@ public static unsafe partial class ManagedModule
             Serial.WriteString("[ManagedModule] - Running Initializer at address ");
             Serial.WriteHex((uint)(nint)pCurrent);
             Serial.WriteString("\n");
+            Serial.WriteString("[ManagedModule] - Index ");
+            Serial.WriteHex(debug_index);
+            Serial.WriteString("\n");
             var initializer = MethodTable.SupportsRelativePointers ? (delegate*<void>)ReadRelPtr32(pCurrent) : *(delegate*<void>*)pCurrent;
             initializer();
             Serial.WriteString("[ManagedModule] - Completed Initializer at address ");
             Serial.WriteHex((uint)(nint)pCurrent);
             Serial.WriteString("\n");
+            debug_index++;
         }
 
         static void* ReadRelPtr32(void* address)

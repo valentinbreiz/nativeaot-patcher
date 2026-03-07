@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.CPU;
@@ -26,7 +27,6 @@ public static class ThreadPlug
     public static void Ctor(SysThread aThis, ThreadStart start)
     {
         Serial.WriteString("[ThreadPlug] Ctor(ThreadStart)\n");
-
         // Only disable interrupts if scheduler is running (to avoid issues during early boot)
         if (SchedulerManager.Enabled)
         {

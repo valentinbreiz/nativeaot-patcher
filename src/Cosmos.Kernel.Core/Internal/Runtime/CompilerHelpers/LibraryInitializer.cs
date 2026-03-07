@@ -26,6 +26,7 @@ namespace Internal.Runtime.CompilerHelpers
             // Initialize managed modules
             Serial.WriteString("[KERNEL]   - Initializing managed modules...\n");
             ManagedModule.InitializeModules();
+
         }
     }
 }

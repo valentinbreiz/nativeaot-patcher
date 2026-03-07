@@ -1,5 +1,6 @@
 <Project>
   <ItemGroup>
     <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel.Core.Runtime" />
+    <AutoInitializedAssemblies Include="Cosmos.Kernel.Core" />
   </ItemGroup>
 </Project>
