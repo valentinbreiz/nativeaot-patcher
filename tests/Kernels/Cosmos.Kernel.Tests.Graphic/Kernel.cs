@@ -37,12 +37,13 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 4);
+        TR.Start("Graphic Tests", expectedTests: 5);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
         TR.Run("ColorClass_Basic", TestColorClass);
         TR.Run("Canvas_Basic", TestCanvasDrawing);
+        TR.Run("VirtualCanvas_Basic", TestVirtualCanvas);
 
         Serial.WriteString("[TypeCasting Tests] All tests completed\n");
         TR.Finish();
@@ -223,5 +224,59 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("Freed: " + Heap.Collect());
 
         Serial.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
+    }
+
+    private static void TestVirtualCanvas()
+    {
+        Canvas screen = KernelConsole.Canvas;
+
+        // Create a virtual canvas (not tied to framebuffer)
+        var vCanvas = new Canvas(200, 100);
+
+        Assert.Equal(vCanvas.Width, 200, "Virtual canvas width is correct");
+        Assert.Equal(vCanvas.Height, 100, "Virtual canvas height is correct");
+
+        // Clear with a color
+        vCanvas.Clear(Color.DarkBlue);
+        Assert.Equal(vCanvas.GetPointColor(0, 0).ToArgb(), Color.DarkBlue.ToArgb(), "Virtual canvas Clear works");
+
+        // Draw a point
+        vCanvas.DrawPoint(Color.Red, 10, 10);
+        Assert.Equal(vCanvas.GetPointColor(10, 10).ToArgb(), Color.Red.ToArgb(), "Virtual canvas DrawPoint works");
+
+        // Draw a line
+        vCanvas.DrawLine(Color.Green, 0, 50, 199, 50);
+        Assert.Equal(vCanvas.GetPointColor(100, 50).ToArgb(), Color.Green.ToArgb(), "Virtual canvas DrawLine works");
+
+        // Draw a filled rectangle
+        vCanvas.DrawFilledRectangle(Color.Yellow, 50, 20, 40, 30);
+        Assert.Equal(vCanvas.GetPointColor(70, 35).ToArgb(), Color.Yellow.ToArgb(), "Virtual canvas DrawFilledRectangle works");
+
+        // GetBuffer should return the backing array
+        int[]? buffer = vCanvas.GetBuffer();
+        Assert.NotNull(buffer, "Virtual canvas GetBuffer returns non-null");
+        Assert.Equal(buffer!.Length, 200 * 100, "Virtual canvas buffer has correct size");
+
+        // Out-of-bounds draws should be silently ignored
+        vCanvas.DrawPoint(Color.White, -1, -1);
+        vCanvas.DrawPoint(Color.White, 200, 100);
+
+        // Blit virtual canvas onto the real screen
+        screen.DrawCanvas(vCanvas, 50, 50);
+
+        // Verify the blit worked by checking a pixel on the screen
+        // (50,50) on screen = (0,0) in vCanvas = DarkBlue (from Clear)
+        Color screenPixel = screen.GetPointColor(50, 50);
+        Assert.Equal(screenPixel.ToArgb(), Color.DarkBlue.ToArgb(), "DrawCanvas blits correctly to screen");
+
+        // Test a second virtual canvas blitted onto the first
+        var vCanvas2 = new Canvas(30, 30);
+        vCanvas2.Clear(Color.Magenta);
+        vCanvas.DrawCanvas(vCanvas2, 10, 10);
+        Assert.Equal(vCanvas.GetPointColor(20, 20).ToArgb(), Color.Magenta.ToArgb(), "Canvas-to-canvas DrawCanvas works");
+
+        screen.Display();
+
+        Serial.Write("Virtual canvas tests executed successfully\n");
     }
 }
