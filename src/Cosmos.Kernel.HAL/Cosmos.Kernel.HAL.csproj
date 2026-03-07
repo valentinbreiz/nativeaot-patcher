@@ -18,6 +18,7 @@
     <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL.Interfaces\Cosmos.Kernel.HAL.Interfaces.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- Multi-arch packaging support -->
