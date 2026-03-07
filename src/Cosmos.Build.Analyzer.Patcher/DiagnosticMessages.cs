@@ -5,16 +5,6 @@ namespace Cosmos.Build.Analyzer.Patcher;
 
 public sealed class DiagnosticMessages
 {
-    public static readonly DiagnosticDescriptor TypeNotFound = new(
-        "NAOT0001",
-        "Type Not Found",
-        "Type '{0}' could not be found",
-        "Naming",
-        DiagnosticSeverity.Error,
-        true,
-        "Ensure that the type name is correct and that the type is accessible."
-    );
-
     public static readonly DiagnosticDescriptor MemberNeedsPlug = new(
         "NAOT0002",
         "Member Needs Plug",
@@ -66,7 +56,18 @@ public sealed class DiagnosticMessages
         "A static constructor should have at most one parameter."
     );
 
+    public static readonly DiagnosticDescriptor LayerViolation = new(
+        "NAOT0007",
+        "Layer Violation",
+        "Assembly '{0}' is in layer '{1}' and cannot be referenced from a '{2}' layer project",
+        "Architecture",
+        DiagnosticSeverity.Warning,
+        true,
+        "Cosmos kernel layers must only reference the layer immediately below them. " +
+        "Layer order (lowest to highest): Native, Core, HAL, System, User."
+    );
 
-    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNotFound,
-        MemberNeedsPlug, MemberCanNotBeUsed, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams);
+    public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        MemberNeedsPlug, MemberCanNotBeUsed, PlugNameDoesNotMatch, MethodNotImplemented, StaticConstructorTooManyParams,
+        LayerViolation);
 }

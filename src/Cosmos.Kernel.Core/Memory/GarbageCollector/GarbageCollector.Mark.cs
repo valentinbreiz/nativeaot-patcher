@@ -259,6 +259,13 @@ public static unsafe partial class GarbageCollector
                 continue;
             }
 
+            // MethodTable must be in kernel address space (higher-half).
+            // Reject pointers in userspace range — they're garbage from conservative scanning.
+            if (mtPtr < 0xFFFF800000000000)
+            {
+                continue;
+            }
+
             if (obj->IsMarked)
             {
                 continue;
