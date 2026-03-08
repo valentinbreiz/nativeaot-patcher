@@ -48,24 +48,24 @@ public unsafe class Virtqueue
     public uint QueueSize => _queueSize;
 
     /// <summary>
-    /// Physical address of descriptor table.
+    /// Physical address of descriptor table (for DMA).
     /// </summary>
-    public ulong DescriptorTableAddr => (ulong)_descriptors;
+    public ulong DescriptorTableAddr => VirtioMMIO.VirtToPhys((ulong)_descriptors);
 
     /// <summary>
-    /// Physical address of available ring.
+    /// Physical address of available ring (for DMA).
     /// </summary>
-    public ulong AvailableRingAddr => (ulong)_available;
+    public ulong AvailableRingAddr => VirtioMMIO.VirtToPhys((ulong)_available);
 
     /// <summary>
-    /// Physical address of used ring.
+    /// Physical address of used ring (for DMA).
     /// </summary>
-    public ulong UsedRingAddr => (ulong)_used;
+    public ulong UsedRingAddr => VirtioMMIO.VirtToPhys((ulong)_used);
 
     /// <summary>
-    /// Base address of the entire queue (for legacy PFN calculation).
+    /// Physical base address of the entire queue (for legacy PFN calculation).
     /// </summary>
-    public ulong QueueBaseAddr => _baseAddress;
+    public ulong QueueBaseAddr => VirtioMMIO.VirtToPhys(_baseAddress);
 
     /// <summary>
     /// Creates a new virtqueue with the specified size.

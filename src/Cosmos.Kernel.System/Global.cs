@@ -48,9 +48,9 @@ public static class Global
             if (KernelConsole.Initialize())
             {
                 Serial.WriteString("[Global] KernelConsole initialized: ");
-                Serial.WriteNumber((ulong)KernelConsole.Cols);
+                Serial.WriteNumber((ulong)KernelConsole.Default.Cols);
                 Serial.WriteString("x");
-                Serial.WriteNumber((ulong)KernelConsole.Rows);
+                Serial.WriteNumber((ulong)KernelConsole.Default.Rows);
                 Serial.WriteString(" chars\n");
             }
             else

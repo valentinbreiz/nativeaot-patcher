@@ -299,7 +299,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         if (descIdx < 0)
             return;
 
-        ulong bufferAddr = (ulong)(&_eventBuffers[bufferIndex]);
+        ulong bufferAddr = VirtioMMIO.VirtToPhys((ulong)(&_eventBuffers[bufferIndex]));
         _eventQueue.SetupDescriptor(descIdx, bufferAddr, (uint)sizeof(VirtioInputEvent),
             Virtqueue.VRING_DESC_F_WRITE, 0);
         _eventQueue.AddAvailable((ushort)descIdx);
@@ -314,31 +314,29 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         Serial.WriteNumber(_irq);
         Serial.Write("\n");
 
-        // Configure interrupt as edge-triggered (virtio uses MSI-style signaling)
-        GIC.ConfigureInterrupt(_irq, true);
+        // Register handler BEFORE enabling the interrupt in the GIC.
+        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
-        // Enable interrupt in GIC
+        // Configure interrupt as level-triggered (VirtIO MMIO uses level-triggered signaling)
+        GIC.ConfigureInterrupt(_irq, false);
         GIC.SetPriority(_irq, 0x80);
         GIC.EnableInterrupt(_irq);
-
-        // Register handler
-        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
         Serial.Write("[VirtioKeyboard] IRQ handler registered\n");
     }
 
     private static void HandleIRQ(ref IRQContext ctx)
     {
-        if (Instance == null || !Instance._initialized)
+        if (Instance == null)
             return;
 
-        // Read and acknowledge interrupt
+        // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
-        VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        if (intStatus != 0)
+            VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
 
-        //Serial.Write("[VirtioKeyboard] IRQ! status=0x");
-        //Serial.WriteHex(intStatus);
-        //Serial.Write("\n");
+        if (!Instance._initialized)
+            return;
 
         // Process used buffers
         Instance.ProcessEvents();

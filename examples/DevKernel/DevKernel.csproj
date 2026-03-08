@@ -3,8 +3,8 @@
   <Sdk Name="Cosmos.Sdk" Version="3.0.38" />
 
   <PropertyGroup>
-    <CosmosEnableTimer>false</CosmosEnableTimer>
-    <CosmosEnableScheduler>true</CosmosEnableScheduler>
+    
+    
     
         
     <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>

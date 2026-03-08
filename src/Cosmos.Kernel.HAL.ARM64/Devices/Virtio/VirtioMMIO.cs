@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 
@@ -66,6 +67,19 @@ public static class VirtioMMIO
 
     // IRQ base for virtio devices on QEMU virt (SPI 16 = INTID 48)
     public const uint VIRTIO_IRQ_BASE = 48;
+
+    /// <summary>
+    /// Converts a kernel virtual address (HHDM) to a guest physical address for DMA.
+    /// Virtio devices perform DMA using guest physical addresses, not kernel virtual addresses.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ulong VirtToPhys(ulong virtAddr)
+    {
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        if (hhdmOffset != 0 && virtAddr >= hhdmOffset)
+            return virtAddr - hhdmOffset;
+        return virtAddr;
+    }
 
     /// <summary>
     /// Scans for virtio devices and returns information about found devices.

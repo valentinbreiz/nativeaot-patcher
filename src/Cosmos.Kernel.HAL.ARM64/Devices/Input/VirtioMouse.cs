@@ -249,7 +249,7 @@ public unsafe class VirtioMouse : MouseDevice
         if (descIdx < 0)
             return;
 
-        ulong bufferAddr = (ulong)(&_eventBuffers[bufferIndex]);
+        ulong bufferAddr = VirtioMMIO.VirtToPhys((ulong)(&_eventBuffers[bufferIndex]));
         _eventQueue.SetupDescriptor(descIdx, bufferAddr, (uint)sizeof(VirtioInputEvent),
             Virtqueue.VRING_DESC_F_WRITE, 0);
         _eventQueue.AddAvailable((ushort)descIdx);
@@ -264,26 +264,29 @@ public unsafe class VirtioMouse : MouseDevice
         Serial.WriteNumber(_irq);
         Serial.Write("\n");
 
-        GIC.ConfigureInterrupt(_irq, true);
+        // Register handler BEFORE enabling the interrupt in the GIC.
+        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
+
+        // Configure interrupt as level-triggered (VirtIO MMIO uses level-triggered signaling)
+        GIC.ConfigureInterrupt(_irq, false);
         GIC.SetPriority(_irq, 0x80);
         GIC.EnableInterrupt(_irq);
-        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
         Serial.Write("[VirtioMouse] IRQ handler registered\n");
     }
 
     private static void HandleIRQ(ref IRQContext ctx)
     {
-        if (Instance == null || !Instance._initialized)
+        if (Instance == null)
             return;
 
-        // Acknowledge interrupt
+        // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
-        VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        if (intStatus != 0)
+            VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
 
-        //Serial.Write("[VirtioMouse] IRQ! status=0x");
-        //Serial.WriteHex(intStatus);
-        //Serial.Write("\n");
+        if (!Instance._initialized)
+            return;
 
         Instance.ProcessEvents();
     }
