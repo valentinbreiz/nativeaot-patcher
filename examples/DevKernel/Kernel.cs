@@ -158,7 +158,7 @@ public class Kernel : Sys.Kernel
 
                 case "startx":
                     /* First test with the DefaultMode */
-                    Canvas canvas = KernelConsole.Default.Canvas;
+                    Canvas canvas = Canvas.GetFullScreen();
                     var font = PCScreenFont.DefaultFont;
 
                     int fps = 0;

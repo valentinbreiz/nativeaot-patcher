@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Graphics;
 /// that this implementation of <see cref="Canvas"/> only works on UEFI
 /// implementations, meaning that it is not available on BIOS systems.
 /// </summary>
-public class GopCanvas : Canvas
+internal class GopCanvas : Canvas
 {
     static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
     Mode mode;
