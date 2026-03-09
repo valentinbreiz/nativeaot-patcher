@@ -48,6 +48,8 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
         if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
         {
+            DeviceMapper.EnsureMapped(VirtioMMIO.VIRTIO_MMIO_BASE);
+
             // Scan for virtio devices
             Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
             VirtioMMIO.ScanDevices();

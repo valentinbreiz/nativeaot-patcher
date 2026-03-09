@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.System.Graphics.Fonts;
@@ -7,39 +8,45 @@ namespace Cosmos.Kernel.System.Graphics;
 /// <summary>
 /// Cell-based graphics console for kernel output.
 /// Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.
+/// Can be instantiated on any canvas (hardware or virtual).
 /// </summary>
-public static class KernelConsole
+public class KernelConsole
 {
-    // Lock for thread-safe console access
-    private static Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
+    // The default (global) instance, created by Initialize()
+    private static KernelConsole? _default;
 
-    private static Canvas? _canvas;
+    /// <summary>
+    /// Gets the default (global) console instance.
+    /// </summary>
+    public static KernelConsole? Default => _default;
+
+    // Lock for thread-safe console access
+    private Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
+
+    private Canvas _canvas;
 
     // Cursor position in character coordinates (column, row)
-    private static int _cursorX;
-    private static int _cursorY;
+    private int _cursorX;
+    private int _cursorY;
 
     // Terminal dimensions in characters
-    private static int _cols;
-    private static int _rows;
+    private int _cols;
+    private int _rows;
 
     // Character dimensions from font
-    private static int CharWidth;
-    private static int CharHeight;
+    private int _charWidth;
+    private int _charHeight;
 
     // Cell buffer - stores all characters and their colors
-    private static Cell[]? _cells;
+    private Cell[]? _cells;
 
     // Current colors
-    private static uint _foregroundColor = (uint)Color.White.ToArgb();
-    private static uint _backgroundColor = (uint)Color.Black.ToArgb();
+    private uint _foregroundColor = (uint)Color.White.ToArgb();
+    private uint _backgroundColor = (uint)Color.Black.ToArgb();
 
     // Cursor visibility
-    private static bool _cursorVisible = true;
-    private static bool _cursorDrawn = false;
-
-    // Initialization state
-    private static bool _isInitialized = false;
+    private bool _cursorVisible = true;
+    private bool _cursorDrawn = false;
 
     // Console color palette (standard 16 colors)
     private static readonly uint[] _palette = new uint[16]
@@ -62,35 +69,48 @@ public static class KernelConsole
         0xFFFFFFFF  // White
     };
 
-    /// <summary>
-    /// Gets whether graphics console is available and initialized.
-    /// </summary>
-    //public static unsafe bool IsAvailable => _isInitialized && Canvas.Address != null;
-    public static bool IsAvailable => _isInitialized;
+    private Font _font;
 
     /// <summary>
-    /// Gets whether the graphics console has been initialized.
+    /// Creates a new KernelConsole on the given canvas.
     /// </summary>
-    public static bool IsInitialized => _isInitialized;
+    /// <param name="canvas">The canvas to render to.</param>
+    /// <param name="font">The font to use (defaults to PCScreenFont.DefaultFont).</param>
+    public KernelConsole(Canvas canvas, Font? font = null)
+    {
+        _canvas = canvas;
+        _font = font ?? PCScreenFont.DefaultFont;
+        _charWidth = _font.Width;
+        _charHeight = _font.Height;
 
-    private static Font _font = PCScreenFont.DefaultFont;
+        _cols = canvas.Width / _charWidth;
+        _rows = canvas.Height / _charHeight;
+        _cells = new Cell[_cols * _rows];
+
+        ClearCells();
+    }
 
     /// <summary>
-    /// Gets or sets the font used in the graphics console.
+    /// Gets whether this console is available (has a valid canvas).
     /// </summary>
-    public static Font Font
+    public bool IsAvailable => _canvas != null;
+
+    /// <summary>
+    /// Gets or sets the font used in this console.
+    /// </summary>
+    public Font Font
     {
         get => _font;
         set
         {
-            CharWidth = value.Width;
-            CharHeight = value.Height;
+            _charWidth = value.Width;
+            _charHeight = value.Height;
 
             CursorX = 0;
             CursorY = 0;
 
-            _cols = (int)_canvas.Mode.Width / CharWidth;
-            _rows = (int)_canvas.Mode.Height / CharHeight;
+            _cols = _canvas.Width / _charWidth;
+            _rows = _canvas.Height / _charHeight;
             _cells = new Cell[_cols * _rows];
 
             ClearCells();
@@ -105,7 +125,7 @@ public static class KernelConsole
     /// <summary>
     /// Gets or sets the cursor X position (column).
     /// </summary>
-    public static int CursorX
+    public int CursorX
     {
         get => _cursorX;
         set
@@ -122,7 +142,7 @@ public static class KernelConsole
     /// <summary>
     /// Gets or sets the cursor Y position (row).
     /// </summary>
-    public static int CursorY
+    public int CursorY
     {
         get => _cursorY;
         set
@@ -139,17 +159,17 @@ public static class KernelConsole
     /// <summary>
     /// Gets the number of columns in the terminal.
     /// </summary>
-    public static int Cols => _cols;
+    public int Cols => _cols;
 
     /// <summary>
     /// Gets the number of rows in the terminal.
     /// </summary>
-    public static int Rows => _rows;
+    public int Rows => _rows;
 
     /// <summary>
     /// Gets or sets whether the cursor is visible.
     /// </summary>
-    public static bool CursorVisible
+    public bool CursorVisible
     {
         get => _cursorVisible;
         set
@@ -168,7 +188,7 @@ public static class KernelConsole
     /// <summary>
     /// Gets or sets the foreground color.
     /// </summary>
-    public static uint ForegroundColor
+    public uint ForegroundColor
     {
         get => _foregroundColor;
         set => _foregroundColor = value;
@@ -177,18 +197,21 @@ public static class KernelConsole
     /// <summary>
     /// Gets or sets the background color.
     /// </summary>
-    public static uint BackgroundColor
+    public uint BackgroundColor
     {
         get => _backgroundColor;
         set => _backgroundColor = value;
     }
 
-    public static Canvas Canvas => _canvas;
+    /// <summary>
+    /// Gets the canvas this console renders to.
+    /// </summary>
+    public Canvas Canvas => _canvas;
 
     /// <summary>
     /// Sets the foreground color from ConsoleColor enum.
     /// </summary>
-    public static void SetForegroundColor(ConsoleColor color)
+    public void SetForegroundColor(ConsoleColor color)
     {
         _foregroundColor = _palette[(int)color];
     }
@@ -196,7 +219,7 @@ public static class KernelConsole
     /// <summary>
     /// Sets the background color from ConsoleColor enum.
     /// </summary>
-    public static void SetBackgroundColor(ConsoleColor color)
+    public void SetBackgroundColor(ConsoleColor color)
     {
         _backgroundColor = _palette[(int)color];
     }
@@ -210,7 +233,7 @@ public static class KernelConsole
     }
 
     /// <summary>
-    /// Initializes the graphics framebuffer and console.
+    /// Initializes the default (global) console on the hardware framebuffer.
     /// </summary>
     public static bool Initialize()
     {
@@ -219,39 +242,32 @@ public static class KernelConsole
             return false;
         }
 
-        if (_isInitialized)
+        if (_default != null)
             return false;
 
-        _isInitialized = true;
+        var canvas = Canvas.GetFullScreen();
 
-        _canvas = FullScreenCanvas.GetFullScreenCanvas();    // canvas = GetFullScreenCanvas(start);
-
-        CharWidth = Font.Width;
-        CharHeight = Font.Height;
+        _default = new KernelConsole(canvas);
 
         /* Clear the Screen with the color 'Blue' */
-        _canvas.Clear(Color.Blue);
-
-        // Calculate terminal dimensions based on font size
-        _cols = (int)_canvas.Mode.Width / CharWidth;
-        _rows = (int)_canvas.Mode.Height / CharHeight;
-        // Allocate cell buffer
-        _cells = new Cell[_cols * _rows];
-
-        // Initialize all cells to empty with default colors
-        ClearCells();
+        canvas.Clear(Color.Blue);
 
         // Clear screen
-        _canvas.Clear((int)_backgroundColor);
-        _canvas.Display();
+        canvas.Clear((int)_default._backgroundColor);
+        canvas.Display();
 
         return true;
     }
 
     /// <summary>
+    /// Gets whether the default console has been initialized.
+    /// </summary>
+    public static bool IsInitialized => _default != null;
+
+    /// <summary>
     /// Gets the cell index for a given row and column.
     /// </summary>
-    private static int GetIndex(int row, int col)
+    private int GetIndex(int row, int col)
     {
         return row * _cols + col;
     }
@@ -259,7 +275,7 @@ public static class KernelConsole
     /// <summary>
     /// Clears all cells to empty with current colors.
     /// </summary>
-    private static void ClearCells()
+    private void ClearCells()
     {
         if (_cells == null) return;
 
@@ -273,7 +289,7 @@ public static class KernelConsole
     /// Sets the cursor position.
     /// Thread-safe.
     /// </summary>
-    public static void SetCursorPosition(int x, int y)
+    public void SetCursorPosition(int x, int y)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -298,30 +314,30 @@ public static class KernelConsole
     /// <summary>
     /// Draws the cursor at the current position.
     /// </summary>
-    private static void DrawCursor()
+    private void DrawCursor()
     {
         if (!IsAvailable || !_cursorVisible || _cursorDrawn)
             return;
 
         // Draw cursor as an underline bar at the bottom of the character cell
-        int pixelX = _cursorX * CharWidth;
-        int pixelY = _cursorY * CharHeight + CharHeight - 2;
+        int pixelX = _cursorX * _charWidth;
+        int pixelY = _cursorY * _charHeight + _charHeight - 2;
 
-        _canvas.DrawFilledRectangle(Color.FromArgb((int)_foregroundColor), pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)_foregroundColor), pixelX, pixelY, _charWidth, 2);
         _cursorDrawn = true;
     }
 
     /// <summary>
     /// Erases the cursor at the current position.
     /// </summary>
-    private static void EraseCursor()
+    private void EraseCursor()
     {
         if (!IsAvailable || !_cursorDrawn)
             return;
 
         // Erase cursor by redrawing background
-        int pixelX = _cursorX * CharWidth;
-        int pixelY = _cursorY * CharHeight + CharHeight - 2;
+        int pixelX = _cursorX * _charWidth;
+        int pixelY = _cursorY * _charHeight + _charHeight - 2;
 
         // Get the background color of the current cell
         uint bgColor = _backgroundColor;
@@ -331,14 +347,14 @@ public static class KernelConsole
             bgColor = _cells[index].BackgroundColor;
         }
 
-        _canvas.DrawFilledRectangle(Color.FromArgb((int)bgColor), pixelX, pixelY, CharWidth, 2);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)bgColor), pixelX, pixelY, _charWidth, 2);
         _cursorDrawn = false;
     }
 
     /// <summary>
     /// Draws a character at a specific cell position.
     /// </summary>
-    private static void DrawCharAt(int col, int row)
+    private void DrawCharAt(int col, int row)
     {
         if (!IsAvailable || _cells == null)
             return;
@@ -348,11 +364,11 @@ public static class KernelConsole
             return;
 
         ref Cell cell = ref _cells[index];
-        int pixelX = col * CharWidth;
-        int pixelY = row * CharHeight;
+        int pixelX = col * _charWidth;
+        int pixelY = row * _charHeight;
 
         // Draw background
-        _canvas.DrawFilledRectangle(Color.FromArgb((int)cell.BackgroundColor), pixelX, pixelY, CharWidth, CharHeight);
+        _canvas.DrawFilledRectangle(Color.FromArgb((int)cell.BackgroundColor), pixelX, pixelY, _charWidth, _charHeight);
 
         // Draw character if not empty
         if (cell.Char != '\0' && cell.Char != '\n')
@@ -365,7 +381,7 @@ public static class KernelConsole
     /// Redraws the entire screen from the cell buffer.
     /// Thread-safe.
     /// </summary>
-    public static void Redraw()
+    public void Redraw()
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -387,7 +403,7 @@ public static class KernelConsole
     /// <summary>
     /// Internal redraw (must be called with lock held).
     /// </summary>
-    private static void RedrawInternal()
+    private void RedrawInternal()
     {
         if (_cells == null)
             return;
@@ -407,8 +423,8 @@ public static class KernelConsole
 
                 if (cell.Char != '\0' && cell.Char != '\n')
                 {
-                    int pixelX = col * CharWidth;
-                    int pixelY = row * CharHeight;
+                    int pixelX = col * _charWidth;
+                    int pixelY = row * _charHeight;
                     _canvas.DrawChar(cell.Char, Font, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
                 }
             }
@@ -421,7 +437,7 @@ public static class KernelConsole
     /// Writes a character at the current cursor position.
     /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
-    public static void Write(char c)
+    public void Write(char c)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -443,7 +459,7 @@ public static class KernelConsole
     /// <summary>
     /// Internal write implementation (must be called with lock held).
     /// </summary>
-    private static void WriteInternal(char c)
+    private void WriteInternal(char c)
     {
         EraseCursor();
 
@@ -484,7 +500,7 @@ public static class KernelConsole
     /// <summary>
     /// Internal tab (called with lock held, avoids recursive Write).
     /// </summary>
-    private static void DoTabInternal()
+    private void DoTabInternal()
     {
         int spaces = 4 - (_cursorX % 4);
         for (int i = 0; i < spaces; i++)
@@ -497,7 +513,7 @@ public static class KernelConsole
     /// Writes a string at the current cursor position.
     /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
-    public static void Write(string text)
+    public void Write(string text)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -523,7 +539,7 @@ public static class KernelConsole
     /// Writes a Span of character at the current cursor position
     /// </summary>
     /// <param name="buffer">Span of characters to write</param>
-    public static void Write(ReadOnlySpan<char> buffer)
+    public void Write(ReadOnlySpan<char> buffer)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -549,7 +565,7 @@ public static class KernelConsole
     /// Writes a character followed by a newline.
     /// Thread-safe.
     /// </summary>
-    public static void WriteLine(char c)
+    public void WriteLine(char c)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -575,7 +591,7 @@ public static class KernelConsole
     /// Writes a string followed by a newline.
     /// Thread-safe.
     /// </summary>
-    public static void WriteLine(string text)
+    public void WriteLine(string text)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -605,7 +621,7 @@ public static class KernelConsole
     /// Writes a newline.
     /// Thread-safe.
     /// </summary>
-    public static void WriteLine()
+    public void WriteLine()
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -629,7 +645,7 @@ public static class KernelConsole
     /// <summary>
     /// Performs a line feed (move to next line, column 0).
     /// </summary>
-    private static void DoLineFeed()
+    private void DoLineFeed()
     {
         _cursorX = 0;
         _cursorY++;
@@ -644,7 +660,7 @@ public static class KernelConsole
     /// <summary>
     /// Performs a carriage return (move to column 0).
     /// </summary>
-    private static void DoCarriageReturn()
+    private void DoCarriageReturn()
     {
         _cursorX = 0;
     }
@@ -652,7 +668,7 @@ public static class KernelConsole
     /// <summary>
     /// Performs a backspace (move cursor back and clear character).
     /// </summary>
-    private static void DoBackspace()
+    private void DoBackspace()
     {
         if (_cursorX > 0)
         {
@@ -674,7 +690,7 @@ public static class KernelConsole
     /// <summary>
     /// Moves the cursor left by one position.
     /// </summary>
-    public static void MoveCursorLeft()
+    public void MoveCursorLeft()
     {
         if (_cursorX > 0)
         {
@@ -687,7 +703,7 @@ public static class KernelConsole
     /// <summary>
     /// Moves the cursor right by one position.
     /// </summary>
-    public static void MoveCursorRight()
+    public void MoveCursorRight()
     {
         if (_cursorX < _cols - 1)
         {
@@ -700,7 +716,7 @@ public static class KernelConsole
     /// <summary>
     /// Moves the cursor up by one position.
     /// </summary>
-    public static void MoveCursorUp()
+    public void MoveCursorUp()
     {
         if (_cursorY > 0)
         {
@@ -713,7 +729,7 @@ public static class KernelConsole
     /// <summary>
     /// Moves the cursor down by one position.
     /// </summary>
-    public static void MoveCursorDown()
+    public void MoveCursorDown()
     {
         if (_cursorY < _rows - 1)
         {
@@ -727,7 +743,7 @@ public static class KernelConsole
     /// Scrolls the terminal up by one line.
     /// Must be called with lock held.
     /// </summary>
-    private static void Scroll()
+    private void Scroll()
     {
         if (_cells == null)
             return;
@@ -758,7 +774,7 @@ public static class KernelConsole
     /// Clears the entire screen.
     /// Thread-safe.
     /// </summary>
-    public static void Clear()
+    public void Clear()
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -785,7 +801,7 @@ public static class KernelConsole
     /// <summary>
     /// Resets colors to default (white on black).
     /// </summary>
-    public static void ResetColors()
+    public void ResetColors()
     {
         _foregroundColor = (uint)Color.White.ToArgb();
         _backgroundColor = (uint)Color.Black.ToArgb();
@@ -794,7 +810,7 @@ public static class KernelConsole
     /// <summary>
     /// Gets the character at the specified position.
     /// </summary>
-    public static char GetCharAt(int col, int row)
+    public char GetCharAt(int col, int row)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
             return '\0';
@@ -806,7 +822,7 @@ public static class KernelConsole
     /// <summary>
     /// Gets the cell at the specified position.
     /// </summary>
-    public static Cell GetCellAt(int col, int row)
+    public Cell GetCellAt(int col, int row)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
             return Cell.Empty(_foregroundColor, _backgroundColor);
@@ -818,7 +834,7 @@ public static class KernelConsole
     /// <summary>
     /// Sets the cell at the specified position.
     /// </summary>
-    public static void SetCellAt(int col, int row, Cell cell)
+    public void SetCellAt(int col, int row, Cell cell)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
             return;

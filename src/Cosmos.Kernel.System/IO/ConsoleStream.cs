@@ -24,10 +24,10 @@ public sealed class ConsoleStream : Stream
     public override void Write(ReadOnlySpan<byte> buffer)
     {
         var value = Console.OutputEncoding.GetString(buffer);
-        KernelConsole.Write(value);
-        if (KernelConsole.IsAvailable)
+        KernelConsole.Default.Write(value);
+        if (KernelConsole.Default.IsAvailable)
         {
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
         }
     }
     public override int Read(Span<byte> buffer)
@@ -71,7 +71,7 @@ public sealed class ConsoleStream : Stream
         Write(new ReadOnlySpan<byte>(buffer, offset, count));
     }
 
-    public override void WriteByte(byte value) => KernelConsole.Write((char)value);
+    public override void WriteByte(byte value) => KernelConsole.Default.Write((char)value);
 
     public override int Read(byte[] buffer, int offset, int count)
     {
@@ -143,10 +143,10 @@ public sealed class ConsoleStream : Stream
             switch (keyEvent.Key)
             {
                 case ConsoleKeyEx.Enter:
-                    KernelConsole.WriteLine();
-                    if (KernelConsole.IsAvailable)
+                    KernelConsole.Default.WriteLine();
+                    if (KernelConsole.Default.IsAvailable)
                     {
-                        KernelConsole.Canvas.Display();
+                        KernelConsole.Default.Canvas.Display();
                     }
                     return true;
 
@@ -158,35 +158,35 @@ public sealed class ConsoleStream : Stream
                         cursorPos--;
 
                         // Move cursor back
-                        KernelConsole.MoveCursorLeft();
+                        KernelConsole.Default.MoveCursorLeft();
 
                         // If we're not at the end, shift remaining chars left
                         if (cursorPos < _readLineSB.Length)
                         {
                             // Save current position
-                            int savedX = KernelConsole.CursorX;
-                            int savedY = KernelConsole.CursorY;
+                            int savedX = KernelConsole.Default.CursorX;
+                            int savedY = KernelConsole.Default.CursorY;
 
                             // Redraw remaining characters
                             for (int i = cursorPos; i < _readLineSB.Length; i++)
                             {
-                                KernelConsole.Write(_readLineSB[i]);
+                                KernelConsole.Default.Write(_readLineSB[i]);
                             }
                             // Clear the last position (now empty)
-                            KernelConsole.Write(' ');
+                            KernelConsole.Default.Write(' ');
 
                             // Restore cursor position
-                            KernelConsole.SetCursorPosition(savedX, savedY);
+                            KernelConsole.Default.SetCursorPosition(savedX, savedY);
                         }
                         else
                         {
                             // Simple case: at end of string
-                            KernelConsole.Write(' ');
-                            KernelConsole.MoveCursorLeft();
+                            KernelConsole.Default.Write(' ');
+                            KernelConsole.Default.MoveCursorLeft();
                         }
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -198,23 +198,23 @@ public sealed class ConsoleStream : Stream
                         _readLineSB.Remove(cursorPos, 1);
 
                         // Save current position
-                        int savedX = KernelConsole.CursorX;
-                        int savedY = KernelConsole.CursorY;
+                        int savedX = KernelConsole.Default.CursorX;
+                        int savedY = KernelConsole.Default.CursorY;
 
                         // Redraw remaining characters
                         for (int i = cursorPos; i < _readLineSB.Length; i++)
                         {
-                            KernelConsole.Write(_readLineSB[i]);
+                            KernelConsole.Default.Write(_readLineSB[i]);
                         }
                         // Clear the last position (now empty)
-                        KernelConsole.Write(' ');
+                        KernelConsole.Default.Write(' ');
 
                         // Restore cursor position
-                        KernelConsole.SetCursorPosition(savedX, savedY);
+                        KernelConsole.Default.SetCursorPosition(savedX, savedY);
 
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -223,10 +223,10 @@ public sealed class ConsoleStream : Stream
                     if (cursorPos > 0)
                     {
                         cursorPos--;
-                        KernelConsole.MoveCursorLeft();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorLeft();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -235,10 +235,10 @@ public sealed class ConsoleStream : Stream
                     if (cursorPos < _readLineSB.Length)
                     {
                         cursorPos++;
-                        KernelConsole.MoveCursorRight();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorRight();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -248,10 +248,10 @@ public sealed class ConsoleStream : Stream
                     while (cursorPos > 0)
                     {
                         cursorPos--;
-                        KernelConsole.MoveCursorLeft();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorLeft();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -261,10 +261,10 @@ public sealed class ConsoleStream : Stream
                     while (cursorPos < _readLineSB.Length)
                     {
                         cursorPos++;
-                        KernelConsole.MoveCursorRight();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorRight();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -279,28 +279,28 @@ public sealed class ConsoleStream : Stream
                             cursorPos++;
 
                             // Save current position after typing the new char
-                            int afterTyping = KernelConsole.CursorX + 1;
-                            int savedY = KernelConsole.CursorY;
+                            int afterTyping = KernelConsole.Default.CursorX + 1;
+                            int savedY = KernelConsole.Default.CursorY;
 
                             // Redraw from current position
                             for (int i = cursorPos - 1; i < _readLineSB.Length; i++)
                             {
-                                KernelConsole.Write(_readLineSB[i]);
+                                KernelConsole.Default.Write(_readLineSB[i]);
                             }
 
                             // Move cursor to correct position
-                            KernelConsole.SetCursorPosition(afterTyping, savedY);
+                            KernelConsole.Default.SetCursorPosition(afterTyping, savedY);
                         }
                         else
                         {
                             // Append character at end
                             _readLineSB.Append(keyEvent.KeyChar);
                             cursorPos++;
-                            KernelConsole.Write(keyEvent.KeyChar);
+                            KernelConsole.Default.Write(keyEvent.KeyChar);
                         }
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
