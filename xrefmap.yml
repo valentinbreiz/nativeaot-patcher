@@ -8783,6 +8783,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.FindDevice
   nameWithType: VirtioMMIO.FindDevice
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt(System.UInt64)
+  name: PhysToVirt(ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_PhysToVirt_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt(System.UInt64)
+  name.vb: PhysToVirt(ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt(ULong)
+  nameWithType: VirtioMMIO.PhysToVirt(ulong)
+  nameWithType.vb: VirtioMMIO.PhysToVirt(ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt*
+  name: PhysToVirt
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_PhysToVirt_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.PhysToVirt
+  nameWithType: VirtioMMIO.PhysToVirt
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.REG_CONFIG
   name: REG_CONFIG
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_REG_CONFIG
@@ -9102,6 +9118,22 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MMIO_SIZE
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VIRTIO_MMIO_SIZE
   nameWithType: VirtioMMIO.VIRTIO_MMIO_SIZE
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys(System.UInt64)
+  name: VirtToPhys(ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VirtToPhys_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys(System.UInt64)
+  name.vb: VirtToPhys(ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys(ULong)
+  nameWithType: VirtioMMIO.VirtToPhys(ulong)
+  nameWithType.vb: VirtioMMIO.VirtToPhys(ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys*
+  name: VirtToPhys
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_VirtToPhys_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.VirtToPhys
+  nameWithType: VirtioMMIO.VirtToPhys
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.Write16(System.UInt64,System.UInt32,System.UInt16)
   name: Write16(ulong, uint, ushort)
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioMMIO_Write16_System_UInt64_System_UInt32_System_UInt16_
@@ -16562,6 +16594,15 @@ references:
   fullName.vb: Cosmos.Kernel.System.Graphics.Canvas.New(Cosmos.Kernel.System.Graphics.Mode)
   nameWithType: Canvas.Canvas(Mode)
   nameWithType.vb: Canvas.New(Mode)
+- uid: Cosmos.Kernel.System.Graphics.Canvas.#ctor(System.Int32,System.Int32,Cosmos.Kernel.System.Graphics.ColorDepth)
+  name: Canvas(int, int, ColorDepth)
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas__ctor_System_Int32_System_Int32_Cosmos_Kernel_System_Graphics_ColorDepth_
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.#ctor(System.Int32,System.Int32,Cosmos.Kernel.System.Graphics.ColorDepth)
+  name.vb: New(Integer, Integer, ColorDepth)
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Canvas(int, int, Cosmos.Kernel.System.Graphics.ColorDepth)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Canvas.New(Integer, Integer, Cosmos.Kernel.System.Graphics.ColorDepth)
+  nameWithType: Canvas.Canvas(int, int, ColorDepth)
+  nameWithType.vb: Canvas.New(Integer, Integer, ColorDepth)
 - uid: Cosmos.Kernel.System.Graphics.Canvas.#ctor*
   name: Canvas
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas__ctor_
@@ -16601,6 +16642,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.AvailableModes
   nameWithType: Canvas.AvailableModes
+- uid: Cosmos.Kernel.System.Graphics.Canvas.Buffer
+  name: Buffer
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Buffer
+  commentId: F:Cosmos.Kernel.System.Graphics.Canvas.Buffer
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Buffer
+  nameWithType: Canvas.Buffer
 - uid: Cosmos.Kernel.System.Graphics.Canvas.CheckIfModeIsValid(Cosmos.Kernel.System.Graphics.Mode)
   name: CheckIfModeIsValid(Mode)
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_CheckIfModeIsValid_Cosmos_Kernel_System_Graphics_Mode_
@@ -16747,6 +16794,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.DrawArray
   nameWithType: Canvas.DrawArray
+- uid: Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas,System.Int32,System.Int32)
+  name: DrawCanvas(Canvas, int, int)
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_Cosmos_Kernel_System_Graphics_Canvas_System_Int32_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas,System.Int32,System.Int32)
+  name.vb: DrawCanvas(Canvas, Integer, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas, int, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas, Integer, Integer)
+  nameWithType: Canvas.DrawCanvas(Canvas, int, int)
+  nameWithType.vb: Canvas.DrawCanvas(Canvas, Integer, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas*
+  name: DrawCanvas
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas
+  nameWithType: Canvas.DrawCanvas
 - uid: Cosmos.Kernel.System.Graphics.Canvas.DrawChar(System.Char,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)
   name: DrawChar(char, Font, Color, int, int)
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawChar_System_Char_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_
@@ -17014,6 +17077,38 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.DrawTriangle
   nameWithType: Canvas.DrawTriangle
+- uid: Cosmos.Kernel.System.Graphics.Canvas.GetBuffer
+  name: GetBuffer()
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetBuffer
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.GetBuffer
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.GetBuffer()
+  nameWithType: Canvas.GetBuffer()
+- uid: Cosmos.Kernel.System.Graphics.Canvas.GetBuffer*
+  name: GetBuffer
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetBuffer_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.GetBuffer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.GetBuffer
+  nameWithType: Canvas.GetBuffer
+- uid: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen
+  name: GetFullScreen()
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen()
+  nameWithType: Canvas.GetFullScreen()
+- uid: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode)
+  name: GetFullScreen(Mode)
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_Cosmos_Kernel_System_Graphics_Mode_
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode)
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode)
+  nameWithType: Canvas.GetFullScreen(Mode)
+- uid: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen*
+  name: GetFullScreen
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen
+  nameWithType: Canvas.GetFullScreen
 - uid: Cosmos.Kernel.System.Graphics.Canvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)
   name: GetImage(int, int, int, int)
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetImage_System_Int32_System_Int32_System_Int32_System_Int32_
@@ -17062,6 +17157,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.GetRawPointColor
   nameWithType: Canvas.GetRawPointColor
+- uid: Cosmos.Kernel.System.Graphics.Canvas.Height
+  name: Height
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Height
+  commentId: P:Cosmos.Kernel.System.Graphics.Canvas.Height
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Height
+  nameWithType: Canvas.Height
+- uid: Cosmos.Kernel.System.Graphics.Canvas.Height*
+  name: Height
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Height_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.Height
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Height
+  nameWithType: Canvas.Height
 - uid: Cosmos.Kernel.System.Graphics.Canvas.Mode
   name: Mode
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Mode
@@ -17133,6 +17241,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.TrimLine
   nameWithType: Canvas.TrimLine
+- uid: Cosmos.Kernel.System.Graphics.Canvas.Width
+  name: Width
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Width
+  commentId: P:Cosmos.Kernel.System.Graphics.Canvas.Width
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Width
+  nameWithType: Canvas.Width
+- uid: Cosmos.Kernel.System.Graphics.Canvas.Width*
+  name: Width
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Width_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.Width
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.Width
+  nameWithType: Canvas.Width
 - uid: Cosmos.Kernel.System.Graphics.Cell
   name: Cell
   href: api/Cosmos.Kernel.System.Graphics.Cell.html
@@ -17527,320 +17648,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas
   nameWithType: FullScreenCanvas.TryGetFullScreenCanvas
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas
-  name: GopCanvas
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html
-  commentId: T:Cosmos.Kernel.System.Graphics.GopCanvas
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas
-  nameWithType: GopCanvas
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.#ctor
-  name: GopCanvas()
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas__ctor
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.#ctor
-  name.vb: New()
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GopCanvas()
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.New()
-  nameWithType: GopCanvas.GopCanvas()
-  nameWithType.vb: GopCanvas.New()
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.#ctor(Cosmos.Kernel.System.Graphics.Mode)
-  name: GopCanvas(Mode)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas__ctor_Cosmos_Kernel_System_Graphics_Mode_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.#ctor(Cosmos.Kernel.System.Graphics.Mode)
-  name.vb: New(Mode)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GopCanvas(Cosmos.Kernel.System.Graphics.Mode)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.New(Cosmos.Kernel.System.Graphics.Mode)
-  nameWithType: GopCanvas.GopCanvas(Mode)
-  nameWithType.vb: GopCanvas.New(Mode)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.#ctor*
-  name: GopCanvas
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas__ctor_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.#ctor
-  isSpec: "True"
-  name.vb: New
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GopCanvas
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.New
-  nameWithType: GopCanvas.GopCanvas
-  nameWithType.vb: GopCanvas.New
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes
-  name: AvailableModes
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_AvailableModes
-  commentId: P:Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes
-  nameWithType: GopCanvas.AvailableModes
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes*
-  name: AvailableModes
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_AvailableModes_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.AvailableModes
-  nameWithType: GopCanvas.AvailableModes
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Drawing.Color)
-  name: Clear(Color)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Clear_System_Drawing_Color_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Drawing.Color)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Drawing.Color)
-  nameWithType: GopCanvas.Clear(Color)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Int32)
-  name: Clear(int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Clear_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.Clear(System.Int32)
-  name.vb: Clear(Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Clear(int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.Clear(Integer)
-  nameWithType: GopCanvas.Clear(int)
-  nameWithType.vb: GopCanvas.Clear(Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Clear*
-  name: Clear
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Clear_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.Clear
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Clear
-  nameWithType: GopCanvas.Clear
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)
-  name: CroppedDrawImage(Image, int, int, int, int, bool)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_CroppedDrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)
-  name.vb: CroppedDrawImage(Image, Integer, Integer, Integer, Integer, Boolean)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image, int, int, int, int, bool)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image, Integer, Integer, Integer, Integer, Boolean)
-  nameWithType: GopCanvas.CroppedDrawImage(Image, int, int, int, int, bool)
-  nameWithType.vb: GopCanvas.CroppedDrawImage(Image, Integer, Integer, Integer, Integer, Boolean)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage*
-  name: CroppedDrawImage
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_CroppedDrawImage_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.CroppedDrawImage
-  nameWithType: GopCanvas.CroppedDrawImage
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode
-  name: DefaultGraphicsMode
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DefaultGraphicsMode
-  commentId: P:Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode
-  nameWithType: GopCanvas.DefaultGraphicsMode
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode*
-  name: DefaultGraphicsMode
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DefaultGraphicsMode_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DefaultGraphicsMode
-  nameWithType: GopCanvas.DefaultGraphicsMode
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Disable
-  name: Disable()
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Disable
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.Disable
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Disable()
-  nameWithType: GopCanvas.Disable()
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Disable*
-  name: Disable
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Disable_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.Disable
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Disable
-  nameWithType: GopCanvas.Disable
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Display
-  name: Display()
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Display
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.Display
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Display()
-  nameWithType: GopCanvas.Display()
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Display*
-  name: Display
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Display_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.Display
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Display
-  nameWithType: GopCanvas.Display
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Drawing.Color[],System.Int32,System.Int32,System.Int32,System.Int32)
-  name: DrawArray(Color[], int, int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Drawing_Color___System_Int32_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Drawing.Color[],System.Int32,System.Int32,System.Int32,System.Int32)
-  name.vb: DrawArray(Color(), Integer, Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Drawing.Color[], int, int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Drawing.Color(), Integer, Integer, Integer, Integer)
-  nameWithType: GopCanvas.DrawArray(Color[], int, int, int, int)
-  nameWithType.vb: GopCanvas.DrawArray(Color(), Integer, Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32)
-  name: DrawArray(int[], int, int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32)
-  name.vb: DrawArray(Integer(), Integer, Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(int[], int, int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(Integer(), Integer, Integer, Integer, Integer)
-  nameWithType: GopCanvas.DrawArray(int[], int, int, int, int)
-  nameWithType.vb: GopCanvas.DrawArray(Integer(), Integer, Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)
-  name: DrawArray(int[], int, int, int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)
-  name.vb: DrawArray(Integer(), Integer, Integer, Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(int[], int, int, int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray(Integer(), Integer, Integer, Integer, Integer, Integer)
-  nameWithType: GopCanvas.DrawArray(int[], int, int, int, int, int)
-  nameWithType.vb: GopCanvas.DrawArray(Integer(), Integer, Integer, Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray*
-  name: DrawArray
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawArray_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawArray
-  nameWithType: GopCanvas.DrawArray
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)
-  name: DrawFilledRectangle(Color, int, int, int, int, bool)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)
-  name.vb: DrawFilledRectangle(Color, Integer, Integer, Integer, Integer, Boolean)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle(System.Drawing.Color, int, int, int, int, bool)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle(System.Drawing.Color, Integer, Integer, Integer, Integer, Boolean)
-  nameWithType: GopCanvas.DrawFilledRectangle(Color, int, int, int, int, bool)
-  nameWithType.vb: GopCanvas.DrawFilledRectangle(Color, Integer, Integer, Integer, Integer, Boolean)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle*
-  name: DrawFilledRectangle
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawFilledRectangle_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawFilledRectangle
-  nameWithType: GopCanvas.DrawFilledRectangle
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Boolean)
-  name: DrawImage(Image, int, int, bool)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Boolean_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Boolean)
-  name.vb: DrawImage(Image, Integer, Integer, Boolean)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image, int, int, bool)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image, Integer, Integer, Boolean)
-  nameWithType: GopCanvas.DrawImage(Image, int, int, bool)
-  nameWithType.vb: GopCanvas.DrawImage(Image, Integer, Integer, Boolean)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage*
-  name: DrawImage
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawImage_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawImage
-  nameWithType: GopCanvas.DrawImage
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Drawing.Color,System.Int32,System.Int32)
-  name: DrawPoint(Color, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_Drawing_Color_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Drawing.Color,System.Int32,System.Int32)
-  name.vb: DrawPoint(Color, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Drawing.Color, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Drawing.Color, Integer, Integer)
-  nameWithType: GopCanvas.DrawPoint(Color, int, int)
-  nameWithType.vb: GopCanvas.DrawPoint(Color, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Int32,System.Int32,System.Int32)
-  name: DrawPoint(int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.Int32,System.Int32,System.Int32)
-  name.vb: DrawPoint(Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(Integer, Integer, Integer)
-  nameWithType: GopCanvas.DrawPoint(int, int, int)
-  nameWithType.vb: GopCanvas.DrawPoint(Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.UInt32,System.Int32,System.Int32)
-  name: DrawPoint(uint, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_System_UInt32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(System.UInt32,System.Int32,System.Int32)
-  name.vb: DrawPoint(UInteger, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(uint, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint(UInteger, Integer, Integer)
-  nameWithType: GopCanvas.DrawPoint(uint, int, int)
-  nameWithType.vb: GopCanvas.DrawPoint(UInteger, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint*
-  name: DrawPoint
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawPoint_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawPoint
-  nameWithType: GopCanvas.DrawPoint
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)
-  name: DrawRectangle(Color, int, int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)
-  name.vb: DrawRectangle(Color, Integer, Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle(System.Drawing.Color, int, int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle(System.Drawing.Color, Integer, Integer, Integer, Integer)
-  nameWithType: GopCanvas.DrawRectangle(Color, int, int, int, int)
-  nameWithType.vb: GopCanvas.DrawRectangle(Color, Integer, Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle*
-  name: DrawRectangle
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_DrawRectangle_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.DrawRectangle
-  nameWithType: GopCanvas.DrawRectangle
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)
-  name: GetImage(int, int, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetImage_System_Int32_System_Int32_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)
-  name.vb: GetImage(Integer, Integer, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetImage(int, int, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.GetImage(Integer, Integer, Integer, Integer)
-  nameWithType: GopCanvas.GetImage(int, int, int, int)
-  nameWithType.vb: GopCanvas.GetImage(Integer, Integer, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetImage*
-  name: GetImage
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetImage_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.GetImage
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetImage
-  nameWithType: GopCanvas.GetImage
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor(System.Int32,System.Int32)
-  name: GetPointColor(int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetPointColor_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor(System.Int32,System.Int32)
-  name.vb: GetPointColor(Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor(int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor(Integer, Integer)
-  nameWithType: GopCanvas.GetPointColor(int, int)
-  nameWithType.vb: GopCanvas.GetPointColor(Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor*
-  name: GetPointColor
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetPointColor_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetPointColor
-  nameWithType: GopCanvas.GetPointColor
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor(System.Int32,System.Int32)
-  name: GetRawPointColor(int, int)
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetRawPointColor_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor(System.Int32,System.Int32)
-  name.vb: GetRawPointColor(Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor(int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor(Integer, Integer)
-  nameWithType: GopCanvas.GetRawPointColor(int, int)
-  nameWithType.vb: GopCanvas.GetRawPointColor(Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor*
-  name: GetRawPointColor
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_GetRawPointColor_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.GetRawPointColor
-  nameWithType: GopCanvas.GetRawPointColor
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Mode
-  name: Mode
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Mode
-  commentId: P:Cosmos.Kernel.System.Graphics.GopCanvas.Mode
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Mode
-  nameWithType: GopCanvas.Mode
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Mode*
-  name: Mode
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Mode_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.Mode
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Mode
-  nameWithType: GopCanvas.Mode
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Name
-  name: Name()
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Name
-  commentId: M:Cosmos.Kernel.System.Graphics.GopCanvas.Name
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Name()
-  nameWithType: GopCanvas.Name()
-- uid: Cosmos.Kernel.System.Graphics.GopCanvas.Name*
-  name: Name
-  href: api/Cosmos.Kernel.System.Graphics.GopCanvas.html#Cosmos_Kernel_System_Graphics_GopCanvas_Name_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.GopCanvas.Name
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.GopCanvas.Name
-  nameWithType: GopCanvas.Name
 - uid: Cosmos.Kernel.System.Graphics.Image
   name: Image
   href: api/Cosmos.Kernel.System.Graphics.Image.html
@@ -17929,6 +17736,25 @@ references:
   commentId: T:Cosmos.Kernel.System.Graphics.KernelConsole
   fullName: Cosmos.Kernel.System.Graphics.KernelConsole
   nameWithType: KernelConsole
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.#ctor(Cosmos.Kernel.System.Graphics.Canvas,Cosmos.Kernel.System.Graphics.Fonts.Font)
+  name: KernelConsole(Canvas, Font?)
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole__ctor_Cosmos_Kernel_System_Graphics_Canvas_Cosmos_Kernel_System_Graphics_Fonts_Font_
+  commentId: M:Cosmos.Kernel.System.Graphics.KernelConsole.#ctor(Cosmos.Kernel.System.Graphics.Canvas,Cosmos.Kernel.System.Graphics.Fonts.Font)
+  name.vb: New(Canvas, Font)
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.KernelConsole(Cosmos.Kernel.System.Graphics.Canvas, Cosmos.Kernel.System.Graphics.Fonts.Font?)
+  fullName.vb: Cosmos.Kernel.System.Graphics.KernelConsole.New(Cosmos.Kernel.System.Graphics.Canvas, Cosmos.Kernel.System.Graphics.Fonts.Font)
+  nameWithType: KernelConsole.KernelConsole(Canvas, Font?)
+  nameWithType.vb: KernelConsole.New(Canvas, Font)
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.#ctor*
+  name: KernelConsole
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.KernelConsole.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.KernelConsole
+  fullName.vb: Cosmos.Kernel.System.Graphics.KernelConsole.New
+  nameWithType: KernelConsole.KernelConsole
+  nameWithType.vb: KernelConsole.New
 - uid: Cosmos.Kernel.System.Graphics.KernelConsole.BackgroundColor
   name: BackgroundColor
   href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_BackgroundColor
@@ -18033,6 +17859,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.KernelConsole.CursorY
   nameWithType: KernelConsole.CursorY
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.Default
+  name: Default
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_Default
+  commentId: P:Cosmos.Kernel.System.Graphics.KernelConsole.Default
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.Default
+  nameWithType: KernelConsole.Default
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.Default*
+  name: Default
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_Default_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.KernelConsole.Default
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.Default
+  nameWithType: KernelConsole.Default
 - uid: Cosmos.Kernel.System.Graphics.KernelConsole.Font
   name: Font
   href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_Font

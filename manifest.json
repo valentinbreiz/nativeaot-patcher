@@ -3228,7 +3228,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Graphics.Canvas",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Canvas.yml\" sourcestartlinenumber=\"1\">Represents a drawing surface.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Canvas.yml\" sourcestartlinenumber=\"1\">Represents a drawing surface. Can be used directly as a virtual (buffer-backed)\ncanvas, or subclassed for hardware-backed canvases (e.g. <xref href=\"Cosmos.Kernel.System.Graphics.GopCanvas\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -3358,20 +3358,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.GopCanvas.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Graphics.GopCanvas.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Graphics.GopCanvas",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.GopCanvas.yml\" sourcestartlinenumber=\"1\">Defines a EFI canvas implementation. Please note\nthat this implementation of <xref href=\"Cosmos.Kernel.System.Graphics.Canvas\" data-throw-if-not-resolved=\"false\"></xref> only works on UEFI\nimplementations, meaning that it is not available on BIOS systems.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Image.yml",
       "output": {
         ".html": {
@@ -3410,7 +3396,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Graphics.KernelConsole",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.KernelConsole.yml\" sourcestartlinenumber=\"1\">Cell-based graphics console for kernel output.\nUses a character grid (cells) similar to Aura OS for efficient terminal rendering.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.KernelConsole.yml\" sourcestartlinenumber=\"1\">Cell-based graphics console for kernel output.\nUses a character grid (cells) similar to Aura OS for efficient terminal rendering.\nCan be instantiated on any canvas (hardware or virtual).</p>\n"
     },
     {
       "type": "ManagedReference",

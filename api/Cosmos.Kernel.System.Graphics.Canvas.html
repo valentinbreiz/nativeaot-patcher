@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class Canvas | Cosmos Gen 3 ">
       
-      <meta name="description" content="Represents a drawing surface.">
+      <meta name="description" content="Represents a drawing surface. Can be used directly as a virtual (buffer-backed) canvas, or subclassed for hardware-backed canvases (e.g. ).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,12 +97,13 @@ Class Canvas
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Represents a drawing surface.</p>
+  <div class="markdown summary"><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
+canvas, or subclassed for hardware-backed canvases (e.g. <span class="xref">Cosmos.Kernel.System.Graphics.GopCanvas</span>).</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Canvas</code></pre>
+    <pre><code class="lang-csharp hljs">public class Canvas</code></pre>
   </div>
 
 
@@ -117,12 +118,6 @@ Class Canvas
   </dl>
 
 
-  <dl class="typelist derived">
-    <dt>Derived</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.GopCanvas.html">GopCanvas</a></div>
-    </dd>
-  </dl>
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
@@ -166,12 +161,13 @@ Class Canvas
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class.
+Used by subclasses.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Canvas()</code></pre>
+    <pre><code class="lang-csharp hljs">protected Canvas()</code></pre>
   </div>
 
 
@@ -193,12 +189,13 @@ Class Canvas
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class with a mode.
+Used by subclasses.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Canvas(Mode mode)</code></pre>
+    <pre><code class="lang-csharp hljs">protected Canvas(Mode mode)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -209,6 +206,81 @@ Class Canvas
 
 
 
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas__ctor_System_Int32_System_Int32_Cosmos_Kernel_System_Graphics_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor(System.Int32,System.Int32,Cosmos.Kernel.System.Graphics.ColorDepth)">
+  Canvas(int, int, ColorDepth)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a virtual (buffer-backed) canvas of the given size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Canvas(int width, int height, ColorDepth colorDepth = ColorDepth.ColorDepth32)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the canvas in pixels.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the canvas in pixels.</p>
+</dd>
+    <dt><code>colorDepth</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
+    <dd><p>The color depth (default 32-bit).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Buffer" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Buffer">
+  Buffer
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Pixel buffer for virtual canvases. Null for hardware-backed subclasses.
+Each element is a raw ARGB pixel value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int[]? Buffer</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+  </dl>
 
 
 
@@ -234,7 +306,7 @@ Class Canvas
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract List&lt;Mode&gt; AvailableModes { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual List&lt;Mode&gt; AvailableModes { get; }</code></pre>
   </div>
 
 
@@ -266,7 +338,7 @@ Class Canvas
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract Mode DefaultGraphicsMode { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual Mode DefaultGraphicsMode { get; }</code></pre>
   </div>
 
 
@@ -276,6 +348,38 @@ Class Canvas
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Height_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Height*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Height" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Height">
+  Height
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The height of this canvas in pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Height { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -298,7 +402,7 @@ Class Canvas
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract Mode Mode { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual Mode Mode { get; set; }</code></pre>
   </div>
 
 
@@ -308,6 +412,38 @@ Class Canvas
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Width_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Width*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Width" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Width">
+  Width
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The width of this canvas in pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Width { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -477,7 +613,7 @@ using the given <code class="paramref">alpha</code> value.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void Clear(int color)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void Clear(int color)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -558,7 +694,7 @@ using the given <code class="paramref">alpha</code> value.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void Disable()</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void Disable()</code></pre>
   </div>
 
 
@@ -581,12 +717,12 @@ using the given <code class="paramref">alpha</code> value.</p>
   </h3>
 
   <div class="markdown level1 summary"><p>Updates the screen to display the underlying frame-buffer.
-Call this method in order to synchronize the screen with the canvas.</p>
+For virtual canvases, this is a no-op.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void Display()</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void Display()</code></pre>
   </div>
 
 
@@ -778,7 +914,46 @@ using the given width.</p>
     <dd><p>The height of the drawn bitmap.</p>
 </dd>
     <dt><code>startIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>int[] colors tarting position</p>
+    <dd><p>int[] colors starting position</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_Cosmos_Kernel_System_Graphics_Canvas_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas,System.Int32,System.Int32)">
+  DrawCanvas(Canvas, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws another canvas onto this one at the specified position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawCanvas(Canvas canvas, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>canvas</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd><p>The source canvas to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate on this canvas.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate on this canvas.</p>
 </dd>
   </dl>
 
@@ -1248,7 +1423,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void DrawPoint(Color color, int x, int y)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(Color color, int x, int y)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -1287,7 +1462,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void DrawPoint(int color, int x, int y)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(int color, int x, int y)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -1326,7 +1501,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void DrawPoint(uint color, int x, int y)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(uint color, int x, int y)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -1572,6 +1747,107 @@ using the given width.</p>
 
 
 
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetBuffer_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetBuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetBuffer" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetBuffer">
+  GetBuffer()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the raw pixel buffer of this canvas. Returns null for hardware-backed canvases.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int[]? GetBuffer()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen">
+  GetFullScreen()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the hardware-backed full-screen canvas using the default graphics mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreen()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode)">
+  GetFullScreen(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the hardware-backed full-screen canvas using the specified mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreen(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_System_Graphics_Canvas_GetImage_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetImage*"></a>
 
   <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetImage_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)">
@@ -1632,7 +1908,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract Color GetPointColor(int x, int y)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual Color GetPointColor(int x, int y)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -1673,7 +1949,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract int GetRawPointColor(int x, int y)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual int GetRawPointColor(int x, int y)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -1714,7 +1990,7 @@ using the given width.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract string Name()</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual string Name()</code></pre>
   </div>
 
 

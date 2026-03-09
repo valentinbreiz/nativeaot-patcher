@@ -101,20 +101,14 @@ Classes
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-      <dd><p>Represents a drawing surface.</p>
+      <dd><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
+canvas, or subclassed for hardware-backed canvases (e.g. <span class="xref">Cosmos.Kernel.System.Graphics.GopCanvas</span>).</p>
 </dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.FullScreenCanvas.html">FullScreenCanvas</a></dt>
       <dd><p>Provides functionality to fetch canvases that write directly to the
 underlying display device.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.GopCanvas.html">GopCanvas</a></dt>
-      <dd><p>Defines a EFI canvas implementation. Please note
-that this implementation of <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> only works on UEFI
-implementations, meaning that it is not available on BIOS systems.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -125,7 +119,8 @@ implementations, meaning that it is not available on BIOS systems.</p>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.KernelConsole.html">KernelConsole</a></dt>
       <dd><p>Cell-based graphics console for kernel output.
-Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.</p>
+Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.
+Can be instantiated on any canvas (hardware or virtual).</p>
 </dd>
     </dl>
     <h3 id="structs">
