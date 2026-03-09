@@ -89,32 +89,22 @@
 
 <p>The Cosmos kernel is composed of layered projects to enforce a clean dependency graph.</p>
 <pre><code class="lang-mermaid">flowchart LR;
-	UsersKernel--&gt;Cosmos.Kernel;
 	UsersKernel--&gt;Cosmos.Kernel.System;
-	UsersKernel--&gt;Cosmos.Kernel.HAL;
-	UsersKernel--&gt;Cosmos.Kernel.Core;
-    Cosmos.Kernel--&gt;Cosmos.Kernel.Boot.*;
-	Cosmos.Kernel--&gt;Cosmos.Kernel.SubSystem;
-	Cosmos.Kernel.SubSystem--&gt;Cosmos.Kernel.System;
-	Cosmos.Kernel.SubSystem--&gt;Cosmos.Kernel.HAL;
-    Cosmos.Kernel--&gt;Cosmos.Kernel.System;
-    Cosmos.Kernel.System--&gt;Cosmos.Kernel.System.ARM/x86;
-	Cosmos.Kernel.System.Plug--&gt;Cosmos.Kernel.System;
     Cosmos.Kernel.System--&gt;Cosmos.Kernel.HAL;
+	Cosmos.Kernel.Plugs--&gt;Cosmos.Kernel.System;
+    Cosmos.Kernel.Plugs--&gt;Cosmos.Kernel.HAL;
+    Cosmos.Kernel.Plugs--&gt;Cosmos.Kernel.Core;
     Cosmos.Kernel.HAL--&gt;Cosmos.Kernel.HAL.Interfaces;
-	Cosmos.Kernel.HAL--&gt;Cosmos.Kernel.HAL.ARM/x86;
-	Cosmos.Kernel.HAL.ARM/x86--&gt;Cosmos.Kernel.HAL.Interfaces;
-	Cosmos.Kernel.HAL.Plug--&gt;Cosmos.Kernel.HAL;
+    Cosmos.Kernel.HAL.ARM64--&gt;Cosmos.Kernel.HAL;
+    Cosmos.Kernel.HAL.X64--&gt;Cosmos.Kernel.HAL;
+	Cosmos.Kernel.HAL.ARM64--&gt;Cosmos.Kernel.HAL.Interfaces;
+	Cosmos.Kernel.HAL.X64--&gt;Cosmos.Kernel.HAL.Interfaces;
+	Cosmos.Kernel.HAL.ARM64--&gt;Cosmos.Kernel.Core;
+	Cosmos.Kernel.HAL.X64--&gt;Cosmos.Kernel.Core;
 	Cosmos.Kernel.HAL--&gt;Cosmos.Kernel.Core;
-    Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Core.ARM/x86;
-	Cosmos.Kernel.Core.Plug--&gt;Cosmos.Kernel.Core;
+    Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Native.X64;
+    Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Native.ARM64;
 </code></pre>
-<ul>
-<li><strong>UsersKernel</strong>: your custom kernel project.</li>
-<li><strong>Cosmos.Kernel</strong>: aggregates core runtime, system, graphics, HAL and plugs.</li>
-<li><strong>Cosmos.Kernel.Boot.*</strong>: bootloader specific implementations such as <code>Cosmos.Kernel.Boot.Limine</code>.</li>
-</ul>
-<p>Only the <code>Cosmos.Kernel</code> project may reference <code>Cosmos.Kernel.Boot.*</code> projects. A build check fails if other projects introduce such references.</p>
 
 </article>
 
