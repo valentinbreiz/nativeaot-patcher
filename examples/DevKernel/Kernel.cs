@@ -158,7 +158,7 @@ public class Kernel : Sys.Kernel
 
                 case "startx":
                     /* First test with the DefaultMode */
-                    Canvas canvas = KernelConsole.Canvas;
+                    Canvas canvas = Canvas.GetFullScreen();
                     var font = PCScreenFont.DefaultFont;
 
                     int fps = 0;
@@ -330,11 +330,11 @@ public class Kernel : Sys.Kernel
 #elif ARCH_ARM64
         PrintInfoLine("Architecture", "ARM64");
 #endif
-        PrintInfoLine("Console", KernelConsole.Cols + "x" + KernelConsole.Rows + " chars");
-        if (KernelConsole.IsAvailable)
+        PrintInfoLine("Console", KernelConsole.Default.Cols + "x" + KernelConsole.Default.Rows + " chars");
+        if (KernelConsole.Default.IsAvailable)
         {
-            var mode = KernelConsole.Canvas.Mode;
-            PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Canvas.Name() + ")");
+            var mode = KernelConsole.Default.Canvas.Mode;
+            PrintInfoLine("Framebuffer", mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Default.Canvas.Name() + ")");
         }
         else
         {
@@ -605,17 +605,17 @@ public class Kernel : Sys.Kernel
 
     private static void GraphicsWorker()
     {
-        if (KernelConsole.Canvas.Mode.Width == 0 || KernelConsole.Canvas.Mode.Height == 0)
+        if (KernelConsole.Default.Canvas.Mode.Width == 0 || KernelConsole.Default.Canvas.Mode.Height == 0)
             return;
 
         const int squareSize = 80;
         const int margin = 20;
 
-        int x = KernelConsole.Canvas.Mode.Width >= (uint)(squareSize + margin * 2)
-            ? (int)KernelConsole.Canvas.Mode.Width - squareSize - margin
+        int x = KernelConsole.Default.Canvas.Mode.Width >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Default.Canvas.Mode.Width - squareSize - margin
             : margin;
-        int y = KernelConsole.Canvas.Mode.Height >= (uint)(squareSize + margin * 2)
-            ? (int)KernelConsole.Canvas.Mode.Height - squareSize - margin
+        int y = KernelConsole.Default.Canvas.Mode.Height >= (uint)(squareSize + margin * 2)
+            ? (int)KernelConsole.Default.Canvas.Mode.Height - squareSize - margin
             : margin;
 
         int frame = 0;
@@ -647,12 +647,12 @@ public class Kernel : Sys.Kernel
                     byte pb = (byte)((b * factor) / 255);
                     uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
 
-                    KernelConsole.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
+                    KernelConsole.Default.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
                 }
             }
 
             frame++;
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
             System.Threading.Thread.Sleep(100);
         }
     }

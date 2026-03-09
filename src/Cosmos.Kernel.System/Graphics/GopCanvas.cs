@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Graphics;
 /// that this implementation of <see cref="Canvas"/> only works on UEFI
 /// implementations, meaning that it is not available on BIOS systems.
 /// </summary>
-public class GopCanvas : Canvas
+internal class GopCanvas : Canvas
 {
     static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
     Mode mode;
@@ -20,7 +20,7 @@ public class GopCanvas : Canvas
     /// <summary>
     /// Initializes a new instance of the <see cref="GopCanvas"/> class.
     /// </summary>
-    public GopCanvas() : this(defaultMode)
+    internal GopCanvas() : this(defaultMode)
     {
     }
 
@@ -30,7 +30,7 @@ public class GopCanvas : Canvas
     /// Initializes a new instance of the <see cref="GopCanvas"/> class.
     /// </summary>
     /// <param name="mode">The display mode to use.</param>
-    public unsafe GopCanvas(Mode mode) : base(mode)
+    internal unsafe GopCanvas(Mode mode) : base(mode)
     {
         ThrowIfModeIsNotValid(mode);
 
@@ -436,6 +436,19 @@ public class GopCanvas : Canvas
         else
         {
             driver.CopyBuffer(xBitmap.AsMemory(), aX, aY, xWidth, xHeight);
+        }
+    }
+
+    public override void DrawCanvas(Canvas canvas, int x, int y)
+    {
+        var srcBuffer = canvas.GetBuffer();
+        if (srcBuffer != null)
+        {
+            driver.CopyBuffer(srcBuffer.AsMemory(), x, y, canvas.Width, canvas.Height);
+        }
+        else
+        {
+            base.DrawCanvas(canvas, x, y);
         }
     }
 
