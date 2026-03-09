@@ -1,6 +1,6 @@
 ## Gen2/Gen3 Feature Comparison
 
-![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-83%25-yellow?style=for-the-badge)
+![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-90%25-yellow?style=for-the-badge)
 
 | Feature | Gen2 | Gen3 | Notes |
 |---------|------|-------------|-------|
@@ -15,7 +15,7 @@
 | Plug system | ✅ | ✅  |  |
 | Test Framework | ✅ | ✅  |  |
 | Debugger| ✅ | 🟡 Partial | Source link + variables bugs in vscode |
-| CPU/FPU accelerated math | ✅ | 🟡 Minimal | SSE enabled but only used for memory operations. Software `ceil`/`sqrt` only. No hardware FPU math, no `System.Math` plug. |
+| CPU/FPU accelerated math | ✅ | 🟡 Minimal | No hardware FPU math, no `System.Math` plug. |
 | Cosmos Graphic Subsystem | ✅ | ✅ | UEFI GOP framebuffer via Limine only. |
 | Network interface | ✅ | ✅ | |
 | Timer / Clock | ✅ | ✅ | |
@@ -30,7 +30,7 @@ Beyond Gen2 parity, Gen3 brings new capabilities:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | **NativeAOT Runtime** | 🟡 In progress | Full NativeAOT compilation with runtime, no IL2CPU. |
-| **ARM64 Support** | 🟡 Partial  |  Timer bugs. |
+| **ARM64 Support** | ✅  |  |
 | **Limine Boot Protocol** | ✅ Complete |  |
 | **Threading & Scheduler** | ✅ Complete | Priority-based stride scheduler (x64 + ARM64). |
 | **Feature Flags** | ✅ Complete |  |
