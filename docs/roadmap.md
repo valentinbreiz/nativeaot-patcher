@@ -29,12 +29,12 @@ Beyond Gen2 parity, Gen3 brings new capabilities:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| **NativeAOT Runtime** | 🟡 In progress | Full NativeAOT compilation with runtime, no IL2CPU. |
+| **NativeAOT Runtime** | 🟡 Partial | Full NativeAOT compilation with runtime, no IL2CPU. |
 | **ARM64 Support** | ✅  |  |
-| **Limine Boot Protocol** | ✅ Complete |  |
-| **Threading & Scheduler** | ✅ Complete | Priority-based stride scheduler (x64 + ARM64). |
-| **Feature Flags** | ✅ Complete |  |
-| **Cosmos Vs Code Extension** | ✅ Complete |  |
+| **Limine Boot Protocol** | ✅ |  |
+| **Threading & Scheduler** | ✅ | Priority-based stride scheduler (x64 + ARM64). |
+| **Feature Flags** | ✅ |  |
+| **Cosmos Vs Code Extension** | ✅ |  |
 
 ## Future Releases
 
