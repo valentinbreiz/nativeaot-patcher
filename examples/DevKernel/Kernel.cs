@@ -1,11 +1,11 @@
 using System;
+using System.Drawing;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
-using System.Drawing;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
