@@ -3,9 +3,6 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.X64.Devices.Clock;
-#endif
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using System.Drawing;
@@ -165,13 +162,10 @@ public class Kernel : Sys.Kernel
                     int frames = 0;
                     int framesSinceFps = 0;
                     long lastFpsTicks = 0;
-                    const long ticksPerSecond = 10_000_000;
+                    long swFrequency = System.Diagnostics.Stopwatch.Frequency;
                     int refreshRate = canvas.RefreshRate;
-                    long frameInterval = System.Diagnostics.Stopwatch.Frequency / refreshRate;
+                    long frameInterval = swFrequency / refreshRate;
                     long lastFrameStart = System.Diagnostics.Stopwatch.GetTimestamp();
-#if ARCH_X64
-                    bool rtcAvailable = RTC.Instance != null && RTC.Instance.IsInitialized;
-#endif
 
                     Serial.Write("Testing Canvas with mode " + canvas.Mode + " @ " + refreshRate + " Hz\n");
 
@@ -191,28 +185,17 @@ public class Kernel : Sys.Kernel
                         frames++;
                         framesSinceFps++;
 
-#if ARCH_X64
-                        if (rtcAvailable)
                         {
-                            long nowTicks = RTC.Instance!.GetCurrentTicks();
+                            long nowTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                             if (lastFpsTicks == 0)
                             {
                                 lastFpsTicks = nowTicks;
                             }
-                            else if (nowTicks - lastFpsTicks >= ticksPerSecond)
+                            else if (nowTicks - lastFpsTicks >= swFrequency)
                             {
-                                fps = (int)(framesSinceFps * ticksPerSecond / (nowTicks - lastFpsTicks));
+                                fps = (int)(framesSinceFps * swFrequency / (nowTicks - lastFpsTicks));
                                 framesSinceFps = 0;
                                 lastFpsTicks = nowTicks;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (framesSinceFps >= refreshRate)
-                            {
-                                fps = framesSinceFps;
-                                framesSinceFps = 0;
                             }
                         }
 
