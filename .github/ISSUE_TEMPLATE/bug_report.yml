@@ -1,0 +1,116 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us resolve it.
+        
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is
+      placeholder: When I try to build the kernel with...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The kernel should build successfully
+    validations:
+      required: true
+      
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: The build fails with error...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the issue
+      placeholder: |
+        1. Clone the repository
+        2. Run `./.devcontainer/postCreateCommand.sh x64`
+        3. Execute `dotnet publish ...`
+        4. See error
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architecture
+      description: Which architecture does this affect?
+      options:
+        - x64
+        - ARM64
+        - Both
+        - Not applicable
+    validations:
+      required: true
+      
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you using?
+      placeholder: e.g., Ubuntu 22.04, Windows 11, macOS 13
+    validations:
+      required: true
+      
+  - type: input
+    id: dotnet-version
+    attributes:
+      label: .NET Version
+      description: Output of `dotnet --version`
+      placeholder: e.g., 9.0.100
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: build-config
+    attributes:
+      label: Build Configuration
+      description: Which configuration were you using?
+      options:
+        - Debug
+        - Release
+        - Not applicable
+    validations:
+      required: true
+      
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: Full error messages, stack traces, or relevant log excerpts
+      render: shell
+      placeholder: Paste error output here
+      
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: Code Sample (if applicable)
+      description: Minimal code that reproduces the issue
+      render: csharp
+      placeholder: |
+        // Minimal reproducible code
+        
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information about the problem
+      placeholder: This started happening after...
