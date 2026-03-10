@@ -5171,6 +5171,32 @@ references:
   commentId: T:Cosmos.Kernel.Core.Scheduler.SchedulerManager
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager
   nameWithType: SchedulerManager
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount
+  name: AllThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreadCount
+  commentId: P:Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount
+  nameWithType: SchedulerManager.AllThreadCount
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount*
+  name: AllThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreadCount_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount
+  nameWithType: SchedulerManager.AllThreadCount
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads
+  name: AllThreads
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreads
+  commentId: P:Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads
+  nameWithType: SchedulerManager.AllThreads
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads*
+  name: AllThreads
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreads_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads
+  nameWithType: SchedulerManager.AllThreads
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllocateThreadId
   name: AllocateThreadId()
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllocateThreadId
@@ -5412,6 +5438,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.ReadyThread
   nameWithType: SchedulerManager.ReadyThread
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  name: RegisterThread(Thread)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_RegisterThread_Cosmos_Kernel_Core_Scheduler_Thread_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  nameWithType: SchedulerManager.RegisterThread(Thread)
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread*
+  name: RegisterThread
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_RegisterThread_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread
+  nameWithType: SchedulerManager.RegisterThread
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Schedule(System.UInt32)
   name: Schedule(uint)
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_Schedule_System_UInt32_
@@ -5505,6 +5544,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetupIdleThread
   nameWithType: SchedulerManager.SetupIdleThread
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  name: UnregisterThread(Thread)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_UnregisterThread_Cosmos_Kernel_Core_Scheduler_Thread_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread(Cosmos.Kernel.Core.Scheduler.Thread)
+  nameWithType: SchedulerManager.UnregisterThread(Thread)
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread*
+  name: UnregisterThread
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_UnregisterThread_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread
+  nameWithType: SchedulerManager.UnregisterThread
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.YieldThread(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread)
   name: YieldThread(uint, Thread)
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_YieldThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_
@@ -6152,6 +6204,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.Thread.LastScheduledAt
   nameWithType: Thread.LastScheduledAt
+- uid: Cosmos.Kernel.Core.Scheduler.Thread.MaxThreadCount
+  name: MaxThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.Thread.html#Cosmos_Kernel_Core_Scheduler_Thread_MaxThreadCount
+  commentId: F:Cosmos.Kernel.Core.Scheduler.Thread.MaxThreadCount
+  fullName: Cosmos.Kernel.Core.Scheduler.Thread.MaxThreadCount
+  nameWithType: Thread.MaxThreadCount
 - uid: Cosmos.Kernel.Core.Scheduler.Thread.StackBase
   name: StackBase
   href: api/Cosmos.Kernel.Core.Scheduler.Thread.html#Cosmos_Kernel_Core_Scheduler_Thread_StackBase

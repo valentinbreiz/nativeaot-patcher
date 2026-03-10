@@ -188,6 +188,70 @@ Class SchedulerManager
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreadCount_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreadCount" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreadCount">
+  AllThreadCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the number of registered threads. Safe to call from GC.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int AllThreadCount { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreads_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_AllThreads" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.AllThreads">
+  AllThreads
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the thread registry array. Safe to call from GC (no allocations).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Thread?[]? AllThreads { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_CpuCount_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.CpuCount*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_CpuCount" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.CpuCount">
@@ -725,6 +789,38 @@ This is the main entry point for preemptive scheduling.</p>
 
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_RegisterThread_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_RegisterThread_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.RegisterThread(Cosmos.Kernel.Core.Scheduler.Thread)">
+  RegisterThread(Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers a thread in the global registry. Called during thread creation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void RegisterThread(Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Schedule_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Schedule*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Schedule_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Schedule(System.UInt32)">
@@ -917,6 +1013,38 @@ Picks next thread and sets up context switch if needed.</p>
     <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
     <dt><code>idleThread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_UnregisterThread_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_UnregisterThread_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.UnregisterThread(Cosmos.Kernel.Core.Scheduler.Thread)">
+  UnregisterThread(Thread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Unregisters a thread from the global registry. Called during thread exit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void UnregisterThread(Thread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
     <dd></dd>
   </dl>
 
