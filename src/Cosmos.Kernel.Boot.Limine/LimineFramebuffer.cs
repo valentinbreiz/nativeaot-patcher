@@ -61,7 +61,7 @@ public readonly unsafe struct LimineFramebuffer
     public readonly ulong Width;
     public readonly ulong Height;
     public readonly ulong Pitch;
-    public readonly ulong BitsPerPixel;
+    public readonly ushort BitsPerPixel;
     public readonly LimineFbMemoryModel MemoryModel;
     public readonly byte RedMaskSize;
     public readonly byte RedMaskShift;
