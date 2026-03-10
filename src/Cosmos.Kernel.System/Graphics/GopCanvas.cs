@@ -73,9 +73,9 @@ internal class GopCanvas : Canvas
             return 60;
 
         uint hActive = (uint)(dtd[2] | ((dtd[4] >> 4) << 8));
-        uint hBlank  = (uint)(dtd[3] | ((dtd[4] & 0xF) << 8));
+        uint hBlank = (uint)(dtd[3] | ((dtd[4] & 0xF) << 8));
         uint vActive = (uint)(dtd[5] | ((dtd[7] >> 4) << 8));
-        uint vBlank  = (uint)(dtd[6] | ((dtd[7] & 0xF) << 8));
+        uint vBlank = (uint)(dtd[6] | ((dtd[7] & 0xF) << 8));
 
         uint hTotal = hActive + hBlank;
         uint vTotal = vActive + vBlank;
