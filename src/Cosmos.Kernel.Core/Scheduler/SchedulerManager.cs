@@ -16,6 +16,12 @@ public static class SchedulerManager
     private static bool _enabled;
     private static uint _nextThreadId;
 
+    // Global thread registry: tracks ALL live threads across all states
+    // (Running, Ready, Blocked, Sleeping). Used by GC to scan all thread stacks.
+    // Allocated once at init to avoid heap allocations during GC.
+    private static Thread?[]? _allThreads;
+    private static int _allThreadCount;
+
     /// <summary>
     /// Default time slice in nanoseconds (10ms).
     /// </summary>
@@ -45,6 +51,10 @@ public static class SchedulerManager
         {
             _cpuStates[i] = new PerCpuState { CpuId = i };
         }
+
+        // Pre-allocate thread registry
+        _allThreads = new Thread?[Thread.MaxThreadCount];
+        _allThreadCount = 0;
     }
 
     public static void SetScheduler(IScheduler scheduler)
@@ -84,6 +94,7 @@ public static class SchedulerManager
         var state = _cpuStates[cpuId];
         state.IdleThread = idleThread;
         state.CurrentThread = idleThread;
+        RegisterThread(idleThread);
     }
 
     /// <summary>
@@ -100,6 +111,60 @@ public static class SchedulerManager
     /// </summary>
     public static uint AllocateThreadId() => _nextThreadId++;
 
+    // ========== Thread Registry (for GC stack scanning) ==========
+
+    /// <summary>
+    /// Returns the thread registry array. Safe to call from GC (no allocations).
+    /// </summary>
+    public static Thread?[]? AllThreads => _allThreads;
+
+    /// <summary>
+    /// Returns the number of registered threads. Safe to call from GC.
+    /// </summary>
+    public static int AllThreadCount => _allThreadCount;
+
+    /// <summary>
+    /// Registers a thread in the global registry. Called during thread creation.
+    /// </summary>
+    public static void RegisterThread(Thread thread)
+    {
+        if (_allThreads == null)
+            return;
+
+        for (int i = 0; i < _allThreads.Length; i++)
+        {
+            if (_allThreads[i] == null)
+            {
+                _allThreads[i] = thread;
+                _allThreadCount++;
+                return;
+            }
+        }
+
+        Serial.WriteString("[SCHED] WARNING: Thread registry full, cannot register thread ");
+        Serial.WriteNumber(thread.Id);
+        Serial.WriteString("\n");
+    }
+
+    /// <summary>
+    /// Unregisters a thread from the global registry. Called during thread exit.
+    /// </summary>
+    public static void UnregisterThread(Thread thread)
+    {
+        if (_allThreads == null)
+            return;
+
+        for (int i = 0; i < _allThreads.Length; i++)
+        {
+            if (_allThreads[i] == thread)
+            {
+                _allThreads[i] = null;
+                _allThreadCount--;
+                return;
+            }
+        }
+    }
+
     // ========== Thread Operations ==========
 
     public static void CreateThread(uint cpuId, Thread thread)
@@ -107,6 +172,7 @@ public static class SchedulerManager
         ThrowIfDisabled();
 
         Serial.WriteString("[SCHED] CreateThread: entering\n");
+        RegisterThread(thread);
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
             var state = _cpuStates[cpuId];
@@ -157,6 +223,7 @@ public static class SchedulerManager
 
             thread.State = ThreadState.Dead;
             _currentScheduler.OnThreadExit(state, thread);
+            UnregisterThread(thread);
             Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
         }
     }

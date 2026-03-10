@@ -76,22 +76,23 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Scans stack roots. When the scheduler is active, scans all thread stacks and saved registers;
-    /// otherwise scans the current stack from RSP to the stack end.
+    /// Scans stack roots. When the scheduler is active, scans all registered thread stacks
+    /// (Running, Ready, Blocked, Sleeping) via the global thread registry.
+    /// This ensures local variables on suspended threads are not collected by GC.
     /// </summary>
     private static void ScanStackRoots()
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            var cpuStates = SchedulerManager.GetAllCpuStates();
-            if (cpuStates != null)
+            var allThreads = SchedulerManager.AllThreads;
+            if (allThreads != null)
             {
-                for (int i = 0; i < cpuStates.Length; i++)
+                for (int i = 0; i < allThreads.Length; i++)
                 {
-                    var state = cpuStates[i];
-                    if (state?.CurrentThread != null)
+                    var thread = allThreads[i];
+                    if (thread != null && thread.State != Scheduler.ThreadState.Dead)
                     {
-                        ScanThreadStack(state.CurrentThread);
+                        ScanThreadStack(thread);
                     }
                 }
             }

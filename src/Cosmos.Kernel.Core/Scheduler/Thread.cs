@@ -35,6 +35,11 @@ public unsafe class Thread : SchedulerExtensible
     public const nuint DefaultStackSize = 64 * 1024;
 
     /// <summary>
+    /// Maximum number of threads tracked by the global thread registry.
+    /// </summary>
+    public const int MaxThreadCount = 256;
+
+    /// <summary>
     /// Allocates and initializes the thread stack with initial context.
     /// After this call, the thread is ready to be scheduled.
     /// </summary>
