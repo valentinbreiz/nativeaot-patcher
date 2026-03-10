@@ -167,7 +167,8 @@ public class Kernel : Sys.Kernel
                     long lastFpsTicks = 0;
                     const long ticksPerSecond = 10_000_000;
                     int refreshRate = canvas.RefreshRate;
-                    uint frameTimeMs = (uint)(1000 / refreshRate);
+                    long frameInterval = System.Diagnostics.Stopwatch.Frequency / refreshRate;
+                    long lastFrameStart = System.Diagnostics.Stopwatch.GetTimestamp();
 #if ARCH_X64
                     bool rtcAvailable = RTC.Instance != null && RTC.Instance.IsInitialized;
 #endif
@@ -257,7 +258,10 @@ public class Kernel : Sys.Kernel
                         }
 
                         canvas.Display();
-                        TimerManager.Wait(frameTimeMs);
+
+                        // Frame pacing: spin until next frame deadline
+                        lastFrameStart += frameInterval;
+                        while (System.Diagnostics.Stopwatch.GetTimestamp() < lastFrameStart) { }
                     }
 
                     break;
