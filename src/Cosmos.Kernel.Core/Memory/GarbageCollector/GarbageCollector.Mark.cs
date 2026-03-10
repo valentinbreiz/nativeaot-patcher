@@ -84,12 +84,12 @@ public static unsafe partial class GarbageCollector
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            var allThreads = SchedulerManager.AllThreads;
-            if (allThreads != null)
+            var Threads = SchedulerManager.Threads;
+            if (Threads != null)
             {
-                for (int i = 0; i < allThreads.Length; i++)
+                for (int i = 0; i < Threads.Length; i++)
                 {
-                    var thread = allThreads[i];
+                    var thread = Threads[i];
                     if (thread != null && thread.State != Scheduler.ThreadState.Dead)
                     {
                         ScanThreadStack(thread);

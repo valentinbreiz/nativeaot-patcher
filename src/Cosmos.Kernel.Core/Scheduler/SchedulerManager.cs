@@ -116,12 +116,12 @@ public static class SchedulerManager
     /// <summary>
     /// Returns the thread registry array. Safe to call from GC (no allocations).
     /// </summary>
-    public static Thread?[]? AllThreads => _allThreads;
+    public static Thread?[]? Threads => _allThreads;
 
     /// <summary>
     /// Returns the number of registered threads. Safe to call from GC.
     /// </summary>
-    public static int AllThreadCount => _allThreadCount;
+    public static int ThreadCount => _allThreadCount;
 
     /// <summary>
     /// Registers a thread in the global registry. Called during thread creation.
