@@ -166,11 +166,13 @@ public class Kernel : Sys.Kernel
                     int framesSinceFps = 0;
                     long lastFpsTicks = 0;
                     const long ticksPerSecond = 10_000_000;
+                    int refreshRate = canvas.RefreshRate;
+                    uint frameTimeMs = (uint)(1000 / refreshRate);
 #if ARCH_X64
                     bool rtcAvailable = RTC.Instance != null && RTC.Instance.IsInitialized;
 #endif
 
-                    Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
+                    Serial.Write("Testing Canvas with mode " + canvas.Mode + " @ " + refreshRate + " Hz\n");
 
                     // Set up mouse for cursor
                     Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
@@ -206,7 +208,7 @@ public class Kernel : Sys.Kernel
                         else
 #endif
                         {
-                            if (framesSinceFps >= 60)
+                            if (framesSinceFps >= refreshRate)
                             {
                                 fps = framesSinceFps;
                                 framesSinceFps = 0;
@@ -244,7 +246,7 @@ public class Kernel : Sys.Kernel
                         canvas.DrawString("Objects Freed: " + totalObjectsFreed, font, Color.White, x, rowY);
                         rowY += lineHeight * 2;
 
-                        canvas.DrawString("FPS: " + fps, font, Color.Yellow, x, rowY);
+                        canvas.DrawString("FPS: " + fps + " / " + refreshRate + " Hz", font, Color.Yellow, x, rowY);
 
                         // Draw mouse cursor
                         DrawMouseCursor(canvas, Cosmos.Kernel.System.Mouse.MouseManager.X, Cosmos.Kernel.System.Mouse.MouseManager.Y);
@@ -255,6 +257,7 @@ public class Kernel : Sys.Kernel
                         }
 
                         canvas.Display();
+                        TimerManager.Wait(frameTimeMs);
                     }
 
                     break;

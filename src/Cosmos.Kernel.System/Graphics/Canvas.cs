@@ -50,6 +50,11 @@ public unsafe class Canvas
     public int Height => (int)Mode.Height;
 
     /// <summary>
+    /// Screen refresh rate in Hz as reported by EDID. Defaults to 60 if unavailable.
+    /// </summary>
+    public virtual int RefreshRate => 60;
+
+    /// <summary>
     /// Bytes per pixel (4 in 32bit, 3 in 24bit).
     /// </summary>
     internal int BytesPerPixel;
