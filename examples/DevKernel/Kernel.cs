@@ -261,7 +261,11 @@ public class Kernel : Sys.Kernel
 
                         // Frame pacing: spin until next frame deadline
                         lastFrameStart += frameInterval;
-                        while (System.Diagnostics.Stopwatch.GetTimestamp() < lastFrameStart) { }
+                        long now = System.Diagnostics.Stopwatch.GetTimestamp();
+                        if (now > lastFrameStart)
+                            lastFrameStart = now; // fell behind, reset to avoid burst catch-up
+                        else
+                            while (System.Diagnostics.Stopwatch.GetTimestamp() < lastFrameStart) { }
                     }
 
                     break;
