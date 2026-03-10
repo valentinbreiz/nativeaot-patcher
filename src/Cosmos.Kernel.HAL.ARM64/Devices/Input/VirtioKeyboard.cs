@@ -17,6 +17,14 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 /// </summary>
 public unsafe class VirtioKeyboard : KeyboardDevice
 {
+    [StructLayout(LayoutKind.Sequential)]
+    private struct VirtioInputEvent
+    {
+        public ushort Type;
+        public ushort Code;
+        public uint Value;
+    }
+
     // Linux input event types
     private const ushort EV_SYN = 0x00;
     private const ushort EV_KEY = 0x01;
@@ -43,9 +51,6 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private bool _irqRegistered;
 
     public static VirtioKeyboard? Instance { get; private set; }
-
-    // Static callback for key events (set by KeyboardManager) - mirrors x64 PS2Keyboard
-    // Note: OnKeyPressed (from base class) is set by KeyboardManager.RegisterKeyboard()
 
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -308,7 +313,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     /// <summary>
     /// Registers the IRQ handler for keyboard interrupts.
     /// </summary>
-    public void RegisterIRQHandler()
+    private void RegisterIRQHandler()
     {
         Serial.Write("[VirtioKeyboard] Registering IRQ handler for INTID ");
         Serial.WriteNumber(_irq);
@@ -445,27 +450,6 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
     }
 
-    /// <summary>
-    /// Static poll for use from timer or main loop.
-    /// </summary>
-    public static void PollStatic()
-    {
-        Instance?.Poll();
-    }
-
-    /// <summary>
-    /// Checks if GIC interrupt is pending.
-    /// </summary>
-    public void DebugGicState()
-    {
-        bool pending = GIC.IsInterruptPending(_irq);
-        Serial.Write("[VirtioKeyboard] GIC IRQ ");
-        Serial.WriteNumber(_irq);
-        Serial.Write(" pending=");
-        Serial.Write(pending ? "true" : "false");
-        Serial.Write("\n");
-    }
-
     public override void UpdateLeds()
     {
         // LED updates via status queue not implemented yet
@@ -586,13 +570,5 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
             _ => 0x00    // Unknown key
         };
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct VirtioInputEvent
-    {
-        public ushort Type;
-        public ushort Code;
-        public uint Value;
     }
 }

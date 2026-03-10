@@ -17,6 +17,14 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 /// </summary>
 public unsafe class VirtioMouse : MouseDevice
 {
+    [StructLayout(LayoutKind.Sequential)]
+    private struct VirtioInputEvent
+    {
+        public ushort Type;
+        public ushort Code;
+        public uint Value;
+    }
+
     // Linux input event types
     private const ushort EV_SYN = 0x00;
     private const ushort EV_KEY = 0x01;
@@ -258,7 +266,7 @@ public unsafe class VirtioMouse : MouseDevice
     /// <summary>
     /// Registers the IRQ handler for mouse interrupts.
     /// </summary>
-    public void RegisterIRQHandler()
+    private void RegisterIRQHandler()
     {
         Serial.Write("[VirtioMouse] Registering IRQ handler for INTID ");
         Serial.WriteNumber(_irq);
@@ -389,13 +397,5 @@ public unsafe class VirtioMouse : MouseDevice
     public override void Disable()
     {
         // Not implemented
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct VirtioInputEvent
-    {
-        public ushort Type;
-        public ushort Code;
-        public uint Value;
     }
 }

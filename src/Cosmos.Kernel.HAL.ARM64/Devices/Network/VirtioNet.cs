@@ -103,7 +103,7 @@ public unsafe class VirtioNet : INetworkDevice
         InitializeNetwork();
     }
 
-    public void RegisterIRQHandler()
+    private void RegisterIRQHandler()
     {
         Serial.Write("[VirtioNet] Registering IRQ handler for INTID ");
         Serial.WriteNumber(_irq);
