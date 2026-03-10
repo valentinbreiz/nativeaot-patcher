@@ -8123,19 +8123,6 @@ references:
   commentId: T:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard
   nameWithType: VirtioKeyboard
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState
-  name: DebugGicState()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_DebugGicState
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState()
-  nameWithType: VirtioKeyboard.DebugGicState()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState*
-  name: DebugGicState
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_DebugGicState_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.DebugGicState
-  nameWithType: VirtioKeyboard.DebugGicState
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Disable
   name: Disable()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Disable
@@ -8240,32 +8227,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Poll
   nameWithType: VirtioKeyboard.Poll
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic
-  name: PollStatic()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_PollStatic
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic()
-  nameWithType: VirtioKeyboard.PollStatic()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic*
-  name: PollStatic
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_PollStatic_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.PollStatic
-  nameWithType: VirtioKeyboard.PollStatic
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler
-  name: RegisterIRQHandler()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_RegisterIRQHandler
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler()
-  nameWithType: VirtioKeyboard.RegisterIRQHandler()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler*
-  name: RegisterIRQHandler
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_RegisterIRQHandler_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.RegisterIRQHandler
-  nameWithType: VirtioKeyboard.RegisterIRQHandler
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds
   name: UpdateLeds()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_UpdateLeds
@@ -8376,19 +8337,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
   nameWithType: VirtioMouse.Poll
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  name: RegisterIRQHandler()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler()
-  nameWithType: VirtioMouse.RegisterIRQHandler()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler*
-  name: RegisterIRQHandler
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_RegisterIRQHandler_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.RegisterIRQHandler
-  nameWithType: VirtioMouse.RegisterIRQHandler
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network
   name: Cosmos.Kernel.HAL.ARM64.Devices.Network
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.html
@@ -8518,19 +8466,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Ready
   nameWithType: VirtioNet.Ready
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler
-  name: RegisterIRQHandler()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_RegisterIRQHandler
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler()
-  nameWithType: VirtioNet.RegisterIRQHandler()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler*
-  name: RegisterIRQHandler
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_RegisterIRQHandler_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.RegisterIRQHandler
-  nameWithType: VirtioNet.RegisterIRQHandler
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Send(System.Byte[],System.Int32)
   name: Send(byte[], int)
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Send_System_Byte___System_Int32_
