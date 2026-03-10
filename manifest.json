@@ -1860,6 +1860,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": null,
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.yml",
       "output": {
         ".html": {
@@ -3092,6 +3106,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": null,
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.yml",
       "output": {
         ".html": {
@@ -4236,6 +4264,20 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": null,
       "Summary": null
     },
     {

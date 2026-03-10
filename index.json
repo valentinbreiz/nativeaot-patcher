@@ -292,7 +292,7 @@
   "api/Cosmos.Kernel.Core.Memory.html": {
     "href": "api/Cosmos.Kernel.Core.Memory.html",
     "title": "Namespace Cosmos.Kernel.Core.Memory | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.Core.Memory Classes ManagedMemoryBlock ManagedMemoryBlock class. Used to read and write a managed memory block. MemoryBlock MemoryBlock class. Used to read and write to memory blocks. MemoryBlock08 MemoryBlock08 class. MemoryBlock16 MemoryBlock16 class. MemoryBlock32 MemoryBlock32 class. MemoryOp PageAllocator a basic page allocator Panics panics used be the Memory sub system Panics.SmallHeap Enums PageType PageType enum. Used to define the type of the page. Data Types from 1, special meanings from 255 down."
+    "summary": "Namespace Cosmos.Kernel.Core.Memory Namespaces Cosmos.Kernel.Core.Memory.GarbageCollector Cosmos.Kernel.Core.Memory.Heap Classes ManagedMemoryBlock ManagedMemoryBlock class. Used to read and write a managed memory block. MemoryBlock MemoryBlock class. Used to read and write to memory blocks. MemoryBlock08 MemoryBlock08 class. MemoryBlock16 MemoryBlock16 class. MemoryBlock32 MemoryBlock32 class. MemoryOp PageAllocator a basic page allocator Panics panics used be the Memory sub system Panics.SmallHeap Enums PageType PageType enum. Used to define the type of the page. Data Types from 1, special meanings from 255 down."
   },
   "api/Cosmos.Kernel.Core.Native.Debug.html": {
     "href": "api/Cosmos.Kernel.Core.Native.Debug.html",
@@ -492,7 +492,7 @@
   "api/Cosmos.Kernel.Core.Scheduler.html": {
     "href": "api/Cosmos.Kernel.Core.Scheduler.html",
     "title": "Namespace Cosmos.Kernel.Core.Scheduler | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.Core.Scheduler Classes ContextSwitch Low-level context switch operations. Platform-specific implementations in native code. PerCpuState Per-CPU scheduling state. SchedulerExtensible Base class for objects that can hold scheduler-specific extension data. SchedulerManager Manages scheduler lifecycle and dispatches to current scheduler. Thread Thread Control Block for scheduling. Structs SpinLock Simple spinlock for SMP synchronization. ThreadContext Complete thread context saved on stack during interrupt. This represents the full stack layout after IRQ stub saves all registers. RSP points to the start of this structure after save. Interfaces IScheduler Interface for pluggable scheduling algorithms. Inspired by Ekiben's EkibenScheduler trait. Enums ThreadFlags Thread flags. ThreadState Thread execution state."
+    "summary": "Namespace Cosmos.Kernel.Core.Scheduler Namespaces Cosmos.Kernel.Core.Scheduler.Stride Classes ContextSwitch Low-level context switch operations. Platform-specific implementations in native code. PerCpuState Per-CPU scheduling state. SchedulerExtensible Base class for objects that can hold scheduler-specific extension data. SchedulerManager Manages scheduler lifecycle and dispatches to current scheduler. Thread Thread Control Block for scheduling. Structs SpinLock Simple spinlock for SMP synchronization. ThreadContext Complete thread context saved on stack during interrupt. This represents the full stack layout after IRQ stub saves all registers. RSP points to the start of this structure after save. Interfaces IScheduler Interface for pluggable scheduling algorithms. Inspired by Ekiben's EkibenScheduler trait. Enums ThreadFlags Thread flags. ThreadState Thread execution state."
   },
   "api/Cosmos.Kernel.Core.Utilities.SimpleDictionary-2.html": {
     "href": "api/Cosmos.Kernel.Core.Utilities.SimpleDictionary-2.html",
@@ -507,7 +507,7 @@
   "api/Cosmos.Kernel.Core.html": {
     "href": "api/Cosmos.Kernel.Core.html",
     "title": "Namespace Cosmos.Kernel.Core | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.Core Classes CosmosFeatures Centralized feature flags for Cosmos kernel components. These flags can be set via RuntimeHostConfigurationOption in csproj and are used by ILC for trimming. Native Native low-level hardware access primitives. Architecture-specific implementations for I/O operations. Native.Debug Native.IO x86-64 Port I/O operations. Only available on x86-64 architecture (uses in/out instructions). Native.MMIO Memory-Mapped I/O operations. Available on all architectures for accessing hardware via memory addresses. NoInlining prevents compiler from reordering these operations. Panic Kernel panic handler for fatal errors."
+    "summary": "Namespace Cosmos.Kernel.Core Namespaces Cosmos.Kernel.Core.CPU Cosmos.Kernel.Core.Extensions Cosmos.Kernel.Core.IO Cosmos.Kernel.Core.Memory Cosmos.Kernel.Core.Runtime Cosmos.Kernel.Core.Scheduler Cosmos.Kernel.Core.Utilities Classes CosmosFeatures Centralized feature flags for Cosmos kernel components. These flags can be set via RuntimeHostConfigurationOption in csproj and are used by ILC for trimming. Native Native low-level hardware access primitives. Architecture-specific implementations for I/O operations. Native.Debug Native.IO x86-64 Port I/O operations. Only available on x86-64 architecture (uses in/out instructions). Native.MMIO Memory-Mapped I/O operations. Available on all architectures for accessing hardware via memory addresses. NoInlining prevents compiler from reordering these operations. Panic Kernel panic handler for fatal errors."
   },
   "api/Cosmos.Kernel.Debug.Debugger.html": {
     "href": "api/Cosmos.Kernel.Debug.Debugger.html",
@@ -659,10 +659,15 @@
     "title": "Namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio | Cosmos Gen 3",
     "summary": "Namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio Classes VirtioMMIO Virtio MMIO transport layer for ARM64. QEMU virt machine provides virtio devices via MMIO starting at 0x0a000000. Virtqueue Virtqueue implementation for virtio devices. A virtqueue consists of three parts: Descriptor table: array of buffer descriptors Available ring: buffers offered to device Used ring: buffers returned by device Structs Virtqueue.VringAvail Virtqueue.VringDesc Virtqueue.VringUsed Virtqueue.VringUsedElem"
   },
+  "api/Cosmos.Kernel.HAL.ARM64.Devices.html": {
+    "href": "api/Cosmos.Kernel.HAL.ARM64.Devices.html",
+    "title": "Namespace Cosmos.Kernel.HAL.ARM64.Devices | Cosmos Gen 3",
+    "summary": "Namespace Cosmos.Kernel.HAL.ARM64.Devices Namespaces Cosmos.Kernel.HAL.ARM64.Devices.Clock Cosmos.Kernel.HAL.ARM64.Devices.Input Cosmos.Kernel.HAL.ARM64.Devices.Network Cosmos.Kernel.HAL.ARM64.Devices.Timer Cosmos.Kernel.HAL.ARM64.Devices.Virtio"
+  },
   "api/Cosmos.Kernel.HAL.ARM64.html": {
     "href": "api/Cosmos.Kernel.HAL.ARM64.html",
     "title": "Namespace Cosmos.Kernel.HAL.ARM64 | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.ARM64 Classes ARM64CpuOps ARM64MemoryIO ARM64PlatformInitializer ARM64 platform initializer - creates ARM64-specific HAL components."
+    "summary": "Namespace Cosmos.Kernel.HAL.ARM64 Namespaces Cosmos.Kernel.HAL.ARM64.Acpi Cosmos.Kernel.HAL.ARM64.Cpu Cosmos.Kernel.HAL.ARM64.Devices Classes ARM64CpuOps ARM64MemoryIO ARM64PlatformInitializer ARM64 platform initializer - creates ARM64-specific HAL components."
   },
   "api/Cosmos.Kernel.HAL.Acpi.Acpi.html": {
     "href": "api/Cosmos.Kernel.HAL.Acpi.Acpi.html",
@@ -727,7 +732,7 @@
   "api/Cosmos.Kernel.HAL.Cpu.html": {
     "href": "api/Cosmos.Kernel.HAL.Cpu.html",
     "title": "Namespace Cosmos.Kernel.HAL.Cpu | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.Cpu Classes InterruptManager Interrupt manager - provides interrupt registration and dispatch for all architectures. Delegates InterruptManager.IrqDelegate Interrupt delegate signature."
+    "summary": "Namespace Cosmos.Kernel.HAL.Cpu Namespaces Cosmos.Kernel.HAL.Cpu.Data Cosmos.Kernel.HAL.Cpu.Enums Classes InterruptManager Interrupt manager - provides interrupt registration and dispatch for all architectures. Delegates InterruptManager.IrqDelegate Interrupt delegate signature."
   },
   "api/Cosmos.Kernel.HAL.DebugInfo.html": {
     "href": "api/Cosmos.Kernel.HAL.DebugInfo.html",
@@ -812,7 +817,7 @@
   "api/Cosmos.Kernel.HAL.Devices.html": {
     "href": "api/Cosmos.Kernel.HAL.Devices.html",
     "title": "Namespace Cosmos.Kernel.HAL.Devices | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.Devices Classes Device Base class for all hardware devices."
+    "summary": "Namespace Cosmos.Kernel.HAL.Devices Namespaces Cosmos.Kernel.HAL.Devices.Clock Cosmos.Kernel.HAL.Devices.Graphic Cosmos.Kernel.HAL.Devices.Input Cosmos.Kernel.HAL.Devices.Network Cosmos.Kernel.HAL.Devices.Timer Classes Device Base class for all hardware devices."
   },
   "api/Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.html": {
     "href": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.html",
@@ -882,7 +887,7 @@
   "api/Cosmos.Kernel.HAL.Interfaces.html": {
     "href": "api/Cosmos.Kernel.HAL.Interfaces.html",
     "title": "Namespace Cosmos.Kernel.HAL.Interfaces | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.Interfaces Interfaces ICpuOps Essential CPU operations for multi-architecture support IInterruptController Interface for platform-specific interrupt controller. Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors). IPlatformInitializer Interface for platform-specific HAL initialization. Implemented by HAL.X64 and HAL.ARM64. IPortIO"
+    "summary": "Namespace Cosmos.Kernel.HAL.Interfaces Namespaces Cosmos.Kernel.HAL.Interfaces.Devices Interfaces ICpuOps Essential CPU operations for multi-architecture support IInterruptController Interface for platform-specific interrupt controller. Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors). IPlatformInitializer Interface for platform-specific HAL initialization. Implemented by HAL.X64 and HAL.ARM64. IPortIO"
   },
   "api/Cosmos.Kernel.HAL.Pci.DeviceString.html": {
     "href": "api/Cosmos.Kernel.HAL.Pci.DeviceString.html",
@@ -977,7 +982,7 @@
   "api/Cosmos.Kernel.HAL.Pci.html": {
     "href": "api/Cosmos.Kernel.HAL.Pci.html",
     "title": "Namespace Cosmos.Kernel.HAL.Pci | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.Pci Classes DeviceString PciBaseAddressBar PciDevice PciDeviceBridge PciDeviceCardBus PciDeviceNormal PciManager"
+    "summary": "Namespace Cosmos.Kernel.HAL.Pci Namespaces Cosmos.Kernel.HAL.Pci.Enums Classes DeviceString PciBaseAddressBar PciDevice PciDeviceBridge PciDeviceCardBus PciDeviceNormal PciManager"
   },
   "api/Cosmos.Kernel.HAL.PlatformHAL.html": {
     "href": "api/Cosmos.Kernel.HAL.PlatformHAL.html",
@@ -1032,7 +1037,7 @@
   "api/Cosmos.Kernel.HAL.X64.Cpu.html": {
     "href": "api/Cosmos.Kernel.HAL.X64.Cpu.html",
     "title": "Namespace Cosmos.Kernel.HAL.X64.Cpu | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.X64.Cpu Classes ApicManager Manages APIC initialization and configuration. Idt Handles Interrupt Descriptor Table initialization for x86_64. IoApic I/O APIC (Advanced Programmable Interrupt Controller) driver. Routes external interrupts (IRQs) to Local APICs. LegacyPic Legacy 8259 PIC (Programmable Interrupt Controller). Used to disable/mask all IRQs when using APIC. LocalApic Local APIC (Advanced Programmable Interrupt Controller) driver. Each CPU has its own Local APIC for receiving interrupts. X64InterruptController X64 interrupt controller - manages IDT and APIC."
+    "summary": "Namespace Cosmos.Kernel.HAL.X64.Cpu Namespaces Cosmos.Kernel.HAL.X64.Cpu.Data Classes ApicManager Manages APIC initialization and configuration. Idt Handles Interrupt Descriptor Table initialization for x86_64. IoApic I/O APIC (Advanced Programmable Interrupt Controller) driver. Routes external interrupts (IRQs) to Local APICs. LegacyPic Legacy 8259 PIC (Programmable Interrupt Controller). Used to disable/mask all IRQs when using APIC. LocalApic Local APIC (Advanced Programmable Interrupt Controller) driver. Each CPU has its own Local APIC for receiving interrupts. X64InterruptController X64 interrupt controller - manages IDT and APIC."
   },
   "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html": {
     "href": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html",
@@ -1099,6 +1104,11 @@
     "title": "Namespace Cosmos.Kernel.HAL.X64.Devices.Timer | Cosmos Gen 3",
     "summary": "Namespace Cosmos.Kernel.HAL.X64.Devices.Timer Classes PIT Handles the Programmable Interval Timer (PIT). PIT.PITTimer Represents a virtual timer that can be handled using the Programmable Interrupt Timer (PIT). Delegates PIT.PITTimer.OnTrigger Represents the trigger handler for a PIT.PITTimer."
   },
+  "api/Cosmos.Kernel.HAL.X64.Devices.html": {
+    "href": "api/Cosmos.Kernel.HAL.X64.Devices.html",
+    "title": "Namespace Cosmos.Kernel.HAL.X64.Devices | Cosmos Gen 3",
+    "summary": "Namespace Cosmos.Kernel.HAL.X64.Devices Namespaces Cosmos.Kernel.HAL.X64.Devices.Clock Cosmos.Kernel.HAL.X64.Devices.Input Cosmos.Kernel.HAL.X64.Devices.Network Cosmos.Kernel.HAL.X64.Devices.Timer"
+  },
   "api/Cosmos.Kernel.HAL.X64.X64CpuOps.html": {
     "href": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.html",
     "title": "Class X64CpuOps | Cosmos Gen 3",
@@ -1117,12 +1127,12 @@
   "api/Cosmos.Kernel.HAL.X64.html": {
     "href": "api/Cosmos.Kernel.HAL.X64.html",
     "title": "Namespace Cosmos.Kernel.HAL.X64 | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL.X64 Classes X64CpuOps X64PlatformInitializer X64 platform initializer - creates x64-specific HAL components. X64PortIO"
+    "summary": "Namespace Cosmos.Kernel.HAL.X64 Namespaces Cosmos.Kernel.HAL.X64.Cpu Cosmos.Kernel.HAL.X64.Devices Classes X64CpuOps X64PlatformInitializer X64 platform initializer - creates x64-specific HAL components. X64PortIO"
   },
   "api/Cosmos.Kernel.HAL.html": {
     "href": "api/Cosmos.Kernel.HAL.html",
     "title": "Namespace Cosmos.Kernel.HAL | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.HAL Classes DebugInfo PlatformHAL Platform HAL manager - provides access to platform-specific hardware."
+    "summary": "Namespace Cosmos.Kernel.HAL Namespaces Cosmos.Kernel.HAL.ARM64 Cosmos.Kernel.HAL.Acpi Cosmos.Kernel.HAL.Cpu Cosmos.Kernel.HAL.Devices Cosmos.Kernel.HAL.Interfaces Cosmos.Kernel.HAL.Pci Cosmos.Kernel.HAL.X64 Classes DebugInfo PlatformHAL Platform HAL manager - provides access to platform-specific hardware."
   },
   "api/Cosmos.Kernel.System.Conversion.Base64.html": {
     "href": "api/Cosmos.Kernel.System.Conversion.Base64.html",
@@ -1217,7 +1227,7 @@
   "api/Cosmos.Kernel.System.Graphics.html": {
     "href": "api/Cosmos.Kernel.System.Graphics.html",
     "title": "Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System.Graphics Classes Bitmap Represents a bitmap image. Canvas Represents a drawing surface. Can be used directly as a virtual (buffer-backed) canvas, or subclassed for hardware-backed canvases (e.g. Cosmos.Kernel.System.Graphics.GopCanvas). FullScreenCanvas Provides functionality to fetch canvases that write directly to the underlying display device. Image Represents a raster image. KernelConsole Cell-based graphics console for kernel output. Uses a character grid (cells) similar to Aura OS for efficient terminal rendering. Can be instantiated on any canvas (hardware or virtual). Structs Cell Represents a single cell in the terminal grid. Each cell contains a character and its associated colors. Mode Represents a video mode, definining its width (rows), height (columns) and color depth. Enums ColorDepth Represents the color depth of the pixels of a graphics surface. ColorOrder Describes the order in which the colors are stored in each pixel of an image. ImageFormat Supported image formats."
+    "summary": "Namespace Cosmos.Kernel.System.Graphics Namespaces Cosmos.Kernel.System.Graphics.Fonts Classes Bitmap Represents a bitmap image. Canvas Represents a drawing surface. Can be used directly as a virtual (buffer-backed) canvas, or subclassed for hardware-backed canvases (e.g. Cosmos.Kernel.System.Graphics.GopCanvas). FullScreenCanvas Provides functionality to fetch canvases that write directly to the underlying display device. Image Represents a raster image. KernelConsole Cell-based graphics console for kernel output. Uses a character grid (cells) similar to Aura OS for efficient terminal rendering. Can be instantiated on any canvas (hardware or virtual). Structs Cell Represents a single cell in the terminal grid. Each cell contains a character and its associated colors. Mode Represents a video mode, definining its width (rows), height (columns) and color depth. Enums ColorDepth Represents the color depth of the pixels of a graphics surface. ColorOrder Describes the order in which the colors are stored in each pixel of an image. ImageFormat Supported image formats."
   },
   "api/Cosmos.Kernel.System.IO.ConsoleStream.html": {
     "href": "api/Cosmos.Kernel.System.IO.ConsoleStream.html",
@@ -1287,7 +1297,7 @@
   "api/Cosmos.Kernel.System.Keyboard.html": {
     "href": "api/Cosmos.Kernel.System.Keyboard.html",
     "title": "Namespace Cosmos.Kernel.System.Keyboard | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System.Keyboard Classes KeyEvent Represents a key-press event. KeyMapping Represents a physical to virtual key mapping. KeyboardManager Manages keyboard input from physical keyboards. ScanMapBase Represents the base class for keyboard layout scan-maps. Enums ConsoleKeyEx Specifies the recognized virtual console keys, that are independent from physical keyboard scan-codes. KeyEvent.KeyEventType Represents the type of the a KeyEvent."
+    "summary": "Namespace Cosmos.Kernel.System.Keyboard Namespaces Cosmos.Kernel.System.Keyboard.ScanMaps Classes KeyEvent Represents a key-press event. KeyMapping Represents a physical to virtual key mapping. KeyboardManager Manages keyboard input from physical keyboards. ScanMapBase Represents the base class for keyboard layout scan-maps. Enums ConsoleKeyEx Specifies the recognized virtual console keys, that are independent from physical keyboard scan-codes. KeyEvent.KeyEventType Represents the type of the a KeyEvent."
   },
   "api/Cosmos.Kernel.System.Mouse.MouseManager.html": {
     "href": "api/Cosmos.Kernel.System.Mouse.MouseManager.html",
@@ -1472,12 +1482,12 @@
   "api/Cosmos.Kernel.System.Network.IPv4.UDP.html": {
     "href": "api/Cosmos.Kernel.System.Network.IPv4.UDP.html",
     "title": "Namespace Cosmos.Kernel.System.Network.IPv4.UDP | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System.Network.IPv4.UDP Classes UDPPacket Represents a UDP packet. UdpClient Used to manage the UDP connection to a client. Delegates UDPDataReceivedHandler Delegate for UDP data received events."
+    "summary": "Namespace Cosmos.Kernel.System.Network.IPv4.UDP Namespaces Cosmos.Kernel.System.Network.IPv4.UDP.DHCP Cosmos.Kernel.System.Network.IPv4.UDP.DNS Classes UDPPacket Represents a UDP packet. UdpClient Used to manage the UDP connection to a client. Delegates UDPDataReceivedHandler Delegate for UDP data received events."
   },
   "api/Cosmos.Kernel.System.Network.IPv4.html": {
     "href": "api/Cosmos.Kernel.System.Network.IPv4.html",
     "title": "Namespace Cosmos.Kernel.System.Network.IPv4 | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System.Network.IPv4 Classes Address Represents a IPv4 address. EndPoint Represents an IPv4 end-point. IPPacket Represents an IP (Internet Protocol) packet. OutgoingBuffer Represents an outgoing IPv4 buffer. for use by drivers"
+    "summary": "Namespace Cosmos.Kernel.System.Network.IPv4 Namespaces Cosmos.Kernel.System.Network.IPv4.TCP Cosmos.Kernel.System.Network.IPv4.UDP Classes Address Represents a IPv4 address. EndPoint Represents an IPv4 end-point. IPPacket Represents an IP (Internet Protocol) packet. OutgoingBuffer Represents an outgoing IPv4 buffer. for use by drivers"
   },
   "api/Cosmos.Kernel.System.Network.NetworkManager.html": {
     "href": "api/Cosmos.Kernel.System.Network.NetworkManager.html",
@@ -1492,7 +1502,7 @@
   "api/Cosmos.Kernel.System.Network.html": {
     "href": "api/Cosmos.Kernel.System.Network.html",
     "title": "Namespace Cosmos.Kernel.System.Network | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System.Network Classes EthernetPacket Represents an Ethernet packet. NetworkManager Manages network devices. NetworkStack Manages the Cosmos networking stack."
+    "summary": "Namespace Cosmos.Kernel.System.Network Namespaces Cosmos.Kernel.System.Network.ARP Cosmos.Kernel.System.Network.Config Cosmos.Kernel.System.Network.IPv4 Classes EthernetPacket Represents an Ethernet packet. NetworkManager Manages network devices. NetworkStack Manages the Cosmos networking stack."
   },
   "api/Cosmos.Kernel.System.Timer.TimerManager.html": {
     "href": "api/Cosmos.Kernel.System.Timer.TimerManager.html",
@@ -1507,7 +1517,12 @@
   "api/Cosmos.Kernel.System.html": {
     "href": "api/Cosmos.Kernel.System.html",
     "title": "Namespace Cosmos.Kernel.System | Cosmos Gen 3",
-    "summary": "Namespace Cosmos.Kernel.System Classes Global Global system state and initialization for Cosmos. Kernel Base class for all Cosmos user kernels. Provides the BeforeRun/Run/AfterRun lifecycle pattern."
+    "summary": "Namespace Cosmos.Kernel.System Namespaces Cosmos.Kernel.System.Conversion Cosmos.Kernel.System.Graphics Cosmos.Kernel.System.IO Cosmos.Kernel.System.Keyboard Cosmos.Kernel.System.Mouse Cosmos.Kernel.System.Network Cosmos.Kernel.System.Timer Classes Global Global system state and initialization for Cosmos. Kernel Base class for all Cosmos user kernels. Provides the BeforeRun/Run/AfterRun lifecycle pattern."
+  },
+  "api/Cosmos.Kernel.html": {
+    "href": "api/Cosmos.Kernel.html",
+    "title": "Namespace Cosmos.Kernel | Cosmos Gen 3",
+    "summary": "Namespace Cosmos.Kernel Namespaces Cosmos.Kernel.Boot.Limine Cosmos.Kernel.Core Cosmos.Kernel.Debug Cosmos.Kernel.HAL Cosmos.Kernel.System"
   },
   "api/Internal.Runtime.ClassLibFunctionId.html": {
     "href": "api/Internal.Runtime.ClassLibFunctionId.html",
@@ -1547,7 +1562,7 @@
   "api/Internal.Runtime.html": {
     "href": "api/Internal.Runtime.html",
     "title": "Namespace Internal.Runtime | Cosmos Gen 3",
-    "summary": "Namespace Internal.Runtime Structs ReadyToRunHeader TypeManager TypeManagerHandle TypeManagerHandle represents an AOT module in MRT based runtimes. These handles are a pointer to a TypeManager Enums ClassLibFunctionId ReadyToRunSectionType"
+    "summary": "Namespace Internal.Runtime Namespaces Internal.Runtime.CompilerHelpers Structs ReadyToRunHeader TypeManager TypeManagerHandle TypeManagerHandle represents an AOT module in MRT based runtimes. These handles are a pointer to a TypeManager Enums ClassLibFunctionId ReadyToRunSectionType"
   },
   "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html": {
     "href": "api/System.Runtime.CompilerServices.EagerStaticClassConstructionAttribute.html",
@@ -1572,7 +1587,7 @@
   "api/System.Runtime.html": {
     "href": "api/System.Runtime.html",
     "title": "Namespace System.Runtime | Cosmos Gen 3",
-    "summary": "Namespace System.Runtime Classes RuntimeExportAttribute RuntimeImportAttribute"
+    "summary": "Namespace System.Runtime Namespaces System.Runtime.CompilerServices Classes RuntimeExportAttribute RuntimeImportAttribute"
   },
   "api/index.html": {
     "href": "api/index.html",

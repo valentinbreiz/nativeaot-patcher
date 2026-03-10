@@ -1,6 +1,9 @@
 ### YamlMime:XRefMap
 sorted: true
 references:
+- uid: Cosmos.Kernel
+  name: Cosmos.Kernel
+  href: api/Cosmos.Kernel.html
 - uid: Cosmos.Kernel.Boot.Limine
   name: Cosmos.Kernel.Boot.Limine
   href: api/Cosmos.Kernel.Boot.Limine.html
@@ -8034,6 +8037,9 @@ references:
   commentId: F:Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
   fullName: Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.TIMER_VIRT
   nameWithType: GICv3.TIMER_VIRT
+- uid: Cosmos.Kernel.HAL.ARM64.Devices
+  name: Cosmos.Kernel.HAL.ARM64.Devices
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.html
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock
   name: Cosmos.Kernel.HAL.ARM64.Devices.Clock
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.html
@@ -14751,6 +14757,9 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.SendEOI
   nameWithType: X64InterruptController.SendEOI
+- uid: Cosmos.Kernel.HAL.X64.Devices
+  name: Cosmos.Kernel.HAL.X64.Devices
+  href: api/Cosmos.Kernel.HAL.X64.Devices.html
 - uid: Cosmos.Kernel.HAL.X64.Devices.Clock
   name: Cosmos.Kernel.HAL.X64.Devices.Clock
   href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.html
