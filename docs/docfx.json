@@ -15,7 +15,8 @@
       ],
       "dest": "api",
       "disableGitFeatures": true,
-      "allowCompilationErrors": true
+      "allowCompilationErrors": true,
+      "namespaceLayout": "nested"
     }
   ],
 
