@@ -17198,6 +17198,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Canvas.Name
   nameWithType: Canvas.Name
+- uid: Cosmos.Kernel.System.Graphics.Canvas.RefreshRate
+  name: RefreshRate
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_RefreshRate
+  commentId: P:Cosmos.Kernel.System.Graphics.Canvas.RefreshRate
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.RefreshRate
+  nameWithType: Canvas.RefreshRate
+- uid: Cosmos.Kernel.System.Graphics.Canvas.RefreshRate*
+  name: RefreshRate
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_RefreshRate_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Canvas.RefreshRate
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.RefreshRate
+  nameWithType: Canvas.RefreshRate
 - uid: Cosmos.Kernel.System.Graphics.Canvas.ThrowIfCoordNotValid(System.Int32,System.Int32)
   name: ThrowIfCoordNotValid(int, int)
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_ThrowIfCoordNotValid_System_Int32_System_Int32_
