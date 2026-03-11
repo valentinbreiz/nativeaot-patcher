@@ -66,12 +66,21 @@ public static partial class StopwatchPlug
     private static partial ulong NativeGetFrequency();
 
     /// <summary>
-    /// Gets the current timestamp using the ARM64 generic timer counter (cntvct_el0).
+    /// Gets the current timestamp using the ARM64 generic timer counter (cntpct_el0).
     /// </summary>
     [PlugMember]
     public static long GetTimestamp()
     {
         return (long)NativeGetCounter();
+    }
+
+    /// <summary>
+    /// Gets the ARM64 generic timer frequency in ticks per second (cntfrq_el0).
+    /// </summary>
+    [PlugMember]
+    public static long GetFrequency()
+    {
+        return (long)NativeGetFrequency();
     }
 
     /// <summary>

@@ -175,9 +175,13 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((ulong)freq);
         Serial.WriteString(" Hz\n");
 
-        // TSC frequency should be at least 100 MHz on any modern CPU
+        // TSC frequency should be at least 100 MHz on x64; ARM64 generic timer is typically 62.5 MHz
+#if ARCH_X64
         Assert.True(freq >= 100_000_000, "Stopwatch: Frequency should be >= 100 MHz");
-        Assert.True(Stopwatch.IsHighResolution, "Stopwatch: Should be high resolution on x64");
+#else
+        Assert.True(freq >= 1_000_000, "Stopwatch: Frequency should be >= 1 MHz");
+#endif
+        Assert.True(Stopwatch.IsHighResolution, "Stopwatch: Should be high resolution");
     }
 
     // ==================== TimerManager Tests ====================
