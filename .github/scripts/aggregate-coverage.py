@@ -53,16 +53,26 @@ def main():
                 elif m["hit"]:
                     arch_data[arch][key] = True
 
+    # Assemblies that only apply to a specific architecture.
+    # When reporting for x64, exclude the ARM64 HAL (and vice versa).
+    ARCH_SPECIFIC = {
+        "x64":   {"Cosmos.Kernel.HAL.ARM64"},
+        "arm64": {"Cosmos.Kernel.HAL.X64"},
+    }
+
     # Build per-project stats for each architecture
     report_lines = []
     report_lines.append("# 📊 Code Coverage Report\n")
 
     for arch in sorted(arch_data.keys()):
         methods = arch_data[arch]
+        exclude_asms = ARCH_SPECIFIC.get(arch, set())
 
         # Group by assembly
         asm_stats = {}
         for (asm_name, method_key), hit in methods.items():
+            if asm_name in exclude_asms:
+                continue
             if asm_name not in asm_stats:
                 asm_stats[asm_name] = {"total": 0, "hit": 0}
             asm_stats[asm_name]["total"] += 1
