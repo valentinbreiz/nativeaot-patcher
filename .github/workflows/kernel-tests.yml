@@ -11,7 +11,6 @@ on:
       - '.github/workflows/kernel-test-run.yml'
       - '.github/workflows/kernel-test-results.yml'
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
     branches: [ "**" ]
     paths:
       - 'src/**'
@@ -63,7 +62,7 @@ jobs:
       timeout_x64: 60
       timeout_arm64: 90
       step_timeout_minutes: 5
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   helloworld-results:
     needs: helloworld-tests
@@ -86,7 +85,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   memory-results:
     needs: memory-tests
@@ -109,7 +108,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   typecasting-results:
     needs: typecasting-tests
@@ -132,7 +131,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   timer-results:
     needs: timer-tests
@@ -155,7 +154,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   network-results:
     needs: network-tests
@@ -178,7 +177,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   threading-results:
     needs: threading-tests
@@ -201,7 +200,7 @@ jobs:
       timeout_x64: 60
       timeout_arm64: 90
       step_timeout_minutes: 5
-      coverage: ${{ inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage') }}
+      coverage: ${{ inputs.coverage || false }}
 
   graphic-results:
     needs: graphic-tests
@@ -219,7 +218,7 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-latest
     needs: [ helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, threading-tests, graphic-tests ]
-    if: always() && (inputs.coverage == true || (github.event.action == 'labeled' && github.event.label.name == 'run-coverage'))
+    if: always() && inputs.coverage
     permissions:
       pull-requests: write
     steps:
@@ -262,28 +261,17 @@ jobs:
             echo "|-------|-------------|----------|" >> $GITHUB_STEP_SUMMARY
             cat /tmp/coverage_rows.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null
             echo "" >> $GITHUB_STEP_SUMMARY
-
-            # Write complete PR comment body
-            {
-              echo "# 📊 Code Coverage Report"
-              echo ""
-              echo "| Suite | Methods Hit | Coverage |"
-              echo "|-------|-------------|----------|"
-              cat /tmp/coverage_rows.txt
-              echo ""
-              echo "📋 [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-            } > /tmp/coverage_pr_comment.md
           else
             echo "No coverage data found. Coverage instrumentation may not be enabled." >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: 💬 Add Coverage PR Comment
-        if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && steps.coverage.outcome == 'success'
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         uses: marocchino/sticky-pull-request-comment@v2
         continue-on-error: true
         with:
           header: code-coverage
-          path: /tmp/coverage_pr_comment.md
+          path: /tmp/coverage_rows.txt
 
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:
