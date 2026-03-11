@@ -2,7 +2,7 @@ name: Kernel Coverage
 
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -19,7 +19,7 @@ permissions:
 jobs:
   # ── HelloWorld ────────────────────────────────────────────────────────────────
   helloworld-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: HelloWorld
@@ -32,7 +32,7 @@ jobs:
 
   # ── Memory ────────────────────────────────────────────────────────────────────
   memory-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Memory
@@ -45,7 +45,7 @@ jobs:
 
   # ── TypeCasting ───────────────────────────────────────────────────────────────
   typecasting-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: TypeCasting
@@ -58,7 +58,7 @@ jobs:
 
   # ── Timer ─────────────────────────────────────────────────────────────────────
   timer-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Timer
@@ -71,7 +71,7 @@ jobs:
 
   # ── Network ───────────────────────────────────────────────────────────────────
   network-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Network
@@ -84,7 +84,7 @@ jobs:
 
   # ── Threading ─────────────────────────────────────────────────────────────────
   threading-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Threading
@@ -97,7 +97,7 @@ jobs:
 
   # ── Graphic ───────────────────────────────────────────────────────────────────
   graphic-tests:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage')
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Graphic
@@ -113,7 +113,7 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-latest
     needs: [helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, threading-tests, graphic-tests]
-    if: always() && (github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage')
+    if: always() && (github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-coverage'))
     permissions:
       pull-requests: write
     steps:
