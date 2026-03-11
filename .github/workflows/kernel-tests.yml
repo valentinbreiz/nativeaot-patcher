@@ -39,6 +39,11 @@ on:
           - all
           - x64
           - arm64
+      coverage:
+        description: 'Enable code coverage instrumentation'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -57,6 +62,7 @@ jobs:
       timeout_x64: 60
       timeout_arm64: 90
       step_timeout_minutes: 5
+      coverage: ${{ inputs.coverage || false }}
 
   helloworld-results:
     needs: helloworld-tests
@@ -79,6 +85,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
+      coverage: ${{ inputs.coverage || false }}
 
   memory-results:
     needs: memory-tests
@@ -101,6 +108,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
+      coverage: ${{ inputs.coverage || false }}
 
   typecasting-results:
     needs: typecasting-tests
@@ -123,6 +131,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
+      coverage: ${{ inputs.coverage || false }}
 
   timer-results:
     needs: timer-tests
@@ -145,6 +154,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
+      coverage: ${{ inputs.coverage || false }}
 
   network-results:
     needs: network-tests
@@ -167,6 +177,7 @@ jobs:
       timeout_x64: 120
       timeout_arm64: 180
       step_timeout_minutes: 10
+      coverage: ${{ inputs.coverage || false }}
 
   threading-results:
     needs: threading-tests
@@ -189,6 +200,7 @@ jobs:
       timeout_x64: 60
       timeout_arm64: 90
       step_timeout_minutes: 5
+      coverage: ${{ inputs.coverage || false }}
 
   graphic-results:
     needs: graphic-tests
@@ -206,7 +218,7 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-latest
     needs: [ helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, threading-tests, graphic-tests ]
-    if: always()
+    if: always() && inputs.coverage
     permissions:
       pull-requests: write
     steps:
