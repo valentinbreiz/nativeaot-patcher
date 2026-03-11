@@ -7,34 +7,41 @@ namespace Cosmos.TestRunner.Framework;
 /// Lightweight code coverage tracker for bare-metal kernel tests.
 /// Instrumented methods call Hit(id) at entry. After tests complete,
 /// Flush() sends hit data via the serial protocol.
+///
+/// CRITICAL: Hit() must be safe to call at ANY point during boot, including
+/// before the managed heap, GC, or static constructors are ready.
+/// Therefore this class uses a fixed-size buffer (placed in BSS by the linker)
+/// instead of a managed byte[] allocation, eliminating all cctor/heap dependency.
 /// </summary>
-public static class CoverageTracker
+public static unsafe class CoverageTracker
 {
-    /// <summary>
-    /// Maximum number of instrumented methods supported.
-    /// Pre-allocated as a static array so ILC's --preinitstatics places it
-    /// in the data segment (no runtime GC allocation).
-    /// </summary>
     private const int MaxMethods = 16384;
 
-    private static readonly byte[] _hits = new byte[MaxMethods];
-    private static int _maxId;
+    /// <summary>
+    /// Fixed-size buffer stored as a value-type struct field.
+    /// NativeAOT places this in the BSS segment (zero-initialized by the loader).
+    /// No managed allocation, no cctor, no GC interaction.
+    /// </summary>
+    private unsafe struct HitBuffer
+    {
+        public fixed byte Data[MaxMethods];
+    }
+
+    private static HitBuffer _hits;
 
     // Protocol constants (must match Cosmos.TestRunner.Protocol)
     private const byte CoverageData = 107;
 
     /// <summary>
     /// Record a method hit. Called by IL-instrumented method bodies.
+    /// Entirely allocation-free and cctor-free — safe at any boot phase.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Hit(int id)
     {
         if ((uint)id < MaxMethods)
         {
-            _hits[id] = 1;
-            // Track highest ID for efficient scanning in Flush
-            if (id >= _maxId)
-                _maxId = id + 1;
+            _hits.Data[id] = 1;
         }
     }
 
@@ -44,14 +51,11 @@ public static class CoverageTracker
     /// </summary>
     public static void Flush()
     {
-        if (_maxId == 0)
-            return;
-
-        // Count hits
+        // Count hits across entire buffer (16K scan is trivial)
         int hitCount = 0;
-        for (int i = 0; i < _maxId; i++)
+        for (int i = 0; i < MaxMethods; i++)
         {
-            if (_hits[i] != 0)
+            if (_hits.Data[i] != 0)
                 hitCount++;
         }
 
@@ -68,9 +72,9 @@ public static class CoverageTracker
 
         // Write hit method IDs
         int offset = 2;
-        for (int i = 0; i < _maxId; i++)
+        for (int i = 0; i < MaxMethods; i++)
         {
-            if (_hits[i] != 0)
+            if (_hits.Data[i] != 0)
             {
                 payload[offset] = (byte)(i & 0xFF);
                 payload[offset + 1] = (byte)((i >> 8) & 0xFF);

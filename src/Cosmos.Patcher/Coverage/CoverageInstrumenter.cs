@@ -6,6 +6,11 @@ namespace Cosmos.Patcher.Coverage;
 /// <summary>
 /// Instruments managed assemblies with method-level coverage tracking.
 /// For each eligible method, inserts a CoverageTracker.Hit(id) call at method entry.
+///
+/// Design: uses a WHITELIST approach — only types whose namespace starts with the
+/// include prefix (default: "Cosmos.Kernel") are eligible.  This automatically
+/// excludes ILC-injected Internal.*, System.*, and other runtime support types
+/// that live inside Cosmos assemblies but must not be instrumented.
 /// </summary>
 public class CoverageInstrumenter
 {
@@ -17,18 +22,26 @@ public class CoverageInstrumenter
     private readonly List<CoverageMapEntry> _map = [];
 
     /// <summary>
-    /// Assembly name prefixes to skip instrumentation (test code, the tracker itself).
+    /// Assembly name prefixes to skip entirely (test infrastructure, framework, etc.).
     /// </summary>
     private static readonly string[] ExcludeAssemblies =
     [
         "Cosmos.TestRunner",
-        "System.",
-        "Internal.",
-        "Microsoft.",
     ];
 
     /// <summary>
-    /// Types to skip instrumentation to avoid recursion or early-boot issues.
+    /// Assembly names that are entirely runtime infrastructure and must never be
+    /// instrumented. Cosmos.Kernel.Core contains the memory allocator, GC, serial
+    /// driver, exception handling, and NativeAOT runtime stubs — all called before
+    /// CoverageTracker's static constructor can run.
+    /// </summary>
+    private static readonly string[] ExcludeAssembliesExact =
+    [
+        "Cosmos.Kernel.Core",
+    ];
+
+    /// <summary>
+    /// Fully-qualified type names to always skip (avoids infinite recursion).
     /// </summary>
     private static readonly string[] ExcludeTypes =
     [
@@ -60,8 +73,11 @@ public class CoverageInstrumenter
             return 0;
         }
 
-        // Process each eligible assembly
-        var dllFiles = Directory.GetFiles(_assemblyDir, "*.dll");
+        // Process eligible assemblies in cosmos/ root and cosmos/ref/
+        var dllFiles = new List<string>(Directory.GetFiles(_assemblyDir, "*.dll"));
+        var refDir = Path.Combine(_assemblyDir, "ref");
+        if (Directory.Exists(refDir))
+            dllFiles.AddRange(Directory.GetFiles(refDir, "*.dll"));
         int instrumentedAssemblies = 0;
 
         foreach (var dllPath in dllFiles)
@@ -95,17 +111,30 @@ public class CoverageInstrumenter
 
     private int InstrumentAssembly(string dllPath, MethodDefinition hitMethodDef)
     {
-        // Try to load with symbols
+        // Read the entire file into a MemoryStream first, then close the file.
+        // This prevents Mono.Cecil from keeping a read lock on the file, which would
+        // cause Write() to truncate the still-open file → 0-byte output.
+        byte[] fileBytes = File.ReadAllBytes(dllPath);
+        var memStream = new MemoryStream(fileBytes);
+
         AssemblyDefinition assembly;
         bool hasSymbols = false;
         try
         {
-            assembly = AssemblyDefinition.ReadAssembly(dllPath, new ReaderParameters { ReadSymbols = true });
+            assembly = AssemblyDefinition.ReadAssembly(memStream, new ReaderParameters
+            {
+                ReadSymbols = true,
+                ReadingMode = ReadingMode.Immediate
+            });
             hasSymbols = true;
         }
         catch
         {
-            assembly = AssemblyDefinition.ReadAssembly(dllPath);
+            memStream = new MemoryStream(fileBytes);
+            assembly = AssemblyDefinition.ReadAssembly(memStream, new ReaderParameters
+            {
+                ReadingMode = ReadingMode.Immediate
+            });
         }
 
         // Import the CoverageTracker.Hit method into this assembly
@@ -113,43 +142,59 @@ public class CoverageInstrumenter
 
         int methodsInstrumented = 0;
         string assemblyName = assembly.Name.Name;
+        int savedNextId = _nextMethodId;
+        int savedMapCount = _map.Count;
 
-        foreach (var type in assembly.MainModule.GetTypes())
+        try
         {
-            if (ShouldSkipType(type))
-                continue;
-
-            foreach (var method in type.Methods)
+            foreach (var type in assembly.MainModule.GetTypes())
             {
-                if (!ShouldInstrumentMethod(method))
+                if (ShouldSkipType(type))
                     continue;
 
-                int methodId = _nextMethodId++;
-
-                InstrumentMethod(method, methodId, hitMethodRef);
-
-                _map.Add(new CoverageMapEntry
+                foreach (var method in type.Methods)
                 {
-                    Id = methodId,
-                    Assembly = assemblyName,
-                    Type = type.FullName,
-                    Method = FormatMethodSignature(method),
-                });
+                    if (!ShouldInstrumentMethod(method))
+                        continue;
 
-                methodsInstrumented++;
+                    int methodId = _nextMethodId++;
+
+                    InstrumentMethod(method, methodId, hitMethodRef);
+
+                    _map.Add(new CoverageMapEntry
+                    {
+                        Id = methodId,
+                        Assembly = assemblyName,
+                        Type = type.FullName,
+                        Method = FormatMethodSignature(method),
+                    });
+
+                    methodsInstrumented++;
+                }
+            }
+
+            if (methodsInstrumented > 0)
+            {
+                // Write back to the original file path (safe — no open handles)
+                if (hasSymbols)
+                    assembly.Write(dllPath, new WriterParameters { WriteSymbols = true });
+                else
+                    assembly.Write(dllPath);
             }
         }
-
-        if (methodsInstrumented > 0)
+        catch
         {
-            // Write back
-            if (hasSymbols)
-                assembly.Write(dllPath, new WriterParameters { WriteSymbols = true });
-            else
-                assembly.Write(dllPath);
+            // Roll back map entries and method IDs if instrumentation failed
+            _nextMethodId = savedNextId;
+            if (_map.Count > savedMapCount)
+                _map.RemoveRange(savedMapCount, _map.Count - savedMapCount);
+            throw;
+        }
+        finally
+        {
+            assembly.Dispose();
         }
 
-        assembly.Dispose();
         return methodsInstrumented;
     }
 
@@ -165,43 +210,63 @@ public class CoverageInstrumenter
         processor.InsertBefore(firstInstruction, loadId);
         processor.InsertBefore(firstInstruction, callHit);
 
-        // Update exception handler boundaries that pointed to the original first instruction
-        foreach (var handler in method.Body.ExceptionHandlers)
-        {
-            if (handler.TryStart == firstInstruction)
-                handler.TryStart = loadId;
-            if (handler.HandlerStart == firstInstruction)
-                handler.HandlerStart = loadId;
-            if (handler.FilterStart == firstInstruction)
-                handler.FilterStart = loadId;
-        }
+        // Note: We intentionally do NOT adjust exception handler boundaries.
+        // The coverage probe (ldc.i4 + call Hit) must remain OUTSIDE any try/catch/filter
+        // regions. Mono.Cecil's InsertBefore automatically fixes branch targets, and
+        // exception handler boundaries still correctly point at firstInstruction (now the
+        // third instruction), keeping the probe outside protected regions.
     }
 
     private bool ShouldInstrumentAssembly(string assemblyName)
     {
+        // Must match the include prefix (e.g. "Cosmos.Kernel")
         if (!assemblyName.StartsWith(_includePrefix, StringComparison.OrdinalIgnoreCase))
             return false;
 
+        // Skip excluded assembly name prefixes
         foreach (var exclude in ExcludeAssemblies)
         {
             if (assemblyName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
                 return false;
         }
 
+        // Skip exact assembly name matches (runtime-critical assemblies)
+        foreach (var exclude in ExcludeAssembliesExact)
+        {
+            if (assemblyName.Equals(exclude, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
         return true;
     }
 
-    private static bool ShouldSkipType(TypeDefinition type)
+    /// <summary>
+    /// Whitelist check: only instrument types whose namespace starts with the
+    /// include prefix. This automatically excludes ILC-injected Internal.*,
+    /// System.*, and other runtime support types embedded in Cosmos assemblies.
+    /// </summary>
+    private bool ShouldSkipType(TypeDefinition type)
     {
         // Skip compiler-generated types
         if (type.Name.StartsWith("<") || type.Name.Contains("__"))
             return true;
 
+        // Skip explicitly excluded types
         foreach (var exclude in ExcludeTypes)
         {
             if (type.FullName == exclude)
                 return true;
         }
+
+        // WHITELIST: only instrument types whose namespace starts with the include prefix.
+        // This excludes Internal.*, System.*, and other ILC/NativeAOT runtime types
+        // that get compiled into Cosmos assemblies but must not be instrumented.
+        string? ns = type.Namespace;
+        if (string.IsNullOrEmpty(ns))
+            return true; // Nested/anonymous types without namespace → skip
+
+        if (!ns.StartsWith(_includePrefix, StringComparison.OrdinalIgnoreCase))
+            return true;
 
         return false;
     }
@@ -228,7 +293,30 @@ public class CoverageInstrumenter
         if (method.Name.StartsWith("<"))
             return false;
 
+        // Skip methods exported to native code via [RuntimeExport].
+        // These are NativeAOT runtime entry points (RhpNewFast, memset, etc.)
+        // called before static class constructors have run.
+        if (HasRuntimeExportAttribute(method))
+            return false;
+
         return true;
+    }
+
+    /// <summary>
+    /// Check whether a method has a [RuntimeExport] attribute.
+    /// </summary>
+    private static bool HasRuntimeExportAttribute(MethodDefinition method)
+    {
+        if (!method.HasCustomAttributes)
+            return false;
+
+        foreach (var attr in method.CustomAttributes)
+        {
+            if (attr.AttributeType.Name == "RuntimeExportAttribute")
+                return true;
+        }
+
+        return false;
     }
 
     private string? FindTrackerAssembly()

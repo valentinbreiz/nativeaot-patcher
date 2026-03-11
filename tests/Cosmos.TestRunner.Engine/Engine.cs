@@ -259,13 +259,25 @@ public partial class Engine
             Console.WriteLine($"[Coverage]   {asm.Assembly}: {asm.Hit}/{asm.Total} ({asmPct:F1}%)");
         }
 
-        // Write coverage results JSON for CI
+        // Write coverage results JSON for CI (includes per-method hit data for cross-suite aggregation)
         string coverageOutputPath = Path.Combine(
             Path.GetDirectoryName(_config.XmlOutputPath ?? _config.KernelProjectPath) ?? ".",
             $"coverage-{_config.Architecture}.json");
 
         try
         {
+            // Build per-assembly method lists (all methods + which were hit)
+            var assemblyMethods = methodMap
+                .GroupBy(kv => kv.Value.Assembly)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(kv => new
+                    {
+                        Key = $"{kv.Value.Type}::{kv.Value.Method}",
+                        Hit = hitSet.Contains(kv.Key)
+                    }).ToList()
+                );
+
             using var writer = new StreamWriter(coverageOutputPath);
             writer.WriteLine("{");
             writer.WriteLine($"  \"suite\": \"{results.SuiteName}\",");
@@ -281,7 +293,31 @@ public partial class Engine
                 var asm = asmList[i];
                 double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
                 string comma = i < asmList.Count - 1 ? "," : "";
-                writer.WriteLine($"    {{ \"name\": \"{asm.Assembly}\", \"total\": {asm.Total}, \"hit\": {asm.Hit}, \"percentage\": {asmPct:F1} }}{comma}");
+
+                // Collect hit method signatures for this assembly
+                var methods = assemblyMethods.GetValueOrDefault(asm.Assembly);
+                var hitMethodNames = methods?
+                    .Where(m => m.Hit)
+                    .Select(m => m.Key)
+                    .ToList() ?? [];
+                var allMethodNames = methods?
+                    .Select(m => m.Key)
+                    .ToList() ?? [];
+
+                writer.WriteLine($"    {{");
+                writer.WriteLine($"      \"name\": \"{EscapeJson(asm.Assembly)}\",");
+                writer.WriteLine($"      \"total\": {asm.Total},");
+                writer.WriteLine($"      \"hit\": {asm.Hit},");
+                writer.WriteLine($"      \"percentage\": {asmPct:F1},");
+                writer.WriteLine($"      \"methods\": [");
+                for (int j = 0; j < allMethodNames.Count; j++)
+                {
+                    string mComma = j < allMethodNames.Count - 1 ? "," : "";
+                    bool mHit = hitMethodNames.Contains(allMethodNames[j]);
+                    writer.WriteLine($"        {{ \"name\": \"{EscapeJson(allMethodNames[j])}\", \"hit\": {(mHit ? "true" : "false")} }}{mComma}");
+                }
+                writer.WriteLine($"      ]");
+                writer.WriteLine($"    }}{comma}");
             }
 
             writer.WriteLine("  ]");
@@ -354,5 +390,10 @@ public partial class Engine
         {
             Console.WriteLine($"[Engine] Warning: Failed to cleanup: {ex.Message}");
         }
+    }
+
+    private static string EscapeJson(string s)
+    {
+        return s.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }

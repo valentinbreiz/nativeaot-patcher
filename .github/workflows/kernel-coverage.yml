@@ -3,6 +3,12 @@ name: Kernel Coverage
 on:
   pull_request:
     types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to run coverage on (optional)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -13,7 +19,7 @@ permissions:
 jobs:
   # ── HelloWorld ────────────────────────────────────────────────────────────────
   helloworld-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: HelloWorld
@@ -26,7 +32,7 @@ jobs:
 
   # ── Memory ────────────────────────────────────────────────────────────────────
   memory-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Memory
@@ -39,7 +45,7 @@ jobs:
 
   # ── TypeCasting ───────────────────────────────────────────────────────────────
   typecasting-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: TypeCasting
@@ -52,7 +58,7 @@ jobs:
 
   # ── Timer ─────────────────────────────────────────────────────────────────────
   timer-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Timer
@@ -65,7 +71,7 @@ jobs:
 
   # ── Network ───────────────────────────────────────────────────────────────────
   network-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Network
@@ -78,7 +84,7 @@ jobs:
 
   # ── Threading ─────────────────────────────────────────────────────────────────
   threading-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Threading
@@ -91,7 +97,7 @@ jobs:
 
   # ── Graphic ───────────────────────────────────────────────────────────────────
   graphic-tests:
-    if: github.event.label.name == 'run-coverage'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage'
     uses: ./.github/workflows/kernel-test-run.yml
     with:
       suite_name: Graphic
@@ -107,10 +113,16 @@ jobs:
     name: Coverage Report
     runs-on: ubuntu-latest
     needs: [helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, threading-tests, graphic-tests]
-    if: always() && github.event.label.name == 'run-coverage'
+    if: always() && (github.event_name == 'workflow_dispatch' || github.event.label.name == 'run-coverage')
     permissions:
       pull-requests: write
     steps:
+      - name: 📥 Checkout (for aggregation script)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
       - name: 📥 Download Coverage Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -120,48 +132,7 @@ jobs:
 
       - name: 📊 Generate Coverage Summary
         id: coverage
-        run: |
-          echo "# 📊 Code Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          total_methods=0
-          total_hit=0
-          found_any=false
-
-          for json_file in $(find ./coverage -name "coverage-*.json" 2>/dev/null); do
-            found_any=true
-            suite=$(python3 -c "import json; d=json.load(open('$json_file')); print(d.get('suite',''))" 2>/dev/null || echo "unknown")
-            arch=$(python3 -c "import json; d=json.load(open('$json_file')); print(d.get('architecture',''))" 2>/dev/null || echo "unknown")
-            methods=$(python3 -c "import json; d=json.load(open('$json_file')); print(d.get('totalMethods',0))" 2>/dev/null || echo "0")
-            hit=$(python3 -c "import json; d=json.load(open('$json_file')); print(d.get('hitMethods',0))" 2>/dev/null || echo "0")
-            pct=$(python3 -c "import json; d=json.load(open('$json_file')); print(f\"{d.get('percentage',0):.1f}\")" 2>/dev/null || echo "0.0")
-
-            echo "| $suite ($arch) | $hit/$methods | $pct% |" >> /tmp/coverage_rows.txt
-
-            if [ "$methods" -gt "$total_methods" ]; then
-              total_methods=$methods
-            fi
-          done
-
-          if [ "$found_any" = true ]; then
-            echo "found_data=true" >> $GITHUB_OUTPUT
-            echo "| Suite | Methods Hit | Coverage |" >> $GITHUB_STEP_SUMMARY
-            echo "|-------|-------------|----------|" >> $GITHUB_STEP_SUMMARY
-            cat /tmp/coverage_rows.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null
-            echo "" >> $GITHUB_STEP_SUMMARY
-
-            {
-              echo "# 📊 Code Coverage Report"
-              echo ""
-              echo "| Suite | Methods Hit | Coverage |"
-              echo "|-------|-------------|----------|"
-              cat /tmp/coverage_rows.txt
-              echo ""
-              echo "📋 [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-            } > /tmp/coverage_pr_comment.md
-          else
-            echo "No coverage data found. Coverage instrumentation may not be enabled." >> $GITHUB_STEP_SUMMARY
-          fi
+        run: python3 .github/scripts/aggregate-coverage.py
 
       - name: 💬 Add Coverage PR Comment
         if: steps.coverage.outputs.found_data == 'true'
