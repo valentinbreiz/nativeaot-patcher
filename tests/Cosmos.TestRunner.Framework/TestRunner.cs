@@ -87,15 +87,14 @@ namespace Cosmos.TestRunner.Framework
         }
 
         /// <summary>
-        /// Finish the test suite and send summary
+        /// Finish the test suite and send summary.
+        /// Does NOT flush coverage or send the QEMU kill marker.
+        /// Call Complete() after AfterRun() for that.
         /// </summary>
         public static void Finish()
         {
             // Use expected count if provided, otherwise actual count
             ushort totalToReport = _expectedTestCount > 0 ? _expectedTestCount : _testCount;
-
-            // Flush coverage data before end marker (if instrumentation is active)
-            CoverageTracker.Flush();
 
             SendTestSuiteEnd(totalToReport, _passedCount, _failedCount);
 
@@ -115,6 +114,28 @@ namespace Cosmos.TestRunner.Framework
             Serial.WriteString("  Failed: ");
             Serial.WriteNumber(_failedCount);
             Serial.WriteString("\n");
+        }
+
+        /// <summary>
+        /// Final step: flush coverage data and send the QEMU termination marker.
+        /// Call this in AfterRun() so that Run() and AfterRun() are covered.
+        /// After this call, the test engine will kill QEMU.
+        /// </summary>
+        public static void Complete()
+        {
+            // Flush coverage data (no-op if not instrumented)
+            CoverageTracker.Flush();
+
+            // Send unique end marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
+            // This sequence tells the QEMU host to kill the VM
+            Serial.ComWrite(0xDE);
+            Serial.ComWrite(0xAD);
+            Serial.ComWrite(0xBE);
+            Serial.ComWrite(0xEF);
+            Serial.ComWrite(0xCA);
+            Serial.ComWrite(0xFE);
+            Serial.ComWrite(0xBA);
+            Serial.ComWrite(0xBE);
         }
 
         #region Protocol Message Sending
@@ -232,17 +253,6 @@ namespace Cosmos.TestRunner.Framework
             payload[4] = (byte)(failed & 0xFF);
             payload[5] = (byte)((failed >> 8) & 0xFF);
             SendMessage(TestSuiteEnd, payload);
-
-            // Send unique end marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
-            // This sequence is unlikely to appear in normal text output
-            Serial.ComWrite(0xDE);
-            Serial.ComWrite(0xAD);
-            Serial.ComWrite(0xBE);
-            Serial.ComWrite(0xEF);
-            Serial.ComWrite(0xCA);
-            Serial.ComWrite(0xFE);
-            Serial.ComWrite(0xBA);
-            Serial.ComWrite(0xBE);
         }
 
         #endregion

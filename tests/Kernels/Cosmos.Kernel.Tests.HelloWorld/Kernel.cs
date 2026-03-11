@@ -48,18 +48,18 @@ public class Kernel : Sys.Kernel
 
         // Output completion message
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
-
-        // Stop the kernel loop
-        Stop();
     }
 
     protected override void Run()
     {
-        // Tests completed in BeforeRun, nothing to do here
+        // All tests ran in BeforeRun; stop the main loop after one iteration
+        Stop();
     }
 
     protected override void AfterRun()
     {
+        // Flush coverage data and signal QEMU to terminate
+        TR.Complete();
         Cosmos.Kernel.Kernel.Halt();
     }
 }
