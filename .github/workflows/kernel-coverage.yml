@@ -144,6 +144,7 @@ jobs:
           done
 
           if [ "$found_any" = true ]; then
+            echo "found_data=true" >> $GITHUB_OUTPUT
             echo "| Suite | Methods Hit | Coverage |" >> $GITHUB_STEP_SUMMARY
             echo "|-------|-------------|----------|" >> $GITHUB_STEP_SUMMARY
             cat /tmp/coverage_rows.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null
@@ -163,7 +164,7 @@ jobs:
           fi
 
       - name: 💬 Add Coverage PR Comment
-        if: steps.coverage.outcome == 'success'
+        if: steps.coverage.outputs.found_data == 'true'
         uses: marocchino/sticky-pull-request-comment@v2
         continue-on-error: true
         with:

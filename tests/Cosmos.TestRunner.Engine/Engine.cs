@@ -210,17 +210,16 @@ public partial class Engine
 
     private void ReportCoverage(TestResults results)
     {
-        // Look for coverage-map.txt in the build output
-        string projectDir = _config.KernelProjectPath;
-        string rid = _config.Architecture == "arm64" ? "linux-arm64" : "linux-x64";
-        string mapPath = Path.Combine(projectDir, "obj", "Debug", "net10.0", rid, "cosmos", "coverage-map.txt");
+        string? mapPath = FindCoverageMap();
 
-        if (!File.Exists(mapPath))
+        if (mapPath == null)
         {
-            Console.WriteLine($"[Coverage] Coverage map not found at: {mapPath}");
+            Console.WriteLine($"[Coverage] Coverage map not found");
             Console.WriteLine($"[Coverage] {results.CoverageHitMethodIds.Count} methods hit (no method names available)");
             return;
         }
+
+        Console.WriteLine($"[Coverage] Using coverage map: {mapPath}");
 
         // Parse coverage map
         var methodMap = new Dictionary<int, (string Assembly, string Type, string Method)>();
@@ -262,7 +261,7 @@ public partial class Engine
 
         // Write coverage results JSON for CI
         string coverageOutputPath = Path.Combine(
-            Path.GetDirectoryName(_config.XmlOutputPath ?? projectDir) ?? ".",
+            Path.GetDirectoryName(_config.XmlOutputPath ?? _config.KernelProjectPath) ?? ".",
             $"coverage-{_config.Architecture}.json");
 
         try
@@ -294,6 +293,46 @@ public partial class Engine
         {
             Console.WriteLine($"[Coverage] Warning: Could not write coverage JSON: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Search for coverage-map.txt in standard and artifacts output layouts.
+    /// </summary>
+    private string? FindCoverageMap()
+    {
+        string projectDir = _config.KernelProjectPath;
+        string projectName = Path.GetFileName(projectDir);
+        string rid = _config.Architecture == "arm64" ? "linux-arm64" : "linux-x64";
+
+        // Candidate paths: standard obj layout and UseArtifactsOutput layout
+        string[] candidates =
+        [
+            Path.Combine(projectDir, "obj", "Debug", "net10.0", rid, "cosmos", "coverage-map.txt"),
+            Path.Combine(projectDir, "..", "..", "artifacts", "obj", projectName, $"debug_{rid}", "cosmos", "coverage-map.txt"),
+        ];
+
+        foreach (var path in candidates)
+        {
+            var fullPath = Path.GetFullPath(path);
+            if (File.Exists(fullPath))
+                return fullPath;
+        }
+
+        // Fallback: recursive search from project directory upward
+        var dir = new DirectoryInfo(projectDir);
+        while (dir != null)
+        {
+            var artifactsDir = Path.Combine(dir.FullName, "artifacts", "obj");
+            if (Directory.Exists(artifactsDir))
+            {
+                var found = Directory.GetFiles(artifactsDir, "coverage-map.txt", SearchOption.AllDirectories);
+                if (found.Length > 0)
+                    return found[0];
+            }
+            dir = dir.Parent;
+        }
+
+        return null;
     }
 
     private void CleanupBuildArtifacts(string isoPath)

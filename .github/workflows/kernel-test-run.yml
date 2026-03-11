@@ -125,7 +125,7 @@ jobs:
           name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
           path: |
             coverage-${{ matrix.arch }}.json
-            ${{ inputs.kernel_path }}/obj/**/cosmos/coverage-map.txt
+            artifacts/obj/**/cosmos/coverage-map.txt
           retention-days: 30
           if-no-files-found: ignore
 

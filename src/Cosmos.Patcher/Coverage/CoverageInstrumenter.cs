@@ -233,15 +233,23 @@ public class CoverageInstrumenter
 
     private string? FindTrackerAssembly()
     {
-        var path = Path.Combine(_assemblyDir, "Cosmos.TestRunner.Framework.dll");
+        const string trackerDll = "Cosmos.TestRunner.Framework.dll";
+
+        // Check assembly dir root
+        var path = Path.Combine(_assemblyDir, trackerDll);
         if (File.Exists(path))
             return path;
 
-        // Also check parent dir (ref assemblies might be separate)
+        // Check ref/ subdirectory (where SetupPatcher copies ReferencePath items)
+        path = Path.Combine(_assemblyDir, "ref", trackerDll);
+        if (File.Exists(path))
+            return path;
+
+        // Check parent dir as fallback
         var parentDir = Path.GetDirectoryName(_assemblyDir);
         if (parentDir != null)
         {
-            path = Path.Combine(parentDir, "Cosmos.TestRunner.Framework.dll");
+            path = Path.Combine(parentDir, trackerDll);
             if (File.Exists(path))
                 return path;
         }
