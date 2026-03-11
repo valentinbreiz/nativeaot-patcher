@@ -65,8 +65,10 @@ public partial class Engine
 
         var stopwatch = Stopwatch.StartNew();
 
-        // Get suite name from project path
-        string suiteName = Path.GetFileNameWithoutExtension(_config.KernelProjectPath);
+        // Get suite name from project path (use GetFileName, not GetFileNameWithoutExtension,
+        // because the path is a directory like "Cosmos.Kernel.Tests.HelloWorld" and
+        // GetFileNameWithoutExtension would strip ".HelloWorld" as an extension)
+        string suiteName = Path.GetFileName(_config.KernelProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
         try
         {
