@@ -93,6 +93,10 @@ namespace Cosmos.TestRunner.Framework
         {
             // Use expected count if provided, otherwise actual count
             ushort totalToReport = _expectedTestCount > 0 ? _expectedTestCount : _testCount;
+
+            // Flush coverage data before end marker (if instrumentation is active)
+            CoverageTracker.Flush();
+
             SendTestSuiteEnd(totalToReport, _passedCount, _failedCount);
 
             // Also send a text message for fallback/debugging

@@ -46,7 +46,7 @@ namespace Cosmos.TestRunner.Protocol
         public const byte CoreDump = 24;
         public const byte KernelPanic = 25;
 
-        // Test runner specific messages (100-106)
+        // Test runner specific messages (100-107)
         /// <summary>
         /// Sent when test suite starts. Payload: string (suite name)
         /// </summary>
@@ -82,6 +82,13 @@ namespace Cosmos.TestRunner.Protocol
         /// Architecture IDs: 1=x86, 2=x64, 3=ARM32, 4=ARM64
         /// </summary>
         public const byte ArchitectureInfo = 106;
+
+        /// <summary>
+        /// Sent after test suite ends with code coverage data.
+        /// Payload: [HitCount:2][HitId1:2][HitId2:2]...
+        /// Method IDs correspond to the coverage-map.txt generated at build time.
+        /// </summary>
+        public const byte CoverageData = 107;
     }
 
     /// <summary>

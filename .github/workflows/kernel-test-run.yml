@@ -104,9 +104,21 @@ jobs:
             ${{ matrix.arch }} \
             $TIMEOUT \
             test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
-            ci
+            ci \
+            --coverage
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
+
+      - name: 📊 Upload Coverage Data
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: |
+            coverage-${{ matrix.arch }}.json
+            ${{ inputs.kernel_path }}/obj/**/cosmos/coverage-map.txt
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4

@@ -174,6 +174,25 @@ public static class CosmosEntryPoint
     </ItemGroup>
   </Target>
   
+  <!-- Coverage instrumentation: inserts CoverageTracker.Hit(id) calls into src/ assembly methods.
+       Only runs when CosmosCoverage=true. Must run after RunPatcher and before CompileWithIlc. -->
+  <Target Name="InstrumentCoverage"
+          AfterTargets="RunPatcher"
+          BeforeTargets="CompileWithIlc"
+          Condition="'$(CosmosCoverage)' == 'true'">
+    <PropertyGroup>
+      <CoverageAssemblyDir>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))/cosmos</CoverageAssemblyDir>
+      <CoverageMapPath>$(CoverageAssemblyDir)/coverage-map.txt</CoverageMapPath>
+    </PropertyGroup>
+    <Message Importance="High" Text="📊 [Coverage] Instrumenting assemblies in $(CoverageAssemblyDir)" />
+    <Exec
+      Command="cosmos.patcher instrument-coverage --assembly-dir &quot;$(CoverageAssemblyDir)&quot; --output-map &quot;$(CoverageMapPath)&quot; --include Cosmos.Kernel"
+      IgnoreExitCode="false"
+      StandardOutputImportance="High"
+      StandardErrorImportance="High"
+    />
+  </Target>
+
   <!-- Ilc Generates an Invalid Exports File for ld, here we clean it up -->
   <Target Name="CleanVersionScript" AfterTargets="CompileWithIlc" BeforeTargets="LinkTarget" Condition="$(ExportsFile) != ''">
     <PropertyGroup>
