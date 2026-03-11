@@ -1,14 +1,11 @@
 using System;
+using System.Drawing;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
-#if ARCH_X64
-using Cosmos.Kernel.HAL.X64.Devices.Clock;
-#endif
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
-using System.Drawing;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -165,12 +162,12 @@ public class Kernel : Sys.Kernel
                     int frames = 0;
                     int framesSinceFps = 0;
                     long lastFpsTicks = 0;
-                    const long ticksPerSecond = 10_000_000;
-#if ARCH_X64
-                    bool rtcAvailable = RTC.Instance != null && RTC.Instance.IsInitialized;
-#endif
+                    long swFrequency = System.Diagnostics.Stopwatch.Frequency;
+                    int refreshRate = canvas.RefreshRate;
+                    long frameInterval = swFrequency / refreshRate;
+                    long lastFrameStart = System.Diagnostics.Stopwatch.GetTimestamp();
 
-                    Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
+                    Serial.Write("Testing Canvas with mode " + canvas.Mode + " @ " + refreshRate + " Hz\n");
 
                     // Set up mouse for cursor
                     Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
@@ -188,28 +185,17 @@ public class Kernel : Sys.Kernel
                         frames++;
                         framesSinceFps++;
 
-#if ARCH_X64
-                        if (rtcAvailable)
                         {
-                            long nowTicks = RTC.Instance!.GetCurrentTicks();
+                            long nowTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                             if (lastFpsTicks == 0)
                             {
                                 lastFpsTicks = nowTicks;
                             }
-                            else if (nowTicks - lastFpsTicks >= ticksPerSecond)
+                            else if (nowTicks - lastFpsTicks >= swFrequency)
                             {
-                                fps = (int)(framesSinceFps * ticksPerSecond / (nowTicks - lastFpsTicks));
+                                fps = (int)(framesSinceFps * swFrequency / (nowTicks - lastFpsTicks));
                                 framesSinceFps = 0;
                                 lastFpsTicks = nowTicks;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (framesSinceFps >= 60)
-                            {
-                                fps = framesSinceFps;
-                                framesSinceFps = 0;
                             }
                         }
 
@@ -244,7 +230,7 @@ public class Kernel : Sys.Kernel
                         canvas.DrawString("Objects Freed: " + totalObjectsFreed, font, Color.White, x, rowY);
                         rowY += lineHeight * 2;
 
-                        canvas.DrawString("FPS: " + fps, font, Color.Yellow, x, rowY);
+                        canvas.DrawString("FPS: " + fps + " / " + refreshRate + " Hz", font, Color.Yellow, x, rowY);
 
                         // Draw mouse cursor
                         DrawMouseCursor(canvas, Cosmos.Kernel.System.Mouse.MouseManager.X, Cosmos.Kernel.System.Mouse.MouseManager.Y);
@@ -255,6 +241,14 @@ public class Kernel : Sys.Kernel
                         }
 
                         canvas.Display();
+
+                        // Frame pacing: spin until next frame deadline
+                        lastFrameStart += frameInterval;
+                        long now = System.Diagnostics.Stopwatch.GetTimestamp();
+                        if (now > lastFrameStart)
+                            lastFrameStart = now; // fell behind, reset to avoid burst catch-up
+                        else
+                            while (System.Diagnostics.Stopwatch.GetTimestamp() < lastFrameStart) { }
                     }
 
                     break;

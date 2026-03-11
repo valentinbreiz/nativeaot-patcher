@@ -57,28 +57,39 @@ public static partial class StopwatchPlug
     }
 
 #else
-    // ARM64 fallback - simple incrementing counter
-    // Must be internal for patcher access (patched IL references this from another assembly)
-    internal static long s_counter;
+    [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_counter")]
+    [SuppressGCTransition]
+    private static partial ulong NativeGetCounter();
+
+    [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_frequency")]
+    [SuppressGCTransition]
+    private static partial ulong NativeGetFrequency();
 
     /// <summary>
-    /// Gets the current timestamp (fallback counter for ARM64).
+    /// Gets the current timestamp using the ARM64 generic timer counter (cntpct_el0).
     /// </summary>
     [PlugMember]
     public static long GetTimestamp()
     {
-        // Simple incrementing counter until ARM64 timer is implemented
-        s_counter += 1000;
-        return s_counter;
+        return (long)NativeGetCounter();
     }
 
     /// <summary>
-    /// Gets the frequency of the timer in ticks per second.
+    /// Gets the ARM64 generic timer frequency in ticks per second (cntfrq_el0).
+    /// </summary>
+    [PlugMember]
+    public static long GetFrequency()
+    {
+        return (long)NativeGetFrequency();
+    }
+
+    /// <summary>
+    /// Gets the ARM64 generic timer frequency in ticks per second (cntfrq_el0).
     /// </summary>
     [PlugMember("get_Frequency")]
     public static long get_Frequency()
     {
-        return 1_000_000;
+        return (long)NativeGetFrequency();
     }
 
     /// <summary>
@@ -87,7 +98,7 @@ public static partial class StopwatchPlug
     [PlugMember("get_IsHighResolution")]
     public static bool get_IsHighResolution()
     {
-        return false;
+        return true;
     }
 #endif
 }
