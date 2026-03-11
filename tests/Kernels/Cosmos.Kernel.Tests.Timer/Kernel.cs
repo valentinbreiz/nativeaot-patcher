@@ -25,41 +25,34 @@ public class Kernel : Sys.Kernel
         // x64: Stopwatch (2) + PIT (3) + TimerManager (2) + LAPIC (3) + DateTime (4) = 14
         TR.Start("Timer Tests", expectedTests: 14);
 
-        // Stopwatch/TSC Tests - must run first to verify timing source
-        TR.Run("Stopwatch_Incrementing", TestStopwatchIncrementing);
-        TR.Run("Stopwatch_Frequency", TestStopwatchFrequency);
-
         // PIT Tests (using Stopwatch for verification)
         TR.Run("PIT_Initialized", TestPITInitialized);
         TR.Run("PIT_Wait_100ms", TestPITWait100ms);
         TR.Run("PIT_Wait_Proportional", TestPITWaitProportional);
 
-        // TimerManager Tests
-        TR.Run("TimerManager_Initialized", TestTimerManagerInitialized);
-        TR.Run("TimerManager_Wait_500ms", TestTimerManagerWait500ms);
-
         // LAPIC Timer Tests
         TR.Run("LAPIC_Initialized", TestLAPICInitialized);
         TR.Run("LAPIC_Wait_100ms", TestLAPICWait100ms);
         TR.Run("LAPIC_Wait_Proportional", TestLAPICWaitProportional);
-
-        // DateTime/RTC Tests
-        TR.Run("RTC_Initialized", TestRTCInitialized);
-        TR.Run("DateTime_Now_Valid", TestDateTimeNowValid);
-        TR.Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
-        TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
+    
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        TR.Start("Timer Tests", expectedTests: 6);
-        TR.Run("TimerManager_Initialized", TestTimerManagerInitializedARM64);
-        TR.Run("TimerManager_Basic", TestTimerManagerBasicARM64);
+        TR.Start("Timer Tests", expectedTests: 8);
+#endif
+
+        // Stopwatch/TSC Tests - must run first to verify timing source
+        TR.Run("Stopwatch_Incrementing", TestStopwatchIncrementing);
+        TR.Run("Stopwatch_Frequency", TestStopwatchFrequency);
+
+        // TimerManager Tests
+        TR.Run("TimerManager_Initialized", TestTimerManagerInitialized);
+        TR.Run("TimerManager_Wait_500ms", TestTimerManagerWait500ms);
 
         // DateTime/RTC Tests
         TR.Run("RTC_Initialized", TestRTCInitialized);
         TR.Run("DateTime_Now_Valid", TestDateTimeNowValid);
         TR.Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
         TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
-#endif
 
         Serial.WriteString("[Timer Tests] All tests completed\n");
         TR.Finish();
@@ -77,8 +70,7 @@ public class Kernel : Sys.Kernel
         Cosmos.Kernel.Kernel.Halt();
     }
 
-      // ==================== DateTime/RTC Tests ====================
-
+    // ==================== DateTime/RTC Tests ====================
     private static void TestRTCInitialized()
     {
         Assert.True(RTC.Instance != null, "RTC: Instance should be initialized");
@@ -156,9 +148,7 @@ public class Kernel : Sys.Kernel
         Assert.True(utcNow.Year >= 2020, "DateTime: UtcNow year should be >= 2020");
     }
 
-#if ARCH_X64
     // ==================== Stopwatch Tests ====================
-
     private static void TestStopwatchIncrementing()
     {
         // Read timestamp twice and verify it's incrementing
@@ -177,7 +167,6 @@ public class Kernel : Sys.Kernel
 
         Assert.True(ts2 > ts1, "Stopwatch: GetTimestamp() should return incrementing values");
     }
-
     private static void TestStopwatchFrequency()
     {
         long freq = Stopwatch.Frequency;
@@ -190,6 +179,35 @@ public class Kernel : Sys.Kernel
         Assert.True(freq >= 100_000_000, "Stopwatch: Frequency should be >= 100 MHz");
         Assert.True(Stopwatch.IsHighResolution, "Stopwatch: Should be high resolution on x64");
     }
+
+    // ==================== TimerManager Tests ====================
+
+    private static void TestTimerManagerInitialized()
+    {
+        Assert.True(TimerManager.IsInitialized, "TimerManager: Should be initialized");
+        Assert.True(TimerManager.Timer != null, "TimerManager: Should have a registered timer");
+    }
+
+    private static void TestTimerManagerWait500ms()
+    {
+        long tsStart = Stopwatch.GetTimestamp();
+        TimerManager.Wait(500);
+        long tsEnd = Stopwatch.GetTimestamp();
+
+        long elapsed = tsEnd - tsStart;
+        long frequency = Stopwatch.Frequency;
+        long elapsedMs = (elapsed * 1000) / frequency;
+
+        Serial.WriteString("[Timer Tests] TimerManager Wait(500ms) - elapsed ms: ");
+        Serial.WriteNumber((ulong)elapsedMs);
+        Serial.WriteString("\n");
+
+        // Check if within tolerance (250-1000ms for 500ms wait)
+        bool inRange = elapsedMs >= 250 && elapsedMs <= 1000;
+        Assert.True(inRange, "TimerManager: Wait(500ms) should complete in roughly 500ms");
+    }
+
+#if ARCH_X64
 
     // ==================== PIT Tests ====================
 
@@ -248,33 +266,6 @@ public class Kernel : Sys.Kernel
 
         bool proportional = ratio100 >= 150 && ratio100 <= 250;
         Assert.True(proportional, "PIT: 200ms should take ~2x ticks of 100ms");
-    }
-
-    // ==================== TimerManager Tests ====================
-
-    private static void TestTimerManagerInitialized()
-    {
-        Assert.True(TimerManager.IsInitialized, "TimerManager: Should be initialized");
-        Assert.True(TimerManager.Timer != null, "TimerManager: Should have a registered timer");
-    }
-
-    private static void TestTimerManagerWait500ms()
-    {
-        long tsStart = Stopwatch.GetTimestamp();
-        TimerManager.Wait(500);
-        long tsEnd = Stopwatch.GetTimestamp();
-
-        long elapsed = tsEnd - tsStart;
-        long frequency = Stopwatch.Frequency;
-        long elapsedMs = (elapsed * 1000) / frequency;
-
-        Serial.WriteString("[Timer Tests] TimerManager Wait(500ms) - elapsed ms: ");
-        Serial.WriteNumber((ulong)elapsedMs);
-        Serial.WriteString("\n");
-
-        // Check if within tolerance (250-1000ms for 500ms wait)
-        bool inRange = elapsedMs >= 250 && elapsedMs <= 1000;
-        Assert.True(inRange, "TimerManager: Wait(500ms) should complete in roughly 500ms");
     }
 
     // ==================== LAPIC Timer Tests ====================
@@ -336,19 +327,5 @@ public class Kernel : Sys.Kernel
         Assert.True(proportional, "LAPIC: 200ms should take ~2x ticks of 100ms");
     }
 
-#else
-    // ==================== ARM64 Timer Tests ====================
-
-    private static void TestTimerManagerInitializedARM64()
-    {
-        // ARM64 may or may not have timer initialized yet
-        Assert.True(true, "TimerManager: Service exists");
-    }
-
-    private static void TestTimerManagerBasicARM64()
-    {
-        Serial.WriteString("[Timer Tests] ARM64 timer tests - placeholder\n");
-        Assert.True(true, "TimerManager: ARM64 placeholder test");
-    }
 #endif
 }
