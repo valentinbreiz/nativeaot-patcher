@@ -27,11 +27,6 @@ on:
         description: 'GitHub step timeout in minutes'
         required: true
         type: number
-      coverage:
-        description: 'Enable code coverage instrumentation'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   run-tests:
@@ -102,10 +97,6 @@ jobs:
           else
             TIMEOUT=${{ inputs.timeout_x64 }}
           fi
-          COVERAGE_FLAG=""
-          if [ "${{ inputs.coverage }}" = "true" ]; then
-            COVERAGE_FLAG="--coverage"
-          fi
           echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
           dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
             --no-build \
@@ -113,21 +104,9 @@ jobs:
             ${{ matrix.arch }} \
             $TIMEOUT \
             test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
-            ci \
-            $COVERAGE_FLAG
+            ci
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
-
-      - name: 📊 Upload Coverage Data
-        uses: actions/upload-artifact@v4
-        if: always() && inputs.coverage
-        with:
-          name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
-          path: |
-            coverage-${{ matrix.arch }}.json
-            artifacts/obj/**/cosmos/coverage-map.txt
-          retention-days: 30
-          if-no-files-found: ignore
 
       - name: 📤 Upload Test Results XML
         uses: actions/upload-artifact@v4
