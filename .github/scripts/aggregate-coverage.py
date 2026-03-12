@@ -94,7 +94,7 @@ def main():
         for asm_name in sorted(asm_stats.keys()):
             s = asm_stats[asm_name]
             p = (s["hit"] / s["total"] * 100) if s["total"] > 0 else 0
-            bar = "🟩" if p >= 50 else ("🟨" if p >= 20 else "🟥")
+            bar = "🟩" if p == 100 else ("🟨" if p >= 50 else "🟥")
             report_lines.append(f"| {bar} {asm_name} | {s['hit']} | {s['total']} | {p:.1f}% |")
 
         report_lines.append(f"| **Total** | **{hit_all}** | **{total_all}** | **{pct_all:.1f}%** |")
