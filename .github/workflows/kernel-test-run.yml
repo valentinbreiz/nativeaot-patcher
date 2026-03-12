@@ -27,6 +27,11 @@ on:
         description: 'GitHub step timeout in minutes'
         required: true
         type: number
+      coverage:
+        description: 'Enable code coverage instrumentation'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   run-tests:
@@ -97,6 +102,10 @@ jobs:
           else
             TIMEOUT=${{ inputs.timeout_x64 }}
           fi
+          COVERAGE_ARG=""
+          if [ "${{ inputs.coverage }}" = "true" ]; then
+            COVERAGE_ARG="--coverage"
+          fi
           echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
           dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
             --no-build \
@@ -104,7 +113,8 @@ jobs:
             ${{ matrix.arch }} \
             $TIMEOUT \
             test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
-            ci
+            ci \
+            $COVERAGE_ARG
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
 
