@@ -126,6 +126,15 @@ jobs:
           path: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml
           retention-days: 30
 
+      - name: 📤 Upload Coverage JSON
+        uses: actions/upload-artifact@v4
+        if: always() && inputs.coverage
+        with:
+          name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: coverage-${{ matrix.arch }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: 📤 Upload UART Debug Log
         uses: actions/upload-artifact@v4
         if: always()

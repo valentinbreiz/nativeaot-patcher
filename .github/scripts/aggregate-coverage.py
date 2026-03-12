@@ -9,8 +9,19 @@ import os
 import sys
 
 def main():
-    # Collect all coverage JSON files
-    json_files = sorted(glob.glob("./coverage/**/coverage-*.json", recursive=True))
+    # Collect all candidate JSON files from downloaded coverage artifacts.
+    # Do not rely on specific filenames; keep only schema-valid coverage reports.
+    candidate_files = sorted(glob.glob("./coverage/**/*.json", recursive=True))
+    json_files = []
+    for path in candidate_files:
+        try:
+            with open(path) as f:
+                data = json.load(f)
+            if isinstance(data, dict) and "assemblies" in data and "architecture" in data:
+                json_files.append(path)
+        except Exception:
+            continue
+
     if not json_files:
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
