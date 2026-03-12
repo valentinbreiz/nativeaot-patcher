@@ -36,17 +36,6 @@ public class CoverageInstrumenter
     ];
 
     /// <summary>
-    /// Assembly names that are entirely runtime infrastructure and must never be
-    /// instrumented. Cosmos.Kernel.Core contains the memory allocator, GC, serial
-    /// driver, exception handling, and NativeAOT runtime stubs — all called before
-    /// CoverageTracker's static constructor can run.
-    /// </summary>
-    private static readonly string[] ExcludeAssembliesExact =
-    [
-        "Cosmos.Kernel.Core",
-    ];
-
-    /// <summary>
     /// Fully-qualified type names to always skip (avoids infinite recursion).
     /// </summary>
     private static readonly string[] ExcludeTypes =
@@ -409,13 +398,6 @@ public class CoverageInstrumenter
         foreach (var exclude in ExcludeAssemblies)
         {
             if (assemblyName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
-                return false;
-        }
-
-        // Skip exact assembly name matches (runtime-critical assemblies)
-        foreach (var exclude in ExcludeAssembliesExact)
-        {
-            if (assemblyName.Equals(exclude, StringComparison.OrdinalIgnoreCase))
                 return false;
         }
 
