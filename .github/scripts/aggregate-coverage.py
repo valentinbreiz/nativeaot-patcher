@@ -68,16 +68,20 @@ def main():
         methods = arch_data[arch]
         exclude_asms = ARCH_SPECIFIC.get(arch, set())
 
-        # Group by assembly
-        asm_stats = {}
+        # Group by assembly — track both stats and missed method names
+        asm_stats = {}   # asm_name -> {"total": int, "hit": int}
+        asm_missed = {}  # asm_name -> [method_key, ...]
         for (asm_name, method_key), hit in methods.items():
             if asm_name in exclude_asms:
                 continue
             if asm_name not in asm_stats:
                 asm_stats[asm_name] = {"total": 0, "hit": 0}
+                asm_missed[asm_name] = []
             asm_stats[asm_name]["total"] += 1
             if hit:
                 asm_stats[asm_name]["hit"] += 1
+            else:
+                asm_missed[asm_name].append(method_key)
 
         total_all = sum(s["total"] for s in asm_stats.values())
         hit_all = sum(s["hit"] for s in asm_stats.values())
@@ -95,6 +99,20 @@ def main():
 
         report_lines.append(f"| **Total** | **{hit_all}** | **{total_all}** | **{pct_all:.1f}%** |")
         report_lines.append("")
+
+        # Per-project uncovered methods (details/spoiler)
+        for asm_name in sorted(asm_stats.keys()):
+            missed = sorted(asm_missed.get(asm_name, []))
+            if not missed:
+                continue
+            s = asm_stats[asm_name]
+            n_missed = len(missed)
+            report_lines.append(f"<details><summary>❌ {asm_name} — {n_missed} uncovered method{'s' if n_missed != 1 else ''}</summary>\n")
+            report_lines.append("```")
+            for m in missed:
+                report_lines.append(m)
+            report_lines.append("```")
+            report_lines.append("\n</details>\n")
 
     # Per-suite breakdown
     report_lines.append("<details><summary>Per-suite breakdown</summary>\n")
