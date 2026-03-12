@@ -83,4 +83,10 @@ public class TestConfiguration
     /// Computed: Should display be shown (based on Mode and ShowDisplay override)
     /// </summary>
     public bool ShouldShowDisplay => ShowDisplay ?? (Mode == TestRunnerMode.Dev);
+
+    /// <summary>
+    /// Enable code coverage instrumentation during build.
+    /// Passes -p:CosmosCoverage=true to dotnet publish.
+    /// </summary>
+    public bool CoverageEnabled { get; set; } = false;
 }

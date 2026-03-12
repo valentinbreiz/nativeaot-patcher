@@ -14,7 +14,7 @@ class Program
 
         if (args.Length < 1)
         {
-            Console.WriteLine("Usage: Cosmos.TestRunner.Engine <kernel-project-path> [architecture] [timeout] [xml-output] [mode]");
+            Console.WriteLine("Usage: Cosmos.TestRunner.Engine <kernel-project-path> [architecture] [timeout] [xml-output] [mode] [--coverage]");
             Console.WriteLine("  kernel-project-path: Path to test kernel project directory");
             Console.WriteLine("  architecture: x64 or arm64 (default: x64)");
             Console.WriteLine("  timeout: Timeout in seconds (default: 30)");
@@ -22,18 +22,22 @@ class Program
             Console.WriteLine("  mode: ci or dev (default: ci)");
             Console.WriteLine("        ci  = headless, automated, fast");
             Console.WriteLine("        dev = visual display, interactive, debugging");
+            Console.WriteLine("  --coverage: Enable code coverage instrumentation");
             Console.WriteLine("\nExamples:");
             Console.WriteLine("  Cosmos.TestRunner.Engine tests/Kernels/Cosmos.Kernel.Tests.HelloWorld x64 30");
-            Console.WriteLine("  Cosmos.TestRunner.Engine tests/Kernels/Cosmos.Kernel.Tests.HelloWorld x64 30 results.xml");
-            Console.WriteLine("  Cosmos.TestRunner.Engine tests/Kernels/Cosmos.Kernel.Tests.HelloWorld x64 60 - dev");
+            Console.WriteLine("  Cosmos.TestRunner.Engine tests/Kernels/Cosmos.Kernel.Tests.HelloWorld x64 30 results.xml ci --coverage");
             return 1;
         }
 
-        string kernelPath = args[0];
-        string architecture = args.Length > 1 ? args[1] : "x64";
-        int timeout = args.Length > 2 ? int.Parse(args[2]) : 30;
-        string xmlOutput = args.Length > 3 && args[3] != "-" ? args[3] : string.Empty;
-        string modeStr = args.Length > 4 ? args[4] : "ci";
+        // Check for --coverage flag anywhere in args
+        bool coverageEnabled = args.Any(a => a == "--coverage");
+        var positionalArgs = args.Where(a => !a.StartsWith("--")).ToArray();
+
+        string kernelPath = positionalArgs[0];
+        string architecture = positionalArgs.Length > 1 ? positionalArgs[1] : "x64";
+        int timeout = positionalArgs.Length > 2 ? int.Parse(positionalArgs[2]) : 30;
+        string xmlOutput = positionalArgs.Length > 3 && positionalArgs[3] != "-" ? positionalArgs[3] : string.Empty;
+        string modeStr = positionalArgs.Length > 4 ? positionalArgs[4] : "ci";
 
         TestRunnerMode mode = modeStr.ToLowerInvariant() switch
         {
@@ -55,8 +59,14 @@ class Program
             TimeoutSeconds = timeout,
             KeepBuildArtifacts = true, // Keep artifacts for debugging
             XmlOutputPath = xmlOutput,
-            Mode = mode
+            Mode = mode,
+            CoverageEnabled = coverageEnabled
         };
+
+        if (coverageEnabled)
+        {
+            Console.WriteLine("📊 Code coverage instrumentation enabled");
+        }
 
         Console.WriteLine($"Mode: {mode}");
         if (mode == TestRunnerMode.Dev)

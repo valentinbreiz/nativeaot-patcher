@@ -68,13 +68,14 @@ public class UartMessageParser
         byte command = data[offset + 4];
 
         // Only proceed if this looks like a valid protocol command
-        if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.TestSuiteEnd)
+        if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.CoverageData)
             return false;
 
         ushort length = (ushort)(data[offset + 5] | (data[offset + 6] << 8));
 
-        // Sanity check: length shouldn't be huge (max test name ~256 chars)
-        if (length > 1024)
+        // Sanity check: coverage data can be large, other messages should be small
+        int maxLength = (command == Ds2Vs.CoverageData) ? 65535 : 1024;
+        if (length > maxLength)
             return false;
 
         // Validate we have enough data for payload
@@ -112,6 +113,10 @@ public class UartMessageParser
 
             case Ds2Vs.TestSuiteEnd:
                 ParseTestSuiteEnd(payload, results);
+                return true;
+
+            case Ds2Vs.CoverageData:
+                ParseCoverageData(payload, results);
                 return true;
 
             default:
@@ -214,6 +219,22 @@ public class UartMessageParser
             // This overrides the potentially corrupted value from TestSuiteStart.
             results.ExpectedTestCount = total;
             results.SuiteCompleted = true;
+        }
+    }
+
+    private static void ParseCoverageData(byte[] payload, TestResults results)
+    {
+        // Payload: [HitCount:2][HitId1:2][HitId2:2]...
+        if (payload.Length < 2) return;
+
+        ushort hitCount = BitConverter.ToUInt16(payload, 0);
+
+        Console.WriteLine($"[UartParser] Coverage data: {hitCount} methods hit");
+
+        for (int i = 0; i < hitCount && (2 + i * 2 + 1) < payload.Length; i++)
+        {
+            ushort methodId = BitConverter.ToUInt16(payload, 2 + i * 2);
+            results.CoverageHitMethodIds.Add(methodId);
         }
     }
 }

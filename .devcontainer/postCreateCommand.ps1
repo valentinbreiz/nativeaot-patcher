@@ -152,11 +152,11 @@ dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 Write-Host "Installing global tools..." -ForegroundColor Cyan
-dotnet tool install -g ilc --add-source artifacts/package/release 2>$null
-dotnet tool update -g ilc --add-source artifacts/package/release 2>$null
-dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release 2>$null
-dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release 2>$null
-dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release 2>$null
-dotnet tool update -g Cosmos.Tools --add-source artifacts/package/release 2>$null
+dotnet tool uninstall -g ilc 2>$null
+dotnet tool install -g ilc --add-source artifacts/package/release
+dotnet tool uninstall -g Cosmos.Patcher 2>$null
+dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
+dotnet tool uninstall -g Cosmos.Tools 2>$null
+dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release
 
 Write-Host "=== PostCreate setup completed (multi-arch) ===" -ForegroundColor Green

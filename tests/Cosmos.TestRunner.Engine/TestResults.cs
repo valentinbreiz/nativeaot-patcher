@@ -19,6 +19,12 @@ public class TestResults
     public int ExpectedTestCount { get; set; }
     public bool SuiteCompleted { get; set; }
 
+    /// <summary>
+    /// Code coverage data: method IDs that were hit during execution.
+    /// Empty if coverage instrumentation was not enabled.
+    /// </summary>
+    public List<ushort> CoverageHitMethodIds { get; set; } = new();
+
     public int TotalTests => ExpectedTestCount > 0 ? ExpectedTestCount : Tests.Count;
     public int PassedTests => Tests.Count(t => t.Status == TestStatus.Passed);
     public int FailedTests => Tests.Count(t => t.Status == TestStatus.Failed);

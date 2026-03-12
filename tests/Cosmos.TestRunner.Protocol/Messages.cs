@@ -290,6 +290,50 @@ namespace Cosmos.TestRunner.Protocol
     }
 
     /// <summary>
+    /// Code coverage data sent after test suite completes.
+    /// Contains the list of method IDs that were hit during execution.
+    /// </summary>
+    public class CoverageDataMessage : ProtocolMessage
+    {
+        public override byte Command => Ds2Vs.CoverageData;
+        public ushort[] HitMethodIds { get; set; } = [];
+
+        public CoverageDataMessage() { }
+        public CoverageDataMessage(ushort[] hitMethodIds)
+        {
+            HitMethodIds = hitMethodIds;
+        }
+
+        public override byte[] GetPayload()
+        {
+            var result = new byte[2 + HitMethodIds.Length * 2];
+            var hitCount = (ushort)HitMethodIds.Length;
+            result[0] = (byte)(hitCount & 0xFF);
+            result[1] = (byte)((hitCount >> 8) & 0xFF);
+            for (int i = 0; i < HitMethodIds.Length; i++)
+            {
+                result[2 + i * 2] = (byte)(HitMethodIds[i] & 0xFF);
+                result[2 + i * 2 + 1] = (byte)((HitMethodIds[i] >> 8) & 0xFF);
+            }
+            return result;
+        }
+
+        public static CoverageDataMessage Deserialize(byte[] payload)
+        {
+            if (payload.Length < 2)
+                return new CoverageDataMessage();
+
+            var hitCount = (ushort)(payload[0] | (payload[1] << 8));
+            var ids = new ushort[hitCount];
+            for (int i = 0; i < hitCount && (2 + i * 2 + 1) < payload.Length; i++)
+            {
+                ids[i] = (ushort)(payload[2 + i * 2] | (payload[2 + i * 2 + 1] << 8));
+            }
+            return new CoverageDataMessage(ids);
+        }
+    }
+
+    /// <summary>
     /// Simple text message (from original CosmosOS protocol)
     /// </summary>
     public class TextMessage : ProtocolMessage

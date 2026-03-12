@@ -7,11 +7,16 @@
           Inputs="@(AssembliesToPatch->'%(Identity)')"
           Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
 
+    <PropertyGroup>
+      <_PatcherCoverageFlag Condition="'$(CosmosCoverage)' == 'true'">--coverage</_PatcherCoverageFlag>
+      <_PatcherCoverageFlag Condition="'$(CosmosCoverage)' != 'true'"></_PatcherCoverageFlag>
+    </PropertyGroup>
+
     <Message Importance="High"
              Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
 
     <Exec
-      Command="cosmos.patcher patch --target &quot;%(AssembliesToPatch.Identity)&quot; --target-platform &quot;$(PatcherTargetPlatform)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot;"
+      Command="cosmos.patcher patch --target &quot;%(AssembliesToPatch.Identity)&quot; --target-platform &quot;$(PatcherTargetPlatform)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot; $(_PatcherCoverageFlag)"
       ConsoleToMSBuild="true"
       IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="PatcherExitCode" />

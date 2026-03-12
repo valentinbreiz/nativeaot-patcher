@@ -18,7 +18,7 @@
 
   <!-- ILC and build dependencies -->
   <PropertyGroup>
-    <IlcDependsOn>RunPatcher;$(IlcDependsOn);PrepareForILLink</IlcDependsOn>
+    <IlcDependsOn>RunPatcher;InstrumentCoverage;$(IlcDependsOn);PrepareForILLink</IlcDependsOn>
     <LinkTargetDependsOn>CompileWithIlc;BuildYasm;BuildGCC;$(LinkTargetDependsOn)</LinkTargetDependsOn>
   </PropertyGroup>
 

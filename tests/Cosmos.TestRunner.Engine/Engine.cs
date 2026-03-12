@@ -65,8 +65,10 @@ public partial class Engine
 
         var stopwatch = Stopwatch.StartNew();
 
-        // Get suite name from project path
-        string suiteName = Path.GetFileNameWithoutExtension(_config.KernelProjectPath);
+        // Get suite name from project path (use GetFileName, not GetFileNameWithoutExtension,
+        // because the path is a directory like "Cosmos.Kernel.Tests.HelloWorld" and
+        // GetFileNameWithoutExtension would strip ".HelloWorld" as an extension)
+        string suiteName = Path.GetFileName(_config.KernelProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
         try
         {
@@ -90,6 +92,12 @@ public partial class Engine
             results.TotalDuration = stopwatch.Elapsed;
 
             Console.WriteLine($"[Engine] Results: {results.PassedTests}/{results.TotalTests} passed");
+
+            // Report coverage if data was received
+            if (results.CoverageHitMethodIds.Count > 0)
+            {
+                ReportCoverage(results);
+            }
 
             // Notify individual test results
             foreach (var test in results.Tests)
@@ -166,8 +174,8 @@ public partial class Engine
         // Always try to parse UART log, even on timeout - kernel may have completed tests
         var results = UartMessageParser.ParseUartLog(qemuResult.UartLog ?? string.Empty, _config.Architecture);
         results.TimedOut = qemuResult.TimedOut;
-        results.UartLog = qemuResult.UartLog;
-        results.ErrorMessage = qemuResult.ErrorMessage;
+        results.UartLog = qemuResult.UartLog ?? string.Empty;
+        results.ErrorMessage = qemuResult.ErrorMessage ?? string.Empty;
 
         // If the suite completed normally (TestSuiteEnd received and validated), all tests ran —
         // no need to synthesise failures for missing tests.
@@ -202,6 +210,169 @@ public partial class Engine
         return results;
     }
 
+    private void ReportCoverage(TestResults results)
+    {
+        string? mapPath = FindCoverageMap();
+
+        if (mapPath == null)
+        {
+            Console.WriteLine($"[Coverage] Coverage map not found");
+            Console.WriteLine($"[Coverage] {results.CoverageHitMethodIds.Count} methods hit (no method names available)");
+            return;
+        }
+
+        Console.WriteLine($"[Coverage] Using coverage map: {mapPath}");
+
+        // Parse coverage map — one ID may map to multiple methods (plug aliases share target ID)
+        var allMethods = new List<(int Id, string Assembly, string Type, string Method)>();
+        foreach (var line in File.ReadAllLines(mapPath))
+        {
+            if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var parts = line.Split('\t');
+            if (parts.Length >= 4 && int.TryParse(parts[0], out int id))
+            {
+                allMethods.Add((id, parts[1], parts[2], parts[3]));
+            }
+        }
+
+        int totalMethods = allMethods.Count;
+        var hitSet = new HashSet<int>(results.CoverageHitMethodIds.Select(id => (int)id));
+        int hitMethods = allMethods.Count(m => hitSet.Contains(m.Id));
+        double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * 100 : 0;
+
+        Console.WriteLine($"[Coverage] {hitMethods}/{totalMethods} methods covered ({percentage:F1}%)");
+
+        // Per-assembly breakdown
+        var assemblyStats = allMethods
+            .GroupBy(m => m.Assembly)
+            .Select(g => new
+            {
+                Assembly = g.Key,
+                Total = g.Count(),
+                Hit = g.Count(m => hitSet.Contains(m.Id))
+            })
+            .OrderByDescending(a => a.Total);
+
+        foreach (var asm in assemblyStats)
+        {
+            double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+            Console.WriteLine($"[Coverage]   {asm.Assembly}: {asm.Hit}/{asm.Total} ({asmPct:F1}%)");
+        }
+
+        // Write coverage results JSON for CI (includes per-method hit data for cross-suite aggregation)
+        string coverageOutputPath = Path.Combine(
+            Path.GetDirectoryName(_config.XmlOutputPath ?? _config.KernelProjectPath) ?? ".",
+            $"coverage-{_config.Architecture}.json");
+
+        try
+        {
+            // Build per-assembly method lists (all methods + which were hit)
+            var assemblyMethods = allMethods
+                .GroupBy(m => m.Assembly)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(m => new
+                    {
+                        Key = $"{m.Type}::{m.Method}",
+                        Hit = hitSet.Contains(m.Id)
+                    }).ToList()
+                );
+
+            using var writer = new StreamWriter(coverageOutputPath);
+            writer.WriteLine("{");
+            writer.WriteLine($"  \"suite\": \"{results.SuiteName}\",");
+            writer.WriteLine($"  \"architecture\": \"{_config.Architecture}\",");
+            writer.WriteLine($"  \"totalMethods\": {totalMethods},");
+            writer.WriteLine($"  \"hitMethods\": {hitMethods},");
+            writer.WriteLine($"  \"percentage\": {percentage:F1},");
+            writer.WriteLine("  \"assemblies\": [");
+
+            var asmList = assemblyStats.ToList();
+            for (int i = 0; i < asmList.Count; i++)
+            {
+                var asm = asmList[i];
+                double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+                string comma = i < asmList.Count - 1 ? "," : "";
+
+                // Collect hit method signatures for this assembly
+                var methods = assemblyMethods.GetValueOrDefault(asm.Assembly);
+                var hitMethodNames = methods?
+                    .Where(m => m.Hit)
+                    .Select(m => m.Key)
+                    .ToList() ?? [];
+                var allMethodNames = methods?
+                    .Select(m => m.Key)
+                    .ToList() ?? [];
+
+                writer.WriteLine($"    {{");
+                writer.WriteLine($"      \"name\": \"{EscapeJson(asm.Assembly)}\",");
+                writer.WriteLine($"      \"total\": {asm.Total},");
+                writer.WriteLine($"      \"hit\": {asm.Hit},");
+                writer.WriteLine($"      \"percentage\": {asmPct:F1},");
+                writer.WriteLine($"      \"methods\": [");
+                for (int j = 0; j < allMethodNames.Count; j++)
+                {
+                    string mComma = j < allMethodNames.Count - 1 ? "," : "";
+                    bool mHit = hitMethodNames.Contains(allMethodNames[j]);
+                    writer.WriteLine($"        {{ \"name\": \"{EscapeJson(allMethodNames[j])}\", \"hit\": {(mHit ? "true" : "false")} }}{mComma}");
+                }
+                writer.WriteLine($"      ]");
+                writer.WriteLine($"    }}{comma}");
+            }
+
+            writer.WriteLine("  ]");
+            writer.WriteLine("}");
+
+            Console.WriteLine($"[Coverage] Report written to: {coverageOutputPath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Coverage] Warning: Could not write coverage JSON: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Search for coverage-map.txt in standard and artifacts output layouts.
+    /// </summary>
+    private string? FindCoverageMap()
+    {
+        string projectDir = _config.KernelProjectPath;
+        string projectName = Path.GetFileName(projectDir);
+        string rid = _config.Architecture == "arm64" ? "linux-arm64" : "linux-x64";
+
+        // Candidate paths: standard obj layout and UseArtifactsOutput layout
+        string[] candidates =
+        [
+            Path.Combine(projectDir, "obj", "Debug", "net10.0", rid, "cosmos", "coverage-map.txt"),
+            Path.Combine(projectDir, "..", "..", "artifacts", "obj", projectName, $"debug_{rid}", "cosmos", "coverage-map.txt"),
+        ];
+
+        foreach (var path in candidates)
+        {
+            var fullPath = Path.GetFullPath(path);
+            if (File.Exists(fullPath))
+                return fullPath;
+        }
+
+        // Fallback: recursive search from project directory upward
+        var dir = new DirectoryInfo(projectDir);
+        while (dir != null)
+        {
+            var artifactsDir = Path.Combine(dir.FullName, "artifacts", "obj");
+            if (Directory.Exists(artifactsDir))
+            {
+                var found = Directory.GetFiles(artifactsDir, "coverage-map.txt", SearchOption.AllDirectories);
+                if (found.Length > 0)
+                    return found[0];
+            }
+            dir = dir.Parent;
+        }
+
+        return null;
+    }
+
     private void CleanupBuildArtifacts(string isoPath)
     {
         try
@@ -221,5 +392,10 @@ public partial class Engine
         {
             Console.WriteLine($"[Engine] Warning: Failed to cleanup: {ex.Message}");
         }
+    }
+
+    private static string EscapeJson(string s)
+    {
+        return s.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }
