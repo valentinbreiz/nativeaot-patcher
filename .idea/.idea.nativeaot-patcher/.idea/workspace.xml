@@ -11,118 +11,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a880d573-78a3-4b03-a70b-5e2c596583fd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Common/src/Internal/Runtime/MethodTable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Common/src/Internal/Runtime/MethodTable.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/System.Private.StackTraceMetadata/src/Internal/StackTraceMetadata/MethodNameFormatter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/System.Private.StackTraceMetadata/src/Internal/StackTraceMetadata/MethodNameFormatter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/MdBinaryReaderGen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/MdBinaryReaderGen.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/MetadataTypeHashingAlgorithms.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/MetadataTypeHashingAlgorithms.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderCommonGen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderCommonGen.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderGen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderGen.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeMetadataReader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeMetadataReader.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormat.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormat.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.Metadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.Metadata.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.String.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.String.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatReader.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.Primitives.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.Primitives.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriterExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriterExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MethodTable.Constants.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MethodTable.Constants.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/TypeSystem/Common/TypeHashingAlgorithms.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/TypeSystem/Common/TypeHashingAlgorithms.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/DevKernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Analyzer.Patcher/PatcherAnalyzer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Analyzer.Patcher/PatcherAnalyzer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/LdTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/LdTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/YasmBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Asm/Tasks/YasmBuildTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.GCC/Tasks/GCCBuildTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.GCC/Tasks/GCCBuildTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Ilc/Tasks/SortAutoInitialedAssemblies.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Logging/MsBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Logging/MsBuildLogger.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/FindPluggedAssembliesTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/FindPluggedAssembliesTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Boot.Limine/Limine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Boot.Limine/Limine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Boxing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Boxing.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/MethodTable.Runtime.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/MethodTable.Runtime.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/ReadyToRunHeader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/ReadyToRunHeader.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/TypeManagerHandle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Internal/Runtime/TypeManagerHandle.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/MetaTable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/MetaTable.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ModuleHelpers.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ModuleHelpers.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ResourceManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/ResourceManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/StackTraceMetadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/StackTraceMetadata.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Stdllib.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Utilities/SimpleDictionary.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Graphics/KernelConsole.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Graphics/KernelConsole.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64CpuOps.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64CpuOps.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64MemoryIO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64MemoryIO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Cpu/ARM64InterruptController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Cpu/ARM64InterruptController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Input/VirtioKeyboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Input/VirtioKeyboard.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Timer/GenericTimer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Timer/GenericTimer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Virtio/Virtqueue.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/Devices/Virtio/Virtqueue.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ModuleInit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ModuleInit.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.Interfaces/Devices/Network/MACAddress.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.Interfaces/Devices/Network/MACAddress.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Acpi/Acpi.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Acpi/Acpi.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Cpu/Idt.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Input/PS2Controller.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Input/PS2Controller.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Input/PS2Keyboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Input/PS2Keyboard.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Timer/PIT.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/Devices/Timer/PIT.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/ModuleInit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/ModuleInit.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64CpuOps.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64CpuOps.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64PortIO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64PortIO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Data/IRQContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/Internal/Runtime/CompilerHelpers/StartupCodeHelpersPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/Internal/Runtime/CompilerHelpers/StartupCodeHelpersPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/AppContextPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/AppContextPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/DateTimePlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/DateTimePlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/IPAddressPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/IPAddressPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/IPEndPointPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/IPEndPointPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/NetworkStreamPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/NetworkStreamPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/SocketPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/SocketPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/TcpClientPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/TcpClientPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/TcpListenerPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/TcpListenerPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/UdpClientPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Net/Sockets/UdpClientPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/LowLevelMonitorPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/LowLevelMonitorPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Global.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Global.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/KeyEvent.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/KeyEvent.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/KeyboardManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/KeyboardManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/ScanMapBase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/ScanMapBase.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/ScanMaps/USStandardLayout.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Keyboard/ScanMaps/USStandardLayout.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/ARP/ARPCache.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/ARP/ARPCache.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/DNSConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/DNSConfig.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/IPConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/IPConfig.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/NetworkConfigManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/Config/NetworkConfigManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/Address.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/Address.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/EndPoint.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/EndPoint.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/OutgoingBuffer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/OutgoingBuffer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/TCP/TCPPacket.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/TCP/TCPPacket.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/TCP/Tcp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/TCP/Tcp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DHCP/DHCPClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DHCP/DHCPClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DHCP/DHCPPacket.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DHCP/DHCPPacket.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DNS/DNSPacket.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/DNS/DNSPacket.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/UdpClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv4/UDP/UdpClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/NetworkStack.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/NetworkStack.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel/Kernel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Debug/DebugHelpers.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Debug/DebugHelpers.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Extensions/MethodBodyEx.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/ILCloner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/ILCloner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/TypeImporter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/IL/TypeImporter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/ConsoleBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/ConsoleBuildLogger.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/IBuildLogger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Logging/IBuildLogger.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/MonoCecilExtension.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PatchCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PatchCommand.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/FieldPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/FieldPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/MethodPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/MethodPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/PropertyPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Patching/PropertyPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugPatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugScanner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugScanner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/PlugUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Patcher/Resolution/MethodResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Patcher/Resolution/MethodResolver.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Tools/Commands/InstallCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Tools/Commands/InstallCommand.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Cosmos.Tests.NativeWrapper/NativeWrapperObjectPlug.cs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Cosmos.Tests.NativeWrapper/NativeWrapperObjectPlug.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MetadataBlob.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MetadataBlob.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -171,15 +68,12 @@
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="Toolset" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="34BNqArC6GVgjgzvoYwDS9VDjLU" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="$MSBUILDDEBUGONSTART$" id="Add" />
-  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -200,7 +94,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/extension",
+    "git-widget-placeholder": "feature/codeCoverage",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/nativeaot-patcher/examples/DevKernel/DevKernel.csproj",
@@ -223,7 +117,7 @@
       <option name="EXE_PATH" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PASS_PARENT_ENVS" value="1" />
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
       <option name="MIXED_MODE_DEBUG" value="0" />
@@ -231,9 +125,9 @@
       <option name="RUNTIME_ARGUMENTS" value="" />
       <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/Cosmos.Tools/Cosmos.Tools.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="$MSBUILDDEBUGONSTART$" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="$MSBUILDDEBUGONSTART$" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
+      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
+      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
       <option name="PROJECT_KIND" value="DotNetCore" />
       <option name="PROJECT_TFM" value="" />
       <method v="2">
@@ -244,7 +138,7 @@
       <option name="EXE_PATH" value="$PROJECT_DIR$/artifacts/bin/Cosmos.Patcher/debug/Cosmos.Patcher.exe" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/artifacts/bin/Cosmos.Patcher/debug" />
-      <option name="PASS_PARENT_ENVS" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PASS_PARENT_ENVS" value="1" />
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
       <option name="MIXED_MODE_DEBUG" value="0" />
@@ -252,9 +146,9 @@
       <option name="RUNTIME_ARGUMENTS" value="" />
       <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/Cosmos.Patcher/Cosmos.Patcher.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="$MSBUILDDEBUGONSTART$" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="$MSBUILDDEBUGONSTART$" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="$MSBUILDDEBUGONSTART$" />
+      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
+      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
+      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
       <option name="PROJECT_KIND" value="DotNetCore" />
       <option name="PROJECT_TFM" value="net9.0" />
       <method v="2">
@@ -284,7 +178,6 @@
     <list>
       <item itemvalue=".NET Project.Cosmos.Tools" />
       <item itemvalue=".NET Project.DevKernel" />
-      <item itemvalue="MSBuild.DevKernel" />
     </list>
   </component>
   <component name="TaskManager">
@@ -324,6 +217,7 @@
       <workItem from="1764389239006" duration="2473000" />
       <workItem from="1764546021564" duration="319000" />
       <workItem from="1768352603787" duration="1645000" />
+      <workItem from="1773277152390" duration="643000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />

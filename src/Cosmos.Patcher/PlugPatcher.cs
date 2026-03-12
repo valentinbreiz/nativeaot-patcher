@@ -9,6 +9,17 @@ using Mono.Cecil;
 namespace Cosmos.Patcher;
 
 /// <summary>
+/// Records a mapping from a plug method to its patched target method.
+/// </summary>
+public record PlugMapping(
+    string PlugAssembly,
+    string PlugType,
+    string PlugMethod,
+    string TargetAssembly,
+    string TargetType,
+    string TargetMethod);
+
+/// <summary>
 /// The PlugPatcher class is responsible for applying plugs to methods, types, and assemblies.
 /// Orchestrates the patching process using specialized components.
 /// </summary>
@@ -20,6 +31,17 @@ public sealed class PlugPatcher
     private readonly MethodPatcher _methodPatcher;
     private readonly PropertyPatcher _propertyPatcher;
     private readonly FieldPatcher _fieldPatcher;
+
+    /// <summary>
+    /// All successful plug → target method mappings recorded during patching.
+    /// Only populated when <see cref="CoverageEnabled"/> is true.
+    /// </summary>
+    public List<PlugMapping> PlugMappings { get; } = [];
+
+    /// <summary>
+    /// When true, plug → target mappings are recorded for coverage tracking.
+    /// </summary>
+    public bool CoverageEnabled { get; set; }
 
     public PlugPatcher(PlugScanner scanner)
     {
@@ -322,6 +344,7 @@ public sealed class PlugPatcher
                 _log.Debug($"Target prototype: {MethodResolver.FormatMethodSignature(ctor)}");
                 _log.Debug($"Plug prototype: {MethodResolver.FormatMethodSignature(plugMethod)}");
                 _methodPatcher.PatchMethod(ctor, plugMethod);
+                RecordPlugMapping(plugMethod, ctor);
             }
             return;
         }
@@ -331,11 +354,37 @@ public sealed class PlugPatcher
         {
             _log.Debug($"Target prototype: {MethodResolver.FormatMethodSignature(targetMethod)}");
             _methodPatcher.PatchMethod(targetMethod, plugMethod);
+            RecordPlugMapping(plugMethod, targetMethod);
         }
         else
         {
             _methodResolver.DumpOverloads(targetType, targetMethodName ?? plugMethod.Name, plugMethod);
         }
+    }
+
+    /// <summary>
+    /// Records a plug → target mapping for coverage tracking.
+    /// </summary>
+    private void RecordPlugMapping(MethodDefinition plugMethod, MethodDefinition targetMethod)
+    {
+        if (!CoverageEnabled)
+            return;
+
+        string FormatSig(MethodDefinition m)
+        {
+            var parameters = string.Join(", ", m.Parameters.Select(p => p.ParameterType.Name));
+            string name = m.IsConstructor ? (m.IsStatic ? ".cctor" : ".ctor") : m.Name;
+            return $"{name}({parameters})";
+        }
+
+        PlugMappings.Add(new PlugMapping(
+            PlugAssembly: plugMethod.DeclaringType.Module.Assembly.Name.Name,
+            PlugType: plugMethod.DeclaringType.FullName,
+            PlugMethod: FormatSig(plugMethod),
+            TargetAssembly: targetMethod.DeclaringType.Module.Assembly.Name.Name,
+            TargetType: targetMethod.DeclaringType.FullName,
+            TargetMethod: FormatSig(targetMethod)
+        ));
     }
 
     /// <summary>

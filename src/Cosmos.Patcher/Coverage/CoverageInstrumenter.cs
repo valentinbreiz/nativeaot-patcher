@@ -20,6 +20,12 @@ public class CoverageInstrumenter
 
     private int _nextMethodId;
     private readonly List<CoverageMapEntry> _map = [];
+    /// <summary>
+    /// Entries for plug-targeted methods in non-Cosmos assemblies. These are instrumented
+    /// so their IDs can be shared with plug aliases, but are NOT written to coverage-map.txt
+    /// (they would pollute the report with System.* projects).
+    /// </summary>
+    private readonly List<CoverageMapEntry> _forcedTargetMap = [];
 
     /// <summary>
     /// Assembly name prefixes to skip entirely (test infrastructure, framework, etc.).
@@ -73,6 +79,11 @@ public class CoverageInstrumenter
             return 0;
         }
 
+        // Parse plug-map files BEFORE instrumentation so we know which non-Cosmos
+        // assemblies contain plug-targeted methods that need forced instrumentation.
+        var plugMappings = ParsePlugMaps();
+        var plugTargetsByAssembly = BuildPlugTargetIndex(plugMappings);
+
         // Process eligible assemblies in cosmos/ root and cosmos/ref/
         var dllFiles = new List<string>(Directory.GetFiles(_assemblyDir, "*.dll"));
         var refDir = Path.Combine(_assemblyDir, "ref");
@@ -84,32 +95,171 @@ public class CoverageInstrumenter
         {
             var assemblyName = Path.GetFileNameWithoutExtension(dllPath);
 
-            if (!ShouldInstrumentAssembly(assemblyName))
-                continue;
-
-            try
+            if (ShouldInstrumentAssembly(assemblyName))
             {
-                int count = InstrumentAssembly(dllPath, hitMethodDef);
-                if (count > 0)
+                // Full instrumentation for Cosmos.Kernel.* assemblies
+                try
                 {
-                    instrumentedAssemblies++;
-                    Console.WriteLine($"[Coverage] Instrumented {count} methods in {assemblyName}");
+                    int count = InstrumentAssembly(dllPath, hitMethodDef);
+                    if (count > 0)
+                    {
+                        instrumentedAssemblies++;
+                        Console.WriteLine($"[Coverage] Instrumented {count} methods in {assemblyName}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Coverage] Warning: Failed to instrument {assemblyName}: {ex.Message}");
                 }
             }
-            catch (Exception ex)
+            else if (plugTargetsByAssembly.TryGetValue(assemblyName, out var forcedMethods))
             {
-                Console.WriteLine($"[Coverage] Warning: Failed to instrument {assemblyName}: {ex.Message}");
+                // Selective instrumentation: only plug-targeted methods in non-Cosmos assemblies
+                try
+                {
+                    int count = InstrumentAssembly(dllPath, hitMethodDef, forcedMethods);
+                    if (count > 0)
+                    {
+                        instrumentedAssemblies++;
+                        Console.WriteLine($"[Coverage] Instrumented {count} plug-targeted methods in {assemblyName}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Coverage] Warning: Failed to instrument plug targets in {assemblyName}: {ex.Message}");
+                }
             }
         }
+
+        // Add plug method aliases: map plug methods to the same ID as their patched targets
+        int plugAliases = AddPlugAliases(plugMappings);
 
         // Write coverage map
         WriteCoverageMap();
 
         Console.WriteLine($"[Coverage] Total: {_nextMethodId} methods instrumented across {instrumentedAssemblies} assemblies");
+        if (plugAliases > 0)
+            Console.WriteLine($"[Coverage] Added {plugAliases} plug method aliases from plug-map files");
         return _nextMethodId;
     }
 
-    private int InstrumentAssembly(string dllPath, MethodDefinition hitMethodDef)
+    /// <summary>
+    /// Reads plug-map-*.txt files (produced by the patcher, one per assembly) and returns
+    /// the raw list of plug mappings.
+    /// </summary>
+    private List<PlugMapEntry> ParsePlugMaps()
+    {
+        var plugMapFiles = new List<string>();
+        plugMapFiles.AddRange(Directory.GetFiles(_assemblyDir, "plug-map-*.txt", SearchOption.TopDirectoryOnly));
+        string refDir = Path.Combine(_assemblyDir, "ref");
+        if (Directory.Exists(refDir))
+            plugMapFiles.AddRange(Directory.GetFiles(refDir, "plug-map-*.txt", SearchOption.TopDirectoryOnly));
+
+        var result = new List<PlugMapEntry>();
+        foreach (var plugMapPath in plugMapFiles)
+        {
+            Console.WriteLine($"[Coverage] Reading plug map: {plugMapPath}");
+            foreach (var line in File.ReadAllLines(plugMapPath))
+            {
+                if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                var parts = line.Split('\t');
+                if (parts.Length < 6)
+                    continue;
+
+                result.Add(new PlugMapEntry
+                {
+                    PlugAssembly = parts[0],
+                    PlugType = parts[1],
+                    PlugMethod = parts[2],
+                    TargetAssembly = parts[3],
+                    TargetType = parts[4],
+                    TargetMethod = parts[5],
+                });
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Builds a lookup of target assembly → set of (type, method) that need forced
+    /// instrumentation because they are plug targets in non-Cosmos assemblies.
+    /// </summary>
+    private static Dictionary<string, HashSet<(string Type, string Method)>> BuildPlugTargetIndex(
+        List<PlugMapEntry> mappings)
+    {
+        var result = new Dictionary<string, HashSet<(string, string)>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var m in mappings)
+        {
+            if (!result.TryGetValue(m.TargetAssembly, out var set))
+            {
+                set = [];
+                result[m.TargetAssembly] = set;
+            }
+            set.Add((m.TargetType, m.TargetMethod));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Adds alias entries in the coverage map for plug methods. When a target method was
+    /// instrumented with a coverage ID, the corresponding plug method gets an entry with
+    /// the SAME ID — so when the target is hit, the plug shows as covered too.
+    /// </summary>
+    private int AddPlugAliases(List<PlugMapEntry> mappings)
+    {
+        if (mappings.Count == 0)
+            return 0;
+
+        // Build lookup: "TargetAssembly\tTargetType\tTargetMethod" → coverage ID
+        // Search both the main map and the forced-target map (hidden entries for
+        // plug-targeted methods in non-Cosmos assemblies).
+        var targetToId = new Dictionary<string, int>();
+        foreach (var entry in _map)
+        {
+            string key = $"{entry.Assembly}\t{entry.Type}\t{entry.Method}";
+            targetToId.TryAdd(key, entry.Id);
+        }
+        foreach (var entry in _forcedTargetMap)
+        {
+            string key = $"{entry.Assembly}\t{entry.Type}\t{entry.Method}";
+            targetToId.TryAdd(key, entry.Id);
+        }
+
+        int count = 0;
+        foreach (var m in mappings)
+        {
+            string targetKey = $"{m.TargetAssembly}\t{m.TargetType}\t{m.TargetMethod}";
+            if (targetToId.TryGetValue(targetKey, out int targetId))
+            {
+                _map.Add(new CoverageMapEntry
+                {
+                    Id = targetId,       // Same ID as the target — shares the hit
+                    Assembly = m.PlugAssembly,
+                    Type = m.PlugType,
+                    Method = m.PlugMethod,
+                });
+                count++;
+            }
+            else
+            {
+                Console.WriteLine($"[Coverage] Warning: No coverage ID for plug target {m.TargetAssembly}::{m.TargetType}::{m.TargetMethod}");
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Instruments methods in an assembly with CoverageTracker.Hit(id) probes.
+    /// When <paramref name="forcedMethods"/> is null, applies normal namespace
+    /// whitelist filtering. When non-null, instruments ONLY those specific methods
+    /// (used for plug-targeted methods in non-Cosmos assemblies).
+    /// </summary>
+    private int InstrumentAssembly(string dllPath, MethodDefinition hitMethodDef,
+        HashSet<(string Type, string Method)>? forcedMethods = null)
     {
         // Read the entire file into a MemoryStream first, then close the file.
         // This prevents Mono.Cecil from keeping a read lock on the file, which would
@@ -144,30 +294,60 @@ public class CoverageInstrumenter
         string assemblyName = assembly.Name.Name;
         int savedNextId = _nextMethodId;
         int savedMapCount = _map.Count;
+        int savedForcedCount = _forcedTargetMap.Count;
 
         try
         {
             foreach (var type in assembly.MainModule.GetTypes())
             {
-                if (ShouldSkipType(type))
+                // For forced (plug-target) instrumentation, skip namespace whitelist;
+                // for normal instrumentation, apply the usual namespace filter.
+                if (forcedMethods == null && ShouldSkipType(type))
                     continue;
 
                 foreach (var method in type.Methods)
                 {
-                    if (!ShouldInstrumentMethod(method))
-                        continue;
+                    // When doing selective plug-target instrumentation, only
+                    // instrument methods that appear in the forced set.
+                    // Use relaxed checks (allow constructors, skip only truly
+                    // uninstrumentable methods).
+                    if (forcedMethods != null)
+                    {
+                        if (!method.HasBody || method.Body.Instructions.Count == 0)
+                            continue;
+                        if (method.IsAbstract || method.IsPInvokeImpl)
+                            continue;
+                        if (method.Body.Instructions.Count <= 1)
+                            continue;
+
+                        var sig = FormatMethodSignature(method);
+                        if (!forcedMethods.Contains((type.FullName, sig)))
+                            continue;
+                    }
+                    else
+                    {
+                        if (!ShouldInstrumentMethod(method))
+                            continue;
+                    }
 
                     int methodId = _nextMethodId++;
 
                     InstrumentMethod(method, methodId, hitMethodRef);
 
-                    _map.Add(new CoverageMapEntry
+                    var entry = new CoverageMapEntry
                     {
                         Id = methodId,
                         Assembly = assemblyName,
                         Type = type.FullName,
                         Method = FormatMethodSignature(method),
-                    });
+                    };
+
+                    // Forced-target entries go to a hidden list (used only for
+                    // alias ID lookup); normal entries go to the main map.
+                    if (forcedMethods != null)
+                        _forcedTargetMap.Add(entry);
+                    else
+                        _map.Add(entry);
 
                     methodsInstrumented++;
                 }
@@ -188,6 +368,8 @@ public class CoverageInstrumenter
             _nextMethodId = savedNextId;
             if (_map.Count > savedMapCount)
                 _map.RemoveRange(savedMapCount, _map.Count - savedMapCount);
+            if (_forcedTargetMap.Count > savedForcedCount)
+                _forcedTargetMap.RemoveRange(savedForcedCount, _forcedTargetMap.Count - savedForcedCount);
             throw;
         }
         finally
@@ -384,5 +566,15 @@ public class CoverageInstrumenter
         public string Assembly;
         public string Type;
         public string Method;
+    }
+
+    private struct PlugMapEntry
+    {
+        public string PlugAssembly;
+        public string PlugType;
+        public string PlugMethod;
+        public string TargetAssembly;
+        public string TargetType;
+        public string TargetMethod;
     }
 }

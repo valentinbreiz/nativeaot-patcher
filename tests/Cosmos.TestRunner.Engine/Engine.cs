@@ -223,8 +223,8 @@ public partial class Engine
 
         Console.WriteLine($"[Coverage] Using coverage map: {mapPath}");
 
-        // Parse coverage map
-        var methodMap = new Dictionary<int, (string Assembly, string Type, string Method)>();
+        // Parse coverage map — one ID may map to multiple methods (plug aliases share target ID)
+        var allMethods = new List<(int Id, string Assembly, string Type, string Method)>();
         foreach (var line in File.ReadAllLines(mapPath))
         {
             if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
@@ -233,25 +233,25 @@ public partial class Engine
             var parts = line.Split('\t');
             if (parts.Length >= 4 && int.TryParse(parts[0], out int id))
             {
-                methodMap[id] = (parts[1], parts[2], parts[3]);
+                allMethods.Add((id, parts[1], parts[2], parts[3]));
             }
         }
 
-        int totalMethods = methodMap.Count;
-        int hitMethods = results.CoverageHitMethodIds.Count;
+        int totalMethods = allMethods.Count;
+        var hitSet = new HashSet<int>(results.CoverageHitMethodIds.Select(id => (int)id));
+        int hitMethods = allMethods.Count(m => hitSet.Contains(m.Id));
         double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * 100 : 0;
 
         Console.WriteLine($"[Coverage] {hitMethods}/{totalMethods} methods covered ({percentage:F1}%)");
 
         // Per-assembly breakdown
-        var hitSet = new HashSet<int>(results.CoverageHitMethodIds.Select(id => (int)id));
-        var assemblyStats = methodMap
-            .GroupBy(kv => kv.Value.Assembly)
+        var assemblyStats = allMethods
+            .GroupBy(m => m.Assembly)
             .Select(g => new
             {
                 Assembly = g.Key,
                 Total = g.Count(),
-                Hit = g.Count(kv => hitSet.Contains(kv.Key))
+                Hit = g.Count(m => hitSet.Contains(m.Id))
             })
             .OrderByDescending(a => a.Total);
 
@@ -269,14 +269,14 @@ public partial class Engine
         try
         {
             // Build per-assembly method lists (all methods + which were hit)
-            var assemblyMethods = methodMap
-                .GroupBy(kv => kv.Value.Assembly)
+            var assemblyMethods = allMethods
+                .GroupBy(m => m.Assembly)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(kv => new
+                    g => g.Select(m => new
                     {
-                        Key = $"{kv.Value.Type}::{kv.Value.Method}",
-                        Hit = hitSet.Contains(kv.Key)
+                        Key = $"{m.Type}::{m.Method}",
+                        Hit = hitSet.Contains(m.Id)
                     }).ToList()
                 );
 
