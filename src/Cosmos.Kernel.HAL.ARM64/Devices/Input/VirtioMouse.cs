@@ -62,6 +62,7 @@ public unsafe class VirtioMouse : MouseDevice
     // Temporary state for accumulating events
     private int _tempDeltaX;
     private int _tempDeltaY;
+    private int _tempDeltaZ;
     private bool _tempLeftButton;
     private bool _tempRightButton;
     private bool _tempMiddleButton;
@@ -69,7 +70,7 @@ public unsafe class VirtioMouse : MouseDevice
 
     public static VirtioMouse? Instance { get; private set; }
 
-    public override bool DataAvailable => false;  // Events are pushed via interrupt
+    public override bool DataAvailable => false; // Events are pushed via interrupt
 
     private VirtioMouse(ulong baseAddress, uint irq, uint mmioVersion)
     {
@@ -310,17 +311,22 @@ public unsafe class VirtioMouse : MouseDevice
                 break;
 
             VirtioInputEvent* evt = &_eventBuffers[id];
-
             if (evt->Type == EV_REL)
             {
+                // Accumulate relative axis changes to account for multiple REL events
                 if (evt->Code == REL_X)
                 {
-                    _tempDeltaX = (int)evt->Value;
+                    _tempDeltaX += (int)evt->Value;
                     _hasEvents = true;
                 }
                 else if (evt->Code == REL_Y)
                 {
-                    _tempDeltaY = (int)evt->Value;
+                    _tempDeltaY += (int)evt->Value;
+                    _hasEvents = true;
+                }
+                else if (evt->Code == REL_WHEEL)
+                {
+                    _tempDeltaZ += (int)evt->Value;
                     _hasEvents = true;
                 }
             }
@@ -348,14 +354,18 @@ public unsafe class VirtioMouse : MouseDevice
                 // Sync event - dispatch accumulated changes
                 X += _tempDeltaX;
                 Y += _tempDeltaY;
+                ScrollDelta = _tempDeltaZ;
+
                 LeftButton = _tempLeftButton;
                 RightButton = _tempRightButton;
                 MiddleButton = _tempMiddleButton;
 
-                OnMouseEvent?.Invoke(_tempDeltaX, _tempDeltaY, _tempLeftButton, _tempRightButton, _tempMiddleButton);
+                OnMouseEvent?.Invoke(_tempDeltaX, _tempDeltaY, _tempDeltaZ, _tempLeftButton, _tempRightButton,
+                    _tempMiddleButton);
 
                 _tempDeltaX = 0;
                 _tempDeltaY = 0;
+                _tempDeltaZ = 0;
                 _hasEvents = false;
             }
 

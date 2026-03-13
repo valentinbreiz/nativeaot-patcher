@@ -28,6 +28,11 @@ public interface IMouseDevice
     int Y { get; }
 
     /// <summary>
+    /// Scroll wheel delta.
+    /// </summary>
+    int ScrollDelta { get; }
+
+    /// <summary>
     /// Left button state.
     /// </summary>
     bool LeftButton { get; }
