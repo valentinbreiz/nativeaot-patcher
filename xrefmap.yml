@@ -10674,6 +10674,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.RightButton
   nameWithType: MouseDevice.RightButton
+- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_ScrollDelta
+  commentId: P:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta
+  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta
+  nameWithType: MouseDevice.ScrollDelta
+- uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta*
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_ScrollDelta_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.ScrollDelta
+  nameWithType: MouseDevice.ScrollDelta
 - uid: Cosmos.Kernel.HAL.Devices.Input.MouseDevice.X
   name: X
   href: api/Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X
@@ -11462,6 +11475,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.RightButton
   nameWithType: IMouseDevice.RightButton
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_ScrollDelta
+  commentId: P:Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta
+  nameWithType: IMouseDevice.ScrollDelta
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta*
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_ScrollDelta_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta
+  nameWithType: IMouseDevice.ScrollDelta
 - uid: Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.X
   name: X
   href: api/Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_X
@@ -20370,6 +20396,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth
   nameWithType: MouseManager.ScreenWidth
+- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScrollDelta
+  commentId: P:Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta
+  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta
+  nameWithType: MouseManager.ScrollDelta
+- uid: Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta*
+  name: ScrollDelta
+  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ScrollDelta_
+  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta
+  nameWithType: MouseManager.ScrollDelta
 - uid: Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity
   name: Sensitivity
   href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_Sensitivity

@@ -102,7 +102,7 @@ Delegate MouseEventHandler
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public delegate void MouseEventHandler(int deltaX, int deltaY, bool leftButton, bool rightButton, bool middleButton)</code></pre>
+    <pre><code class="lang-csharp hljs">public delegate void MouseEventHandler(int deltaX, int deltaY, int deltaZ, bool leftButton, bool rightButton, bool middleButton)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -113,6 +113,8 @@ Delegate MouseEventHandler
     <dt><code>deltaY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd><p>Change in Y position.</p>
 </dd>
+    <dt><code>deltaZ</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd>Delegate for handling mouse events.</dd>
     <dt><code>leftButton</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd><p>Left button state.</p>
 </dd>
