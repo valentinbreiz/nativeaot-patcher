@@ -30,6 +30,11 @@ public static class MouseManager
     public static int Y { get; private set; }
 
     /// <summary>
+    /// Scroll wheel delta.
+    /// </summary>
+    public static int ScrollDelta { get; private set; }
+
+    /// <summary>
     /// Left button state.
     /// </summary>
     public static bool LeftButton { get; private set; }
@@ -110,7 +115,7 @@ public static class MouseManager
     /// <summary>
     /// Handles mouse events from devices.
     /// </summary>
-    private static void HandleMouseEvent(int deltaX, int deltaY, bool leftButton, bool rightButton, bool middleButton)
+    private static void HandleMouseEvent(int deltaX, int deltaY, int deltaZ, bool leftButton, bool rightButton, bool middleButton)
     {
         // Apply sensitivity
         int adjustedDeltaX = (int)(deltaX * Sensitivity);
@@ -119,6 +124,7 @@ public static class MouseManager
         // Update position with boundary checking
         X += adjustedDeltaX;
         Y += adjustedDeltaY;
+        ScrollDelta = deltaZ;
 
         // Clamp to screen bounds
         if (X < 0) X = 0;

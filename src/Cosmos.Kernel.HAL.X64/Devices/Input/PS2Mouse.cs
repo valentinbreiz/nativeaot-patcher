@@ -173,18 +173,25 @@ public class PS2Mouse : MouseDevice
             bool rightButton = (_packet[0] & 0x02) != 0;
             bool middleButton = (_packet[0] & 0x04) != 0;
 
-            // X/Y movement (9-bit signed values)
+            // X/Y (9-bit signed values) and Z movement
             int deltaX = _packet[1];
             int deltaY = _packet[2];
+            int deltaZ = _hasScrollWheel ? _packet[3] & 0x0F : 0;
 
-            // Sign-extend X and Y if negative
+            // Sign-extend X, Y and Z if negative
             if ((_packet[0] & 0x10) != 0)
             {
                 deltaX |= unchecked((int)0xFFFFFF00);
             }
+
             if ((_packet[0] & 0x20) != 0)
             {
                 deltaY |= unchecked((int)0xFFFFFF00);
+            }
+
+            if ((deltaZ & 0x08) != 0)
+            {
+                deltaZ |= unchecked((int)0xFFFFFF00);
             }
 
             // Y is inverted on PS/2 mice
@@ -195,12 +202,13 @@ public class PS2Mouse : MouseDevice
             {
                 _instance.X += deltaX;
                 _instance.Y += deltaY;
+                _instance.ScrollDelta = deltaZ;
                 _instance.LeftButton = leftButton;
                 _instance.RightButton = rightButton;
                 _instance.MiddleButton = middleButton;
 
                 // Invoke callback
-                _instance.OnMouseEvent?.Invoke(deltaX, deltaY, leftButton, rightButton, middleButton);
+                _instance.OnMouseEvent?.Invoke(deltaX, deltaY, deltaZ, leftButton, rightButton, middleButton);
             }
         }
 
