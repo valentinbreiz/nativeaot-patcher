@@ -708,12 +708,6 @@ contextAddr = (contextAddr + 0xF) & ~(nuint)0xF;
 
 For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see [Testing](testing.md).
 
-**Code design principles for testability:**
-
-- Keep pure logic separate from hardware interaction
-- Use interfaces for hardware dependencies (testable via different HAL implementations)
-- Add serial diagnostic output in debug builds for observability
-
 **Code coverage:** Add the `run-coverage` label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.
 
 ---
