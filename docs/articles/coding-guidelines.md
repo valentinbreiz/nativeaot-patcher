@@ -125,6 +125,8 @@ These are conditionally compiled via `.csproj`:
 </ItemGroup>
 ```
 
+This is only allowed now in `Cosmos.Kernel.Core` but this may change in the future.
+
 ### File Structure Order
 
 Use `// --- Section Name ---` comments to separate groups. The ordering differs between static and instance classes.
