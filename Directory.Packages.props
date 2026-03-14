@@ -17,7 +17,7 @@
     <PackageVersion Include="Cosmos.Kernel.HAL.ARM64" Version="3.0.38" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="log4net" Version="3.0.3" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="1.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
