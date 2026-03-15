@@ -18,7 +18,11 @@ public static partial class AppContextPlug
     [PlugMember]
     public static void EnsureInitialized()
     {
-        if (dataStore is not null) return;
+        if (dataStore is not null)
+        {
+            return;
+        }
+
         unsafe
         {
             uint count = RhGetKnobValues(out byte** knobKeys, out byte** knobValues);
@@ -60,7 +64,9 @@ public static partial class AppContextPlug
         if (switches != null)
         {
             if (switches.TryGetValue(switchName, out isEnabled))
+            {
                 return true;
+            }
         }
 
         object? data = GetData(switchName);

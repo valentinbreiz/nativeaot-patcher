@@ -45,7 +45,9 @@ public static class AttributeExtensions
             .FirstOrDefault(kv => string.Equals(kv.Key, named, StringComparison.InvariantCultureIgnoreCase)).Value;
 
         if (target.Value == null)
+        {
             return default;
+        }
 
         return target.Value switch
         {

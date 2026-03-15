@@ -418,7 +418,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     private static string GetInstallAction(InstallInfo? info)
     {
         if (info == null)
+        {
             return "Manual installation required";
+        }
 
         string packageManager = PlatformInfo.GetPackageManager();
         string[]? packages = GetPackagesForManager(info, packageManager);
@@ -449,7 +451,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     private static async Task InstallPackagesAsync(string packageManager, List<string> packages)
     {
         if (packages.Count == 0)
+        {
             return;
+        }
 
         AnsiConsole.MarkupLine($"  Installing packages via [blue]{packageManager}[/]...");
         AnsiConsole.WriteLine();

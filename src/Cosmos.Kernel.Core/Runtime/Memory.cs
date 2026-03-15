@@ -36,7 +36,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewArray(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
@@ -52,7 +54,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewPtrArrayFast(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
@@ -67,7 +71,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewArrayFast(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 

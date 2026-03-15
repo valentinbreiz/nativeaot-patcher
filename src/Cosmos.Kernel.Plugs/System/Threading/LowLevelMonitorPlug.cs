@@ -51,7 +51,11 @@ namespace Cosmos.Kernel.Plugs.System.Threading
             }
 
             // This is a dummy implementation that just waits for the specified timeout
-            while (timeoutMilliseconds > 0) timeoutMilliseconds--;
+            while (timeoutMilliseconds > 0)
+            {
+                timeoutMilliseconds--;
+            }
+
             return true;
         }
         [PlugMember]

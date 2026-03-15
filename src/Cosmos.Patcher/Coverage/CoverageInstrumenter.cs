@@ -77,7 +77,10 @@ public class CoverageInstrumenter
         var dllFiles = new List<string>(Directory.GetFiles(_assemblyDir, "*.dll"));
         var refDir = Path.Combine(_assemblyDir, "ref");
         if (Directory.Exists(refDir))
+        {
             dllFiles.AddRange(Directory.GetFiles(refDir, "*.dll"));
+        }
+
         int instrumentedAssemblies = 0;
 
         foreach (var dllPath in dllFiles)
@@ -128,7 +131,10 @@ public class CoverageInstrumenter
 
         Console.WriteLine($"[Coverage] Total: {_nextMethodId} methods instrumented across {instrumentedAssemblies} assemblies");
         if (plugAliases > 0)
+        {
             Console.WriteLine($"[Coverage] Added {plugAliases} plug method aliases from plug-map files");
+        }
+
         return _nextMethodId;
     }
 
@@ -142,7 +148,9 @@ public class CoverageInstrumenter
         plugMapFiles.AddRange(Directory.GetFiles(_assemblyDir, "plug-map-*.txt", SearchOption.TopDirectoryOnly));
         string refDir = Path.Combine(_assemblyDir, "ref");
         if (Directory.Exists(refDir))
+        {
             plugMapFiles.AddRange(Directory.GetFiles(refDir, "plug-map-*.txt", SearchOption.TopDirectoryOnly));
+        }
 
         var result = new List<PlugMapEntry>();
         foreach (var plugMapPath in plugMapFiles)
@@ -151,11 +159,15 @@ public class CoverageInstrumenter
             foreach (var line in File.ReadAllLines(plugMapPath))
             {
                 if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                {
                     continue;
+                }
 
                 var parts = line.Split('\t');
                 if (parts.Length < 6)
+                {
                     continue;
+                }
 
                 result.Add(new PlugMapEntry
                 {
@@ -200,7 +212,9 @@ public class CoverageInstrumenter
     private int AddPlugAliases(List<PlugMapEntry> mappings)
     {
         if (mappings.Count == 0)
+        {
             return 0;
+        }
 
         // Build lookup: "TargetAssembly\tTargetType\tTargetMethod" → coverage ID
         // Search both the main map and the forced-target map (hidden entries for
@@ -292,7 +306,9 @@ public class CoverageInstrumenter
                 // For forced (plug-target) instrumentation, skip namespace whitelist;
                 // for normal instrumentation, apply the usual namespace filter.
                 if (forcedMethods == null && ShouldSkipType(type))
+                {
                     continue;
+                }
 
                 foreach (var method in type.Methods)
                 {
@@ -303,20 +319,32 @@ public class CoverageInstrumenter
                     if (forcedMethods != null)
                     {
                         if (!method.HasBody || method.Body.Instructions.Count == 0)
+                        {
                             continue;
+                        }
+
                         if (method.IsAbstract || method.IsPInvokeImpl)
+                        {
                             continue;
+                        }
+
                         if (method.Body.Instructions.Count <= 1)
+                        {
                             continue;
+                        }
 
                         var sig = FormatMethodSignature(method);
                         if (!forcedMethods.Contains((type.FullName, sig)))
+                        {
                             continue;
+                        }
                     }
                     else
                     {
                         if (!ShouldInstrumentMethod(method))
+                        {
                             continue;
+                        }
                     }
 
                     int methodId = _nextMethodId++;
@@ -334,9 +362,13 @@ public class CoverageInstrumenter
                     // Forced-target entries go to a hidden list (used only for
                     // alias ID lookup); normal entries go to the main map.
                     if (forcedMethods != null)
+                    {
                         _forcedTargetMap.Add(entry);
+                    }
                     else
+                    {
                         _map.Add(entry);
+                    }
 
                     methodsInstrumented++;
                 }
@@ -346,9 +378,13 @@ public class CoverageInstrumenter
             {
                 // Write back to the original file path (safe — no open handles)
                 if (hasSymbols)
+                {
                     assembly.Write(dllPath, new WriterParameters { WriteSymbols = true });
+                }
                 else
+                {
                     assembly.Write(dllPath);
+                }
             }
         }
         catch
@@ -356,9 +392,15 @@ public class CoverageInstrumenter
             // Roll back map entries and method IDs if instrumentation failed
             _nextMethodId = savedNextId;
             if (_map.Count > savedMapCount)
+            {
                 _map.RemoveRange(savedMapCount, _map.Count - savedMapCount);
+            }
+
             if (_forcedTargetMap.Count > savedForcedCount)
+            {
                 _forcedTargetMap.RemoveRange(savedForcedCount, _forcedTargetMap.Count - savedForcedCount);
+            }
+
             throw;
         }
         finally
@@ -392,13 +434,17 @@ public class CoverageInstrumenter
     {
         // Must match the include prefix (e.g. "Cosmos.Kernel")
         if (!assemblyName.StartsWith(_includePrefix, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         // Skip excluded assembly name prefixes
         foreach (var exclude in ExcludeAssemblies)
         {
             if (assemblyName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
         }
 
         return true;
@@ -413,13 +459,17 @@ public class CoverageInstrumenter
     {
         // Skip compiler-generated types
         if (type.Name.StartsWith("<") || type.Name.Contains("__"))
+        {
             return true;
+        }
 
         // Skip explicitly excluded types
         foreach (var exclude in ExcludeTypes)
         {
             if (type.FullName == exclude)
+            {
                 return true;
+            }
         }
 
         // WHITELIST: only instrument types whose namespace starts with the include prefix.
@@ -427,10 +477,14 @@ public class CoverageInstrumenter
         // that get compiled into Cosmos assemblies but must not be instrumented.
         string? ns = type.Namespace;
         if (string.IsNullOrEmpty(ns))
+        {
             return true; // Nested/anonymous types without namespace → skip
+        }
 
         if (!ns.StartsWith(_includePrefix, StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         return false;
     }
@@ -439,29 +493,41 @@ public class CoverageInstrumenter
     {
         // Skip methods without a body
         if (!method.HasBody || method.Body.Instructions.Count == 0)
+        {
             return false;
+        }
 
         // Skip constructors (base call ordering issues)
         if (method.IsConstructor)
+        {
             return false;
+        }
 
         // Skip abstract/extern/PInvoke
         if (method.IsAbstract || method.IsPInvokeImpl)
+        {
             return false;
+        }
 
         // Skip very small methods (just ret)
         if (method.Body.Instructions.Count <= 1)
+        {
             return false;
+        }
 
         // Skip compiler-generated methods
         if (method.Name.StartsWith("<"))
+        {
             return false;
+        }
 
         // Skip methods exported to native code via [RuntimeExport].
         // These are NativeAOT runtime entry points (RhpNewFast, memset, etc.)
         // called before static class constructors have run.
         if (HasRuntimeExportAttribute(method))
+        {
             return false;
+        }
 
         return true;
     }
@@ -472,12 +538,16 @@ public class CoverageInstrumenter
     private static bool HasRuntimeExportAttribute(MethodDefinition method)
     {
         if (!method.HasCustomAttributes)
+        {
             return false;
+        }
 
         foreach (var attr in method.CustomAttributes)
         {
             if (attr.AttributeType.Name == "RuntimeExportAttribute")
+            {
                 return true;
+            }
         }
 
         return false;
@@ -490,12 +560,16 @@ public class CoverageInstrumenter
         // Check assembly dir root
         var path = Path.Combine(_assemblyDir, trackerDll);
         if (File.Exists(path))
+        {
             return path;
+        }
 
         // Check ref/ subdirectory (where SetupPatcher copies ReferencePath items)
         path = Path.Combine(_assemblyDir, "ref", trackerDll);
         if (File.Exists(path))
+        {
             return path;
+        }
 
         // Check parent dir as fallback
         var parentDir = Path.GetDirectoryName(_assemblyDir);
@@ -503,7 +577,9 @@ public class CoverageInstrumenter
         {
             path = Path.Combine(parentDir, trackerDll);
             if (File.Exists(path))
+            {
                 return path;
+            }
         }
 
         return null;
@@ -518,7 +594,9 @@ public class CoverageInstrumenter
                 foreach (var method in type.Methods)
                 {
                     if (method.Name == "Hit" && method.Parameters.Count == 1)
+                    {
                         return method;
+                    }
                 }
             }
         }

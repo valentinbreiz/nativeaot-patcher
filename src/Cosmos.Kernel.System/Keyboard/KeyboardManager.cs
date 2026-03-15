@@ -60,7 +60,9 @@ public static class KeyboardManager
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
+        {
             throw new InvalidOperationException("Keyboard support is disabled. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+        }
     }
 
     /// <summary>
@@ -72,7 +74,9 @@ public static class KeyboardManager
         ThrowIfDisabled();
 
         if (_initialized)
+        {
             return;
+        }
 
         _keyboards = new List<IKeyboardDevice>();
         _queuedKeys = new Queue<KeyEvent>();
@@ -87,7 +91,9 @@ public static class KeyboardManager
     public static void RegisterKeyboard(IKeyboardDevice keyboard)
     {
         if (_keyboards == null || keyboard == null)
+        {
             return;
+        }
 
         keyboard.OnKeyPressed = HandleScanCode;
         _keyboards.Add(keyboard);
@@ -114,7 +120,9 @@ public static class KeyboardManager
     public static void HandleScanCode(byte scanCode, bool released)
     {
         if (_scanMap == null)
+        {
             return;
+        }
 
         byte key = scanCode;
 
@@ -163,7 +171,9 @@ public static class KeyboardManager
     private static void UpdateLeds()
     {
         if (_keyboards == null)
+        {
             return;
+        }
 
         foreach (IKeyboardDevice keyboard in _keyboards)
         {
@@ -260,7 +270,9 @@ public static class KeyboardManager
         }
 
         if (_keyboards == null)
+        {
             return;
+        }
 
         _pollCallCount++;
         if (_pollCallCount % 100 == 0)

@@ -231,7 +231,9 @@ public static unsafe partial class ManagedModule
 
                     nuint rawSize = pMT->BaseSize - (nuint)(2 * sizeof(IntPtr));
                     if (pMT->HasComponentSize)
+                    {
                         rawSize += (uint)Unsafe.As<RawArrayData>(obj).Length * (nuint)pMT->ComponentSize;
+                    }
 
                     byte* destPtr = (byte*)Unsafe.AsPointer(ref Unsafe.As<RawData>(obj).Data);
 

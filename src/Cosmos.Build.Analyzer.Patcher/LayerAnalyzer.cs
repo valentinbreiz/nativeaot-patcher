@@ -55,7 +55,9 @@ namespace Cosmos.Build.Analyzer.Patcher
         private static void AnalyzeCompilation(CompilationAnalysisContext context)
         {
             if (IsPlugAssembly(context.Compilation.Assembly.Name))
+            {
                 return;
+            }
 
             KernelLayer? currentLayer = GetLayerFromAssemblyName(context.Compilation.Assembly.Name);
 
@@ -69,7 +71,9 @@ namespace Cosmos.Build.Analyzer.Patcher
                         .Any(r => GetLayerFromAssemblyName(r.Name) != null);
 
                 if (!isUserKernel)
+                {
                     return;
+                }
 
                 currentLayer = KernelLayer.User;
             }
@@ -78,7 +82,9 @@ namespace Cosmos.Build.Analyzer.Patcher
             {
                 KernelLayer? referencedLayer = GetLayerFromAssemblyName(referenced.Name);
                 if (referencedLayer == null)
+                {
                     continue;
+                }
 
                 if (!IsReferenceAllowed(currentLayer.Value, referencedLayer.Value))
                 {
@@ -111,7 +117,9 @@ namespace Cosmos.Build.Analyzer.Patcher
                     string name = u.Name?.ToString() ?? string.Empty;
                     if (name == assemblyName ||
                         name.StartsWith(assemblyName + ".", System.StringComparison.Ordinal))
+                    {
                         return u.GetLocation();
+                    }
                 }
             }
             return null;
@@ -125,19 +133,27 @@ namespace Cosmos.Build.Analyzer.Patcher
         {
             // Native: Cosmos.Kernel.Native.*
             if (name.StartsWith("Cosmos.Kernel.Native", System.StringComparison.Ordinal))
+            {
                 return KernelLayer.Native;
+            }
 
             // Core: Cosmos.Kernel.Core only (not HAL, not System)
             if (name == "Cosmos.Kernel.Core")
+            {
                 return KernelLayer.Core;
+            }
 
             // HAL: Cosmos.Kernel.HAL, Cosmos.Kernel.HAL.X64, Cosmos.Kernel.HAL.ARM64, Cosmos.Kernel.HAL.Interfaces
             if (name.StartsWith("Cosmos.Kernel.HAL", System.StringComparison.Ordinal))
+            {
                 return KernelLayer.Hal;
+            }
 
             // System: Cosmos.Kernel.System only
             if (name == "Cosmos.Kernel.System")
+            {
                 return KernelLayer.System;
+            }
 
             // Cosmos.Kernel (aggregator), Cosmos.Kernel.Plugs, Cosmos.Kernel.Debug,
             // Cosmos.Kernel.Boot.*, Cosmos.Build.* etc. → not part of strict layer hierarchy

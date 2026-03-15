@@ -144,7 +144,9 @@ public static class ThreadPlug
         {
             hasDelegate = _threadDelegates.TryGetValue(threadId, out start);
             if (hasDelegate)
+            {
                 _threadDelegates.Remove(threadId);
+            }
         }
 
         // Invoke the delegate
@@ -204,7 +206,9 @@ public static class ThreadPlug
     public static void Sleep(int millisecondsTimeout)
     {
         if (millisecondsTimeout > 0)
+        {
             TimerManager.Wait((uint)millisecondsTimeout);
+        }
     }
 
     [PlugMember]

@@ -92,7 +92,9 @@ internal static unsafe class ModuleHelpers
             // the section merging. (The global static constructors section used by C++ has
             // them too.)
             if (pModuleHeaders[i] != IntPtr.Zero)
+            {
                 moduleCount++;
+            }
         }
 
         // We cannot use the new keyword just yet, so stackalloc the array first
@@ -124,7 +126,10 @@ internal static unsafe class ModuleHelpers
         var modules = new TypeManagerHandle[moduleCount];
         //var modules = Unsafe.AsRef<TypeManagerHandle[]>(ptr);
         for (int i = 0; i < modules.Length; i++)
+        {
             modules[i] = pHandles[i];
+        }
+
         return modules;
     }
     internal static unsafe TypeManagerHandle[] CreateTypeManagers(IntPtr osModule, ReadyToRunHeader** pModuleHeaders, int count, void** pClasslibFunctions, uint nClasslibFunctions)
@@ -138,7 +143,9 @@ internal static unsafe class ModuleHelpers
             // the section merging. (The global static constructors section used by C++ has
             // them too.)
             if (pModuleHeaders[i] != (void*)IntPtr.Zero)
+            {
                 moduleCount++;
+            }
         }
 
         // We cannot use the new keyword just yet, so stackalloc the array first
@@ -158,7 +165,9 @@ internal static unsafe class ModuleHelpers
         // Any potentially dehydrated MethodTables got rehydrated, we can safely use `new` now.
         TypeManagerHandle[] modules = new TypeManagerHandle[moduleCount];
         for (int i = 0; i < moduleCount; i++)
+        {
             modules[i] = pHandles[i];
+        }
 
         return modules;
     }

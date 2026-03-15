@@ -56,13 +56,17 @@ internal class GopCanvas : Canvas
     private static unsafe int ParseEdidRefreshRate(LimineFramebuffer* fb)
     {
         if (fb->EdidSize < 128 || fb->Edid == null)
+        {
             return 60;
+        }
 
         byte* edid = (byte*)fb->Edid;
 
         // Validate EDID header: 00 FF FF FF FF FF FF 00
         if (edid[0] != 0x00 || edid[1] != 0xFF || edid[7] != 0x00)
+        {
             return 60;
+        }
 
         // First detailed timing descriptor starts at byte 54
         byte* dtd = edid + 54;
@@ -70,7 +74,9 @@ internal class GopCanvas : Canvas
         // Pixel clock in 10 kHz units (bytes 0-1, little-endian). Zero means not a timing descriptor.
         uint pixelClock = (uint)(dtd[0] | (dtd[1] << 8));
         if (pixelClock == 0)
+        {
             return 60;
+        }
 
         uint hActive = (uint)(dtd[2] | ((dtd[4] >> 4) << 8));
         uint hBlank = (uint)(dtd[3] | ((dtd[4] & 0xF) << 8));
@@ -81,13 +87,17 @@ internal class GopCanvas : Canvas
         uint vTotal = vActive + vBlank;
 
         if (hTotal == 0 || vTotal == 0)
+        {
             return 60;
+        }
 
         int hz = (int)((pixelClock * 10000) / (hTotal * vTotal));
 
         // Sanity check
         if (hz < 24 || hz > 360)
+        {
             return 60;
+        }
 
         return hz;
     }
@@ -341,12 +351,18 @@ internal class GopCanvas : Canvas
             // Clamp to screen bounds
             if (aX < 0) { aWidth += aX; aX = 0; }
             if (aY < 0) { aHeight += aY; aY = 0; }
-            if (aX >= (int)Mode.Width || aY >= (int)Mode.Height) return;
+            if (aX >= (int)Mode.Width || aY >= (int)Mode.Height)
+            {
+                return;
+            }
 
             aWidth = Math.Min(aWidth, (int)Mode.Width - aX);
             aHeight = Math.Min(aHeight, (int)Mode.Height - aY);
 
-            if (aWidth <= 0 || aHeight <= 0) return;
+            if (aWidth <= 0 || aHeight <= 0)
+            {
+                return;
+            }
         }
 
         var color = aColor.ToArgb();
@@ -417,7 +433,10 @@ internal class GopCanvas : Canvas
             maxWidth -= startX - x;
             maxHeight -= startY - y;
 
-            if (maxWidth <= 0 || maxHeight <= 0) return;
+            if (maxWidth <= 0 || maxHeight <= 0)
+            {
+                return;
+            }
 
             // If no cropping needed, use CopyBuffer directly
             if (sourceX == 0 && sourceY == 0 && maxWidth == width && maxHeight == height)
@@ -460,7 +479,10 @@ internal class GopCanvas : Canvas
             maxWidth -= startX - aX;
             maxHeight -= startY - aY;
 
-            if (maxWidth <= 0 || maxHeight <= 0) return;
+            if (maxWidth <= 0 || maxHeight <= 0)
+            {
+                return;
+            }
 
             // If no cropping needed, use CopyBuffer directly
             if (sourceX == 0 && sourceY == 0 && maxWidth == xWidth && maxHeight == xHeight)

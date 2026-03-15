@@ -38,14 +38,22 @@ public static class GIC
     /// </summary>
     private static unsafe ulong PhysToVirt(ulong phys)
     {
-        if (phys == 0) return 0;
+        if (phys == 0)
+        {
+            return 0;
+        }
 
         ulong hhdmOffset = 0;
         if (Limine.HHDM.Response != null)
+        {
             hhdmOffset = Limine.HHDM.Response->Offset;
+        }
 
         // Already virtual (above HHDM)?
-        if (hhdmOffset != 0 && phys >= hhdmOffset) return phys;
+        if (hhdmOffset != 0 && phys >= hhdmOffset)
+        {
+            return phys;
+        }
 
         return phys + hhdmOffset;
     }
@@ -145,9 +153,13 @@ public static class GIC
     public static void InitializeCpuInterface()
     {
         if (_isV3)
+        {
             GICv3.InitializeCpuInterface();
+        }
         else
+        {
             GICv2.InitializeCpuInterface();
+        }
     }
 
     /// <summary>
@@ -156,9 +168,13 @@ public static class GIC
     public static void EnableInterrupt(uint intId)
     {
         if (_isV3)
+        {
             GICv3.EnableInterrupt(intId);
+        }
         else
+        {
             GICv2.EnableInterrupt(intId);
+        }
     }
 
     /// <summary>
@@ -167,9 +183,13 @@ public static class GIC
     public static void DisableInterrupt(uint intId)
     {
         if (_isV3)
+        {
             GICv3.DisableInterrupt(intId);
+        }
         else
+        {
             GICv2.DisableInterrupt(intId);
+        }
     }
 
     /// <summary>
@@ -178,9 +198,13 @@ public static class GIC
     public static void SetPriority(uint intId, byte priority)
     {
         if (_isV3)
+        {
             GICv3.SetPriority(intId, priority);
+        }
         else
+        {
             GICv2.SetPriority(intId, priority);
+        }
     }
 
     /// <summary>
@@ -199,9 +223,13 @@ public static class GIC
     public static void EndOfInterrupt(uint intId)
     {
         if (_isV3)
+        {
             GICv3.EndOfInterrupt(intId);
+        }
         else
+        {
             GICv2.EndOfInterrupt(intId);
+        }
     }
 
     /// <summary>
@@ -220,9 +248,13 @@ public static class GIC
     public static void ClearPending(uint intId)
     {
         if (_isV3)
+        {
             GICv3.ClearPending(intId);
+        }
         else
+        {
             GICv2.ClearPending(intId);
+        }
     }
 
     /// <summary>
@@ -231,8 +263,12 @@ public static class GIC
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
         if (_isV3)
+        {
             GICv3.ConfigureInterrupt(intId, edgeTriggered);
+        }
         else
+        {
             GICv2.ConfigureInterrupt(intId, edgeTriggered);
+        }
     }
 }

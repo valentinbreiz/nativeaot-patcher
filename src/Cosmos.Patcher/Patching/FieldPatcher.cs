@@ -83,7 +83,9 @@ public class FieldPatcher
                 var plugFieldInstr = FindFieldInstruction(plugCtor, plugField, OpCodes.Stfld, OpCodes.Stsfld);
 
                 if (targetFieldInstr.Instruction == null || plugFieldInstr.Instruction == null)
+                {
                     continue;
+                }
 
                 // Get the instruction that loads the field value
                 Instruction plugFieldValue = plugCtor.Body.Instructions[plugFieldInstr.Index - 1];
@@ -117,10 +119,14 @@ public class FieldPatcher
         foreach (Instruction instruction in method.Body.Instructions)
         {
             if (!opcodes.Contains(instruction.OpCode) || instruction.Operand is not FieldReference fr)
+            {
                 continue;
+            }
 
             if (fr.Resolve()?.Name != field.Name)
+            {
                 continue;
+            }
 
             int idx = method.Body.Instructions.IndexOf(instruction);
             return (instruction, idx);

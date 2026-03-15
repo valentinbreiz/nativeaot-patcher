@@ -91,7 +91,11 @@ public static class Serial
             Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
 #else
             // 16550: Wait for transmit buffer to be empty
-            while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0) ;
+            while ((Native.IO.Read8(COM1_BASE + REG_LSR) & LSR_TX_EMPTY) == 0)
+            {
+                ;
+            }
+
             Native.IO.Write8(COM1_BASE + REG_DATA, value);
 #endif
         }

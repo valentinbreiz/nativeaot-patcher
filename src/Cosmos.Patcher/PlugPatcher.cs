@@ -120,7 +120,9 @@ public sealed class PlugPatcher
         _log.Info($"Found {plugs.Count} plug types to process");
 
         if (plugs.Count == 0)
+        {
             return;
+        }
 
         foreach (TypeDefinition plugType in plugs)
         {
@@ -171,7 +173,9 @@ public sealed class PlugPatcher
         {
             CustomAttribute? plugAttr = plug.GetCustomAttribute(PlugScanner.PlugAttributeFullName);
             if (plugAttr == null)
+            {
                 continue;
+            }
 
             string? targetName = plugAttr.GetArgument<string>(named: "TargetName") ??
                                  plugAttr.GetArgument<string>(named: "Target");
@@ -249,7 +253,9 @@ public sealed class PlugPatcher
 
             // Check platform-specific filtering
             if (!ShouldProcessMember(member, plugType, platformArchitecture))
+            {
                 continue;
+            }
 
             CustomAttribute? plugMemberAttr = member.GetCustomAttribute(PlugScanner.PlugMemberAttributeFullName);
             if (plugMemberAttr == null)
@@ -368,7 +374,9 @@ public sealed class PlugPatcher
     private void RecordPlugMapping(MethodDefinition plugMethod, MethodDefinition targetMethod)
     {
         if (!CoverageEnabled)
+        {
             return;
+        }
 
         string FormatSig(MethodDefinition m)
         {
@@ -434,15 +442,22 @@ public sealed class PlugPatcher
         {
             var fieldInfo = _propertyPatcher.FindBackingField(property.GetMethod);
             if (fieldInfo.Instruction != null)
+            {
                 backingField = ((FieldReference)fieldInfo.Instruction.Operand).Resolve();
+            }
+
             RemoveMethod(targetType, property.GetMethod);
         }
 
         if (property.SetMethod != null)
+        {
             RemoveMethod(targetType, property.SetMethod);
+        }
 
         if (backingField != null)
+        {
             targetType.Fields.Remove(backingField);
+        }
 
         targetType.Properties.Remove(property);
         _log.Debug($"Removed property: {property.Name}");

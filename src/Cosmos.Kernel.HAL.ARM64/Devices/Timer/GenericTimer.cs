@@ -134,7 +134,9 @@ public partial class GenericTimer : TimerDevice
     public override void SetFrequency(uint frequency)
     {
         if (frequency == 0)
+        {
             return;
+        }
 
         ulong periodNs = 1_000_000_000UL / frequency;
         SetPeriod(periodNs);
@@ -203,7 +205,9 @@ public partial class GenericTimer : TimerDevice
     private static unsafe void HandleIRQ(ref IRQContext ctx)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         _timerTickCount++;
 

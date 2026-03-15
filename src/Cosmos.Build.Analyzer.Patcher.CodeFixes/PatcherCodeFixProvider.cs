@@ -38,12 +38,16 @@ public class PatcherCodeFixProvider : CodeFixProvider
     {
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root == null)
+        {
             return;
+        }
 
         foreach (Diagnostic diagnostic in context.Diagnostics)
         {
             if (!diagnostic.Id.StartsWith(PatcherAnalyzer.DiagnosticId))
+            {
                 continue;
+            }
 
             SyntaxNode declaration = root.FindNode(diagnostic.Location.SourceSpan);
             switch (diagnostic.Id)
@@ -129,7 +133,9 @@ internal static class CodeActions
         SyntaxNode? root = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
         if (root == null || !diagnostic.Properties.TryGetValue("MethodName", out string? methodName) ||
             !diagnostic.Properties.TryGetValue("ClassName", out string? className))
+        {
             return document.Project.Solution;
+        }
 
         DocumentEditor editor = await DocumentEditor.CreateAsync(document, c).ConfigureAwait(false);
         SyntaxGenerator syntaxGenerator = editor.Generator;
@@ -140,7 +146,9 @@ internal static class CodeActions
         ], null, null, Accessibility.Public, DeclarationModifiers.Static), syntaxGenerator.Attribute("PlugMember"));
 
         if (declaration is ClassDeclarationSyntax classDeclaration)
+        {
             return await AddMethodToPlug((classDeclaration, document), plugMethod);
+        }
 
         if (diagnostic.Properties.TryGetValue("PlugClass", out string? plugClassName))
         {
@@ -160,7 +168,9 @@ internal static class CodeActions
             .FirstOrDefault();
 
         if (namespaceDeclaration == null)
+        {
             return document.Project.Solution;
+        }
 
         SyntaxNode newPlug = syntaxGenerator.ClassDeclaration($"{className}Impl", null, Accessibility.Public,
             DeclarationModifiers.Static, null, null, [plugMethod]);

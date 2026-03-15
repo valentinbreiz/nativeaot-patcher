@@ -87,7 +87,9 @@ public unsafe struct ThreadContext
         fixed (byte* xmm = Xmm)
         {
             for (int i = 0; i < 256; i++)
+            {
                 xmm[i] = 0;
+            }
         }
     }
 }

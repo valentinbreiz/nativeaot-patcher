@@ -14,12 +14,17 @@ public static class TypeImporter
     /// </summary>
     public static TypeReference SafeImportType(ModuleDefinition module, TypeReference typeRef)
     {
-        if (typeRef == null) return null!;
+        if (typeRef == null)
+        {
+            return null!;
+        }
 
         var imported = module.ImportReference(typeRef);
 
         if (!MightHaveSelfReference(module, imported))
+        {
             return imported;
+        }
 
         return FixSelfReferences(module, imported);
     }
@@ -29,7 +34,10 @@ public static class TypeImporter
     /// </summary>
     public static MethodReference SafeImportMethod(ModuleDefinition module, MethodReference methodRef)
     {
-        if (methodRef == null) return null!;
+        if (methodRef == null)
+        {
+            return null!;
+        }
 
         var imported = module.ImportReference(methodRef);
 
@@ -65,7 +73,9 @@ public static class TypeImporter
                 var fixed_ = FixSelfReferences(module, param.ParameterType);
                 fixedParams.Add((param.Name, param.Attributes, fixed_));
                 if (fixed_ != param.ParameterType)
+                {
                     needsNewRef = true;
+                }
             }
             else
             {
@@ -84,7 +94,9 @@ public static class TypeImporter
                         .SequenceEqual(fixedParams.Select(p => p.Type.FullName)));
 
                 if (methodDef != null)
+                {
                     return methodDef;
+                }
             }
 
             var newMethodRef = new MethodReference(imported.Name, fixedReturnType, fixedDeclaringType)
@@ -95,10 +107,14 @@ public static class TypeImporter
             };
 
             foreach (var (name, attrs, type) in fixedParams)
+            {
                 newMethodRef.Parameters.Add(new ParameterDefinition(name, attrs, type));
+            }
 
             foreach (var gp in imported.GenericParameters)
+            {
                 newMethodRef.GenericParameters.Add(new GenericParameter(gp.Name, newMethodRef));
+            }
 
             return newMethodRef;
         }
@@ -111,7 +127,10 @@ public static class TypeImporter
     /// </summary>
     public static FieldReference SafeImportField(ModuleDefinition module, FieldReference fieldRef)
     {
-        if (fieldRef == null) return null!;
+        if (fieldRef == null)
+        {
+            return null!;
+        }
 
         var imported = module.ImportReference(fieldRef);
 
@@ -140,7 +159,9 @@ public static class TypeImporter
         }
 
         if (needsNewRef)
+        {
             return new FieldReference(imported.Name, fixedFieldType, fixedDeclaringType);
+        }
 
         return imported;
     }
@@ -150,22 +171,33 @@ public static class TypeImporter
     /// </summary>
     private static bool MightHaveSelfReference(ModuleDefinition module, TypeReference typeRef)
     {
-        if (typeRef == null) return false;
+        if (typeRef == null)
+        {
+            return false;
+        }
 
         string targetAsmName = module.Assembly.Name.Name;
 
         if (typeRef.Scope is AssemblyNameReference asmRef && asmRef.Name == targetAsmName)
+        {
             return true;
+        }
 
         if (typeRef is GenericInstanceType git)
         {
             foreach (var arg in git.GenericArguments)
+            {
                 if (MightHaveSelfReference(module, arg))
+                {
                     return true;
+                }
+            }
         }
 
         if (typeRef is TypeSpecification typeSpec)
+        {
             return MightHaveSelfReference(module, typeSpec.ElementType);
+        }
 
         return false;
     }
@@ -176,7 +208,10 @@ public static class TypeImporter
     /// </summary>
     private static TypeReference FixSelfReferences(ModuleDefinition module, TypeReference typeRef)
     {
-        if (typeRef == null) return null!;
+        if (typeRef == null)
+        {
+            return null!;
+        }
 
         if (typeRef is GenericInstanceType git)
         {
@@ -188,14 +223,19 @@ public static class TypeImporter
                 var fixedArg = FixSelfReferences(module, arg);
                 fixedArgs.Add(fixedArg);
                 if (fixedArg != arg)
+                {
                     needsFix = true;
+                }
             }
 
             if (needsFix)
             {
                 var result = new GenericInstanceType(git.ElementType);
                 foreach (var arg in fixedArgs)
+                {
                     result.GenericArguments.Add(arg);
+                }
+
                 return result;
             }
             return git;
@@ -205,7 +245,10 @@ public static class TypeImporter
         {
             var fixedElement = FixSelfReferences(module, arrayType.ElementType);
             if (fixedElement != arrayType.ElementType)
+            {
                 return new ArrayType(fixedElement, arrayType.Rank);
+            }
+
             return arrayType;
         }
 
@@ -213,7 +256,10 @@ public static class TypeImporter
         {
             var fixedElement = FixSelfReferences(module, byRefType.ElementType);
             if (fixedElement != byRefType.ElementType)
+            {
                 return new ByReferenceType(fixedElement);
+            }
+
             return byRefType;
         }
 
@@ -221,18 +267,25 @@ public static class TypeImporter
         {
             var fixedElement = FixSelfReferences(module, ptrType.ElementType);
             if (fixedElement != ptrType.ElementType)
+            {
                 return new PointerType(fixedElement);
+            }
+
             return ptrType;
         }
 
         if (typeRef is GenericParameter)
+        {
             return typeRef;
+        }
 
         if (typeRef.Scope is AssemblyNameReference asmRef && asmRef.Name == module.Assembly.Name.Name)
         {
             var typeDef = module.GetType(typeRef.FullName);
             if (typeDef != null)
+            {
                 return typeDef;
+            }
         }
 
         return typeRef;

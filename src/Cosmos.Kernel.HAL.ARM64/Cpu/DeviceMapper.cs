@@ -63,7 +63,11 @@ public static unsafe partial class DeviceMapper
     /// </summary>
     public static void EnsureMapped(ulong physBase)
     {
-        if (Limine.HHDM.Response == null) return;
+        if (Limine.HHDM.Response == null)
+        {
+            return;
+        }
+
         ulong hhdm = Limine.HHDM.Response->Offset;
         MapPage(physBase, hhdm);
     }
@@ -231,7 +235,10 @@ public static unsafe partial class DeviceMapper
 
         // Get pre-allocated L2 table virtual address
         ulong l2va = GetSpareL2TableAddr();
-        if (l2va == 0) return null;
+        if (l2va == 0)
+        {
+            return null;
+        }
 
         // Get its physical address (for the L1 table descriptor)
         ulong l2pa = VirtToPhys(l2va);
@@ -289,7 +296,9 @@ public static unsafe partial class DeviceMapper
         {
             byte attr = (byte)((mair >> (i * 8)) & 0xFF);
             if (attr == 0x00 || attr == 0x04)
+            {
                 return i;
+            }
         }
         return -1;
     }

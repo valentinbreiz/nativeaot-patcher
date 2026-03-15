@@ -81,7 +81,10 @@ public static unsafe partial class Idt
     public static delegate* unmanaged<void> GetStub(int index)
     {
         if ((uint)index >= 256)
+        {
             throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
         nint stubAddr = GetIrqStub(index);
 
         return (delegate* unmanaged<void>)stubAddr;

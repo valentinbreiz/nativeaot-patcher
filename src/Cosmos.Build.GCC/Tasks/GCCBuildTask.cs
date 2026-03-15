@@ -34,7 +34,9 @@ public sealed class GCCBuildTask : ToolTask
 
         // Add any user-provided compiler flags
         if (!string.IsNullOrEmpty(CompilerFlags))
+        {
             sb.Append($" {CompilerFlags} ");
+        }
 
         // Include all source files
         string[] sourceFilePaths = Directory.GetFiles(SourceFiles!, "*.c", SearchOption.TopDirectoryOnly);
@@ -224,12 +226,16 @@ public sealed class GCCBuildTask : ToolTask
         process.OutputDataReceived += (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
+                    {
                         Log.LogMessage(MessageImportance.Normal, e.Data);
+                    }
                 };
         process.ErrorDataReceived += (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
+                    {
                         Log.LogError(e.Data);
+                    }
                 };
 
         process.Start();

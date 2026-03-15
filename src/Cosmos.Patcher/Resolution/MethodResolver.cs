@@ -40,16 +40,22 @@ public class MethodResolver
         {
             // CCtor plugs must match static constructors
             if (isStaticCtor && !ctor.IsStatic)
+            {
                 continue;
+            }
 
             // Ctor plugs must match instance constructors
             if (!isStaticCtor && ctor.IsStatic)
+            {
                 continue;
+            }
 
             // Check parameter count
             int expectedParamCount = isInstance ? plugMethod.Parameters.Count - 1 : plugMethod.Parameters.Count;
             if (ctor.Parameters.Count != expectedParamCount)
+            {
                 continue;
+            }
 
             // Check parameter types match
             if (ParameterTypesMatch(ctor, plugMethod, plugStartIndex))
@@ -80,7 +86,9 @@ public class MethodResolver
         {
             // Check parameter count
             if (method.Parameters.Count != expectedParamCount)
+            {
                 continue;
+            }
 
             // Check parameter types match
             if (ParameterTypesMatch(method, plugMethod, plugStartIndex))
@@ -107,7 +115,9 @@ public class MethodResolver
             var plugParam = plugMethod.Parameters[i + plugStartIndex];
 
             if (targetParam.ParameterType.FullName != plugParam.ParameterType.FullName)
+            {
                 return false;
+            }
         }
         return true;
     }

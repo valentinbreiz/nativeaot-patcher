@@ -113,7 +113,9 @@ public class ARM64PlatformInitializer : IPlatformInitializer
     public ITimerDevice CreateTimer()
     {
         if (!CosmosFeatures.TimerEnabled)
+        {
             return null!;
+        }
 
         if (_timer == null)
         {
@@ -126,7 +128,9 @@ public class ARM64PlatformInitializer : IPlatformInitializer
     public IKeyboardDevice[] GetKeyboardDevices()
     {
         if (!CosmosFeatures.KeyboardEnabled || _virtioKeyboard == null || !_virtioKeyboard.IsInitialized)
+        {
             return [];
+        }
 
         return [_virtioKeyboard];
     }
@@ -134,7 +138,9 @@ public class ARM64PlatformInitializer : IPlatformInitializer
     public IMouseDevice[] GetMouseDevices()
     {
         if (!CosmosFeatures.MouseEnabled || _virtioMouse == null)
+        {
             return [];
+        }
 
         return [_virtioMouse];
     }

@@ -66,7 +66,9 @@ public class RTC : Device
     public unsafe void Initialize()
     {
         if (IsInitialized)
+        {
             return;
+        }
 
         Serial.Write("[RTC] Initializing...\n");
 
@@ -116,19 +118,39 @@ public class RTC : Device
         int hour = dt.Hour, minute = dt.Minute, second = dt.Second;
         Serial.WriteNumber((ulong)year);
         Serial.Write("-");
-        if (month < 10) Serial.Write("0");
+        if (month < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber((ulong)month);
         Serial.Write("-");
-        if (day < 10) Serial.Write("0");
+        if (day < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber((ulong)day);
         Serial.Write(" ");
-        if (hour < 10) Serial.Write("0");
+        if (hour < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber((ulong)hour);
         Serial.Write(":");
-        if (minute < 10) Serial.Write("0");
+        if (minute < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber((ulong)minute);
         Serial.Write(":");
-        if (second < 10) Serial.Write("0");
+        if (second < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber((ulong)second);
         Serial.Write(" UTC\n");
     }
@@ -140,7 +162,9 @@ public class RTC : Device
     public long GetCurrentTicks()
     {
         if (!IsInitialized)
+        {
             return 0;
+        }
 
         // Calculate elapsed time since boot using TSC
         ulong currentTsc = X64CpuOps.ReadTSC();
@@ -151,7 +175,9 @@ public class RTC : Device
         // DateTime ticks are 10,000,000 per second
         long tscFrequency = X64CpuOps.TscFrequency;
         if (tscFrequency <= 0)
+        {
             tscFrequency = 1_000_000_000; // Default 1 GHz
+        }
 
         // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
         // Use 128-bit math to avoid overflow
@@ -219,9 +245,13 @@ public class RTC : Device
         {
             bool pm = (ReadCMOS(RegHours) & 0x80) != 0;
             if (hour == 12)
+            {
                 hour = pm ? (byte)12 : (byte)0;
+            }
             else if (pm)
+            {
                 hour = (byte)(hour + 12);
+            }
         }
 
         // Calculate full year

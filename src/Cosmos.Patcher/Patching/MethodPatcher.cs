@@ -138,7 +138,9 @@ public class MethodPatcher
     private void RemovePInvokeMetadata(MethodDefinition method)
     {
         if (!method.IsPInvokeImpl && method.PInvokeInfo == null)
+        {
             return;
+        }
 
         _log.Debug("Removing P/Invoke metadata");
         method.PInvokeInfo = null;

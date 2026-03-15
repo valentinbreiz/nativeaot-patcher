@@ -86,7 +86,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
             uint magic = VirtioMMIO.Read32(addr, VirtioMMIO.REG_MAGIC);
             if (magic != VirtioMMIO.VIRTIO_MAGIC)
+            {
                 continue;
+            }
 
             uint devId = VirtioMMIO.Read32(addr, VirtioMMIO.REG_DEVICE_ID);
             if (devId == VirtioMMIO.VIRTIO_DEV_INPUT)
@@ -298,11 +300,15 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private void AddEventBuffer(int bufferIndex)
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         int descIdx = _eventQueue.AllocDescriptor();
         if (descIdx < 0)
+        {
             return;
+        }
 
         ulong bufferAddr = VirtioMMIO.VirtToPhys((ulong)(&_eventBuffers[bufferIndex]));
         _eventQueue.SetupDescriptor(descIdx, bufferAddr, (uint)sizeof(VirtioInputEvent),
@@ -333,15 +339,21 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private static void HandleIRQ(ref IRQContext ctx)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
+        {
             VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        }
 
         if (!Instance._initialized)
+        {
             return;
+        }
 
         // Process used buffers
         Instance.ProcessEvents();
@@ -350,7 +362,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private void ProcessEvents()
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         bool hasBuffers = _eventQueue.HasUsedBuffers();
         if (!hasBuffers)
@@ -361,7 +375,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         while (_eventQueue.HasUsedBuffers())
         {
             if (!_eventQueue.GetUsedBuffer(out uint id, out uint len))
+            {
                 break;
+            }
 
             // Process the event
             VirtioInputEvent* evt = &_eventBuffers[id];
@@ -406,7 +422,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         if (!_initialized || _eventQueue == null)
+        {
             return;
+        }
 
         _pollCount++;
 

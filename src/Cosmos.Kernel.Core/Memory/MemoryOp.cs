@@ -43,7 +43,10 @@ public static unsafe partial class MemoryOp
 
     public static void MemSet(byte* dest, byte value, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 16)
         {
@@ -63,7 +66,10 @@ public static unsafe partial class MemoryOp
 
     public static void MemSet(uint* dest, uint value, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 4)
         {
@@ -110,7 +116,10 @@ public static unsafe partial class MemoryOp
     /// </summary>
     public static void MemCopy(byte* dest, byte* src, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 16)
         {

@@ -677,7 +677,7 @@ if (ptr == null)                  // Good
 }
 ```
 
-> Braces are enforced by `.editorconfig` (`csharp_prefer_braces = true:warning`) and by IDE/analyzers; they are not currently treated as CI format errors.
+> Braces are enforced by `.editorconfig` (`csharp_prefer_braces = true:error`) and by CI (`dotnet format style --severity error`).
 
 ### Feature Switches
 

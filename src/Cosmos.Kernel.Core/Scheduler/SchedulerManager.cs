@@ -35,7 +35,9 @@ public static class SchedulerManager
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
+        {
             throw new InvalidOperationException("Scheduler support is disabled. Set CosmosEnableScheduler=true in your csproj to enable it.");
+        }
     }
 
     // ========== Initialization ==========
@@ -65,13 +67,17 @@ public static class SchedulerManager
             if (_currentScheduler != null)
             {
                 for (uint i = 0; i < _cpuCount; i++)
+                {
                     _currentScheduler.ShutdownCpu(_cpuStates[i]);
+                }
             }
 
             _currentScheduler = scheduler;
 
             for (uint i = 0; i < _cpuCount; i++)
+            {
                 scheduler.InitializeCpu(_cpuStates[i]);
+            }
         }
         finally
         {
@@ -129,7 +135,9 @@ public static class SchedulerManager
     public static void RegisterThread(Thread thread)
     {
         if (_allThreads == null)
+        {
             return;
+        }
 
         for (int i = 0; i < _allThreads.Length; i++)
         {
@@ -152,7 +160,9 @@ public static class SchedulerManager
     public static void UnregisterThread(Thread thread)
     {
         if (_allThreads == null)
+        {
             return;
+        }
 
         for (int i = 0; i < _allThreads.Length; i++)
         {
@@ -193,7 +203,10 @@ public static class SchedulerManager
             // New threads stay Created until they actually start running.
             // This allows ScheduleFromInterrupt to detect first-time execution.
             if (thread.State != ThreadState.Created)
+            {
                 thread.State = ThreadState.Ready;
+            }
+
             _currentScheduler.OnThreadReady(state, thread);
 
             Serial.WriteString("[SCHED] Thread ");
@@ -334,14 +347,20 @@ public static class SchedulerManager
         }
 
         if (!_enabled || _currentScheduler == null || _cpuStates == null)
+        {
             return;
+        }
 
         if (cpuId >= _cpuCount)
+        {
             return;
+        }
 
         var state = _cpuStates[cpuId];
         if (state == null || state.CurrentThread == null)
+        {
             return;
+        }
 
         // Update timing and check if preemption needed
         bool needsReschedule = _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
@@ -390,11 +409,15 @@ public static class SchedulerManager
             {
                 prev.StackPointer = currentRsp;
                 if (prev.State == ThreadState.Running)
+                {
                     prev.State = ThreadState.Ready;
+                }
 
                 // Put previous thread back in run queue if still runnable
                 if (prev.State == ThreadState.Ready)
+                {
                     _currentScheduler.OnThreadYield(state, prev);
+                }
             }
 
             // Switch to next thread
@@ -419,10 +442,14 @@ public static class SchedulerManager
         // This is for non-interrupt context switches (e.g., voluntary yield)
         // Not fully implemented - use ScheduleFromInterrupt for preemptive switching
         if (next == null)
+        {
             return;
+        }
 
         if (prev != null)
+        {
             prev.State = ThreadState.Ready;
+        }
 
         next.State = ThreadState.Running;
         ContextSwitch.SetContextSwitchRsp(next.StackPointer);

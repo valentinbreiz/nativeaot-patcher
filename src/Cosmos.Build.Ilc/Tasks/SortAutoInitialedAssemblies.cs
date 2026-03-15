@@ -73,7 +73,9 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                 {
                     // Skip if this assembly isn't in AssemblyNames
                     if (!requestedAssemblies.Contains(asm.Name.Name))
+                    {
                         continue;
+                    }
 
                     allAssemblies.Add(kvp.Key);
 
@@ -127,7 +129,9 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
     {
         Dictionary<string, int> inDegree = new(StringComparer.OrdinalIgnoreCase);
         foreach (string node in allNodes)
+        {
             inDegree[node] = 0;
+        }
 
         foreach (KeyValuePair<string, HashSet<string>> kvp in graph)
         {
@@ -155,7 +159,9 @@ public class SortAutoInitialedAssemblies : Microsoft.Build.Utilities.Task
                 if (deps.Contains(node))
                 {
                     if (--inDegree[dependent] == 0)
+                    {
                         queue.Enqueue(dependent);
+                    }
                 }
             }
         }

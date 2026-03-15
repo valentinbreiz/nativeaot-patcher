@@ -23,7 +23,9 @@ public static class TimerManager
     public static void Initialize()
     {
         if (_initialized)
+        {
             return;
+        }
 
         _initialized = true;
     }
@@ -34,7 +36,9 @@ public static class TimerManager
     public static void RegisterTimer(ITimerDevice timer)
     {
         if (timer == null)
+        {
             return;
+        }
 
         _timer = timer;
     }

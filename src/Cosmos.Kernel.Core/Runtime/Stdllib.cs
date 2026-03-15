@@ -169,7 +169,10 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             object original = *location;
             if (original == comparand)
+            {
                 *location = value;
+            }
+
             return original;
         }
 
@@ -208,7 +211,9 @@ namespace Cosmos.Kernel.Core.Runtime
         static unsafe void RhpStelemRef(object?[] array, nint index, object? obj)
         {
             if (array is null)
+            {
                 throw new NullReferenceException();
+            }
 
             ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;
             ref object element = ref Unsafe.Add(ref rawData, index);

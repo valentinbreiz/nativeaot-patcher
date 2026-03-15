@@ -17,7 +17,9 @@ public class ConsolePlug
     private static void ThrowIfKeyboardDisabled()
     {
         if (!CosmosFeatures.KeyboardEnabled)
+        {
             throw new InvalidOperationException("Console input requires keyboard support. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+        }
     }
 
     [PlugMember]

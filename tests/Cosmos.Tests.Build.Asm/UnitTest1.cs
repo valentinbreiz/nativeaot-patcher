@@ -23,7 +23,9 @@ public class UnitTest1
     public void Test1(string path, PlatformID platform)
     {
         if (Environment.OSVersion.Platform != platform)
+        {
             throw SkipException.ForSkip("skiping this test");
+        }
 
         YasmBuildTask yasm = new()
         {

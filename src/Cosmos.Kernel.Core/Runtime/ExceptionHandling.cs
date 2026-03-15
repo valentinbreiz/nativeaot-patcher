@@ -918,7 +918,10 @@ public static unsafe partial class ExceptionHelper
             // Read length (4 bytes, or 0xFFFFFFFF for extended length)
             uint length = *(uint*)p;
             if (length == 0)
+            {
                 break; // End of eh_frame
+            }
+
             if (length == 0xFFFFFFFF)
             {
                 // Extended length - skip for now
@@ -1033,7 +1036,9 @@ public static unsafe partial class ExceptionHelper
 
         // Sign extend if negative
         if (shift < 32 && (b & 0x40) != 0)
+        {
             result |= ~0 << shift;
+        }
 
         return result;
     }
@@ -1084,7 +1089,9 @@ public static unsafe partial class ExceptionHelper
         // Read length
         uint length = *(uint*)p;
         if (length == 0 || length == 0xFFFFFFFF)
+        {
             return false;
+        }
 
         byte* cieEnd = p + 4 + length;
         p += 4;
@@ -1092,17 +1099,26 @@ public static unsafe partial class ExceptionHelper
         // Read CIE ID (should be 0)
         uint cieId = *(uint*)p;
         if (cieId != 0)
+        {
             return false;  // Not a CIE
+        }
+
         p += 4;
 
         // Read version
         byte version = *p++;
         if (version != 1 && version != 3)
+        {
             return false;
+        }
 
         // Read augmentation string
         byte* augString = p;
-        while (*p != 0) p++;
+        while (*p != 0)
+        {
+            p++;
+        }
+
         p++;  // Skip null terminator
 
         // Read code alignment factor (ULEB128)
@@ -1113,9 +1129,13 @@ public static unsafe partial class ExceptionHelper
 
         // Read return address register
         if (version == 1)
+        {
             returnAddressReg = *p++;
+        }
         else
+        {
             returnAddressReg = (byte)ReadULEB128(ref p);
+        }
 
         // Handle augmentation data if present
         if (*augString == 'z')
@@ -1357,15 +1377,24 @@ public static unsafe partial class ExceptionHelper
         byte* ehFrameEnd = GetEhFrameEnd();
 
         if (ehFrameStart == null || ehFrameEnd == null)
+        {
             return false;
+        }
 
         byte* p = ehFrameStart;
 
         while (p < ehFrameEnd)
         {
             uint length = *(uint*)p;
-            if (length == 0) break;
-            if (length == 0xFFFFFFFF) break;
+            if (length == 0)
+            {
+                break;
+            }
+
+            if (length == 0xFFFFFFFF)
+            {
+                break;
+            }
 
             byte* recordStart = p;
             byte* recordEnd = p + 4 + length;
@@ -1405,7 +1434,10 @@ public static unsafe partial class ExceptionHelper
                     // LSDA pointer
                     int lsdaRel = *(int*)p;
                     if (lsdaRel != 0)
+                    {
                         pLSDA = p + lsdaRel;
+                    }
+
                     p += (int)augLen;
                 }
 
@@ -2050,7 +2082,9 @@ public static unsafe partial class ExceptionHelper
         clause = default;
 
         if (pLSDA == null)
+        {
             return false;
+        }
 
         byte* p = pLSDA;
 
@@ -2067,7 +2101,9 @@ public static unsafe partial class ExceptionHelper
 
         // Skip associated data if present
         if ((unwindBlockFlags & UBF_FUNC_HAS_ASSOCIATED_DATA) != 0)
+        {
             p += sizeof(int);
+        }
 
         // Check if method has EH info
         if ((unwindBlockFlags & UBF_FUNC_HAS_EHINFO) == 0)

@@ -525,7 +525,10 @@ public static partial class GICv3
     /// <param name="intId">Interrupt ID.</param>
     public static void DisableInterrupt(uint intId)
     {
-        if (!_mmioAvailable) return;
+        if (!_mmioAvailable)
+        {
+            return;
+        }
 
         if (intId < SPI_START)
         {
@@ -634,7 +637,10 @@ public static partial class GICv3
     /// <param name="intId">Interrupt ID.</param>
     public static void ClearPending(uint intId)
     {
-        if (!_mmioAvailable) return;
+        if (!_mmioAvailable)
+        {
+            return;
+        }
 
         if (intId < SPI_START)
         {
@@ -657,7 +663,10 @@ public static partial class GICv3
     /// <param name="edgeTriggered">True for edge-triggered, false for level-triggered.</param>
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
-        if (!_mmioAvailable) return;
+        if (!_mmioAvailable)
+        {
+            return;
+        }
 
         if (intId < SPI_START)
         {
@@ -669,9 +678,13 @@ public static partial class GICv3
             uint value = ReadRedistributor(_currentCpuSgiBase, regOffset);
 
             if (edgeTriggered)
+            {
                 value |= (2u << (int)shift);
+            }
             else
+            {
                 value &= ~(2u << (int)shift);
+            }
 
             WriteRedistributor(_currentCpuSgiBase, regOffset, value);
         }
@@ -682,9 +695,13 @@ public static partial class GICv3
             uint value = ReadDistributor(regOffset);
 
             if (edgeTriggered)
+            {
                 value |= (2u << (int)shift);
+            }
             else
+            {
                 value &= ~(2u << (int)shift);
+            }
 
             WriteDistributor(regOffset, value);
         }

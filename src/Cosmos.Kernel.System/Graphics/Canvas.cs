@@ -134,7 +134,11 @@ public unsafe class Canvas
     /// <param name="color">The ARGB color to clear the screen with.</param>
     public virtual void Clear(int color)
     {
-        if (Buffer == null) return;
+        if (Buffer == null)
+        {
+            return;
+        }
+
         Array.Fill(Buffer, color);
     }
 
@@ -162,12 +166,23 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(Color color, int x, int y)
     {
-        if (Buffer == null) return;
-        if (x < 0 || x >= Width || y < 0 || y >= Height) return;
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
 
         if (color.A < 255)
         {
-            if (color.A == 0) return;
+            if (color.A == 0)
+            {
+                return;
+            }
+
             color = AlphaBlend(color, GetPointColor(x, y), color.A);
         }
 
@@ -182,8 +197,16 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(uint color, int x, int y)
     {
-        if (Buffer == null) return;
-        if (x < 0 || x >= Width || y < 0 || y >= Height) return;
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
+
         Buffer[y * Width + x] = (int)color;
     }
 
@@ -195,8 +218,16 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(int color, int x, int y)
     {
-        if (Buffer == null) return;
-        if (x < 0 || x >= Width || y < 0 || y >= Height) return;
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
+
         Buffer[y * Width + x] = color;
     }
 
@@ -220,8 +251,16 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual Color GetPointColor(int x, int y)
     {
-        if (Buffer == null) return Color.Black;
-        if (x < 0 || x >= Width || y < 0 || y >= Height) return Color.Black;
+        if (Buffer == null)
+        {
+            return Color.Black;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return Color.Black;
+        }
+
         return Color.FromArgb(Buffer[y * Width + x]);
     }
 
@@ -232,8 +271,16 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual int GetRawPointColor(int x, int y)
     {
-        if (Buffer == null) return 0;
-        if (x < 0 || x >= Width || y < 0 || y >= Height) return 0;
+        if (Buffer == null)
+        {
+            return 0;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return 0;
+        }
+
         return Buffer[y * Width + x];
     }
 

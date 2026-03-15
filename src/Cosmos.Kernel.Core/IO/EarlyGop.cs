@@ -239,7 +239,9 @@ public static unsafe class EarlyGop
 
         if (Limine.Framebuffer.Response == null ||
             Limine.Framebuffer.Response->FramebufferCount == 0)
+        {
             return;
+        }
 
         LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
         int totalCols = (int)(fb->Width / CharW);
@@ -269,8 +271,15 @@ public static unsafe class EarlyGop
         _usableCols = totalCols - 2 * _marginX;
         _usableRows = totalRows - 2 * _marginY;
 
-        if (_usableCols < 1) _usableCols = 1;
-        if (_usableRows < 1) _usableRows = 1;
+        if (_usableCols < 1)
+        {
+            _usableCols = 1;
+        }
+
+        if (_usableRows < 1)
+        {
+            _usableRows = 1;
+        }
 
         _initialized = true;
     }
@@ -282,12 +291,19 @@ public static unsafe class EarlyGop
     public static void PutChar(char c)
     {
         if (!Enabled)
+        {
             return;
+        }
 
         if (!_initialized)
+        {
             Initialize();
+        }
+
         if (!_initialized)
+        {
             return;
+        }
 
         LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
 
@@ -307,7 +323,10 @@ public static unsafe class EarlyGop
                 break;
             default:
                 if (c < 0x20 || c > 0x7E)
+                {
                     c = '?';
+                }
+
                 DrawGlyph(fb, c, _col + _marginX, _row + _marginY);
                 _col++;
                 if (_col >= _usableCols)
@@ -359,12 +378,16 @@ public static unsafe class EarlyGop
         ulong* src = (ulong*)(addr + pitch * (topPx + (ulong)CharH));
         ulong count = copySize / 8;
         for (ulong i = 0; i < count; i++)
+        {
             dst[i] = src[i];
+        }
 
         // Clear the newly exposed bottom CharH rows of the usable region
         ulong* clear = (ulong*)(addr + pitch * (botPx - (ulong)CharH));
         ulong clearCount = pitch * (ulong)CharH / 8;
         for (ulong i = 0; i < clearCount; i++)
+        {
             clear[i] = 0;
+        }
     }
 }

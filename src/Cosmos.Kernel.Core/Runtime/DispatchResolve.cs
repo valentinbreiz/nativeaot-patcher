@@ -131,9 +131,13 @@ namespace Cosmos.Kernel.Core.Runtime
                     return targetMethod;
                 }
                 if (pCur->IsArray)
+                {
                     pCur = pCur->GetArrayEEType();
+                }
                 else
+                {
                     pCur = pCur->NonArrayBaseType;
+                }
             }
 
             // If we haven't found an implementation, do a second pass looking for a default implementation.
@@ -242,7 +246,9 @@ namespace Cosmos.Kernel.Core.Runtime
                 // arrays. We handle this by forcing all generic interfaces on arrays to behave as though they were
                 // covariant (over their one type parameter corresponding to the array element type).
                 if (fArrayCovariance && pItfType->IsGeneric)
+                {
                     fCheckVariance = true;
+                }
 
                 // If there is no variance checking, there is no operation to perform. (The non-variance check loop
                 // has already completed)
@@ -302,9 +308,13 @@ namespace Cosmos.Kernel.Core.Runtime
                         // (Instance methods acquire the generic context from their `this`.)
                         // Same for IDynamicInterfaceCastable (that has a `this` but it's not useful)
                         if (fStaticDispatch)
+                        {
                             *ppGenericContext = GetGenericContextSource(pTgtType, i);
+                        }
                         else if ((flags & ResolveFlags.IDynamicInterfaceCastable) != 0)
+                        {
                             *ppGenericContext = pTgtType;
+                        }
 
                         return true;
                     }

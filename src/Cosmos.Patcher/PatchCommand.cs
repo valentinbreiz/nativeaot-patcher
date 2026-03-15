@@ -86,7 +86,9 @@ public sealed class PatchCommand : Command<PatchCommand.Settings>
 
             logger.Info("Loaded plug assemblies:");
             foreach (string plug in plugPaths)
+            {
                 logger.Info($" - {plug}");
+            }
 
             PlugPatcher plugPatcher = new(new PlugScanner(logger))
             {

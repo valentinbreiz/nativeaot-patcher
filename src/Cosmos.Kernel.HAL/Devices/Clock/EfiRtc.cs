@@ -47,29 +47,55 @@ public static class EfiRtc
         Serial.Write("\n");
 
         if (status != 0) // EFI_SUCCESS = 0
+        {
             return false;
+        }
 
         Serial.Write("[RTC] Boot time (EFI): ");
         Serial.WriteNumber(time.Year);
         Serial.Write("-");
-        if (time.Month < 10) Serial.Write("0");
+        if (time.Month < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber(time.Month);
         Serial.Write("-");
-        if (time.Day < 10) Serial.Write("0");
+        if (time.Day < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber(time.Day);
         Serial.Write(" ");
-        if (time.Hour < 10) Serial.Write("0");
+        if (time.Hour < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber(time.Hour);
         Serial.Write(":");
-        if (time.Minute < 10) Serial.Write("0");
+        if (time.Minute < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber(time.Minute);
         Serial.Write(":");
-        if (time.Second < 10) Serial.Write("0");
+        if (time.Second < 10)
+        {
+            Serial.Write("0");
+        }
+
         Serial.WriteNumber(time.Second);
         if (time.TimeZone == unchecked((short)0x07FF))
+        {
             Serial.Write(" (TZ unspecified)\n");
+        }
         else
+        {
             Serial.Write(" UTC\n");
+        }
 
         long dateTicks = DateToTicks(time.Year, time.Month, time.Day);
         long timeTicks = time.Hour * TicksPerHour
@@ -79,7 +105,9 @@ public static class EfiRtc
 
         long tzOffset = 0;
         if (time.TimeZone != unchecked((short)0x07FF))
+        {
             tzOffset = -(long)time.TimeZone * TicksPerMinute;
+        }
 
         ticks = dateTicks + timeTicks + tzOffset;
         return ticks > 0;
@@ -90,8 +118,16 @@ public static class EfiRtc
         int[] daysInMonth = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         int y = year - 1;
         long days = y * 365L + y / 4 - y / 100 + y / 400;
-        for (int m = 1; m < month; m++) days += daysInMonth[m];
-        if (month > 2 && IsLeapYear(year)) days++;
+        for (int m = 1; m < month; m++)
+        {
+            days += daysInMonth[m];
+        }
+
+        if (month > 2 && IsLeapYear(year))
+        {
+            days++;
+        }
+
         days += day - 1;
         return days * TicksPerDay;
     }

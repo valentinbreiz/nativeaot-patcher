@@ -66,7 +66,9 @@ public static unsafe class KernelBridge
     public static void CosmosSerialWrite(byte* str)
     {
         if (str == null)
+        {
             return;
+        }
 
         // C strings are null-terminated, write char by char
         // Use while loop with explicit pointer arithmetic to avoid potential codegen issues

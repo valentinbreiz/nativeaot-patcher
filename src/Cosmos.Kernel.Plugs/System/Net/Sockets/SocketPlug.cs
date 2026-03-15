@@ -133,7 +133,10 @@ public static class SocketPlug
     {
         int id = GetId(aThis);
         if (_localEndPoints.TryGetValue(id, out var ep))
+        {
             return ep;
+        }
+
         return null;
     }
 
@@ -142,7 +145,10 @@ public static class SocketPlug
     {
         int id = GetId(aThis);
         if (_remoteEndPoints.TryGetValue(id, out var ep))
+        {
             return ep;
+        }
+
         return null;
     }
 
@@ -235,7 +241,10 @@ public static class SocketPlug
             sm = _tcpStateMachines[id];
         }
 
-        while (sm.WaitStatus(Status.ESTABLISHED) != true) ;
+        while (sm.WaitStatus(Status.ESTABLISHED) != true)
+        {
+            ;
+        }
 
         _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToByteArray()), sm.RemoteEndPoint.Port);
         _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToByteArray()), sm.LocalEndPoint.Port);
@@ -791,7 +800,10 @@ public static class SocketPlug
         }
         else if (sm.Status == Status.CLOSING || sm.Status == Status.CLOSE_WAIT)
         {
-            while (sm.WaitStatus(Status.CLOSED) != true) ;
+            while (sm.WaitStatus(Status.CLOSED) != true)
+            {
+                ;
+            }
 
             Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);

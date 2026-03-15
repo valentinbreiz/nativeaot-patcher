@@ -183,7 +183,9 @@ namespace Cosmos.Build.Analyzer.Patcher
             {
                 DebugLog($"No plug info found for class {classSymbol.Name}");
                 if (!isMethod || accessedMemberSymbol == null || !CheckIfNeedsPlug(accessedMemberSymbol, null))
+                {
                     return;
+                }
 
                 DebugLog($"Reporting MethodNeedsPlug for {accessedMemberSymbol.Name}");
                 ReportDiagnostic(context, DiagnosticMessages.MemberNeedsPlug,
@@ -197,7 +199,9 @@ namespace Cosmos.Build.Analyzer.Patcher
 
             DebugLog($"Found plugged class {classSymbol.Name}");
             if (!isMethod || accessedMemberSymbol == null || !CheckIfNeedsPlug(accessedMemberSymbol, null))
+            {
                 return;
+            }
 
             ImmutableDictionary<string, string?> properties = ImmutableDictionary.CreateRange(new[]
             {
@@ -254,7 +258,9 @@ namespace Cosmos.Build.Analyzer.Patcher
 
             // Strip assembly qualifier if present ("Full.Type.Name, AssemblyName")
             if (name.Contains(','))
+            {
                 name = name.Split(',')[0].Trim();
+            }
 
             // Derive simple class name from the fully-qualified target name.
             // Handles dot-separated namespaces and '/' nested-type separators.
@@ -277,12 +283,16 @@ namespace Cosmos.Build.Analyzer.Patcher
         {
             DebugLog($"AnalyzePlugClass for {classDeclarationSyntax.Identifier.Text}");
             if (string.IsNullOrEmpty(pluggedClassName))
+            {
                 return;
+            }
 
             string expectedName = $"{pluggedClassName}Impl";
             DebugLog($"Expected plug class name: {expectedName}");
             if (classDeclarationSyntax.Identifier.Text == expectedName)
+            {
                 return;
+            }
 
             DebugLog($"Reporting PlugNameMismatch for {classDeclarationSyntax.Identifier.Text}");
             ReportDiagnostic(
@@ -335,7 +345,9 @@ namespace Cosmos.Build.Analyzer.Patcher
         {
             DebugLog($"AnalyzePluggedClassMembers for {symbol.Name}");
             if (plugSymbol == null || s_ignoredExternalTypes.Contains(symbol.Name))
+            {
                 return;
+            }
 
             List<IMethodSymbol> methods = symbol.GetMembers().OfType<IMethodSymbol>().ToList();
             bool targetInvalid = false;
@@ -351,7 +363,9 @@ namespace Cosmos.Build.Analyzer.Patcher
                 }
 
                 if (!CheckIfNeedsPlug(method, plugSymbol))
+                {
                     continue;
+                }
 
                 targetInvalid = true;
                 DebugLog($"Reporting MethodNeedsPlug for {method.Name}");
@@ -370,7 +384,9 @@ namespace Cosmos.Build.Analyzer.Patcher
 
 
                 if (pluggedClasses.TryGetValue(symbol.Name, out PlugInfo plugInfo) && plugInfo.TargetExternal && !targetInvalid)
+                {
                     s_ignoredExternalTypes.Add(symbol.Name); // Cache valid external types
+                }
             }
 
             AnalyzePluggedClassCtors(plugClass, symbol, methods, context);
@@ -381,7 +397,9 @@ namespace Cosmos.Build.Analyzer.Patcher
                     methods.Any(x => x is IMethodSymbol method
                         ? method.MethodKind == MethodKind.Ordinary && method.Name == name
                         : x.Name == name))
+                {
                     continue;
+                }
 
                 DebugLog($"Reporting MethodNotImplemented for {name}");
                 ReportDiagnostic(
@@ -418,7 +436,9 @@ namespace Cosmos.Build.Analyzer.Patcher
                 DebugLog("Found CCtor method");
                 DebugLog($"CCtor has {cctor!.ParameterList.Parameters.Count} parameters");
                 if (cctor!.ParameterList.Parameters.Count <= 1)
+                {
                     return;
+                }
 
                 DebugLog("Reporting static constructor too many params");
                 ReportDiagnostic(

@@ -82,7 +82,9 @@ public static class IoApic
     public static void RouteIrq(byte irq, byte vector, byte targetApicId, IrqOverride? @override = null, bool startMasked = false)
     {
         if (!_initialized)
+        {
             return;
+        }
 
         uint gsi = irq;
         bool activeLow = false;
@@ -97,12 +99,26 @@ public static class IoApic
 
         uint redirIndex = gsi - _gsiBase;
         if (redirIndex > _maxRedirectionEntry)
+        {
             return;
+        }
 
         ulong entry = vector;
-        if (activeLow) entry |= ACTIVE_LOW;
-        if (levelTriggered) entry |= LEVEL_TRIGGERED;
-        if (startMasked) entry |= MASKED;
+        if (activeLow)
+        {
+            entry |= ACTIVE_LOW;
+        }
+
+        if (levelTriggered)
+        {
+            entry |= LEVEL_TRIGGERED;
+        }
+
+        if (startMasked)
+        {
+            entry |= MASKED;
+        }
+
         entry |= (ulong)targetApicId << 56;
 
         WriteRedirectionEntry((byte)redirIndex, entry);
@@ -114,7 +130,11 @@ public static class IoApic
     private static void SetRedirectionEntry(byte index, byte vector, bool masked)
     {
         ulong entry = vector;
-        if (masked) entry |= MASKED;
+        if (masked)
+        {
+            entry |= MASKED;
+        }
+
         WriteRedirectionEntry(index, entry);
     }
 
@@ -149,9 +169,17 @@ public static class IoApic
     /// </summary>
     public static ulong GetRedirectionEntry(byte irq)
     {
-        if (!_initialized) return 0;
+        if (!_initialized)
+        {
+            return 0;
+        }
+
         uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry) return 0;
+        if (redirIndex > _maxRedirectionEntry)
+        {
+            return 0;
+        }
+
         return ReadRedirectionEntry((byte)redirIndex);
     }
 
@@ -160,9 +188,16 @@ public static class IoApic
     /// </summary>
     public static void MaskIrq(byte irq)
     {
-        if (!_initialized) return;
+        if (!_initialized)
+        {
+            return;
+        }
+
         uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry) return;
+        if (redirIndex > _maxRedirectionEntry)
+        {
+            return;
+        }
 
         ulong entry = ReadRedirectionEntry((byte)redirIndex);
         entry |= MASKED;
@@ -174,9 +209,16 @@ public static class IoApic
     /// </summary>
     public static void UnmaskIrq(byte irq)
     {
-        if (!_initialized) return;
+        if (!_initialized)
+        {
+            return;
+        }
+
         uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry) return;
+        if (redirIndex > _maxRedirectionEntry)
+        {
+            return;
+        }
 
         ulong entry = ReadRedirectionEntry((byte)redirIndex);
         entry &= ~MASKED;

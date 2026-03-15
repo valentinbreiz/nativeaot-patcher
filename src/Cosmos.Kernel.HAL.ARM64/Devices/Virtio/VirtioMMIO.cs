@@ -77,7 +77,10 @@ public static class VirtioMMIO
     {
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         if (hhdmOffset != 0 && virtAddr >= hhdmOffset)
+        {
             return virtAddr - hhdmOffset;
+        }
+
         return virtAddr;
     }
 
@@ -93,7 +96,10 @@ public static class VirtioMMIO
     {
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         if (hhdmOffset != 0 && phys < hhdmOffset)
+        {
             return phys + hhdmOffset;
+        }
+
         return phys;
     }
 
@@ -162,7 +168,9 @@ public static class VirtioMMIO
 
             uint magic = Read32(baseAddr, REG_MAGIC);
             if (magic != VIRTIO_MAGIC)
+            {
                 continue;
+            }
 
             uint devId = Read32(baseAddr, REG_DEVICE_ID);
             if (devId == deviceType)

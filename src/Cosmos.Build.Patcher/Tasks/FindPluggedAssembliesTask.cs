@@ -29,7 +29,9 @@ public sealed class FindPluggedAssembliesTask : Microsoft.Build.Utilities.Task
                 .ToArray();
 
             foreach (ITaskItem item in AssembliesToPatch)
+            {
                 Log.LogMessage(MessageImportance.Low, $"Will patch: {item.ItemSpec}");
+            }
 
             return true;
         }

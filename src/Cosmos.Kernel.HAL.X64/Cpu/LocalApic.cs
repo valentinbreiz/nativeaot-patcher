@@ -227,7 +227,10 @@ public static class LocalApic
 
             // PIT counts down, check if we've passed our target
             if (currentCount > lastCount || currentCount == 0)
+            {
                 break;
+            }
+
             lastCount = currentCount;
         }
 
@@ -258,7 +261,9 @@ public static class LocalApic
         }
 
         if (ms == 0)
+        {
             return;
+        }
 
         // Set timer divide to 16 (same as calibration)
         Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);

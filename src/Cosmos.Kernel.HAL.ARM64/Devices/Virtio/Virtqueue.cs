@@ -128,7 +128,9 @@ public unsafe class Virtqueue
     public int AllocDescriptor()
     {
         if (_numFree == 0)
+        {
             return -1;
+        }
 
         int idx = _freeHead;
         _freeHead = _freeList[_freeHead];

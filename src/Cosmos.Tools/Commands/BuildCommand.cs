@@ -77,18 +77,27 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         {
             architectures.Add("x64");
             architectures.Add("arm64");
-            if (!settings.Json) AnsiConsole.MarkupLine("  Architectures: [blue]x64, arm64[/]");
+            if (!settings.Json)
+            {
+                AnsiConsole.MarkupLine("  Architectures: [blue]x64, arm64[/]");
+            }
         }
         else if (!string.IsNullOrEmpty(settings.Arch))
         {
             architectures.Add(settings.Arch);
-            if (!settings.Json) AnsiConsole.MarkupLine($"  Architecture: [blue]{settings.Arch}[/]");
+            if (!settings.Json)
+            {
+                AnsiConsole.MarkupLine($"  Architecture: [blue]{settings.Arch}[/]");
+            }
         }
         else
         {
             string detectedArch = DetectArchitecture(csprojPath);
             architectures.Add(detectedArch);
-            if (!settings.Json) AnsiConsole.MarkupLine($"  Architecture: [blue]{detectedArch}[/] (detected)");
+            if (!settings.Json)
+            {
+                AnsiConsole.MarkupLine($"  Architecture: [blue]{detectedArch}[/] (detected)");
+            }
         }
 
         if (!settings.Json)
@@ -112,8 +121,15 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             {
                 string potentialIso = Path.Combine(outputDir, $"{projectName}.iso");
                 string potentialElf = Path.Combine(outputDir, $"{projectName}.elf");
-                if (File.Exists(potentialIso)) isoPath = potentialIso;
-                if (File.Exists(potentialElf)) elfPath = potentialElf;
+                if (File.Exists(potentialIso))
+                {
+                    isoPath = potentialIso;
+                }
+
+                if (File.Exists(potentialElf))
+                {
+                    elfPath = potentialElf;
+                }
             }
 
             buildResults.Add(new BuildResult(buildArch, result, outputDir, isoPath, elfPath, runtimeId));
@@ -202,7 +218,9 @@ public class BuildCommand : AsyncCommand<BuildSettings>
         if (!string.IsNullOrEmpty(projectPath))
         {
             if (File.Exists(projectPath) && projectPath.EndsWith(".csproj"))
+            {
                 return projectPath;
+            }
 
             if (Directory.Exists(projectPath))
             {
@@ -251,7 +269,10 @@ public class BuildCommand : AsyncCommand<BuildSettings>
 
     private static async Task<bool> BuildForArchitectureAsync(string csprojPath, string projectDir, string arch, string config, bool verbose, bool json)
     {
-        if (!json) AnsiConsole.Markup($"  Building for [blue]{arch}[/]... ");
+        if (!json)
+        {
+            AnsiConsole.Markup($"  Building for [blue]{arch}[/]... ");
+        }
 
         string runtimeId = arch == "arm64" ? "linux-arm64" : "linux-x64";
         string defineConstants = arch == "arm64" ? "ARCH_ARM64" : "ARCH_X64";
@@ -326,7 +347,11 @@ public class BuildCommand : AsyncCommand<BuildSettings>
 
             if (process.ExitCode == 0)
             {
-                if (!json) AnsiConsole.MarkupLine("[green]OK[/]");
+                if (!json)
+                {
+                    AnsiConsole.MarkupLine("[green]OK[/]");
+                }
+
                 return true;
             }
             else

@@ -388,12 +388,35 @@ public class TCPPacket : IPPacket
     {
         string flags = "";
 
-        if (FIN) flags += "FIN|";
-        if (SYN) flags += "SYN|";
-        if (RST) flags += "RST|";
-        if (PSH) flags += "PSH|";
-        if (ACK) flags += "ACK|";
-        if (URG) flags += "URG|";
+        if (FIN)
+        {
+            flags += "FIN|";
+        }
+
+        if (SYN)
+        {
+            flags += "SYN|";
+        }
+
+        if (RST)
+        {
+            flags += "RST|";
+        }
+
+        if (PSH)
+        {
+            flags += "PSH|";
+        }
+
+        if (ACK)
+        {
+            flags += "ACK|";
+        }
+
+        if (URG)
+        {
+            flags += "URG|";
+        }
 
         if (flags.Length > 0)
         {

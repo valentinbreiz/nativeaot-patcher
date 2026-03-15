@@ -112,8 +112,15 @@ public unsafe class GopDriver : GraphicDevice
     public override void CopyBuffer(ReadOnlyMemory<uint> pixels, int x, int y, int width, int height)
     {
         // Clamp to screen bounds
-        if (x < 0 || y < 0 || width <= 0 || height <= 0) return;
-        if (x >= (int)Width || y >= (int)Height) return;
+        if (x < 0 || y < 0 || width <= 0 || height <= 0)
+        {
+            return;
+        }
+
+        if (x >= (int)Width || y >= (int)Height)
+        {
+            return;
+        }
 
         int clampedWidth = Math.Min(width, (int)Width - x);
         int clampedHeight = Math.Min(height, (int)Height - y);
@@ -136,8 +143,15 @@ public unsafe class GopDriver : GraphicDevice
     public override void CopyBuffer(ReadOnlyMemory<int> pixels, int x, int y, int width, int height)
     {
         // Clamp to screen bounds
-        if (x < 0 || y < 0 || width <= 0 || height <= 0) return;
-        if (x >= (int)Width || y >= (int)Height) return;
+        if (x < 0 || y < 0 || width <= 0 || height <= 0)
+        {
+            return;
+        }
+
+        if (x >= (int)Width || y >= (int)Height)
+        {
+            return;
+        }
 
         int clampedWidth = Math.Min(width, (int)Width - x);
         int clampedHeight = Math.Min(height, (int)Height - y);

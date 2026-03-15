@@ -23,9 +23,21 @@ public static unsafe class Base64
 
         // Base64 decoding table for A-Z, a-z, 0-9, +, /
         byte* Base64Table = (byte*)MemoryOp.Alloc(128);
-        for (int i = 0; i < 26; i++) Base64Table['A' + i] = (byte)i; // A-Z -> 0-25
-        for (int i = 0; i < 26; i++) Base64Table['a' + i] = (byte)(26 + i); // a-z -> 26-51
-        for (int i = 0; i < 10; i++) Base64Table['0' + i] = (byte)(52 + i); // 0-9 -> 52-61
+        for (int i = 0; i < 26; i++)
+        {
+            Base64Table['A' + i] = (byte)i; // A-Z -> 0-25
+        }
+
+        for (int i = 0; i < 26; i++)
+        {
+            Base64Table['a' + i] = (byte)(26 + i); // a-z -> 26-51
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+            Base64Table['0' + i] = (byte)(52 + i); // 0-9 -> 52-61
+        }
+
         Base64Table['+'] = 62; // '+' -> 62
         Base64Table['/'] = 63; // '/' -> 63
 

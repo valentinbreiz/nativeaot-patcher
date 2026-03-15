@@ -201,33 +201,47 @@ public class E1000E : PciDevice, INetworkDevice
 
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574L);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574IT);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         // Additional E1000E device IDs
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EA);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EB);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EF);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         // Also check by class (Network Controller = 0x02, Ethernet = 0x00)
         device = PciManager.GetDeviceClass(Pci.Enums.ClassId.NetworkController, (Pci.Enums.SubclassId)0x00, (Pci.Enums.ProgramIf)0x00);
         if (device != null && !device.Claimed && device.VendorId == IntelVendorId)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         return null;
     }
@@ -243,7 +257,9 @@ public class E1000E : PciDevice, INetworkDevice
     private unsafe void InitializeNetwork()
     {
         if (_networkInitialized)
+        {
             return;
+        }
 
         Serial.Write("[E1000E] Initializing...\n");
         Serial.Write("[E1000E] MMIO Base: 0x");
@@ -318,7 +334,9 @@ public class E1000E : PciDevice, INetworkDevice
         for (int i = 0; i < 1000; i++)
         {
             if ((ReadMmio(REG_CTRL) & CTRL_RST) == 0)
+            {
                 break;
+            }
         }
 
         // Clear interrupt mask
@@ -569,7 +587,9 @@ public class E1000E : PciDevice, INetworkDevice
     private static void HandleIRQ(ref IRQContext context)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         // Read and clear interrupt cause
         uint icr = Instance.ReadMmio(REG_ICR);
@@ -602,12 +622,16 @@ public class E1000E : PciDevice, INetworkDevice
             uint next = (_rxTail + 1) % RX_DESC_COUNT;
 
             if (next == head)
+            {
                 break;
+            }
 
             RxDescriptor* desc = &_rxDescriptors[next];
 
             if ((desc->Status & RX_STATUS_DD) == 0)
+            {
                 break;
+            }
 
             if ((desc->Status & RX_STATUS_EOP) != 0 && desc->Errors == 0)
             {
@@ -638,14 +662,18 @@ public class E1000E : PciDevice, INetworkDevice
     public unsafe bool Send(byte[] data, int length)
     {
         if (!_networkInitialized || data == null || length <= 0 || length > RX_BUFFER_SIZE)
+        {
             return false;
+        }
 
         uint next = (_txTail + 1) % TX_DESC_COUNT;
         uint head = ReadMmio(REG_TDH);
 
         // Check if ring is full
         if (next == head)
+        {
             return false;
+        }
 
         // Copy data to buffer
         byte* dst = _txBuffers[_txTail];
@@ -728,7 +756,10 @@ public class E1000E : PciDevice, INetworkDevice
     {
         const ulong HigherHalfOffset = 0xFFFF800000000000UL;
         if (virtualAddress >= HigherHalfOffset)
+        {
             return virtualAddress - HigherHalfOffset;
+        }
+
         return virtualAddress;
     }
 

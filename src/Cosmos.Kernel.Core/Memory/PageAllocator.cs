@@ -549,7 +549,9 @@ public static unsafe class PageAllocator
             byte* pageAddress = RamStart + (ulong)offset * PageSize;
 
             if ((ulong)offset >= TotalPageCount)
+            {
                 return null;
+            }
 
             mRAT[offset] = (byte)aType;
 

@@ -18,7 +18,9 @@ public static class NetworkManager
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
+        {
             throw new InvalidOperationException("Network support is disabled. Set CosmosEnableNetwork=true in your csproj to enable it.");
+        }
     }
 
     private static INetworkDevice? _primaryDevice;
@@ -49,7 +51,9 @@ public static class NetworkManager
         ThrowIfDisabled();
 
         if (_initialized)
+        {
             return;
+        }
 
         _devices = new INetworkDevice[8];
         _deviceCount = 0;
@@ -63,7 +67,9 @@ public static class NetworkManager
     public static void RegisterDevice(INetworkDevice device)
     {
         if (device == null || _devices == null || _deviceCount >= _devices.Length)
+        {
             return;
+        }
 
         _devices[_deviceCount++] = device;
 
@@ -84,7 +90,9 @@ public static class NetworkManager
         ThrowIfDisabled();
 
         if (_devices == null || index < 0 || index >= _deviceCount)
+        {
             return null;
+        }
 
         return _devices[index];
     }

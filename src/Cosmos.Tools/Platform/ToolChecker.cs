@@ -104,7 +104,9 @@ public static class ToolChecker
     private static async Task<string?> GetVersionAsync(string command, string? versionArg)
     {
         if (string.IsNullOrEmpty(versionArg))
+        {
             return null;
+        }
 
         try
         {
@@ -139,7 +141,9 @@ public static class ToolChecker
 
             using var process = Process.Start(psi);
             if (process == null)
+            {
                 return (false, "");
+            }
 
             string output = await process.StandardOutput.ReadToEndAsync();
             string error = await process.StandardError.ReadToEndAsync();

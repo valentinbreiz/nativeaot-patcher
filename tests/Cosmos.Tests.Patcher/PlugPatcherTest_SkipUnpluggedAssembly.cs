@@ -25,7 +25,9 @@ public class PlugPatcherTest_SkipUnpluggedAssembly
         // remove plugs that target NativeWrapperObject so plug assembly has no relevant plugs
         TypeDefinition? unwantedPlug = plugAssembly.MainModule.Types.FirstOrDefault(t => t.FullName == typeof(NativeWrapperObjectImpl).FullName);
         if (unwantedPlug != null)
+        {
             plugAssembly.MainModule.Types.Remove(unwantedPlug);
+        }
 
         TypeDefinition targetType = targetAssembly.MainModule.Types.First(t => t.FullName == typeof(NativeWrapperObject).FullName);
         MethodDefinition method = targetType.Methods.First(m => m.Name == nameof(NativeWrapperObject.InstanceMethod));

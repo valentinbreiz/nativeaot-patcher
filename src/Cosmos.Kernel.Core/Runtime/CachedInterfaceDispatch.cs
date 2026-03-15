@@ -276,7 +276,9 @@ namespace Cosmos.Kernel.Core.Runtime
                 SmallHeap.Alloc((uint)(sizeof(InterfaceDispatchCell) * 2));
 
             if (pCell == null)
+            {
                 return IntPtr.Zero;
+            }
 
             // Initialize the dispatch cell
             // Cell[0].m_pStub would point to RhpInitialDynamicInterfaceDispatch in a full implementation

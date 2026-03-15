@@ -126,7 +126,9 @@ public unsafe class VirtioNet : INetworkDevice
     public bool Send(byte[] data, int length)
     {
         if (!_networkInitialized || !_enabled || _txQueue == null || _txBuffers == null || data == null)
+        {
             return false;
+        }
 
         ReclaimTx();
 
@@ -138,17 +140,23 @@ public unsafe class VirtioNet : INetworkDevice
         }
 
         if (length > RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE)
+        {
             length = RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE;
+        }
 
         byte* buf = _txBuffers[descIdx];
 
         // Clear virtio-net header
         for (int i = 0; i < VIRTIO_NET_HDR_SIZE; i++)
+        {
             buf[i] = 0;
+        }
 
         // Copy packet data
         for (int i = 0; i < length; i++)
+        {
             buf[VIRTIO_NET_HDR_SIZE + i] = data[i];
+        }
 
         _txQueue.SetupDescriptor(descIdx, VirtioMMIO.VirtToPhys((ulong)buf), (uint)(VIRTIO_NET_HDR_SIZE + length), 0, 0);
         _txQueue.AddAvailable((ushort)descIdx);
@@ -166,7 +174,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeNetwork()
     {
-        if (_networkInitialized) return;
+        if (_networkInitialized)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing (MMIO version ");
         Serial.WriteNumber(_mmioVersion);
@@ -365,7 +376,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeRxBuffers()
     {
-        if (_rxQueue == null) return;
+        if (_rxQueue == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing RX buffers...\n");
 
@@ -374,7 +388,10 @@ public unsafe class VirtioNet : INetworkDevice
         {
             _rxBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
             int descIdx = _rxQueue.AllocDescriptor();
-            if (descIdx < 0) break;
+            if (descIdx < 0)
+            {
+                break;
+            }
 
             _rxQueue.SetupDescriptor(descIdx, VirtioMMIO.VirtToPhys((ulong)_rxBuffers[i]), RX_BUFFER_SIZE,
                 Virtqueue.VRING_DESC_F_WRITE, 0);
@@ -389,7 +406,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeTxBuffers()
     {
-        if (_txQueue == null) return;
+        if (_txQueue == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing TX buffers...\n");
 
@@ -405,16 +425,22 @@ public unsafe class VirtioNet : INetworkDevice
     private static void HandleIRQ(ref IRQContext context)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         // Without this, the GIC re-delivers the interrupt immediately causing an IRQ storm.
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
+        {
             VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        }
 
         if (!Instance._networkInitialized)
+        {
             return;
+        }
 
         // Process used buffers
         if ((intStatus & 1) != 0)  // Used buffer notification
@@ -426,7 +452,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void ProcessRx()
     {
-        if (_rxQueue == null || _rxBuffers == null) return;
+        if (_rxQueue == null || _rxBuffers == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Processing RX...\n");
 
@@ -445,7 +474,9 @@ public unsafe class VirtioNet : INetworkDevice
                 byte[] data = new byte[dataLen];
                 byte* src = _rxBuffers[id] + VIRTIO_NET_HDR_SIZE;
                 for (int i = 0; i < dataLen; i++)
+                {
                     data[i] = src[i];
+                }
 
                 OnPacketReceived?.Invoke(data, (int)dataLen);
                 received = true;
@@ -469,7 +500,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void ReclaimTx()
     {
-        if (_txQueue == null) return;
+        if (_txQueue == null)
+        {
+            return;
+        }
 
         while (_txQueue.GetUsedBuffer(out uint id, out uint len))
         {

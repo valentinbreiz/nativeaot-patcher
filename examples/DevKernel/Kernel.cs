@@ -80,7 +80,10 @@ public class Kernel : Sys.Kernel
 
                 case "echo":
                     if (parts.Length > 1)
+                    {
                         Console.WriteLine(trimmed.Substring(5));
+                    }
+
                     break;
 
                 case "info":
@@ -106,9 +109,14 @@ public class Kernel : Sys.Kernel
 
                 case "kill":
                     if (parts.Length > 1 && uint.TryParse(parts[1], out uint killId))
+                    {
                         KillThread(killId);
+                    }
                     else
+                    {
                         PrintError("Usage: kill <thread_id>");
+                    }
+
                     break;
 
                 case "halt":
@@ -139,9 +147,14 @@ public class Kernel : Sys.Kernel
 
                 case "dns":
                     if (parts.Length > 1)
+                    {
                         ResolveDNS(parts[1]);
+                    }
                     else
+                    {
                         PrintError("Usage: dns <domain>");
+                    }
+
                     break;
 
                 case "meminfo":
@@ -246,9 +259,13 @@ public class Kernel : Sys.Kernel
                         lastFrameStart += frameInterval;
                         long now = System.Diagnostics.Stopwatch.GetTimestamp();
                         if (now > lastFrameStart)
+                        {
                             lastFrameStart = now; // fell behind, reset to avoid burst catch-up
+                        }
                         else
+                        {
                             while (System.Diagnostics.Stopwatch.GetTimestamp() < lastFrameStart) { }
+                        }
                     }
 
                     break;
@@ -399,11 +416,17 @@ public class Kernel : Sys.Kernel
 
         // Color based on usage
         if (usagePercent < 50)
+        {
             Console.ForegroundColor = ConsoleColor.Green;
+        }
         else if (usagePercent < 80)
+        {
             Console.ForegroundColor = ConsoleColor.Yellow;
+        }
         else
+        {
             Console.ForegroundColor = ConsoleColor.Red;
+        }
 
         Console.WriteLine(usagePercent.ToString() + "%");
         Console.ResetColor();
@@ -584,7 +607,9 @@ public class Kernel : Sys.Kernel
     private static void GraphicsWorker()
     {
         if (KernelConsole.Default.Canvas.Mode.Width == 0 || KernelConsole.Default.Canvas.Mode.Height == 0)
+        {
             return;
+        }
 
         const int squareSize = 80;
         const int margin = 20;
@@ -617,7 +642,10 @@ public class Kernel : Sys.Kernel
                     int cx = dx - squareSize / 2;
                     int cy = dy - squareSize / 2;
                     int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
-                    if (dist > 255) dist = 255;
+                    if (dist > 255)
+                    {
+                        dist = 255;
+                    }
 
                     int factor = 255 - dist / 2;
                     byte pr = (byte)((r * factor) / 255);
@@ -733,7 +761,9 @@ public class Kernel : Sys.Kernel
         string message = "Hello from CosmosOS!";
         byte[] payload = new byte[message.Length];
         for (int i = 0; i < message.Length; i++)
+        {
             payload[i] = (byte)message[i];
+        }
 
         // Create UDP packet (using broadcast MAC for now since we don't have full ARP)
         var udpPacket = new UDPPacket(
@@ -749,9 +779,13 @@ public class Kernel : Sys.Kernel
         bool sent = device.Send(udpPacket.RawData, udpPacket.RawData.Length);
 
         if (sent)
+        {
             PrintSuccess("Packet sent!\n");
+        }
         else
+        {
             PrintError("Failed to send packet\n");
+        }
     }
 
     private void StartListening()
@@ -795,7 +829,9 @@ public class Kernel : Sys.Kernel
         {
             char c = (char)data[i];
             if (c >= 32 && c < 127)
+            {
                 Serial.Write(c.ToString());
+            }
         }
         Serial.Write("\n");
 
@@ -812,7 +848,9 @@ public class Kernel : Sys.Kernel
         {
             char c = (char)data[i];
             if (c >= 32 && c < 127)
+            {
                 Console.Write(c.ToString());
+            }
         }
         Console.WriteLine();
     }
@@ -980,7 +1018,9 @@ public class Kernel : Sys.Kernel
 
                 // Bounds check
                 if (px < 0 || px >= canvas.Mode.Width || py < 0 || py >= canvas.Mode.Height)
+                {
                     continue;
+                }
 
                 int pixel = s_cursorPattern[cy * CursorWidth + cx];
                 if (pixel == 1)

@@ -97,7 +97,10 @@ public static class UdpClientPlug
     {
         int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
+        {
             return 0;
+        }
+
         return socket.Available;
     }
 
@@ -107,7 +110,9 @@ public static class UdpClientPlug
         IPAddress address = IPAddress.Parse(hostname);
         int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
+        {
             return;
+        }
 
         socket.Connect(address, port);
         _active[id] = true;
@@ -118,7 +123,9 @@ public static class UdpClientPlug
     {
         int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
+        {
             return;
+        }
 
         socket.Connect(addr, port);
         _active[id] = true;

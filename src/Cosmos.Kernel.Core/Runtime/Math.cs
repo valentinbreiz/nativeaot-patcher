@@ -9,16 +9,31 @@ internal static class Math
     {
         // If the value is already an integer, return it directly
         if (x == (long)x)
+        {
             return x;
+        }
 
         // Handle special floating-point values
-        if (double.IsNaN(x)) return double.NaN;
-        if (double.IsPositiveInfinity(x)) return double.PositiveInfinity;
-        if (double.IsNegativeInfinity(x)) return double.NegativeInfinity;
+        if (double.IsNaN(x))
+        {
+            return double.NaN;
+        }
+
+        if (double.IsPositiveInfinity(x))
+        {
+            return double.PositiveInfinity;
+        }
+
+        if (double.IsNegativeInfinity(x))
+        {
+            return double.NegativeInfinity;
+        }
 
         // For positive numbers, truncate and add 1
         if (x > 0)
+        {
             return (long)x + 1;
+        }
 
         // For negative numbers, truncation already acts like ceiling
         return (long)x;
@@ -35,11 +50,19 @@ internal static class Math
     {
         // Handle special cases
         if (double.IsNaN(x) || x < 0)
+        {
             return double.NaN;
+        }
+
         if (double.IsPositiveInfinity(x))
+        {
             return double.PositiveInfinity;
+        }
+
         if (x == 0)
+        {
             return 0;
+        }
 
         // Newton-Raphson method for square root
         double guess = x;
@@ -49,7 +72,10 @@ internal static class Math
         {
             double nextGuess = (guess + x / guess) / 2.0;
             if (System.Math.Abs(nextGuess - guess) < epsilon)
+            {
                 break;
+            }
+
             guess = nextGuess;
         }
 

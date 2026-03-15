@@ -63,7 +63,9 @@ public abstract class NetworkDevice : Device, INetworkDevice
     protected static string FormatMacAddress(byte[] mac)
     {
         if (mac == null || mac.Length != 6)
+        {
             return "00:00:00:00:00:00";
+        }
 
         return $"{mac[0]:X2}:{mac[1]:X2}:{mac[2]:X2}:{mac[3]:X2}:{mac[4]:X2}:{mac[5]:X2}";
     }

@@ -177,10 +177,15 @@ public class KernelConsole
             if (_cursorVisible != value)
             {
                 if (_cursorVisible)
+                {
                     EraseCursor();
+                }
+
                 _cursorVisible = value;
                 if (_cursorVisible)
+                {
                     DrawCursor();
+                }
             }
         }
     }
@@ -243,7 +248,9 @@ public class KernelConsole
         }
 
         if (_default != null)
+        {
             return false;
+        }
 
         var canvas = Canvas.GetFullScreen();
 
@@ -277,7 +284,10 @@ public class KernelConsole
     /// </summary>
     private void ClearCells()
     {
-        if (_cells == null) return;
+        if (_cells == null)
+        {
+            return;
+        }
 
         for (int i = 0; i < _cells.Length; i++)
         {
@@ -317,7 +327,9 @@ public class KernelConsole
     private void DrawCursor()
     {
         if (!IsAvailable || !_cursorVisible || _cursorDrawn)
+        {
             return;
+        }
 
         // Draw cursor as an underline bar at the bottom of the character cell
         int pixelX = _cursorX * _charWidth;
@@ -333,7 +345,9 @@ public class KernelConsole
     private void EraseCursor()
     {
         if (!IsAvailable || !_cursorDrawn)
+        {
             return;
+        }
 
         // Erase cursor by redrawing background
         int pixelX = _cursorX * _charWidth;
@@ -357,11 +371,15 @@ public class KernelConsole
     private void DrawCharAt(int col, int row)
     {
         if (!IsAvailable || _cells == null)
+        {
             return;
+        }
 
         int index = GetIndex(row, col);
         if (index < 0 || index >= _cells.Length)
+        {
             return;
+        }
 
         ref Cell cell = ref _cells[index];
         int pixelX = col * _charWidth;
@@ -386,7 +404,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -406,7 +426,9 @@ public class KernelConsole
     private void RedrawInternal()
     {
         if (_cells == null)
+        {
             return;
+        }
 
         EraseCursor();
 
@@ -442,7 +464,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -518,7 +542,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -544,7 +570,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -570,7 +598,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -596,7 +626,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable || _cells == null)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -626,7 +658,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -746,7 +780,9 @@ public class KernelConsole
     private void Scroll()
     {
         if (_cells == null)
+        {
             return;
+        }
 
         // Shift all rows up by one
         for (int row = 0; row < _rows - 1; row++)
@@ -779,7 +815,9 @@ public class KernelConsole
         using (InternalCpu.DisableInterruptsScope())
         {
             if (!IsAvailable)
+            {
                 return;
+            }
 
             _lock.Acquire();
             try
@@ -813,7 +851,9 @@ public class KernelConsole
     public char GetCharAt(int col, int row)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
+        {
             return '\0';
+        }
 
         int index = GetIndex(row, col);
         return _cells[index].Char;
@@ -825,7 +865,9 @@ public class KernelConsole
     public Cell GetCellAt(int col, int row)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
+        {
             return Cell.Empty(_foregroundColor, _backgroundColor);
+        }
 
         int index = GetIndex(row, col);
         return _cells[index];
@@ -837,7 +879,9 @@ public class KernelConsole
     public void SetCellAt(int col, int row, Cell cell)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
+        {
             return;
+        }
 
         int index = GetIndex(row, col);
         _cells[index] = cell;

@@ -78,7 +78,10 @@ public static class ApicManager
         }
 
         MadtInfo* madtPtr = Acpi.Acpi.GetMadtInfoPtr();
-        if (madtPtr == null) return;
+        if (madtPtr == null)
+        {
+            return;
+        }
 
         MadtInfo madt = *madtPtr;
 

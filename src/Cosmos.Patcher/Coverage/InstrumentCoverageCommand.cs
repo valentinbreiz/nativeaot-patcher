@@ -39,7 +39,9 @@ public sealed class InstrumentCoverageCommand : Command<InstrumentCoverageComman
             int count = instrumenter.Instrument();
 
             if (count == 0)
+            {
                 Console.WriteLine("[Coverage] No methods instrumented.");
+            }
 
             return 0;
         }

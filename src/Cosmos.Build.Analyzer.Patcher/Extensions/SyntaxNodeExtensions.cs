@@ -10,10 +10,14 @@ public static class SyntaxNodeExtensions
         foreach (MemberDeclarationSyntax memberDeclarationSyntax in declaration.Members)
         {
             if (memberDeclarationSyntax is not T memberDeclaration)
+            {
                 continue;
+            }
 
             if (memberDeclaration.GetName() != name)
+            {
                 continue;
+            }
 
             member = memberDeclaration;
             return true;

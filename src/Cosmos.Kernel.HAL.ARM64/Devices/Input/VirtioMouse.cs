@@ -252,11 +252,15 @@ public unsafe class VirtioMouse : MouseDevice
     private void AddEventBuffer(int bufferIndex)
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         int descIdx = _eventQueue.AllocDescriptor();
         if (descIdx < 0)
+        {
             return;
+        }
 
         ulong bufferAddr = VirtioMMIO.VirtToPhys((ulong)(&_eventBuffers[bufferIndex]));
         _eventQueue.SetupDescriptor(descIdx, bufferAddr, (uint)sizeof(VirtioInputEvent),
@@ -287,15 +291,21 @@ public unsafe class VirtioMouse : MouseDevice
     private static void HandleIRQ(ref IRQContext ctx)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
+        {
             VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        }
 
         if (!Instance._initialized)
+        {
             return;
+        }
 
         Instance.ProcessEvents();
     }
@@ -303,12 +313,16 @@ public unsafe class VirtioMouse : MouseDevice
     private void ProcessEvents()
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         while (_eventQueue.HasUsedBuffers())
         {
             if (!_eventQueue.GetUsedBuffer(out uint id, out uint len))
+            {
                 break;
+            }
 
             VirtioInputEvent* evt = &_eventBuffers[id];
             if (evt->Type == EV_REL)
@@ -380,7 +394,9 @@ public unsafe class VirtioMouse : MouseDevice
     public override void Poll()
     {
         if (!_initialized || _eventQueue == null)
+        {
             return;
+        }
 
         uint intStat = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
 

@@ -66,20 +66,35 @@ public class InfoCommand : Command<InfoSettings>
     private static string GetPlatformName()
     {
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
+        {
             return "windows";
+        }
+
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.OSX))
+        {
             return "macos";
+        }
+
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Linux))
+        {
             return "linux";
+        }
+
         return "unknown";
     }
 
     private static string GetDisplayBackend()
     {
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
+        {
             return "sdl";
+        }
+
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.OSX))
+        {
             return "cocoa";
+        }
+
         return "gtk";
     }
 
@@ -91,7 +106,9 @@ public class InfoCommand : Command<InfoSettings>
             // Check if gdb-multiarch exists
             string gdbMultiarchPath = "/usr/bin/gdb-multiarch";
             if (File.Exists(gdbMultiarchPath))
+            {
                 return "gdb-multiarch";
+            }
         }
 
         // macOS and Windows typically just use 'gdb'
@@ -100,7 +117,9 @@ public class InfoCommand : Command<InfoSettings>
         {
             string mingwPath = @"C:\msys64\mingw64\bin\gdb.exe";
             if (File.Exists(mingwPath))
+            {
                 return mingwPath;
+            }
         }
 
         return "gdb";
@@ -114,12 +133,18 @@ public class InfoCommand : Command<InfoSettings>
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
         {
             string exePath = Path.Combine(toolsDir, "cosmos.exe");
-            if (File.Exists(exePath)) return exePath;
+            if (File.Exists(exePath))
+            {
+                return exePath;
+            }
         }
         else
         {
             string path = Path.Combine(toolsDir, "cosmos");
-            if (File.Exists(path)) return path;
+            if (File.Exists(path))
+            {
+                return path;
+            }
         }
 
         return null;

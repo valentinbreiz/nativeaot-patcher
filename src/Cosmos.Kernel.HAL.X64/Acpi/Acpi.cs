@@ -163,9 +163,14 @@ public static unsafe partial class Acpi
             Serial.Write("[ACPI]   IRQ ", iso.Source, " -> GSI ", iso.Gsi);
 
             if (iso.IsActiveLow)
+            {
                 Serial.Write(" (active low)");
+            }
+
             if (iso.IsLevelTriggered)
+            {
                 Serial.Write(" (level triggered)");
+            }
 
             Serial.Write("\n");
         }

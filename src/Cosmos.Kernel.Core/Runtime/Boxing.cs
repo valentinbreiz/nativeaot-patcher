@@ -33,7 +33,9 @@ internal static class Boxing
         {
             // The boolean which indicates whether the value is null comes first in the Nullable struct.
             if (data[0] == 0)
+            {
                 return null;
+            }
 
             // Switch type we're going to box to the Nullable<T> target type and advance the data pointer
             // to the value embedded within the nullable.

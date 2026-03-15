@@ -67,7 +67,9 @@ public static class MouseManager
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
+        {
             throw new InvalidOperationException("Mouse support is disabled. Set CosmosEnableMouse=true in your csproj to enable it.");
+        }
     }
 
     /// <summary>
@@ -79,7 +81,9 @@ public static class MouseManager
         ThrowIfDisabled();
 
         if (_initialized)
+        {
             return;
+        }
 
         _mice = new List<IMouseDevice>();
         X = ScreenWidth / 2;
@@ -94,7 +98,9 @@ public static class MouseManager
     public static void RegisterMouse(IMouseDevice mouse)
     {
         if (_mice == null || mouse == null)
+        {
             return;
+        }
 
         // Set up event handler for mouse devices that use MouseDevice base class
         if (mouse is MouseDevice mouseDevice)
@@ -127,10 +133,25 @@ public static class MouseManager
         ScrollDelta = deltaZ;
 
         // Clamp to screen bounds
-        if (X < 0) X = 0;
-        if (X >= ScreenWidth) X = ScreenWidth - 1;
-        if (Y < 0) Y = 0;
-        if (Y >= ScreenHeight) Y = ScreenHeight - 1;
+        if (X < 0)
+        {
+            X = 0;
+        }
+
+        if (X >= ScreenWidth)
+        {
+            X = ScreenWidth - 1;
+        }
+
+        if (Y < 0)
+        {
+            Y = 0;
+        }
+
+        if (Y >= ScreenHeight)
+        {
+            Y = ScreenHeight - 1;
+        }
 
         // Update button states
         LeftButton = leftButton;
@@ -144,7 +165,9 @@ public static class MouseManager
     public static void Poll()
     {
         if (_mice == null)
+        {
             return;
+        }
 
         foreach (var mouse in _mice)
         {
@@ -163,10 +186,25 @@ public static class MouseManager
         Y = y;
 
         // Clamp to screen bounds
-        if (X < 0) X = 0;
-        if (X >= ScreenWidth) X = ScreenWidth - 1;
-        if (Y < 0) Y = 0;
-        if (Y >= ScreenHeight) Y = ScreenHeight - 1;
+        if (X < 0)
+        {
+            X = 0;
+        }
+
+        if (X >= ScreenWidth)
+        {
+            X = ScreenWidth - 1;
+        }
+
+        if (Y < 0)
+        {
+            Y = 0;
+        }
+
+        if (Y >= ScreenHeight)
+        {
+            Y = ScreenHeight - 1;
+        }
     }
 
     /// <summary>
@@ -180,7 +218,14 @@ public static class MouseManager
         ScreenHeight = height;
 
         // Ensure cursor is still within bounds
-        if (X >= ScreenWidth) X = ScreenWidth - 1;
-        if (Y >= ScreenHeight) Y = ScreenHeight - 1;
+        if (X >= ScreenWidth)
+        {
+            X = ScreenWidth - 1;
+        }
+
+        if (Y >= ScreenHeight)
+        {
+            Y = ScreenHeight - 1;
+        }
     }
 }

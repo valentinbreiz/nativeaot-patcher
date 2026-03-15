@@ -301,7 +301,9 @@ public class PIT : TimerDevice
         for (int i = 0; i < activeHandlers.Count; i++)
         {
             if (activeHandlers[i].ID == timerId)
+            {
                 return true;
+            }
         }
         return false;
     }
@@ -309,13 +311,17 @@ public class PIT : TimerDevice
     private static unsafe void HandleIRQ(ref IRQContext aContext)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         ulong T0Delay = Instance.T0DelayNS;
 
         // In one-shot mode, must reload after each interrupt
         if (!Instance.T0RateGen)
+        {
             Instance.T0Countdown = Instance.t0Countdown;
+        }
 
         for (int i = Instance.activeHandlers.Count - 1; i >= 0; i--)
         {

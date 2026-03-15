@@ -109,19 +109,39 @@ public class RTC : Device
                 Serial.Write("[RTC] Boot time (Limine): ");
                 Serial.WriteNumber((ulong)year);
                 Serial.Write("-");
-                if (month < 10) Serial.Write("0");
+                if (month < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)month);
                 Serial.Write("-");
-                if (day < 10) Serial.Write("0");
+                if (day < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)day);
                 Serial.Write(" ");
-                if (hour < 10) Serial.Write("0");
+                if (hour < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)hour);
                 Serial.Write(":");
-                if (minute < 10) Serial.Write("0");
+                if (minute < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)minute);
                 Serial.Write(":");
-                if (second < 10) Serial.Write("0");
+                if (second < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)second);
                 Serial.Write(" UTC\n");
 
@@ -154,19 +174,39 @@ public class RTC : Device
                 Serial.Write("[RTC] Boot time (PL031): ");
                 Serial.WriteNumber((ulong)year);
                 Serial.Write("-");
-                if (month < 10) Serial.Write("0");
+                if (month < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)month);
                 Serial.Write("-");
-                if (day < 10) Serial.Write("0");
+                if (day < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)day);
                 Serial.Write(" ");
-                if (hour < 10) Serial.Write("0");
+                if (hour < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)hour);
                 Serial.Write(":");
-                if (minute < 10) Serial.Write("0");
+                if (minute < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)minute);
                 Serial.Write(":");
-                if (second < 10) Serial.Write("0");
+                if (second < 10)
+                {
+                    Serial.Write("0");
+                }
+
                 Serial.WriteNumber((ulong)second);
                 Serial.Write(" UTC\n");
 
@@ -235,7 +275,9 @@ public class RTC : Device
         // Ensure RTC is enabled (RTCCR bit 0)
         uint ctrl = Native.MMIO.Read32(baseVirt + RTCCR);
         if ((ctrl & 1) == 0)
+        {
             Native.MMIO.Write32(baseVirt + RTCCR, ctrl | 1);
+        }
 
         // Read Unix seconds from RTCDR
         unixSeconds = Native.MMIO.Read32(baseVirt + RTCDR);
@@ -273,19 +315,30 @@ public class RTC : Device
         while (true)
         {
             uint daysInYear = IsLeapYear(year) ? 366u : 365u;
-            if (days < daysInYear) break;
+            if (days < daysInYear)
+            {
+                break;
+            }
+
             days -= daysInYear;
             year++;
         }
 
         // Compute month
         int[] daysPerMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        if (IsLeapYear(year)) daysPerMonth[1] = 29;
+        if (IsLeapYear(year))
+        {
+            daysPerMonth[1] = 29;
+        }
 
         month = 1;
         foreach (int d in daysPerMonth)
         {
-            if (days < (uint)d) break;
+            if (days < (uint)d)
+            {
+                break;
+            }
+
             days -= (uint)d;
             month++;
         }

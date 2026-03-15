@@ -26,19 +26,15 @@ public sealed class PlugScanner(IBuildLogger? logger = null)
                 {
                     CustomAttribute? plugAttr = type.CustomAttributes
                         .FirstOrDefault(a => a.AttributeType.FullName == PlugAttributeFullName);
-                    if (plugAttr == null)
-                        return false;
-
-                    if (targetType == null)
-                        return true;
-
-                    string? targetTypeName = plugAttr.GetArgument<string>(named: "TargetName");
+                    if (plugAttr == null) { return false; } if (targetType == null) { return true; } string? targetTypeName = plugAttr.GetArgument<string>(named: "TargetName");
                     return targetType.FullName == targetTypeName;
                 })
         ];
 
         foreach (TypeDefinition type in output)
+        {
             _log.Debug($"Plug found: {type.Name}");
+        }
 
         return output;
     }
@@ -53,7 +49,9 @@ public sealed class PlugScanner(IBuildLogger? logger = null)
         foreach (string plugPath in plugAssemblyPaths)
         {
             if (!File.Exists(plugPath))
+            {
                 continue;
+            }
 
             try
             {
@@ -63,11 +61,15 @@ public sealed class PlugScanner(IBuildLogger? logger = null)
                     CustomAttribute? attr = type.CustomAttributes
                         .FirstOrDefault(a => a.AttributeType.FullName == PlugAttributeFullName);
                     if (attr == null)
+                    {
                         continue;
+                    }
 
                     string? target = attr.GetArgument<string>(named: "TargetName");
                     if (!string.IsNullOrEmpty(target))
+                    {
                         targetTypes.Add(target);
+                    }
                 }
             }
             catch (Exception ex)
@@ -81,11 +83,15 @@ public sealed class PlugScanner(IBuildLogger? logger = null)
         foreach (string candidatePath in candidateAssemblyPaths)
         {
             if (!File.Exists(candidatePath))
+            {
                 continue;
+            }
 
             using AssemblyDefinition? asm = TryReadAssembly(candidatePath);
             if (asm == null)
+            {
                 continue; // skip invalid/native binaries
+            }
 
             foreach (string t in targetTypes)
             {
@@ -94,7 +100,10 @@ public sealed class PlugScanner(IBuildLogger? logger = null)
                 if (type != null)
                 {
                     if (added.Add(candidatePath))
+                    {
                         yield return candidatePath;
+                    }
+
                     break;
                 }
             }
