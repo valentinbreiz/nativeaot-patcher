@@ -26,25 +26,26 @@ This document establishes the coding style and architecture patterns for Cosmos 
 
 ### Layer Dependency Rules
 
-The project is split into strict layers. Dependencies flow **downward only**:
+The project is split into strict layers. Dependencies flow **downward only**. These rules are **enforced at compile time** by the `LayerAnalyzer` Roslyn analyzer in `Cosmos.Build.Analyzer.Patcher`.
 
 ```
 User Kernel (DevKernel, test kernels)
     └── Cosmos.Kernel.System        ← high-level OS APIs (Console, Graphics, Network)
          └── Cosmos.Kernel.HAL      ← hardware abstraction (shared logic)
-              ├── Cosmos.Kernel.HAL.X64     ← x64-specific HAL implementations
-              ├── Cosmos.Kernel.HAL.ARM64   ← ARM64-specific HAL implementations
+              ├── Cosmos.Kernel.HAL.X64        ← x64-specific HAL implementations
+              ├── Cosmos.Kernel.HAL.ARM64      ← ARM64-specific HAL implementations
               └── Cosmos.Kernel.HAL.Interfaces ← pure interfaces, no implementations
                    └── Cosmos.Kernel.Core   ← low-level runtime (memory, scheduler, serial)
-                        ├── Cosmos.Kernel.Native.X64    ← x64 assembly (.asm)
-                        └── Cosmos.Kernel.Native.ARM64  ← ARM64 assembly (.S)
-
-Cosmos.Kernel.Plugs → references Core, HAL, System (replaces BCL methods at IL level)
+                        ├── Cosmos.Kernel.Native.X64       ← x64 assembly (.asm)
+                        ├── Cosmos.Kernel.Native.ARM64     ← ARM64 assembly (.S)
+                        └── Cosmos.Kernel.Native.MultiArch ← cross-platform native C code (ACPI, libc stubs)
 ```
+
+For the full dependency graph, project descriptions, and rules, see [Kernel Project Layout](kernel-project-layout.md).
 
 ### When to Create a New Project
 
-- New hardware device category → new interface in `Cosmos.Kernel.HAL.Interfaces`, implementations in `Cosmos.Kernel.HAL.X64`/`Cosmos.Kernel.HAL.ARM64`. Cross-platform HAL devices goes to `Cosmos.Kernel.HAL`.
+- New hardware device category → new interface in `Cosmos.Kernel.HAL.Interfaces`, implementations in `Cosmos.Kernel.HAL.X64`/`Cosmos.Kernel.HAL.ARM64`. Cross-platform HAL devices go to `Cosmos.Kernel.HAL`.
 - New OS-level feature, user API exposed → in `Cosmos.Kernel.System`
 - New low-level runtime concern → in `Cosmos.Kernel.Core`
 
@@ -351,10 +352,18 @@ public class X64PlatformInitializer : IPlatformInitializer
     public IInterruptController CreateInterruptController() => new X64InterruptController();
     public ITimerDevice CreateTimer() => new X64Timer();
     public IKeyboardDevice[] GetKeyboardDevices() => [new PS2Keyboard()];
+    public IMouseDevice[] GetMouseDevices() => [new PS2Mouse()];
+    public INetworkDevice? GetNetworkDevice() => /* PCI probe */ null;
+    public uint GetCpuCount() => /* ACPI/MADT */ 1;
 
     public void InitializeHardware()
     {
         // PCI, ACPI, APIC initialization
+    }
+
+    public void StartSchedulerTimer(uint quantumMs)
+    {
+        // Configure PIT/APIC timer for preemptive scheduling
     }
 }
 ```
@@ -427,7 +436,7 @@ private static partial ulong NativeReadTSC();
 
 ### Conditional Compilation
 
-Use `#if ARCH_X64` / `#if ARCH_ARM64` for code that differs by architecture. For now this is only tolerated in `Cosmos.Kernel.Core` but this aims to disapear.
+Use `#if ARCH_X64` / `#if ARCH_ARM64` for code that differs by architecture. For now this is only tolerated in `Cosmos.Kernel.Core` but this aims to disappear.
 
 ```csharp
 public static void ComWrite(byte value)
@@ -489,12 +498,12 @@ public unsafe class Thread : SchedulerExtensible
 
 ```csharp
 // Kernel heap allocation (manual, non-GC)
-void* ptr = Memory.MemoryOp.Alloc(size);
-Memory.MemoryOp.Free(ptr);
+void* ptr = MemoryOp.Alloc(size);
+MemoryOp.Free(ptr);
 
 // GC-managed allocation (via RuntimeExport stubs)
 // Happens automatically through normal C# object creation
-var list = new List<int>();  // uses RhAllocateNewArray under the hood
+List<int> list = new();  // uses RhAllocateNewArray under the hood
 ```
 
 ### Pointer Safety
@@ -634,13 +643,20 @@ Span<byte> temp = stackalloc byte[16]; // Good: stack allocation
 
 ### Feature Switches
 
-Use `[FeatureSwitchDefinition]` for compile-time feature toggling (trimmed by NativeAOT linker):
+Use `[FeatureSwitchDefinition]` for compile-time feature toggling (trimmed by NativeAOT linker). All feature flags live in `Cosmos.Kernel.Core.CosmosFeatures`:
 
 ```csharp
+// In CosmosFeatures.cs — one property per feature
 [FeatureSwitchDefinition("Cosmos.Kernel.HAL.Interrupts.Enabled")]
 public static bool InterruptsEnabled =>
     AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled)
         ? enabled : true;
+
+// Usage — the ILC linker trims the dead branch entirely
+if (CosmosFeatures.KeyboardEnabled)
+{
+    // This code is removed from the binary when keyboard is disabled
+}
 ```
 
 ---
@@ -656,6 +672,13 @@ NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.*
 - `System.Reflection.Emit` (no runtime code generation)
 - `dynamic` keyword
 - `Assembly.Load` at runtime
+- `Type.GetType("...")` by string at runtime (types must be statically reachable)
+- `MakeGenericType` / `MakeGenericMethod` at runtime (generic instantiations must be known at compile time)
+
+### Use with Caution
+
+- **Generic virtual methods** — NativeAOT must generate all possible instantiations at compile time. Avoid deeply nested or open-ended generic virtual dispatch.
+- **LINQ** — many LINQ operators allocate iterators and closures. Avoid in hot paths (GC, scheduler, interrupt handlers).
 
 ---
 

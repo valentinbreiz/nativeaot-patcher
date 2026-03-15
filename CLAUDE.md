@@ -51,7 +51,7 @@ Task IDs use format `VAL-XX`. Update tasks with progress/findings as you work.
 
 ## Code Style
 
-- Use C# 12 features, target .NET 9
+- Use C# 14 features, target .NET 10
 - Kernel code must be AOT-compatible (no reflection, dynamic code)
 - Use `[RuntimeExport("name")]` for functions callable from native code
 - Use `[LibraryImport("*")]` for native imports
