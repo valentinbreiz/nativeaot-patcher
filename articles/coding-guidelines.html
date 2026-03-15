@@ -752,7 +752,7 @@ if (ptr == null)                  // Good
 }
 </code></pre>
 <blockquote>
-<p>Braces are enforced by <code>.editorconfig</code> (<code>csharp_prefer_braces = true:warning</code>) and by IDE/analyzers; they are not currently treated as CI format errors.</p>
+<p>Braces are enforced by <code>.editorconfig</code> (<code>csharp_prefer_braces = true:error</code>) and by CI (<code>dotnet format style --severity error</code>).</p>
 </blockquote>
 <h3 id="feature-switches">Feature Switches</h3>
 <p>Use <code>[FeatureSwitchDefinition]</code> for compile-time feature toggling (trimmed by NativeAOT linker). All feature flags live in <code>Cosmos.Kernel.Core.CosmosFeatures</code>:</p>
