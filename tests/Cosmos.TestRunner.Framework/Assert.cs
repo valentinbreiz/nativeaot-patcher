@@ -40,7 +40,9 @@ namespace Cosmos.TestRunner.Framework
         public static void Equal<T>(T expected, T actual, string? message = null) where T : System.IEquatable<T>
         {
             if (expected == null && actual == null)
+            {
                 return;
+            }
 
             if (expected == null || actual == null || !expected.Equals(actual))
             {
@@ -108,7 +110,11 @@ namespace Cosmos.TestRunner.Framework
         /// </summary>
         public static void Equal(byte[] expected, byte[] actual, string? message = null)
         {
-            if (expected == null && actual == null) return;
+            if (expected == null && actual == null)
+            {
+                return;
+            }
+
             if (expected == null || actual == null)
             {
                 SetFailed(message ?? "Byte arrays are not equal (one is null)");
@@ -134,7 +140,11 @@ namespace Cosmos.TestRunner.Framework
         /// </summary>
         public static void Equal(int[] expected, int[] actual, string? message = null)
         {
-            if (expected == null && actual == null) return;
+            if (expected == null && actual == null)
+            {
+                return;
+            }
+
             if (expected == null || actual == null)
             {
                 SetFailed(message ?? "Int arrays are not equal (one is null)");

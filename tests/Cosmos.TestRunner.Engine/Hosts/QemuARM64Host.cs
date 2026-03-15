@@ -144,9 +144,14 @@ public class QemuARM64Host : IQemuHost
 
             // Stop test servers if running
             if (udpServer != null)
+            {
                 await udpServer.StopAsync();
+            }
+
             if (tcpServer != null)
+            {
                 await tcpServer.StopAsync();
+            }
 
             // Read UART log
             string uartLog = string.Empty;
@@ -176,9 +181,14 @@ public class QemuARM64Host : IQemuHost
 
             // Stop test servers if running
             if (udpServer != null)
+            {
                 await udpServer.StopAsync();
+            }
+
             if (tcpServer != null)
+            {
                 await tcpServer.StopAsync();
+            }
 
             // Read whatever UART output we got
             string uartLog = string.Empty;
@@ -199,9 +209,14 @@ public class QemuARM64Host : IQemuHost
         {
             // Stop test servers on error if running
             if (udpServer != null)
+            {
                 await udpServer.StopAsync();
+            }
+
             if (tcpServer != null)
+            {
                 await tcpServer.StopAsync();
+            }
 
             return new QemuRunResult
             {
