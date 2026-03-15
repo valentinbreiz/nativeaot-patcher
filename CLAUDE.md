@@ -53,7 +53,8 @@ Task IDs use format `VAL-XX`. Update tasks with progress/findings as you work.
 
 - Use C# 14 features, target .NET 10
 - Kernel code must be AOT-compatible (no reflection, dynamic code)
-- Use `[RuntimeExport("name")]` for functions callable from native code
+- Use `[UnmanagedCallersOnly(EntryPoint = "...")]` for native-to-managed entry points/bridges
+- Use `[RuntimeExport("name")]` only for NativeAOT/runtime-required exports in Core (e.g., `Rh*`, `memmove`, `sqrt`)
 - Use `[LibraryImport("*")]` for native imports
 - Architecture-specific code uses `#if ARCH_X64` / `#if ARCH_ARM64`
 

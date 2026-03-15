@@ -53,7 +53,7 @@ For the full dependency graph, project descriptions, and rules, see [Kernel Proj
 
 ## 2. Naming Conventions
 
-All naming rules are enforced by `.editorconfig`. Summary:
+Some core naming rules are enforced by `.editorconfig`; the table below documents the full naming guidelines:
 
 | Element | Convention | Example |
 |---------|-----------|---------|
@@ -72,7 +72,7 @@ All naming rules are enforced by `.editorconfig`. Summary:
 
 ### Avoid
 
-- Hungarian notation (`m_`, `p_`, `g_`),use `_` prefix for private fields only.
+- Hungarian notation (`m_`, `p_`, `g_`), use `_` prefix for private fields only.
 - Legacy `mStopped` style, use `_stopped`.
 - Abbreviations unless universally understood (`GC`, `CPU`, `HAL`, `IO`, `IP`, `MAC`).
 
@@ -182,8 +182,6 @@ public unsafe class Canvas
 
 **Key principles:**
 - **One separator style everywhere:** `// --- Section Name ---`.
-- Data-oriented classes: group fields/properties by domain concern (`// --- Identity ---`, `// --- State ---`).
-- Behavior-oriented classes: group by member type, then sub-group methods by category.
 - Constructors always come after fields/properties, before methods.
 - Static factory methods come right after constructors.
 
@@ -230,7 +228,7 @@ public static class SchedulerManager
 }
 ```
 
-Only add a `Current` property when the manager wraps a pluggable implementation (e.g., `IScheduler` for multiple scheduling algorithms). Most managers don't need one.
+Only add a `Current` property when the manager wraps a pluggable implementation (eg. `IScheduler` for multiple scheduling algorithms). Most managers don't need one.
 
 ### Structs for Low-Level Data
 
@@ -425,7 +423,7 @@ public static void CosmosSerialWrite(byte* str)
 }
 ```
 
-Use `[RuntimeExport]` only for runtime-internal stubs (`Rh*` functions). Use `[UnmanagedCallersOnly]` for all other native-to-managed callbacks (interrupt handlers, C library bridges, etc.).
+Use `[RuntimeExport]` for runtime/ABI-required exports (for example `Rh*` stubs and libc/math or memory symbols such as `ceil`, `sqrt`, `memmove`, `memset`). Prefer `[UnmanagedCallersOnly]` for other native-to-managed callbacks (interrupt handlers, C library bridges, etc.).
 
 ### Native callable from C#
 
@@ -679,7 +677,7 @@ if (ptr == null)                  // Good
 }
 ```
 
-> Braces are enforced by `.editorconfig` (`csharp_prefer_braces = true:warning`) and will fail CI format checks.
+> Braces are enforced by `.editorconfig` (`csharp_prefer_braces = true:warning`) and by IDE/analyzers; they are not currently treated as CI format errors.
 
 ### Feature Switches
 
