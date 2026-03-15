@@ -305,11 +305,11 @@ public class Kernel : Cosmos.Kernel.System.Kernel
 ```
 
 **Rules:**
-- Override `OnBoot()` only to customize boot (default calls `Global.Init()`)
-- Override `BeforeRun()` for one-time setup after the system is ready
-- `Run()` is the main loop body — keep it focused
-- Call `Stop()` to exit the main loop cleanly
-- **Never** return from the kernel — the base class halts the CPU after `AfterRun()`
+- Override `OnBoot()` only to customize boot (default calls `Global.Init()`).
+- Override `BeforeRun()` for one-time setup after the system is ready.
+- `Run()` is the main loop body, keep it focused.
+- Call `Stop()` to exit the main loop cleanly.
+- Return from the kernel should be avoided, the base class halts the CPU after `AfterRun()`.
 
 ---
 
