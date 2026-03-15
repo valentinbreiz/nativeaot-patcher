@@ -12,7 +12,7 @@ There are two ways to use gen3 depending on your needs:
 
 ### As a Developer
 
-If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the [Dev Container Setup](articles/install-dev.md), [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md), and [Debugging with VSCode and QEMU](articles/debugging.md) articles to get started.
+If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the [Dev Container Setup](articles/install-dev.md), [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md), [Debugging with VSCode and QEMU](articles/debugging.md), and [Coding Guidelines](articles/coding-guidelines.md) articles to get started.
 
 ### As a User
 
@@ -24,6 +24,7 @@ If you want to build bare-metal C# kernels without setting up the full toolchain
  - [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md)
  - [Debugging with VSCode and QEMU](articles/debugging.md)
  - [Kernel Project Layout](articles/kernel-project-layout.md)
+ - [Coding Guidelines](articles/coding-guidelines.md)
  - [Plugs](articles/plugs.md)
  - [Testing](articles/testing.md)
  - [Garbage Collector](articles/garbage-collector.md)
