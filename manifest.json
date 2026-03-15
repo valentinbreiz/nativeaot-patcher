@@ -4537,6 +4537,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/coding-guidelines.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/coding-guidelines.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/debugging.md",
       "output": {
         ".html": {

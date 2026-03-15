@@ -87,7 +87,8 @@
         <article data-uid="">
 <h1 id="kernel-project-layout">Kernel Project Layout</h1>
 
-<p>The Cosmos kernel is composed of layered projects to enforce a clean dependency graph.</p>
+<p>The Cosmos kernel is composed of layered projects to enforce a clean dependency graph. Dependencies flow <strong>downward only</strong> — a project must never reference a project above it in the hierarchy.</p>
+<h2 id="dependency-graph">Dependency Graph</h2>
 <pre><code class="lang-mermaid">flowchart LR;
 	UsersKernel--&gt;Cosmos.Kernel.System;
     Cosmos.Kernel.System--&gt;Cosmos.Kernel.HAL;
@@ -104,7 +105,116 @@
 	Cosmos.Kernel.HAL--&gt;Cosmos.Kernel.Core;
     Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Native.X64;
     Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Native.ARM64;
+    Cosmos.Kernel.Core--&gt;Cosmos.Kernel.Native.MultiArch;
 </code></pre>
+<h2 id="project-descriptions">Project Descriptions</h2>
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cosmos.Kernel.System</strong></td>
+<td>High-level OS APIs: Console, Graphics, Network, Timer, Mouse. The layer user kernels interact with.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.HAL</strong></td>
+<td>Hardware Abstraction Layer — shared logic, platform registration (<code>PlatformHAL</code>), device managers.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.HAL.Interfaces</strong></td>
+<td>Pure interfaces (<code>IPlatformInitializer</code>, <code>ICpuOps</code>, <code>IKeyboardDevice</code>, etc.). No implementations.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.HAL.X64</strong></td>
+<td>x86-64 HAL implementations (PCI, APIC, PS/2, ACPI, etc.).</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.HAL.ARM64</strong></td>
+<td>ARM64 HAL implementations (GIC, PL011, virtio, etc.).</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Core</strong></td>
+<td>Low-level runtime: memory management, GC, scheduler, serial I/O, panic handler.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Native.X64</strong></td>
+<td>x86-64 assembly files (<code>.asm</code>) — interrupt stubs, context switching, SIMD.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Native.ARM64</strong></td>
+<td>ARM64 assembly files (<code>.S</code>) — exception vectors, context switching.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Native.MultiArch</strong></td>
+<td>Cross-platform native C code (ACPI, libc stubs).</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Plugs</strong></td>
+<td>IL-level method replacements for BCL types (<code>Console</code>, <code>Thread</code>, <code>Environment</code>, etc.).</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel.Boot.Limine</strong></td>
+<td>Limine bootloader protocol integration.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Kernel</strong></td>
+<td>Base <code>Kernel</code> version info and shared kernel constants.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="build-system-projects">Build System Projects</h2>
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cosmos.Build.Patcher</strong></td>
+<td>IL patcher — applies plugs and patches at build time.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.Ilc</strong></td>
+<td>Custom ILC (IL Compiler) integration for NativeAOT.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.Asm</strong></td>
+<td>NASM assembly compilation.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.GCC</strong></td>
+<td>GCC cross-compilation and linking.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.Common</strong></td>
+<td>Shared build props, architecture picker.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.API</strong></td>
+<td>Plug attributes (<code>[Plug]</code>, <code>[PlugMember]</code>) and enums.</td>
+</tr>
+<tr>
+<td><strong>Cosmos.Build.Analyzer.Patcher</strong></td>
+<td>Roslyn analyzer for plug correctness.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="rules">Rules</h2>
+<ul>
+<li><strong>Never</strong> reference upward (Core must not reference HAL or System)</li>
+<li><strong>Never</strong> reference a platform-specific HAL project from Core</li>
+<li>Cross-cutting concerns (memory, scheduler, serial) go in <strong>Core</strong></li>
+<li>Platform-specific implementations go in <strong>HAL.X64</strong> / <strong>HAL.ARM64</strong></li>
+<li>User-facing APIs go in <strong>System</strong></li>
+<li>All hardware interfaces are defined in <strong>HAL.Interfaces</strong></li>
+</ul>
+<p>For coding style and implementation patterns, see <a href="coding-guidelines.html">Coding Guidelines</a>.</p>
 
 </article>
 

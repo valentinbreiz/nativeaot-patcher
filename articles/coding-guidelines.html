@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Coding Guidelines | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Coding Guidelines | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/coding-guidelines.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="coding-guidelines">Coding Guidelines</h1>
+
+<p>This document establishes the coding style and architecture patterns for Cosmos Gen3. These guidelines ensure a clean, modern, and consistent codebase across all contributors.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-project-architecture">1. Project Architecture</a></li>
+<li><a href="#2-naming-conventions">2. Naming Conventions</a></li>
+<li><a href="#3-file-organization">3. File Organization</a></li>
+<li><a href="#4-class--type-design">4. Class &amp; Type Design</a></li>
+<li><a href="#5-kernel-lifecycle">5. Kernel Lifecycle</a></li>
+<li><a href="#6-hal-architecture">6. HAL Architecture</a></li>
+<li><a href="#7-plug-system">7. Plug System</a></li>
+<li><a href="#8-native-interop">8. Native Interop</a></li>
+<li><a href="#9-architecture-specific-code">9. Architecture-Specific Code</a></li>
+<li><a href="#10-memory--safety">10. Memory &amp; Safety</a></li>
+<li><a href="#11-error-handling">11. Error Handling</a></li>
+<li><a href="#12-modern-c--net-10-idioms">12. Modern C# / .NET 10 Idioms</a></li>
+<li><a href="#13-aot-constraints">13. AOT Constraints</a></li>
+<li><a href="#14-documentation">14. Documentation</a></li>
+<li><a href="#15-testing">15. Testing</a></li>
+</ul>
+<hr>
+<h2 id="1-project-architecture">1. Project Architecture</h2>
+<h3 id="layer-dependency-rules">Layer Dependency Rules</h3>
+<p>The project is split into strict layers. Dependencies flow <strong>downward only</strong>. These rules are <strong>enforced at compile time</strong> by the <code>LayerAnalyzer</code> Roslyn analyzer in <code>Cosmos.Build.Analyzer.Patcher</code>.</p>
+<pre><code>User Kernel (DevKernel, test kernels)
+    └── Cosmos.Kernel.System        ← high-level OS APIs (Console, Graphics, Network)
+         └── Cosmos.Kernel.HAL      ← hardware abstraction (shared logic)
+              ├── Cosmos.Kernel.HAL.X64        ← x64-specific HAL implementations
+              ├── Cosmos.Kernel.HAL.ARM64      ← ARM64-specific HAL implementations
+              └── Cosmos.Kernel.HAL.Interfaces ← pure interfaces, no implementations
+                   └── Cosmos.Kernel.Core   ← low-level runtime (memory, scheduler, serial)
+                        ├── Cosmos.Kernel.Native.X64       ← x64 assembly (.asm)
+                        ├── Cosmos.Kernel.Native.ARM64     ← ARM64 assembly (.S)
+                        └── Cosmos.Kernel.Native.MultiArch ← cross-platform native C code (ACPI, libc stubs)
+</code></pre>
+<p>For the full dependency graph, project descriptions, and rules, see <a href="kernel-project-layout.html">Kernel Project Layout</a>.</p>
+<h3 id="when-to-create-a-new-project">When to Create a New Project</h3>
+<ul>
+<li>New hardware device category → new interface in <code>Cosmos.Kernel.HAL.Interfaces</code>, implementations in <code>Cosmos.Kernel.HAL.X64</code>/<code>Cosmos.Kernel.HAL.ARM64</code>. Cross-platform HAL devices go to <code>Cosmos.Kernel.HAL</code>.</li>
+<li>New OS-level feature, user API exposed → in <code>Cosmos.Kernel.System</code>.</li>
+<li>New low-level runtime concern → in <code>Cosmos.Kernel.Core</code>.</li>
+</ul>
+<hr>
+<h2 id="2-naming-conventions">2. Naming Conventions</h2>
+<p>Some core naming rules are enforced by <code>.editorconfig</code>; the table below documents the full naming guidelines:</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Namespace</td>
+<td><code>Cosmos.Kernel.{Layer}.{Category}</code></td>
+<td><code>Cosmos.Kernel.Core.Scheduler</code></td>
+</tr>
+<tr>
+<td>Public class/struct</td>
+<td>PascalCase</td>
+<td><code>GarbageCollector</code>, <code>Thread</code></td>
+</tr>
+<tr>
+<td>Interface</td>
+<td><code>I</code> + PascalCase</td>
+<td><code>IScheduler</code>, <code>IPlatformInitializer</code></td>
+</tr>
+<tr>
+<td>Public method/property</td>
+<td>PascalCase</td>
+<td><code>InitializeStack()</code>, <code>StackPointer</code></td>
+</tr>
+<tr>
+<td>Private/internal field</td>
+<td><code>_camelCase</code></td>
+<td><code>_currentScheduler</code>, <code>_kernel</code></td>
+</tr>
+<tr>
+<td>Private/internal static field</td>
+<td><code>s_camelCase</code></td>
+<td><code>s_cursorPattern</code>, <code>s_nextThreadId</code></td>
+</tr>
+<tr>
+<td>Constant</td>
+<td>PascalCase</td>
+<td><code>DefaultStackSize</code>, <code>MaxThreadCount</code></td>
+</tr>
+<tr>
+<td>Private constant</td>
+<td>PascalCase</td>
+<td><code>COM1_BASE</code> (hardware regs use UPPER_SNAKE for readability)</td>
+</tr>
+<tr>
+<td>Local variable</td>
+<td>camelCase</td>
+<td><code>stackTop</code>, <code>entryPoint</code></td>
+</tr>
+<tr>
+<td>Parameter</td>
+<td>camelCase</td>
+<td><code>cpuState</code>, <code>threadId</code></td>
+</tr>
+<tr>
+<td>Type parameter</td>
+<td><code>T</code> + PascalCase</td>
+<td><code>TValue</code>, <code>TKey</code></td>
+</tr>
+<tr>
+<td>Enum member</td>
+<td>PascalCase</td>
+<td><code>ThreadState.Running</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="avoid">Avoid</h3>
+<ul>
+<li>Hungarian notation (<code>m_</code>, <code>p_</code>, <code>g_</code>), use <code>_</code> prefix for private fields only.</li>
+<li>Legacy <code>mStopped</code> style, use <code>_stopped</code>.</li>
+<li>Abbreviations unless universally understood (<code>GC</code>, <code>CPU</code>, <code>HAL</code>, <code>IO</code>, <code>IP</code>, <code>MAC</code>).</li>
+</ul>
+<hr>
+<h2 id="3-file-organization">3. File Organization</h2>
+<h3 id="one-type-per-file">One Type Per File</h3>
+<p>Each public type gets its own file named after the type:</p>
+<pre><code>Cosmos.Kernel.Core/
+  Scheduler/
+    Thread.cs
+    ThreadState.cs
+    IScheduler.cs
+    SchedulerManager.cs
+    PerCpuState.cs
+</code></pre>
+<h3 id="partial-classes-for-large-types">Partial Classes for Large Types</h3>
+<p>Split large classes across multiple files using <code>partial</code>. Name the files <code>{ClassName}.{Aspect}.cs</code>:</p>
+<pre><code>Memory/
+  GarbageCollector.cs              ← core structure, fields, initialization
+  GarbageCollector.Alloc.cs        ← allocation methods
+  GarbageCollector.Mark.cs         ← mark phase
+  GarbageCollector.Sweep.cs        ← sweep phase
+  GarbageCollector.GCHandler.cs    ← GC handle table
+  GarbageCollector.Frozen.cs       ← frozen segment support
+</code></pre>
+<h3 id="architecture-specific-files">Architecture-Specific Files</h3>
+<p>For types that need per-architecture implementations within the same project, use a suffix:</p>
+<pre><code>Scheduler/
+  ThreadContext.X64.cs             ← x64-specific context layout
+  ThreadContext.ARM64.cs           ← ARM64-specific context layout
+</code></pre>
+<p>These are conditionally compiled via <code>.csproj</code>:</p>
+<pre><code class="lang-xml">&lt;ItemGroup Condition=&quot;'$(CosmosArch)' != 'arm64'&quot;&gt;
+    &lt;Compile Remove=&quot;Scheduler\ThreadContext.ARM64.cs&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<p>This is only allowed now in <code>Cosmos.Kernel.Core</code> but this may change in the future.</p>
+<h3 id="file-structure-order">File Structure Order</h3>
+<p>Use <code>// --- Section Name ---</code> comments to separate groups. The ordering differs between static and instance classes.</p>
+<h4 id="static-classes">Static Classes</h4>
+<pre><code class="lang-csharp">public static unsafe partial class StaticClassName
+{
+    // --- Nested types ---
+
+    // --- Constants ---
+
+    // --- Private fields ---
+
+    // --- Public properties ---
+
+    // --- Public methods ---
+
+    // --- Internal methods ---
+
+    // --- Private methods ---
+}
+</code></pre>
+<h4 id="instance-classes">Instance Classes</h4>
+<pre><code class="lang-csharp">public unsafe class Canvas
+{
+    // --- Nested types ---
+
+    // --- Constants ---
+
+    // --- Private fields ---
+
+    // --- Public properties ---
+
+    // --- Constructors ---
+
+    // --- Static methods ---
+
+    // --- Public methods ---
+
+    // --- Internal methods ---
+
+    // --- Protected methods ---
+
+    // --- Private methods ---
+}
+</code></pre>
+<p><strong>Key principles:</strong></p>
+<ul>
+<li><strong>One separator style everywhere:</strong> <code>// --- Section Name ---</code>.</li>
+<li>Constructors always come after fields/properties, before methods.</li>
+<li>Static factory methods come right after constructors.</li>
+</ul>
+<h3 id="using-directives">Using Directives</h3>
+<ul>
+<li>Place <code>using</code> directives <strong>outside</strong> the namespace.</li>
+<li>Sort <code>System</code> namespaces first.</li>
+<li>Use file-scoped namespaces (eg. <code>namespace Cosmos.Kernel.Core.Scheduler;</code>).</li>
+</ul>
+<hr>
+<h2 id="4-class--type-design">4. Class &amp; Type Design</h2>
+<h3 id="static-utility-classes">Static Utility Classes</h3>
+<p>Use <code>static class</code> for stateless kernel utilities that have no per-instance state.</p>
+<h3 id="managers">Managers</h3>
+<p>Use a <code>static class</code> with an <code>Initialize()</code> method and an <code>IsInitialized</code> property. Managers coordinate subsystem state without requiring an instance:</p>
+<pre><code class="lang-csharp">// Simple manager — no underlying instance to expose
+public static class TimerManager
+{
+    private static ITimerDevice? _timer;
+    private static bool _initialized;
+
+    public static bool IsInitialized =&gt; _initialized;
+
+    public static void Initialize() { ... }
+    public static void Wait(int ms) { ... }
+}
+
+// Manager wrapping a pluggable implementation — expose via Current
+public static class SchedulerManager
+{
+    private static IScheduler? _currentScheduler;
+
+    public static IScheduler Current =&gt; _currentScheduler
+        ?? throw new InvalidOperationException(&quot;Scheduler not initialized&quot;);
+
+    public static void Initialize(IScheduler scheduler) { ... }
+}
+</code></pre>
+<p>Only add a <code>Current</code> property when the manager wraps a pluggable implementation (eg. <code>IScheduler</code> for multiple scheduling algorithms). Most managers don't need one.</p>
+<h3 id="structs-for-low-level-data">Structs for Low-Level Data</h3>
+<p>Use <code>struct</code> with <code>[StructLayout(LayoutKind.Sequential)]</code> for data that maps to hardware or memory layouts:</p>
+<pre><code class="lang-csharp">[StructLayout(LayoutKind.Sequential)]
+internal struct FreeBlock
+{
+    public unsafe MethodTable* MethodTable;
+    public nuint Size;
+    public unsafe FreeBlock* Next;
+}
+</code></pre>
+<h3 id="enums">Enums</h3>
+<p>Use <code>enum</code> for state machines and flags. Apply <code>[Flags]</code> where appropriate:</p>
+<pre><code class="lang-csharp">public enum ThreadState
+{
+    Ready,
+    Running,
+    Blocked,
+    Sleeping,
+    Dead
+}
+
+[Flags]
+public enum ThreadFlags
+{
+    None = 0,
+    IsIdle = 1 &lt;&lt; 0,
+    IsKernel = 1 &lt;&lt; 1
+}
+</code></pre>
+<hr>
+<h2 id="5-kernel-lifecycle">5. Kernel Lifecycle</h2>
+<h3 id="user-kernel-pattern">User Kernel Pattern</h3>
+<p>User kernels inherit from <code>Cosmos.Kernel.System.Kernel</code> and override lifecycle methods:</p>
+<pre><code class="lang-csharp">using Cosmos.Kernel.System;
+
+namespace MyKernel;
+
+public class Kernel : Cosmos.Kernel.System.Kernel
+{
+    protected override void BeforeRun()
+    {
+        // One-time setup (after boot, before main loop)
+        Console.WriteLine(&quot;Booted!&quot;);
+    }
+
+    protected override void Run()
+    {
+        // Called in a loop until Stop() is called
+        string? input = Console.ReadLine();
+        ProcessCommand(input);
+    }
+
+    protected override void AfterRun()
+    {
+        // Cleanup (after main loop exits)
+    }
+}
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Override <code>OnBoot()</code> only to customize boot (default calls <code>Global.Init()</code>).</li>
+<li>Override <code>BeforeRun()</code> for one-time setup after the system is ready.</li>
+<li><code>Run()</code> is the main loop body, keep it focused.</li>
+<li>Call <code>Stop()</code> to exit the main loop cleanly.</li>
+<li>Return from the kernel should be avoided, the base class halts the CPU after <code>AfterRun()</code>.</li>
+</ul>
+<hr>
+<h2 id="6-hal-architecture">6. HAL Architecture</h2>
+<h3 id="interface-driven-hal">Interface-Driven HAL</h3>
+<p>All hardware interaction goes through interfaces. Implementations are registered at boot:</p>
+<pre><code class="lang-csharp">// Interface (Cosmos.Kernel.HAL.Interfaces)
+public interface ICpuOps
+{
+    void Halt();
+    void DisableInterrupts();
+    void EnableInterrupts();
+}
+
+// Implementation (Cosmos.Kernel.HAL.X64)
+public class X64CpuOps : ICpuOps
+{
+    public void Halt() =&gt; Native.Cpu.Halt();
+    // ...
+}
+</code></pre>
+<h3 id="platform-initializer-pattern">Platform Initializer Pattern</h3>
+<p>Each architecture provides a factory that creates all platform-specific components:</p>
+<pre><code class="lang-csharp">public class X64PlatformInitializer : IPlatformInitializer
+{
+    public string PlatformName =&gt; &quot;x86-64&quot;;
+    public PlatformArchitecture Architecture =&gt; PlatformArchitecture.X64;
+
+    public IPortIO CreatePortIO() =&gt; new X64PortIO();
+    public ICpuOps CreateCpuOps() =&gt; new X64CpuOps();
+    public IInterruptController CreateInterruptController() =&gt; new X64InterruptController();
+    public ITimerDevice CreateTimer() =&gt; new X64Timer();
+    public IKeyboardDevice[] GetKeyboardDevices() =&gt; [new PS2Keyboard()];
+    public IMouseDevice[] GetMouseDevices() =&gt; [new PS2Mouse()];
+    public INetworkDevice? GetNetworkDevice() =&gt; /* PCI probe */ null;
+    public uint GetCpuCount() =&gt; /* ACPI/MADT */ 1;
+
+    public void InitializeHardware()
+    {
+        // PCI, ACPI, APIC initialization
+    }
+
+    public void StartSchedulerTimer(uint quantumMs)
+    {
+        // Configure PIT/APIC timer for preemptive scheduling
+    }
+}
+</code></pre>
+<h3 id="adding-a-new-device">Adding a New Device</h3>
+<ol>
+<li>Define the interface in <code>Cosmos.Kernel.HAL.Interfaces/Devices/</code>.</li>
+<li>Implement in <code>Cosmos.Kernel.HAL.X64/</code> and <code>Cosmos.Kernel.HAL.ARM64/</code>.</li>
+<li>Add factory method to <code>IPlatformInitializer</code>.</li>
+<li>Register during <code>InitializeHardware()</code> or via the platform initializer.</li>
+</ol>
+<h3 id="hal-registration">HAL Registration</h3>
+<pre><code class="lang-csharp">// At boot (in Global.Init or OnBoot):
+PlatformHAL.Initialize(new X64PlatformInitializer());
+</code></pre>
+<hr>
+<h2 id="7-plug-system">7. Plug System</h2>
+<p>Plugs replace BCL methods at the IL level. The patcher rewires calls at build time. For full documentation on plug attributes (<code>[Plug]</code>, <code>[PlugMember]</code>, <code>[Expose]</code>, <code>[FieldAccess]</code>) and the plug template, see <a href="plugs.html">Plugs</a>.</p>
+<h3 id="when-to-use-plugs-vs-other-approaches">When to Use Plugs vs. Other Approaches</h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Replace a BCL method</td>
+<td>Plug</td>
+</tr>
+<tr>
+<td>Add kernel-level API</td>
+<td>New class in <code>Cosmos.Kernel.System</code></td>
+</tr>
+<tr>
+<td>Provide runtime stub</td>
+<td><code>[RuntimeExport]</code> in Core</td>
+</tr>
+<tr>
+<td>Call native code</td>
+<td><code>[LibraryImport]</code> in Core</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-native-interop">8. Native Interop</h2>
+<h3 id="c-callable-from-native">C# callable from native</h3>
+<p>There are two patterns depending on the caller:</p>
+<p><strong><code>[RuntimeExport]</code></strong> — for NativeAOT runtime stubs (called by the runtime itself). These match the <code>[RuntimeImport]</code> declarations in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/System.Private.CoreLib/src/System/Runtime/RuntimeImports.cs"><code>System.Private.CoreLib/RuntimeImports.cs</code></a>:</p>
+<pre><code class="lang-csharp">[RuntimeExport(&quot;RhNewArray&quot;)]
+internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
+{
+    return GarbageCollector.AllocArray(pEEType, length);
+}
+</code></pre>
+<p><strong><code>[UnmanagedCallersOnly]</code></strong> — for C# methods callable from native C code (bridges):</p>
+<pre><code class="lang-csharp">[UnmanagedCallersOnly(EntryPoint = &quot;__cosmos_serial_write&quot;)]
+public static void CosmosSerialWrite(byte* str)
+{
+    // C code calls this via the symbol __cosmos_serial_write
+}
+</code></pre>
+<p>Use <code>[RuntimeExport]</code> for runtime/ABI-required exports (for example <code>Rh*</code> stubs and libc/math or memory symbols such as <code>ceil</code>, <code>sqrt</code>, <code>memmove</code>, <code>memset</code>). Prefer <code>[UnmanagedCallersOnly]</code> for other native-to-managed callbacks (interrupt handlers, C library bridges, etc.).</p>
+<h3 id="native-callable-from-c">Native callable from C#</h3>
+<p>Modern P/Invoke pattern for calling assembly routines:</p>
+<pre><code class="lang-csharp">[LibraryImport(&quot;*&quot;, EntryPoint = &quot;_native_cpu_rdtsc&quot;)]
+[SuppressGCTransition]
+private static partial ulong NativeReadTSC();
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Use <code>LibraryImport</code> (not <code>DllImport</code>), it's source-generated and AOT-compatible.</li>
+<li>Use <code>&quot;*&quot;</code> as the library name (links to the kernel binary itself).</li>
+<li>Add <code>[SuppressGCTransition]</code> for hot-path calls that don't trigger GC.</li>
+<li>Keep native interop methods <code>private</code> and wrap them in a clean public API.</li>
+<li>Assembly entry point names use <code>_snake_case</code> with a category prefix: <code>_native_cpu_rdtsc</code>, <code>_native_io_write_byte</code>.</li>
+</ul>
+<hr>
+<h2 id="9-architecture-specific-code">9. Architecture-Specific Code</h2>
+<h3 id="conditional-compilation">Conditional Compilation</h3>
+<p>Use <code>#if ARCH_X64</code> / <code>#if ARCH_ARM64</code> for code that differs by architecture. For now this is only tolerated in <code>Cosmos.Kernel.Core</code> but this aims to disappear.</p>
+<pre><code class="lang-csharp">public static void ComWrite(byte value)
+{
+#if ARCH_ARM64
+    while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) &amp; FR_TXFF) != 0) ;
+    Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
+#else
+    while ((Native.IO.Read8(COM1_BASE + REG_LSR) &amp; LSR_TX_EMPTY) == 0) ;
+    Native.IO.Write8(COM1_BASE + REG_DATA, value);
+#endif
+}
+</code></pre>
+<h3 id="when-to-use-what">When to Use What</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>#if ARCH_X64</code></td>
+<td>Same class, small code differences (eg. serial driver)</td>
+</tr>
+<tr>
+<td>Separate files (<code>*.X64.cs</code>)</td>
+<td>Same class, large per-arch blocks (eg.  ThreadContext)</td>
+</tr>
+<tr>
+<td>Separate HAL projects</td>
+<td>Different implementations behind a shared interface</td>
+</tr>
+<tr>
+<td>Separate Native projects</td>
+<td>Assembly code (<code>.asm</code> / <code>.S</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="guard-rules">Guard Rules</h3>
+<ul>
+<li>The default <code>#else</code> path should be x64 (most common development target).</li>
+<li>Always have both paths, no dangling <code>#if</code> without the other arch.</li>
+<li>Consider whether the code belongs in a HAL implementation instead of <code>#if</code>.</li>
+</ul>
+<hr>
+<h2 id="10-memory--safety">10. Memory &amp; Safety</h2>
+<h3 id="unsafe-code">Unsafe Code</h3>
+<p>Unsafe code is allowed (<code>&lt;AllowUnsafeBlocks&gt;true&lt;/AllowUnsafeBlocks&gt;</code>) but should be contained in <code>Cosmos.Kernel.Core</code>:</p>
+<pre><code class="lang-csharp">// Good: unsafe scoped to where needed
+public static unsafe void WriteString(string str)
+{
+    fixed (char* ptr = str)
+    {
+        for (int i = 0; i &lt; str.Length; i++)
+        {
+            ComWrite((byte)ptr[i]);
+        }
+    }
+}
+
+// Good: unsafe class for types that inherently work with pointers
+public unsafe class Thread : SchedulerExtensible
+{
+    public ThreadContext* GetContext() =&gt; (ThreadContext*)StackPointer;
+}
+</code></pre>
+<h3 id="memory-allocation">Memory Allocation</h3>
+<pre><code class="lang-csharp">// Kernel heap allocation (manual, non-GC)
+void* ptr = MemoryOp.Alloc(size);
+MemoryOp.Free(ptr);
+
+// GC-managed allocation (via RuntimeExport stubs)
+// Happens automatically through normal C# object creation
+List&lt;int&gt; list = new();  // uses RhAllocateNewArray under the hood
+</code></pre>
+<h3 id="pointer-safety">Pointer Safety</h3>
+<ul>
+<li>Always check pointers before dereferencing in GC/scanning code.</li>
+<li>Use <code>nuint</code> for addresses (not <code>uint</code>, which avoids 64-bit truncation).</li>
+<li>Use <code>nint</code>/<code>nuint</code> for pointer arithmetic, not <code>int</code>/<code>uint</code>.</li>
+<li>Use <code>stackalloc</code> for small, short-lived buffers instead of heap allocation.</li>
+</ul>
+<h3 id="critical-sections">Critical Sections</h3>
+<pre><code class="lang-csharp">// Preferred: scoped interrupt disable
+using (InternalCpu.DisableInterruptsScope())
+{
+    // Interrupts disabled here
+    // Re-enabled automatically at scope exit
+}
+</code></pre>
+<hr>
+<h2 id="11-error-handling">11. Error Handling</h2>
+<h3 id="kernel-panic">Kernel Panic</h3>
+<p>For unrecoverable errors, use <code>Panic.Halt()</code>:</p>
+<pre><code class="lang-csharp">if (ptr == null)
+    Panic.Halt(&quot;Memory allocation failed&quot;);
+
+// With caller info (auto-filled by compiler)
+Panic.Halt(&quot;Invalid thread state&quot;);
+</code></pre>
+<h3 id="exceptions">Exceptions</h3>
+<p>Exceptions work, but use them judiciously:</p>
+<pre><code class="lang-csharp">// Good: validate at API boundaries
+public static void ConfigIP(INetworkDevice device, Address ip)
+{
+    if (device == null)
+        throw new ArgumentNullException(nameof(device));
+    // ...
+}
+
+// Good: feature guards
+private static void ThrowIfKeyboardDisabled()
+{
+    if (!CosmosFeatures.KeyboardEnabled)
+        throw new InvalidOperationException(&quot;Console input requires keyboard feature.&quot;);
+}
+
+// Bad: exceptions in interrupt handlers, GC, or scheduler hot paths
+// These paths cannot allocate (exception objects are heap-allocated)
+</code></pre>
+<h3 id="when-to-panic-vs-throw">When to Panic vs. Throw</h3>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hardware failure, corrupted state</td>
+<td><code>Panic.Halt()</code></td>
+</tr>
+<tr>
+<td>GC/allocator internal error</td>
+<td><code>Panic.Halt()</code></td>
+</tr>
+<tr>
+<td>Invalid API usage</td>
+<td><code>throw</code> appropriate exception</td>
+</tr>
+<tr>
+<td>Missing feature at runtime</td>
+<td><code>throw InvalidOperationException</code></td>
+</tr>
+<tr>
+<td>User-facing error in kernel shell</td>
+<td><code>try/catch</code> + print error message</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="12-modern-c--net-10-idioms">12. Modern C# / .NET 10 Idioms</h2>
+<p>The project targets <code>&lt;LangVersion&gt;latest&lt;/LangVersion&gt;</code> and .NET 10. Use modern language features throughout.</p>
+<h3 id="modern-patterns">Modern Patterns</h3>
+<pre><code class="lang-csharp">// File-scoped namespaces
+namespace Cosmos.Kernel.Core.Scheduler;
+
+// Expression-bodied members for trivial implementations
+public string PlatformName =&gt; &quot;x86-64&quot;;
+public void Halt() =&gt; Native.Cpu.Halt();
+
+// Pattern matching
+switch (args[i])
+{
+    case null:
+        WriteString(&quot;null&quot;);
+        break;
+    case string s:
+        WriteString(s);
+        break;
+    case int n:
+        WriteNumber(n);
+        break;
+}
+
+// Null-conditional and coalescing
+INetworkDevice? device = NetworkManager.PrimaryDevice;
+if (device?.Ready != true)
+{
+    return;
+}
+
+Address ip = config?.IPAddress ?? defaultAddress;
+
+// Collection expressions
+public IKeyboardDevice[] GetKeyboardDevices() =&gt; [new PS2Keyboard()];
+
+// Target-typed new
+Thread thread = new();
+List&lt;int&gt; items = new();
+
+// Numeric separators for readability
+public const nuint DefaultStackSize = 64 * 1024;
+public static long TscFrequency { get; set; } = 1_000_000_000;
+
+// stackalloc for small buffers (no heap allocation)
+Span&lt;byte&gt; buffer = stackalloc byte[64];
+
+// field keyword — auto-property with validation without a manual backing field
+public int Priority
+{
+    get =&gt; field;
+    set =&gt; field = value &gt;= 0 ? value : throw new ArgumentOutOfRangeException();
+}
+</code></pre>
+<h3 id="avoid-1">Avoid</h3>
+<pre><code class="lang-csharp">// Don't use var when type isn't obvious
+var x = GetValue();           // Bad: what type is x?
+int count = GetValue();       // Good: explicit type
+
+// Don't use var for built-in types
+var i = 0;                    // Bad
+int i = 0;                    // Good
+
+// Don't use this. qualification
+this._field = value;          // Bad
+_field = value;               // Good
+
+// Don't allocate arrays in hot paths when Span works
+byte[] temp = new byte[16];       // Bad in hot path: heap allocation
+Span&lt;byte&gt; temp = stackalloc byte[16]; // Good: stack allocation
+
+// Always use braces, no single-line if/for/while without braces
+if (ptr == null) return;          // Bad
+if (ptr == null)                  // Bad
+    return;
+
+if (ptr == null)                  // Good
+{
+    return;
+}
+</code></pre>
+<blockquote>
+<p>Braces are enforced by <code>.editorconfig</code> (<code>csharp_prefer_braces = true:warning</code>) and by IDE/analyzers; they are not currently treated as CI format errors.</p>
+</blockquote>
+<h3 id="feature-switches">Feature Switches</h3>
+<p>Use <code>[FeatureSwitchDefinition]</code> for compile-time feature toggling (trimmed by NativeAOT linker). All feature flags live in <code>Cosmos.Kernel.Core.CosmosFeatures</code>:</p>
+<pre><code class="lang-csharp">// In CosmosFeatures.cs — one property per feature
+[FeatureSwitchDefinition(&quot;Cosmos.Kernel.HAL.Interrupts.Enabled&quot;)]
+public static bool InterruptsEnabled =&gt;
+    AppContext.TryGetSwitch(&quot;Cosmos.Kernel.HAL.Interrupts.Enabled&quot;, out bool enabled)
+        ? enabled : true;
+
+// The ILC linker trims the dead branch entirely
+if (CosmosFeatures.KeyboardEnabled)
+{
+    // This code is removed from the binary when keyboard is disabled
+}
+</code></pre>
+<hr>
+<h2 id="13-aot-constraints">13. AOT Constraints</h2>
+<p>NativeAOT imposes strict limitations. <strong>All kernel code must be AOT-compatible.</strong></p>
+<p>.NET 10 has improved NativeAOT with smaller binaries and broader platform support, but the fundamental constraints remain.</p>
+<h3 id="forbidden">Forbidden</h3>
+<ul>
+<li><code>System.Reflection.Emit</code> (no runtime code generation).</li>
+<li><code>dynamic</code> keyword.</li>
+<li><code>Assembly.Load</code> at runtime.</li>
+<li><code>Type.GetType(&quot;...&quot;)</code> by string at runtime (types must be statically reachable).</li>
+<li><code>MakeGenericType</code> / <code>MakeGenericMethod</code> at runtime (generic instantiations must be known at compile time).</li>
+</ul>
+<h3 id="use-with-caution">Use with Caution</h3>
+<ul>
+<li><strong>Generic virtual methods</strong>, NativeAOT must generate all possible instantiations at compile time. Avoid deeply nested or open-ended generic virtual dispatch.</li>
+<li><strong>LINQ</strong>, many LINQ operators allocate iterators and closures. Avoid in hot paths (GC, scheduler, interrupt handlers).</li>
+</ul>
+<hr>
+<h2 id="14-documentation">14. Documentation</h2>
+<h3 id="license-header">License Header</h3>
+<p>Every <code>.cs</code> file must start with the license header (enforced by <code>.editorconfig</code>):</p>
+<pre><code class="lang-csharp">// This code is licensed under MIT license (see LICENSE for details)
+</code></pre>
+<h3 id="xml-documentation">XML Documentation</h3>
+<p>Document all <strong>public</strong> APIs with <code>&lt;summary&gt;</code>. Keep it concise:</p>
+<pre><code class="lang-csharp">/// &lt;summary&gt;
+/// Triggers a kernel panic with the specified message.
+/// Disables interrupts and halts the CPU.
+/// &lt;/summary&gt;
+/// &lt;param name=&quot;message&quot;&gt;The panic message describing the error.&lt;/param&gt;
+public static void Halt(string message) { ... }
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Document public classes, interfaces, methods, properties.</li>
+<li>Skip documentation on obvious members (<code>get</code>/<code>set</code> for self-documenting property names).</li>
+<li>Use <code>&lt;param&gt;</code> for non-obvious parameters.</li>
+<li>Use <code>&lt;returns&gt;</code> when return value needs explanation.</li>
+<li>Use <code>&lt;see cref=&quot;...&quot;/&gt;</code> to reference related types.</li>
+<li>Don't document private implementation details unless the logic is complex.</li>
+</ul>
+<h3 id="inline-comments">Inline Comments</h3>
+<p>Use sparingly — only when the code isn't self-explanatory:</p>
+<pre><code class="lang-csharp">// Stack layout (growing downward from top):
+// [StackBase + stackSize] = Top of usable stack
+// [contextAddr] = Start of ThreadContext (where StackPointer points)
+// [StackBase] = Bottom of stack
+
+// Align context to 16 bytes (required for XMM operations)
+contextAddr = (contextAddr + 0xF) &amp; ~(nuint)0xF;
+</code></pre>
+<h2 id="15-testing">15. Testing</h2>
+<p>For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see <a href="testing.html">Testing</a>.</p>
+<p><strong>Code coverage:</strong> Add the <code>run-coverage</code> label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.</p>
+<hr>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/coding-guidelines.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
