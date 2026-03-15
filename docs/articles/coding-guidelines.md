@@ -405,7 +405,7 @@ Plugs replace BCL methods at the IL level. The patcher rewires calls at build ti
 
 There are two patterns depending on the caller:
 
-**`[RuntimeExport]`** — for NativeAOT runtime stubs (called by the runtime itself):
+**`[RuntimeExport]`** — for NativeAOT runtime stubs (called by the runtime itself). These match the `[RuntimeImport]` declarations in [`System.Private.CoreLib/RuntimeImports.cs`](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/System.Private.CoreLib/src/System/Runtime/RuntimeImports.cs):
 
 ```csharp
 [RuntimeExport("RhNewArray")]
