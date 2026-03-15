@@ -157,6 +157,10 @@ file_header_template = This code is licensed under MIT license (see LICENSE for 
 
 # C++ Files
 
+# XML documentation - missing summary, param, or return tags
+dotnet_diagnostic.CS1591.severity = error
+dotnet_diagnostic.CS1573.severity = error
+
 # CA2255: The 'ModuleInitializer' attribute should not be used in libraries
 dotnet_diagnostic.CA2255.severity = none
 
