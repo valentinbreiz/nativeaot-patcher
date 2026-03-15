@@ -190,7 +190,9 @@ public class OutputHandlerXml : OutputHandlerBase
     private static string FilterInvalidXmlChars(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return text;
+        }
 
         var filtered = new StringBuilder(text.Length);
         foreach (char c in text)

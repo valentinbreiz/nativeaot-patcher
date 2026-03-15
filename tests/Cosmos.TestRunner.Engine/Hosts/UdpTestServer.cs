@@ -56,7 +56,9 @@ public class UdpTestServer : IDisposable
     public void Start()
     {
         if (_cts != null)
+        {
             return;
+        }
 
         _cts = new CancellationTokenSource();
         ReceiveTestPacketsSent = 0;
@@ -94,7 +96,9 @@ public class UdpTestServer : IDisposable
     public async Task StopAsync()
     {
         if (_cts == null)
+        {
             return;
+        }
 
         _cts.Cancel();
 
@@ -106,7 +110,9 @@ public class UdpTestServer : IDisposable
         try
         {
             if (_receiveTestTask != null)
+            {
                 await _receiveTestTask.ConfigureAwait(false);
+            }
         }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
@@ -114,7 +120,9 @@ public class UdpTestServer : IDisposable
         try
         {
             if (_sendTestTask != null)
+            {
                 await _sendTestTask.ConfigureAwait(false);
+            }
         }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
@@ -126,7 +134,9 @@ public class UdpTestServer : IDisposable
 
         Console.WriteLine($"[UdpTestServer] Stopped. ReceiveTest packets: {ReceiveTestPacketsSent}, SendTest echos: {SendTestEchosSent}");
         if (LastReceivedFromKernel != null)
+        {
             Console.WriteLine($"[UdpTestServer] Last received from kernel: {LastReceivedFromKernel}");
+        }
     }
 
     /// <summary>
@@ -221,7 +231,9 @@ public class UdpTestServer : IDisposable
     public void Dispose()
     {
         if (_disposed)
+        {
             return;
+        }
 
         _disposed = true;
         _cts?.Cancel();

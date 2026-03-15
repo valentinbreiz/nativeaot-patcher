@@ -37,5 +37,6 @@
         <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj"/>
         <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj"/>
         <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj"/>
+        <Project Path="tests\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj"/>
     </Folder>
 </Solution>

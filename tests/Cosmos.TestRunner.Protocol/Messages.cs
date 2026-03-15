@@ -59,7 +59,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestSuiteStartMessage Deserialize(byte[] payload)
         {
             if (payload.Length < 2)
+            {
                 return new TestSuiteStartMessage(Encoding.UTF8.GetString(payload), 0);
+            }
 
             var expectedTests = (ushort)(payload[0] | (payload[1] << 8));
             var suiteName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -96,7 +98,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestStartMessage Deserialize(byte[] payload)
         {
             if (payload.Length < 2)
+            {
                 throw new ArgumentException("Invalid TestStart payload length");
+            }
 
             var testNumber = (ushort)(payload[0] | (payload[1] << 8));
             var testName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -135,7 +139,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestPassMessage Deserialize(byte[] payload)
         {
             if (payload.Length != 6)
+            {
                 throw new ArgumentException("Invalid TestPass payload length");
+            }
 
             var testNumber = (ushort)(payload[0] | (payload[1] << 8));
             var duration = (uint)(payload[2] | (payload[3] << 8) | (payload[4] << 16) | (payload[5] << 24));
@@ -172,7 +178,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestFailMessage Deserialize(byte[] payload)
         {
             if (payload.Length < 2)
+            {
                 throw new ArgumentException("Invalid TestFail payload length");
+            }
 
             var testNumber = (ushort)(payload[0] | (payload[1] << 8));
             var errorMessage = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -209,7 +217,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestSkipMessage Deserialize(byte[] payload)
         {
             if (payload.Length < 2)
+            {
                 throw new ArgumentException("Invalid TestSkip payload length");
+            }
 
             var testNumber = (ushort)(payload[0] | (payload[1] << 8));
             var skipReason = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -250,7 +260,9 @@ namespace Cosmos.TestRunner.Protocol
         public static TestSuiteEndMessage Deserialize(byte[] payload)
         {
             if (payload.Length != 6)
+            {
                 throw new ArgumentException("Invalid TestSuiteEnd payload length");
+            }
 
             var total = (ushort)(payload[0] | (payload[1] << 8));
             var passed = (ushort)(payload[2] | (payload[3] << 8));
@@ -283,7 +295,9 @@ namespace Cosmos.TestRunner.Protocol
         public static ArchitectureInfoMessage Deserialize(byte[] payload)
         {
             if (payload.Length != 2)
+            {
                 throw new ArgumentException("Invalid ArchitectureInfo payload length");
+            }
 
             return new ArchitectureInfoMessage((Architecture)payload[0], payload[1]);
         }
@@ -321,7 +335,9 @@ namespace Cosmos.TestRunner.Protocol
         public static CoverageDataMessage Deserialize(byte[] payload)
         {
             if (payload.Length < 2)
+            {
                 return new CoverageDataMessage();
+            }
 
             var hitCount = (ushort)(payload[0] | (payload[1] << 8));
             var ids = new ushort[hitCount];
