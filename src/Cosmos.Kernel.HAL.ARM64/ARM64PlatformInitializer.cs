@@ -20,9 +20,6 @@ namespace Cosmos.Kernel.HAL.ARM64;
 public class ARM64PlatformInitializer : IPlatformInitializer
 {
     private GenericTimer? _timer;
-    private VirtioKeyboard? _virtioKeyboard;
-    private VirtioMouse? _virtioMouse;
-    private VirtioNet? _networkDevice;
 
     public string PlatformName => "ARM64";
     public PlatformArchitecture Architecture => PlatformArchitecture.ARM64;
@@ -49,64 +46,9 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
         {
             DeviceMapper.EnsureMapped(VirtioMMIO.VIRTIO_MMIO_BASE);
-
             // Scan for virtio devices
             Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
-            VirtioMMIO.ScanDevices();
-        }
-
-        // Initialize virtio keyboard (if keyboard feature enabled)
-        if (CosmosFeatures.KeyboardEnabled)
-        {
-            _virtioKeyboard = VirtioKeyboard.FindAndCreate();
-            if (_virtioKeyboard != null)
-            {
-                _virtioKeyboard.Initialize();
-                if (_virtioKeyboard.IsInitialized)
-                {
-                    Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
-                }
-                else
-                {
-                    Serial.WriteString("[ARM64HAL] Virtio keyboard initialization failed\n");
-                    _virtioKeyboard = null;
-                }
-            }
-            else
-            {
-                Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
-            }
-        }
-
-        // Initialize virtio mouse (if mouse feature enabled)
-        if (CosmosFeatures.MouseEnabled)
-        {
-            _virtioMouse = VirtioMouse.FindAndCreate();
-            if (_virtioMouse != null)
-            {
-                _virtioMouse.Initialize();
-                Serial.WriteString("[ARM64HAL] Virtio mouse initialized\n");
-            }
-            else
-            {
-                Serial.WriteString("[ARM64HAL] No virtio mouse found\n");
-            }
-        }
-
-        // Try to find VirtioNet MMIO network device (if network feature enabled)
-        if (CosmosFeatures.NetworkEnabled)
-        {
-            Serial.WriteString("[ARM64HAL] Looking for VirtioNet MMIO network device...\n");
-            _networkDevice = VirtioNet.FindAndCreate();
-            if (_networkDevice != null)
-            {
-                Serial.WriteString("[ARM64HAL] VirtioNet MMIO device found, initializing...\n");
-                _networkDevice.Initialize();
-            }
-            else
-            {
-                Serial.WriteString("[ARM64HAL] No VirtioNet MMIO device found\n");
-            }
+            VirtioDevice.InitializeDevices();
         }
     }
 
@@ -127,27 +69,27 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
     public IKeyboardDevice[] GetKeyboardDevices()
     {
-        if (!CosmosFeatures.KeyboardEnabled || _virtioKeyboard == null || !_virtioKeyboard.IsInitialized)
+        if (!CosmosFeatures.KeyboardEnabled)
         {
             return [];
         }
 
-        return [_virtioKeyboard];
+        return VirtioDevice.GetKeyboards();
     }
 
     public IMouseDevice[] GetMouseDevices()
     {
-        if (!CosmosFeatures.MouseEnabled || _virtioMouse == null)
+        if (!CosmosFeatures.MouseEnabled)
         {
             return [];
         }
 
-        return [_virtioMouse];
+        return VirtioDevice.GetMice();
     }
 
     public INetworkDevice? GetNetworkDevice()
     {
-        return _networkDevice;
+        return VirtioDevice.GetDevice<VirtioNet>();
     }
 
     public uint GetCpuCount()

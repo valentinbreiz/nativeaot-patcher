@@ -110,6 +110,7 @@ public static class InterruptManager
                     IrqDelegate handler = s_irqHandlers[(int)intId];
                     if (handler != null)
                     {
+                        ctx.interrupt = intId;  // Update context with actual interrupt ID
                         handler(ref ctx);
                     }
                 }
