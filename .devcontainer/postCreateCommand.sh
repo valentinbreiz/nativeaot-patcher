@@ -138,8 +138,6 @@ dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 echo "Installing global tools..."
-dotnet tool uninstall -g ilc 2>/dev/null || true
-dotnet tool install -g ilc --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Patcher 2>/dev/null || true
 dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Tools 2>/dev/null || true
