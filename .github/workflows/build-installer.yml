@@ -16,11 +16,11 @@ on:
 env:
   DOTNET_VERSION: '10.0.x'
   # Tool versions
+  # Tool URLs — must match dotnet.yml sources
   X64_ELF_TOOLS_WIN_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip'
+  X64_ELF_TOOLS_LINUX_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux.zip'
   AARCH64_ELF_TOOLS_WIN_URL: 'https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z'
-  XORRISO_WIN_URL: 'https://github.com/AliOS-OSDev/xorriso/releases/download/1.5.6/xorriso.exe'
-  COSMOS_TOOLCHAIN_URL: 'https://github.com/AzureianGH/cosmos-toolchain/releases'
-  LLVM_VERSION: '18.1.8'
+  XORRISO_WIN_URL: 'https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe'
 
 jobs:
   # ── Build all NuGet packages ─────────────────────────────────────────────────
@@ -113,16 +113,14 @@ jobs:
 
       - name: Download LLD
         run: |
-          $llvmUrl = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ env.LLVM_VERSION }}/LLVM-${{ env.LLVM_VERSION }}-win64.exe"
-          Invoke-WebRequest -Uri $llvmUrl -OutFile llvm-installer.exe
-          # Silent extract - LLVM NSIS installer supports /S for silent and /D for directory
-          Start-Process -FilePath .\llvm-installer.exe -ArgumentList '/S', "/D=$pwd\llvm-extract" -Wait -NoNewWindow
+          choco install llvm -y --no-progress
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
-          Copy-Item llvm-extract/bin/lld.exe setup/bundle/tools/windows/lld/
-          Copy-Item llvm-extract/bin/ld.lld.exe setup/bundle/tools/windows/lld/ -ErrorAction SilentlyContinue
-          # If ld.lld.exe doesn't exist, copy lld.exe as ld.lld.exe
-          if (-not (Test-Path setup/bundle/tools/windows/lld/ld.lld.exe)) {
-            Copy-Item llvm-extract/bin/lld.exe setup/bundle/tools/windows/lld/ld.lld.exe
+          $llvmBin = "C:\Program Files\LLVM\bin"
+          Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/
+          if (Test-Path "$llvmBin\ld.lld.exe") {
+            Copy-Item "$llvmBin\ld.lld.exe" setup/bundle/tools/windows/lld/
+          } else {
+            Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/ld.lld.exe
           }
         shell: pwsh
 
@@ -183,13 +181,8 @@ jobs:
       - name: Download x86_64-elf-gcc
         run: |
           mkdir -p staging/bundle/tools/linux/x86_64-elf-tools
-          # Download from cosmos-toolchain releases
-          LATEST=$(curl -sL "${{ env.COSMOS_TOOLCHAIN_URL }}" | grep -oP 'href="[^"]*x86_64-elf[^"]*linux[^"]*\.tar\.(gz|xz)"' | head -1 | grep -oP 'href="\K[^"]+')
-          if [ -n "$LATEST" ]; then
-            curl -sL "https://github.com$LATEST" | tar xz -C staging/bundle/tools/linux/x86_64-elf-tools --strip-components=1
-          else
-            echo "::warning::Could not find x86_64-elf-gcc release. Users will need to install manually."
-          fi
+          curl -LO "${{ env.X64_ELF_TOOLS_LINUX_URL }}"
+          unzip x86_64-elf-tools-linux.zip -d staging/bundle/tools/linux/x86_64-elf-tools
 
       - name: Bundle system tools
         run: |
