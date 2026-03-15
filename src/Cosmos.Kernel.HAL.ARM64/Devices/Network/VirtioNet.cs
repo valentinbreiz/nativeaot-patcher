@@ -51,8 +51,6 @@ public unsafe class VirtioNet : INetworkDevice
     private byte** _txBuffers;
 
     // --- Properties ---
-
-    public static VirtioNet? Instance { get; private set; }
     public PacketReceivedHandler? OnPacketReceived { get; set; }
     string INetworkDevice.Name => "VirtioNet";
     public MACAddress MacAddress => _macAddress;
@@ -61,7 +59,7 @@ public unsafe class VirtioNet : INetworkDevice
 
     // --- Constructor ---
 
-    private VirtioNet(ulong baseAddress, uint irq, uint mmioVersion)
+    internal VirtioNet(ulong baseAddress, uint irq, uint mmioVersion)
     {
         _baseAddress = baseAddress;
         _irq = irq;
@@ -70,7 +68,6 @@ public unsafe class VirtioNet : INetworkDevice
         _networkInitialized = false;
         _linkUp = false;
         _enabled = false;
-        Instance = this;
     }
 
     // --- Public methods ---
@@ -424,20 +421,22 @@ public unsafe class VirtioNet : INetworkDevice
 
     private static void HandleIRQ(ref IRQContext context)
     {
-        if (Instance == null)
+        var netDevice = VirtioDevice.GetDeviceFromIRQ<VirtioNet>(context.interrupt);
+
+        if (netDevice is null)
         {
             return;
         }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
         // Without this, the GIC re-delivers the interrupt immediately causing an IRQ storm.
-        uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
+        uint intStatus = VirtioMMIO.Read32(netDevice._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
         {
-            VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+            VirtioMMIO.Write32(netDevice._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
         }
 
-        if (!Instance._networkInitialized)
+        if (!netDevice._networkInitialized)
         {
             return;
         }
@@ -445,8 +444,8 @@ public unsafe class VirtioNet : INetworkDevice
         // Process used buffers
         if ((intStatus & 1) != 0)  // Used buffer notification
         {
-            Instance.ProcessRx();
-            Instance.ReclaimTx();
+            netDevice.ProcessRx();
+            netDevice.ReclaimTx();
         }
     }
 

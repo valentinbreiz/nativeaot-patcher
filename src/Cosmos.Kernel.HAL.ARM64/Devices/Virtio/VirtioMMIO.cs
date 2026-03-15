@@ -186,7 +186,7 @@ public static class VirtioMMIO
         return false;
     }
 
-    private static void WriteDeviceTypeName(uint deviceId)
+    internal static void WriteDeviceTypeName(uint deviceId)
     {
         switch (deviceId)
         {
