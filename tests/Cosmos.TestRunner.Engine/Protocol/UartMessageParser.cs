@@ -58,29 +58,39 @@ public class UartMessageParser
     {
         // Need at least 7 bytes: [MAGIC:4][Command:1][Length:2]
         if (offset + 7 > data.Length)
+        {
             return false;
+        }
 
         // Check for magic signature (0x19740807 little-endian)
         if (data[offset] != 0x07 || data[offset + 1] != 0x08 ||
             data[offset + 2] != 0x74 || data[offset + 3] != 0x19)
+        {
             return false;
+        }
 
         byte command = data[offset + 4];
 
         // Only proceed if this looks like a valid protocol command
         if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.CoverageData)
+        {
             return false;
+        }
 
         ushort length = (ushort)(data[offset + 5] | (data[offset + 6] << 8));
 
         // Sanity check: coverage data can be large, other messages should be small
         int maxLength = (command == Ds2Vs.CoverageData) ? 65535 : 1024;
         if (length > maxLength)
+        {
             return false;
+        }
 
         // Validate we have enough data for payload
         if (offset + 7 + length > data.Length)
+        {
             return false;
+        }
 
         byte[] payload = new byte[length];
         Array.Copy(data, offset + 7, payload, 0, length);
@@ -141,7 +151,10 @@ public class UartMessageParser
     private static void ParseTestStart(byte[] payload, TestResults results)
     {
         // Payload: [TestNumber:2][TestName:string]
-        if (payload.Length < 2) return;
+        if (payload.Length < 2)
+        {
+            return;
+        }
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string testName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -158,7 +171,10 @@ public class UartMessageParser
     private static void ParseTestPass(byte[] payload, TestResults results)
     {
         // Payload: [TestNumber:2][DurationMs:4]
-        if (payload.Length < 6) return;
+        if (payload.Length < 6)
+        {
+            return;
+        }
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         uint durationMs = BitConverter.ToUInt32(payload, 2);
@@ -174,7 +190,10 @@ public class UartMessageParser
     private static void ParseTestFail(byte[] payload, TestResults results)
     {
         // Payload: [TestNumber:2][ErrorMessage:string]
-        if (payload.Length < 2) return;
+        if (payload.Length < 2)
+        {
+            return;
+        }
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string errorMessage = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -190,7 +209,10 @@ public class UartMessageParser
     private static void ParseTestSkip(byte[] payload, TestResults results)
     {
         // Payload: [TestNumber:2][Reason:string]
-        if (payload.Length < 2) return;
+        if (payload.Length < 2)
+        {
+            return;
+        }
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string reason = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
@@ -206,7 +228,10 @@ public class UartMessageParser
     private static void ParseTestSuiteEnd(byte[] payload, TestResults results)
     {
         // Payload: [Total:2][Passed:2][Failed:2]
-        if (payload.Length < 6) return;
+        if (payload.Length < 6)
+        {
+            return;
+        }
 
         ushort total = BitConverter.ToUInt16(payload, 0);
         ushort passed = BitConverter.ToUInt16(payload, 2);
@@ -225,7 +250,10 @@ public class UartMessageParser
     private static void ParseCoverageData(byte[] payload, TestResults results)
     {
         // Payload: [HitCount:2][HitId1:2][HitId2:2]...
-        if (payload.Length < 2) return;
+        if (payload.Length < 2)
+        {
+            return;
+        }
 
         ushort hitCount = BitConverter.ToUInt16(payload, 0);
 

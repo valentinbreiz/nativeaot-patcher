@@ -55,7 +55,9 @@ public class TcpTestServer : IDisposable
     public void Start()
     {
         if (_cts != null)
+        {
             return;
+        }
 
         _cts = new CancellationTokenSource();
         ConnectionsAccepted = 0;
@@ -93,7 +95,9 @@ public class TcpTestServer : IDisposable
     public async Task StopAsync()
     {
         if (_cts == null)
+        {
             return;
+        }
 
         _cts.Cancel();
 
@@ -102,7 +106,9 @@ public class TcpTestServer : IDisposable
         try
         {
             if (_listenerTask != null)
+            {
                 await _listenerTask.ConfigureAwait(false);
+            }
         }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
@@ -110,7 +116,9 @@ public class TcpTestServer : IDisposable
         try
         {
             if (_connectTask != null)
+            {
                 await _connectTask.ConfigureAwait(false);
+            }
         }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
@@ -121,7 +129,9 @@ public class TcpTestServer : IDisposable
 
         Console.WriteLine($"[TcpTestServer] Stopped. Connections: {ConnectionsAccepted}, Echos: {EchosSent}");
         if (LastReceivedFromKernel != null)
+        {
             Console.WriteLine($"[TcpTestServer] Last received from kernel: {LastReceivedFromKernel}");
+        }
     }
 
     /// <summary>
@@ -249,7 +259,9 @@ public class TcpTestServer : IDisposable
     public void Dispose()
     {
         if (_disposed)
+        {
             return;
+        }
 
         _disposed = true;
         _cts?.Cancel();

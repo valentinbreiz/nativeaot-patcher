@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Cosmos.TestRunner.Engine.Hosts;
-using Cosmos.TestRunner.Engine.Protocol;
 using Cosmos.TestRunner.Engine.OutputHandlers;
+using Cosmos.TestRunner.Engine.Protocol;
 
 namespace Cosmos.TestRunner.Engine;
 
@@ -228,7 +228,9 @@ public partial class Engine
         foreach (var line in File.ReadAllLines(mapPath))
         {
             if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+            {
                 continue;
+            }
 
             var parts = line.Split('\t');
             if (parts.Length >= 4 && int.TryParse(parts[0], out int id))
@@ -353,7 +355,9 @@ public partial class Engine
         {
             var fullPath = Path.GetFullPath(path);
             if (File.Exists(fullPath))
+            {
                 return fullPath;
+            }
         }
 
         // Fallback: recursive search from project directory upward
@@ -365,7 +369,9 @@ public partial class Engine
             {
                 var found = Directory.GetFiles(artifactsDir, "coverage-map.txt", SearchOption.AllDirectories);
                 if (found.Length > 0)
+                {
                     return found[0];
+                }
             }
             dir = dir.Parent;
         }

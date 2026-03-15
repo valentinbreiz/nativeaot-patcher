@@ -56,11 +56,15 @@ public static unsafe class CoverageTracker
         for (int i = 0; i < MaxMethods; i++)
         {
             if (_hits.Data[i] != 0)
+            {
                 hitCount++;
+            }
         }
 
         if (hitCount == 0)
+        {
             return;
+        }
 
         // Build payload: [HitCount:2][HitId1:2][HitId2:2]...
         int payloadSize = 2 + hitCount * 2;
