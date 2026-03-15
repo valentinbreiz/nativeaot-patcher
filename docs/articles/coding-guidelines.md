@@ -15,7 +15,7 @@ This document establishes the coding style and architecture patterns for Cosmos 
 - [9. Architecture-Specific Code](#9-architecture-specific-code)
 - [10. Memory & Safety](#10-memory--safety)
 - [11. Error Handling](#11-error-handling)
-- [12. Modern C# 14 / .NET 10 Idioms](#12-modern-c-14--net-10-idioms)
+- [12. Modern C# / .NET 10 Idioms](#12-modern-c--net-10-idioms)
 - [13. AOT Constraints](#13-aot-constraints)
 - [14. Documentation](#14-documentation)
 - [15. Testing](#15-testing)
@@ -181,17 +181,17 @@ public unsafe class Canvas
 ```
 
 **Key principles:**
-- **One separator style everywhere:** `// --- Section Name ---`
-- Data-oriented classes: group fields/properties by domain concern (`// --- Identity ---`, `// --- State ---`)
-- Behavior-oriented classes: group by member type, then sub-group methods by category
-- Constructors always come after fields/properties, before methods
-- Static factory methods come right after constructors
+- **One separator style everywhere:** `// --- Section Name ---`.
+- Data-oriented classes: group fields/properties by domain concern (`// --- Identity ---`, `// --- State ---`).
+- Behavior-oriented classes: group by member type, then sub-group methods by category.
+- Constructors always come after fields/properties, before methods.
+- Static factory methods come right after constructors.
 
 ### Using Directives
 
-- Place `using` directives **outside** the namespace
-- Sort `System` namespaces first (enforced by `dotnet_sort_system_directives_first`)
-- Use file-scoped namespaces (eg. `namespace Cosmos.Kernel.Core.Scheduler;`)
+- Place `using` directives **outside** the namespace.
+- Sort `System` namespaces first.
+- Use file-scoped namespaces (eg. `namespace Cosmos.Kernel.Core.Scheduler;`).
 
 ---
 
@@ -370,10 +370,10 @@ public class X64PlatformInitializer : IPlatformInitializer
 
 ### Adding a New Device
 
-1. Define the interface in `Cosmos.Kernel.HAL.Interfaces/Devices/`
-2. Implement in `Cosmos.Kernel.HAL.X64/` and `Cosmos.Kernel.HAL.ARM64/`
-3. Add factory method to `IPlatformInitializer`
-4. Register during `InitializeHardware()` or via the platform initializer
+1. Define the interface in `Cosmos.Kernel.HAL.Interfaces/Devices/`.
+2. Implement in `Cosmos.Kernel.HAL.X64/` and `Cosmos.Kernel.HAL.ARM64/`.
+3. Add factory method to `IPlatformInitializer`.
+4. Register during `InitializeHardware()` or via the platform initializer.
 
 ### HAL Registration
 
@@ -401,9 +401,11 @@ Plugs replace BCL methods at the IL level. The patcher rewires calls at build ti
 
 ## 8. Native Interop
 
-### RuntimeExport — C# callable from native
+### C# callable from native
 
-Used for runtime stubs that the NativeAOT runtime expects:
+There are two patterns depending on the caller:
+
+**`[RuntimeExport]`** — for NativeAOT runtime stubs (called by the runtime itself):
 
 ```csharp
 [RuntimeExport("RhNewArray")]
@@ -413,7 +415,19 @@ internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
 }
 ```
 
-### LibraryImport — native callable from C#
+**`[UnmanagedCallersOnly]`** — for C# methods callable from native C code (bridges):
+
+```csharp
+[UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
+public static void CosmosSerialWrite(byte* str)
+{
+    // C code calls this via the symbol __cosmos_serial_write
+}
+```
+
+Use `[RuntimeExport]` only for runtime-internal stubs (`Rh*` functions). Use `[UnmanagedCallersOnly]` for all other native-to-managed callbacks (interrupt handlers, C library bridges, etc.).
+
+### Native callable from C#
 
 Modern P/Invoke pattern for calling assembly routines:
 
@@ -424,11 +438,11 @@ private static partial ulong NativeReadTSC();
 ```
 
 **Rules:**
-- Use `LibraryImport` (not `DllImport`) — it's source-generated and AOT-compatible
-- Use `"*"` as the library name (links to the kernel binary itself)
-- Add `[SuppressGCTransition]` for hot-path calls that don't trigger GC
-- Keep native interop methods `private` and wrap them in a clean public API
-- Assembly entry point names use `_snake_case` with a category prefix: `_native_cpu_rdtsc`, `_native_io_write_byte`
+- Use `LibraryImport` (not `DllImport`), it's source-generated and AOT-compatible.
+- Use `"*"` as the library name (links to the kernel binary itself).
+- Add `[SuppressGCTransition]` for hot-path calls that don't trigger GC.
+- Keep native interop methods `private` and wrap them in a clean public API.
+- Assembly entry point names use `_snake_case` with a category prefix: `_native_cpu_rdtsc`, `_native_io_write_byte`.
 
 ---
 
@@ -462,9 +476,9 @@ public static void ComWrite(byte value)
 
 ### Guard Rules
 
-- The default `#else` path should be x64 (most common development target)
-- Always have both paths, no dangling `#if` without the other arch
-- Consider whether the code belongs in a HAL implementation instead of `#if`
+- The default `#else` path should be x64 (most common development target).
+- Always have both paths, no dangling `#if` without the other arch.
+- Consider whether the code belongs in a HAL implementation instead of `#if`.
 
 ---
 
@@ -508,10 +522,10 @@ List<int> list = new();  // uses RhAllocateNewArray under the hood
 
 ### Pointer Safety
 
-- Always check pointers before dereferencing in GC/scanning code
-- Use `nuint` for addresses (not `uint`, which avoids 64-bit truncation)
-- Use `nint`/`nuint` for pointer arithmetic, not `int`/`uint`
-- Use `stackalloc` for small, short-lived buffers instead of heap allocation
+- Always check pointers before dereferencing in GC/scanning code.
+- Use `nuint` for addresses (not `uint`, which avoids 64-bit truncation).
+- Use `nint`/`nuint` for pointer arithmetic, not `int`/`uint`.
+- Use `stackalloc` for small, short-lived buffers instead of heap allocation.
 
 ### Critical Sections
 
@@ -576,13 +590,11 @@ private static void ThrowIfKeyboardDisabled()
 
 ---
 
-## 12. Modern C# 14 / .NET 10 Idioms
+## 12. Modern C# / .NET 10 Idioms
 
-The project targets `<LangVersion>latest</LangVersion>` (C# 14) and .NET 10. Use modern language features throughout.
+The project targets `<LangVersion>latest</LangVersion>` and .NET 10. Use modern language features throughout.
 
-### Established Modern Patterns
-
-These patterns from C# 10–13 should be used consistently:
+### Modern Patterns
 
 ```csharp
 // File-scoped namespaces
@@ -595,14 +607,23 @@ public void Halt() => Native.Cpu.Halt();
 // Pattern matching
 switch (args[i])
 {
-    case null: WriteString("null"); break;
-    case string s: WriteString(s); break;
-    case int n: WriteNumber(n); break;
+    case null:
+        WriteString("null");
+        break;
+    case string s:
+        WriteString(s);
+        break;
+    case int n:
+        WriteNumber(n);
+        break;
 }
 
 // Null-conditional and coalescing
 INetworkDevice? device = NetworkManager.PrimaryDevice;
-if (device?.Ready != true) return;
+if (device?.Ready != true)
+{
+    return;
+}
 
 Address ip = config?.IPAddress ?? defaultAddress;
 
@@ -619,6 +640,13 @@ public static long TscFrequency { get; set; } = 1_000_000_000;
 
 // stackalloc for small buffers (no heap allocation)
 Span<byte> buffer = stackalloc byte[64];
+
+// field keyword — auto-property with validation without a manual backing field
+public int Priority
+{
+    get => field;
+    set => field = value >= 0 ? value : throw new ArgumentOutOfRangeException();
+}
 ```
 
 ### Avoid
@@ -639,7 +667,19 @@ _field = value;               // Good
 // Don't allocate arrays in hot paths when Span works
 byte[] temp = new byte[16];       // Bad in hot path: heap allocation
 Span<byte> temp = stackalloc byte[16]; // Good: stack allocation
+
+// Always use braces, no single-line if/for/while without braces
+if (ptr == null) return;          // Bad
+if (ptr == null)                  // Bad
+    return;
+
+if (ptr == null)                  // Good
+{
+    return;
+}
 ```
+
+> Braces are enforced by `.editorconfig` (`csharp_prefer_braces = true:warning`) and will fail CI format checks.
 
 ### Feature Switches
 
@@ -652,7 +692,7 @@ public static bool InterruptsEnabled =>
     AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled)
         ? enabled : true;
 
-// Usage — the ILC linker trims the dead branch entirely
+// The ILC linker trims the dead branch entirely
 if (CosmosFeatures.KeyboardEnabled)
 {
     // This code is removed from the binary when keyboard is disabled
@@ -669,16 +709,16 @@ NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.*
 
 ### Forbidden
 
-- `System.Reflection.Emit` (no runtime code generation)
-- `dynamic` keyword
-- `Assembly.Load` at runtime
-- `Type.GetType("...")` by string at runtime (types must be statically reachable)
-- `MakeGenericType` / `MakeGenericMethod` at runtime (generic instantiations must be known at compile time)
+- `System.Reflection.Emit` (no runtime code generation).
+- `dynamic` keyword.
+- `Assembly.Load` at runtime.
+- `Type.GetType("...")` by string at runtime (types must be statically reachable).
+- `MakeGenericType` / `MakeGenericMethod` at runtime (generic instantiations must be known at compile time).
 
 ### Use with Caution
 
-- **Generic virtual methods** — NativeAOT must generate all possible instantiations at compile time. Avoid deeply nested or open-ended generic virtual dispatch.
-- **LINQ** — many LINQ operators allocate iterators and closures. Avoid in hot paths (GC, scheduler, interrupt handlers).
+- **Generic virtual methods**, NativeAOT must generate all possible instantiations at compile time. Avoid deeply nested or open-ended generic virtual dispatch.
+- **LINQ**, many LINQ operators allocate iterators and closures. Avoid in hot paths (GC, scheduler, interrupt handlers).
 
 ---
 
@@ -706,12 +746,12 @@ public static void Halt(string message) { ... }
 ```
 
 **Rules:**
-- Document public classes, interfaces, methods, properties
-- Skip documentation on obvious members (`get`/`set` for self-documenting property names)
-- Use `<param>` for non-obvious parameters
-- Use `<returns>` when return value needs explanation
-- Use `<see cref="..."/>` to reference related types
-- Don't document private implementation details unless the logic is complex
+- Document public classes, interfaces, methods, properties.
+- Skip documentation on obvious members (`get`/`set` for self-documenting property names).
+- Use `<param>` for non-obvious parameters.
+- Use `<returns>` when return value needs explanation.
+- Use `<see cref="..."/>` to reference related types.
+- Don't document private implementation details unless the logic is complex.
 
 ### Inline Comments
 

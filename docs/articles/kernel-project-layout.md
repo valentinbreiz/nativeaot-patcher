@@ -21,6 +21,7 @@ flowchart LR;
 	Cosmos.Kernel.HAL-->Cosmos.Kernel.Core;
     Cosmos.Kernel.Core-->Cosmos.Kernel.Native.X64;
     Cosmos.Kernel.Core-->Cosmos.Kernel.Native.ARM64;
+    Cosmos.Kernel.Core-->Cosmos.Kernel.Native.MultiArch;
 ```
 
 ## Project Descriptions
@@ -35,6 +36,7 @@ flowchart LR;
 | **Cosmos.Kernel.Core** | Low-level runtime: memory management, GC, scheduler, serial I/O, panic handler. |
 | **Cosmos.Kernel.Native.X64** | x86-64 assembly files (`.asm`) — interrupt stubs, context switching, SIMD. |
 | **Cosmos.Kernel.Native.ARM64** | ARM64 assembly files (`.S`) — exception vectors, context switching. |
+| **Cosmos.Kernel.Native.MultiArch** | Cross-platform native C code (ACPI, libc stubs). |
 | **Cosmos.Kernel.Plugs** | IL-level method replacements for BCL types (`Console`, `Thread`, `Environment`, etc.). |
 | **Cosmos.Kernel.Boot.Limine** | Limine bootloader protocol integration. |
 | **Cosmos.Kernel** | Base `Kernel` version info and shared kernel constants. |
