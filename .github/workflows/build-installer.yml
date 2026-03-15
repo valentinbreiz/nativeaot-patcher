@@ -99,10 +99,11 @@ jobs:
         shell: pwsh
 
       - name: Download xorriso
+        shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/xorriso
-          Invoke-WebRequest -Uri "${{ env.XORRISO_WIN_URL }}" -OutFile setup/bundle/tools/windows/xorriso/xorriso.exe
-        shell: pwsh
+          curl -LO ${{ env.XORRISO_WIN_URL }}
+          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe setup/bundle/tools/windows/xorriso/xorriso.exe
 
       - name: Download yasm
         run: |
