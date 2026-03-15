@@ -8,6 +8,8 @@
   href: debugging.md
 - name: Kernel Project Layout
   href: kernel-project-layout.md
+- name: Coding Guidelines
+  href: coding-guidelines.md
 - name: Plugs
   href: plugs.md
 - name: Testing
