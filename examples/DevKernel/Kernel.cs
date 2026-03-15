@@ -680,10 +680,12 @@ public class Kernel : Sys.Kernel
         // Configure IP address (10.0.2.15 for QEMU user networking)
         _localIP = new Address(10, 0, 2, 15);
         _gatewayIP = new Address(10, 0, 2, 2);
+        var subnet = new Address(255, 255, 255, 0);
 
-        // Initialize network stack and configure IP
+        // Initialize network stack and configure IP with full config (subnet + gateway)
+        // so that IPConfig.FindNetwork() can route outbound packets
         NetworkStack.Initialize();
-        NetworkStack.ConfigIP(device, _localIP);
+        IPConfig.Enable(device, _localIP, subnet, _gatewayIP);
 
         // Register UDP callback
         UDPPacket.OnUDPDataReceived = OnUDPDataReceived;
