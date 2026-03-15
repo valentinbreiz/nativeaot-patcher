@@ -72,9 +72,9 @@ All naming rules are enforced by `.editorconfig`. Summary:
 
 ### Avoid
 
-- Hungarian notation (`m_`, `p_`, `g_`) — use `_` prefix for private fields only
-- Legacy `mStopped` style — use `_stopped`
-- Abbreviations unless universally understood (`GC`, `CPU`, `HAL`, `IO`, `IP`, `MAC`)
+- Hungarian notation (`m_`, `p_`, `g_`),use `_` prefix for private fields only.
+- Legacy `mStopped` style, use `_stopped`.
+- Abbreviations unless universally understood (`GC`, `CPU`, `HAL`, `IO`, `IP`, `MAC`).
 
 ---
 
