@@ -38,5 +38,6 @@
         <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj"/>
         <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj"/>
         <Project Path="tests\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj"/>
+        <Project Path="tests\Cosmos.TestRunner.Framework\Cosmos.TestRunner.Framework.csproj"/>
     </Folder>
 </Solution>
