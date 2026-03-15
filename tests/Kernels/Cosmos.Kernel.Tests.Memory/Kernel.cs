@@ -457,7 +457,10 @@ public unsafe class Kernel : Sys.Kernel
         list.Add(3);
 
         int sum = 0;
-        foreach (int i in list) sum += i;
+        foreach (int i in list)
+        {
+            sum += i;
+        }
 
         Assert.True(sum == 6, "List foreach iteration");
     }
@@ -475,7 +478,7 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestDictionaryIndexer()
     {
         Dictionary<string, int> dict = new Dictionary<string, int>();
-        
+
         string keyA = "KeyA";
         string keyB = "KeyB";
         string keyC = "KeyC";
@@ -486,9 +489,9 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(dict[keyA] == 10 && dict[keyB] == 20, "Dictionary string key Add/Get");
 
         // 2. Test Update via Indexer
-        dict[keyA] = 30; 
+        dict[keyA] = 30;
         Assert.True(dict[keyA] == 30, "Dictionary string key Update");
-        
+
         // 3. Test Insert via Indexer
         dict[keyC] = 40;
         Assert.True(dict[keyC] == 40, "Dictionary string key Insert via Indexer");
@@ -556,7 +559,10 @@ public unsafe class Kernel : Sys.Kernel
         dict.Add(2, "Two");
 
         int keySum = 0;
-        foreach (var k in dict.Keys) keySum += k;
+        foreach (var k in dict.Keys)
+        {
+            keySum += k;
+        }
 
         Assert.True(keySum == 3, "Dictionary.Keys iteration");
 
@@ -580,7 +586,10 @@ public unsafe class Kernel : Sys.Kernel
         IEnumerable<int> enumerable = arr;
 
         int sum = 0;
-        foreach (int i in enumerable) sum += i;
+        foreach (int i in enumerable)
+        {
+            sum += i;
+        }
 
         Assert.True(sum == 6, "IEnumerable foreach on array");
     }
@@ -592,15 +601,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[8];
         byte* dest = stackalloc byte[8];
 
-        for (int i = 0; i < 8; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 8; i++) dest[i] = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 8);
 
         bool passed = true;
         for (int i = 0; i < 8; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 8-byte copy");
     }
@@ -610,15 +629,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[16];
         byte* dest = stackalloc byte[16];
 
-        for (int i = 0; i < 16; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 16; i++) dest[i] = 0;
+        for (int i = 0; i < 16; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 16);
 
         bool passed = true;
         for (int i = 0; i < 16; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 16-byte copy");
     }
@@ -628,15 +657,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[24];
         byte* dest = stackalloc byte[24];
 
-        for (int i = 0; i < 24; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 24; i++) dest[i] = 0;
+        for (int i = 0; i < 24; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
+
+        for (int i = 0; i < 24; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 24);
 
         bool passed = true;
         for (int i = 0; i < 24; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 24-byte copy");
     }
@@ -646,15 +685,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[32];
         byte* dest = stackalloc byte[32];
 
-        for (int i = 0; i < 32; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 32; i++) dest[i] = 0;
+        for (int i = 0; i < 32; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
+
+        for (int i = 0; i < 32; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 32);
 
         bool passed = true;
         for (int i = 0; i < 32; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 32-byte copy");
     }
@@ -664,15 +713,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[48];
         byte* dest = stackalloc byte[48];
 
-        for (int i = 0; i < 48; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 48; i++) dest[i] = 0;
+        for (int i = 0; i < 48; i++)
+        {
+            src[i] = (byte)((i + 1) & 0xFF);
+        }
+
+        for (int i = 0; i < 48; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 48);
 
         bool passed = true;
         for (int i = 0; i < 48; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 48-byte copy");
     }
@@ -682,15 +741,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[64];
         byte* dest = stackalloc byte[64];
 
-        for (int i = 0; i < 64; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 64; i++) dest[i] = 0;
+        for (int i = 0; i < 64; i++)
+        {
+            src[i] = (byte)((i + 1) & 0xFF);
+        }
+
+        for (int i = 0; i < 64; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 64);
 
         bool passed = true;
         for (int i = 0; i < 64; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 64-byte copy");
     }
@@ -700,15 +769,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[80];
         byte* dest = stackalloc byte[80];
 
-        for (int i = 0; i < 80; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 80; i++) dest[i] = 0;
+        for (int i = 0; i < 80; i++)
+        {
+            src[i] = (byte)((i + 1) & 0xFF);
+        }
+
+        for (int i = 0; i < 80; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 80);
 
         bool passed = true;
         for (int i = 0; i < 80; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 80-byte copy");
     }
@@ -718,15 +797,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[128];
         byte* dest = stackalloc byte[128];
 
-        for (int i = 0; i < 128; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 128; i++) dest[i] = 0;
+        for (int i = 0; i < 128; i++)
+        {
+            src[i] = (byte)((i + 1) & 0xFF);
+        }
+
+        for (int i = 0; i < 128; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 128);
 
         bool passed = true;
         for (int i = 0; i < 128; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 128-byte copy");
     }
@@ -736,15 +825,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[256];
         byte* dest = stackalloc byte[256];
 
-        for (int i = 0; i < 256; i++) src[i] = (byte)(i & 0xFF);
-        for (int i = 0; i < 256; i++) dest[i] = 0;
+        for (int i = 0; i < 256; i++)
+        {
+            src[i] = (byte)(i & 0xFF);
+        }
+
+        for (int i = 0; i < 256; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 256);
 
         bool passed = true;
         for (int i = 0; i < 256; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 256-byte copy");
     }
@@ -754,15 +853,25 @@ public unsafe class Kernel : Sys.Kernel
         byte* src = stackalloc byte[264];
         byte* dest = stackalloc byte[264];
 
-        for (int i = 0; i < 264; i++) src[i] = (byte)(i & 0xFF);
-        for (int i = 0; i < 264; i++) dest[i] = 0;
+        for (int i = 0; i < 264; i++)
+        {
+            src[i] = (byte)(i & 0xFF);
+        }
+
+        for (int i = 0; i < 264; i++)
+        {
+            dest[i] = 0;
+        }
 
         MemoryOp.MemCopy(dest, src, 264);
 
         bool passed = true;
         for (int i = 0; i < 264; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 264-byte copy");
     }
@@ -772,7 +881,10 @@ public unsafe class Kernel : Sys.Kernel
         byte* dest = stackalloc byte[64];
 
         // Clear first
-        for (int i = 0; i < 64; i++) dest[i] = 0;
+        for (int i = 0; i < 64; i++)
+        {
+            dest[i] = 0;
+        }
 
         // Fill with value 0xAB
         MemoryOp.MemSet(dest, 0xAB, 64);
@@ -780,7 +892,10 @@ public unsafe class Kernel : Sys.Kernel
         bool passed = true;
         for (int i = 0; i < 64; i++)
         {
-            if (dest[i] != 0xAB) passed = false;
+            if (dest[i] != 0xAB)
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemSet: 64 bytes with 0xAB");
     }
@@ -790,8 +905,15 @@ public unsafe class Kernel : Sys.Kernel
         // Test overlapping copy (dest > src)
         byte* buffer = stackalloc byte[32];
 
-        for (int i = 0; i < 16; i++) buffer[i] = (byte)(i + 1);
-        for (int i = 16; i < 32; i++) buffer[i] = 0;
+        for (int i = 0; i < 16; i++)
+        {
+            buffer[i] = (byte)(i + 1);
+        }
+
+        for (int i = 16; i < 32; i++)
+        {
+            buffer[i] = 0;
+        }
 
         // Move 16 bytes from offset 0 to offset 8 (overlapping)
         MemoryOp.MemMove(buffer + 8, buffer, 16);
@@ -800,12 +922,18 @@ public unsafe class Kernel : Sys.Kernel
         // First 8 bytes should be unchanged
         for (int i = 0; i < 8; i++)
         {
-            if (buffer[i] != (byte)(i + 1)) passed = false;
+            if (buffer[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         // Bytes 8-23 should be copies of original 0-15
         for (int i = 8; i < 24; i++)
         {
-            if (buffer[i] != (byte)(i - 8 + 1)) passed = false;
+            if (buffer[i] != (byte)(i - 8 + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemMove: overlapping regions");
     }
@@ -833,7 +961,10 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestMemMoveOverlapDestBeforeSrc()
     {
         byte* buffer = stackalloc byte[32];
-        for (int i = 0; i < 32; i++) buffer[i] = (byte)i;
+        for (int i = 0; i < 32; i++)
+        {
+            buffer[i] = (byte)i;
+        }
 
         // Move 16 bytes from offset 8 to offset 0 (overlapping, dest < src)
         MemoryOp.MemMove(buffer, buffer + 8, 16);
@@ -841,7 +972,10 @@ public unsafe class Kernel : Sys.Kernel
         bool passed = true;
         for (int i = 0; i < 16; i++)
         {
-            if (buffer[i] != (byte)(i + 8)) passed = false;
+            if (buffer[i] != (byte)(i + 8))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemMove: overlapping regions (dest < src)");
     }
@@ -864,14 +998,20 @@ public unsafe class Kernel : Sys.Kernel
         byte[] source = new byte[64];
         byte[] dest = new byte[64];
 
-        for (int i = 0; i < 64; i++) source[i] = (byte)(i + 1);
+        for (int i = 0; i < 64; i++)
+        {
+            source[i] = (byte)(i + 1);
+        }
 
         Array.Copy(source, dest, 64);
 
         bool passed = true;
         for (int i = 0; i < 64; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "Array.Copy: byte[] 64 bytes");
     }
@@ -881,14 +1021,20 @@ public unsafe class Kernel : Sys.Kernel
         byte[] source = new byte[256];
         byte[] dest = new byte[256];
 
-        for (int i = 0; i < 256; i++) source[i] = (byte)(i & 0xFF);
+        for (int i = 0; i < 256; i++)
+        {
+            source[i] = (byte)(i & 0xFF);
+        }
 
         Array.Copy(source, dest, 256);
 
         bool passed = true;
         for (int i = 0; i < 256; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & 0xFF))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "Array.Copy: byte[] 256 bytes (large SIMD)");
     }
@@ -1003,7 +1149,11 @@ public unsafe class Kernel : Sys.Kernel
     {
         // Arrays must survive collection when reachable
         int[] arr = new int[10];
-        for (int i = 0; i < 10; i++) arr[i] = i * 10;
+        for (int i = 0; i < 10; i++)
+        {
+            arr[i] = i * 10;
+        }
+
         GarbageCollector.Collect();
         Assert.Equal(10, arr.Length, "GC: array length survives collection");
         Assert.True(arr[0] == 0 && arr[5] == 50 && arr[9] == 90, "GC: array contents survive collection");
@@ -1029,7 +1179,10 @@ public unsafe class Kernel : Sys.Kernel
         {
             object obj = new byte[arraySize];
             // Prevent optimizer from removing the allocation
-            if (obj == null) break;
+            if (obj == null)
+            {
+                break;
+            }
         }
     }
 
@@ -1104,7 +1257,10 @@ public unsafe class Kernel : Sys.Kernel
         for (int i = 0; i < count; i++)
         {
             byte[] temp = new byte[size];
-            if (temp == null) break;
+            if (temp == null)
+            {
+                break;
+            }
         }
     }
 
@@ -1124,7 +1280,11 @@ public unsafe class Kernel : Sys.Kernel
 
         // Must be able to allocate after GC reclaims memory
         int[] newArr = new int[100];
-        for (int i = 0; i < 100; i++) newArr[i] = i;
+        for (int i = 0; i < 100; i++)
+        {
+            newArr[i] = i;
+        }
+
         Assert.Equal(99, newArr[99], "GC: allocation works after collection");
     }
 
@@ -1279,7 +1439,11 @@ public unsafe class Kernel : Sys.Kernel
 
         // Table should be empty now - the key is dead, so the entry should be removed
         int count = 0;
-        foreach (var kv in table) count++;
+        foreach (var kv in table)
+        {
+            count++;
+        }
+
         Assert.Equal(0, count, "GC: ConditionalWeakTable entries cleared when key is dead");
     }
 

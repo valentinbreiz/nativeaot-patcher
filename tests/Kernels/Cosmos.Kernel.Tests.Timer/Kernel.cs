@@ -34,7 +34,7 @@ public class Kernel : Sys.Kernel
         TR.Run("LAPIC_Initialized", TestLAPICInitialized);
         TR.Run("LAPIC_Wait_100ms", TestLAPICWait100ms);
         TR.Run("LAPIC_Wait_Proportional", TestLAPICWaitProportional);
-    
+
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
         TR.Start("Timer Tests", expectedTests: 8);

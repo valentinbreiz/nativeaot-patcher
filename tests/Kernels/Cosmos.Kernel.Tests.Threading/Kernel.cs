@@ -3,8 +3,8 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
-using SysThread = System.Threading.Thread;
 using Sys = Cosmos.Kernel.System;
+using SysThread = System.Threading.Thread;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Threading;
@@ -387,9 +387,9 @@ public class Kernel : Sys.Kernel
         int[] log = new int[3];
         int index = 0;
 
-        Action first  = () => { log[index] = 1; index++; };
+        Action first = () => { log[index] = 1; index++; };
         Action second = () => { log[index] = 2; index++; };
-        Action third  = () => { log[index] = 3; index++; };
+        Action third = () => { log[index] = 3; index++; };
 
         Action combined = first + second + third;
         combined();
@@ -535,9 +535,9 @@ public class Kernel : Sys.Kernel
     {
         Predicate<int> isEven = x => (x % 2) == 0;
 
-        Assert.True(isEven(4),  "Predicate: 4 should be even");
+        Assert.True(isEven(4), "Predicate: 4 should be even");
         Assert.False(isEven(7), "Predicate: 7 should be odd");
-        Assert.True(isEven(0),  "Predicate: 0 should be even");
+        Assert.True(isEven(0), "Predicate: 0 should be even");
         Assert.False(isEven(1), "Predicate: 1 should be odd");
     }
 
@@ -563,7 +563,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestDelegateChaining()
     {
-        Func<int, int> addOne         = x => x + 1;
+        Func<int, int> addOne = x => x + 1;
         Func<int, int> multiplyByThree = x => x * 3;
 
         // Manual pipeline: (13 + 1) * 3 = 42
@@ -584,7 +584,7 @@ public class Kernel : Sys.Kernel
 
         // Subscribe two handlers
         handlers += (data) => { eventFireCount++; lastEventData = data; };
-        handlers += (_)    => { eventFireCount++; };
+        handlers += (_) => { eventFireCount++; };
 
         // Fire the event
         handlers?.Invoke("hello");

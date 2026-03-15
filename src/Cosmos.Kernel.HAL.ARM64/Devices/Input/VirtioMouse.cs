@@ -68,47 +68,15 @@ public unsafe class VirtioMouse : MouseDevice
     private bool _tempMiddleButton;
     private bool _hasEvents;
 
-    public static VirtioMouse? Instance { get; private set; }
-
     public override bool DataAvailable => false; // Events are pushed via interrupt
 
-    private VirtioMouse(ulong baseAddress, uint irq, uint mmioVersion)
+    internal VirtioMouse(ulong baseAddress, uint irq, uint mmioVersion)
     {
         _baseAddress = baseAddress;
         _irq = irq;
         _mmioVersion = mmioVersion;
         X = 0;
         Y = 0;
-    }
-
-    /// <summary>
-    /// Finds and creates a virtio mouse device.
-    /// Note: QEMU enumerates mouse first, keyboard second, so we find the 1st device.
-    /// </summary>
-    public static VirtioMouse? FindAndCreate()
-    {
-        Serial.Write("[VirtioMouse] Searching for virtio-input device (mouse)...\n");
-
-        if (!VirtioMMIO.FindDevice(VirtioMMIO.VIRTIO_DEV_INPUT, out ulong baseAddr, out uint irq))
-        {
-            Serial.Write("[VirtioMouse] No virtio-input device found\n");
-            return null;
-        }
-
-        // Read MMIO version (1 = legacy, 2 = modern)
-        uint version = VirtioMMIO.Read32(baseAddr, VirtioMMIO.REG_VERSION);
-
-        Serial.Write("[VirtioMouse] Found virtio-input at 0x");
-        Serial.WriteHex(baseAddr);
-        Serial.Write(" IRQ=");
-        Serial.WriteNumber(irq);
-        Serial.Write(" MMIO version=");
-        Serial.WriteNumber(version);
-        Serial.Write("\n");
-
-        var mouse = new VirtioMouse(baseAddr, irq, version);
-        Instance = mouse;
-        return mouse;
     }
 
     /// <summary>
@@ -290,24 +258,26 @@ public unsafe class VirtioMouse : MouseDevice
 
     private static void HandleIRQ(ref IRQContext ctx)
     {
-        if (Instance == null)
+        var mouse = VirtioDevice.GetDeviceFromIRQ<VirtioMouse>(ctx.interrupt);
+
+        if (mouse is null)
         {
             return;
         }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
-        uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
+        uint intStatus = VirtioMMIO.Read32(mouse._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
         {
-            VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+            VirtioMMIO.Write32(mouse._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
         }
 
-        if (!Instance._initialized)
+        if (!mouse._initialized)
         {
             return;
         }
 
-        Instance.ProcessEvents();
+        mouse.ProcessEvents();
     }
 
     private void ProcessEvents()

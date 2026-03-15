@@ -50,7 +50,6 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private bool _initialized;
     private bool _irqRegistered;
 
-    public static VirtioKeyboard? Instance { get; private set; }
 
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -59,71 +58,11 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
     public override bool KeyAvailable => false;  // Events are pushed via interrupt
 
-    private VirtioKeyboard(ulong baseAddress, uint irq, uint mmioVersion)
+    internal VirtioKeyboard(ulong baseAddress, uint irq, uint mmioVersion)
     {
         _baseAddress = baseAddress;
         _irq = irq;
         _mmioVersion = mmioVersion;
-    }
-
-    /// <summary>
-    /// Finds and creates a virtio keyboard device.
-    /// Note: QEMU enumerates mouse first, keyboard second, so we find the 2nd device.
-    /// </summary>
-    public static VirtioKeyboard? FindAndCreate()
-    {
-        Serial.Write("[VirtioKeyboard] Searching for virtio-input device...\n");
-
-        // Manually scan for second virtio-input device (QEMU puts mouse first, keyboard second)
-        int foundCount = 0;
-        ulong baseAddr = 0;
-        uint irq = 0;
-        uint version = 0;
-
-        for (uint i = 0; i < VirtioMMIO.VIRTIO_MMIO_MAX_DEVICES; i++)
-        {
-            ulong addr = VirtioMMIO.VIRTIO_MMIO_BASE + (i * VirtioMMIO.VIRTIO_MMIO_SIZE);
-
-            uint magic = VirtioMMIO.Read32(addr, VirtioMMIO.REG_MAGIC);
-            if (magic != VirtioMMIO.VIRTIO_MAGIC)
-            {
-                continue;
-            }
-
-            uint devId = VirtioMMIO.Read32(addr, VirtioMMIO.REG_DEVICE_ID);
-            if (devId == VirtioMMIO.VIRTIO_DEV_INPUT)
-            {
-                foundCount++;
-                if (foundCount == 2)
-                {
-                    // This is the second virtio-input device (keyboard)
-                    baseAddr = addr;
-                    irq = VirtioMMIO.VIRTIO_IRQ_BASE + i;
-                    version = VirtioMMIO.Read32(addr, VirtioMMIO.REG_VERSION);
-                    break;
-                }
-            }
-        }
-
-        if (foundCount < 2)
-        {
-            Serial.Write("[VirtioKeyboard] Only ");
-            Serial.WriteNumber((uint)foundCount);
-            Serial.Write(" virtio-input device(s) found, need 2\n");
-            return null;
-        }
-
-        Serial.Write("[VirtioKeyboard] Found virtio-input at 0x");
-        Serial.WriteHex(baseAddr);
-        Serial.Write(" IRQ=");
-        Serial.WriteNumber(irq);
-        Serial.Write(" MMIO version=");
-        Serial.WriteNumber(version);
-        Serial.Write("\n");
-
-        var keyboard = new VirtioKeyboard(baseAddr, irq, version);
-        Instance = keyboard;
-        return keyboard;
     }
 
     /// <summary>
@@ -338,25 +277,27 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
     private static void HandleIRQ(ref IRQContext ctx)
     {
-        if (Instance == null)
+        var keyboard = VirtioDevice.GetDeviceFromIRQ<VirtioKeyboard>(ctx.interrupt);
+
+        if (keyboard is null)
         {
             return;
         }
 
         // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
-        uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
+        uint intStatus = VirtioMMIO.Read32(keyboard._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
         if (intStatus != 0)
         {
-            VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+            VirtioMMIO.Write32(keyboard._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
         }
 
-        if (!Instance._initialized)
+        if (!keyboard._initialized)
         {
             return;
         }
 
         // Process used buffers
-        Instance.ProcessEvents();
+        keyboard.ProcessEvents();
     }
 
     private void ProcessEvents()
@@ -395,7 +336,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 //Serial.Write(released ? " released\n" : " pressed\n");
 
                 // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
-                Instance?.OnKeyPressed?.Invoke(scanCode, released);
+                OnKeyPressed?.Invoke(scanCode, released);
             }
 
             // Re-add buffer to queue
