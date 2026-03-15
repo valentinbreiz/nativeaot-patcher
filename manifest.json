@@ -1762,6 +1762,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.yml\" sourcestartlinenumber=\"1\">Provides initialization and management for virtio MMIO devices.\nHandles device discovery, initialization handshake, and registration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.yml",
       "output": {
         ".html": {

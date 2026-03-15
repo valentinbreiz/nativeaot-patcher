@@ -8213,19 +8213,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Enable
   nameWithType: VirtioKeyboard.Enable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate
-  name: FindAndCreate()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_FindAndCreate
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate()
-  nameWithType: VirtioKeyboard.FindAndCreate()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate*
-  name: FindAndCreate
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_FindAndCreate_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.FindAndCreate
-  nameWithType: VirtioKeyboard.FindAndCreate
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize
   name: Initialize()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Initialize
@@ -8239,19 +8226,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize
   nameWithType: VirtioKeyboard.Initialize
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Instance
-  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance
-  nameWithType: VirtioKeyboard.Instance
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance*
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Instance_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Instance
-  nameWithType: VirtioKeyboard.Instance
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.IsInitialized
   name: IsInitialized
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_IsInitialized
@@ -8349,19 +8323,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable
   nameWithType: VirtioMouse.Enable
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  name: FindAndCreate()
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate
-  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate()
-  nameWithType: VirtioMouse.FindAndCreate()
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate*
-  name: FindAndCreate
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_FindAndCreate_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.FindAndCreate
-  nameWithType: VirtioMouse.FindAndCreate
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
   name: Initialize()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize
@@ -8375,19 +8336,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize
   nameWithType: VirtioMouse.Initialize
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance
-  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  nameWithType: VirtioMouse.Instance
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance*
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Instance_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Instance
-  nameWithType: VirtioMouse.Instance
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll
   name: Poll()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html#Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll
@@ -8465,19 +8413,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Initialize
   nameWithType: VirtioNet.Initialize
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Instance
-  commentId: P:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
-  nameWithType: VirtioNet.Instance
-- uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance*
-  name: Instance
-  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_Instance_
-  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.Instance
-  nameWithType: VirtioNet.Instance
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.LinkUp
   name: LinkUp
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html#Cosmos_Kernel_HAL_ARM64_Devices_Network_VirtioNet_LinkUp
@@ -8760,6 +8695,83 @@ references:
   commentId: N:Cosmos.Kernel.HAL.ARM64.Devices.Virtio
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio
   nameWithType: Cosmos.Kernel.HAL.ARM64.Devices.Virtio
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice
+  name: VirtioDevice
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html
+  commentId: T:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice
+  nameWithType: VirtioDevice
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice*
+  name: GetDevice
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDevice_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice
+  nameWithType: VirtioDevice.GetDevice
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ*
+  name: GetDeviceFromIRQ
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDeviceFromIRQ_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ
+  nameWithType: VirtioDevice.GetDeviceFromIRQ
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ``1(System.UInt64)
+  name: GetDeviceFromIRQ<T>(ulong)
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDeviceFromIRQ__1_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ``1(System.UInt64)
+  name.vb: GetDeviceFromIRQ(Of T)(ULong)
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ<T>(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ(Of T)(ULong)
+  nameWithType: VirtioDevice.GetDeviceFromIRQ<T>(ulong)
+  nameWithType.vb: VirtioDevice.GetDeviceFromIRQ(Of T)(ULong)
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice``1
+  name: GetDevice<T>()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDevice__1
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice``1
+  name.vb: GetDevice(Of T)()
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice<T>()
+  fullName.vb: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice(Of T)()
+  nameWithType: VirtioDevice.GetDevice<T>()
+  nameWithType.vb: VirtioDevice.GetDevice(Of T)()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards
+  name: GetKeyboards()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetKeyboards
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards()
+  nameWithType: VirtioDevice.GetKeyboards()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards*
+  name: GetKeyboards
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetKeyboards_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards
+  nameWithType: VirtioDevice.GetKeyboards
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice
+  name: GetMice()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetMice
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice()
+  nameWithType: VirtioDevice.GetMice()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice*
+  name: GetMice
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetMice_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice
+  nameWithType: VirtioDevice.GetMice
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices
+  name: InitializeDevices()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_InitializeDevices
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices()
+  nameWithType: VirtioDevice.InitializeDevices()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices*
+  name: InitializeDevices
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html#Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_InitializeDevices_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices
+  nameWithType: VirtioDevice.InitializeDevices
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO
   name: VirtioMMIO
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html
