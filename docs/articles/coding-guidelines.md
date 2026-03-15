@@ -46,8 +46,8 @@ For the full dependency graph, project descriptions, and rules, see [Kernel Proj
 ### When to Create a New Project
 
 - New hardware device category → new interface in `Cosmos.Kernel.HAL.Interfaces`, implementations in `Cosmos.Kernel.HAL.X64`/`Cosmos.Kernel.HAL.ARM64`. Cross-platform HAL devices go to `Cosmos.Kernel.HAL`.
-- New OS-level feature, user API exposed → in `Cosmos.Kernel.System`
-- New low-level runtime concern → in `Cosmos.Kernel.Core`
+- New OS-level feature, user API exposed → in `Cosmos.Kernel.System`.
+- New low-level runtime concern → in `Cosmos.Kernel.Core`.
 
 ---
 
