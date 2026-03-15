@@ -139,6 +139,11 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
+        if (sourceIP == null)
+        {
+            return MACAddress.None;
+        }
+
         if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
         {
             var device = NetworkStack.AddressMap[sourceIP.Hash];

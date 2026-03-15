@@ -40,6 +40,11 @@ public class DnsClient : UdpClient
     public void SendAsk(string url)
     {
         Address source = IPConfig.FindNetwork(destination);
+        if (source == null)
+        {
+            throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
+        }
+
         queryUrl = url;
         var askpacket = new DNSPacketAsk(source, destination, url);
 
