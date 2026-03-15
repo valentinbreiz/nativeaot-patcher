@@ -10,6 +10,8 @@ on:
   push:
     tags:
       - 'v*'
+  pull_request:    # TEMPORARY: remove after testing
+    branches: [ main ]
 
 env:
   DOTNET_VERSION: '10.0.x'
