@@ -87,7 +87,10 @@ public static class Serial
         {
 #if ARCH_ARM64
             // PL011: Wait until TX FIFO is not full
-            while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0) ;
+            while ((Native.MMIO.Read32(PL011_BASE + PL011_FR) & FR_TXFF) != 0)
+            {
+                ;
+            }
             Native.MMIO.Write8(PL011_BASE + PL011_DR, value);
 #else
             // 16550: Wait for transmit buffer to be empty

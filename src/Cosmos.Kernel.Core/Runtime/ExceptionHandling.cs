@@ -1629,7 +1629,9 @@ public static unsafe partial class ExceptionHelper
         byte* p = cie;
         uint length = *(uint*)p;
         if (length == 0 || length == 0xFFFFFFFF)
+        {
             return false;
+        }
 
         byte* cieEnd = p + 4 + length;
         p += 4;
@@ -1638,14 +1640,22 @@ public static unsafe partial class ExceptionHelper
         p += 4;
 
         if (cieId != 0)
+        {
             return false;
+        }
 
         byte version = *p++;
         if (version != 1 && version != 3 && version != 4)
+        {
             return false;
+        }
 
         byte* augString = p;
-        while (*p != 0) p++;
+        while (*p != 0)
+        {
+            p++;
+        }
+
         p++;
 
         if (version == 4)
@@ -1658,9 +1668,13 @@ public static unsafe partial class ExceptionHelper
         dataAlignFactor = ReadSLEB128(ref p);
 
         if (version == 1)
+        {
             returnAddressReg = *p++;
+        }
         else
+        {
             returnAddressReg = (byte)ReadULEB128(ref p);
+        }
 
         if (*augString == 'z')
         {
@@ -1885,15 +1899,24 @@ public static unsafe partial class ExceptionHelper
         byte* ehFrameEnd = GetEhFrameEnd();
 
         if (ehFrameStart == null || ehFrameEnd == null)
+        {
             return false;
+        }
 
         byte* p = ehFrameStart;
 
         while (p < ehFrameEnd)
         {
             uint length = *(uint*)p;
-            if (length == 0) break;
-            if (length == 0xFFFFFFFF) break;
+            if (length == 0)
+            {
+                break;
+            }
+
+            if (length == 0xFFFFFFFF)
+            {
+                break;
+            }
 
             byte* recordStart = p;
             byte* recordEnd = p + 4 + length;
@@ -1928,7 +1951,9 @@ public static unsafe partial class ExceptionHelper
                 {
                     int lsdaRel = *(int*)p;
                     if (lsdaRel != 0)
+                    {
                         pLSDA = p + lsdaRel;
+                    }
                     p += (int)augLen;
                 }
 
