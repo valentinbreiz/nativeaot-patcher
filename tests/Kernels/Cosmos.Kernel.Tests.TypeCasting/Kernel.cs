@@ -314,7 +314,7 @@ public class Kernel : Sys.Kernel
         }
 
         resumed = true;
-        
+
         Assert.True(filterRan, "Filter should have run");
         Assert.True(catchRan, "Catch should have run");
         Assert.True(resumed, "Execution should resume after catch");

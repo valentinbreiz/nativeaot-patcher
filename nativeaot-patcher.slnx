@@ -31,13 +31,4 @@
         <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj"/>
         <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj"/>
     </Folder>
-    <Folder Name="/tests/">
-        <Project Path="tests\Cosmos.Tests.Build.Analyzer.Patcher\Cosmos.Tests.Build.Analyzer.Patcher.csproj"/>
-        <Project Path="tests\Cosmos.Tests.Build.Asm\Cosmos.Tests.Build.Asm.csproj"/>
-        <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj"/>
-        <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj"/>
-        <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj"/>
-        <Project Path="tests\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj"/>
-        <Project Path="tests\Cosmos.TestRunner.Framework\Cosmos.TestRunner.Framework.csproj"/>
-    </Folder>
 </Solution>
