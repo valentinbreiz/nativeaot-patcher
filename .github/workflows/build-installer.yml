@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version override (e.g., 3.0.38). Leave empty to use Directory.Build.props.'
+        description: 'Version override (e.g., 3.0.39). Leave empty to use Directory.Build.props.'
         required: false
         type: string
   push:
