@@ -115,15 +115,15 @@ const
   SMTO_ABORTIFHUNG = 2;
   WM_SETTINGCHANGE = $001A;
 
-function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: string; fuFlags: UINT; uTimeout: UINT; var lpdwResult: DWORD): LRESULT;
+function SendMessageTimeoutW(hWnd: LongInt; Msg: LongInt; wParam: LongInt; lParam: string; fuFlags: LongInt; uTimeout: LongInt; var lpdwResult: LongInt): LongInt;
   external 'SendMessageTimeoutW@user32.dll stdcall';
 
 procedure BroadcastEnvironmentChange;
 var
-  Dummy: DWORD;
+  Dummy: LongInt;
 begin
   { Notify all windows that environment variables have changed }
-  SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment', SMTO_ABORTIFHUNG, 5000, Dummy);
+  SendMessageTimeoutW($FFFF {HWND_BROADCAST}, WM_SETTINGCHANGE, 0, 'Environment', SMTO_ABORTIFHUNG, 5000, Dummy);
 end;
 
 function DotNetInstalled: Boolean;
