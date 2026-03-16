@@ -28,11 +28,10 @@ WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-; Uncomment these when image files are available:
-; WizardImageFile=images\cosmos.bmp
-; WizardSmallImageFile=images\cosmos_small.bmp
-; SetupIconFile=images\cosmos.ico
-; UninstallDisplayIcon={app}\cosmos.ico
+WizardImageFile=images\cosmos.bmp
+WizardSmallImageFile=images\cosmos_small.bmp
+SetupIconFile=images\Cosmos.ico
+UninstallDisplayIcon={app}\Cosmos.ico
 LicenseFile=..\LICENSE
 Uninstallable=yes
 UninstallDisplayName={#MyAppName}
@@ -42,6 +41,9 @@ ChangesEnvironment=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
+; Icon
+Source: "images\Cosmos.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 ; NuGet packages
 Source: "bundle\packages\*.nupkg"; DestDir: "{app}\Packages"; Flags: ignoreversion
 
