@@ -109,6 +109,7 @@ Filename: "dotnet"; Parameters: "nuget remove source ""Cosmos Local Feed"""; Fla
 Filename: "dotnet"; Parameters: "tool uninstall -g Cosmos.Patcher"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallPatcher"
 Filename: "dotnet"; Parameters: "tool uninstall -g Cosmos.Tools"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallTools"
 Filename: "dotnet"; Parameters: "new uninstall Cosmos.Build.Templates"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallTemplates"
+Filename: "cmd"; Parameters: "/c code --uninstall-extension cosmosos.cosmos-vscode"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallVSCodeExt"
 
 [Code]
 const
