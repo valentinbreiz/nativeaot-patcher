@@ -109,12 +109,17 @@ jobs:
         run: |
           choco install yasm -y --no-progress
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/yasm
-          Copy-Item (Get-Command yasm).Source setup/bundle/tools/windows/yasm/yasm.exe
+          # Copy the real binary, not the chocolatey shim
+          Copy-Item "C:\ProgramData\chocolatey\lib\yasm\tools\yasm.exe" setup/bundle/tools/windows/yasm/yasm.exe
         shell: pwsh
 
       - name: Download LLD
+        uses: crazy-max/ghaction-chocolatey@v3.3.0
+        with:
+          args: install -y llvm
+
+      - name: Bundle LLD
         run: |
-          choco install llvm -y --no-progress
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
           $llvmBin = "C:\Program Files\LLVM\bin"
           Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/
