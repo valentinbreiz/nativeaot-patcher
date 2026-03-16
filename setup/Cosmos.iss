@@ -19,7 +19,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
 DefaultDirName={localappdata}\Cosmos
 DefaultGroupName=Cosmos
-DisableProgramGroupPage=yes
+DisableProgramGroupPage=no
 OutputDir=output
 OutputBaseFilename=CosmosSetup-{#MyAppVersion}-windows
 Compression=lzma2/ultra64
@@ -34,6 +34,9 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ; SetupIconFile=images\cosmos.ico
 ; UninstallDisplayIcon={app}\cosmos.ico
 LicenseFile=..\LICENSE
+Uninstallable=yes
+UninstallDisplayName={#MyAppName}
+ChangesEnvironment=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -57,8 +60,13 @@ Source: "bundle\extensions\*.vsix"; DestDir: "{app}\Extensions"; Flags: ignoreve
 ; dotnet tool packages
 Source: "bundle\dotnet-tools\*.nupkg"; DestDir: "{app}\DotnetTools"; Flags: ignoreversion
 
+[Icons]
+Name: "{group}\Uninstall Cosmos"; Filename: "{uninstallexe}"
+
 [Registry]
 Root: HKCU; Subkey: "Software\Cosmos"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
+; Add tool paths to user PATH via registry
+Root: HKCU; Subkey: "Software\Cosmos"; ValueType: string; ValueName: "ToolsPath"; ValueData: "{app}\Tools"; Flags: uninsdeletekey
 
 [Run]
 ; Register local NuGet feed for offline package restore
@@ -89,11 +97,11 @@ StatusMsg: "Installing Cosmos project templates..."; \
   Flags: runhidden waituntilterminated; \
   Check: DotNetInstalled
 
-; Install VS Code extension (optional, skip if VS Code not installed)
+; Install VS Code extension
 StatusMsg: "Installing VS Code extension..."; \
-  Filename: "code"; \
-  Parameters: "--install-extension ""{app}\Extensions\cosmos-vscode.vsix"" --force"; \
-  Flags: runhidden waituntilterminated skipifdoesntexist; \
+  Filename: "cmd"; \
+  Parameters: "/c for %f in (""{app}\Extensions\*.vsix"") do code --install-extension ""%f"" --force"; \
+  Flags: runhidden waituntilterminated; \
   Check: VSCodeInstalled
 
 [UninstallRun]
@@ -103,6 +111,21 @@ Filename: "dotnet"; Parameters: "tool uninstall -g Cosmos.Tools"; Flags: runhidd
 Filename: "dotnet"; Parameters: "new uninstall Cosmos.Build.Templates"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallTemplates"
 
 [Code]
+const
+  SMTO_ABORTIFHUNG = 2;
+  WM_SETTINGCHANGE = $001A;
+
+function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: string; fuFlags: UINT; uTimeout: UINT; var lpdwResult: DWORD): LRESULT;
+  external 'SendMessageTimeoutW@user32.dll stdcall';
+
+procedure BroadcastEnvironmentChange;
+var
+  Dummy: DWORD;
+begin
+  { Notify all windows that environment variables have changed }
+  SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment', SMTO_ABORTIFHUNG, 5000, Dummy);
+end;
+
 function DotNetInstalled: Boolean;
 var
   ResultCode: Integer;
@@ -114,7 +137,7 @@ function VSCodeInstalled: Boolean;
 var
   ResultCode: Integer;
 begin
-  Result := Exec('code', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+  Result := Exec('cmd', '/c code --version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
 end;
 
 procedure AddToUserPath(Dir: string);
@@ -183,6 +206,8 @@ begin
     AddToUserPath(ExpandConstant('{app}\Tools\lld'));
     AddToUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     AddToUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
+    { Broadcast so new terminals pick up the PATH change immediately }
+    BroadcastEnvironmentChange;
   end;
 end;
 
@@ -196,5 +221,7 @@ begin
     RemoveFromUserPath(ExpandConstant('{app}\Tools\lld'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
+    { Broadcast so terminals pick up the PATH removal }
+    BroadcastEnvironmentChange;
   end;
 end;
