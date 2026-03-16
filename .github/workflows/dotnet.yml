@@ -195,8 +195,6 @@ jobs:
         if: matrix.arch == 'arm64'
         run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
 
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
       - name: 🔧 Install Patcher
         run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
@@ -288,8 +286,6 @@ jobs:
           Write-Host "Adding to PATH: $binPath"
           echo $binPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
       - name: 🔧 Install Patcher
         run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
@@ -363,8 +359,6 @@ jobs:
           # These support -mcmodel=kernel (x64) and -mcmodel=large (arm64) needed for bare-metal kernels
           brew install ${{ matrix.gcc_package }} ${{ matrix.binutils_package }}
 
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
 
       - name: 🔧 Install Patcher
         run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release

@@ -152,8 +152,6 @@ dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 Write-Host "Installing global tools..." -ForegroundColor Cyan
-dotnet tool uninstall -g ilc 2>$null
-dotnet tool install -g ilc --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Patcher 2>$null
 dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Tools 2>$null
