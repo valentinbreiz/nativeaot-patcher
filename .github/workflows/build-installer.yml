@@ -137,7 +137,7 @@ jobs:
           $headers = @{}
           if ("${{ secrets.GITHUB_TOKEN }}") { $headers["Authorization"] = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
           try {
-            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/CosmosOS/CosmosVsCodeExtension/releases/latest" -Headers $headers
+            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" -Headers $headers
             $vsix = $releases.assets | Where-Object { $_.name -like "*.vsix" } | Select-Object -First 1
             if ($vsix) {
               Invoke-WebRequest -Uri $vsix.browser_download_url -OutFile "setup/bundle/extensions/cosmos-vscode.vsix" -Headers $headers
@@ -228,7 +228,7 @@ jobs:
         run: |
           mkdir -p staging/bundle/extensions
           # Download latest VS Code extension release if available
-          curl -sL "https://api.github.com/repos/CosmosOS/CosmosVsCodeExtension/releases/latest" \
+          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
             jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
             xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
@@ -308,7 +308,7 @@ jobs:
       - name: Download VS Code extension
         run: |
           mkdir -p staging/bundle/extensions
-          curl -sL "https://api.github.com/repos/CosmosOS/CosmosVsCodeExtension/releases/latest" \
+          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
             jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
             xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
