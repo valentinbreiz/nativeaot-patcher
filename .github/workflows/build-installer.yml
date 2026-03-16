@@ -118,15 +118,37 @@ jobs:
         with:
           args: install -y llvm
 
-      - name: Bundle LLD
+      - name: Bundle LLD and Clang
         run: |
-          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
           $llvmBin = "C:\Program Files\LLVM\bin"
+
+          # Bundle LLD
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
           Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/
           if (Test-Path "$llvmBin\ld.lld.exe") {
             Copy-Item "$llvmBin\ld.lld.exe" setup/bundle/tools/windows/lld/
           } else {
             Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/ld.lld.exe
+          }
+
+          # Bundle Clang (needed to build Limine bootloader)
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/clang
+          Copy-Item "$llvmBin\clang.exe" setup/bundle/tools/windows/clang/
+          Copy-Item "$llvmBin\clang++.exe" setup/bundle/tools/windows/clang/ -ErrorAction SilentlyContinue
+        shell: pwsh
+
+      - name: Bundle Make
+        run: |
+          # Install make via chocolatey
+          choco install make -y --no-progress
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/make
+          # Find and copy the real make.exe binary
+          $makePath = Get-Command make -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          if ($makePath) {
+            Copy-Item $makePath setup/bundle/tools/windows/make/
+          } else {
+            # Fallback to common choco install path
+            Copy-Item "C:\ProgramData\chocolatey\lib\make\tools\install\bin\make.exe" setup/bundle/tools/windows/make/
           }
         shell: pwsh
 

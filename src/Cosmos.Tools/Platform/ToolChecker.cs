@@ -62,14 +62,38 @@ public static class ToolChecker
 
             if (!whichResult.success || string.IsNullOrWhiteSpace(whichResult.output))
             {
-                // Also check common Cosmos tools paths
+                // Check Cosmos tools paths — installers place tools in subdirectories:
+                //   {tools}/yasm/yasm, {tools}/lld/ld.lld,
+                //   {tools}/x86_64-elf-tools/bin/x86_64-elf-gcc, etc.
+                //   {tools}/bin/ contains symlinks (Linux/macOS)
                 string cosmosToolsPath = GetCosmosToolsPath();
-                string[] possiblePaths = new[]
+                string ext = PlatformInfo.CurrentOS == OSPlatform.Windows ? ".exe" : "";
+                var possiblePaths = new List<string>
                 {
+                    // Flat layout & bin/ symlinks
+                    Path.Combine(cosmosToolsPath, command + ext),
                     Path.Combine(cosmosToolsPath, command),
-                    Path.Combine(cosmosToolsPath, command + ".exe"),
+                    Path.Combine(cosmosToolsPath, "bin", command + ext),
                     Path.Combine(cosmosToolsPath, "bin", command),
-                    Path.Combine(cosmosToolsPath, "bin", command + ".exe")
+                    // Tool in its own subdirectory (yasm/yasm, lld/ld.lld, xorriso/xorriso)
+                    Path.Combine(cosmosToolsPath, command, command + ext),
+                    Path.Combine(cosmosToolsPath, command, command),
+                    // Cross-compiler toolchains have a bin/ subdirectory
+                    Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin", command + ext),
+                    Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin", command),
+                    Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin", command + ext),
+                    Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin", command),
+                    // Named subdirectories for specific tools
+                    Path.Combine(cosmosToolsPath, "lld", command + ext),
+                    Path.Combine(cosmosToolsPath, "lld", command),
+                    Path.Combine(cosmosToolsPath, "xorriso", command + ext),
+                    Path.Combine(cosmosToolsPath, "xorriso", command),
+                    Path.Combine(cosmosToolsPath, "yasm", command + ext),
+                    Path.Combine(cosmosToolsPath, "yasm", command),
+                    Path.Combine(cosmosToolsPath, "clang", command + ext),
+                    Path.Combine(cosmosToolsPath, "clang", command),
+                    Path.Combine(cosmosToolsPath, "make", command + ext),
+                    Path.Combine(cosmosToolsPath, "make", command),
                 };
 
                 foreach (string? possiblePath in possiblePaths)
@@ -86,11 +110,13 @@ public static class ToolChecker
 
             string path = whichResult.output.Split('\n', '\r')[0].Trim();
 
-            // Get version if possible
+            // Get version using the resolved full path (not the bare command name)
+            // so it works even when the command name has dots (e.g. ld.lld) or
+            // isn't directly resolvable by the child process
             string? version2 = null;
             if (!string.IsNullOrEmpty(versionArg))
             {
-                version2 = await GetVersionAsync(command, versionArg);
+                version2 = await GetVersionAsync(path, versionArg);
             }
 
             return (true, version2, path);
@@ -139,6 +165,23 @@ public static class ToolChecker
                 CreateNoWindow = true
             };
 
+            // Augment PATH with Cosmos installer tool directories so tools are
+            // discoverable even if the shell hasn't picked up the PATH yet
+            // (e.g. VS Code launched before install, or new terminal not opened)
+            string toolsBase = GetCosmosToolsPath();
+            string sep = PlatformInfo.CurrentOS == OSPlatform.Windows ? ";" : ":";
+            string extraPaths = string.Join(sep,
+                Path.Combine(toolsBase, "bin"),
+                Path.Combine(toolsBase, "yasm"),
+                Path.Combine(toolsBase, "xorriso"),
+                Path.Combine(toolsBase, "lld"),
+                Path.Combine(toolsBase, "clang"),
+                Path.Combine(toolsBase, "make"),
+                Path.Combine(toolsBase, "x86_64-elf-tools", "bin"),
+                Path.Combine(toolsBase, "aarch64-elf-tools", "bin"));
+            string currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+            psi.Environment["PATH"] = $"{extraPaths}{sep}{currentPath}";
+
             using var process = Process.Start(psi);
             if (process == null)
             {
@@ -163,7 +206,8 @@ public static class ToolChecker
     {
         string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return PlatformInfo.CurrentOS == OSPlatform.Windows
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos", "tools")
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos", "Tools")
             : Path.Combine(home, ".cosmos", "tools");
     }
+
 }

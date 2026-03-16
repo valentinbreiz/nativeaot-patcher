@@ -66,6 +66,32 @@ public static class ToolDefinitions
         MacOSInstall = new() { Method = "package", BrewPackages = ["llvm"] }
     };
 
+    public static readonly ToolDefinition Clang = new()
+    {
+        Name = "clang",
+        DisplayName = "Clang Compiler",
+        Description = "LLVM C compiler for building the Limine bootloader",
+        Commands = ["clang"],
+        VersionArg = "--version",
+        Required = true,
+        WindowsInstall = new() { Method = "package", ChocoPackages = ["llvm"] },
+        LinuxInstall = new() { Method = "package", AptPackages = ["clang"], DnfPackages = ["clang"], PacmanPackages = ["clang"] },
+        MacOSInstall = new() { Method = "manual", ManualInstructions = "Install Xcode Command Line Tools: xcode-select --install" }
+    };
+
+    public static readonly ToolDefinition Make = new()
+    {
+        Name = "make",
+        DisplayName = "GNU Make",
+        Description = "Build automation tool for building the Limine bootloader",
+        Commands = ["make"],
+        VersionArg = "--version",
+        Required = true,
+        WindowsInstall = new() { Method = "package", ChocoPackages = ["make"] },
+        LinuxInstall = new() { Method = "package", AptPackages = ["make"], DnfPackages = ["make"], PacmanPackages = ["make"] },
+        MacOSInstall = new() { Method = "manual", ManualInstructions = "Install Xcode Command Line Tools: xcode-select --install" }
+    };
+
     public static readonly ToolDefinition Xorriso = new()
     {
         Name = "xorriso",
@@ -182,6 +208,8 @@ public static class ToolDefinitions
     [
         DotNetSdk,
         LLD,
+        Clang,
+        Make,
         Xorriso,
         Yasm,
         X64ElfGcc,
