@@ -134,7 +134,14 @@ jobs:
           choco install qemu -y --no-progress
           $qemuDir = "C:\Program Files\qemu"
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/qemu
-          Copy-Item "$qemuDir\*" setup/bundle/tools/windows/qemu/ -Recurse
+          # Only bundle the architectures we need (x86_64 + aarch64), shared DLLs, and firmware
+          Copy-Item "$qemuDir\qemu-system-x86_64.exe" setup/bundle/tools/windows/qemu/
+          Copy-Item "$qemuDir\qemu-system-aarch64.exe" setup/bundle/tools/windows/qemu/
+          Copy-Item "$qemuDir\qemu-img.exe" setup/bundle/tools/windows/qemu/ -ErrorAction SilentlyContinue
+          Copy-Item "$qemuDir\*.dll" setup/bundle/tools/windows/qemu/
+          if (Test-Path "$qemuDir\share") {
+            Copy-Item "$qemuDir\share" setup/bundle/tools/windows/qemu/share -Recurse
+          }
         shell: pwsh
 
       - name: Download VS Code extension
