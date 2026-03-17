@@ -76,7 +76,9 @@
     <!-- Define normalized paths for Limine -->
     <PropertyGroup>
       <LimineDir>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)', 'limine'))</LimineDir>
-      <LimineBinary>$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
+      <!-- On Windows, use the pre-built limine.exe from the v9.x-binary branch -->
+      <LimineBinary Condition="'$(IsWindows)' == 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine.exe'))</LimineBinary>
+      <LimineBinary Condition="'$(IsWindows)' != 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
       <IsoRootBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot'))</IsoRootBoot>
       <IsoRootBootLimine>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot', 'limine'))</IsoRootBootLimine>
       <IsoRootEfiBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'EFI', 'BOOT'))</IsoRootEfiBoot>
@@ -91,9 +93,10 @@
       <LimineFiles Include="$(LimineDir)/**"/>
     </ItemGroup>
 
-    <!-- Download and build Limine (only if not already there) -->
+    <!-- Download Limine (only if not already there) -->
     <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 &quot;$(LimineDir)&quot;" IgnoreExitCode="true"/>
-    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang"/>
+    <!-- On Unix, build the limine CLI tool from source. On Windows, the pre-built limine.exe is included in the branch. -->
+    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang" Condition="'$(IsWindows)' != 'true'"/>
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRootBoot)"/>

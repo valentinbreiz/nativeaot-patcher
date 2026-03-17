@@ -20,7 +20,7 @@ env:
   X64_ELF_TOOLS_WIN_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip'
   X64_ELF_TOOLS_LINUX_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux.zip'
   AARCH64_ELF_TOOLS_WIN_URL: 'https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z'
-  XORRISO_WIN_URL: 'https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe'
+  XORRISO_WIN_REPO: 'https://github.com/PeyTy/xorriso-exe-for-windows.git'
 
 jobs:
   # ── Build all NuGet packages ─────────────────────────────────────────────────
@@ -99,11 +99,10 @@ jobs:
         shell: pwsh
 
       - name: Download xorriso
-        shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/xorriso
-          curl -LO ${{ env.XORRISO_WIN_URL }}
-          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe setup/bundle/tools/windows/xorriso/xorriso.exe
+          git clone ${{ env.XORRISO_WIN_REPO }} --depth=1 setup/bundle/tools/windows/xorriso
+          Remove-Item -Recurse -Force setup/bundle/tools/windows/xorriso/.git
+        shell: pwsh
 
       - name: Download yasm
         run: |
@@ -118,37 +117,15 @@ jobs:
         with:
           args: install -y llvm
 
-      - name: Bundle LLD and Clang
+      - name: Bundle LLD
         run: |
           $llvmBin = "C:\Program Files\LLVM\bin"
-
-          # Bundle LLD
           New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
           Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/
           if (Test-Path "$llvmBin\ld.lld.exe") {
             Copy-Item "$llvmBin\ld.lld.exe" setup/bundle/tools/windows/lld/
           } else {
             Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/ld.lld.exe
-          }
-
-          # Bundle Clang (needed to build Limine bootloader)
-          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/clang
-          Copy-Item "$llvmBin\clang.exe" setup/bundle/tools/windows/clang/
-          Copy-Item "$llvmBin\clang++.exe" setup/bundle/tools/windows/clang/ -ErrorAction SilentlyContinue
-        shell: pwsh
-
-      - name: Bundle Make
-        run: |
-          # Install make via chocolatey
-          choco install make -y --no-progress
-          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/make
-          # Find and copy the real make.exe binary
-          $makePath = Get-Command make -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
-          if ($makePath) {
-            Copy-Item $makePath setup/bundle/tools/windows/make/
-          } else {
-            # Fallback to common choco install path
-            Copy-Item "C:\ProgramData\chocolatey\lib\make\tools\install\bin\make.exe" setup/bundle/tools/windows/make/
           }
         shell: pwsh
 

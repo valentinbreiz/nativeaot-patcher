@@ -55,8 +55,6 @@ Source: "bundle\tools\windows\aarch64-elf-tools\*"; DestDir: "{app}\Tools\aarch6
 Source: "bundle\tools\windows\yasm\*"; DestDir: "{app}\Tools\yasm"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "bundle\tools\windows\xorriso\*"; DestDir: "{app}\Tools\xorriso"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "bundle\tools\windows\lld\*"; DestDir: "{app}\Tools\lld"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "bundle\tools\windows\clang\*"; DestDir: "{app}\Tools\clang"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "bundle\tools\windows\make\*"; DestDir: "{app}\Tools\make"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; VS Code extension
 Source: "bundle\extensions\*.vsix"; DestDir: "{app}\Extensions"; Flags: ignoreversion skipifsourcedoesntexist
@@ -209,8 +207,6 @@ begin
     AddToUserPath(ExpandConstant('{app}\Tools\yasm'));
     AddToUserPath(ExpandConstant('{app}\Tools\xorriso'));
     AddToUserPath(ExpandConstant('{app}\Tools\lld'));
-    AddToUserPath(ExpandConstant('{app}\Tools\clang'));
-    AddToUserPath(ExpandConstant('{app}\Tools\make'));
     AddToUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     AddToUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
     { Broadcast so new terminals pick up the PATH change immediately }
@@ -226,8 +222,6 @@ begin
     RemoveFromUserPath(ExpandConstant('{app}\Tools\yasm'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\xorriso'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\lld'));
-    RemoveFromUserPath(ExpandConstant('{app}\Tools\clang'));
-    RemoveFromUserPath(ExpandConstant('{app}\Tools\make'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
     { Broadcast so terminals pick up the PATH removal }

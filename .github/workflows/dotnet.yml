@@ -261,10 +261,8 @@ jobs:
       - name: 🔗 Install xorriso
         shell: pwsh
         run: |
-          # Download xorriso for Windows from PeyTy's build
-          curl -LO https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe
-          New-Item -ItemType Directory -Force -Path C:\xorriso | Out-Null
-          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe C:\xorriso\xorriso.exe
+          # Clone xorriso for Windows (includes required Cygwin DLLs)
+          git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 C:\xorriso
           echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: 🔗 Install x64 GCC Toolchain

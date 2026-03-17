@@ -85,7 +85,7 @@ public static class ToolChecker
                 AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin"), command, ext);
 
                 // Named subdirectories for specific tools
-                foreach (string dir in new[] { "lld", "xorriso", "yasm", "clang", "make" })
+                foreach (string dir in new[] { "lld", "xorriso", "yasm" })
                 {
                     AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, dir), command, ext);
                 }
@@ -190,8 +190,6 @@ public static class ToolChecker
                 Path.Combine(toolsBase, "yasm"),
                 Path.Combine(toolsBase, "xorriso"),
                 Path.Combine(toolsBase, "lld"),
-                Path.Combine(toolsBase, "clang"),
-                Path.Combine(toolsBase, "make"),
                 Path.Combine(toolsBase, "x86_64-elf-tools", "bin"),
                 Path.Combine(toolsBase, "aarch64-elf-tools", "bin"));
             string currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
