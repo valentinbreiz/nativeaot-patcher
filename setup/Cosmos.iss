@@ -81,21 +81,36 @@ StatusMsg: "Registering Cosmos NuGet feed..."; \
   Flags: runhidden waituntilterminated; \
   Check: DotNetInstalled
 
-; Install Cosmos.Patcher global tool
+; Uninstall previous Cosmos.Patcher (if any) then install new version
+StatusMsg: "Updating Cosmos Patcher..."; \
+  Filename: "dotnet"; \
+  Parameters: "tool uninstall -g Cosmos.Patcher"; \
+  Flags: runhidden waituntilterminated; \
+  Check: DotNetInstalled
 StatusMsg: "Installing Cosmos Patcher..."; \
   Filename: "dotnet"; \
   Parameters: "tool install -g Cosmos.Patcher --add-source ""{app}\DotnetTools"""; \
   Flags: runhidden waituntilterminated; \
   Check: DotNetInstalled
 
-; Install Cosmos.Tools global tool
+; Uninstall previous Cosmos.Tools (if any) then install new version
+StatusMsg: "Updating Cosmos Tools CLI..."; \
+  Filename: "dotnet"; \
+  Parameters: "tool uninstall -g Cosmos.Tools"; \
+  Flags: runhidden waituntilterminated; \
+  Check: DotNetInstalled
 StatusMsg: "Installing Cosmos Tools CLI..."; \
   Filename: "dotnet"; \
   Parameters: "tool install -g Cosmos.Tools --add-source ""{app}\DotnetTools"""; \
   Flags: runhidden waituntilterminated; \
   Check: DotNetInstalled
 
-; Install project templates
+; Uninstall previous templates (if any) then install new version
+StatusMsg: "Updating Cosmos project templates..."; \
+  Filename: "dotnet"; \
+  Parameters: "new uninstall Cosmos.Build.Templates"; \
+  Flags: runhidden waituntilterminated; \
+  Check: DotNetInstalled
 StatusMsg: "Installing Cosmos project templates..."; \
   Filename: "dotnet"; \
   Parameters: "new install Cosmos.Build.Templates --add-source ""{app}\DotnetTools"""; \
