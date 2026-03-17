@@ -13,6 +13,8 @@ public class ToolStatus
 
 public static class ToolChecker
 {
+    private const int CommandTimeoutMs = 5000;
+
     public static async Task<ToolStatus> CheckToolAsync(ToolDefinition tool)
     {
         foreach (string command in tool.Commands)
@@ -68,35 +70,27 @@ public static class ToolChecker
                 //   {tools}/bin/ contains symlinks (Linux/macOS)
                 string cosmosToolsPath = GetCosmosToolsPath();
                 string ext = PlatformInfo.CurrentOS == OSPlatform.Windows ? ".exe" : "";
-                var possiblePaths = new List<string>
-                {
-                    // Flat layout & bin/ symlinks
-                    Path.Combine(cosmosToolsPath, command + ext),
-                    Path.Combine(cosmosToolsPath, command),
-                    Path.Combine(cosmosToolsPath, "bin", command + ext),
-                    Path.Combine(cosmosToolsPath, "bin", command),
-                    // Tool in its own subdirectory (yasm/yasm, lld/ld.lld, xorriso/xorriso)
-                    Path.Combine(cosmosToolsPath, command, command + ext),
-                    Path.Combine(cosmosToolsPath, command, command),
-                    // Cross-compiler toolchains have a bin/ subdirectory
-                    Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin", command + ext),
-                    Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin", command),
-                    Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin", command + ext),
-                    Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin", command),
-                    // Named subdirectories for specific tools
-                    Path.Combine(cosmosToolsPath, "lld", command + ext),
-                    Path.Combine(cosmosToolsPath, "lld", command),
-                    Path.Combine(cosmosToolsPath, "xorriso", command + ext),
-                    Path.Combine(cosmosToolsPath, "xorriso", command),
-                    Path.Combine(cosmosToolsPath, "yasm", command + ext),
-                    Path.Combine(cosmosToolsPath, "yasm", command),
-                    Path.Combine(cosmosToolsPath, "clang", command + ext),
-                    Path.Combine(cosmosToolsPath, "clang", command),
-                    Path.Combine(cosmosToolsPath, "make", command + ext),
-                    Path.Combine(cosmosToolsPath, "make", command),
-                };
 
-                foreach (string? possiblePath in possiblePaths)
+                var possiblePaths = new List<string>();
+
+                // Flat layout & bin/ symlinks
+                AddPathVariants(possiblePaths, cosmosToolsPath, command, ext);
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "bin"), command, ext);
+
+                // Tool in its own subdirectory (yasm/yasm, lld/ld.lld, xorriso/xorriso)
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, command), command, ext);
+
+                // Cross-compiler toolchains have a bin/ subdirectory
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin"), command, ext);
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin"), command, ext);
+
+                // Named subdirectories for specific tools
+                foreach (string dir in new[] { "lld", "xorriso", "yasm", "clang", "make" })
+                {
+                    AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, dir), command, ext);
+                }
+
+                foreach (string possiblePath in possiblePaths)
                 {
                     if (File.Exists(possiblePath))
                     {
@@ -127,6 +121,15 @@ public static class ToolChecker
         }
     }
 
+    private static void AddPathVariants(List<string> paths, string dir, string command, string ext)
+    {
+        if (!string.IsNullOrEmpty(ext))
+        {
+            paths.Add(Path.Combine(dir, command + ext));
+        }
+        paths.Add(Path.Combine(dir, command));
+    }
+
     private static async Task<string?> GetVersionAsync(string command, string? versionArg)
     {
         if (string.IsNullOrEmpty(versionArg))
@@ -139,11 +142,23 @@ public static class ToolChecker
             var result = await RunCommandAsync(command, versionArg);
             if (result.success && !string.IsNullOrWhiteSpace(result.output))
             {
-                // Extract version from first line
-                string firstLine = result.output.Split('\n', '\r')[0].Trim();
-                // Try to find version pattern
-                var versionMatch = System.Text.RegularExpressions.Regex.Match(firstLine, @"(\d+\.[\d.]+)");
-                return versionMatch.Success ? versionMatch.Value : firstLine;
+                // Try each non-empty line for a version pattern
+                foreach (string line in result.output.Split('\n', '\r'))
+                {
+                    string trimmed = line.Trim();
+                    if (string.IsNullOrEmpty(trimmed))
+                    {
+                        continue;
+                    }
+                    var versionMatch = System.Text.RegularExpressions.Regex.Match(trimmed, @"(\d+\.[\d.]+)");
+                    if (versionMatch.Success)
+                    {
+                        return versionMatch.Value;
+                    }
+                }
+                // No version pattern found — return first non-empty line
+                string firstLine = result.output.Split('\n', '\r').FirstOrDefault(l => !string.IsNullOrWhiteSpace(l))?.Trim() ?? "";
+                return string.IsNullOrEmpty(firstLine) ? null : firstLine;
             }
         }
         catch { }
@@ -188,13 +203,28 @@ public static class ToolChecker
                 return (false, "");
             }
 
-            string output = await process.StandardOutput.ReadToEndAsync();
-            string error = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            // Read stdout and stderr concurrently to avoid deadlocks
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
 
-            // Some tools output version to stderr
-            string combinedOutput = string.IsNullOrEmpty(output) ? error : output;
-            return (process.ExitCode == 0 || !string.IsNullOrEmpty(combinedOutput), combinedOutput);
+            // Apply timeout to prevent hanging on tools that wait for input
+            using var cts = new CancellationTokenSource(CommandTimeoutMs);
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                try { process.Kill(); } catch { }
+                return (false, "");
+            }
+
+            string output = await stdoutTask;
+            string error = await stderrTask;
+
+            // Combine stdout + stderr so version info is found regardless of which stream it's on
+            string combined = (output + "\n" + error).Trim();
+            return (process.ExitCode == 0 || !string.IsNullOrEmpty(combined), combined);
         }
         catch
         {
@@ -209,5 +239,4 @@ public static class ToolChecker
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos", "Tools")
             : Path.Combine(home, ".cosmos", "tools");
     }
-
 }

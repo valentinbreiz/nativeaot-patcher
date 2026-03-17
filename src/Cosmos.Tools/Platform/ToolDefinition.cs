@@ -139,12 +139,12 @@ public static class ToolDefinitions
         Name = "aarch64-elf-gcc",
         DisplayName = "ARM64 Cross Compiler",
         Description = "GCC cross-compiler for ARM64 bare-metal targets",
-        Commands = ["aarch64-elf-gcc", "aarch64-linux-gnu-gcc"],
+        Commands = ["aarch64-elf-gcc", "aarch64-none-elf-gcc", "aarch64-linux-gnu-gcc"],
         VersionArg = "--version",
         Required = true,
         Architectures = ["arm64"],
         IsCrossCompiler = true,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases" },
+        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/mmozeiko/build-gcc-arm/releases" },
         LinuxInstall = new() { Method = "package", AptPackages = ["gcc-aarch64-linux-gnu", "binutils-aarch64-linux-gnu"], DnfPackages = ["gcc-aarch64-linux-gnu", "binutils-aarch64-linux-gnu"], PacmanPackages = ["aarch64-linux-gnu-gcc"] },
         MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-gcc"] }
     };
@@ -154,12 +154,12 @@ public static class ToolDefinitions
         Name = "aarch64-elf-as",
         DisplayName = "ARM64 Assembler",
         Description = "GNU assembler for ARM64 architecture",
-        Commands = ["aarch64-elf-as", "aarch64-linux-gnu-as"],
+        Commands = ["aarch64-elf-as", "aarch64-none-elf-as", "aarch64-linux-gnu-as"],
         VersionArg = "--version",
         Required = true,
         Architectures = ["arm64"],
         IsCrossCompiler = true,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/AzureianGH/cosmos-toolchain/releases" },
+        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/mmozeiko/build-gcc-arm/releases" },
         LinuxInstall = new() { Method = "package", AptPackages = ["binutils-aarch64-linux-gnu"], DnfPackages = ["binutils-aarch64-linux-gnu"], PacmanPackages = ["aarch64-linux-gnu-binutils"] },
         MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-binutils"] }
     };

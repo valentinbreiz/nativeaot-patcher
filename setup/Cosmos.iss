@@ -5,7 +5,7 @@
 #define MyAppName "Cosmos OS Development Kit"
 #define MyAppVersion GetEnv('COSMOS_VERSION')
 #if MyAppVersion == ""
-  #define MyAppVersion "3.0.39"
+  #define MyAppVersion "3.0.40"
 #endif
 #define MyAppPublisher "Cosmos Project"
 #define MyAppURL "https://github.com/CosmosOS/nativeaot-patcher"
