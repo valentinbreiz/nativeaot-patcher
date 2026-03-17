@@ -84,6 +84,9 @@ public static class ToolChecker
                 AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "x86_64-elf-tools", "bin"), command, ext);
                 AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "aarch64-elf-tools", "bin"), command, ext);
 
+                // QEMU
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "qemu"), command, ext);
+
                 // Named subdirectories for specific tools
                 foreach (string dir in new[] { "lld", "xorriso", "yasm" })
                 {
@@ -191,7 +194,8 @@ public static class ToolChecker
                 Path.Combine(toolsBase, "xorriso"),
                 Path.Combine(toolsBase, "lld"),
                 Path.Combine(toolsBase, "x86_64-elf-tools", "bin"),
-                Path.Combine(toolsBase, "aarch64-elf-tools", "bin"));
+                Path.Combine(toolsBase, "aarch64-elf-tools", "bin"),
+                Path.Combine(toolsBase, "qemu"));
             string currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
             psi.Environment["PATH"] = $"{extraPaths}{sep}{currentPath}";
 

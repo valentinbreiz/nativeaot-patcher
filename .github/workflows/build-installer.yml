@@ -129,6 +129,14 @@ jobs:
           }
         shell: pwsh
 
+      - name: Download QEMU
+        run: |
+          choco install qemu -y --no-progress
+          $qemuDir = "C:\Program Files\qemu"
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/qemu
+          Copy-Item "$qemuDir\*" setup/bundle/tools/windows/qemu/ -Recurse
+        shell: pwsh
+
       - name: Download VS Code extension
         run: |
           New-Item -ItemType Directory -Force -Path setup/bundle/extensions
