@@ -57,15 +57,18 @@ public class CheckCommand : AsyncCommand<CheckSettings>
 
         foreach (var result in results)
         {
-            string status = result.Found ? "[green]\u2713[/]" : "[red]\u2717[/]";
+            bool detected = result.Found && result.Version != null;
+            string status = detected ? "[green]\u2713[/]" : "[red]\u2717[/]";
             string required = result.Tool.Required ? "" : " [dim](optional)[/]";
-            string version = result.Version != null ? $" [dim]({result.Version})[/]" : "";
-
             string name = result.Tool.DisplayName.PadRight(maxNameLen);
 
-            if (result.Found)
+            if (detected)
             {
-                AnsiConsole.MarkupLine($"  {status} {name}{version}");
+                AnsiConsole.MarkupLine($"  {status} {name} [dim]({result.Version})[/]");
+            }
+            else if (result.Found)
+            {
+                AnsiConsole.MarkupLine($"  {status} {name} [yellow]- Not detected{required}[/]");
             }
             else
             {
@@ -79,9 +82,9 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
 
-        var requiredMissing = results.Where(r => r.Tool.Required && !r.Found).ToList();
-        var optionalMissing = results.Where(r => !r.Tool.Required && !r.Found).ToList();
-        bool allFound = results.All(r => r.Found || !r.Tool.Required);
+        var requiredMissing = results.Where(r => r.Tool.Required && !(r.Found && r.Version != null)).ToList();
+        var optionalMissing = results.Where(r => !r.Tool.Required && !(r.Found && r.Version != null)).ToList();
+        bool allFound = results.All(r => (r.Found && r.Version != null) || !r.Tool.Required);
 
         if (allFound)
         {
