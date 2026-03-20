@@ -95,7 +95,12 @@ jobs:
       - name: Download aarch64-elf-tools
         run: |
           Invoke-WebRequest -Uri "${{ env.AARCH64_ELF_TOOLS_WIN_URL }}" -OutFile aarch64-elf-tools.7z
-          7z x aarch64-elf-tools.7z -osetup/bundle/tools/windows/aarch64-elf-tools
+          7z x aarch64-elf-tools.7z -oaarch64-elf-extract
+          # Flatten: archive has gcc-v*/bin/ structure, move contents up to aarch64-elf-tools/
+          $extracted = Get-ChildItem aarch64-elf-extract -Directory | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/aarch64-elf-tools | Out-Null
+          Copy-Item "$($extracted.FullName)\*" setup/bundle/tools/windows/aarch64-elf-tools/ -Recurse
+          Remove-Item aarch64-elf-extract -Recurse -Force
         shell: pwsh
 
       - name: Download xorriso

@@ -65,10 +65,14 @@ public class CheckCommand : AsyncCommand<CheckSettings>
             if (detected)
             {
                 AnsiConsole.MarkupLine($"  {status} {name} [dim]({result.Version})[/]");
+                if (result.Path != null)
+                    AnsiConsole.MarkupLine($"       [dim]{result.Path}[/]");
             }
             else if (result.Found)
             {
                 AnsiConsole.MarkupLine($"  {status} {name} [yellow]- Not detected{required}[/]");
+                if (result.Path != null)
+                    AnsiConsole.MarkupLine($"       [dim]{result.Path}[/]");
             }
             else
             {
