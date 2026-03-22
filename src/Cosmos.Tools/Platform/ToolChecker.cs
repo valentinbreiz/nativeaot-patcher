@@ -62,7 +62,8 @@ public static class ToolChecker
             string whichCommand = PlatformInfo.CurrentOS == OSPlatform.Windows ? "where" : "which";
             var whichResult = await RunCommandAsync(whichCommand, command);
 
-            if (!whichResult.success || string.IsNullOrWhiteSpace(whichResult.output))
+            string candidatePath = whichResult.output.Split('\n', '\r')[0].Trim();
+            if (string.IsNullOrWhiteSpace(candidatePath) || !File.Exists(candidatePath))
             {
                 // Check Cosmos tools paths — installers place tools in subdirectories:
                 //   {tools}/yasm/yasm, {tools}/lld/ld.lld,
@@ -105,18 +106,11 @@ public static class ToolChecker
                 return (false, null, null);
             }
 
-            string path = whichResult.output.Split('\n', '\r')[0].Trim();
-
-            // Get version using the resolved full path (not the bare command name)
-            // so it works even when the command name has dots (e.g. ld.lld) or
-            // isn't directly resolvable by the child process
             string? version2 = null;
             if (!string.IsNullOrEmpty(versionArg))
-            {
-                version2 = await GetVersionAsync(path, versionArg);
-            }
+                version2 = await GetVersionAsync(candidatePath, versionArg);
 
-            return (true, version2, path);
+            return (true, version2, candidatePath);
         }
         catch
         {
