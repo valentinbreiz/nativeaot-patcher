@@ -108,7 +108,9 @@ public static class ToolChecker
 
             string? version2 = null;
             if (!string.IsNullOrEmpty(versionArg))
+            {
                 version2 = await GetVersionAsync(candidatePath, versionArg);
+            }
 
             return (true, version2, candidatePath);
         }
