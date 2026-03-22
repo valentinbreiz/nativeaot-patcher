@@ -22,6 +22,7 @@ public class InfoCommand : Command<InfoSettings>
         string arch = PlatformInfo.CurrentArch.ToString().ToLower();
         string packageManager = PlatformInfo.GetPackageManager();
         string displayBackend = GetDisplayBackend();
+        string qemuAccel = GetQemuAccel();
         string? cosmosToolsPath = GetCosmosToolsPath();
         string gdbCommand = GetGdbCommand();
         string? arm64UefiBios = GetArm64UefiBiosPath();
@@ -34,6 +35,7 @@ public class InfoCommand : Command<InfoSettings>
             Console.WriteLine($"  \"arch\": \"{arch}\",");
             Console.WriteLine($"  \"packageManager\": \"{packageManager}\",");
             Console.WriteLine($"  \"qemuDisplay\": \"{displayBackend}\",");
+            Console.WriteLine($"  \"qemuAccel\": \"{qemuAccel}\",");
             Console.WriteLine($"  \"gdbCommand\": \"{gdbCommand}\",");
             Console.WriteLine($"  \"arm64UefiBios\": {(arm64UefiBios != null ? $"\"{EscapeJson(arm64UefiBios)}\"" : "null")},");
             Console.WriteLine($"  \"cosmosToolsPath\": {(cosmosToolsPath != null ? $"\"{EscapeJson(cosmosToolsPath)}\"" : "null")}");
@@ -96,6 +98,21 @@ public class InfoCommand : Command<InfoSettings>
         }
 
         return "gtk";
+    }
+
+    private static string GetQemuAccel()
+    {
+        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
+        {
+            return "tcg";
+        }
+
+        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.OSX))
+        {
+            return "hvf:tcg";
+        }
+
+        return "kvm:tcg";
     }
 
     private static string GetGdbCommand()
