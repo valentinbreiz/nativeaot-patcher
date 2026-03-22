@@ -73,27 +73,30 @@
     <!-- Remove old ISO directory if it exists -->
     <RemoveDir Directories="$(IsoRoot)"/>
 
-    <!-- Define normalized paths for Limine -->
+    <!-- Limine bootloader files bundled in the NuGet package (tools/Limine/) -->
     <PropertyGroup>
+      <LiminePkgDir>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'tools', 'Limine'))</LiminePkgDir>
       <LimineDir>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)', 'limine'))</LimineDir>
-      <LimineBinary>$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
+      <LimineBinary Condition="'$(IsWindows)' == 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine.exe'))</LimineBinary>
+      <LimineBinary Condition="'$(IsWindows)' != 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
       <IsoRootBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot'))</IsoRootBoot>
       <IsoRootBootLimine>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot', 'limine'))</IsoRootBootLimine>
       <IsoRootEfiBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'EFI', 'BOOT'))</IsoRootEfiBoot>
     </PropertyGroup>
 
     <!-- Create new directories for Limine and EFI boot files -->
+    <MakeDir Directories="$(LimineDir)"/>
     <MakeDir Directories="$(IsoRootBootLimine)"/>
     <MakeDir Directories="$(IsoRootEfiBoot)"/>
 
+    <!-- Copy bundled Limine files from NuGet package to intermediate output -->
     <ItemGroup>
-      <!-- Includes any files under 'limine' folder -->
-      <LimineFiles Include="$(LimineDir)/**"/>
+      <BundledLimineFiles Include="$(LiminePkgDir)/*"/>
     </ItemGroup>
+    <Copy SourceFiles="@(BundledLimineFiles)" DestinationFolder="$(LimineDir)" SkipUnchangedFiles="true"/>
 
-    <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 &quot;$(LimineDir)&quot;" IgnoreExitCode="true"/>
-    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang"/>
+    <!-- On Unix, build the limine CLI tool from the bundled source -->
+    <Exec Command="make -C &quot;$(LimineDir)&quot;" Condition="'$(IsWindows)' != 'true'"/>
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRootBoot)"/>

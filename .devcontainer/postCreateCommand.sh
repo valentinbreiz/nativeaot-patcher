@@ -24,6 +24,12 @@ mkdir -p artifacts/multiarch
 # Add local source
 dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 
+# Download Limine bootloader (bundled in Cosmos.Build.Common NuGet package)
+echo "Downloading Limine bootloader..."
+rm -rf artifacts/limine
+git clone https://github.com/Limine-Bootloader/Limine.git --branch=v10.x-binary --depth=1 artifacts/limine
+rm -rf artifacts/limine/.git
+
 # Build and pack each project individually in dependency order
 # Note: GeneratePackageOnBuild=true in Directory.Build.props means build also packs
 echo "Building and packing base projects..."

@@ -1,0 +1,415 @@
+name: Build Installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (e.g., 3.0.40). Leave empty to use Directory.Build.props.'
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'
+  pull_request:    # TEMPORARY: remove after testing
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  # Tool versions
+  # Tool URLs — must match dotnet.yml sources
+  X64_ELF_TOOLS_WIN_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip'
+  X64_ELF_TOOLS_LINUX_URL: 'https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux.zip'
+  AARCH64_ELF_TOOLS_WIN_URL: 'https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z'
+  XORRISO_WIN_REPO: 'https://github.com/PeyTy/xorriso-exe-for-windows.git'
+
+jobs:
+  # ── Build all NuGet packages ─────────────────────────────────────────────────
+  build-packages:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm lld xorriso gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ -n "${{ inputs.version }}" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            version=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props)
+            echo "version=$version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build packages
+        run: |
+          export VersionSuffix="build.$(date +%Y%m%d%H%M)"
+          dotnet nuget locals all --clear
+          ./.devcontainer/postCreateCommand.sh
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmos-packages
+          path: artifacts/package/release/*.nupkg
+          retention-days: 7
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+  # ── Windows Installer ────────────────────────────────────────────────────────
+  build-installer-windows:
+    name: Windows Installer
+    needs: build-packages
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: setup/bundle/packages
+
+      - name: Download x86_64-elf-tools
+        run: |
+          Invoke-WebRequest -Uri "${{ env.X64_ELF_TOOLS_WIN_URL }}" -OutFile x86_64-elf-tools.zip
+          Expand-Archive -Path x86_64-elf-tools.zip -DestinationPath setup/bundle/tools/windows/x86_64-elf-tools
+        shell: pwsh
+
+      - name: Download aarch64-elf-tools
+        run: |
+          Invoke-WebRequest -Uri "${{ env.AARCH64_ELF_TOOLS_WIN_URL }}" -OutFile aarch64-elf-tools.7z
+          7z x aarch64-elf-tools.7z -oaarch64-elf-extract
+          # Flatten: archive has gcc-v*/bin/ structure, move contents up to aarch64-elf-tools/
+          $extracted = Get-ChildItem aarch64-elf-extract -Directory | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/aarch64-elf-tools | Out-Null
+          Copy-Item "$($extracted.FullName)\*" setup/bundle/tools/windows/aarch64-elf-tools/ -Recurse
+          Remove-Item aarch64-elf-extract -Recurse -Force
+        shell: pwsh
+
+      - name: Download xorriso
+        run: |
+          git clone ${{ env.XORRISO_WIN_REPO }} --depth=1 setup/bundle/tools/windows/xorriso
+          Remove-Item -Recurse -Force setup/bundle/tools/windows/xorriso/.git
+        shell: pwsh
+
+      - name: Download yasm
+        run: |
+          choco install yasm -y --no-progress
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/yasm
+          # Copy the real binary, not the chocolatey shim
+          Copy-Item "C:\ProgramData\chocolatey\lib\yasm\tools\yasm.exe" setup/bundle/tools/windows/yasm/yasm.exe
+        shell: pwsh
+
+      - name: Download LLD
+        uses: crazy-max/ghaction-chocolatey@v3.3.0
+        with:
+          args: install -y llvm
+
+      - name: Bundle LLD
+        run: |
+          $llvmBin = "C:\Program Files\LLVM\bin"
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/lld
+          Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/
+          if (Test-Path "$llvmBin\ld.lld.exe") {
+            Copy-Item "$llvmBin\ld.lld.exe" setup/bundle/tools/windows/lld/
+          } else {
+            Copy-Item "$llvmBin\lld.exe" setup/bundle/tools/windows/lld/ld.lld.exe
+          }
+        shell: pwsh
+
+      - name: Download QEMU
+        run: |
+          choco install qemu -y --no-progress
+          $qemuDir = "C:\Program Files\qemu"
+          New-Item -ItemType Directory -Force -Path setup/bundle/tools/windows/qemu
+          # Only bundle the architectures we need (x86_64 + aarch64), shared DLLs, and firmware
+          Copy-Item "$qemuDir\qemu-system-x86_64.exe" setup/bundle/tools/windows/qemu/
+          Copy-Item "$qemuDir\qemu-system-aarch64.exe" setup/bundle/tools/windows/qemu/
+          Copy-Item "$qemuDir\qemu-img.exe" setup/bundle/tools/windows/qemu/ -ErrorAction SilentlyContinue
+          Copy-Item "$qemuDir\*.dll" setup/bundle/tools/windows/qemu/
+          if (Test-Path "$qemuDir\share") {
+            Copy-Item "$qemuDir\share" setup/bundle/tools/windows/qemu/share -Recurse
+          }
+        shell: pwsh
+
+      - name: Download VS Code extension
+        run: |
+          New-Item -ItemType Directory -Force -Path setup/bundle/extensions
+          # Download latest VS Code extension release if available
+          $headers = @{}
+          if ("${{ secrets.GITHUB_TOKEN }}") { $headers["Authorization"] = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
+          try {
+            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" -Headers $headers
+            $vsix = $releases.assets | Where-Object { $_.name -like "*.vsix" } | Select-Object -First 1
+            if ($vsix) {
+              Invoke-WebRequest -Uri $vsix.browser_download_url -OutFile "setup/bundle/extensions/cosmos-vscode.vsix" -Headers $headers
+            }
+          } catch {
+            Write-Host "VS Code extension not available, skipping."
+          }
+        shell: pwsh
+
+      - name: Stage dotnet tool packages
+        run: |
+          New-Item -ItemType Directory -Force -Path setup/bundle/dotnet-tools
+          # Copy tool packages (Cosmos.Patcher, Cosmos.Tools, Cosmos.Build.Templates)
+          Copy-Item setup/bundle/packages/Cosmos.Patcher.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
+          Copy-Item setup/bundle/packages/Cosmos.Tools.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
+          Copy-Item setup/bundle/packages/Cosmos.Build.Templates.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
+        shell: pwsh
+
+      - name: Build installer with Inno Setup
+        run: |
+          $env:COSMOS_VERSION = "${{ needs.build-packages.outputs.version }}"
+          iscc setup/Cosmos.iss
+        shell: pwsh
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-windows
+          path: setup/output/CosmosSetup-*.exe
+          retention-days: 30
+
+  # ── Linux Installer ──────────────────────────────────────────────────────────
+  build-installer-linux:
+    name: Linux Installer
+    needs: build-packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: staging/bundle/packages
+
+      - name: Download x86_64-elf-gcc
+        run: |
+          mkdir -p staging/bundle/tools/linux/x86_64-elf-tools
+          curl -LO "${{ env.X64_ELF_TOOLS_LINUX_URL }}"
+          unzip x86_64-elf-tools-linux.zip -d staging/bundle/tools/linux/x86_64-elf-tools
+
+      - name: Bundle system tools
+        run: |
+          # Install and copy statically-usable binaries
+          sudo apt-get update
+          sudo apt-get install -y yasm lld xorriso gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+          # Bundle yasm
+          mkdir -p staging/bundle/tools/linux/yasm
+          cp "$(which yasm)" staging/bundle/tools/linux/yasm/
+
+          # Bundle lld
+          mkdir -p staging/bundle/tools/linux/lld
+          cp "$(which ld.lld)" staging/bundle/tools/linux/lld/
+          cp "$(which lld)" staging/bundle/tools/linux/lld/ 2>/dev/null || true
+
+          # Bundle xorriso
+          mkdir -p staging/bundle/tools/linux/xorriso
+          cp "$(which xorriso)" staging/bundle/tools/linux/xorriso/
+
+          # Bundle aarch64 cross-compiler
+          mkdir -p staging/bundle/tools/linux/aarch64-elf-tools/bin
+          for tool in gcc as ld objcopy objdump; do
+            src=$(which "aarch64-linux-gnu-$tool" 2>/dev/null || true)
+            if [ -n "$src" ]; then
+              cp "$src" "staging/bundle/tools/linux/aarch64-elf-tools/bin/"
+            fi
+          done
+
+          # Copy aarch64 cross-compiler libraries
+          AARCH64_GCC_DIR=$(dirname $(dirname $(which aarch64-linux-gnu-gcc)))
+          if [ -d "$AARCH64_GCC_DIR/lib/gcc-cross" ]; then
+            cp -r "$AARCH64_GCC_DIR/lib/gcc-cross" staging/bundle/tools/linux/aarch64-elf-tools/lib/ 2>/dev/null || true
+          fi
+
+      - name: Download VS Code extension
+        run: |
+          mkdir -p staging/bundle/extensions
+          # Download latest VS Code extension release if available
+          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
+            jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
+            xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
+            echo "VS Code extension not available, skipping."
+
+      - name: Stage dotnet tool packages
+        run: |
+          mkdir -p staging/bundle/dotnet-tools
+          cp staging/bundle/packages/Cosmos.Patcher.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+          cp staging/bundle/packages/Cosmos.Tools.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+          cp staging/bundle/packages/Cosmos.Build.Templates.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+
+      - name: Create tarball
+        run: |
+          VERSION="${{ needs.build-packages.outputs.version }}"
+          ARCHIVE_NAME="cosmos-${VERSION}-linux-x64"
+
+          # Copy install script
+          cp setup/install.sh staging/install.sh
+          chmod +x staging/install.sh
+
+          # Create tarball
+          mkdir -p output
+          tar czf "output/${ARCHIVE_NAME}.tar.gz" -C staging .
+
+      - name: Upload Linux installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-linux
+          path: output/cosmos-*.tar.gz
+          retention-days: 30
+
+  # ── macOS Installer ──────────────────────────────────────────────────────────
+  build-installer-macos:
+    name: macOS Installer
+    needs: build-packages
+    runs-on: macos-14  # ARM64 runner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: staging/bundle/packages
+
+      - name: Install and bundle tools via Homebrew
+        run: |
+          # Install tools
+          brew install x86_64-elf-gcc aarch64-elf-gcc aarch64-elf-binutils yasm xorriso llvm
+
+          # Bundle x86_64-elf-gcc
+          mkdir -p staging/bundle/tools/macos/x86_64-elf-tools
+          X64_PREFIX=$(brew --prefix x86_64-elf-gcc)
+          cp -RL "$X64_PREFIX/"* staging/bundle/tools/macos/x86_64-elf-tools/ 2>/dev/null || true
+
+          # Bundle aarch64-elf-gcc
+          mkdir -p staging/bundle/tools/macos/aarch64-elf-tools
+          ARM64_PREFIX=$(brew --prefix aarch64-elf-gcc)
+          cp -RL "$ARM64_PREFIX/"* staging/bundle/tools/macos/aarch64-elf-tools/ 2>/dev/null || true
+
+          # Bundle yasm
+          mkdir -p staging/bundle/tools/macos/yasm
+          cp "$(which yasm)" staging/bundle/tools/macos/yasm/
+
+          # Bundle xorriso
+          mkdir -p staging/bundle/tools/macos/xorriso
+          cp "$(which xorriso)" staging/bundle/tools/macos/xorriso/
+
+          # Bundle lld
+          mkdir -p staging/bundle/tools/macos/lld
+          LLVM_PREFIX=$(brew --prefix llvm)
+          cp "$LLVM_PREFIX/bin/ld.lld" staging/bundle/tools/macos/lld/ 2>/dev/null || true
+          cp "$LLVM_PREFIX/bin/lld" staging/bundle/tools/macos/lld/ 2>/dev/null || true
+
+      - name: Download VS Code extension
+        run: |
+          mkdir -p staging/bundle/extensions
+          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
+            jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
+            xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
+            echo "VS Code extension not available, skipping."
+
+      - name: Stage dotnet tool packages
+        run: |
+          mkdir -p staging/bundle/dotnet-tools
+          cp staging/bundle/packages/Cosmos.Patcher.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+          cp staging/bundle/packages/Cosmos.Tools.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+          cp staging/bundle/packages/Cosmos.Build.Templates.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
+
+      - name: Create tarball
+        run: |
+          VERSION="${{ needs.build-packages.outputs.version }}"
+          ARCHIVE_NAME="cosmos-${VERSION}-macos-arm64"
+
+          # Copy install script
+          cp setup/install.sh staging/install.sh
+          chmod +x staging/install.sh
+
+          # Create tarball
+          mkdir -p output
+          tar czf "output/${ARCHIVE_NAME}.tar.gz" -C staging .
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-macos
+          path: output/cosmos-*.tar.gz
+          retention-days: 30
+
+  # ── Create GitHub Release ────────────────────────────────────────────────────
+  create-release:
+    name: Create Release
+    needs: [build-packages, build-installer-windows, build-installer-linux, build-installer-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: false
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}"
+          body: |
+            ## Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}
+
+            ### Downloads
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Run installer, requires .NET 10.0 SDK |
+            | Linux x64 | `cosmos-${{ needs.build-packages.outputs.version }}-linux-x64.tar.gz` | Extract and run `install.sh` |
+            | macOS ARM64 | `cosmos-${{ needs.build-packages.outputs.version }}-macos-arm64.tar.gz` | Extract and run `install.sh` |
+
+            ### Prerequisites
+
+            - [.NET 10.0 SDK](https://dot.net/download)
+
+            ### Quick Start
+
+            ```bash
+            cosmos new MyKernel
+            cd MyKernel
+            cosmos build
+            ```
+
+            ### Verify Installation
+
+            ```bash
+            cosmos check
+            ```
+          draft: false
+          prerelease: false
+          files: |
+            installers/installer-windows/*
+            installers/installer-linux/*
+            installers/installer-macos/*

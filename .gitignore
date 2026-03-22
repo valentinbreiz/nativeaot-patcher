@@ -453,3 +453,7 @@ output-helloworld/
 # tasks.json
 # tasks/ 
 *.pcap
+
+# Installer bundle (downloaded tools, staged during CI build)
+setup/bundle/
+setup/output/
