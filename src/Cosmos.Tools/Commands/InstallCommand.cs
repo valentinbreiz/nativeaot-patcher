@@ -41,7 +41,10 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         AnsiConsole.MarkupLine($"  Platform: [blue]{PlatformInfo.GetDistroName()}[/] ({PlatformInfo.CurrentArch})");
         AnsiConsole.MarkupLine($"  Package Manager: [blue]{PlatformInfo.GetPackageManager()}[/]");
         if (settings.Setup != null)
+        {
             AnsiConsole.MarkupLine($"  Mode: [blue]Setup bundle[/] -> {Path.GetFullPath(settings.Setup)}");
+        }
+
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.WriteLine();
 
@@ -133,9 +136,14 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                     case "package":
                         string[]? packages = GetPackagesForManager(info, packageManager);
                         if (packages != null)
+                        {
                             packagesToInstall.AddRange(packages);
+                        }
                         else
+                        {
                             PrintManualInstruction(status.Tool, info);
+                        }
+
                         break;
 
                     case "download":
@@ -150,7 +158,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
 
             if (packagesToInstall.Count > 0)
+            {
                 await InstallPackagesAsync(packageManager, packagesToInstall);
+            }
         }
 
         // Install dotnet tools and templates
@@ -158,7 +168,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
         // Install VS Code extension
         if (!settings.SkipExtension)
+        {
             await InstallVSCodeExtensionAsync();
+        }
 
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
@@ -195,10 +207,16 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         foreach (var tool in ToolDefinitions.GetAllTools())
         {
             var info = tool.GetInstallInfo(PlatformInfo.CurrentOS);
-            if (info == null) continue;
+            if (info == null)
+            {
+                continue;
+            }
 
             string bundleDir = GetBundleDirName(tool);
-            if (!processed.Add(bundleDir)) continue;
+            if (!processed.Add(bundleDir))
+            {
+                continue;
+            }
 
             string targetDir = Path.Combine(toolsDir, bundleDir);
             if (Directory.Exists(targetDir) && Directory.EnumerateFileSystemEntries(targetDir).Any())
@@ -234,11 +252,16 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             foreach (var tool in packageTools)
             {
                 string bundleDir = GetBundleDirName(tool);
-                if (!copied.Add(bundleDir)) continue;
+                if (!copied.Add(bundleDir))
+                {
+                    continue;
+                }
 
                 string targetDir = Path.Combine(toolsDir, bundleDir);
                 if (Directory.Exists(targetDir) && Directory.EnumerateFileSystemEntries(targetDir).Any())
+                {
                     continue;
+                }
 
                 AnsiConsole.Markup($"  Bundling {tool.DisplayName} -> {bundleDir}/ ... ");
                 bool ok = await CopyInstalledToolAsync(tool, targetDir);
@@ -248,7 +271,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
         // Phase 3: VS Code extension
         if (!settings.SkipExtension)
+        {
             await DownloadVSCodeExtensionToFileAsync(Path.Combine(baseDir, "extensions"));
+        }
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("  [green]Setup bundle complete![/]");
@@ -293,9 +318,21 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         try
         {
             Directory.CreateDirectory(targetDir);
-            if (url.EndsWith(".git")) return await GitCloneAsync(url, targetDir);
-            if (url.EndsWith(".zip")) return await DownloadAndExtractZipAsync(url, targetDir);
-            if (url.EndsWith(".7z")) return await DownloadAndExtract7zAsync(url, targetDir);
+            if (url.EndsWith(".git"))
+            {
+                return await GitCloneAsync(url, targetDir);
+            }
+
+            if (url.EndsWith(".zip"))
+            {
+                return await DownloadAndExtractZipAsync(url, targetDir);
+            }
+
+            if (url.EndsWith(".7z"))
+            {
+                return await DownloadAndExtract7zAsync(url, targetDir);
+            }
+
             return false;
         }
         catch (Exception ex)
@@ -339,9 +376,16 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             });
-            if (proc == null) return false;
+            if (proc == null)
+            {
+                return false;
+            }
+
             await proc.WaitForExitAsync();
-            if (proc.ExitCode != 0) return false;
+            if (proc.ExitCode != 0)
+            {
+                return false;
+            }
 
             // Flatten: if single top-level directory, move its contents up
             var topDirs = Directory.GetDirectories(tempExtract);
@@ -351,14 +395,24 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         }
         finally
         {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
-            if (Directory.Exists(tempExtract)) Directory.Delete(tempExtract, true);
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+
+            if (Directory.Exists(tempExtract))
+            {
+                Directory.Delete(tempExtract, true);
+            }
         }
     }
 
     private static async Task<bool> GitCloneAsync(string url, string targetDir)
     {
-        if (Directory.Exists(targetDir)) Directory.Delete(targetDir, true);
+        if (Directory.Exists(targetDir))
+        {
+            Directory.Delete(targetDir, true);
+        }
 
         using var proc = Process.Start(new ProcessStartInfo
         {
@@ -368,13 +422,23 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             RedirectStandardOutput = true,
             RedirectStandardError = true
         });
-        if (proc == null) return false;
+        if (proc == null)
+        {
+            return false;
+        }
+
         await proc.WaitForExitAsync();
-        if (proc.ExitCode != 0) return false;
+        if (proc.ExitCode != 0)
+        {
+            return false;
+        }
 
         string gitDir = Path.Combine(targetDir, ".git");
         if (Directory.Exists(gitDir))
+        {
             Directory.Delete(gitDir, true);
+        }
+
         return true;
     }
 
@@ -385,7 +449,10 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     private static async Task<bool> CopyInstalledToolAsync(ToolDefinition tool, string targetDir)
     {
         string? toolPath = await FindOnPathAsync(tool.Commands);
-        if (toolPath == null) return false;
+        if (toolPath == null)
+        {
+            return false;
+        }
 
         string sourceDir = Path.GetDirectoryName(toolPath)!;
         Directory.CreateDirectory(targetDir);
@@ -406,19 +473,30 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                     string ext = PlatformInfo.CurrentOS == OSPlatform.Windows ? ".exe" : "";
                     string lldSrc = Path.Combine(sourceDir, $"lld{ext}");
                     if (File.Exists(lldSrc))
+                    {
                         File.Copy(lldSrc, Path.Combine(targetDir, $"ld.lld{ext}"), true);
+                    }
                 }
                 break;
 
             case "qemu-system-x86_64" or "qemu-system-aarch64":
                 string ext2 = PlatformInfo.CurrentOS == OSPlatform.Windows ? ".exe" : "";
                 foreach (var name in new[] { $"qemu-system-x86_64{ext2}", $"qemu-system-aarch64{ext2}", $"qemu-img{ext2}" })
+                {
                     CopyFileIfExists(sourceDir, targetDir, name);
+                }
+
                 foreach (var dll in Directory.GetFiles(sourceDir, "*.dll"))
+                {
                     File.Copy(dll, Path.Combine(targetDir, Path.GetFileName(dll)), true);
+                }
+
                 string shareDir = Path.Combine(sourceDir, "share");
                 if (Directory.Exists(shareDir))
+                {
                     CopyDirectory(shareDir, Path.Combine(targetDir, "share"));
+                }
+
                 break;
 
             default:
@@ -445,12 +523,18 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 });
-                if (proc == null) continue;
+                if (proc == null)
+                {
+                    continue;
+                }
+
                 string output = await proc.StandardOutput.ReadToEndAsync();
                 await proc.WaitForExitAsync();
                 string path = output.Split('\n', '\r')[0].Trim();
                 if (proc.ExitCode == 0 && File.Exists(path))
+                {
                     return path;
+                }
             }
             catch { }
         }
@@ -466,7 +550,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         using var http = CreateHttpClient();
         string? token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
         if (!string.IsNullOrEmpty(token))
+        {
             http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
 
         string json = await http.GetStringAsync(
             "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest");
@@ -478,7 +564,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             {
                 string? name = asset.GetProperty("name").GetString();
                 if (name?.EndsWith(".vsix") == true)
+                {
                     return (asset.GetProperty("browser_download_url").GetString(), name);
+                }
             }
         }
         return (null, null);
@@ -565,7 +653,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 string error = await process.StandardError.ReadToEndAsync();
                 AnsiConsole.MarkupLine("[red]FAILED[/]");
                 if (!string.IsNullOrWhiteSpace(error))
+                {
                     AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
+                }
             }
 
             try { File.Delete(tempPath); } catch { }
@@ -598,8 +688,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "dotnet", Arguments = $"tool update -g {packageName}",
-                UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true
+                FileName = "dotnet",
+                Arguments = $"tool update -g {packageName}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             using var process = Process.Start(psi);
             if (process == null) { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); return; }
@@ -629,8 +722,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "dotnet", Arguments = $"new install {packageName}",
-                UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true
+                FileName = "dotnet",
+                Arguments = $"new install {packageName}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             using var process = Process.Start(psi);
             if (process == null) { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); return; }
@@ -655,7 +751,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
     private static string GetInstallAction(InstallInfo? info)
     {
-        if (info == null) return "Manual installation required";
+        if (info == null)
+        {
+            return "Manual installation required";
+        }
+
         string packageManager = PlatformInfo.GetPackageManager();
         string[]? packages = GetPackagesForManager(info, packageManager);
         return info.Method switch
@@ -679,7 +779,10 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
     private static async Task InstallPackagesAsync(string packageManager, List<string> packages)
     {
-        if (packages.Count == 0) return;
+        if (packages.Count == 0)
+        {
+            return;
+        }
 
         AnsiConsole.MarkupLine($"  Installing packages via [blue]{packageManager}[/]...");
         AnsiConsole.WriteLine();
@@ -701,8 +804,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         {
             using var process = Process.Start(new ProcessStartInfo
             {
-                FileName = command, Arguments = args,
-                UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true
+                FileName = command,
+                Arguments = args,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             });
             if (process == null) { AnsiConsole.MarkupLine("  [red]Failed to start package manager[/]"); return; }
 
@@ -711,16 +817,24 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             await process.WaitForExitAsync();
 
             if (!string.IsNullOrWhiteSpace(output))
+            {
                 foreach (string line in output.Split('\n').Take(20))
+                {
                     AnsiConsole.MarkupLine($"  [dim]{Markup.Escape(line)}[/]");
+                }
+            }
 
             if (process.ExitCode == 0)
+            {
                 AnsiConsole.MarkupLine("  [green]Packages installed successfully[/]");
+            }
             else
             {
                 AnsiConsole.MarkupLine($"  [red]Package installation failed (exit code: {process.ExitCode})[/]");
                 if (!string.IsNullOrWhiteSpace(error))
+                {
                     AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
+                }
             }
         }
         catch (Exception ex)
@@ -732,7 +846,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     private static bool CopyFileIfExists(string sourceDir, string targetDir, string fileName)
     {
         string src = Path.Combine(sourceDir, fileName);
-        if (!File.Exists(src)) return false;
+        if (!File.Exists(src))
+        {
+            return false;
+        }
+
         File.Copy(src, Path.Combine(targetDir, fileName), true);
         return true;
     }
@@ -741,9 +859,14 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     {
         Directory.CreateDirectory(target);
         foreach (string file in Directory.GetFiles(source))
+        {
             File.Copy(file, Path.Combine(target, Path.GetFileName(file)), true);
+        }
+
         foreach (string dir in Directory.GetDirectories(source))
+        {
             CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)));
+        }
     }
 
     private static HttpClient CreateHttpClient()
@@ -772,7 +895,10 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 if (process != null)
                 {
                     process.WaitForExit(3000);
-                    if (process.ExitCode == 0) return cmd;
+                    if (process.ExitCode == 0)
+                    {
+                        return cmd;
+                    }
                 }
             }
             catch { }
@@ -784,11 +910,18 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     {
         AnsiConsole.MarkupLine($"  [yellow]Manual installation required for {tool.DisplayName}:[/]");
         if (info?.ManualInstructions != null)
+        {
             AnsiConsole.MarkupLine($"    {info.ManualInstructions}");
+        }
         else if (info?.DownloadUrl != null)
+        {
             AnsiConsole.MarkupLine($"    Download from: {info.DownloadUrl}");
+        }
         else
+        {
             AnsiConsole.MarkupLine($"    Please install {tool.Name} manually.");
+        }
+
         AnsiConsole.WriteLine();
     }
 }
