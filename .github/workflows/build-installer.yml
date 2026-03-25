@@ -120,8 +120,6 @@ jobs:
         with:
           name: "Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}"
           body: |
-            ## Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}
-
             ### Downloads
 
             | Platform | File | Notes |
@@ -135,7 +133,7 @@ jobs:
 
             ### Quick Start
 
-            [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/install.html)
+            - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/install.html)
           draft: false
           prerelease: false
           files: |
