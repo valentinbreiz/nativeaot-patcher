@@ -96,31 +96,20 @@
 <p>Download and run the latest installer from the <a href="https://github.com/valentinbreiz/nativeaot-patcher/releases">Releases</a> page:</p>
 <pre><code>CosmosSetup-&lt;version&gt;-windows.exe
 </code></pre>
-<p>The installer will:</p>
-<ul>
-<li>Install all required build tools (cross-compilers, linker, assembler, xorriso, QEMU)</li>
-<li>Register NuGet packages</li>
-<li>Install the Cosmos CLI (<code>cosmos</code>) and patcher</li>
-<li>Install project templates</li>
-<li>Install the VS Code extension</li>
-<li>Add tools to your PATH</li>
-</ul>
 <p>After installation, open a new terminal and verify:</p>
 <pre><code class="lang-powershell">cosmos check
 </code></pre>
 <p>To uninstall, use <strong>Add or Remove Programs</strong> in Windows Settings.</p>
 <h2 id="linux--macos">Linux / macOS</h2>
-<h3 id="1-install-cosmos-cli">1. Install Cosmos CLI</h3>
+<p>Install the Cosmos CLI and all dependencies:</p>
 <pre><code class="lang-bash">dotnet tool install -g Cosmos.Tools
-</code></pre>
-<h3 id="2-install-tools-and-dependencies">2. Install tools and dependencies</h3>
-<pre><code class="lang-bash">cosmos install
+cosmos install
 </code></pre>
 <p>This will install all required tools via your package manager (<code>apt</code>, <code>dnf</code>, <code>pacman</code>, or <code>brew</code>), the Cosmos patcher, project templates, and the VS Code extension.</p>
-<h3 id="3-verify-installation">3. Verify installation</h3>
+<p>Verify installation:</p>
 <pre><code class="lang-bash">cosmos check
 </code></pre>
-<h3 id="uninstall">Uninstall</h3>
+<p>To uninstall:</p>
 <pre><code class="lang-bash">cosmos uninstall
 dotnet tool uninstall -g Cosmos.Tools
 </code></pre>
