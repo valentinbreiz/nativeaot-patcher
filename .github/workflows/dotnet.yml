@@ -163,10 +163,8 @@ jobs:
         include:
           - arch: x64
             rid: linux-x64
-            assembler: yasm
           - arch: arm64
             rid: linux-arm64
-            assembler: gcc-aarch64-linux-gnu
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -184,20 +182,8 @@ jobs:
       - name: 🔄 Compile Packages (multi-arch)
         run: ./.devcontainer/postCreateCommand.sh
 
-      - name: 🔗 Install Common Linking Tools
-        run: sudo apt-get update && sudo apt-get install -y xorriso lld
-
-      - name: 🔗 Install x64 Assembler
-        if: matrix.arch == 'x64'
-        run: sudo apt-get install -y yasm
-
-      - name: 🔗 Install ARM64 Cross-Compilation Tools
-        if: matrix.arch == 'arm64'
-        run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+      - name: 🔧 Install Build Tools
+        run: cosmos install --auto
 
       - name: Build ISO for ${{ matrix.arch }}
         run: |
@@ -253,40 +239,8 @@ jobs:
         shell: pwsh
         run: ./.devcontainer/postCreateCommand.ps1
 
-      - name: 🔗 Install Assembler & Linking Tools
-        uses: crazy-max/ghaction-chocolatey@v3.3.0
-        with:
-          args: install -y llvm yasm
-
-      - name: 🔗 Install xorriso
-        shell: pwsh
-        run: |
-          # Clone xorriso for Windows (includes required Cygwin DLLs)
-          git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 C:\xorriso
-          echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: 🔗 Install x64 GCC Toolchain
-        if: matrix.arch == 'x64'
-        shell: pwsh
-        run: |
-          curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
-          Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
-          echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: 🔗 Install ARM64 GCC Toolchain
-        if: matrix.arch == 'arm64'
-        shell: pwsh
-        run: |
-          curl -LO https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z
-          7z x gcc-v15.2.0-aarch64-none-elf.7z -oC:\aarch64-elf-tools
-          # Find the bin directory (archive may have a root folder)
-          $binPath = Get-ChildItem -Path C:\aarch64-elf-tools -Recurse -Directory -Filter "bin" | Select-Object -First 1 -ExpandProperty FullName
-          Write-Host "Adding to PATH: $binPath"
-          echo $binPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+      - name: 🔧 Install Build Tools
+        run: cosmos install --auto
 
       - name: Build ISO for ${{ matrix.arch }}
         shell: pwsh
@@ -325,12 +279,8 @@ jobs:
         include:
           - arch: x64
             rid: linux-x64
-            gcc_package: x86_64-elf-gcc
-            binutils_package: x86_64-elf-binutils
           - arch: arm64
             rid: linux-arm64
-            gcc_package: aarch64-elf-gcc
-            binutils_package: aarch64-elf-binutils
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -348,18 +298,8 @@ jobs:
       - name: 🔄 Compile Packages (multi-arch)
         run: ./.devcontainer/postCreateCommand.sh
 
-      - name: 🔗 Install Common Linking Tools
-        run: brew install lld xorriso yasm
-
-      - name: 🔗 Install Cross-Compilation Tools
-        run: |
-          # Install real GCC ELF cross-compilers (not Clang-based)
-          # These support -mcmodel=kernel (x64) and -mcmodel=large (arm64) needed for bare-metal kernels
-          brew install ${{ matrix.gcc_package }} ${{ matrix.binutils_package }}
-
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+      - name: 🔧 Install Build Tools
+        run: cosmos install --auto
 
       - name: Build ISO for ${{ matrix.arch }}
         run: |

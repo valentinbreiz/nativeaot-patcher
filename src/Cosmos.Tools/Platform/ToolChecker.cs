@@ -17,7 +17,17 @@ public static class ToolChecker
 
     public static async Task<ToolStatus> CheckToolAsync(ToolDefinition tool)
     {
-        foreach (string command in tool.Commands)
+        return tool switch
+        {
+            CommandToolDefinition cmd => await CheckCommandToolAsync(cmd),
+            FileToolDefinition file => CheckFileTool(file),
+            _ => new ToolStatus { Tool = tool, Found = false }
+        };
+    }
+
+    private static async Task<ToolStatus> CheckCommandToolAsync(CommandToolDefinition tool)
+    {
+        foreach (string command in tool.GetCommands(PlatformInfo.CurrentOS))
         {
             var (found, version, path) = await TryFindCommandAsync(command, tool.VersionArg);
             if (found)
@@ -33,16 +43,38 @@ public static class ToolChecker
             }
         }
 
-        return new ToolStatus
-        {
-            Tool = tool,
-            Found = false
-        };
+        return new ToolStatus { Tool = tool, Found = false };
     }
 
-    public static async Task<List<ToolStatus>> CheckAllToolsAsync(string? architecture = null)
+    private static ToolStatus CheckFileTool(FileToolDefinition tool)
     {
-        var tools = ToolDefinitions.GetToolsForArchitecture(architecture);
+        var paths = tool.GetPaths(PlatformInfo.CurrentOS);
+        if (paths == null)
+        {
+            return new ToolStatus { Tool = tool, Found = false };
+        }
+
+        foreach (string filePath in paths)
+        {
+            string expanded = Environment.ExpandEnvironmentVariables(filePath);
+            if (File.Exists(expanded))
+            {
+                return new ToolStatus
+                {
+                    Tool = tool,
+                    Found = true,
+                    Path = expanded,
+                    FoundCommand = expanded
+                };
+            }
+        }
+
+        return new ToolStatus { Tool = tool, Found = false };
+    }
+
+    public static async Task<List<ToolStatus>> CheckAllToolsAsync()
+    {
+        var tools = ToolDefinitions.GetAllTools();
         var results = new List<ToolStatus>();
 
         foreach (var tool in tools)
@@ -92,6 +124,23 @@ public static class ToolChecker
                 foreach (string dir in new[] { "lld", "xorriso", "yasm" })
                 {
                     AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, dir), command, ext);
+                }
+
+                // Windows: choco installs to Program Files
+                if (PlatformInfo.CurrentOS == OSPlatform.Windows)
+                {
+                    AddPathVariants(possiblePaths, @"C:\Program Files\qemu", command, ext);
+                    AddPathVariants(possiblePaths, @"C:\Program Files\LLVM\bin", command, ext);
+                    AddPathVariants(possiblePaths, @"C:\ProgramData\chocolatey\lib\yasm\tools", command, ext);
+                }
+
+                // macOS: brew installs some tools outside default PATH
+                if (PlatformInfo.CurrentOS == OSPlatform.MacOS)
+                {
+                    AddPathVariants(possiblePaths, "/opt/homebrew/opt/llvm/bin", command, ext);
+                    AddPathVariants(possiblePaths, "/opt/homebrew/bin", command, ext);
+                    AddPathVariants(possiblePaths, "/usr/local/opt/llvm/bin", command, ext);
+                    AddPathVariants(possiblePaths, "/usr/local/bin", command, ext);
                 }
 
                 foreach (string possiblePath in possiblePaths)
@@ -184,14 +233,30 @@ public static class ToolChecker
             // (e.g. VS Code launched before install, or new terminal not opened)
             string toolsBase = GetCosmosToolsPath();
             string sep = PlatformInfo.CurrentOS == OSPlatform.Windows ? ";" : ":";
-            string extraPaths = string.Join(sep,
+            var paths = new List<string>
+            {
                 Path.Combine(toolsBase, "bin"),
                 Path.Combine(toolsBase, "yasm"),
                 Path.Combine(toolsBase, "xorriso"),
                 Path.Combine(toolsBase, "lld"),
                 Path.Combine(toolsBase, "x86_64-elf-tools", "bin"),
                 Path.Combine(toolsBase, "aarch64-elf-tools", "bin"),
-                Path.Combine(toolsBase, "qemu"));
+                Path.Combine(toolsBase, "qemu")
+            };
+            if (PlatformInfo.CurrentOS == OSPlatform.Windows)
+            {
+                paths.Add(@"C:\Program Files\qemu");
+                paths.Add(@"C:\Program Files\LLVM\bin");
+                paths.Add(@"C:\ProgramData\chocolatey\lib\yasm\tools");
+            }
+            if (PlatformInfo.CurrentOS == OSPlatform.MacOS)
+            {
+                paths.Add("/opt/homebrew/opt/llvm/bin");
+                paths.Add("/opt/homebrew/bin");
+                paths.Add("/usr/local/opt/llvm/bin");
+                paths.Add("/usr/local/bin");
+            }
+            string extraPaths = string.Join(sep, paths);
             string currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
             psi.Environment["PATH"] = $"{extraPaths}{sep}{currentPath}";
 

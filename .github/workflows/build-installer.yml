@@ -10,8 +10,6 @@ on:
   push:
     tags:
       - 'v*'
-  pull_request:    # TEMPORARY: remove after testing
-    branches: [ main ]
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -89,26 +87,11 @@ jobs:
         run: dotnet tool install -g Cosmos.Tools --add-source setup/bundle/packages
         shell: pwsh
 
-      - name: Bundle all tools via cosmos install
+      - name: Build installer via cosmos install
         run: cosmos install --auto --setup setup/bundle
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Stage dotnet tool packages
-        run: |
-          New-Item -ItemType Directory -Force -Path setup/bundle/dotnet-tools
-          # Copy tool packages (Cosmos.Patcher, Cosmos.Tools, Cosmos.Build.Templates)
-          Copy-Item setup/bundle/packages/Cosmos.Patcher.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
-          Copy-Item setup/bundle/packages/Cosmos.Tools.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
-          Copy-Item setup/bundle/packages/Cosmos.Build.Templates.*.nupkg setup/bundle/dotnet-tools/ -ErrorAction SilentlyContinue
-        shell: pwsh
-
-      - name: Build installer with Inno Setup
-        run: |
-          $env:COSMOS_VERSION = "${{ needs.build-packages.outputs.version }}"
-          iscc setup/Cosmos.iss
-        shell: pwsh
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
@@ -117,182 +100,10 @@ jobs:
           path: setup/output/CosmosSetup-*.exe
           retention-days: 30
 
-  # ── Linux Installer ──────────────────────────────────────────────────────────
-  build-installer-linux:
-    name: Linux Installer
-    needs: build-packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download packages
-        uses: actions/download-artifact@v4
-        with:
-          name: cosmos-packages
-          path: staging/bundle/packages
-
-      - name: Download x86_64-elf-gcc
-        run: |
-          mkdir -p staging/bundle/tools/linux/x86_64-elf-tools
-          curl -LO "https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux.zip"
-          unzip x86_64-elf-tools-linux.zip -d staging/bundle/tools/linux/x86_64-elf-tools
-
-      - name: Bundle system tools
-        run: |
-          # Install and copy statically-usable binaries
-          sudo apt-get update
-          sudo apt-get install -y yasm lld xorriso gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-
-          # Bundle yasm
-          mkdir -p staging/bundle/tools/linux/yasm
-          cp "$(which yasm)" staging/bundle/tools/linux/yasm/
-
-          # Bundle lld
-          mkdir -p staging/bundle/tools/linux/lld
-          cp "$(which ld.lld)" staging/bundle/tools/linux/lld/
-          cp "$(which lld)" staging/bundle/tools/linux/lld/ 2>/dev/null || true
-
-          # Bundle xorriso
-          mkdir -p staging/bundle/tools/linux/xorriso
-          cp "$(which xorriso)" staging/bundle/tools/linux/xorriso/
-
-          # Bundle aarch64 cross-compiler
-          mkdir -p staging/bundle/tools/linux/aarch64-elf-tools/bin
-          for tool in gcc as ld objcopy objdump; do
-            src=$(which "aarch64-linux-gnu-$tool" 2>/dev/null || true)
-            if [ -n "$src" ]; then
-              cp "$src" "staging/bundle/tools/linux/aarch64-elf-tools/bin/"
-            fi
-          done
-
-          # Copy aarch64 cross-compiler libraries
-          AARCH64_GCC_DIR=$(dirname $(dirname $(which aarch64-linux-gnu-gcc)))
-          if [ -d "$AARCH64_GCC_DIR/lib/gcc-cross" ]; then
-            cp -r "$AARCH64_GCC_DIR/lib/gcc-cross" staging/bundle/tools/linux/aarch64-elf-tools/lib/ 2>/dev/null || true
-          fi
-
-      - name: Download VS Code extension
-        run: |
-          mkdir -p staging/bundle/extensions
-          # Download latest VS Code extension release if available
-          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
-            jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
-            xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
-            echo "VS Code extension not available, skipping."
-
-      - name: Stage dotnet tool packages
-        run: |
-          mkdir -p staging/bundle/dotnet-tools
-          cp staging/bundle/packages/Cosmos.Patcher.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-          cp staging/bundle/packages/Cosmos.Tools.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-          cp staging/bundle/packages/Cosmos.Build.Templates.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-
-      - name: Create tarball
-        run: |
-          VERSION="${{ needs.build-packages.outputs.version }}"
-          ARCHIVE_NAME="cosmos-${VERSION}-linux-x64"
-
-          # Copy install script
-          cp setup/install.sh staging/install.sh
-          chmod +x staging/install.sh
-
-          # Create tarball
-          mkdir -p output
-          tar czf "output/${ARCHIVE_NAME}.tar.gz" -C staging .
-
-      - name: Upload Linux installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer-linux
-          path: output/cosmos-*.tar.gz
-          retention-days: 30
-
-  # ── macOS Installer ──────────────────────────────────────────────────────────
-  build-installer-macos:
-    name: macOS Installer
-    needs: build-packages
-    runs-on: macos-14  # ARM64 runner
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download packages
-        uses: actions/download-artifact@v4
-        with:
-          name: cosmos-packages
-          path: staging/bundle/packages
-
-      - name: Install and bundle tools via Homebrew
-        run: |
-          # Install tools
-          brew install x86_64-elf-gcc aarch64-elf-gcc aarch64-elf-binutils yasm xorriso llvm
-
-          # Bundle x86_64-elf-gcc
-          mkdir -p staging/bundle/tools/macos/x86_64-elf-tools
-          X64_PREFIX=$(brew --prefix x86_64-elf-gcc)
-          cp -RL "$X64_PREFIX/"* staging/bundle/tools/macos/x86_64-elf-tools/ 2>/dev/null || true
-
-          # Bundle aarch64-elf-gcc
-          mkdir -p staging/bundle/tools/macos/aarch64-elf-tools
-          ARM64_PREFIX=$(brew --prefix aarch64-elf-gcc)
-          cp -RL "$ARM64_PREFIX/"* staging/bundle/tools/macos/aarch64-elf-tools/ 2>/dev/null || true
-
-          # Bundle yasm
-          mkdir -p staging/bundle/tools/macos/yasm
-          cp "$(which yasm)" staging/bundle/tools/macos/yasm/
-
-          # Bundle xorriso
-          mkdir -p staging/bundle/tools/macos/xorriso
-          cp "$(which xorriso)" staging/bundle/tools/macos/xorriso/
-
-          # Bundle lld
-          mkdir -p staging/bundle/tools/macos/lld
-          LLVM_PREFIX=$(brew --prefix llvm)
-          cp "$LLVM_PREFIX/bin/ld.lld" staging/bundle/tools/macos/lld/ 2>/dev/null || true
-          cp "$LLVM_PREFIX/bin/lld" staging/bundle/tools/macos/lld/ 2>/dev/null || true
-
-      - name: Download VS Code extension
-        run: |
-          mkdir -p staging/bundle/extensions
-          curl -sL "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" 2>/dev/null | \
-            jq -r '.assets[] | select(.name | endswith(".vsix")) | .browser_download_url' | head -1 | \
-            xargs -I{} curl -sL "{}" -o staging/bundle/extensions/cosmos-vscode.vsix 2>/dev/null || \
-            echo "VS Code extension not available, skipping."
-
-      - name: Stage dotnet tool packages
-        run: |
-          mkdir -p staging/bundle/dotnet-tools
-          cp staging/bundle/packages/Cosmos.Patcher.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-          cp staging/bundle/packages/Cosmos.Tools.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-          cp staging/bundle/packages/Cosmos.Build.Templates.*.nupkg staging/bundle/dotnet-tools/ 2>/dev/null || true
-
-      - name: Create tarball
-        run: |
-          VERSION="${{ needs.build-packages.outputs.version }}"
-          ARCHIVE_NAME="cosmos-${VERSION}-macos-arm64"
-
-          # Copy install script
-          cp setup/install.sh staging/install.sh
-          chmod +x staging/install.sh
-
-          # Create tarball
-          mkdir -p output
-          tar czf "output/${ARCHIVE_NAME}.tar.gz" -C staging .
-
-      - name: Upload macOS installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer-macos
-          path: output/cosmos-*.tar.gz
-          retention-days: 30
-
   # ── Create GitHub Release ────────────────────────────────────────────────────
   create-release:
     name: Create Release
-    needs: [build-packages, build-installer-windows, build-installer-linux, build-installer-macos]
+    needs: [build-packages, build-installer-windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -315,30 +126,17 @@ jobs:
 
             | Platform | File | Notes |
             |----------|------|-------|
-            | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Run installer, requires .NET 10.0 SDK |
-            | Linux x64 | `cosmos-${{ needs.build-packages.outputs.version }}-linux-x64.tar.gz` | Extract and run `install.sh` |
-            | macOS ARM64 | `cosmos-${{ needs.build-packages.outputs.version }}-macos-arm64.tar.gz` | Extract and run `install.sh` |
+            | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Requires .NET 10 SDK, run installer |
+            | Linux / macOS | `dotnet tool install -g Cosmos.Tools && cosmos install` | Requires .NET 10 SDK |
 
             ### Prerequisites
 
-            - [.NET 10.0 SDK](https://dot.net/download)
+            - [.NET 10 SDK](https://dot.net/download)
 
             ### Quick Start
 
-            ```bash
-            cosmos new MyKernel
-            cd MyKernel
-            cosmos build
-            ```
-
-            ### Verify Installation
-
-            ```bash
-            cosmos check
-            ```
+            [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/install.html)
           draft: false
           prerelease: false
           files: |
             installers/installer-windows/*
-            installers/installer-linux/*
-            installers/installer-macos/*

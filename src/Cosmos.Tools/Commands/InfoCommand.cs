@@ -22,10 +22,7 @@ public class InfoCommand : Command<InfoSettings>
         string arch = PlatformInfo.CurrentArch.ToString().ToLower();
         string packageManager = PlatformInfo.GetPackageManager();
         string displayBackend = GetDisplayBackend();
-        string? cosmosToolsPath = GetCosmosToolsPath();
         string gdbCommand = GetGdbCommand();
-        string? arm64UefiBios = GetArm64UefiBiosPath();
-
         if (settings.Json)
         {
             Console.WriteLine("{");
@@ -34,9 +31,7 @@ public class InfoCommand : Command<InfoSettings>
             Console.WriteLine($"  \"arch\": \"{arch}\",");
             Console.WriteLine($"  \"packageManager\": \"{packageManager}\",");
             Console.WriteLine($"  \"qemuDisplay\": \"{displayBackend}\",");
-            Console.WriteLine($"  \"gdbCommand\": \"{gdbCommand}\",");
-            Console.WriteLine($"  \"arm64UefiBios\": {(arm64UefiBios != null ? $"\"{EscapeJson(arm64UefiBios)}\"" : "null")},");
-            Console.WriteLine($"  \"cosmosToolsPath\": {(cosmosToolsPath != null ? $"\"{EscapeJson(cosmosToolsPath)}\"" : "null")}");
+            Console.WriteLine($"  \"gdbCommand\": \"{gdbCommand}\"");
             Console.WriteLine("}");
         }
         else
@@ -49,14 +44,6 @@ public class InfoCommand : Command<InfoSettings>
             AnsiConsole.MarkupLine($"  Package Manager: [blue]{packageManager}[/]");
             AnsiConsole.MarkupLine($"  QEMU Display: [blue]{displayBackend}[/]");
             AnsiConsole.MarkupLine($"  GDB Command: [blue]{gdbCommand}[/]");
-            if (arm64UefiBios != null)
-            {
-                AnsiConsole.MarkupLine($"  ARM64 UEFI BIOS: [blue]{arm64UefiBios}[/]");
-            }
-            if (cosmosToolsPath != null)
-            {
-                AnsiConsole.MarkupLine($"  Cosmos Tools: [blue]{cosmosToolsPath}[/]");
-            }
             AnsiConsole.WriteLine();
         }
 
@@ -85,11 +72,6 @@ public class InfoCommand : Command<InfoSettings>
 
     private static string GetDisplayBackend()
     {
-        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
-        {
-            return "sdl";
-        }
-
         if (RuntimeInformation.IsOSPlatform(SysOSPlatform.OSX))
         {
             return "cocoa";
@@ -148,43 +130,6 @@ public class InfoCommand : Command<InfoSettings>
         }
 
         return null;
-    }
-
-    private static string? GetArm64UefiBiosPath()
-    {
-        var paths = new List<string>();
-
-        // Linux paths
-        paths.AddRange([
-            "/usr/share/AAVMF/AAVMF_CODE.fd",
-            "/usr/share/qemu-efi-aarch64/QEMU_EFI.fd",
-            "/usr/share/edk2/aarch64/QEMU_EFI.fd",
-            "/usr/share/edk2-aarch64/QEMU_EFI.fd"
-        ]);
-
-        // macOS Homebrew paths (both Intel and ARM)
-        paths.AddRange([
-            "/opt/homebrew/share/qemu/edk2-aarch64-code.fd",
-            "/usr/local/share/qemu/edk2-aarch64-code.fd",
-            "/opt/homebrew/opt/qemu/share/qemu/edk2-aarch64-code.fd",
-            "/usr/local/opt/qemu/share/qemu/edk2-aarch64-code.fd"
-        ]);
-
-        // Windows paths
-        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
-        {
-            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-
-            paths.AddRange([
-                Path.Combine(programFiles, "qemu", "share", "edk2-aarch64-code.fd"),
-                Path.Combine(programFilesX86, "qemu", "share", "edk2-aarch64-code.fd"),
-                @"C:\Program Files\qemu\share\edk2-aarch64-code.fd",
-                @"C:\tools\qemu\share\edk2-aarch64-code.fd"
-            ]);
-        }
-
-        return paths.FirstOrDefault(File.Exists);
     }
 
     private static string EscapeJson(string s)

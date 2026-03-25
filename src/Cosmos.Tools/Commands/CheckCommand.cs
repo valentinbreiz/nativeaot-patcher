@@ -7,10 +7,6 @@ namespace Cosmos.Tools.Commands;
 
 public class CheckSettings : CommandSettings
 {
-    [CommandOption("-a|--arch")]
-    [Description("Target architecture (x64, arm64, or 'all' for both)")]
-    public string? Arch { get; set; }
-
     [CommandOption("--json")]
     [Description("Output results as JSON")]
     public bool Json { get; set; }
@@ -22,10 +18,10 @@ public class CheckCommand : AsyncCommand<CheckSettings>
     {
         if (!settings.Json)
         {
-            PrintHeader();
+            CommandHelper.PrintHeader("Cosmos Tools Check");
         }
 
-        var results = await ToolChecker.CheckAllToolsAsync(settings.Arch);
+        var results = await ToolChecker.CheckAllToolsAsync();
 
         if (settings.Json)
         {
@@ -40,43 +36,27 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         return 0;
     }
 
-    private static void PrintHeader()
-    {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("  [bold]Cosmos Tools Check[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.MarkupLine($"  Platform: [blue]{PlatformInfo.GetDistroName()}[/] ({PlatformInfo.CurrentArch})");
-        AnsiConsole.MarkupLine($"  Package Manager: [blue]{PlatformInfo.GetPackageManager()}[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.WriteLine();
-    }
-
     private static void PrintResults(List<ToolStatus> results)
     {
         int maxNameLen = results.Max(r => r.Tool.DisplayName.Length);
 
         foreach (var result in results)
         {
-            bool detected = result.Found && result.Version != null;
+            bool detected = result.Found && (result.Version != null || result.Tool is FileToolDefinition);
             string status = detected ? "[green]\u2713[/]" : "[red]\u2717[/]";
             string required = result.Tool.Required ? "" : " [dim](optional)[/]";
             string name = result.Tool.DisplayName.PadRight(maxNameLen);
 
             if (detected)
             {
-                AnsiConsole.MarkupLine($"  {status} {name} [dim]({result.Version})[/]");
-                if (result.Path != null)
-                {
-                    AnsiConsole.MarkupLine($"       [dim]{result.Path}[/]");
-                }
+                string ver = result.Version != null ? $" [dim]({result.Version})[/]" : "";
+                string path = result.Path != null ? $" [dim]{Markup.Escape(result.Path)}[/]" : "";
+                AnsiConsole.MarkupLine($"  {status} {name}{ver}{path}");
             }
             else if (result.Found)
             {
-                AnsiConsole.MarkupLine($"  {status} {name} [yellow]- Not detected{required}[/]");
-                if (result.Path != null)
-                {
-                    AnsiConsole.MarkupLine($"       [dim]{result.Path}[/]");
-                }
+                string path = result.Path != null ? $" [dim]{Markup.Escape(result.Path)}[/]" : "";
+                AnsiConsole.MarkupLine($"  {status} {name} [yellow]- Not detected{required}[/]{path}");
             }
             else
             {
@@ -90,9 +70,10 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
 
-        var requiredMissing = results.Where(r => r.Tool.Required && !(r.Found && r.Version != null)).ToList();
-        var optionalMissing = results.Where(r => !r.Tool.Required && !(r.Found && r.Version != null)).ToList();
-        bool allFound = results.All(r => (r.Found && r.Version != null) || !r.Tool.Required);
+        bool IsDetected(ToolStatus r) => r.Found && (r.Version != null || r.Tool is FileToolDefinition);
+        var requiredMissing = results.Where(r => r.Tool.Required && !IsDetected(r)).ToList();
+        var optionalMissing = results.Where(r => !r.Tool.Required && !IsDetected(r)).ToList();
+        bool allFound = results.All(r => IsDetected(r) || !r.Tool.Required);
 
         if (allFound)
         {
