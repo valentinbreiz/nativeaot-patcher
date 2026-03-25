@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using Cosmos.Tools.Platform;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -7,32 +8,20 @@ namespace Cosmos.Tools.Commands;
 
 public class UninstallSettings : CommandSettings
 {
-    [CommandOption("--keep-extension")]
-    [Description("Keep VS Code extension installed")]
-    public bool KeepExtension { get; set; }
-
     [CommandOption("-y|--auto")]
     [Description("Automatically uninstall without prompting")]
     public bool Auto { get; set; }
+
+    [CommandOption("--skip-tools")]
+    [Description("Skip system tools removal")]
+    public bool SkipTools { get; set; }
 }
 
 public class UninstallCommand : AsyncCommand<UninstallSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UninstallSettings settings)
     {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("  [bold]Cosmos Tools Uninstaller[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.WriteLine();
-
-        AnsiConsole.MarkupLine("  This will uninstall:");
-        AnsiConsole.MarkupLine("    - Cosmos.Patcher (dotnet tool)");
-        AnsiConsole.MarkupLine("    - Cosmos.Build.Templates (dotnet templates)");
-        if (!settings.KeepExtension)
-        {
-            AnsiConsole.MarkupLine("    - Cosmos VS Code extension");
-        }
-        AnsiConsole.WriteLine();
+        CommandHelper.PrintHeader("Cosmos Tools Uninstaller");
 
         if (!settings.Auto)
         {
@@ -42,196 +31,166 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
                 AnsiConsole.WriteLine("  Uninstallation cancelled.");
                 return 0;
             }
+            AnsiConsole.WriteLine();
         }
 
-        AnsiConsole.WriteLine();
+        // Remove system tools
+        if (!settings.SkipTools)
+        {
+            string toolsPath = ToolChecker.GetCosmosToolsPath();
+            string packageManager = PlatformInfo.GetPackageManager();
+            var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Uninstall Cosmos.Patcher tool
-        AnsiConsole.Markup("  Uninstalling Cosmos.Patcher... ");
-        await UninstallDotnetToolAsync("Cosmos.Patcher");
+            foreach (var tool in ToolDefinitions.GetAllTools())
+            {
+                if (tool is not CommandToolDefinition cmdTool)
+                {
+                    continue;
+                }
 
-        // Uninstall Cosmos templates
-        AnsiConsole.Markup("  Uninstalling Cosmos.Build.Templates... ");
-        await UninstallTemplateAsync("Cosmos.Build.Templates");
+                var info = cmdTool.GetInstallInfo(PlatformInfo.CurrentOS);
+                if (info == null)
+                {
+                    continue;
+                }
+
+                string bundleDir = InstallCommand.GetBundleDirName(tool);
+                string dedupKey = info.DownloadUrl != null
+                    ? $"dl:{bundleDir}"
+                    : $"pkg:{string.Join(",", InstallCommand.GetPackagesForManager(info, packageManager) ?? [])}";
+                if (!processed.Add(dedupKey))
+                {
+                    continue;
+                }
+
+                if (info.Method == "package")
+                {
+                    var pkgs = InstallCommand.GetPackagesForManager(info, packageManager);
+                    if (pkgs != null)
+                    {
+                        AnsiConsole.Markup($"  {tool.DisplayName} -> {packageManager} uninstall ... ");
+                        bool ok = await UninstallPackageAsync(packageManager, pkgs);
+                        AnsiConsole.MarkupLine(ok ? "[green]OK[/]" : "[dim]not installed[/]");
+                    }
+                }
+                else if (info.DownloadUrl != null)
+                {
+                    string targetDir = Path.Combine(toolsPath, bundleDir);
+                    AnsiConsole.Markup($"  {tool.DisplayName} -> remove {bundleDir}/ ... ");
+                    bool ok = false;
+                    if (Directory.Exists(targetDir))
+                    {
+                        try { Directory.Delete(targetDir, true); ok = true; } catch { }
+                    }
+                    AnsiConsole.MarkupLine(ok ? "[green]OK[/]" : "[dim]not found[/]");
+                }
+            }
+
+            // On Windows, remove downloaded tool dirs from user PATH
+            if (OperatingSystem.IsWindows())
+            {
+                AnsiConsole.Markup("  Tools -> remove from PATH ... ");
+                bool pathOk = InstallCommand.RemoveToolsFromWindowsPath(toolsPath);
+                AnsiConsole.MarkupLine(pathOk ? "[green]OK[/]" : "[dim]nothing to remove[/]");
+            }
+        }
+
+        // Remove NuGet feed
+        AnsiConsole.Markup("  NuGet feed -> remove ... ");
+        bool nugetOk = await RunAsync("dotnet", "nuget remove source \"Cosmos Local Feed\"");
+        AnsiConsole.MarkupLine(nugetOk ? "[green]OK[/]" : "[dim]not found[/]");
+
+        // Uninstall dotnet tools
+        AnsiConsole.Markup("  Cosmos.Patcher -> uninstall ... ");
+        bool patcherOk = await RunAsync("dotnet", "tool uninstall -g Cosmos.Patcher");
+        AnsiConsole.MarkupLine(patcherOk ? "[green]OK[/]" : "[dim]not installed[/]");
+
+        // Uninstall templates
+        AnsiConsole.Markup("  Cosmos.Build.Templates -> uninstall ... ");
+        bool templatesOk = await RunAsync("dotnet", "new uninstall Cosmos.Build.Templates");
+        AnsiConsole.MarkupLine(templatesOk ? "[green]OK[/]" : "[dim]not installed[/]");
 
         // Uninstall VS Code extension
-        if (!settings.KeepExtension)
-        {
-            await UninstallVSCodeExtensionAsync();
-        }
+        AnsiConsole.Markup("  VS Code extension -> uninstall ... ");
+        bool vsCodeOk = await UninstallVSCodeExtensionAsync();
+        AnsiConsole.MarkupLine(vsCodeOk ? "[green]OK[/]" : "[dim]not found[/]");
 
+        // Cosmos.Tools uninstalls itself last — print instruction
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.MarkupLine("  [green]Uninstallation complete![/]");
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("  To also remove the cosmos CLI itself, run:");
+        AnsiConsole.MarkupLine("    [blue]dotnet tool uninstall -g Cosmos.Tools[/]");
         AnsiConsole.WriteLine();
 
         return 0;
     }
 
-    private static async Task UninstallDotnetToolAsync(string packageName)
+    private static async Task<bool> RunAsync(string fileName, string arguments)
     {
         try
         {
-            var psi = new ProcessStartInfo
+            using var proc = Process.Start(new ProcessStartInfo
             {
-                FileName = "dotnet",
-                Arguments = $"tool uninstall -g {packageName}",
+                FileName = fileName,
+                Arguments = arguments,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-
-            using var process = Process.Start(psi);
-            if (process == null)
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            });
+            if (proc == null)
             {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
+                return false;
             }
 
-            await process.WaitForExitAsync();
-            AnsiConsole.MarkupLine(process.ExitCode == 0 ? "[green]OK[/]" : "[dim]not installed[/]");
+            await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+            return proc.ExitCode == 0;
         }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-        }
+        catch { return false; }
     }
 
-    private static async Task UninstallTemplateAsync(string packageName)
+    private static async Task<bool> UninstallPackageAsync(string packageManager, IEnumerable<string> packages)
     {
         try
         {
-            var psi = new ProcessStartInfo
+            var (command, args) = InstallCommand.GetPackageManagerUninstallCommand(packageManager, packages);
+            using var proc = Process.Start(new ProcessStartInfo
             {
-                FileName = "dotnet",
-                Arguments = $"new uninstall {packageName}",
+                FileName = command,
+                Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-
-            using var process = Process.Start(psi);
-            if (process == null)
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            });
+            if (proc == null)
             {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
+                return false;
             }
 
-            await process.WaitForExitAsync();
-            AnsiConsole.MarkupLine(process.ExitCode == 0 ? "[green]OK[/]" : "[dim]not installed[/]");
+            await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+            return proc.ExitCode == 0;
         }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-        }
+        catch { return false; }
     }
 
-    private static async Task UninstallVSCodeExtensionAsync()
+    private static async Task<bool> UninstallVSCodeExtensionAsync()
     {
-        string? codeCommand = GetVSCodeCommand();
-        if (codeCommand == null)
-        {
-            AnsiConsole.MarkupLine("  [dim]VS Code not found, skipping extension uninstall[/]");
-            return;
-        }
-
-        AnsiConsole.Markup("  Uninstalling VS Code extension... ");
-
         try
         {
-            ProcessStartInfo psi;
-
             if (OperatingSystem.IsWindows())
             {
-                psi = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {codeCommand} --uninstall-extension cosmosos.cosmos-vscode",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                return await RunAsync("cmd", "/c code --uninstall-extension cosmosos.cosmos-vscode");
             }
             else
             {
-                psi = new ProcessStartInfo
-                {
-                    FileName = codeCommand,
-                    Arguments = "--uninstall-extension cosmosos.cosmos-vscode",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
+                return await RunAsync("code", "--uninstall-extension cosmosos.cosmos-vscode");
             }
-
-            using var process = Process.Start(psi);
-            if (process == null)
-            {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
-            }
-
-            await process.WaitForExitAsync();
-            AnsiConsole.MarkupLine(process.ExitCode == 0 ? "[green]OK[/]" : "[dim]not installed[/]");
         }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-        }
-    }
-
-    private static string? GetVSCodeCommand()
-    {
-        bool isWindows = OperatingSystem.IsWindows();
-        string[] commands = isWindows
-            ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
-            : new[] { "code", "code-insiders", "codium" };
-
-        foreach (string? cmd in commands)
-        {
-            try
-            {
-                ProcessStartInfo psi;
-
-                if (isWindows)
-                {
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c {cmd} --version",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-                }
-                else
-                {
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = cmd,
-                        Arguments = "--version",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-                }
-
-                using var process = Process.Start(psi);
-                if (process != null)
-                {
-                    process.WaitForExit(3000);
-                    if (process.ExitCode == 0)
-                    {
-                        return cmd;
-                    }
-                }
-            }
-            catch { }
-        }
-
-        return null;
+        catch { return false; }
     }
 }

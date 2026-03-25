@@ -46,11 +46,8 @@ jobs:
         include:
           - arch: x64
             rid: linux-x64
-            qemu-package: qemu-system-x86
           - arch: arm64
             rid: linux-arm64
-            qemu-package: qemu-system-arm
-            qemu-firmware: qemu-efi-aarch64
 
     steps:
       - name: 📥 Checkout Repository
@@ -73,23 +70,11 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
-      - name: 🔧 Install QEMU and Build Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.qemu-package }} xorriso lld
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            sudo apt-get install -y ${{ matrix.qemu-firmware }} gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-          else
-            sudo apt-get install -y yasm
-          fi
+      - name: 🔧 Install Build Tools
+        run: cosmos install --auto
 
-      - name: 🔍 Verify QEMU Installation
-        run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            qemu-system-aarch64 --version
-          else
-            qemu-system-x86_64 --version
-          fi
+      - name: 🔍 Verify Tools Installation
+        run: cosmos check
 
       - name: 🔨 Build Test Runner Engine
         run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal

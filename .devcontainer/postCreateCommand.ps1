@@ -26,6 +26,12 @@ New-Item -ItemType Directory -Force -Path "artifacts/multiarch" | Out-Null
 dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 
 # Build and pack each project in dependency order
+# Download Limine bootloader (bundled in Cosmos.Build.Common NuGet package)
+Write-Host "Downloading Limine bootloader..." -ForegroundColor Cyan
+Remove-Item -Path "artifacts/limine" -Recurse -Force -ErrorAction SilentlyContinue
+git clone https://github.com/Limine-Bootloader/Limine.git --branch=v10.x-binary --depth=1 artifacts/limine
+Remove-Item -Path "artifacts/limine/.git" -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Host "Building and packing base projects..." -ForegroundColor Cyan
 dotnet build src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release --no-incremental
@@ -152,8 +158,6 @@ dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 Write-Host "Installing global tools..." -ForegroundColor Cyan
-dotnet tool uninstall -g ilc 2>$null
-dotnet tool install -g ilc --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Patcher 2>$null
 dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
 dotnet tool uninstall -g Cosmos.Tools 2>$null

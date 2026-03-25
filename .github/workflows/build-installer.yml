@@ -1,0 +1,142 @@
+name: Build Installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (e.g., 3.0.40). Leave empty to use Directory.Build.props.'
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  # ── Build all NuGet packages ─────────────────────────────────────────────────
+  build-packages:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm lld xorriso gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ -n "${{ inputs.version }}" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            version=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props)
+            echo "version=$version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build packages
+        run: |
+          export VersionSuffix="build.$(date +%Y%m%d%H%M)"
+          dotnet nuget locals all --clear
+          ./.devcontainer/postCreateCommand.sh
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmos-packages
+          path: artifacts/package/release/*.nupkg
+          retention-days: 7
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+  # ── Windows Installer ────────────────────────────────────────────────────────
+  build-installer-windows:
+    name: Windows Installer
+    needs: build-packages
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: setup/bundle/packages
+
+      - name: Install cosmos CLI
+        run: dotnet tool install -g Cosmos.Tools --add-source setup/bundle/packages
+        shell: pwsh
+
+      - name: Build installer via cosmos install
+        run: cosmos install --auto --setup setup/bundle
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-windows
+          path: setup/output/CosmosSetup-*.exe
+          retention-days: 30
+
+  # ── Create GitHub Release ────────────────────────────────────────────────────
+  create-release:
+    name: Create Release
+    needs: [build-packages, build-installer-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: false
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}"
+          body: |
+            ## Cosmos OS Development Kit v${{ needs.build-packages.outputs.version }}
+
+            ### Downloads
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Requires .NET 10 SDK, run installer |
+            | Linux / macOS | `dotnet tool install -g Cosmos.Tools && cosmos install` | Requires .NET 10 SDK |
+
+            ### Prerequisites
+
+            - [.NET 10 SDK](https://dot.net/download)
+
+            ### Quick Start
+
+            [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/install.html)
+          draft: false
+          prerelease: false
+          files: |
+            installers/installer-windows/*

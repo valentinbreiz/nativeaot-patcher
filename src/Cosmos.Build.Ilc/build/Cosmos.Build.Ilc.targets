@@ -19,18 +19,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <!-- For ARM64 cross-compilation, always use x64 host ILC tools -->
-      <HostILCompilerPack Include="runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler"
-                          Condition="'$(CosmosArch)' == 'arm64'">
+      <!-- Always use the host OS ILC tools (ILC runs on the build machine, not the target) -->
+      <HostILCompilerPack Include="runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
-      </HostILCompilerPack>
-
-      <!-- For x64 native compilation, use the native ILC -->
-      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
-                          Condition="'$(CosmosArch)' == 'x64'">
-        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
-        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
     </ItemGroup>
 

@@ -24,14 +24,8 @@
     </Exec>
   </Target>
 
-  <Target Name="GetXorriso" BeforeTargets="BuildISO">
-    <PropertyGroup>
-      <XorrisoDir>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)', 'xorriso'))</XorrisoDir>
-    </PropertyGroup>
-    <Exec Command="git clone https://github.com/PeyTy/xorriso-exe-for-windows.git --depth=1 &quot;$(XorrisoDir)&quot;" IgnoreExitCode="true"/>
-    <PropertyGroup>
-      <XorrisoBinary>$([MSBuild]::NormalizePath('$(XorrisoDir)', 'xorriso.exe'))</XorrisoBinary>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup>
+    <XorrisoBinary>xorriso</XorrisoBinary>
+  </PropertyGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.38</Version>
+    <Version>3.0.40</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
@@ -11,5 +11,7 @@
     <Content Include="build\Cosmos.ArchitecturePicker.props" PackagePath="build\" />
     <Content Include="build\*.targets" PackagePath="build\" />
     <Content Include="..\Cosmos.Build.Templates\Linker\*.ld" PackagePath="build\Linker\" />
+    <!-- Limine bootloader files (cloned into artifacts/limine/ by postCreateCommand) -->
+    <Content Include="..\..\artifacts\limine\*" PackagePath="tools\Limine\" />
   </ItemGroup>
 </Project>
