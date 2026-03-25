@@ -13,14 +13,6 @@ Download and run the latest installer from the [Releases](https://github.com/val
 CosmosSetup-<version>-windows.exe
 ```
 
-The installer will:
-- Install all required build tools (cross-compilers, linker, assembler, xorriso, QEMU)
-- Register NuGet packages
-- Install the Cosmos CLI (`cosmos`) and patcher
-- Install project templates
-- Install the VS Code extension
-- Add tools to your PATH
-
 After installation, open a new terminal and verify:
 
 ```powershell
@@ -31,27 +23,22 @@ To uninstall, use **Add or Remove Programs** in Windows Settings.
 
 ## Linux / macOS
 
-### 1. Install Cosmos CLI
+Install the Cosmos CLI and all dependencies:
 
 ```bash
 dotnet tool install -g Cosmos.Tools
-```
-
-### 2. Install tools and dependencies
-
-```bash
 cosmos install
 ```
 
 This will install all required tools via your package manager (`apt`, `dnf`, `pacman`, or `brew`), the Cosmos patcher, project templates, and the VS Code extension.
 
-### 3. Verify installation
+Verify installation:
 
 ```bash
 cosmos check
 ```
 
-### Uninstall
+To uninstall:
 
 ```bash
 cosmos uninstall
