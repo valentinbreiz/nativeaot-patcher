@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Installing the Cosmos VS Code Extension | Cosmos Gen 3 </title>
+      <title>Installation Guide | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Installing the Cosmos VS Code Extension | Cosmos Gen 3 ">
+      <meta name="title" content="Installation Guide | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -85,34 +85,52 @@
         </div>
 
         <article data-uid="">
-<h1 id="installing-the-cosmos-vs-code-extension">Installing the Cosmos VS Code Extension</h1>
+<h1 id="installation-guide">Installation Guide</h1>
 
-<p>The easiest way to use gen3 is through the <a href="https://github.com/valentinbreiz/CosmosVsCodeExtension">Cosmos VS Code Extension</a>. The <code>Cosmos.Tools</code> .NET global tool handles the installation of the extension and its dependencies.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <ul>
-<li><a href="https://dotnet.microsoft.com/download">.NET SDK</a> 10.0 or later</li>
+<li><a href="https://dotnet.microsoft.com/download">.NET SDK 10.0</a> or later</li>
 <li><a href="https://code.visualstudio.com/">Visual Studio Code</a></li>
 </ul>
-<h2 id="steps">Steps</h2>
-<h3 id="1-install-cosmostools">1. Install Cosmos.Tools</h3>
-<p>Install the <code>Cosmos.Tools</code> .NET global tool:</p>
+<h2 id="windows">Windows</h2>
+<p>Download and run the latest installer from the <a href="https://github.com/valentinbreiz/nativeaot-patcher/releases">Releases</a> page:</p>
+<pre><code>CosmosSetup-&lt;version&gt;-windows.exe
+</code></pre>
+<p>The installer will:</p>
+<ul>
+<li>Install all required build tools (cross-compilers, linker, assembler, xorriso, QEMU)</li>
+<li>Register NuGet packages</li>
+<li>Install the Cosmos CLI (<code>cosmos</code>) and patcher</li>
+<li>Install project templates</li>
+<li>Install the VS Code extension</li>
+<li>Add tools to your PATH</li>
+</ul>
+<p>After installation, open a new terminal and verify:</p>
+<pre><code class="lang-powershell">cosmos check
+</code></pre>
+<p>To uninstall, use <strong>Add or Remove Programs</strong> in Windows Settings.</p>
+<h2 id="linux--macos">Linux / macOS</h2>
+<h3 id="1-install-cosmos-cli">1. Install Cosmos CLI</h3>
 <pre><code class="lang-bash">dotnet tool install -g Cosmos.Tools
 </code></pre>
-<p>If you already have it installed and want to update it:</p>
-<pre><code class="lang-bash">dotnet tool update -g Cosmos.Tools
-</code></pre>
-<h3 id="2-check-dependencies">2. Check Dependencies</h3>
-<p>Run <code>cosmos check</code> to verify that all required dependencies are installed and properly configured on your system:</p>
-<pre><code class="lang-bash">cosmos check
-</code></pre>
-<p>This command will report any missing tools or configuration issues that need to be resolved before proceeding.</p>
-<h3 id="3-install-the-vs-code-extension">3. Install the VS Code Extension</h3>
-<p>Run <code>cosmos install</code> to download and install the Cosmos VS Code Extension:</p>
+<h3 id="2-install-tools-and-dependencies">2. Install tools and dependencies</h3>
 <pre><code class="lang-bash">cosmos install
 </code></pre>
-<p>This will install the extension into VS Code automatically.</p>
-<h3 id="4-start-using-cosmos">4. Start Using Cosmos</h3>
-<p>Once installed, open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.</p>
+<p>This will install all required tools via your package manager (<code>apt</code>, <code>dnf</code>, <code>pacman</code>, or <code>brew</code>), the Cosmos patcher, project templates, and the VS Code extension.</p>
+<h3 id="3-verify-installation">3. Verify installation</h3>
+<pre><code class="lang-bash">cosmos check
+</code></pre>
+<h3 id="uninstall">Uninstall</h3>
+<pre><code class="lang-bash">cosmos uninstall
+dotnet tool uninstall -g Cosmos.Tools
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<p>Once installed, create and build your first kernel:</p>
+<pre><code class="lang-bash">cosmos new MyKernel
+cd MyKernel
+cosmos build
+</code></pre>
+<p>Or open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.</p>
 
 </article>
 
