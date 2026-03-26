@@ -10,13 +10,13 @@ Check out the [Roadmap](roadmap.md) to see our progress toward the first release
 
 There are two ways to use gen3 depending on your needs:
 
-### As a Developer
-
-If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the [Dev Container Setup](articles/install-dev.md), [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md), [Debugging with VSCode and QEMU](articles/debugging.md), and [Coding Guidelines](articles/coding-guidelines.md) articles to get started.
-
 ### As a User
 
 If you want to build bare-metal C# kernels without setting up the full toolchain manually, see the [Installation guide](articles/install.md) to get started. It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor.
+
+### As a Contributor
+
+If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the [Dev Container Setup](articles/install-dev.md), [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md), [Debugging with VSCode and QEMU](articles/debugging.md), and [Coding Guidelines](articles/coding-guidelines.md) articles to get started.
 
 ## Documentation
  - [Installation Guide](articles/install.md)
