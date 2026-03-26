@@ -1,4 +1,4 @@
-- name: Installation (Cosmos VS Code Extension)
+- name: Installation Guide
   href: install.md
 - name: Dev Container Setup
   href: install-dev.md
