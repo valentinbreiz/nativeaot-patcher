@@ -16,10 +16,10 @@ If you want to develop or contribute to the project, clone the repository and op
 
 ### As a User
 
-If you want to build bare-metal C# kernels without setting up the full toolchain manually, use the [Cosmos VS Code Extension](https://github.com/valentinbreiz/CosmosVsCodeExtension). It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor. See the [Installation guide](articles/install.md) to get started.
+If you want to build bare-metal C# kernels without setting up the full toolchain manually, see the [Installation guide](articles/install.md) to get started. It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor.
 
 ## Documentation
- - [Installation (Cosmos VS Code Extension)](articles/install.md)
+ - [Installation Guide](articles/install.md)
  - [Dev Container Setup](articles/install-dev.md)
  - [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md)
  - [Debugging with VSCode and QEMU](articles/debugging.md)
