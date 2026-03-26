@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version override (e.g., 3.0.41). Leave empty to use Directory.Build.props.'
+        description: 'Version override (e.g., 3.0.42). Leave empty to use git tag.'
         required: false
         type: string
   push:
@@ -43,15 +43,15 @@ jobs:
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           else
-            version=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props)
-            echo "version=$version" >> $GITHUB_OUTPUT
+            echo "version=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo '0.0.0')" >> $GITHUB_OUTPUT
           fi
 
       - name: Build packages
         run: |
-          export VersionSuffix="build.$(date +%Y%m%d%H%M)"
           dotnet nuget locals all --clear
           ./.devcontainer/postCreateCommand.sh
+        env:
+          VERSION_OVERRIDE: ${{ steps.version.outputs.version }}
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
