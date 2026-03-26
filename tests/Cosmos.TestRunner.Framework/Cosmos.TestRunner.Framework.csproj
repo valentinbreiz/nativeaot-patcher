@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
     <PackageId>Cosmos.TestRunner.Framework</PackageId>
-    <Version>1.0.0</Version>
     <Authors>NativeAOT-Patcher Contributors</Authors>
     <Description>Test framework for NativeAOT kernel tests</Description>
   </PropertyGroup>

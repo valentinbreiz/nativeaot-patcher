@@ -5,6 +5,24 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "=== Starting postCreate setup (multi-arch) ===" -ForegroundColor Cyan
 
+# Resolve version: override env var > git tag > fallback
+if ($env:VERSION_OVERRIDE) {
+    $Version = $env:VERSION_OVERRIDE
+    Write-Host "Package version: $Version (from VERSION_OVERRIDE)" -ForegroundColor Yellow
+} else {
+    try {
+        $Version = (git describe --tags --abbrev=0 2>$null) -replace '^v', ''
+    } catch { $Version = "" }
+    if (-not $Version) { $Version = "0.0.0" }
+    Write-Host "Package version: $Version (from git tag)" -ForegroundColor Yellow
+}
+$VersionProp = "-p:VersionPrefix=$Version"
+
+# Update global.json msbuild-sdks so Cosmos.Sdk NuGet resolves correctly
+$globalJson = Get-Content "global.json" -Raw | ConvertFrom-Json
+$globalJson.'msbuild-sdks'.'Cosmos.Sdk' = $Version
+$globalJson | ConvertTo-Json -Depth 10 | Set-Content "global.json"
+
 # Clear Cosmos packages from NuGet cache
 Write-Host "Clearing Cosmos packages from NuGet cache..."
 Remove-Item -Path "$env:USERPROFILE\.nuget\packages\cosmos.*" -Recurse -Force -ErrorAction SilentlyContinue
@@ -33,35 +51,35 @@ git clone https://github.com/Limine-Bootloader/Limine.git --branch=v10.x-binary 
 Remove-Item -Path "artifacts/limine/.git" -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "Building and packing base projects..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Build.API/Cosmos.Build.API.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release --no-incremental $VersionProp
 
 Write-Host "Building and packing build tools..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental $VersionProp
 
 # Native packages (content-only)
 Write-Host "Packing native packages..." -ForegroundColor Cyan
-dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release
-dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release
-dotnet pack src/Cosmos.Kernel.Native.MultiArch/Cosmos.Kernel.Native.MultiArch.csproj -c Release -o artifacts/package/release
+dotnet pack src/Cosmos.Kernel.Native.X64/Cosmos.Kernel.Native.X64.csproj -c Release -o artifacts/package/release $VersionProp
+dotnet pack src/Cosmos.Kernel.Native.ARM64/Cosmos.Kernel.Native.ARM64.csproj -c Release -o artifacts/package/release $VersionProp
+dotnet pack src/Cosmos.Kernel.Native.MultiArch/Cosmos.Kernel.Native.MultiArch.csproj -c Release -o artifacts/package/release $VersionProp
 
 Write-Host "Verifying native packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.Native.*.nupkg" | ForEach-Object { Write-Host $_.Name }
 
 # Architecture-independent kernel packages (build first, then pack)
 Write-Host "Building and packing architecture-independent kernel packages..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -p:GeneratePackageOnBuild=false
-dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release --no-build -o artifacts/package/release
-dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -p:GeneratePackageOnBuild=false
-dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release --no-build -o artifacts/package/release
-dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:GeneratePackageOnBuild=false
-dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release --no-build -o artifacts/package/release
+dotnet build src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release -p:GeneratePackageOnBuild=false $VersionProp
+dotnet pack src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj -c Release --no-build -o artifacts/package/release $VersionProp
+dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -p:GeneratePackageOnBuild=false $VersionProp
+dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release --no-build -o artifacts/package/release $VersionProp
+dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:GeneratePackageOnBuild=false $VersionProp
+dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release --no-build -o artifacts/package/release $VersionProp
 
 Write-Host "Verifying arch-independent packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.HAL.Interfaces.*.nupkg" | ForEach-Object { Write-Host $_.Name }
@@ -70,10 +88,10 @@ Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.Boot.*.nupkg" | For
 
 # Architecture-specific HAL packages (build first, then pack)
 Write-Host "Building and packing architecture-specific HAL packages..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -p:GeneratePackageOnBuild=false
-dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release --no-build -o artifacts/package/release
-dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -p:GeneratePackageOnBuild=false
-dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release --no-build -o artifacts/package/release
+dotnet build src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release -p:GeneratePackageOnBuild=false $VersionProp
+dotnet pack src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj -c Release --no-build -o artifacts/package/release $VersionProp
+dotnet build src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release -p:GeneratePackageOnBuild=false $VersionProp
+dotnet pack src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj -c Release --no-build -o artifacts/package/release $VersionProp
 
 Write-Host "Verifying HAL packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.HAL.X64.*.nupkg" | ForEach-Object { Write-Host $_.Name }
@@ -90,7 +108,7 @@ $MultiArchProjects = @(
 
 # Build all multi-arch packages for x64
 Write-Host "Building all multi-arch packages for x64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:CosmosArch=x64 --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-x64 -p:CosmosArch=x64 --no-incremental $VersionProp
 
 # Stage x64 builds
 Write-Host "Staging x64 builds..." -ForegroundColor Cyan
@@ -109,7 +127,7 @@ foreach ($proj in $MultiArchProjects) {
 
 # Build all multi-arch packages for arm64
 Write-Host "Building all multi-arch packages for arm64..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:CosmosArch=arm64 --no-incremental
+dotnet build src/Cosmos.Kernel/Cosmos.Kernel.csproj -c Release -r linux-arm64 -p:CosmosArch=arm64 --no-incremental $VersionProp
 
 # Stage arm64 builds
 Write-Host "Staging arm64 builds..." -ForegroundColor Cyan
@@ -135,14 +153,15 @@ foreach ($proj in $MultiArchProjects) {
     Write-Host "Packing $proj..." -ForegroundColor Yellow
     Get-ChildItem -Path "artifacts/obj/$proj" -Filter "*.nuspec" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force
     # Only delete exact package name (not prefix matches like Cosmos.Kernel.* which would delete Native, HAL, etc)
-    Remove-Item -Path "artifacts/package/release/$proj.3.0.*.nupkg" -Force -ErrorAction SilentlyContinue
-    dotnet pack "src/$proj/$proj.csproj" -c Release -o artifacts/package/release -p:NoBuild=true
+    Remove-Item -Path "artifacts/package/release/$proj.$Version.*.nupkg" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "artifacts/package/release/$proj.$Version.nupkg" -Force -ErrorAction SilentlyContinue
+    dotnet pack "src/$proj/$proj.csproj" -c Release -o artifacts/package/release -p:NoBuild=true $VersionProp
 }
 
 # SDK and Templates
 Write-Host "Building SDK and Templates..." -ForegroundColor Cyan
-dotnet build src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Sdk/Cosmos.Sdk.csproj -c Release --no-incremental $VersionProp
+dotnet build src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj -c Release --no-incremental $VersionProp
 
 # List all created packages
 Write-Host "=== Created packages ===" -ForegroundColor Green
@@ -154,7 +173,7 @@ Remove-Item -Path "$env:USERPROFILE\.nuget\packages\cosmos.*" -Recurse -Force -E
 
 # Restore main solution
 Write-Host "Restoring main solution..." -ForegroundColor Cyan
-dotnet restore ./nativeaot-patcher.slnx
+dotnet restore ./nativeaot-patcher.slnx $VersionProp
 
 # Install global tools
 Write-Host "Installing global tools..." -ForegroundColor Cyan

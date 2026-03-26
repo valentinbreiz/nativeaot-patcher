@@ -22,7 +22,8 @@ public class InfoCommand : Command<InfoSettings>
         string arch = PlatformInfo.CurrentArch.ToString().ToLower();
         string packageManager = PlatformInfo.GetPackageManager();
         string displayBackend = GetDisplayBackend();
-        string gdbCommand = GetGdbCommand();
+        string gdbX64 = GetGdbCommand("x64");
+        string gdbArm64 = GetGdbCommand("arm64");
         if (settings.Json)
         {
             Console.WriteLine("{");
@@ -31,7 +32,8 @@ public class InfoCommand : Command<InfoSettings>
             Console.WriteLine($"  \"arch\": \"{arch}\",");
             Console.WriteLine($"  \"packageManager\": \"{packageManager}\",");
             Console.WriteLine($"  \"qemuDisplay\": \"{displayBackend}\",");
-            Console.WriteLine($"  \"gdbCommand\": \"{gdbCommand}\"");
+            Console.WriteLine($"  \"gdbX64Command\": \"{EscapeJson(gdbX64)}\",");
+            Console.WriteLine($"  \"gdbArm64Command\": \"{EscapeJson(gdbArm64)}\"");
             Console.WriteLine("}");
         }
         else
@@ -43,7 +45,8 @@ public class InfoCommand : Command<InfoSettings>
             AnsiConsole.MarkupLine($"  Architecture: [blue]{arch}[/]");
             AnsiConsole.MarkupLine($"  Package Manager: [blue]{packageManager}[/]");
             AnsiConsole.MarkupLine($"  QEMU Display: [blue]{displayBackend}[/]");
-            AnsiConsole.MarkupLine($"  GDB Command: [blue]{gdbCommand}[/]");
+            AnsiConsole.MarkupLine($"  GDB x64: [blue]{gdbX64}[/]");
+            AnsiConsole.MarkupLine($"  GDB ARM64: [blue]{gdbArm64}[/]");
             AnsiConsole.WriteLine();
         }
 
@@ -80,32 +83,49 @@ public class InfoCommand : Command<InfoSettings>
         return "gtk";
     }
 
-    private static string GetGdbCommand()
+    private static string GetGdbCommand(string targetArch)
     {
-        // On Linux, prefer gdb-multiarch for cross-architecture debugging
-        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Linux))
+        string cosmosTools = ToolChecker.GetCosmosToolsPath();
+        string ext = RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows) ? ".exe" : "";
+
+        // Check cosmos tools for arch-specific GDB
+        string? cosmosGdb = targetArch switch
         {
-            // Check if gdb-multiarch exists
-            string gdbMultiarchPath = "/usr/bin/gdb-multiarch";
-            if (File.Exists(gdbMultiarchPath))
-            {
-                return "gdb-multiarch";
-            }
+            "x64" => FindFile(Path.Combine(cosmosTools, "x86_64-elf-tools", "bin", $"x86_64-elf-gdb{ext}")),
+            "arm64" => FindFile(Path.Combine(cosmosTools, "aarch64-elf-tools", "bin", $"gdb{ext}"))
+                    ?? FindFile(Path.Combine(cosmosTools, "aarch64-elf-tools", "bin", $"aarch64-none-elf-gdb{ext}")),
+            _ => null
+        };
+        if (cosmosGdb != null)
+        {
+            return cosmosGdb;
         }
 
-        // macOS and Windows typically just use 'gdb'
-        // Windows might need the full path if installed via MinGW
-        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
+        // Linux: gdb-multiarch works for all architectures
+        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Linux) && File.Exists("/usr/bin/gdb-multiarch"))
         {
-            string mingwPath = @"C:\msys64\mingw64\bin\gdb.exe";
-            if (File.Exists(mingwPath))
+            return "gdb-multiarch";
+        }
+
+        // macOS: brew installs arch-specific GDB
+        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.OSX))
+        {
+            string? brewGdb = targetArch switch
             {
-                return mingwPath;
+                "x64" => FindFile("/opt/homebrew/bin/x86_64-elf-gdb") ?? FindFile("/usr/local/bin/x86_64-elf-gdb"),
+                "arm64" => FindFile("/opt/homebrew/bin/aarch64-elf-gdb") ?? FindFile("/usr/local/bin/aarch64-elf-gdb"),
+                _ => null
+            };
+            if (brewGdb != null)
+            {
+                return brewGdb;
             }
         }
 
         return "gdb";
     }
+
+    private static string? FindFile(string path) => File.Exists(path) ? path : null;
 
     private static string? GetCosmosToolsPath()
     {
