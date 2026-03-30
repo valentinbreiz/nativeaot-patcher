@@ -11,6 +11,166 @@ namespace Cosmos.Kernel.Core.Runtime;
 
 public static unsafe class Memory
 {
+
+    // Copy past of GCMemoryInfoData & GCGenerationInfo
+    // https://github.com/dotnet/runtime/blob/51cfb0e382532e43500216c755d8bd8e1a8f371d/src/libraries/System.Private.CoreLib/src/System/GCMemoryInfo.cs#L16C28-L16C44
+
+    // The original struct do not set a layout, for safty i put one. Is it a bad idea ?
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GCGenerationInfo
+    {
+        public long sizeBeforeBytes;
+        public long fragmentationBeforeBytes;
+        public long sizeAfterBytes;
+        public long fragmentationAfterBytes;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct GCMemoryInfoDataStruct
+    {
+        internal long _highMemoryLoadThresholdBytes;
+        internal long _totalAvailableMemoryBytes;
+        internal long _memoryLoadBytes;
+        internal long _heapSizeBytes;
+        internal long _fragmentedBytes;
+        internal long _totalCommittedBytes;
+        internal long _promotedBytes;
+        internal long _pinnedObjectsCount;
+        internal long _finalizationPendingCount;
+        internal long _index;
+        internal int _generation;
+        internal int _pauseTimePercentage;
+        internal byte _compacted;
+        internal byte _concurrent;
+
+        internal GCGenerationInfo _generationInfo0;
+        internal GCGenerationInfo _generationInfo1;
+        internal GCGenerationInfo _generationInfo2;
+        internal GCGenerationInfo _generationInfo3;
+        internal GCGenerationInfo _generationInfo4;
+
+        internal TimeSpan _pauseDuration0;
+        internal TimeSpan _pauseDuration1;
+    }
+
+    
+    [RuntimeExport("RhGetMemoryInfo")]
+    internal unsafe static void RhGetMemoryInfo(ref byte rawData, GCKind kind)
+    {
+        var data = (GCMemoryInfoDataStruct*)rawData;
+        GarbageCollector.SimpleMemoryInfo info = GarbageCollector.GetSimpleMemoryInfo();
+
+        // the ration 0.5 is arbitrary, should be change in the future
+        data->_highMemoryLoadThresholdBytes = (long)(PageAllocator.RamSize / 2);
+        data->_totalAvailableMemoryBytes = (long)PageAllocator.RamSize;
+        data->_memoryLoadBytes = (long)info.TotalCommittedBytes; // TODO: duplicated review this part
+        data->_heapSizeBytes = (long)info.HeapSizeBytes;
+        data->_fragmentedBytes = (long)info.FragmentedBytes;
+        data->_totalCommittedBytes = (long)info.TotalCommittedBytes;
+        data->_promotedBytes = (long)info.PromotedBytes;
+        data->_pinnedObjectsCount = (long)info.PinnedObjectsCount;
+        data->_index = info.CollectionIndex;
+        data->_generation = info.CondemnedGeneration;
+
+        // not tracked currently
+        data->_finalizationPendingCount = 0;
+        data->_pauseTimePercentage = 0;
+        data->_compacted = 0;
+        data->_concurrent = 0;
+
+        // Populate generation info. GC is non-generational; report generation 0
+        // Use last recorded before/after metrics from the GC (recorded at Collect())
+        data->_generationInfo0.sizeBeforeBytes = (long)GarbageCollector.GetLastGenSizeBefore(0);
+        data->_generationInfo0.fragmentationBeforeBytes = (long)GarbageCollector.GetLastGenFragmentationBefore(0);
+        data->_generationInfo0.sizeAfterBytes = (long)GarbageCollector.GetLastGenSizeAfter(0);
+        data->_generationInfo0.fragmentationAfterBytes = (long)GarbageCollector.GetLastGenFragmentationAfter(0);
+
+        // Other generation infos remain zero
+        data->_generationInfo1 = default;
+        data->_generationInfo2 = default;
+        data->_generationInfo3 = default;
+        data->_generationInfo4 = default;
+
+        data->_pauseDuration0 = TimeSpan.Zero;
+        data->_pauseDuration1 = TimeSpan.Zero;
+    }
+
+    [RuntimeExport("RhCollect")]
+    internal static void RhCollect(int generation, InternalGCCollectionMode mode)
+    {
+        // Do not support generation for now nor modes
+        GarbageCollector.Collect();
+    }
+
+    [RuntimeExport("RhGetGeneration")]
+    internal static int RhGetGeneration(object obj)
+    {
+        // Do not support generation for now
+        return 0;
+    }
+
+    [RuntimeExport("RhGetGenerationSize")]
+    internal static int RhGetGenerationSize(int gen)
+    {
+        // Our GC is currently non-generational. Delegate to the GC helper which
+        // returns the total used bytes for generation 0 and 0 for others.
+        uint size = GarbageCollector.GetGenerationSize(gen);
+        if (size > int.MaxValue)
+        {
+            return int.MaxValue;
+        }
+
+        return (int)size;
+    }
+
+    [RuntimeExport("RhGetLastGCPercentTimeInGC")]
+    internal static int RhGetLastGCPercentTimeInGC()
+    {
+        return GarbageCollector.GetLastGCPercentTimeInGC();
+    }
+
+    // Dans le runtime le handle est un pointer sur pointer d'object
+    // qui peut être caster de différente manier sur l'object.
+    // passer par HandleGetPrimary éviter de devoir gérée si des macro sont def en USE_CHECKED_OBJECTREFS ou non
+    [RuntimeExport("RhHandleGet")]
+    internal static object? RhHandleGet(IntPtr handle)
+    {
+        GCObject* primary = GarbageCollector.HandleGetPrimary(handle);
+        if (primary == null)
+        {
+            return null;
+        }
+
+        nint asInt = (nint)primary;
+        return Unsafe.As<nint, object>(ref asInt);
+    }
+
+    /*
+    [RuntimeExport("RhRegisterForFullGCNotification")]
+    internal static bool RhRegisterForFullGCNotification(int maxGenerationThreshold, int largeObjectHeapThreshold)
+    {
+        throw new NotImplementedException();
+    }
+
+    [RuntimeExport("RhWaitForFullGCApproach")]
+    internal static int RhWaitForFullGCApproach(int millisecondsTimeout)
+    {
+        throw new NotImplementedException();
+    }
+
+    [RuntimeExport("RhWaitForFullGCComplete")]
+    internal static int RhWaitForFullGCComplete(int millisecondsTimeout)
+    {
+        throw new NotImplementedException();
+    }
+
+    [RuntimeExport("RhCancelFullGCNotification")]
+    internal static bool RhCancelFullGCNotification()
+    {
+        throw new NotImplementedException();
+    }
+    */
+
     [RuntimeExport("RhNewArray")]
     internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
     {
@@ -107,6 +267,7 @@ public static unsafe class Memory
         return dmem;
     }
 
+    // TODO: RhpNewFast ? RhNewFast ?
     [RuntimeExport("RhpNewFast")]
     internal static unsafe void* RhpNewFast(MethodTable* pMT)
     {
