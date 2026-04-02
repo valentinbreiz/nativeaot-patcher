@@ -121,7 +121,6 @@ public static unsafe class Memory
     [RuntimeExport("RhGetGeneration")]
     internal static int RhGetGeneration(object obj)
     {
-        // Get raw object pointer and delegate to GC helper
         nint addr = Unsafe.As<object, nint>(ref obj);
         return GarbageCollector.GetObjectGeneration(addr);
     }
@@ -146,10 +145,8 @@ public static unsafe class Memory
         return GarbageCollector.GetLastGCPercentTimeInGC();
     }
 
-    // TODO: remove this fr comment for en
-    // Dans le runtime le handle est un pointer sur pointer d'object
-    // qui peut être caster de différente manier sur l'object.
-    // passer par HandleGetPrimary éviter de devoir gérée si des macro sont def en USE_CHECKED_OBJECTREFS ou non
+    // In the runtime the handle is a pointer-to-a-pointer to an object which can be cast to the object in different ways.
+    // Use HandleGetPrimary to avoid having to handle whether the USE_CHECKED_OBJECTREFS macros are defined or not.
     [RuntimeExport("RhHandleGet")]
     internal static object? RhHandleGet(IntPtr handle)
     {
@@ -213,33 +210,6 @@ public static unsafe class Memory
 
         return (long)allocated;
     }
-
-    /*
-    [RuntimeExport("RhRegisterForFullGCNotification")]
-    internal static bool RhRegisterForFullGCNotification(int maxGenerationThreshold, int largeObjectHeapThreshold)
-    {
-        throw new NotImplementedException();
-    }
-
-    [RuntimeExport("RhWaitForFullGCApproach")]
-    internal static int RhWaitForFullGCApproach(int millisecondsTimeout)
-    {
-        throw new NotImplementedException();
-    }
-
-    [RuntimeExport("RhWaitForFullGCComplete")]
-    internal static int RhWaitForFullGCComplete(int millisecondsTimeout)
-    {
-        throw new NotImplementedException();
-    }
-
-    [RuntimeExport("RhCancelFullGCNotification")]
-    internal static bool RhCancelFullGCNotification()
-    {
-        throw new NotImplementedException();
-    }
-    // probably look for an Plug for method like AddMemoryPressure 
-    */
 
     [RuntimeExport("RhNewArray")]
     internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
