@@ -1,6 +1,8 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
 
@@ -37,4 +39,15 @@ public unsafe class MetaTable
     {
         GarbageCollector.HandleSetSecondary(handle, pSecondary);
     }
+
+    [RuntimeExport("RhGetRuntimeHelperForType")]
+    internal static unsafe IntPtr RhGetRuntimeHelperForType(MethodTable* pEEType, RuntimeHelperKind kind)
+    {
+        return __RhGetRuntimeHelperForType(null!, (IntPtr)pEEType, kind);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "RhGetRuntimeHelperForType")]
+    private static extern IntPtr __RhGetRuntimeHelperForType([UnsafeAccessorType("System.Runtime.RuntimeExports")] object @this
+            , [UnsafeAccessorType("Internal.Runtime.MethodTable*")] object pEEType
+            , [UnsafeAccessorType("Internal.Runtime.RuntimeHelperKind")] object kind);
 }
