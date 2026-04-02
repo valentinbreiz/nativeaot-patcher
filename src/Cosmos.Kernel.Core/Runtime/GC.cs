@@ -1,13 +1,20 @@
 
 using System.Runtime;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
-using static Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
 using Internal.Runtime;
+using static Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
 
 namespace Cosmos.Kernel.Core.Runtime;
 
 internal static class GC
 {
+
+    [RuntimeExport("RhGetGeneration")]
+    internal static int RhGetGeneration(object obj)
+    {
+        //TODO: Implement generational GC.
+        return 0;
+    }
 
     [RuntimeExport("RhRegisterForGCReporting")]
     internal static unsafe void RhRegisterForGCReporting(void* pRegistration)
