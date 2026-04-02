@@ -138,6 +138,16 @@ namespace Cosmos.Kernel.Core.Runtime
                                                                           ppGenericContext: null);
         }
 
+        [RuntimeExport("RhResolveStaticDispatchOnType")]
+        private static IntPtr RhResolveStaticDispatchOnType(MethodTable* pInstanceType, MethodTable* pInterfaceType, ushort slot, MethodTable** ppGenericContext)
+        {
+            return DispatchResolve.FindInterfaceMethodImplementationTarget(pInstanceType,
+                                                                          pInterfaceType,
+                                                                          slot,
+                                                                          DispatchResolve.ResolveFlags.Static,
+                                                                          ppGenericContext);
+        }
+
         private static unsafe IntPtr RhResolveDispatchWorker(object pObject, void* cell, ref DispatchCellInfo cellInfo)
         {
             // Type of object we're dispatching on.

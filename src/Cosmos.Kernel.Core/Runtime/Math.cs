@@ -81,4 +81,13 @@ internal static class Math
 
         return guess;
     }
+
+
+    [RuntimeExport("modf")]
+    internal static unsafe double ModF(double x, double* intptr)
+    {
+        long intPart = (long)x;
+        *intptr = (double)intPart;
+        return x - intPart;
+    }
 }

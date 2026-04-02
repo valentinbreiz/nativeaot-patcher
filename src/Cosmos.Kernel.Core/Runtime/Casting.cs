@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -96,6 +97,15 @@ internal static unsafe class Casting
     {
         return obj;
     }
+
+    [RuntimeExport("RhTypeCast_CheckArrayStore")]
+    static void CheckArrayStore(object array, object obj)
+    {
+        __CheckArrayStore(null!, array, obj);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "CheckArrayStore")]
+    private static extern void __CheckArrayStore([UnsafeAccessorType("System.Runtime.TypeCast")] object @this, object array, object obj);
 
     private static bool IsInstanceOfInterface(MethodTable* type, MethodTable* interfaceType)
     {
