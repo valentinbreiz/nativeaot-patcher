@@ -36,17 +36,17 @@ internal static class GC
             return 0;
         }
 
-        var numSeries = (int)((nint*)pMT)[-1];
+        int numSeries = (int)((nint*)pMT)[-1];
 
         if (numSeries > 0)
         {
             // [GCDescSeriesN, ..., GCDescSeries1, nint numSeries]
-            return (int)(IntPtr.Size + numSeries * sizeof(GCDescSeries));
+            return IntPtr.Size + numSeries * sizeof(GCDescSeries);
         }
         else
         {
             // [ValSerieItemN, ..., ValSerieItem1, nint offset, nint numSeries]
-            return (int)(IntPtr.Size * 2 + (numSeries - 1) * sizeof(ValSerieItem));
+            return IntPtr.Size * 2 + (-numSeries * sizeof(ValSerieItem));
         }
     }
 }
