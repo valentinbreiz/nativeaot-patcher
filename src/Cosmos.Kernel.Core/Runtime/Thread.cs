@@ -21,4 +21,11 @@ public class Thread
             return ref threadData;
         }
     }
+
+    [RuntimeExport("RhGetCurrentThreadStackBounds")]
+    internal static void RhGetCurrentThreadStackBounds(out IntPtr pStackLow, out IntPtr pStackHigh)
+    {
+        pStackLow = (nint)ContextSwitch.GetRsp(); ;
+        pStackHigh = pStackLow + (nint)Scheduler.Thread.DefaultStackSize;
+    }
 }
