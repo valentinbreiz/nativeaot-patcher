@@ -310,7 +310,7 @@ public class Kernel : Sys.Kernel
 
         uint frames = 0;
         long sizeBefore = 0, sizeAfter = 0, sizeDelta = 0, maxDeltaSize = 0, fragBefore = 0, fragAfter = 0;
-        ulong commitedMax = 0;
+        long commitedMax = 0;
         int x = 10;
         int lineHeight = font.Height + 2;
 
@@ -323,7 +323,9 @@ public class Kernel : Sys.Kernel
 
             canvas.Clear(Color.Black);
 
-            var info = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo();
+            //GarbageCollector.SimpleMemoryInfo info = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo();
+
+            GCMemoryInfo info = GC.GetGCMemoryInfo();
 
             int rowY = 10;
             canvas.DrawString($"GC Info ({frames})", font, Color.Cyan, x, rowY);
@@ -332,7 +334,7 @@ public class Kernel : Sys.Kernel
             rowY += lineHeight;
 
             commitedMax = Math.Max(commitedMax, info.TotalCommittedBytes);
-            // GC.GetGCMemoryInfo()
+
             canvas.DrawString($"RamSize         : {PageAllocator.RamSize,15}", font, Color.White, x, rowY);
             rowY += lineHeight;
             canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,15}", font, Color.White, x, rowY);
@@ -345,9 +347,9 @@ public class Kernel : Sys.Kernel
             rowY += lineHeight;
             canvas.DrawString($"Pinned          : {info.PinnedObjectsCount,15}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Collections     : {info.CollectionIndex,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Collections     : {info.Index,15}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Condemned gen   : {info.CondemnedGeneration,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Condemned gen   : {info.Generation,15}", font, Color.White, x, rowY);
             rowY += lineHeight;
 
             // last gen before/after
@@ -367,10 +369,11 @@ public class Kernel : Sys.Kernel
             if (frames % 50 == 0)
             {
                 Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
-                sizeBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeBefore(0);
-                sizeAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeAfter(0);
-                fragBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationBefore(0);
-                fragAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationAfter(0);
+                info = GC.GetGCMemoryInfo();
+                sizeBefore = info.GenerationInfo[0].SizeBeforeBytes;
+                sizeAfter = info.GenerationInfo[0].SizeAfterBytes;
+                fragBefore = info.GenerationInfo[0].FragmentationBeforeBytes;
+                fragAfter = info.GenerationInfo[0].FragmentationAfterBytes;
 
                 sizeDelta = sizeBefore - sizeAfter;
                 maxDeltaSize = Math.Max(maxDeltaSize, sizeDelta);
