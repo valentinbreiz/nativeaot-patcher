@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -15,7 +16,7 @@ public static unsafe class Memory
     // Copy past of GCMemoryInfoData & GCGenerationInfo
     // https://github.com/dotnet/runtime/blob/51cfb0e382532e43500216c755d8bd8e1a8f371d/src/libraries/System.Private.CoreLib/src/System/GCMemoryInfo.cs#L16C28-L16C44
 
-    // The original struct do not set a layout, for safty i put one. Is it a bad idea ?
+    // The original struct do not set a layout, for safety i put one. Is it a bad idea ?
     [StructLayout(LayoutKind.Sequential)]
     public struct GCGenerationInfo
     {
@@ -57,42 +58,57 @@ public static unsafe class Memory
     [RuntimeExport("RhGetMemoryInfo")]
     internal unsafe static void RhGetMemoryInfo(ref byte rawData, GCKind kind)
     {
-        var data = (GCMemoryInfoDataStruct*)rawData;
-        GarbageCollector.SimpleMemoryInfo info = GarbageCollector.GetSimpleMemoryInfo();
+        fixed (byte* pRawData = &rawData)
+        {
+            var data = (GCMemoryInfoDataStruct*)pRawData;
+            GarbageCollector.SimpleMemoryInfo info = GarbageCollector.GetSimpleMemoryInfo();
 
-        // the ration 0.5 is arbitrary, should be change in the future
-        data->_highMemoryLoadThresholdBytes = (long)(PageAllocator.RamSize / 2);
-        data->_totalAvailableMemoryBytes = (long)PageAllocator.RamSize;
-        data->_memoryLoadBytes = (long)info.TotalCommittedBytes; // TODO: duplicated review this part
-        data->_heapSizeBytes = (long)info.HeapSizeBytes;
-        data->_fragmentedBytes = (long)info.FragmentedBytes;
-        data->_totalCommittedBytes = (long)info.TotalCommittedBytes;
-        data->_promotedBytes = (long)info.PromotedBytes;
-        data->_pinnedObjectsCount = (long)info.PinnedObjectsCount;
-        data->_index = info.CollectionIndex;
-        data->_generation = info.CondemnedGeneration;
+            // the ration 0.5 is arbitrary, should be change in the future
+            data->_highMemoryLoadThresholdBytes = (long)(PageAllocator.RamSize / 2);
+            data->_totalAvailableMemoryBytes = (long)PageAllocator.RamSize;
+            data->_memoryLoadBytes = (long)info.MemoryLoadBytes;
+            data->_heapSizeBytes = (long)info.HeapSizeBytes;
+            data->_fragmentedBytes = (long)info.FragmentedBytes;
+            data->_totalCommittedBytes = (long)info.TotalCommittedBytes;
+            data->_promotedBytes = (long)info.PromotedBytes;
+            data->_pinnedObjectsCount = (long)info.PinnedObjectsCount;
+            data->_index = info.CollectionIndex;
+            data->_generation = info.CondemnedGeneration;
 
-        // not tracked currently
-        data->_finalizationPendingCount = 0;
-        data->_pauseTimePercentage = 0;
-        data->_compacted = 0;
-        data->_concurrent = 0;
+            // not tracked currently
+            data->_finalizationPendingCount = 0;
+            data->_pauseTimePercentage = 0;
+            data->_compacted = 0;
+            data->_concurrent = 0;
 
-        // Populate generation info. GC is non-generational; report generation 0
-        // Use last recorded before/after metrics from the GC (recorded at Collect())
-        data->_generationInfo0.sizeBeforeBytes = (long)GarbageCollector.GetLastGenSizeBefore(0);
-        data->_generationInfo0.fragmentationBeforeBytes = (long)GarbageCollector.GetLastGenFragmentationBefore(0);
-        data->_generationInfo0.sizeAfterBytes = (long)GarbageCollector.GetLastGenSizeAfter(0);
-        data->_generationInfo0.fragmentationAfterBytes = (long)GarbageCollector.GetLastGenFragmentationAfter(0);
+            // Populate generation info. GC is non-generational; report generation 0
+            // Use last recorded before/after metrics from the GC (recorded at Collect())
+            data->_generationInfo0.sizeBeforeBytes = (long)GarbageCollector.GetLastGenSizeBefore(0);
+            data->_generationInfo0.fragmentationBeforeBytes = (long)GarbageCollector.GetLastGenFragmentationBefore(0);
+            data->_generationInfo0.sizeAfterBytes = (long)GarbageCollector.GetLastGenSizeAfter(0);
+            data->_generationInfo0.fragmentationAfterBytes = (long)GarbageCollector.GetLastGenFragmentationAfter(0);
 
-        // Other generation infos remain zero
-        data->_generationInfo1 = default;
-        data->_generationInfo2 = default;
-        data->_generationInfo3 = default;
-        data->_generationInfo4 = default;
+            // Other generation infos remain zero
+            data->_generationInfo1 = default;
+            data->_generationInfo2 = default;
+            data->_generationInfo3 = default;
+            data->_generationInfo4 = default;
 
-        data->_pauseDuration0 = TimeSpan.Zero;
-        data->_pauseDuration1 = TimeSpan.Zero;
+            data->_pauseDuration0 = TimeSpan.Zero;
+            data->_pauseDuration1 = TimeSpan.Zero;
+        }
+    }
+
+    [RuntimeExport("RhGetGcTotalMemory")]
+    static long RhGetGcTotalMemory()
+    {
+        ulong heapBytes = GarbageCollector.GetHeapSizeBytes();
+        if (heapBytes > long.MaxValue)
+        {
+            return long.MaxValue;
+        }
+
+        return (long)heapBytes;
     }
 
     [RuntimeExport("RhCollect")]
@@ -105,8 +121,9 @@ public static unsafe class Memory
     [RuntimeExport("RhGetGeneration")]
     internal static int RhGetGeneration(object obj)
     {
-        // Do not support generation for now
-        return 0;
+        // Get raw object pointer and delegate to GC helper
+        nint addr = Unsafe.As<object, nint>(ref obj);
+        return GarbageCollector.GetObjectGeneration(addr);
     }
 
     [RuntimeExport("RhGetGenerationSize")]
@@ -129,6 +146,7 @@ public static unsafe class Memory
         return GarbageCollector.GetLastGCPercentTimeInGC();
     }
 
+    // TODO: remove this fr comment for en
     // Dans le runtime le handle est un pointer sur pointer d'object
     // qui peut être caster de différente manier sur l'object.
     // passer par HandleGetPrimary éviter de devoir gérée si des macro sont def en USE_CHECKED_OBJECTREFS ou non
@@ -143,6 +161,57 @@ public static unsafe class Memory
 
         nint asInt = (nint)primary;
         return Unsafe.As<nint, object>(ref asInt);
+    }
+
+    [RuntimeExport("RhGetGcCollectionCount")]
+    internal static int RhGetGcCollectionCount(int generation, bool getSpecialGCCount)
+    {
+        if (generation != 0)
+        {
+            return 0;
+        }
+
+        return GarbageCollector.GetCollectionIndex();
+    }
+
+    [RuntimeExport("RhIsPromoted")]
+    internal static bool RhIsPromoted(object obj)
+    {
+        // Only gen 0 exist can't be promoted
+        return false;
+    }
+
+    [RuntimeExport("RhIsServerGc")]
+    internal static bool RhIsServerGc()
+    {
+        return false;
+    }
+
+    [RuntimeExport("RhGetGCSegmentSize")]
+    internal static ulong RhGetGCSegmentSize()
+    {
+        return GarbageCollector.GetGCSegmentSizeBytes();
+    }
+
+    [RuntimeExport("RhGetAllocatedBytesForCurrentThread")]
+    internal static long RhGetAllocatedBytesForCurrentThread()
+    {
+        // Per-thread allocation accounting is not tracked currently.
+        // Return 0 as a safe default.
+        return 0;
+    }
+
+
+    [RuntimeExport("RhGetTotalAllocatedBytes")]
+    internal static long RhGetTotalAllocatedBytes()
+    {
+        ulong allocated = GarbageCollector.GetTotalCommittedBytes();
+        if (allocated > long.MaxValue)
+        {
+            return long.MaxValue;
+        }
+
+        return (long)allocated;
     }
 
     /*
@@ -169,6 +238,7 @@ public static unsafe class Memory
     {
         throw new NotImplementedException();
     }
+    // probably look for an Plug for method like AddMemoryPressure 
     */
 
     [RuntimeExport("RhNewArray")]
@@ -267,7 +337,6 @@ public static unsafe class Memory
         return dmem;
     }
 
-    // TODO: RhpNewFast ? RhNewFast ?
     [RuntimeExport("RhpNewFast")]
     internal static unsafe void* RhpNewFast(MethodTable* pMT)
     {

@@ -12,12 +12,12 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
-    
     /// <summary>
     /// Simple snapshot of GC memory statistics used by runtime memory queries.
     /// </summary>
     public struct SimpleMemoryInfo
     {
+        public ulong MemoryLoadBytes;
         public ulong HeapSizeBytes;
         public ulong FragmentedBytes;
         public ulong TotalCommittedBytes;
@@ -35,7 +35,7 @@ public static unsafe partial class GarbageCollector
         {
             if (!s_initialized)
             {
-                return null!; // GC config variables are available only after GC initialization
+                return null!; // the GC configs variables are available only after GC initialization
             }
 
             if (variables == null)
@@ -115,6 +115,220 @@ public static unsafe partial class GarbageCollector
         }
     }
 
+    public static ulong GetHeapSizeBytes()
+    {
+        if (!s_initialized)
+        {
+            return 0;
+        }
+
+        ulong heapSize = 0;
+        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        {
+            heapSize += (ulong)(seg->Bump - seg->Start);
+        }
+
+        return heapSize;
+    }
+
+    public static ulong GetCommittedGcSegmentsBytes()
+    {
+        if (!s_initialized)
+        {
+            return 0;
+        }
+
+        ulong committedGcSegments = 0;
+        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        {
+            committedGcSegments += seg->TotalSize;
+        }
+
+        return committedGcSegments;
+    }
+
+    public static ulong GetFragmentedBytes()
+    {
+        if (!s_initialized)
+        {
+            return 0;
+        }
+
+        ulong fragmented = 0;
+        if (s_freeListsInitialized && s_freeLists != null)
+        {
+            for (int i = 0; i < NumSizeClasses; i++)
+            {
+                FreeBlock* cur = s_freeLists[i];
+                while (cur != null)
+                {
+                    fragmented += (uint)cur->Size;
+                    cur = cur->Next;
+                }
+            }
+        }
+
+        return fragmented;
+    }
+
+    public static ulong GetPinnedObjectsCount()
+    {
+        if (!s_initialized)
+        {
+            return 0;
+        }
+
+        ulong pinned = 0;
+        if (s_handlerStore != null)
+        {
+            int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
+            var handles = new Span<GCHandle>(s_handlerStore->Bump, size);
+            foreach (var handle in handles)
+            {
+                if ((IntPtr)handle.obj == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                if (handle.type == GCHandleType.Pinned)
+                {
+                    pinned++;
+                }
+            }
+        }
+
+        return pinned;
+    }
+
+    public static ulong GetTotalCommittedBytes()
+    {
+        if (!s_initialized)
+        {
+            return 0;
+        }
+
+        ulong totalCommitted = GetCommittedGcSegmentsBytes();
+
+        // Pinned segments
+        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
+        {
+            totalCommitted += seg->TotalSize;
+        }
+
+        // Frozen segments (committed size)
+        FrozenSegmentInfo* fseg = s_frozenSegments;
+        while (fseg != null)
+        {
+            totalCommitted += (ulong)fseg->CommitSize;
+            fseg = fseg->Next;
+        }
+
+        // Mark stack pages
+        totalCommitted += s_markStackPageCount * PageAllocator.PageSize;
+
+        // Free lists array (one page allocated during init)
+        if (s_freeListsInitialized && s_freeLists != null)
+        {
+            totalCommitted += PageAllocator.PageSize;
+        }
+
+        // Handler store segment
+        if (s_handlerStore != null)
+        {
+            totalCommitted += s_handlerStore->TotalSize;
+        }
+
+        return totalCommitted;
+    }
+
+    public static ulong GetPromotedBytes()
+    {
+        // Not generational yet
+        return 0;
+    }
+
+    public static ulong GetMemoryLoadBytes()
+    {
+        ulong totalPages = PageAllocator.TotalPageCount;
+        ulong freePages = PageAllocator.FreePageCount;
+        ulong usedPages = totalPages - freePages;
+        return usedPages * PageAllocator.PageSize;
+    }
+
+    public static int GetCollectionIndex()
+    {
+        return s_totalCollections;
+    }
+
+    public static int GetCondemnedGeneration()
+    {
+        return 0; // only gen 0 exists currently
+    }
+
+    /// <summary>
+    /// Determine the generation an object belongs to.
+    /// Returns 0 for normal GC-managed allocations, and int.MaxValue for
+    /// objects that do not belong to any GC-managed generation (frozen segments,
+    /// unmanaged pages, or unknown addresses).
+    /// </summary>
+    public static int GetObjectGeneration(nint objPtr)
+    {
+        if (objPtr == 0)
+        {
+            return int.MaxValue;
+        }
+
+        // Frozen segments are not part of GC generations
+        if (IsInFrozenSegment(objPtr))
+        {
+            return int.MaxValue;
+        }
+
+        byte* p = (byte*)objPtr;
+
+        // Check regular GC segments (bump-allocated)
+        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        {
+            if (p >= seg->Start && p < seg->Bump)
+            {
+                return 0;
+            }
+        }
+
+        // Check pinned segments
+        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
+        {
+            if (p >= seg->Start && p < seg->Bump)
+            {
+                return 0;
+            }
+        }
+
+        // Check page-based heaps (small/medium/large/SMT)
+        byte* ramStart = PageAllocator.RamStart;
+        if (p >= ramStart && p < ramStart + PageAllocator.RamSize)
+        {
+            ulong pageIdx = (ulong)(p - ramStart) / PageAllocator.PageSize;
+            if (pageIdx < PageAllocator.TotalPageCount)
+            {
+                PageType type = PageAllocator.GetPageType(ramStart + pageIdx * PageAllocator.PageSize);
+                switch (type)
+                {
+                    case PageType.HeapSmall:
+                    case PageType.HeapMedium:
+                    case PageType.HeapLarge:
+                    case PageType.SMT:
+                        return 0;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        // Not recognized as managed generation (example: if it's frozen)
+        return int.MaxValue;
+    }
+
     public static ulong GetLastGenSizeBefore(int gen)
     {
         if (gen != 0)
@@ -156,101 +370,34 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
+    /// Returns the configured per-segment GC size in bytes.
+    /// </summary>
+    public static ulong GetGCSegmentSizeBytes()
+    {
+        // s_maxSegmentSize is a uint containing the configured segment size.
+        return s_maxSegmentSize;
+    }
+
+    /// <summary>
     /// Populate a lightweight memory info snapshot.
     /// Provide a best-effort implementation of RhGetMemoryInfo based on the GC state.
     /// </summary>
     public static SimpleMemoryInfo GetSimpleMemoryInfo()
-    { 
+    {
         SimpleMemoryInfo info = default;
-
-        // Compute heap size from current occupied range in GC segments
-        // (from segment start up to bump pointer).
-        ulong heapSize = 0;
-        ulong committedGcSegments = 0;
-        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        if (!s_initialized)
         {
-            heapSize += (ulong)(seg->Bump - seg->Start);
-            committedGcSegments += seg->TotalSize;
-        }
-        info.HeapSizeBytes = heapSize;
-
-        // Compute fragmentation by summing free block sizes from free lists
-        ulong fragmented = 0;
-        if (s_freeListsInitialized && s_freeLists != null)
-        {
-            for (int i = 0; i < NumSizeClasses; i++)
-            {
-                FreeBlock* cur = s_freeLists[i];
-                while (cur != null)
-                {
-                    fragmented += (uint)cur->Size;
-                    cur = cur->Next;
-                }
-            }
-        }
-        info.FragmentedBytes = fragmented;
-
-        // Count pinned handles
-        ulong pinned = 0;
-        if (s_handlerStore != null)
-        {
-            // Walk the handler store using the actual GCHandle size
-            int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
-            var handles = new Span<GCHandle>(s_handlerStore->Bump, size);
-            foreach (var handle in handles)
-            {
-                if ((IntPtr)handle.obj == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                if (handle.type == GCHandleType.Pinned)
-                {
-                    pinned++;
-                }
-            }
-        }
-        info.PinnedObjectsCount = pinned;
-
-        // Compute total committed bytes: include committed GC segments, pinned segments, frozen committed pages,
-        // mark stack pages, free-lists page, and handler store.
-        ulong totalCommitted = committedGcSegments;
-
-        // Pinned segments
-        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
-        {
-            totalCommitted += seg->TotalSize;
+            return info;
         }
 
-        // Frozen segments (committed size)
-        FrozenSegmentInfo* fseg = s_frozenSegments;
-        while (fseg != null)
-        {
-            totalCommitted += (ulong)fseg->CommitSize;
-            fseg = fseg->Next;
-        }
-
-        // Mark stack pages
-        totalCommitted += s_markStackPageCount * PageAllocator.PageSize;
-
-        // Free lists array (one page allocated during init)
-        if (s_freeListsInitialized && s_freeLists != null)
-        {
-            totalCommitted += PageAllocator.PageSize;
-        }
-
-        // Handler store segment
-        if (s_handlerStore != null)
-        {
-            totalCommitted += s_handlerStore->TotalSize;
-        }
-
-        info.TotalCommittedBytes = totalCommitted;
-        // no other genration, so the bytes keep in the same genration
-        info.PromotedBytes = 0; 
-        info.CollectionIndex = s_totalCollections;
-        // only 0 generation exist
-        info.CondemnedGeneration = 0;
+        info.MemoryLoadBytes = GetMemoryLoadBytes();
+        info.HeapSizeBytes = GetHeapSizeBytes();
+        info.FragmentedBytes = GetFragmentedBytes();
+        info.PinnedObjectsCount = GetPinnedObjectsCount();
+        info.TotalCommittedBytes = GetTotalCommittedBytes();
+        info.PromotedBytes = GetPromotedBytes();
+        info.CollectionIndex = GetCollectionIndex();
+        info.CondemnedGeneration = GetCondemnedGeneration();
 
         return info;
     }

@@ -166,106 +166,16 @@ public class Kernel : Sys.Kernel
                     Console.WriteLine(Cosmos.Kernel.Core.Memory.Heap.Heap.Collect() + " objects collected.");
                     break;
 
-                // TODO:
-                /*
-                case "handler":
-                    // Temporary test for RhHandleGet / handle APIs
-                    
-                    try
-                    {
-                        unsafe
-                        {
-                            // Allocate a null handle slot
-                            var h = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.AllocateHandler(null, Cosmos.Kernel.Core.Memory.GarbageCollector.GCHandleType.Normal, (nuint)0);
-                            // Try to read via GC handle API
-                            var primary = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.HandleGetPrimary(h);
-                            // Attempt to use runtime helper if available
-                            object obj = Cosmos.Kernel.Core.Runtime.Memory.RhHandleGet(h);
-
-                            Console.WriteLine("Handle allocated at: 0x" + ((ulong)h).ToString("X"));
-                            Console.WriteLine("HandleGetPrimary -> " + (primary == null ? "null" : ((ulong)primary).ToString()));
-                            Console.WriteLine("RhHandleGet -> " + (obj == null ? "null" : obj.ToString()));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Handler test failed: " + ex.Message);
-                    }
-
-                    break;
-                */
-
                 case "gc":
-                // Temporary GC info canvas similar to startx to exercise GC info helpers
-                {
-                    PCScreenFont font = PCScreenFont.DefaultFont;
-                    Canvas canvas = Canvas.GetFullScreen();
+                    GarbadgeColectorLiveInformation();
+                    break;
 
-                    uint frames = 0;
-                    long sizeBefore = 0, sizeAfter = 0, sizeDelta = 0, maxDeltaSize = 0, fragBefore = 0, fragAfter = 0;
-                    ulong commitedMax = 0;
-                    while (true)
+                case "gcvar":
+                    foreach (KeyValuePair<string, object> varable in GC.GetConfigurationVariables())
                     {
-                        unchecked
-                        {
-                            frames++;
-                        }
-
-                        canvas.Clear(Color.Black);
-
-                        var info = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo();
-
-                        int row = 10;
-                        int col = 10;
-                        int lh = font.Height + 2;
-
-                        canvas.DrawString($"GC Info ({frames})", font, Color.Cyan, col, row);
-                        row += lh;
-
-                        commitedMax = Math.Max(commitedMax, info.TotalCommittedBytes);
-
-                        canvas.DrawString($"RamSize         : {PageAllocator.RamSize,15} bytes", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,15} bytes", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Fragmented      : {info.FragmentedBytes,15} bytes", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Committed       : {info.TotalCommittedBytes,15} bytes; max : {commitedMax} bytes", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Promoted        : {info.PromotedBytes,15} bytes", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Pinned          : {info.PinnedObjectsCount,15}", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Collections     : {info.CollectionIndex,15}", font, Color.White, col, row); row += lh;
-                        canvas.DrawString($"Condemned gen   : {info.CondemnedGeneration,15}", font, Color.White, col, row); row += lh;
-
-                        // last gen before/after
-                        canvas.DrawString($"Gen0 size before: {sizeBefore,15}; size after: {sizeAfter,15}", font, Color.Yellow, col, row); row += lh;
-                        canvas.DrawString($"Gen0 size delta : {sizeDelta,15}; max       : {maxDeltaSize,15}", font, Color.Yellow, col, row); row += lh;
-                        canvas.DrawString($"Frag before     : {fragBefore,15}; after     : {fragAfter,15}", font, Color.Yellow, col, row); row += lh;
-                        canvas.DrawString($"Frag delta      : {(fragAfter - fragBefore),15}", font, Color.Yellow, col, row); row += lh;
-
-                        int pct = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGCPercentTimeInGC();
-                        canvas.DrawString($"Last GC % time in GC: {pct,3}%", font, Color.Green, col, row); row += lh;
-
-                        Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
-                        canvas.DrawString($"Collections: {totalCollections}", font, Color.Green, col, row); row += lh;
-                        canvas.DrawString($"Objects Freed: {totalObjectsFreed}", font, Color.Green, col, row); row += lh;
-
-
-                        if (frames % 50 == 0)
-                        {
-                            Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
-                            sizeBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeBefore(0);
-                            sizeAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeAfter(0);
-                            fragBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationBefore(0);
-                            fragAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationAfter(0);
-
-                            sizeDelta = sizeBefore - sizeAfter;
-                            maxDeltaSize = Math.Max(maxDeltaSize, sizeDelta);
-                        }
-
-                        canvas.Display();
-
-                        // simple frame pacing
-                        System.Threading.Thread.Sleep(250);
+                        Console.WriteLine(varable.Key.PadLeft(15) + ":" + varable.Value.ToString());
                     }
                     break;
-                }
 
                 case "startx":
 
@@ -393,6 +303,87 @@ public class Kernel : Sys.Kernel
     }
 
 
+    public void GarbadgeColectorLiveInformation()
+    {
+        PCScreenFont font = PCScreenFont.DefaultFont;
+        Canvas canvas = Canvas.GetFullScreen();
+
+        uint frames = 0;
+        long sizeBefore = 0, sizeAfter = 0, sizeDelta = 0, maxDeltaSize = 0, fragBefore = 0, fragAfter = 0;
+        ulong commitedMax = 0;
+        int x = 10;
+        int lineHeight = font.Height + 2;
+
+        while (!Console.KeyAvailable || Console.ReadKey(true).Key != ConsoleKey.Escape)
+        {
+            unchecked
+            {
+                frames++;
+            }
+
+            canvas.Clear(Color.Black);
+
+            var info = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo();
+
+            int rowY = 10;
+            canvas.DrawString($"GC Info ({frames})", font, Color.Cyan, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Size values are in bytes, ESC to exit;", font, Color.Cyan, x, rowY);
+            rowY += lineHeight;
+
+            commitedMax = Math.Max(commitedMax, info.TotalCommittedBytes);
+            // GC.GetGCMemoryInfo()
+            canvas.DrawString($"RamSize         : {PageAllocator.RamSize,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Fragmented      : {info.FragmentedBytes,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Committed       : {info.TotalCommittedBytes,15}; max size  : {commitedMax,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Promoted        : {info.PromotedBytes,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Pinned          : {info.PinnedObjectsCount,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Collections     : {info.CollectionIndex,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Condemned gen   : {info.CondemnedGeneration,15}", font, Color.White, x, rowY);
+            rowY += lineHeight;
+
+            // last gen before/after
+            canvas.DrawString($"Gen0 size before: {sizeBefore,15}; size after: {sizeAfter,15}", font, Color.Yellow, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Gen0 size delta : {sizeDelta,15}; max size  : {maxDeltaSize,15}", font, Color.Yellow, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Frag size before: {fragBefore,15}; size after: {fragAfter,15}", font, Color.Yellow, x, rowY);
+            rowY += lineHeight;
+            canvas.DrawString($"Frag size delta : {fragAfter - fragBefore,15}", font, Color.Yellow, x, rowY);
+            rowY += lineHeight;
+
+            int pct = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGCPercentTimeInGC();
+            Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
+            canvas.DrawString($"Last GC % time in GC: {pct,3}%, Collections: {totalCollections,6}, Objects Freed: {totalObjectsFreed,6}", font, Color.Green, x, rowY); rowY += lineHeight;
+
+            if (frames % 50 == 0)
+            {
+                Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
+                sizeBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeBefore(0);
+                sizeAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeAfter(0);
+                fragBefore = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationBefore(0);
+                fragAfter = (long)Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationAfter(0);
+
+                sizeDelta = sizeBefore - sizeAfter;
+                maxDeltaSize = Math.Max(maxDeltaSize, sizeDelta);
+            }
+
+            canvas.Display();
+
+            // simple frame pacing
+            System.Threading.Thread.Sleep(250);
+        }
+        Console.Clear();
+    }
+
     protected override void AfterRun()
     {
         Serial.WriteString("[DevKernel] AfterRun() called\n");
@@ -422,6 +413,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("netlisten", "Listen for UDP packets");
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
+        PrintCommand("gc", "Give live information on the GC");
     }
 
     private void PrintCommand(string cmd, string description)
