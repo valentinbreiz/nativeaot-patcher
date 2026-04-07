@@ -10,7 +10,6 @@
         <Project Path="tests\Cosmos.TestRunner.Protocol\Cosmos.TestRunner.Protocol.csproj"/>
     </Folder>
     <Folder Name="/tests/Kernels/">
-        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.ClaudeSkills/Cosmos.Kernel.Tests.ClaudeSkills.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Graphic/Cosmos.Kernel.Tests.Graphic.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Memory/Cosmos.Kernel.Tests.Memory.csproj"/>

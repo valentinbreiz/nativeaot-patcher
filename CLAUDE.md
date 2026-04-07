@@ -21,7 +21,7 @@ make setup                          # Build all packages (.devcontainer/postCrea
 make build                          # Build DevKernel ISO
 make run                            # Build + run in QEMU (x64 uses KVM)
 make clean                          # Remove output-x64/, output-arm64/, artifacts/
-make test KERNEL=Memory             # Run a kernel test suite (HelloWorld, Memory, TypeCasting, Timer, Network, Threading, Graphic, ClaudeSkills)
+make test KERNEL=Memory             # Run a kernel test suite (HelloWorld, Memory, TypeCasting, Timer, Network, Threading, Graphic)
 make test KERNEL=HelloWorld ARCH=arm64 TIMEOUT=90
 ```
 
@@ -63,7 +63,7 @@ Kernel features are toggled via MSBuild properties in kernel `.csproj` files (al
 - `src/Cosmos.Kernel.Core/Memory/` - Memory allocation
 - `src/Cosmos.Kernel.System/` - Higher-level services (Graphics, Network, Input, Timer, IO)
 - `examples/DevKernel/` - Development kernel (use for testing changes)
-- `tests/Kernels/` - 8 kernel test suites
+- `tests/Kernels/` - 7 kernel test suites
 - `dotnet/runtime/` - .NET runtime submodule (release/10.0 branch)
 - `artifacts/` - Build outputs, NuGet packages, Limine bootloader
 

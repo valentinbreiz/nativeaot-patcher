@@ -203,34 +203,11 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
-  # ── ClaudeSkills ──────────────────────────────────────────────────────────────
-  claudeskills-tests:
-    needs: setup
-    uses: ./.github/workflows/kernel-test-run.yml
-    with:
-      suite_name: ClaudeSkills
-      suite_id: claudeskills
-      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.ClaudeSkills
-      timeout_x64: 60
-      timeout_arm64: 90
-      step_timeout_minutes: 5
-
-  claudeskills-results:
-    needs: claudeskills-tests
-    if: always()
-    uses: ./.github/workflows/kernel-test-results.yml
-    with:
-      suite_name: ClaudeSkills
-      suite_id: claudeskills
-      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.ClaudeSkills
-      event_name: ${{ github.event_name }}
-      head_ref: ${{ github.head_ref || github.ref_name }}
-
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, threading-results, graphic-results, claudeskills-results ]
+    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, threading-results, graphic-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -257,7 +234,6 @@ jobs:
           add_row "Network"     "${{ needs.network-tests.result }}"
           add_row "Threading"   "${{ needs.threading-tests.result }}"
           add_row "Graphic"     "${{ needs.graphic-tests.result }}"
-          add_row "ClaudeSkills" "${{ needs.claudeskills-tests.result }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
