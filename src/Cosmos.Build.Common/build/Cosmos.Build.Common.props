@@ -1,7 +1,13 @@
 <Project>
   <PropertyGroup>
     <LinkTargetDependsOn>GetLinker;$(LinkTargetDependsOn)</LinkTargetDependsOn>
+    <!-- Path to the shared Cosmos.Build.Common tasks assembly -->
+    <CosmosCommonTasksAssembly Condition="'$(CosmosCommonTasksAssembly)' == ''">$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/Cosmos.Build.Common.dll</CosmosCommonTasksAssembly>
   </PropertyGroup>
+
+  <!-- Shared build cache task used by Patcher, ILC, and other build steps -->
+  <UsingTask TaskName="Cosmos.Build.Common.Tasks.ComputeInputsHashTask"
+             AssemblyFile="$(CosmosCommonTasksAssembly)" />
 
   <!-- Import architecture picker early so CosmosArch and DefineConstants are set -->
   <!-- Note: Do NOT set default RuntimeIdentifier here - it interferes with multi-arch builds -->

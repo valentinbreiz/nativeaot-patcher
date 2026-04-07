@@ -1,21 +1,20 @@
 <Project>
 
+  <!-- RunPatcher: tasks are conditional on cache miss (_PatcherCacheHit set in SetupPatcher) -->
   <Target Name="RunPatcher"
           AfterTargets="Build"
           DependsOnTargets="SetupPatcher"
-          Condition="'$(EnablePatching)' == 'true'"
-          Inputs="@(AssembliesToPatch->'%(Identity)')"
-          Outputs="@(AssembliesToPatch->'%(PatcherOutputPath)')">
+          Condition="'$(EnablePatching)' == 'true'">
 
     <PropertyGroup>
       <_PatcherCoverageFlag Condition="'$(CosmosCoverage)' == 'true'">--coverage</_PatcherCoverageFlag>
       <_PatcherCoverageFlag Condition="'$(CosmosCoverage)' != 'true'"></_PatcherCoverageFlag>
     </PropertyGroup>
 
-    <Message Importance="High"
+    <Message Importance="High" Condition="'$(_PatcherCacheHit)' != 'true'"
              Text="Batch patching: %(AssembliesToPatch.Identity) -> %(AssembliesToPatch.PatcherOutputPath)" />
 
-    <Exec
+    <Exec Condition="'$(_PatcherCacheHit)' != 'true'"
       Command="cosmos.patcher patch --target &quot;%(AssembliesToPatch.Identity)&quot; --target-platform &quot;$(PatcherTargetPlatform)&quot; --output &quot;%(AssembliesToPatch.PatcherOutputPath)&quot; --plugs &quot;@(PlugRef-&gt;'%(Identity)', ';')&quot; $(_PatcherCoverageFlag)"
       ConsoleToMSBuild="true"
       IgnoreExitCode="true">
@@ -23,13 +22,21 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="PatcherConsoleOutput" />
     </Exec>
 
-    <Error Condition="'$(PatcherExitCode)' != '0'"
+    <Error Condition="'$(_PatcherCacheHit)' != 'true' AND '$(PatcherExitCode)' != '0'"
            Text="Cosmos.Patcher failed for &quot;%(AssembliesToPatch.Identity)&quot; with code $(PatcherExitCode): $(PatcherConsoleOutput)" />
 
-    <Message Importance="High"
-             Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'"
-             Condition="'$(PatcherExitCode)' == '0'" />
+    <Message Importance="High" Condition="'$(_PatcherCacheHit)' != 'true' AND '$(PatcherExitCode)' == '0'"
+             Text="Cosmos.Patcher successfully patched: '%(AssembliesToPatch.PatcherOutputPath)'" />
 
+  </Target>
+
+  <!-- Write cache hash after successful patching -->
+  <Target Name="WritePatcherCache"
+          AfterTargets="RunPatcher"
+          Condition="'$(EnablePatching)' == 'true'">
+
+    <WriteLinesToFile Condition="'$(_PatcherCacheHit)' != 'true'"
+                     File="$(IntermediateOutputPath)/cosmos/.patcher-hash" Lines="$(_CurrentPatcherHash)" Overwrite="true" />
   </Target>
 
 </Project>

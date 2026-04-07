@@ -8,6 +8,7 @@
     TaskName="GetPackageDirectory"
     AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
   />
+  <!-- ComputeInputsHashTask is registered in Cosmos.Build.Common.props -->
 
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcToolsPath" AfterTargets="Build" DependsOnTargets="ResolvePackageAssets">
@@ -125,11 +126,32 @@
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true"/>
   </Target>
 
-  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcToolsPath"
-          Inputs="@(IlcCompileInput)"
-          Outputs="$(IlcIntermediateOutputPath)$(AssemblyName).o">
-    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
-    <Exec
+  <!-- Content-hash based ILC caching: hash all input DLLs + ref DLLs -->
+  <Target Name="CheckIlcCache" AfterTargets="WriteIlcRsp" BeforeTargets="CompileWithIlc">
+    <PropertyGroup>
+      <_IlcCacheFile>$(IlcIntermediateOutputPath).ilc-hash</_IlcCacheFile>
+    </PropertyGroup>
+
+    <ComputeInputsHashTask InputFiles="@(IlcCompileInput);@(IlcReferences)">
+      <Output TaskParameter="Hash" PropertyName="_CurrentIlcHash" />
+    </ComputeInputsHashTask>
+
+    <ReadLinesFromFile File="$(_IlcCacheFile)" Condition="Exists('$(_IlcCacheFile)')">
+      <Output TaskParameter="Lines" ItemName="_PreviousIlcHashLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_PreviousIlcHash>@(_PreviousIlcHashLines)</_PreviousIlcHash>
+      <_IlcCacheHit Condition="'$(_CurrentIlcHash)' != '' AND '$(_CurrentIlcHash)' == '$(_PreviousIlcHash)' AND Exists('%(ManagedBinary.OutputFile)')">true</_IlcCacheHit>
+    </PropertyGroup>
+
+    <Message Condition="'$(_IlcCacheHit)' == 'true'" Importance="High"
+             Text="✅ ILC cache hit — skipping compilation (hash: $(_CurrentIlcHash))" />
+  </Target>
+
+  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcToolsPath">
+    <Message Condition="'$(_IlcCacheHit)' != 'true'" Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
+    <Exec Condition="'$(_IlcCacheHit)' != 'true'"
       Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
       WorkingDirectory="$(FullIntermediateOutputPath)"
       IgnoreExitCode="false"
@@ -137,6 +159,10 @@
       StandardErrorImportance="High"
     />
 
-    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)"/>
+    <Message Condition="'$(_IlcCacheHit)' != 'true'" Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)"/>
+
+    <!-- Write cache hash after successful compilation -->
+    <WriteLinesToFile Condition="'$(_IlcCacheHit)' != 'true'"
+                     File="$(IlcIntermediateOutputPath).ilc-hash" Lines="$(_CurrentIlcHash)" Overwrite="true" />
   </Target>
 </Project>
