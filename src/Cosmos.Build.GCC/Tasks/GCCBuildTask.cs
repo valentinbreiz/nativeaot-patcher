@@ -81,7 +81,17 @@ public sealed class GCCBuildTask : ToolTask
             Log.LogMessage(MessageImportance.Normal, $"Using GCC include path: {gccIncludePath}");
         }
 
-        // Execute the GCC command for each C file
+        // Validate GCC path exists
+        string toolPath = GenerateFullPathToTool().Trim();
+        GCCPath = toolPath; // normalize for downstream checks
+
+        if (!File.Exists(toolPath) && !TestGCCInPath())
+        {
+            Log.LogError($"GCC not found at {toolPath}. Ensure the cross-compiler is installed and on PATH.");
+            return false;
+        }
+
+        // Execute the GCC command for each C file (with incremental support via content-hash filenames)
         using SHA1? hasher = SHA1.Create();
 
         foreach (string file in sourceFilePaths)
@@ -97,6 +107,13 @@ public sealed class GCCBuildTask : ToolTask
             string objExt = Path.DirectorySeparatorChar == '\\' ? ".obj" : ".o";
             string outputName = $"{baseName}-{fileHashString.Substring(0, 8)}{objExt}";
             string outputPath = Path.Combine(OutputPath!, outputName);
+
+            // Skip if output already exists (content-hash filename = up-to-date)
+            if (File.Exists(outputPath))
+            {
+                Log.LogMessage(MessageImportance.Normal, $"Skipping {file} (up to date: {outputName})");
+                continue;
+            }
 
             // Build and execute the command for this file
             StringBuilder sb = new();
@@ -123,16 +140,6 @@ public sealed class GCCBuildTask : ToolTask
             // Execute GCC for this file
             string commandLineArguments = sb.ToString();
             Log.LogMessage(MessageImportance.Normal, $"Compiling {file} with args: {commandLineArguments}");
-
-            // Validate GCC path exists
-            string toolPath = GenerateFullPathToTool().Trim();
-            GCCPath = toolPath; // normalize for downstream checks
-
-            if (!File.Exists(toolPath) && !TestGCCInPath())
-            {
-                Log.LogError($"GCC not found at {toolPath}. Ensure the cross-compiler is installed and on PATH.");
-                return false;
-            }
 
             if (!ExecuteCommand(toolPath, commandLineArguments))
             {

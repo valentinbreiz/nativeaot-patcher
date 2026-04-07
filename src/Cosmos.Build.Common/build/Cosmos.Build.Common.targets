@@ -20,17 +20,27 @@
   <Import Project="Common.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
   <Import Project="Common.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
 
-  <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
-    <!-- Define paths used for linking and ISO creation -->
+  <!-- Prepare link inputs in a separate target so Inputs/Outputs can reference them -->
+  <Target Name="PrepareLinkInputs" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
     <PropertyGroup>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)', '$(AssemblyName).elf'))</ElfBinary>
       <AsmObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm'))</AsmObjDir>
       <CObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))</CObjDir>
+      <IlcOutputFile>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'native', '$(AssemblyName).o'))</IlcOutputFile>
     </PropertyGroup>
+    <ItemGroup>
+      <_LinkInputFiles Include="$(AsmObjDir)/*.obj"/>
+      <_LinkInputFiles Include="$(CObjDir)/*.obj"/>
+      <_LinkInputFiles Include="$(CObjDir)/*.o"/>
+      <_LinkInputFiles Include="$(IlcOutputFile)"/>
+    </ItemGroup>
+  </Target>
 
+  <Target Name="LinkTarget" DependsOnTargets="PrepareLinkInputs" AfterTargets="PrepareLinkInputs"
+          Inputs="@(_LinkInputFiles)"
+          Outputs="$(ElfBinary)">
     <ItemGroup>
       <ObjFiles Include="$(AsmObjDir)/*.obj"/>
-      <!-- GCC produced object files -->
       <ObjFiles Include="$(CObjDir)/*.obj"/>
       <ObjFiles Include="$(CObjDir)/*.o"/>
     </ItemGroup>
@@ -67,10 +77,12 @@
     <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High"/>
   </Target>
 
-  <Target Name="BuildISO" AfterTargets="LinkTarget">
+  <Target Name="BuildISO" AfterTargets="LinkTarget"
+          Inputs="$(ElfBinary);$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', 'Bootloader', 'limine.conf'))"
+          Outputs="$(IsoOutput)">
     <Message Text="🚀 Creating ISO image with Limine..." Importance="High"/>
 
-    <!-- Remove old ISO directory if it exists -->
+    <!-- Remove old ISO directory for a clean rebuild -->
     <RemoveDir Directories="$(IsoRoot)"/>
 
     <!-- Limine bootloader files bundled in the NuGet package (tools/Limine/) -->

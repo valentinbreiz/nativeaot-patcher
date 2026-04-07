@@ -29,7 +29,10 @@
     <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
   </PropertyGroup>
 
-  <Target Name="SetDynamicVersion" BeforeTargets="GenerateAssemblyInfo">
+  <!-- Dynamic version suffix for NuGet packaging only (CI sets CosmosDynamicVersion=true).
+       Without this, every build gets a new version string which invalidates ALL incremental caching
+       (patcher, ILC, linker, ISO) because the generated AssemblyInfo changes on each build. -->
+  <Target Name="SetDynamicVersion" BeforeTargets="GenerateAssemblyInfo" Condition="'$(CosmosDynamicVersion)' == 'true'">
     <PropertyGroup>
       <VersionSuffix>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmm"))</VersionSuffix>
       <Version>$(VersionPrefix).$(VersionSuffix)</Version>

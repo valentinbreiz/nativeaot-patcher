@@ -71,6 +71,16 @@ public sealed class YasmBuildTask : ToolTask
             using FileStream stream = File.OpenRead(FilePath);
             byte[] fileHash = hasher.ComputeHash(stream);
             FileName = $"{Path.GetFileNameWithoutExtension(file)}-{BitConverter.ToString(fileHash).Replace("-", "").ToLower()}.obj";
+
+            string outputFilePath = Path.Combine(OutputPath!, FileName);
+
+            // Skip if output already exists (content-hash filename = up-to-date)
+            if (File.Exists(outputFilePath))
+            {
+                Log.LogMessage(MessageImportance.Normal, $"Skipping {file} (up to date: {FileName})");
+                continue;
+            }
+
             Log.LogMessage(MessageImportance.High, $"[Debug] About to run base.Execute() for {FileName}");
 
             if (!base.Execute())

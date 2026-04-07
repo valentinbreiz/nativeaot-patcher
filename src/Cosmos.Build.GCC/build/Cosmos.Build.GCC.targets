@@ -45,14 +45,8 @@
       <GCCCompilerFlags Condition="'@(GCCIncludePath)' != ''">$(GCCCompilerFlags) @(GCCIncludePath->'-I%(Identity)', ' ')</GCCCompilerFlags>
     </PropertyGroup>
 
-    <!-- Create / clean output directory -->
+    <!-- Create output directory if needed (stale object cleanup is handled by GCCBuildTask) -->
     <MakeDir Directories="$(GCCOutputPath)" Condition="!Exists('$(GCCOutputPath)')" />
-    <!-- Always remove all previous GCC-produced object files to avoid linking stale objects -->
-    <ItemGroup>
-      <OldGccObjs Include="$(GCCOutputPath)*.obj" />
-      <OldGccObjs Include="$(GCCOutputPath)*.o" />
-    </ItemGroup>
-    <Delete Files="@(OldGccObjs)" Condition="@(OldGccObjs) != ''" />
 
     <!-- Process each GCC project directory separately -->
     <Message
