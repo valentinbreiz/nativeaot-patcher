@@ -229,7 +229,13 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhCurrentOSThreadId")]
         internal static ulong RhCurrentOSThreadId()
         {
-            return 1; // Single thread for now TODO: return actual thread ID and move this to thread space
+            if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.Enabled)
+            {
+                Scheduler.PerCpuState cpuState = Scheduler.SchedulerManager.GetCpuState(0);
+                return cpuState.CurrentThread?.Id ?? 1;
+            }
+
+            return 1;
         }
 
         [RuntimeExport("RhGetCrashInfoBuffer")]

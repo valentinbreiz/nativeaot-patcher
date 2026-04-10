@@ -18,6 +18,10 @@ public class Kernel : Sys.Kernel
     private static volatile int _thread2Counter;
     private static Cosmos.Kernel.Core.Scheduler.SpinLock _testLock;
 
+    // Shared state for Monitor/lock tests
+    private static readonly object _lockObj = new object();
+    private static volatile int _lockCounter;
+
     // Custom delegate types for delegate tests
     private delegate void VoidDelegate();
     private delegate int BinaryIntDelegate(int a, int b);
@@ -27,7 +31,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 34);
+        TR.Start("Threading Tests", expectedTests: 42);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -35,6 +39,16 @@ public class Kernel : Sys.Kernel
         TR.Run("SpinLock_Release_ClearsLockedState", TestSpinLockRelease);
         TR.Run("SpinLock_TryAcquire_SucceedsOnUnlocked", TestSpinLockTryAcquireSuccess);
         TR.Run("SpinLock_TryAcquire_FailsOnLocked", TestSpinLockTryAcquireFail);
+
+        // Monitor/lock tests
+        TR.Run("Monitor_Enter_Exit_BasicLocking", TestMonitorEnterExitBasic);
+        TR.Run("Monitor_Enter_Reentrant_SameThread", TestMonitorReentrant);
+        TR.Run("Monitor_Enter_RefBool_SetsLockTaken", TestMonitorEnterRefBool);
+        TR.Run("Monitor_TryEnter_Succeeds", TestMonitorTryEnter);
+        TR.Run("Lock_Statement_BasicExecution", TestLockStatementBasic);
+        TR.Run("Lock_Statement_ProtectsSharedData", TestLockProtectsSharedData);
+        TR.Run("Lock_Statement_Reentrant", TestLockReentrant);
+        TR.Run("Monitor_Exit_WithoutEnter_DoesNotCrash", TestMonitorExitWithoutEnter);
 
         // Thread tests
         TR.Run("Thread_Start_ExecutesDelegate", TestThreadExecution);
@@ -86,6 +100,125 @@ public class Kernel : Sys.Kernel
         // Flush coverage data and signal QEMU to terminate
         TR.Complete();
         Cosmos.Kernel.Kernel.Halt();
+    }
+
+    // ==================== Monitor/Lock Tests ====================
+
+    private static void TestMonitorEnterExitBasic()
+    {
+        object obj = new object();
+        Monitor.Enter(obj);
+        bool isEntered = Monitor.IsEntered(obj);
+        Monitor.Exit(obj);
+        Assert.True(isEntered, "Monitor.IsEntered should return true while lock is held");
+    }
+
+    private static void TestMonitorReentrant()
+    {
+        object obj = new object();
+        Monitor.Enter(obj);
+        Monitor.Enter(obj);
+        Monitor.Enter(obj);
+        // If we got here without deadlock, reentrant acquisition works
+        Monitor.Exit(obj);
+        Monitor.Exit(obj);
+        Monitor.Exit(obj);
+        Assert.True(true, "Reentrant Monitor.Enter should not deadlock");
+    }
+
+    private static void TestMonitorEnterRefBool()
+    {
+        object obj = new object();
+        bool lockTaken = false;
+        Monitor.Enter(obj, ref lockTaken);
+        Assert.True(lockTaken, "lockTaken should be true after Monitor.Enter");
+        Monitor.Exit(obj);
+    }
+
+    private static void TestMonitorTryEnter()
+    {
+        object obj = new object();
+        bool result = Monitor.TryEnter(obj);
+        Assert.True(result, "TryEnter should succeed on uncontested object");
+        if (result)
+        {
+            Monitor.Exit(obj);
+        }
+    }
+
+    private static void TestLockStatementBasic()
+    {
+        object obj = new object();
+        bool bodyExecuted = false;
+        lock (obj)
+        {
+            bodyExecuted = true;
+        }
+        Assert.True(bodyExecuted, "lock statement body should execute");
+    }
+
+    private static void TestLockProtectsSharedData()
+    {
+        Serial.WriteString("[Test] Testing lock with threads...\n");
+        _lockCounter = 0;
+
+        SysThread thread1 = new SysThread(() =>
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                lock (_lockObj)
+                {
+                    _lockCounter++;
+                }
+            }
+        });
+
+        SysThread thread2 = new SysThread(() =>
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                lock (_lockObj)
+                {
+                    _lockCounter++;
+                }
+            }
+        });
+
+        thread1.Start();
+        thread2.Start();
+
+        TimerManager.Wait(5000);
+
+        for (int i = 0; i < 10 && _lockCounter < 200; i++)
+        {
+            TimerManager.Wait(500);
+        }
+
+        Serial.WriteString("[Test] Lock counter: ");
+        Serial.WriteNumber((uint)_lockCounter);
+        Serial.WriteString("\n");
+
+        Assert.Equal(200, _lockCounter);
+    }
+
+    private static void TestLockReentrant()
+    {
+        object obj = new object();
+        lock (obj)
+        {
+            lock (obj)
+            {
+                // Nested lock on same object should not deadlock
+            }
+        }
+        Assert.True(true, "Nested lock on same object should not deadlock");
+    }
+
+    private static void TestMonitorExitWithoutEnter()
+    {
+        object obj = new object();
+        Monitor.Exit(obj); // Should not crash
+        Assert.True(true, "Monitor.Exit without prior Enter should not crash");
     }
 
     // ==================== SpinLock Tests ====================
