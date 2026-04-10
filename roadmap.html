@@ -223,7 +223,7 @@
 <tr>
 <td><strong>Threading &amp; Scheduler</strong></td>
 <td>✅</td>
-<td>Priority-based stride scheduler (x64 + ARM64).</td>
+<td>Priority-based stride scheduler (x64 + ARM64). <code>lock</code> keyword supported.</td>
 </tr>
 <tr>
 <td><strong>Feature Flags</strong></td>
@@ -248,6 +248,11 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>async/await</strong></td>
+<td>❌ Blocked</td>
+<td>Requires RuntimeAsync support in NativeAOT. Tracked upstream: <a href="https://github.com/dotnet/runtime/issues/109632">dotnet/runtime#109632</a>, <a href="https://github.com/dotnet/runtime/issues/124101">dotnet/runtime#124101</a>. Expected in .NET 11.</td>
+</tr>
 <tr>
 <td><strong>SMP (Symmetric Multiprocessing)</strong></td>
 <td>❌ Not Started</td>
