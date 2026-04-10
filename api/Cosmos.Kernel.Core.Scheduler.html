@@ -108,6 +108,13 @@ Platform-specific implementations in native code.</p>
 </dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.MonitorImpl.html">MonitorImpl</a></dt>
+      <dd><p>Provides Monitor.Enter/Exit semantics using a hash table keyed by object address.
+Supports reentrancy (same thread can acquire the same lock multiple times).
+Used as the backing implementation for the C# lock keyword.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
       <dd><p>Per-CPU scheduling state.</p>
 </dd>

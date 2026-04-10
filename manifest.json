@@ -1216,6 +1216,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.MonitorImpl",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.yml\" sourcestartlinenumber=\"1\">Provides Monitor.Enter/Exit semantics using a hash table keyed by object address.\nSupports reentrancy (same thread can acquire the same lock multiple times).\nUsed as the backing implementation for the C# lock keyword.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.PerCpuState.yml",
       "output": {
         ".html": {
