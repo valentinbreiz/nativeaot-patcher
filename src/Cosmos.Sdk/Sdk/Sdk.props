@@ -9,7 +9,12 @@
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
     <IlcSystemModule>System.Private.CoreLib</IlcSystemModule>
+
+    <!-- We require Microsoft.NET.Sdk for building propertly -->
+    <_ImportMicrosoftNETSdkFromCosmosSdk Condition=" '$(UsingMicrosoftNETSdk)' == '' ">true</_ImportMicrosoftNETSdkFromCosmosSdk>
   </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition=" '$(_ImportMicrosoftNETSdkFromCosmosSdk)' == 'true' " />
 
   <!-- Default startup object for Cosmos kernels -->
   <PropertyGroup>
@@ -124,6 +129,7 @@
        in their own Directory.Packages.props (NuGet forbids Version on PackageReference
        under central package management). -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
+    <PackageReference Include="Cosmos.Kernel.SourceGenerators" Version="@CosmosPackageVersion@" />
     <PackageReference Include="Cosmos.Build.Analyzer.Patcher" Version="@CosmosPackageVersion@" />
     <PackageReference Include="Cosmos.Build.Common" Version="@CosmosPackageVersion@" />
     <PackageReference Include="Cosmos.Build.Ilc" Version="@CosmosPackageVersion@" />
@@ -132,6 +138,7 @@
     <PackageReference Include="Cosmos.Build.GCC" Version="@CosmosPackageVersion@" />
   </ItemGroup>
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+    <PackageReference Include="Cosmos.Kernel.SourceGenerators"/>
     <PackageReference Include="Cosmos.Build.Analyzer.Patcher" />
     <PackageReference Include="Cosmos.Build.Common" />
     <PackageReference Include="Cosmos.Build.Ilc" />

@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Cosmos.Sdk" />
+<Project Sdk="Cosmos.Sdk">
 
   <PropertyGroup>
     <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>

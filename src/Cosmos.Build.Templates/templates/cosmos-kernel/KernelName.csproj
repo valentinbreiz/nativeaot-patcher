@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Cosmos.Sdk" Version="@CosmosPackageVersion@" />
+<Project Sdk="Cosmos.Sdk/@CosmosPackageVersion@">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>

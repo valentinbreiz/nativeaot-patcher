@@ -102,6 +102,8 @@ dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -p:Ge
 dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release --no-build -o artifacts/package/release
 dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:GeneratePackageOnBuild=false
 dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release --no-build -o artifacts/package/release
+dotnet build src/Cosmos.Kernel.SourceGenerators/Cosmos.Kernel.SourceGenerators.csproj -c Release -p:GeneratePackageOnBuild=false
+dotnet pack src/Cosmos.Kernel.SourceGenerators/Cosmos.Kernel.SourceGenerators.csproj -c Release --no-build -o artifacts/package/release
 
 Write-Host "Verifying arch-independent packages..." -ForegroundColor Yellow
 Get-ChildItem -Path "artifacts/package/release/Cosmos.Kernel.HAL.Interfaces.*.nupkg" | ForEach-Object { Write-Host $_.Name }

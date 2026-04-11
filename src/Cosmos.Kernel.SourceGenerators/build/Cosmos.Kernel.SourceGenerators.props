@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup>
+    <!-- Allow the 'CosmosKernelClass' Project Property to be read from the Source Generator -->
+    <CompilerVisibleProperty Include="CosmosKernelClass" />
+  </ItemGroup>
+</Project>
