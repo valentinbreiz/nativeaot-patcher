@@ -69,7 +69,7 @@ dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 # Download Limine bootloader (bundled in Cosmos.Build.Common NuGet package)
 Write-Host "Downloading Limine bootloader..." -ForegroundColor Cyan
 Remove-Item -Path "artifacts/limine" -Recurse -Force -ErrorAction SilentlyContinue
-git clone https://github.com/Limine-Bootloader/Limine.git --branch=v10.x-binary --depth=1 artifacts/limine
+git clone https://github.com/Limine-Bootloader/Limine.git --branch=v11.x-binary --depth=1 artifacts/limine
 Remove-Item -Path "artifacts/limine/.git" -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "Building and packing base projects..." -ForegroundColor Cyan
