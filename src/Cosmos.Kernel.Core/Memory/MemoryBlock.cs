@@ -75,13 +75,18 @@ public class MemoryBlock
     }
 
     /// <summary>
-    /// Fill memory block.
+    /// Fill memory block with a 32-bit value. The count passed to
+    /// <see cref="Fill(uint, uint, uint)"/> is in units of 4-byte words, so
+    /// divide the block's byte size by 4. Writing <see cref="Size"/> uints
+    /// (= 4 × Size bytes) overflows the block by 4x and only happens to
+    /// survive when adjacent memory is mapped and writable — under Limine
+    /// protocol base revision 6 the mapped framebuffer stops exactly at the
+    /// reported size and the tail lands on unmapped HHDM pages → #PF.
     /// </summary>
     /// <param name="aData">A data to fill.</param>
     public void Fill(uint aData)
     {
-        //Fill(0, Size / 4, aData);
-        Fill(0, Size, aData);
+        Fill(0, Size / 4, aData);
     }
 
     /// <summary>
