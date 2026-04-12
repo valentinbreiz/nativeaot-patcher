@@ -63,12 +63,13 @@ public class QemuARM64Host : IQemuHost
 
         // Build QEMU arguments
         // Note: Always write UART to file for parsing, display mode only affects GUI
-        // virtio-gpu-pci provides a PCI BAR-backed framebuffer (page-aligned) and is
-        // required even in headless mode for Limine 11+ to populate the framebuffer
-        // request without tripping its page-overlap check on EFI-allocated memory.
+        // ramfb is the only QEMU device on the aarch64 virt machine that exposes a
+        // linear framebuffer through EDK2 GOP. The kernel's limine.conf pins the
+        // resolution to 1024x768x32 so the framebuffer size is page-aligned and
+        // Limine 11's framebuffer overlap check passes.
         string displayArgs = showDisplay
-            ? $"-device virtio-gpu-pci -display gtk -serial file:\"{uartLogPath}\""
-            : $"-device virtio-gpu-pci -serial file:\"{uartLogPath}\" -nographic";
+            ? $"-device ramfb -display gtk -serial file:\"{uartLogPath}\""
+            : $"-device ramfb -serial file:\"{uartLogPath}\" -nographic";
 
         // Network configuration: E1000E device with user-mode networking
         // Guest IP: 10.0.2.15, Gateway: 10.0.2.2
