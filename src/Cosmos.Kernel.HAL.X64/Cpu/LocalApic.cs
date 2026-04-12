@@ -1,8 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Cpu;
 using Cosmos.Kernel.HAL.Cpu.Data;
@@ -13,7 +15,7 @@ namespace Cosmos.Kernel.HAL.X64.Cpu;
 /// Local APIC (Advanced Programmable Interrupt Controller) driver.
 /// Each CPU has its own Local APIC for receiving interrupts.
 /// </summary>
-public static class LocalApic
+public static unsafe class LocalApic
 {
     // Local APIC register offsets (from base address)
     private const uint LAPIC_ID = 0x20;           // Local APIC ID
@@ -75,9 +77,21 @@ public static class LocalApic
     /// <param name="baseAddress">The physical address of the Local APIC registers.</param>
     public static void Initialize(ulong baseAddress)
     {
-        _baseAddress = baseAddress;
+        // Install a Device-memory mapping in the kernel's higher-half pagemap
+        // and cache the HHDM-translated virtual address for all subsequent
+        // register accesses. Required under Limine protocol base revision 6,
+        // which no longer identity-maps the lower half or includes RESERVED
+        // MMIO regions in the HHDM.
+        if (!DeviceMapper.EnsureMapped(baseAddress))
+        {
+            Serial.Write("[LocalAPIC] ERROR: DeviceMapper.EnsureMapped failed for 0x", baseAddress.ToString("X"), "\n");
+            return;
+        }
 
-        Serial.Write("[LocalAPIC] Initializing at 0x", baseAddress.ToString("X"), "\n");
+        _baseAddress = baseAddress + Limine.HHDM.Response->Offset;
+
+        Serial.Write("[LocalAPIC] Initializing at 0x", baseAddress.ToString("X"),
+                     " (virt 0x", _baseAddress.ToString("X"), ")\n");
 
         // Read APIC ID and version for diagnostics
         uint id = Read(LAPIC_ID);

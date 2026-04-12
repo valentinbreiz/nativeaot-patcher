@@ -179,12 +179,23 @@ public class E1000E : PciDevice, INetworkDevice
     /// <param name="bus">PCI bus number.</param>
     /// <param name="slot">PCI slot number.</param>
     /// <param name="function">PCI function number.</param>
-    public E1000E(uint bus, uint slot, uint function) : base(bus, slot, function)
+    public unsafe E1000E(uint bus, uint slot, uint function) : base(bus, slot, function)
     {
-        // Get MMIO base address from BAR0
+        // Get MMIO base address from BAR0 and translate through the HHDM so
+        // register accesses don't fault under Limine protocol revision 6
+        // (which no longer identity-maps the lower half).
         if (BaseAddressBar != null && BaseAddressBar.Length > 0)
         {
-            _mmioBase = BaseAddressBar[0].BaseAddress;
+            ulong phys = BaseAddressBar[0].BaseAddress;
+            if (Cosmos.Kernel.Core.Memory.DeviceMapper.EnsureMapped(phys) &&
+                Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response != null)
+            {
+                _mmioBase = phys + Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response->Offset;
+            }
+            else
+            {
+                _mmioBase = phys;
+            }
         }
 
         Instance = this;

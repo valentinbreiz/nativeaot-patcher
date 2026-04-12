@@ -1,7 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Acpi;
 
 namespace Cosmos.Kernel.HAL.X64.Cpu;
@@ -10,7 +12,7 @@ namespace Cosmos.Kernel.HAL.X64.Cpu;
 /// I/O APIC (Advanced Programmable Interrupt Controller) driver.
 /// Routes external interrupts (IRQs) to Local APICs.
 /// </summary>
-public static class IoApic
+public static unsafe class IoApic
 {
     // I/O APIC register select (write to select register)
     private const uint IOREGSEL = 0x00;
@@ -45,10 +47,20 @@ public static class IoApic
     /// <param name="info">I/O APIC info from MADT.</param>
     public static void Initialize(IoApicInfo info)
     {
-        _baseAddress = info.Address;
+        // Install a Device-memory mapping in the kernel's higher-half pagemap
+        // and store the HHDM-translated virtual base. Mirrors LocalApic and
+        // the arm64 GIC pattern — required under Limine protocol revision 6.
+        if (!DeviceMapper.EnsureMapped(info.Address))
+        {
+            Serial.Write("[IOAPIC] ERROR: DeviceMapper.EnsureMapped failed for 0x", info.Address.ToString("X"), "\n");
+            return;
+        }
+
+        _baseAddress = info.Address + Limine.HHDM.Response->Offset;
         _gsiBase = info.GsiBase;
 
-        Serial.Write("[IOAPIC] Initializing at 0x", info.Address.ToString("X"), "\n");
+        Serial.Write("[IOAPIC] Initializing at 0x", info.Address.ToString("X"),
+                     " (virt 0x", _baseAddress.ToString("X"), ")\n");
         Serial.Write("[IOAPIC] GSI base: ", info.GsiBase, "\n");
 
         // Read I/O APIC ID and version
