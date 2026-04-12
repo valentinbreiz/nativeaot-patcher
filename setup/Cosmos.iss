@@ -63,6 +63,9 @@ Source: "bundle\tools\windows\lld\*"; DestDir: "{app}\Tools\lld"; Flags: ignorev
 ; QEMU emulator (x64 and ARM64)
 Source: "bundle\tools\windows\qemu\*"; DestDir: "{app}\Tools\qemu"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+; GDB multiarch debugger
+Source: "bundle\tools\windows\gdb\*"; DestDir: "{app}\Tools\gdb"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+
 ; VS Code extension
 Source: "bundle\extensions\*.vsix"; DestDir: "{app}\Extensions"; Flags: ignoreversion skipifsourcedoesntexist
 
@@ -232,6 +235,7 @@ begin
     AddToUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     AddToUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
     AddToUserPath(ExpandConstant('{app}\Tools\qemu'));
+    AddToUserPath(ExpandConstant('{app}\Tools\gdb'));
     { Broadcast so new terminals pick up the PATH change immediately }
     BroadcastEnvironmentChange;
   end;
@@ -248,6 +252,7 @@ begin
     RemoveFromUserPath(ExpandConstant('{app}\Tools\x86_64-elf-tools\bin'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\aarch64-elf-tools\bin'));
     RemoveFromUserPath(ExpandConstant('{app}\Tools\qemu'));
+    RemoveFromUserPath(ExpandConstant('{app}\Tools\gdb'));
     { Broadcast so terminals pick up the PATH removal }
     BroadcastEnvironmentChange;
   end;

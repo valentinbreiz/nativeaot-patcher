@@ -120,6 +120,9 @@ public static class ToolChecker
                 // QEMU
                 AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "qemu"), command, ext);
 
+                // GDB (portable gdb-multiarch bundle)
+                AddPathVariants(possiblePaths, Path.Combine(cosmosToolsPath, "gdb"), command, ext);
+
                 // Named subdirectories for specific tools
                 foreach (string dir in new[] { "lld", "xorriso", "yasm" })
                 {
@@ -241,7 +244,8 @@ public static class ToolChecker
                 Path.Combine(toolsBase, "lld"),
                 Path.Combine(toolsBase, "x86_64-elf-tools", "bin"),
                 Path.Combine(toolsBase, "aarch64-elf-tools", "bin"),
-                Path.Combine(toolsBase, "qemu")
+                Path.Combine(toolsBase, "qemu"),
+                Path.Combine(toolsBase, "gdb")
             };
             if (PlatformInfo.CurrentOS == OSPlatform.Windows)
             {

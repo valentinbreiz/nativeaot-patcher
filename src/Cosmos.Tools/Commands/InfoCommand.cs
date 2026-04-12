@@ -22,8 +22,11 @@ public class InfoCommand : AsyncCommand<InfoSettings>
         string arch = PlatformInfo.CurrentArch.ToString().ToLower();
         string packageManager = PlatformInfo.GetPackageManager();
         string displayBackend = GetDisplayBackend();
-        string gdbCommandX64 = await ResolveToolPathAsync(ToolDefinitions.X64ElfGdb) ?? "gdb";
-        string gdbCommandArm64 = await ResolveToolPathAsync(ToolDefinitions.Aarch64ElfGdb) ?? "gdb";
+        // Single multiarch GDB serves both architectures. Falls back to "gdb-multiarch"
+        // on PATH (Linux apt package) or "gdb" if neither is installed.
+        string gdbPath = await ResolveToolPathAsync(ToolDefinitions.GdbMultiarch) ?? "gdb-multiarch";
+        string gdbCommandX64 = gdbPath;
+        string gdbCommandArm64 = gdbPath;
         if (settings.Json)
         {
             Console.WriteLine("{");
@@ -87,31 +90,6 @@ public class InfoCommand : AsyncCommand<InfoSettings>
         }
 
         return "gtk";
-    }
-
-    private static string? GetCosmosToolsPath()
-    {
-        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string toolsDir = Path.Combine(home, ".dotnet", "tools");
-
-        if (RuntimeInformation.IsOSPlatform(SysOSPlatform.Windows))
-        {
-            string exePath = Path.Combine(toolsDir, "cosmos.exe");
-            if (File.Exists(exePath))
-            {
-                return exePath;
-            }
-        }
-        else
-        {
-            string path = Path.Combine(toolsDir, "cosmos");
-            if (File.Exists(path))
-            {
-                return path;
-            }
-        }
-
-        return null;
     }
 
     private static string EscapeJson(string s)

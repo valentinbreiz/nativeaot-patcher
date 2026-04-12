@@ -803,10 +803,11 @@ public class InstallCommand : AsyncCommand<InstallSettings>
 
     internal static string GetBundleDirName(ToolDefinition tool) => tool.Name switch
     {
-        "x86_64-elf-gcc" or "x86_64-elf-gdb" => "x86_64-elf-tools",
-        "aarch64-elf-gcc" or "aarch64-elf-as" or "aarch64-elf-gdb" => "aarch64-elf-tools",
+        "x86_64-elf-gcc" => "x86_64-elf-tools",
+        "aarch64-elf-gcc" or "aarch64-elf-as" => "aarch64-elf-tools",
         "qemu-system-x86_64" or "qemu-system-aarch64" => "qemu",
         "ld.lld" => "lld",
+        "gdb-multiarch" => "gdb",
         _ => tool.Name
     };
 
@@ -958,7 +959,8 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         "yasm", "xorriso", "lld",
         Path.Combine("x86_64-elf-tools", "bin"),
         Path.Combine("aarch64-elf-tools", "bin"),
-        "qemu"
+        "qemu",
+        "gdb"
     ];
 
     internal static bool AddToolsToWindowsPath(string toolsPath)

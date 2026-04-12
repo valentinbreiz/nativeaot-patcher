@@ -202,34 +202,27 @@ public static class ToolDefinitions
         MacOSInstall = new() { Method = "package", BrewPackages = ["qemu"] }
     };
 
-    public static readonly CommandToolDefinition X64ElfGdb = new()
+    // Portable gdb-multiarch built with libexpat (XML target description support).
+    // Required for QEMU system-mode kernel debugging — without expat, GDB falls back
+    // to a hardcoded register layout and rejects QEMU's extended register set with
+    // "remote 'g' packet reply is too long" or "Truncated register" errors.
+    // Linux: ships in apt as gdb-multiarch (with expat).
+    // Windows: bundled cross-elf GDBs from lordmilko/mmozeiko lack expat — use
+    // grumpycoder's purpose-built portable gdb-multiarch zip (~28 MB, includes all
+    // required DLLs, hosted on Compiler Explorer's CDN).
+    public static readonly CommandToolDefinition GdbMultiarch = new()
     {
-        Name = "x86_64-elf-gdb",
-        DisplayName = "x64 GDB",
-        Description = "GDB debugger for x64 bare-metal kernels (bundled with x86_64-elf-tools)",
-        WindowsCommands = ["x86_64-elf-gdb"],
-        LinuxCommands = ["gdb-multiarch", "gdb"],
-        MacOSCommands = ["x86_64-elf-gdb", "gdb"],
+        Name = "gdb-multiarch",
+        DisplayName = "GDB (multiarch)",
+        Description = "Multi-architecture GDB debugger for x64 and ARM64 kernels",
+        WindowsCommands = ["gdb-multiarch"],
+        LinuxCommands = ["gdb-multiarch"],
+        MacOSCommands = ["gdb-multiarch", "x86_64-elf-gdb", "aarch64-elf-gdb"],
         VersionArg = "--version",
         Required = false,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip" },
+        WindowsInstall = new() { Method = "download", DownloadUrl = "https://static.grumpycoder.net/pixel/gdb-multiarch-windows/gdb-multiarch-16.3.zip" },
         LinuxInstall = new() { Method = "package", AptPackages = ["gdb-multiarch"], DnfPackages = ["gdb"], PacmanPackages = ["gdb"] },
         MacOSInstall = new() { Method = "package", BrewPackages = ["x86_64-elf-gdb"] }
-    };
-
-    public static readonly CommandToolDefinition Aarch64ElfGdb = new()
-    {
-        Name = "aarch64-elf-gdb",
-        DisplayName = "ARM64 GDB",
-        Description = "GDB debugger for ARM64 bare-metal kernels (bundled with aarch64-elf-tools)",
-        WindowsCommands = ["aarch64-none-elf-gdb"],
-        LinuxCommands = ["gdb-multiarch", "aarch64-linux-gnu-gdb", "gdb"],
-        MacOSCommands = ["aarch64-elf-gdb", "gdb"],
-        VersionArg = "--version",
-        Required = false,
-        WindowsInstall = new() { Method = "download", DownloadUrl = "https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z" },
-        LinuxInstall = new() { Method = "package", AptPackages = ["gdb-multiarch"], DnfPackages = ["gdb"], PacmanPackages = ["gdb"] },
-        MacOSInstall = new() { Method = "package", BrewPackages = ["aarch64-elf-gdb"] }
     };
 
     public static readonly FileToolDefinition QemuEfiArm64 = new()
@@ -260,7 +253,6 @@ public static class ToolDefinitions
         QemuX64,
         QemuArm64,
         QemuEfiArm64,
-        X64ElfGdb,
-        Aarch64ElfGdb
+        GdbMultiarch
     ];
 }
