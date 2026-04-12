@@ -164,13 +164,6 @@ public static unsafe class AcpiBridge
     [UnmanagedCallersOnly(EntryPoint = "__get_limine_rsdp_address")]
     public static void* GetLimineRsdpAddress()
     {
-        // Force the base-revision marker to be emitted into the binary so Limine
-        // can scan for it. Without this read, NativeAOT may eliminate the static.
-        if (Limine.BaseRevision.Magic1 == 0)
-        {
-            return null;
-        }
-
         if (Limine.Rsdp.Response != null)
         {
             return Limine.Rsdp.Response->Address;

@@ -1,5 +1,11 @@
 #include "kmain.h"
 
+// The Limine base revision marker lives in managed code alongside the other
+// Limine requests (see src/Cosmos.Kernel.Boot.Limine/Limine.cs). NativeAOT
+// preinitializes static readonly struct fields with constant field
+// initializers into .rodata at compile time, so the magic byte pattern is
+// already present in the ELF when Limine scans for it.
+
 // CPU features definition
 int g_cpuFeatures = 0;
 
