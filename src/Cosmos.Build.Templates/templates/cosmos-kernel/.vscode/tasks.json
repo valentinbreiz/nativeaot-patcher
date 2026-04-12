@@ -112,7 +112,7 @@
         "-device", "virtio-scsi-pci",
         "-device", "scsi-cd,drive=cd,bootindex=0",
         "-device", "virtio-keyboard-device",
-        "-device", "ramfb",
+        "-device", "virtio-gpu-pci",
         "-display", "gtk,show-cursor=on",
         "-serial", "stdio"
       ],
@@ -156,7 +156,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "qemu-system-aarch64 -M virt -cpu cortex-a72 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/output-arm64/KernelName.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-ARM64-DEBUG-READY && wait"
+        "qemu-system-aarch64 -M virt -cpu cortex-a72 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/output-arm64/KernelName.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device virtio-gpu-pci -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-ARM64-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {

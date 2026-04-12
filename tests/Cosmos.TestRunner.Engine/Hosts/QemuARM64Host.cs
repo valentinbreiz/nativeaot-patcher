@@ -63,11 +63,12 @@ public class QemuARM64Host : IQemuHost
 
         // Build QEMU arguments
         // Note: Always write UART to file for parsing, display mode only affects GUI
-        // ARM64 virt machine doesn't support -vga std, use ramfb device instead
-        // ramfb is required even in headless mode for Limine framebuffer support
+        // virtio-gpu-pci provides a PCI BAR-backed framebuffer (page-aligned) and is
+        // required even in headless mode for Limine 11+ to populate the framebuffer
+        // request without tripping its page-overlap check on EFI-allocated memory.
         string displayArgs = showDisplay
-            ? $"-device ramfb -display gtk -serial file:\"{uartLogPath}\""
-            : $"-device ramfb -serial file:\"{uartLogPath}\" -nographic";
+            ? $"-device virtio-gpu-pci -display gtk -serial file:\"{uartLogPath}\""
+            : $"-device virtio-gpu-pci -serial file:\"{uartLogPath}\" -nographic";
 
         // Network configuration: E1000E device with user-mode networking
         // Guest IP: 10.0.2.15, Gateway: 10.0.2.2
