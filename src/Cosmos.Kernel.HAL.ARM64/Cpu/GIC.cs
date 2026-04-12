@@ -2,6 +2,7 @@
 
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.ARM64.Acpi;
 
 namespace Cosmos.Kernel.HAL.ARM64.Cpu;
