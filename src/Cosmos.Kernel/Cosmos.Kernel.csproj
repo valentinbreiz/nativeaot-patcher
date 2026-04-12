@@ -41,11 +41,13 @@
   <!--
     Generate the C# version constant for Cosmos.Kernel.Kernel from $(VersionPrefix).
     This becomes a partial class that adds Kernel.VersionString at compile time.
+    Runs every build (no Inputs/Outputs): when $(VersionPrefix) changes via env
+    var or global.json the csproj itself isn't touched, so an incremental skip
+    would bake the stale version into the package. WriteLinesToFile is already
+    no-op when the content hasn't actually changed.
   -->
   <Target Name="GenerateKernelVersionCs"
-          BeforeTargets="CoreCompile"
-          Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(IntermediateOutputPath)KernelVersion.g.cs">
+          BeforeTargets="CoreCompile">
     <PropertyGroup>
       <_KernelVersionCsFile>$(IntermediateOutputPath)KernelVersion.g.cs</_KernelVersionCsFile>
     </PropertyGroup>
@@ -72,11 +74,13 @@
     Generate the C version macros for kmain.c from $(VersionPrefix). Written
     directly into the source tree next to kmain.h (and gitignored) so the
     GCC #include resolves for both NuGet and ProjectReference consumers.
+    Runs every build (no Inputs/Outputs): when $(VersionPrefix) changes via
+    env var or global.json the csproj itself isn't touched, so an incremental
+    skip would ship a stale header inside the packed nupkg. WriteLinesToFile
+    is already no-op when the content hasn't actually changed.
   -->
   <Target Name="GenerateKmainVersionH"
-          BeforeTargets="AssignTargetPaths;_GetPackageFiles;BeforeBuild"
-          Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(MSBuildThisFileDirectory)Bootstrap\kmain_version.h">
+          BeforeTargets="AssignTargetPaths;_GetPackageFiles;BeforeBuild">
     <PropertyGroup>
       <_KmainVersionHFile>$(MSBuildThisFileDirectory)Bootstrap\kmain_version.h</_KmainVersionHFile>
     </PropertyGroup>
