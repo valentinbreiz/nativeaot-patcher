@@ -7,7 +7,8 @@
       "request": "launch",
       "MIMode": "gdb",
       "sourceFileMap": {
-        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime",
+        "/_/": "${workspaceFolder}/"
       },
 
       "miDebuggerPath": "gdb",
@@ -46,7 +47,8 @@
       "request": "launch",
       "MIMode": "gdb",
       "sourceFileMap": {
-        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime",
+        "/_/": "${workspaceFolder}/"
       },
 
       "miDebuggerPath": "gdb-multiarch",

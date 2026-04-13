@@ -9,6 +9,13 @@
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Embed PDB inside the DLL so ILC always has sequence-point info for
+         framework assemblies consumed from NuGet, enabling DWARF source-line
+         info and GDB source debugging for all Cosmos code. -->
+    <DebugType>embedded</DebugType>
+    <!-- Map repo-root paths to /_/ so DWARF source file paths are portable
+         across machines.  launch.json sourceFileMap reverses this mapping. -->
+    <PathMap>$(MSBuildThisFileDirectory)=/_/</PathMap>
     <NoWarn>$(NoWarn);1591;CS1998;NU1903;SYSLIB0011;</NoWarn>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>true</AppendRuntimeIdentifierToOutputPath>
