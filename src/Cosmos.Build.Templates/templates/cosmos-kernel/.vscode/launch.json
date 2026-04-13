@@ -6,9 +6,6 @@
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
-      "sourceFileMap": {
-        "/_/": ""
-      },
       "miDebuggerPath": "gdb",
       "targetArchitecture": "x64",
       "program": "${workspaceFolder}/output-x64/KernelName.elf",
@@ -44,9 +41,6 @@
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
-      "sourceFileMap": {
-        "/_/": ""
-      },
       "miDebuggerPath": "gdb-multiarch",
       "targetArchitecture": "arm64",
       "program": "${workspaceFolder}/output-arm64/KernelName.elf",
