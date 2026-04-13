@@ -147,28 +147,22 @@
     </ItemGroup>
   </Target>
   
-  <!-- Extract Cosmos framework source files from NuGet packages to the build
-       output so GDB can display source when stepping into framework code.
-       The source files ship inside each NuGet package under cosmos-src/ and
-       the package props populate @(CosmosSourceRoot) items at restore time.
-       DWARF paths use the /_/ prefix (via PathMap), and the VS Code extension
-       maps /_/ -> this extraction directory via sourceFileMap. -->
-  <Target Name="ExtractCosmosDebugSources"
+  <!-- Write a source-map file so the VS Code extension can build GDB
+       sourceFileMap entries pointing directly into the NuGet cache.
+       No file copying — source stays where NuGet restored it.
+       Each CosmosSourceRoot carries a ProjectName metadata set by the
+       package's generated props (see Directory.MultiArch.targets). -->
+  <Target Name="WriteCosmosDebugSourceMap"
           AfterTargets="Build"
           Condition="'@(CosmosSourceRoot)' != ''">
-    <PropertyGroup>
-      <CosmosDebugSourceRoot>$(OutputPath)cosmos-sources/</CosmosDebugSourceRoot>
-    </PropertyGroup>
     <ItemGroup>
-      <_CosmosSourceFiles Include="%(CosmosSourceRoot.Identity)**/*.cs" />
+      <_SourceMapLine Include="/_/src/%(CosmosSourceRoot.ProjectName)|%(CosmosSourceRoot.Identity)src/%(CosmosSourceRoot.ProjectName)" />
     </ItemGroup>
-    <Copy SourceFiles="@(_CosmosSourceFiles)"
-          DestinationFiles="@(_CosmosSourceFiles->'$(CosmosDebugSourceRoot)%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          Condition="'@(_CosmosSourceFiles)' != ''" />
+    <WriteLinesToFile File="$(OutputPath)cosmos-debug-sources.txt"
+                      Lines="@(_SourceMapLine)"
+                      Overwrite="true" />
     <Message Importance="High"
-             Text="📂 [Debug] Extracted @(_CosmosSourceFiles->Count()) source files to $(CosmosDebugSourceRoot)"
-             Condition="'@(_CosmosSourceFiles)' != ''" />
+             Text="📂 [Debug] Wrote source map: $(OutputPath)cosmos-debug-sources.txt" />
   </Target>
 
   <!-- Coverage instrumentation: inserts CoverageTracker.Hit(id) calls into src/ assembly methods.

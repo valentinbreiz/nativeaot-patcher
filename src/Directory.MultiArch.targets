@@ -84,7 +84,9 @@
       <Private>false</Private>
     </Reference>
     <CosmosMultiArchReference Include="%24(_$(_PropPrefix)AssemblyPath)" />
-    <CosmosSourceRoot Include="%24(MSBuildThisFileDirectory)../cosmos-src/" />
+    <CosmosSourceRoot Include="%24(MSBuildThisFileDirectory)../cosmos-src/">
+      <ProjectName>$(AssemblyName)</ProjectName>
+    </CosmosSourceRoot>
   </ItemGroup>
 </Project>]]></_MultiArchContent>
     </PropertyGroup>
