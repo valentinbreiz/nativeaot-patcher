@@ -147,6 +147,30 @@
     </ItemGroup>
   </Target>
   
+  <!-- Extract Cosmos framework source files from NuGet packages to the build
+       output so GDB can display source when stepping into framework code.
+       The source files ship inside each NuGet package under cosmos-src/ and
+       the package props populate @(CosmosSourceRoot) items at restore time.
+       DWARF paths use the /_/ prefix (via PathMap), and the VS Code extension
+       maps /_/ -> this extraction directory via sourceFileMap. -->
+  <Target Name="ExtractCosmosDebugSources"
+          AfterTargets="Build"
+          Condition="'@(CosmosSourceRoot)' != ''">
+    <PropertyGroup>
+      <CosmosDebugSourceRoot>$(OutputPath)cosmos-sources/</CosmosDebugSourceRoot>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CosmosSourceFiles Include="%(CosmosSourceRoot.Identity)**/*.cs" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_CosmosSourceFiles)"
+          DestinationFiles="@(_CosmosSourceFiles->'$(CosmosDebugSourceRoot)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_CosmosSourceFiles)' != ''" />
+    <Message Importance="High"
+             Text="📂 [Debug] Extracted @(_CosmosSourceFiles->Count()) source files to $(CosmosDebugSourceRoot)"
+             Condition="'@(_CosmosSourceFiles)' != ''" />
+  </Target>
+
   <!-- Coverage instrumentation: inserts CoverageTracker.Hit(id) calls into src/ assembly methods.
        Only runs when CosmosCoverage=true. Must run after RunPatcher and before CompileWithIlc. -->
   <Target Name="InstrumentCoverage"

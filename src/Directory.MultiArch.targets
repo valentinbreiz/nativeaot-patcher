@@ -45,6 +45,15 @@
       <Pack>true</Pack>
       <PackagePath>runtimes/linux-arm64/lib/$(_MultiArchTFM)/</PackagePath>
     </None>
+
+    <!-- Include C# source files for GDB source-level debugging.
+         PathMap maps repo paths to /_/ in PDBs/DWARF, so the package mirrors
+         that layout under cosmos-src/ for extraction at kernel build time. -->
+    <None Include="$(MSBuildProjectDirectory)/**/*.cs"
+          Exclude="$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**">
+      <Pack>true</Pack>
+      <PackagePath>cosmos-src/src/$(MSBuildProjectName)/</PackagePath>
+    </None>
   </ItemGroup>
 
   <!-- Generate props file for compile-time assembly resolution -->
@@ -75,6 +84,7 @@
       <Private>false</Private>
     </Reference>
     <CosmosMultiArchReference Include="%24(_$(_PropPrefix)AssemblyPath)" />
+    <CosmosSourceRoot Include="%24(MSBuildThisFileDirectory)../cosmos-src/" />
   </ItemGroup>
 </Project>]]></_MultiArchContent>
     </PropertyGroup>
