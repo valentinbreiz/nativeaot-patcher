@@ -161,6 +161,36 @@ Class Thread
 
 
 
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Thread_AllocContext" data-uid="Cosmos.Kernel.Core.Scheduler.Thread.AllocContext">
+  AllocContext
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AllocContext AllocContext</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html">AllocContext</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="Cosmos_Kernel_Core_Scheduler_Thread_DefaultStackSize" data-uid="Cosmos.Kernel.Core.Scheduler.Thread.DefaultStackSize">
   DefaultStackSize
   
@@ -495,6 +525,42 @@ Class Thread
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Thread_StartDelegate_" data-uid="Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Thread_StartDelegate" data-uid="Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate">
+  StartDelegate
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Managed entry delegate executed the first time this thread is scheduled.
+Set by the thread creator (e.g. ThreadPlug.StartCore) before handing the
+thread to the scheduler; invoked and cleared by
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart">InvokeCurrentThreadStart()</a>.
+Null for the idle thread and any thread whose entry is native.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Action? StartDelegate { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
     <dd></dd>
   </dl>
 

@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class ContextSwitch | Cosmos Gen 3 ">
       
-      <meta name="description" content="Low-level context switch operations. Platform-specific implementations in native code.">
+      <meta name="description" content="Low-level context switch operations. Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -98,7 +98,7 @@ Class ContextSwitch
   </div>
 
   <div class="markdown summary"><p>Low-level context switch operations.
-Platform-specific implementations in native code.</p>
+Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -154,137 +154,6 @@ Platform-specific implementations in native code.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_GetContextSwitchRsp_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.GetContextSwitchRsp*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_GetContextSwitchRsp" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.GetContextSwitchRsp">
-  GetContextSwitchRsp()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Gets the current context switch target RSP (for debugging).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern nuint GetContextSwitchRsp()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_GetRsp_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.GetRsp*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_GetRsp" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.GetRsp">
-  GetRsp()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Gets the current RSP value.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern nuint GetRsp()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_SetContextSwitchNewThread_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.SetContextSwitchNewThread*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_SetContextSwitchNewThread_System_Int32_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.SetContextSwitchNewThread(System.Int32)">
-  SetContextSwitchNewThread(int)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Sets whether the target thread is NEW (1) or RESUMED (0).
-NEW threads need RSP loaded from context, RESUMED threads use iretq.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchNewThread(int isNew)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>isNew</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_SetContextSwitchRsp_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.SetContextSwitchRsp*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_SetContextSwitchRsp_System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.SetContextSwitchRsp(System.UIntPtr)">
-  SetContextSwitchRsp(nuint)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Sets the target RSP for context switch. The IRQ stub will switch
-to this stack after the managed handler returns.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchRsp(nuint newRsp)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>newRsp</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
-    <dd><p>New RSP pointing to a saved context.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_Switch_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.Switch*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_ContextSwitch_Switch_System_UIntPtr_Cosmos_Kernel_Core_Scheduler_Thread_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.ContextSwitch.Switch(System.UIntPtr,Cosmos.Kernel.Core.Scheduler.Thread,Cosmos.Kernel.Core.Scheduler.Thread)">
@@ -293,7 +162,7 @@ to this stack after the managed handler returns.</p>
   </h3>
 
   <div class="markdown level1 summary"><p>Requests a context switch to the specified thread.
-Called from timer interrupt handler when preemption is needed.</p>
+Called from the timer interrupt handler when preemption is needed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 

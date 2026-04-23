@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL.Cpu | Cosmos Gen 3 </title>
+      <title>Class AcpiMcfgNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Cpu | Cosmos Gen 3 ">
+      <meta name="title" content="Class AcpiMcfgNative | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Architecture-neutral ACPI MCFG import (PCI ECAM discovery). MADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs; GIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,40 +84,107 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Cpu">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.AcpiMcfgNative">
 
-  <h1 id="Cosmos_Kernel_HAL_Cpu" data-uid="Cosmos.Kernel.HAL.Cpu" class="text-break">Namespace Cosmos.Kernel.HAL.Cpu</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.Data.html">Cosmos.Kernel.HAL.Cpu.Data</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.Enums.html">Cosmos.Kernel.HAL.Cpu.Enums</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.InterruptManager.html">InterruptManager</a></dt>
-      <dd><p>Interrupt manager - provides interrupt registration and dispatch for all architectures.</p>
-</dd>
-    </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.html">InterruptManager.IrqDelegate</a></dt>
-      <dd><p>Interrupt delegate signature.</p>
-</dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_Core_Bridge_AcpiMcfgNative" data-uid="Cosmos.Kernel.Core.Bridge.AcpiMcfgNative" class="text-break">
+Class AcpiMcfgNative  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Architecture-neutral ACPI MCFG import (PCI ECAM discovery).
+MADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs;
+GIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class AcpiMcfgNative</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">AcpiMcfgNative</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_AcpiMcfgNative_GetMcfgInfo_" data-uid="Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.GetMcfgInfo*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_AcpiMcfgNative_GetMcfgInfo" data-uid="Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.GetMcfgInfo">
+  GetMcfgInfo()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static extern void* GetMcfgInfo()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
 
 
 </article>

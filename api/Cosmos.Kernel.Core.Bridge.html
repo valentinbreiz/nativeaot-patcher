@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL.Acpi | Cosmos Gen 3 </title>
+      <title>Namespace Cosmos.Kernel.Core.Bridge | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Acpi | Cosmos Gen 3 ">
+      <meta name="title" content="Namespace Cosmos.Kernel.Core.Bridge | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -84,9 +84,9 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Acpi">
+        <article data-uid="Cosmos.Kernel.Core.Bridge">
 
-  <h1 id="Cosmos_Kernel_HAL_Acpi" data-uid="Cosmos.Kernel.HAL.Acpi" class="text-break">Namespace Cosmos.Kernel.HAL.Acpi</h1>
+  <h1 id="Cosmos_Kernel_Core_Bridge" data-uid="Cosmos.Kernel.Core.Bridge" class="text-break">Namespace Cosmos.Kernel.Core.Bridge</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
@@ -95,31 +95,71 @@
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Acpi.Acpi.html">Acpi</a></dt>
-      <dd><p>ACPI subsystem interface</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Acpi.CpuInfo.html">CpuInfo</a></dt>
-      <dd><p>CPU information from MADT</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.html">AcpiMcfgNative</a></dt>
+      <dd><p>Architecture-neutral ACPI MCFG import (PCI ECAM discovery).
+MADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs;
+GIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Acpi.IoApicInfo.html">IoApicInfo</a></dt>
-      <dd><p>I/O APIC information from MADT</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.html">ContextSwitchNative</a></dt>
+      <dd><p>Native imports for the low-level context switch primitives.
+Symbols are unified across architectures: Cosmos.Kernel.Native.X64
+(Interrupts.asm) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both
+export the same names, so no arch gating is needed here.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Acpi.IrqOverride.html">IrqOverride</a></dt>
-      <dd><p>Interrupt Source Override from MADT</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.CpuNative.html">CpuNative</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.HeapNative.html">HeapNative</a></dt>
+      <dd><p>Bridge functions that let C library code allocate from the Cosmos heap.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Acpi.MadtInfo.html">MadtInfo</a></dt>
-      <dd><p>Complete MADT information</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.IrqNative.html">IrqNative</a></dt>
+      <dd><p>Native entry point invoked from the architecture-specific IRQ assembly stubs.
+Forwards straight into <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html#Cosmos_Kernel_Core_CPU_InterruptManager_Dispatch_Cosmos_Kernel_Core_CPU_IRQContext__">Dispatch(ref IRQContext)</a> — no indirection.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.KnobsNative.html">KnobsNative</a></dt>
+      <dd><p>Native import for the runtime-provided knob values table.
+Consumed by the AppContext plug.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.LimineNative.html">LimineNative</a></dt>
+      <dd><p>Wrapper for C code to access managed Limine data (RSDP address, HHDM offset).
+NOTE: This is a data accessor wrapper - C code gets managed data, then continues in C.
+We do NOT call C code from managed code - only provide data access.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.MemNative.html">MemNative</a></dt>
+      <dd><p>Bridge functions for memcpy / memcmp used by C library code.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.SerialNative.html">SerialNative</a></dt>
+      <dd><p>Bridge functions for C library code (ACPI, libc stubs) to call C# methods.
+NOTE: These are NOT called from C bootstrap (kmain.c) - only from library code.
+C bootstrap uses pure C implementations for clean architecture.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.SimdNative.html">SimdNative</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html">ThreadNative</a></dt>
+      <dd><p>Stable native entry point used as the initial RIP/PC for freshly scheduled
+threads. The architecture-specific context-switch assembly returns (via iretq
+on x64 / eret on ARM64) into <a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub">EntryPointStub()</a>, which then calls
+the scheduler's managed entry implementation. Thread-start registration lives
+in SchedulerManager.RegisterThreadStart.</p>
 </dd>
     </dl>
 

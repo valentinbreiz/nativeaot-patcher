@@ -242,7 +242,7 @@ Class X64PlatformInitializer
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.ICpuOps.html">ICpuOps</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.ICpuOps.html">ICpuOps</a></dt>
     <dd></dd>
   </dl>
 
@@ -274,7 +274,7 @@ Class X64PlatformInitializer
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.IInterruptController.html">IInterruptController</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a></dt>
     <dd></dd>
   </dl>
 
@@ -305,7 +305,7 @@ Class X64PlatformInitializer
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.IPortIO.html">IPortIO</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.Core.IO.IPortIO.html">IPortIO</a></dt>
     <dd></dd>
   </dl>
 
@@ -496,6 +496,40 @@ Called after HAL and interrupt manager are initialized.</p>
     <pre><code class="lang-csharp hljs">public void InitializeHardware()</code></pre>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_PreparePciMapping_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.PreparePciMapping*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_PreparePciMapping_System_UInt64_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.PreparePciMapping(System.UInt64)">
+  PreparePciMapping(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Maps PCI configuration space memory before device enumeration.
+ARM64 maps ECAM as device memory; x64 uses port I/O (no mapping needed).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void PreparePciMapping(ulong ecamBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>ecamBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Physical ECAM base address from ACPI MCFG.</p>
+</dd>
+  </dl>
 
 
 

@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class InternalCpu | Cosmos Gen 3 ">
       
-      <meta name="description" content="Low-level CPU operations that can be used by Core components like the heap.">
+      <meta name="description" content="Low-level CPU operations that can be used by Core components like the heap. Native imports live in Bridge/Import/CpuNative.cs.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,8 @@ Class InternalCpu
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Low-level CPU operations that can be used by Core components like the heap.</p>
+  <div class="markdown summary"><p>Low-level CPU operations that can be used by Core components like the heap.
+Native imports live in Bridge/Import/CpuNative.cs.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -164,7 +165,7 @@ Class InternalCpu
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void DisableInterrupts()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void DisableInterrupts()</code></pre>
   </div>
 
 
@@ -223,7 +224,7 @@ Usage: using (InternalCpu.DisableInterruptsScope()) { ... }</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void EnableInterrupts()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void EnableInterrupts()</code></pre>
   </div>
 
 
@@ -249,7 +250,7 @@ Usage: using (InternalCpu.DisableInterruptsScope()) { ... }</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void Halt()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Halt()</code></pre>
   </div>
 
 

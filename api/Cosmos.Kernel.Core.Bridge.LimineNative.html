@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct IrqOverride | Cosmos Gen 3 </title>
+      <title>Class LimineNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct IrqOverride | Cosmos Gen 3 ">
+      <meta name="title" content="Class LimineNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="Interrupt Source Override from MADT">
+      <meta name="description" content="Wrapper for C code to access managed Limine data (RSDP address, HHDM offset). NOTE: This is a data accessor wrapper - C code gets managed data, then continues in C. We do NOT call C code from managed code - only provide data access.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,30 +84,39 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.LimineNative">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Acpi_IrqOverride" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride" class="text-break">
-Struct IrqOverride  
+  <h1 id="Cosmos_Kernel_Core_Bridge_LimineNative" data-uid="Cosmos.Kernel.Core.Bridge.LimineNative" class="text-break">
+Class LimineNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Acpi.html">Acpi</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Interrupt Source Override from MADT</p>
+  <div class="markdown summary"><p>Wrapper for C code to access managed Limine data (RSDP address, HHDM offset).
+NOTE: This is a data accessor wrapper - C code gets managed data, then continues in C.
+We do NOT call C code from managed code - only provide data access.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct IrqOverride</code></pre>
+    <pre><code class="lang-csharp hljs">public static class LimineNative</code></pre>
   </div>
 
 
 
 
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">LimineNative</span></div>
+    </dd>
+  </dl>
 
 
 
@@ -115,22 +124,25 @@ Struct IrqOverride
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -139,29 +151,29 @@ Struct IrqOverride
 
 
 
-  <h2 class="section" id="fields">Fields
+  <h2 class="section" id="methods">Methods
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_Bridge_LimineNative_GetHhdmOffset_" data-uid="Cosmos.Kernel.Core.Bridge.LimineNative.GetHhdmOffset*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IrqOverride_Flags" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.Flags">
-  Flags
+  <h3 id="Cosmos_Kernel_Core_Bridge_LimineNative_GetHhdmOffset" data-uid="Cosmos.Kernel.Core.Bridge.LimineNative.GetHhdmOffset">
+  GetHhdmOffset()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Expose Limine HHDM offset to C bootstrap for physical-to-virtual address translation.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Flags</code></pre>
+    <pre><code class="lang-csharp hljs">public static ulong GetHhdmOffset()</code></pre>
   </div>
 
 
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
@@ -174,123 +186,31 @@ Struct IrqOverride
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IrqOverride_Gsi" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.Gsi">
-  Gsi
+
+  <a id="Cosmos_Kernel_Core_Bridge_LimineNative_GetRsdpAddress_" data-uid="Cosmos.Kernel.Core.Bridge.LimineNative.GetRsdpAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_LimineNative_GetRsdpAddress" data-uid="Cosmos.Kernel.Core.Bridge.LimineNative.GetRsdpAddress">
+  GetRsdpAddress()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Wrapper to expose Limine RSDP address to C bootstrap for LAI ACPI initialization</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Gsi</code></pre>
+    <pre><code class="lang-csharp hljs">public static void* GetRsdpAddress()</code></pre>
   </div>
 
 
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
     <dd></dd>
   </dl>
 
 
 
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IrqOverride_Source" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.Source">
-  Source
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Source</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="properties">Properties
-</h2>
-
-
-  <a id="Cosmos_Kernel_HAL_Acpi_IrqOverride_IsActiveLow_" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.IsActiveLow*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IrqOverride_IsActiveLow" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.IsActiveLow">
-  IsActiveLow
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly bool IsActiveLow { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_Acpi_IrqOverride_IsLevelTriggered_" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.IsLevelTriggered*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IrqOverride_IsLevelTriggered" data-uid="Cosmos.Kernel.HAL.Acpi.IrqOverride.IsLevelTriggered">
-  IsLevelTriggered
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly bool IsLevelTriggered { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

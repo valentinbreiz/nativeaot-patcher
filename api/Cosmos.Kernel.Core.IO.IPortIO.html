@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct AcpiGIC.GicInfo | Cosmos Gen 3 </title>
+      <title>Interface IPortIO | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct AcpiGIC.GicInfo | Cosmos Gen 3 ">
+      <meta name="title" content="Interface IPortIO | Cosmos Gen 3 ">
       
-      <meta name="description" content="Mirrors the C struct acpi_gic_info_t from ACPI/acpi_wrapper.c. Must match the native layout exactly.">
+      
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,24 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo">
+        <article data-uid="Cosmos.Kernel.Core.IO.IPortIO">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo" class="text-break">
-Struct AcpiGIC.GicInfo  
+  <h1 id="Cosmos_Kernel_Core_IO_IPortIO" data-uid="Cosmos.Kernel.Core.IO.IPortIO" class="text-break">
+Interface IPortIO  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Acpi.html">Acpi</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.IO.html">IO</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Mirrors the C struct acpi_gic_info_t from ACPI/acpi_wrapper.c.
-Must match the native layout exactly.</p>
-</div>
+  <div class="markdown summary"></div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct AcpiGIC.GicInfo</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IPortIO</code></pre>
   </div>
 
 
@@ -112,41 +110,20 @@ Must match the native layout exactly.</p>
 
 
 
-  <dl class="typelist inheritedMembers">
-    <dt>Inherited Members</dt>
-    <dd>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-  </dd></dl>
 
 
 
 
 
 
-  <h2 class="section" id="fields">Fields
+  <h2 class="section" id="methods">Methods
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_ReadByte_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadByte*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_CpuIfBase" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.CpuIfBase">
-  CpuIfBase
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_ReadByte_System_UInt16_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadByte(System.UInt16)">
+  ReadByte(ushort)
   
   </h3>
 
@@ -154,73 +131,16 @@ Must match the native layout exactly.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong CpuIfBase</code></pre>
+    <pre><code class="lang-csharp hljs">byte ReadByte(ushort port)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_DistBase" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.DistBase">
-  DistBase
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong DistBase</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_Found" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Found">
-  Found
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Found</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
@@ -235,8 +155,11 @@ Must match the native layout exactly.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_RedistBase" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistBase">
-  RedistBase
+
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_ReadDWord_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadDWord*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_ReadDWord_System_UInt16_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadDWord(System.UInt16)">
+  ReadDWord(ushort)
   
   </h3>
 
@@ -244,15 +167,18 @@ Must match the native layout exactly.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong RedistBase</code></pre>
+    <pre><code class="lang-csharp hljs">uint ReadDWord(ushort port)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
   </dl>
 
@@ -265,8 +191,11 @@ Must match the native layout exactly.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_RedistLength" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.RedistLength">
-  RedistLength
+
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_ReadWord_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadWord*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_ReadWord_System_UInt16_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.ReadWord(System.UInt16)">
+  ReadWord(ushort)
   
   </h3>
 
@@ -274,15 +203,18 @@ Must match the native layout exactly.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong RedistLength</code></pre>
+    <pre><code class="lang-csharp hljs">ushort ReadWord(ushort port)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 
@@ -295,8 +227,11 @@ Must match the native layout exactly.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GicInfo_Version" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.Version">
-  Version
+
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_WriteByte_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteByte*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_WriteByte_System_UInt16_System_Byte_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteByte(System.UInt16,System.Byte)">
+  WriteByte(ushort, byte)
   
   </h3>
 
@@ -304,17 +239,85 @@ Must match the native layout exactly.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Version</code></pre>
+    <pre><code class="lang-csharp hljs">void WriteByte(ushort port, byte value)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_WriteDWord_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteDWord*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_WriteDWord_System_UInt16_System_UInt32_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteDWord(System.UInt16,System.UInt32)">
+  WriteDWord(ushort, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void WriteDWord(ushort port, uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_IO_IPortIO_WriteWord_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteWord*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_IO_IPortIO_WriteWord_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.Core.IO.IPortIO.WriteWord(System.UInt16,System.UInt16)">
+  WriteWord(ushort, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void WriteWord(ushort port, ushort value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
 
 
 

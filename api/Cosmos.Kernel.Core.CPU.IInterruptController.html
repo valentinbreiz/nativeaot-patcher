@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class X64InterruptController | Cosmos Gen 3 </title>
+      <title>Interface IInterruptController | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class X64InterruptController | Cosmos Gen 3 ">
+      <meta name="title" content="Interface IInterruptController | Cosmos Gen 3 ">
       
-      <meta name="description" content="X64 interrupt controller - manages IDT and APIC.">
+      <meta name="description" content="Interface for platform-specific interrupt controller. Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,71 +84,34 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController">
+        <article data-uid="Cosmos.Kernel.Core.CPU.IInterruptController">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController" class="text-break">
-Class X64InterruptController  
+  <h1 id="Cosmos_Kernel_Core_CPU_IInterruptController" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController" class="text-break">
+Interface IInterruptController  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.html">Cpu</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.html">CPU</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>X64 interrupt controller - manages IDT and APIC.</p>
+  <div class="markdown summary"><p>Interface for platform-specific interrupt controller.
+Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class X64InterruptController : IInterruptController</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IInterruptController</code></pre>
   </div>
 
 
 
 
-  <dl class="typelist inheritance">
-    <dt>Inheritance</dt>
-    <dd>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">X64InterruptController</span></div>
-    </dd>
-  </dl>
-
-  <dl class="typelist implements">
-    <dt>Implements</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.IInterruptController.html">IInterruptController</a></div>
-    </dd>
-  </dl>
 
 
-  <dl class="typelist inheritedMembers">
-    <dt>Inherited Members</dt>
-    <dd>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-  </dd></dl>
+
 
 
 
@@ -159,9 +122,9 @@ Class X64InterruptController
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_IsInitialized_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.IsInitialized*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_IsInitialized_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.IsInitialized*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_IsInitialized" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.IsInitialized">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_IsInitialized" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.IsInitialized">
   IsInitialized
   
   </h3>
@@ -171,7 +134,7 @@ Class X64InterruptController
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool IsInitialized { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">bool IsInitialized { get; }</code></pre>
   </div>
 
 
@@ -195,9 +158,9 @@ Class X64InterruptController
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_AcknowledgeInterrupt_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.AcknowledgeInterrupt*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_AcknowledgeInterrupt_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.AcknowledgeInterrupt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_AcknowledgeInterrupt" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.AcknowledgeInterrupt">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_AcknowledgeInterrupt" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.AcknowledgeInterrupt">
   AcknowledgeInterrupt()
   
   </h3>
@@ -209,7 +172,7 @@ On x64, this returns uint.MaxValue (not used - x64 uses vector from IDT directly
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint AcknowledgeInterrupt()</code></pre>
+    <pre><code class="lang-csharp hljs">uint AcknowledgeInterrupt()</code></pre>
   </div>
 
 
@@ -230,9 +193,9 @@ On x64, this returns uint.MaxValue (not used - x64 uses vector from IDT directly
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_HandleFatalException_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.HandleFatalException*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_HandleFatalException_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.HandleFatalException*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_HandleFatalException_System_UInt64_System_UInt64_System_UInt64_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.HandleFatalException(System.UInt64,System.UInt64,System.UInt64)">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_HandleFatalException_System_UInt64_System_UInt64_System_UInt64_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.HandleFatalException(System.UInt64,System.UInt64,System.UInt64)">
   HandleFatalException(ulong, ulong, ulong)
   
   </h3>
@@ -243,7 +206,7 @@ Returns true if handled (halts), false to continue.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)</code></pre>
+    <pre><code class="lang-csharp hljs">bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -275,9 +238,9 @@ Returns true if handled (halts), false to continue.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_Initialize_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.Initialize*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_Initialize_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_Initialize" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.Initialize">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_Initialize" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.Initialize">
   Initialize()
   
   </h3>
@@ -287,7 +250,7 @@ Returns true if handled (halts), false to continue.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Initialize()</code></pre>
+    <pre><code class="lang-csharp hljs">void Initialize()</code></pre>
   </div>
 
 
@@ -302,9 +265,9 @@ Returns true if handled (halts), false to continue.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_RouteIrq_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.RouteIrq*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_RouteIrq_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.RouteIrq*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_RouteIrq_System_Byte_System_Byte_System_Boolean_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.RouteIrq(System.Byte,System.Byte,System.Boolean)">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_RouteIrq_System_Byte_System_Byte_System_Boolean_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.RouteIrq(System.Byte,System.Byte,System.Boolean)">
   RouteIrq(byte, byte, bool)
   
   </h3>
@@ -314,7 +277,7 @@ Returns true if handled (halts), false to continue.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void RouteIrq(byte irqNo, byte vector, bool startMasked)</code></pre>
+    <pre><code class="lang-csharp hljs">void RouteIrq(byte irqNo, byte vector, bool startMasked)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -338,9 +301,9 @@ Returns true if handled (halts), false to continue.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_SendEOI_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.SendEOI*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_IInterruptController_SendEOI_" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.SendEOI*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_X64InterruptController_SendEOI" data-uid="Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.SendEOI">
+  <h3 id="Cosmos_Kernel_Core_CPU_IInterruptController_SendEOI" data-uid="Cosmos.Kernel.Core.CPU.IInterruptController.SendEOI">
   SendEOI()
   
   </h3>
@@ -350,7 +313,7 @@ Returns true if handled (halts), false to continue.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void SendEOI()</code></pre>
+    <pre><code class="lang-csharp hljs">void SendEOI()</code></pre>
   </div>
 
 

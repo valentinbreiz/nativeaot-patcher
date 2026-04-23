@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct IdtPointer | Cosmos Gen 3 </title>
+      <title>Struct AllocContext | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct IdtPointer | Cosmos Gen 3 ">
+      <meta name="title" content="Struct AllocContext | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Per-thread allocation context (Thread-Local Allocation Buffer). Stored inline on each  to provide contention-free allocation.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,24 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer">
+        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtPointer" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer" class="text-break">
-Struct IdtPointer  
+  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext" class="text-break">
+Struct AllocContext  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.html">Cpu</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.Data.html">Data</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.html">GarbageCollector</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Per-thread allocation context (Thread-Local Allocation Buffer).
+Stored inline on each <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a> to provide contention-free allocation.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct IdtPointer</code></pre>
+    <pre><code class="lang-csharp hljs">public struct AllocContext</code></pre>
   </div>
 
 
@@ -143,16 +145,17 @@ Struct IdtPointer
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtPointer_Base" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.Base">
-  Base
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.AllocBytes">
+  AllocBytes
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Cumulative bytes allocated by this thread (SOH objects).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong Base</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong AllocBytes</code></pre>
   </div>
 
 
@@ -173,16 +176,17 @@ Struct IdtPointer
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtPointer_Limit" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.Limit">
-  Limit
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocBytesUoh" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.AllocBytesUoh">
+  AllocBytesUoh
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Cumulative bytes allocated by this thread (pinned/LOH objects).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Limit</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong AllocBytesUoh</code></pre>
   </div>
 
 
@@ -190,7 +194,69 @@ Struct IdtPointer
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocLimit" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.AllocLimit">
+  AllocLimit
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>End of the TLAB buffer. When <a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html#Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocPtr">AllocPtr</a> reaches this, a refill is needed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte* AllocLimit</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocPtr" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.AllocPtr">
+  AllocPtr
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Current allocation pointer within the TLAB. Advances toward <a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html#Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext_AllocLimit">AllocLimit</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte* AllocPtr</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
     <dd></dd>
   </dl>
 

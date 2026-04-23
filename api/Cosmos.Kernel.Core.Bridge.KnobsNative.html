@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class AcpiGIC | Cosmos Gen 3 </title>
+      <title>Class KnobsNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class AcpiGIC | Cosmos Gen 3 ">
+      <meta name="title" content="Class KnobsNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="C# bridge to native ACPI GIC discovery (acpi_wrapper.c in MultiArch). The native code is called during early boot (kmain) and parses the MADT to extract GICD/GICR/GICC addresses. This class just retrieves the result.">
+      <meta name="description" content="Native import for the runtime-provided knob values table. Consumed by the AppContext plug.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,27 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.KnobsNative">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC" class="text-break">
-Class AcpiGIC  
+  <h1 id="Cosmos_Kernel_Core_Bridge_KnobsNative" data-uid="Cosmos.Kernel.Core.Bridge.KnobsNative" class="text-break">
+Class KnobsNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Acpi.html">Acpi</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>C# bridge to native ACPI GIC discovery (acpi_wrapper.c in MultiArch).
-The native code is called during early boot (kmain) and parses the MADT
-to extract GICD/GICR/GICC addresses. This class just retrieves the result.</p>
+  <div class="markdown summary"><p>Native import for the runtime-provided knob values table.
+Consumed by the AppContext plug.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class AcpiGIC</code></pre>
+    <pre><code class="lang-csharp hljs">public static class KnobsNative</code></pre>
   </div>
 
 
@@ -114,7 +113,7 @@ to extract GICD/GICR/GICC addresses. This class just retrieves the result.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">AcpiGIC</span></div>
+      <div><span class="xref">KnobsNative</span></div>
     </dd>
   </dl>
 
@@ -155,26 +154,31 @@ to extract GICD/GICR/GICC addresses. This class just retrieves the result.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GetGicInfo_" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo*"></a>
+  <a id="Cosmos_Kernel_Core_Bridge_KnobsNative_GetKnobValues_" data-uid="Cosmos.Kernel.Core.Bridge.KnobsNative.GetKnobValues*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Acpi_AcpiGIC_GetGicInfo" data-uid="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GetGicInfo">
-  GetGicInfo()
+  <h3 id="Cosmos_Kernel_Core_Bridge_KnobsNative_GetKnobValues_System_Byte____System_Byte____" data-uid="Cosmos.Kernel.Core.Bridge.KnobsNative.GetKnobValues(System.Byte**@,System.Byte**@)">
+  GetKnobValues(out byte**, out byte**)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets GIC information discovered from ACPI MADT during early boot.
-Returns null if ACPI was not available or GIC entries weren't found.</p>
-</div>
+  <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AcpiGIC.GicInfo* GetGicInfo()</code></pre>
+    <pre><code class="lang-csharp hljs">public static uint GetKnobValues(out byte** keys, out byte** values)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>keys</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>**</dt>
+    <dd></dd>
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>**</dt>
+    <dd></dd>
+  </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html">GicInfo</a>*</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
   </dl>
 

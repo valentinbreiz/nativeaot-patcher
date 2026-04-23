@@ -96,15 +96,50 @@ Classes
 </h3>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InternalCpu.html">InternalCpu</a></dt>
-      <dd><p>Low-level CPU operations that can be used by Core components like the heap.</p>
+      <dd><p>Low-level CPU operations that can be used by Core components like the heap.
+Native imports live in Bridge/Import/CpuNative.cs.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a></dt>
+      <dd><p>Interrupt manager - provides interrupt registration and dispatch for all architectures.
+Lives in Core because the vector table and dispatch logic are hardware-neutral;
+arch-specific drivers implement <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a> in
+Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
 </dd>
     </dl>
     <h3 id="structs">
 Structs
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.IRQContext.html">IRQContext</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.html">InternalCpu.InterruptScope</a></dt>
       <dd><p>A disposable scope that disables interrupts on creation and re-enables them on dispose.</p>
+</dd>
+    </dl>
+    <h3 id="interfaces">
+Interfaces
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.ICpuOps.html">ICpuOps</a></dt>
+      <dd><p>Essential CPU operations for multi-architecture support</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a></dt>
+      <dd><p>Interface for platform-specific interrupt controller.
+Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>
+</dd>
+    </dl>
+    <h3 id="delegates">
+Delegates
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">InterruptManager.IrqDelegate</a></dt>
+      <dd><p>Interrupt delegate signature.</p>
 </dd>
     </dl>
 

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class ARM64CpuOps | Cosmos Gen 3 </title>
+      <title>Class AcpiMcfg | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class ARM64CpuOps | Cosmos Gen 3 ">
+      <meta name="title" content="Class AcpiMcfg | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="C# bridge to native ACPI MCFG discovery (acpi_wrapper.c in MultiArch). The native code is called during early boot (kmain) and parses the MCFG table to extract the PCI ECAM base address. This class just retrieves the result. Native import lives in Cosmos.Kernel.Core/Bridge/Import/AcpiNative.cs.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,24 +84,28 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps">
+        <article data-uid="Cosmos.Kernel.HAL.AcpiMcfg">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps" class="text-break">
-Class ARM64CpuOps  
+  <h1 id="Cosmos_Kernel_HAL_AcpiMcfg" data-uid="Cosmos.Kernel.HAL.AcpiMcfg" class="text-break">
+Class AcpiMcfg  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>C# bridge to native ACPI MCFG discovery (acpi_wrapper.c in MultiArch).
+The native code is called during early boot (kmain) and parses the MCFG
+table to extract the PCI ECAM base address. This class just retrieves the result.
+Native import lives in Cosmos.Kernel.Core/Bridge/Import/AcpiNative.cs.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class ARM64CpuOps : ICpuOps</code></pre>
+    <pre><code class="lang-csharp hljs">public static class AcpiMcfg</code></pre>
   </div>
 
 
@@ -111,16 +115,10 @@ Class ARM64CpuOps
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">ARM64CpuOps</span></div>
+      <div><span class="xref">AcpiMcfg</span></div>
     </dd>
   </dl>
 
-  <dl class="typelist implements">
-    <dt>Implements</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.ICpuOps.html">ICpuOps</a></div>
-    </dd>
-  </dl>
 
 
   <dl class="typelist inheritedMembers">
@@ -158,22 +156,28 @@ Class ARM64CpuOps
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_DisableInterrupts_" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.DisableInterrupts*"></a>
+  <a id="Cosmos_Kernel_HAL_AcpiMcfg_GetEcamBase_" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.GetEcamBase*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_DisableInterrupts" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.DisableInterrupts">
-  DisableInterrupts()
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_GetEcamBase" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.GetEcamBase">
+  GetEcamBase()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disable interrupts (x64: CLI, ARM64: MSR DAIF)</p>
+  <div class="markdown level1 summary"><p>Gets the PCI ECAM physical base address from ACPI MCFG.
+Returns 0 if MCFG table was not found.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void DisableInterrupts()</code></pre>
+    <pre><code class="lang-csharp hljs">public static ulong GetEcamBase()</code></pre>
   </div>
 
 
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
 
 
@@ -185,49 +189,28 @@ Class ARM64CpuOps
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_EnableInterrupts_" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.EnableInterrupts*"></a>
+  <a id="Cosmos_Kernel_HAL_AcpiMcfg_GetMcfgInfo_" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.GetMcfgInfo*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_EnableInterrupts" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.EnableInterrupts">
-  EnableInterrupts()
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_GetMcfgInfo" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.GetMcfgInfo">
+  GetMcfgInfo()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Enable interrupts (x64: STI, ARM64: MSR DAIF)</p>
+  <div class="markdown level1 summary"><p>Gets MCFG information discovered from ACPI during early boot.
+Returns null if ACPI was not available or MCFG table wasn't found.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void EnableInterrupts()</code></pre>
+    <pre><code class="lang-csharp hljs">public static AcpiMcfg.McfgInfo* GetMcfgInfo()</code></pre>
   </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_Halt_" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.Halt*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_ARM64CpuOps_Halt" data-uid="Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.Halt">
-  Halt()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Halt CPU</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Halt()</code></pre>
-  </div>
-
-
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.html">McfgInfo</a>*</dt>
+    <dd></dd>
+  </dl>
 
 
 

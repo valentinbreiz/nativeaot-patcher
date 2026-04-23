@@ -678,6 +678,41 @@ Class SchedulerManager
 
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart">
+  InvokeCurrentThreadStart()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Entry body for newly scheduled threads. Called from
+<a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub">EntryPointStub()</a>,
+whose address is passed as the initial RIP / PC to the context-switch
+assembly by whoever creates the thread (e.g. ThreadPlug).</p>
+<p>Reads the entry delegate off the current thread's <code>StartDelegate</code>
+field, clears it so the reference can be collected, invokes it, handles
+exceptions, marks the thread as exited, and halts. The scheduler will
+never re-pick a halted thread; the halt loop is a safety net in case
+the exit path ever races with a context switch.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void InvokeCurrentThreadStart()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnTick_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnTick*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnTick_System_UInt32_System_UInt64_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnTick(System.UInt32,System.UInt64)">

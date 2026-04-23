@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL.Cpu.Data | Cosmos Gen 3 </title>
+      <title>Interface ICpuOps | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Cpu.Data | Cosmos Gen 3 ">
+      <meta name="title" content="Interface ICpuOps | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Essential CPU operations for multi-architecture support">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,20 +84,123 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Cpu.Data">
+        <article data-uid="Cosmos.Kernel.Core.CPU.ICpuOps">
 
-  <h1 id="Cosmos_Kernel_HAL_Cpu_Data" data-uid="Cosmos.Kernel.HAL.Cpu.Data" class="text-break">Namespace Cosmos.Kernel.HAL.Cpu.Data</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.html">IRQContext</a></dt>
-      <dd></dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_Core_CPU_ICpuOps" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps" class="text-break">
+Interface ICpuOps  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.html">CPU</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Essential CPU operations for multi-architecture support</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ICpuOps</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_CPU_ICpuOps_DisableInterrupts_" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.DisableInterrupts*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_ICpuOps_DisableInterrupts" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.DisableInterrupts">
+  DisableInterrupts()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disable interrupts (x64: CLI, ARM64: MSR DAIF)</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void DisableInterrupts()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CPU_ICpuOps_EnableInterrupts_" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.EnableInterrupts*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_ICpuOps_EnableInterrupts" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.EnableInterrupts">
+  EnableInterrupts()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Enable interrupts (x64: STI, ARM64: MSR DAIF)</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void EnableInterrupts()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CPU_ICpuOps_Halt_" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.Halt*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_ICpuOps_Halt" data-uid="Cosmos.Kernel.Core.CPU.ICpuOps.Halt">
+  Halt()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Halt CPU</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Halt()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 </article>

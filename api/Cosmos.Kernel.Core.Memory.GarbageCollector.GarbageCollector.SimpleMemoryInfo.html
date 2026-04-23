@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct IRQContext | Cosmos Gen 3 </title>
+      <title>Struct GarbageCollector.SimpleMemoryInfo | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct IRQContext | Cosmos Gen 3 ">
+      <meta name="title" content="Struct GarbageCollector.SimpleMemoryInfo | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Simple snapshot of GC memory statistics used by runtime memory queries.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,24 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext">
+        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext" class="text-break">
-Struct IRQContext  
+  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo" class="text-break">
+Struct GarbageCollector.SimpleMemoryInfo  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Cpu.html">Cpu</a>.<a class="xref" href="Cosmos.Kernel.HAL.Cpu.Data.html">Data</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.html">GarbageCollector</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Simple snapshot of GC memory statistics used by runtime memory queries.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct IRQContext</code></pre>
+    <pre><code class="lang-csharp hljs">public struct GarbageCollector.SimpleMemoryInfo</code></pre>
   </div>
 
 
@@ -143,8 +144,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_cpu_flags" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.cpu_flags">
-  cpu_flags
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_CollectionIndex" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.CollectionIndex">
+  CollectionIndex
   
   </h3>
 
@@ -152,7 +153,67 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong cpu_flags</code></pre>
+    <pre><code class="lang-csharp hljs">public int CollectionIndex</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_CondemnedGeneration" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.CondemnedGeneration">
+  CondemnedGeneration
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CondemnedGeneration</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_FragmentedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.FragmentedBytes">
+  FragmentedBytes
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong FragmentedBytes</code></pre>
   </div>
 
 
@@ -173,8 +234,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_cr2" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.cr2">
-  cr2
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_HeapSizeBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.HeapSizeBytes">
+  HeapSizeBytes
   
   </h3>
 
@@ -182,7 +243,7 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong cr2</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong HeapSizeBytes</code></pre>
   </div>
 
 
@@ -203,8 +264,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_interrupt" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.interrupt">
-  interrupt
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_MemoryLoadBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.MemoryLoadBytes">
+  MemoryLoadBytes
   
   </h3>
 
@@ -212,7 +273,7 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong interrupt</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong MemoryLoadBytes</code></pre>
   </div>
 
 
@@ -233,8 +294,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r10" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r10">
-  r10
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_PinnedObjectsCount" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.PinnedObjectsCount">
+  PinnedObjectsCount
   
   </h3>
 
@@ -242,7 +303,7 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r10</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong PinnedObjectsCount</code></pre>
   </div>
 
 
@@ -263,8 +324,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r11" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r11">
-  r11
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_PromotedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.PromotedBytes">
+  PromotedBytes
   
   </h3>
 
@@ -272,7 +333,7 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r11</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong PromotedBytes</code></pre>
   </div>
 
 
@@ -293,8 +354,8 @@ Struct IRQContext
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r12" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r12">
-  r12
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_SimpleMemoryInfo_TotalCommittedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.TotalCommittedBytes">
+  TotalCommittedBytes
   
   </h3>
 
@@ -302,367 +363,7 @@ Struct IRQContext
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r12</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r13" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r13">
-  r13
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r13</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r14" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r14">
-  r14
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r14</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r15" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r15">
-  r15
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r15</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r8" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r8">
-  r8
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r8</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_r9" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.r9">
-  r9
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong r9</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rax" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rax">
-  rax
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rax</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rbp" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rbp">
-  rbp
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rbp</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rbx" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rbx">
-  rbx
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rbx</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rcx" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rcx">
-  rcx
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rcx</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rdi" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rdi">
-  rdi
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rdi</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rdx" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rdx">
-  rdx
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rdx</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Cpu_Data_IRQContext_rsi" data-uid="Cosmos.Kernel.HAL.Cpu.Data.IRQContext.rsi">
-  rsi
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong rsi</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong TotalCommittedBytes</code></pre>
   </div>
 
 

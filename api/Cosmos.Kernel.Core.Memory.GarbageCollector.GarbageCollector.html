@@ -185,8 +185,72 @@ Class GarbageCollector
 
 
 
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_Variables_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Variables*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_Variables" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Variables">
+  Variables
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IReadOnlyDictionary&lt;string, object&gt; Variables { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2">IReadOnlyDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_AddDeadThreadNonAllocBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.AddDeadThreadNonAllocBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_AddDeadThreadNonAllocBytes_System_UInt64_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.AddDeadThreadNonAllocBytes(System.UInt64)">
+  AddDeadThreadNonAllocBytes(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Adds unused TLAB bytes from a dead thread to the cumulative counter.
+Called from <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_ExitThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_">ExitThread(uint, Thread)</a> before the thread is unregistered.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void AddDeadThreadNonAllocBytes(ulong unused)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>unused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
 
 
   <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_Collect_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Collect*"></a>
@@ -210,6 +274,647 @@ Class GarbageCollector
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd><p>The number of objects freed during this collection.</p>
 </dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCollectionIndex_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCollectionIndex*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCollectionIndex" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCollectionIndex">
+  GetCollectionIndex()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int GetCollectionIndex()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCommittedGcSegmentsBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCommittedGcSegmentsBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCommittedGcSegmentsBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCommittedGcSegmentsBytes">
+  GetCommittedGcSegmentsBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetCommittedGcSegmentsBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCondemnedGeneration_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCondemnedGeneration*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCondemnedGeneration" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCondemnedGeneration">
+  GetCondemnedGeneration()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int GetCondemnedGeneration()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCurrentAllocContext_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCurrentAllocContext*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCurrentAllocContext" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCurrentAllocContext">
+  GetCurrentAllocContext()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a reference to the current thread's allocation context.
+Uses the scheduler's current thread when enabled, otherwise falls back to the static context.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ref AllocContext GetCurrentAllocContext()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html">AllocContext</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCurrentFragmentation_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCurrentFragmentation*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetCurrentFragmentation_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetCurrentFragmentation(System.Int32)">
+  GetCurrentFragmentation(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the total size in bytes of the specified generation.
+Computes current fragmentation by summing sizes of free blocks in all free lists.
+Other generations return 0.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetCurrentFragmentation(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetFragmentedBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetFragmentedBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetFragmentedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetFragmentedBytes">
+  GetFragmentedBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetFragmentedBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetGCSegmentSizeBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetGCSegmentSizeBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetGCSegmentSizeBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetGCSegmentSizeBytes">
+  GetGCSegmentSizeBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the configured per-segment GC size in bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetGCSegmentSizeBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetGenerationSize_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetGenerationSize*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetGenerationSize_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetGenerationSize(System.Int32)">
+  GetGenerationSize(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the total size in bytes of the specified generation.
+This GC is non-generational currently, so generation 0 returns
+the current occupied range in regular GC segments.
+Other generations return 0.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetGenerationSize(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetHeapSizeBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetHeapSizeBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetHeapSizeBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetHeapSizeBytes">
+  GetHeapSizeBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetHeapSizeBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGCPercentTimeInGC_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGCPercentTimeInGC*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGCPercentTimeInGC" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGCPercentTimeInGC">
+  GetLastGCPercentTimeInGC()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns percentage of time spent in GC during the last GC interval (0-100).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int GetLastGCPercentTimeInGC()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenFragmentationAfter_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationAfter*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenFragmentationAfter_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationAfter(System.Int32)">
+  GetLastGenFragmentationAfter(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetLastGenFragmentationAfter(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenFragmentationBefore_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationBefore*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenFragmentationBefore_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenFragmentationBefore(System.Int32)">
+  GetLastGenFragmentationBefore(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetLastGenFragmentationBefore(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenSizeAfter_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeAfter*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenSizeAfter_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeAfter(System.Int32)">
+  GetLastGenSizeAfter(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetLastGenSizeAfter(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenSizeBefore_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeBefore*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetLastGenSizeBefore_System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGenSizeBefore(System.Int32)">
+  GetLastGenSizeBefore(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetLastGenSizeBefore(int gen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetMemoryLoadBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetMemoryLoadBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetMemoryLoadBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetMemoryLoadBytes">
+  GetMemoryLoadBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetMemoryLoadBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetObjectGeneration_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetObjectGeneration*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetObjectGeneration_System_IntPtr_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetObjectGeneration(System.IntPtr)">
+  GetObjectGeneration(nint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determine the generation an object belongs to.
+Returns 0 for normal GC-managed allocations, and int.MaxValue for
+objects that do not belong to any GC-managed generation (frozen segments,
+unmanaged pages, or unknown addresses).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int GetObjectGeneration(nint objPtr)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>objPtr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.intptr">nint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetPinnedObjectsCount_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetPinnedObjectsCount*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetPinnedObjectsCount" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetPinnedObjectsCount">
+  GetPinnedObjectsCount()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetPinnedObjectsCount()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetPromotedBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetPromotedBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetPromotedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetPromotedBytes">
+  GetPromotedBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetPromotedBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetSimpleMemoryInfo_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetSimpleMemoryInfo" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetSimpleMemoryInfo">
+  GetSimpleMemoryInfo()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Populate a lightweight memory info snapshot.
+Provide a best-effort implementation of RhGetMemoryInfo based on the GC state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static GarbageCollector.SimpleMemoryInfo GetSimpleMemoryInfo()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html">GarbageCollector</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.html">SimpleMemoryInfo</a></dt>
+    <dd></dd>
   </dl>
 
 
@@ -258,6 +963,103 @@ Class GarbageCollector
 
 
 
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalAllocatedBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalAllocatedBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalAllocatedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalAllocatedBytes">
+  GetTotalAllocatedBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the cumulative total of all bytes ever allocated through the GC.
+Subtracts dead thread unused TLAB bytes for accuracy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetTotalAllocatedBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalAllocatedBytesPrecise_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalAllocatedBytesPrecise*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalAllocatedBytesPrecise" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalAllocatedBytesPrecise">
+  GetTotalAllocatedBytesPrecise()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a precise total of allocated bytes, subtracting both dead thread
+unused bytes and live threads' current unused TLAB space.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetTotalAllocatedBytesPrecise()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalCommittedBytes_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalCommittedBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_GetTotalCommittedBytes" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetTotalCommittedBytes">
+  GetTotalCommittedBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetTotalCommittedBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_Initialize_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Initialize*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_Initialize" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.Initialize">
@@ -273,6 +1075,40 @@ Class GarbageCollector
     <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_ReturnAllocContext_" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.ReturnAllocContext*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GarbageCollector_ReturnAllocContext_Cosmos_Kernel_Core_Memory_GarbageCollector_AllocContext__" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.ReturnAllocContext(Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext@)">
+  ReturnAllocContext(ref AllocContext)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a thread's TLAB to the GC heap. Stamps the unused gap as a FreeBlock
+and resets the allocation pointers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ReturnAllocContext(ref AllocContext ac)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>ac</code> <a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html">AllocContext</a></dt>
+    <dd><p>The allocation context to return.</p>
+</dd>
+  </dl>
 
 
 

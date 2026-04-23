@@ -362,6 +362,216 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.AcpiMcfgNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.yml\" sourcestartlinenumber=\"1\">Architecture-neutral ACPI MCFG import (PCI ECAM discovery).\nMADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs;\nGIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.ContextSwitchNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.yml\" sourcestartlinenumber=\"1\">Native imports for the low-level context switch primitives.\nSymbols are unified across architectures: Cosmos.Kernel.Native.X64\n(Interrupts.asm) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both\nexport the same names, so no arch gating is needed here.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.CpuNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.CpuNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.CpuNative",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.HeapNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.HeapNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.HeapNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.HeapNative.yml\" sourcestartlinenumber=\"1\">Bridge functions that let C library code allocate from the Cosmos heap.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.IrqNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.IrqNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.IrqNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.IrqNative.yml\" sourcestartlinenumber=\"1\">Native entry point invoked from the architecture-specific IRQ assembly stubs.\nForwards straight into <xref href=\"Cosmos.Kernel.Core.CPU.InterruptManager.Dispatch(Cosmos.Kernel.Core.CPU.IRQContext%40)\" data-throw-if-not-resolved=\"false\"></xref> — no indirection.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.KnobsNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.KnobsNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.KnobsNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.KnobsNative.yml\" sourcestartlinenumber=\"1\">Native import for the runtime-provided knob values table.\nConsumed by the AppContext plug.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.LimineNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.LimineNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.LimineNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.LimineNative.yml\" sourcestartlinenumber=\"1\">Wrapper for C code to access managed Limine data (RSDP address, HHDM offset).\nNOTE: This is a data accessor wrapper - C code gets managed data, then continues in C.\nWe do NOT call C code from managed code - only provide data access.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.MemNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.MemNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.MemNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.MemNative.yml\" sourcestartlinenumber=\"1\">Bridge functions for memcpy / memcmp used by C library code.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.SerialNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.SerialNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.SerialNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.SerialNative.yml\" sourcestartlinenumber=\"1\">Bridge functions for C library code (ACPI, libc stubs) to call C# methods.\nNOTE: These are NOT called from C bootstrap (kmain.c) - only from library code.\nC bootstrap uses pure C implementations for clean architecture.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.SimdNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.SimdNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.SimdNative",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.ThreadNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.ThreadNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.ThreadNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ThreadNative.yml\" sourcestartlinenumber=\"1\">Stable native entry point used as the initial RIP/PC for freshly scheduled\nthreads. The architecture-specific context-switch assembly returns (via iretq\non x64 / eret on ARM64) into <xref href=\"Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub\" data-throw-if-not-resolved=\"false\"></xref>, which then calls\nthe scheduler's managed entry implementation. Thread-start registration lives\nin SchedulerManager.RegisterThreadStart.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.ICpuOps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.ICpuOps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.ICpuOps",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.ICpuOps.yml\" sourcestartlinenumber=\"1\">Essential CPU operations for multi-architecture support</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.IInterruptController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.IInterruptController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.IInterruptController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.IInterruptController.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific interrupt controller.\nImplemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.IRQContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.IRQContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.IRQContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.yml",
       "output": {
         ".html": {
@@ -386,7 +596,35 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.CPU.InternalCpu",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.yml\" sourcestartlinenumber=\"1\">Low-level CPU operations that can be used by Core components like the heap.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.yml\" sourcestartlinenumber=\"1\">Low-level CPU operations that can be used by Core components like the heap.\nNative imports live in Bridge/Import/CpuNative.cs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.yml\" sourcestartlinenumber=\"1\">Interrupt delegate signature.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.InterruptManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.InterruptManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.InterruptManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InterruptManager.yml\" sourcestartlinenumber=\"1\">Interrupt manager - provides interrupt registration and dispatch for all architectures.\nLives in Core because the vector table and dispatch logic are hardware-neutral;\narch-specific drivers implement <xref href=\"Cosmos.Kernel.Core.CPU.IInterruptController\" data-throw-if-not-resolved=\"false\"></xref> in\nCosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -460,6 +698,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.IO.IPortIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.IO.IPortIO.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.IO.IPortIO",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.IO.Serial.yml",
       "output": {
         ".html": {
@@ -488,6 +740,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.yml\" sourcestartlinenumber=\"1\">Per-thread allocation context (Thread-Local Allocation Buffer).\nStored inline on each <xref href=\"Cosmos.Kernel.Core.Scheduler.Thread\" data-throw-if-not-resolved=\"false\"></xref> to provide contention-free allocation.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.yml",
       "output": {
         ".html": {
@@ -499,6 +765,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.yml\" sourcestartlinenumber=\"1\">Describes a reference series within a GCDesc stored before the MethodTable.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.yml\" sourcestartlinenumber=\"1\">Simple snapshot of GC memory statistics used by runtime memory queries.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -764,7 +1044,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Memory.MemoryOp",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.MemoryOp.yml\" sourcestartlinenumber=\"1\">Native SIMD imports live in Bridge/Import/SimdNative.cs.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1198,7 +1478,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Scheduler.ContextSwitch",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.yml\" sourcestartlinenumber=\"1\">Low-level context switch operations.\nPlatform-specific implementations in native code.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.yml\" sourcestartlinenumber=\"1\">Low-level context switch operations.\nNative imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1482,34 +1762,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64CpuOps.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.ARM64CpuOps",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.ARM64MemoryIO",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.yml",
       "output": {
         ".html": {
@@ -1521,132 +1773,6 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.yml\" sourcestartlinenumber=\"1\">ARM64 platform initializer - creates ARM64-specific HAL components.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.GicInfo.yml\" sourcestartlinenumber=\"1\">Mirrors the C struct acpi_gic_info_t from ACPI/acpi_wrapper.c.\nMust match the native layout exactly.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Acpi.AcpiGIC.yml\" sourcestartlinenumber=\"1\">C# bridge to native ACPI GIC discovery (acpi_wrapper.c in MultiArch).\nThe native code is called during early boot (kmain) and parses the MADT\nto extract GICD/GICR/GICC addresses. This class just retrieves the result.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Acpi.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Acpi",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.ARM64InterruptController.yml\" sourcestartlinenumber=\"1\">ARM64 interrupt controller - manages exception vectors and GIC.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.DeviceMapper.yml\" sourcestartlinenumber=\"1\">Adds Device MMIO mappings into Limine's existing TTBR1 page tables.\nLimine's HHDM only covers RAM; device MMIO regions (GIC, timers, etc.)\nare NOT mapped. This class walks the TTBR1 page tables and inserts\n2MiB block descriptors with Device-nGnRnE/nGnRE attributes so the\nHHDM virtual address (phys + HHDM_OFFSET) can be dereferenced for MMIO.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GIC",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GIC.yml\" sourcestartlinenumber=\"1\">Unified GIC facade that auto-detects GICv2 or GICv3 at runtime\nand delegates to the appropriate implementation.\nSupports configurable base addresses for real hardware (from DTB).</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GICv2",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv2.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v2 (GICv2) implementation.\nUsed on QEMU virt machine and many ARM64 platforms.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu.GICv3",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Cpu.GICv3.yml\" sourcestartlinenumber=\"1\">ARM Generic Interrupt Controller v3 (GICv3) implementation.\nGICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO,\nand adds a Redistributor component (one per CPU).\nBase addresses are configurable to support both QEMU and real hardware.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Cpu.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Cpu",
-      "Summary": null
     },
     {
       "type": "ManagedReference",
@@ -1758,7 +1884,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml\" sourcestartlinenumber=\"1\">ARM64 Generic Timer (Architected Timer) implementation.\nUses the physical timer (CNTP_*) for scheduling interrupts.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml\" sourcestartlinenumber=\"1\">ARM64 Generic Timer (Architected Timer) implementation.\nUses the physical timer (CNTP_*) for scheduling interrupts.\nNative imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/GenericTimerNative.cs.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1916,115 +2042,31 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.Acpi.yml",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.Acpi.html"
+          "relative_path": "api/Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.html"
         }
       },
       "version": "",
       "Uid": null,
       "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi.Acpi",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.Acpi.yml\" sourcestartlinenumber=\"1\">ACPI subsystem interface</p>\n"
+      "Title": "Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.yml\" sourcestartlinenumber=\"1\">Mirrors the C struct acpi_mcfg_info_t from ACPI/acpi_wrapper.c.\nMust match the native layout exactly.</p>\n"
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.CpuInfo.yml",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.AcpiMcfg.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.CpuInfo.html"
+          "relative_path": "api/Cosmos.Kernel.HAL.AcpiMcfg.html"
         }
       },
       "version": "",
       "Uid": null,
       "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi.CpuInfo",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.CpuInfo.yml\" sourcestartlinenumber=\"1\">CPU information from MADT</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi.IoApicInfo",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.IoApicInfo.yml\" sourcestartlinenumber=\"1\">I/O APIC information from MADT</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.IrqOverride.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.IrqOverride.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi.IrqOverride",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.IrqOverride.yml\" sourcestartlinenumber=\"1\">Interrupt Source Override from MADT</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.MadtInfo.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.MadtInfo.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi.MadtInfo",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Acpi.MadtInfo.yml\" sourcestartlinenumber=\"1\">Complete MADT information</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Acpi.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Acpi.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Acpi",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.IRQContext.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.IRQContext.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Cpu.Data.IRQContext",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.Data.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Cpu.Data",
-      "Summary": null
+      "Title": "Cosmos.Kernel.HAL.AcpiMcfg",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.AcpiMcfg.yml\" sourcestartlinenumber=\"1\">C# bridge to native ACPI MCFG discovery (acpi_wrapper.c in MultiArch).\nThe native code is called during early boot (kmain) and parses the MCFG\ntable to extract the PCI ECAM base address. This class just retrieves the result.\nNative import lives in Cosmos.Kernel.Core/Bridge/Import/AcpiNative.cs.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -2052,48 +2094,6 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Cpu.Enums",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Cpu.InterruptManager.IrqDelegate.yml\" sourcestartlinenumber=\"1\">Interrupt delegate signature.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.InterruptManager.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Cpu.InterruptManager",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Cpu.InterruptManager.yml\" sourcestartlinenumber=\"1\">Interrupt manager - provides interrupt registration and dispatch for all architectures.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Cpu.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Cpu.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Cpu",
       "Summary": null
     },
     {
@@ -2462,34 +2462,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Interfaces.ICpuOps",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.ICpuOps.yml\" sourcestartlinenumber=\"1\">Essential CPU operations for multi-architecture support</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Interfaces.IInterruptController",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.IInterruptController.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific interrupt controller.\nImplemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.yml",
       "output": {
         ".html": {
@@ -2501,20 +2473,6 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific HAL initialization.\nImplemented by HAL.X64 and HAL.ARM64.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPortIO.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.IPortIO.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.Interfaces.IPortIO",
-      "Summary": null
     },
     {
       "type": "ManagedReference",
@@ -2812,146 +2770,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.ApicManager",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.ApicManager.yml\" sourcestartlinenumber=\"1\">Manages APIC initialization and configuration.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data.IdtPointer",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Data.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Data",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Idt.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.Idt.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.Idt",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.Idt.yml\" sourcestartlinenumber=\"1\">Handles Interrupt Descriptor Table initialization for x86_64.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.IoApic",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.IoApic.yml\" sourcestartlinenumber=\"1\">I/O APIC (Advanced Programmable Interrupt Controller) driver.\nRoutes external interrupts (IRQs) to Local APICs.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.LegacyPic",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.yml\" sourcestartlinenumber=\"1\">Legacy 8259 PIC (Programmable Interrupt Controller).\nUsed to disable/mask all IRQs when using APIC.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.LocalApic",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.LocalApic.yml\" sourcestartlinenumber=\"1\">Local APIC (Advanced Programmable Interrupt Controller) driver.\nEach CPU has its own Local APIC for receiving interrupts.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Cpu.X64InterruptController.yml\" sourcestartlinenumber=\"1\">X64 interrupt controller - manages IDT and APIC.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Cpu.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Cpu",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.yml",
       "output": {
         ".html": {
@@ -3148,20 +2966,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.X64CpuOps.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.X64CpuOps",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.yml",
       "output": {
         ".html": {
@@ -3173,20 +2977,6 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.X64.X64PlatformInitializer",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.yml\" sourcestartlinenumber=\"1\">X64 platform initializer - creates x64-specific HAL components.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.X64PortIO.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.X64PortIO.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.X64PortIO",
-      "Summary": null
     },
     {
       "type": "ManagedReference",

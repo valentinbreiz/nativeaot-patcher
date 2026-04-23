@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class IoApic | Cosmos Gen 3 </title>
+      <title>Class InterruptManager | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class IoApic | Cosmos Gen 3 ">
+      <meta name="title" content="Class InterruptManager | Cosmos Gen 3 ">
       
-      <meta name="description" content="I/O APIC (Advanced Programmable Interrupt Controller) driver. Routes external interrupts (IRQs) to Local APICs.">
+      <meta name="description" content="Interrupt manager - provides interrupt registration and dispatch for all architectures. Lives in Core because the vector table and dispatch logic are hardware-neutral; arch-specific drivers implement  in Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,28 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic">
+        <article data-uid="Cosmos.Kernel.Core.CPU.InterruptManager">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic" class="text-break">
-Class IoApic  
+  <h1 id="Cosmos_Kernel_Core_CPU_InterruptManager" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager" class="text-break">
+Class InterruptManager  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.html">Cpu</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.html">CPU</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>I/O APIC (Advanced Programmable Interrupt Controller) driver.
-Routes external interrupts (IRQs) to Local APICs.</p>
+  <div class="markdown summary"><p>Interrupt manager - provides interrupt registration and dispatch for all architectures.
+Lives in Core because the vector table and dispatch logic are hardware-neutral;
+arch-specific drivers implement <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a> in
+Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class IoApic</code></pre>
+    <pre><code class="lang-csharp hljs">public static class InterruptManager</code></pre>
   </div>
 
 
@@ -113,7 +115,7 @@ Routes external interrupts (IRQs) to Local APICs.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">IoApic</span></div>
+      <div><span class="xref">InterruptManager</span></div>
     </dd>
   </dl>
 
@@ -154,19 +156,19 @@ Routes external interrupts (IRQs) to Local APICs.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_IsInitialized_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.IsInitialized*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_IsEnabled_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.IsEnabled*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_IsInitialized" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.IsInitialized">
-  IsInitialized
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_IsEnabled" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.IsEnabled">
+  IsEnabled
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets whether the I/O APIC is initialized.</p>
+  <div class="markdown level1 summary"><p>Whether interrupt support is enabled. Uses centralized feature flag.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool IsInitialized { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool IsEnabled { get; }</code></pre>
   </div>
 
 
@@ -190,62 +192,25 @@ Routes external interrupts (IRQs) to Local APICs.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_GetRedirectionEntry_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.GetRedirectionEntry*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_Dispatch_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Dispatch*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_GetRedirectionEntry_System_Byte_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.GetRedirectionEntry(System.Byte)">
-  GetRedirectionEntry(byte)
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_Dispatch_Cosmos_Kernel_Core_CPU_IRQContext__" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Dispatch(Cosmos.Kernel.Core.CPU.IRQContext@)">
+  Dispatch(ref IRQContext)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Reads the redirection entry for an IRQ (public for debugging).</p>
+  <div class="markdown level1 summary"><p>Called by native bridge from ASM stubs to invoke the proper handler.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static ulong GetRedirectionEntry(byte irq)</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Dispatch(ref IRQContext ctx)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_Initialize_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_Initialize_Cosmos_Kernel_HAL_Acpi_IoApicInfo_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.Initialize(Cosmos.Kernel.HAL.Acpi.IoApicInfo)">
-  Initialize(IoApicInfo)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the I/O APIC with information from MADT.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize(IoApicInfo info)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>info</code> <a class="xref" href="Cosmos.Kernel.HAL.Acpi.IoApicInfo.html">IoApicInfo</a></dt>
-    <dd><p>I/O APIC info from MADT.</p>
+    <dt><code>ctx</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.IRQContext.html">IRQContext</a></dt>
+    <dd><p>Context structure.</p>
 </dd>
   </dl>
 
@@ -260,25 +225,26 @@ Routes external interrupts (IRQs) to Local APICs.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_MaskIrq_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.MaskIrq*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_Initialize_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_MaskIrq_System_Byte_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.MaskIrq(System.Byte)">
-  MaskIrq(byte)
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_Initialize_Cosmos_Kernel_Core_CPU_IInterruptController_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Initialize(Cosmos.Kernel.Core.CPU.IInterruptController)">
+  Initialize(IInterruptController)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Masks (disables) an IRQ at the I/O APIC level.</p>
+  <div class="markdown level1 summary"><p>Initializes the interrupt manager with a platform-specific controller.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void MaskIrq(byte irq)</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Initialize(IInterruptController controller)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
+    <dt><code>controller</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a></dt>
+    <dd><p>Platform-specific interrupt controller (X64 or ARM64).</p>
+</dd>
   </dl>
 
 
@@ -292,70 +258,68 @@ Routes external interrupts (IRQs) to Local APICs.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_RouteIrq_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.RouteIrq*"></a>
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_SetHandler_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.SetHandler*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_RouteIrq_System_Byte_System_Byte_System_Byte_System_Nullable_Cosmos_Kernel_HAL_Acpi_IrqOverride__System_Boolean_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.RouteIrq(System.Byte,System.Byte,System.Byte,System.Nullable{Cosmos.Kernel.HAL.Acpi.IrqOverride},System.Boolean)">
-  RouteIrq(byte, byte, byte, IrqOverride?, bool)
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_SetHandler_System_Byte_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.SetHandler(System.Byte,Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate)">
+  SetHandler(byte, IrqDelegate)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Routes an IRQ to a specific interrupt vector on a target APIC.</p>
+  <div class="markdown level1 summary"><p>Registers a handler for an interrupt vector.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RouteIrq(byte irq, byte vector, byte targetApicId, IrqOverride? @override = null, bool startMasked = false)</code></pre>
+    <pre><code class="lang-csharp hljs">public static void SetHandler(byte vector, InterruptManager.IrqDelegate handler)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>The ISA IRQ number (0-15).</p>
-</dd>
     <dt><code>vector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>The interrupt vector (32-255).</p>
+    <dd><p>Interrupt vector index.</p>
 </dd>
-    <dt><code>targetApicId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>The target Local APIC ID.</p>
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">IrqDelegate</a></dt>
+    <dd><p>Delegate to handle the interrupt.</p>
 </dd>
-    <dt><code>override</code> <a class="xref" href="Cosmos.Kernel.HAL.Acpi.IrqOverride.html">IrqOverride</a>?</dt>
-    <dd><p>Optional IRQ override from MADT.</p>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_SetIrqHandler_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.SetIrqHandler*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_SetIrqHandler_System_Byte_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_System_Boolean_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.SetIrqHandler(System.Byte,Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate,System.Boolean)">
+  SetIrqHandler(byte, IrqDelegate, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers a handler for a hardware IRQ and routes it through the interrupt controller.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetIrqHandler(byte irqNo, InterruptManager.IrqDelegate handler, bool startMasked = false)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>irqNo</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>IRQ index (0-15 for ISA IRQs).</p>
+</dd>
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">IrqDelegate</a></dt>
+    <dd><p>IRQ handler delegate.</p>
 </dd>
     <dt><code>startMasked</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd><p>If true, the IRQ starts masked and must be explicitly unmasked.</p>
 </dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_UnmaskIrq_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.UnmaskIrq*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_IoApic_UnmaskIrq_System_Byte_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.IoApic.UnmaskIrq(System.Byte)">
-  UnmaskIrq(byte)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Unmasks (enables) an IRQ at the I/O APIC level.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void UnmaskIrq(byte irq)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
   </dl>
 
 

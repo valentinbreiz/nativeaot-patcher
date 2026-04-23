@@ -119,12 +119,12 @@
     end
     ASM_SRC[&quot;Assembly Files (.asm)&quot;] --&gt; ASM_BUILD
 
-    subgraph &quot;Cosmos.Build.GCC&quot;
-        GCC_BUILD[GCC Compiler]
-        GCC_BUILD --&gt; |gcc/x86_64-elf-gcc| C_OBJ[&quot;C Objects (.obj)&quot;]
+    subgraph &quot;Cosmos.Build.CC&quot;
+        CC_BUILD[Clang Compiler]
+        CC_BUILD --&gt; |&quot;clang --target=...&quot;| C_OBJ[&quot;C Objects (.obj)&quot;]
         C_OBJ --&gt; COSMOS_COBJ[&quot;$(IntermediateOutputPath)/cosmos/cobj/&quot;]
     end
-    C_SRC[&quot;C Source Files (.c)&quot;] --&gt; GCC_BUILD
+    C_SRC[&quot;C Source Files (.c)&quot;] --&gt; CC_BUILD
 
     subgraph &quot;Cosmos.Build.Common&quot;
         LINK[Link Target]
@@ -162,11 +162,16 @@
 <tr>
 <td><strong>.NET SDK</strong></td>
 <td>Core compilation</td>
-<td>9.0.200+</td>
+<td>10.0+</td>
+</tr>
+<tr>
+<td><strong>Clang</strong></td>
+<td>C compilation (x64/ARM64 via --target)</td>
+<td>LLVM toolchain</td>
 </tr>
 <tr>
 <td><strong>YASM</strong></td>
-<td>Assembly compilation</td>
+<td>x64 assembly compilation</td>
 <td>Latest</td>
 </tr>
 <tr>
@@ -179,11 +184,6 @@
 <td>ISO creation</td>
 <td>Latest</td>
 </tr>
-<tr>
-<td><strong>gcc/x86_64-elf-gcc</strong></td>
-<td>C compilation</td>
-<td>Cross-compiler on Windows</td>
-</tr>
 </tbody>
 </table>
 <h2 id="key-components">Key Components</h2>
@@ -192,7 +192,7 @@
 <li><a href="../../../src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a> - IL patching infrastructure</li>
 <li><a href="../../../src/Cosmos.Build.Ilc"><code>Cosmos.Build.Ilc</code></a> - NativeAOT integration</li>
 <li><a href="../../../src/Cosmos.Build.Asm"><code>Cosmos.Build.Asm</code></a> - Assembly compilation</li>
-<li><a href="../../../src/Cosmos.Build.GCC"><code>Cosmos.Build.GCC</code></a> - C compilation</li>
+<li><a href="../../../src/Cosmos.Build.CC"><code>Cosmos.Build.CC</code></a> - C compilation (Clang)</li>
 <li><a href="../../../src/Cosmos.Build.Common"><code>Cosmos.Build.Common</code></a> - Linking and ISO creation</li>
 </ul>
 <h2 id="example-project">Example Project</h2>
@@ -230,7 +230,7 @@
 <tr>
 <td>C Code</td>
 <td><code>$(IntermediateOutputPath)/cosmos/cobj/</code></td>
-<td>GCC objects (.o/.obj)</td>
+<td>Clang objects (.o/.obj)</td>
 </tr>
 <tr>
 <td>Linking</td>

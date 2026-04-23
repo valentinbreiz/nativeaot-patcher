@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct IoApicInfo | Cosmos Gen 3 </title>
+      <title>Class MemNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct IoApicInfo | Cosmos Gen 3 ">
+      <meta name="title" content="Class MemNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="I/O APIC information from MADT">
+      <meta name="description" content="Bridge functions for memcpy / memcmp used by C library code.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,30 +84,37 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Acpi.IoApicInfo">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.MemNative">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Acpi_IoApicInfo" data-uid="Cosmos.Kernel.HAL.Acpi.IoApicInfo" class="text-break">
-Struct IoApicInfo  
+  <h1 id="Cosmos_Kernel_Core_Bridge_MemNative" data-uid="Cosmos.Kernel.Core.Bridge.MemNative" class="text-break">
+Class MemNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Acpi.html">Acpi</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>I/O APIC information from MADT</p>
+  <div class="markdown summary"><p>Bridge functions for memcpy / memcmp used by C library code.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct IoApicInfo</code></pre>
+    <pre><code class="lang-csharp hljs">public static class MemNative</code></pre>
   </div>
 
 
 
 
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">MemNative</span></div>
+    </dd>
+  </dl>
 
 
 
@@ -115,22 +122,25 @@ Struct IoApicInfo
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -139,29 +149,38 @@ Struct IoApicInfo
 
 
 
-  <h2 class="section" id="fields">Fields
+  <h2 class="section" id="methods">Methods
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_Bridge_MemNative_MemCmp_" data-uid="Cosmos.Kernel.Core.Bridge.MemNative.MemCmp*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IoApicInfo_Address" data-uid="Cosmos.Kernel.HAL.Acpi.IoApicInfo.Address">
-  Address
+  <h3 id="Cosmos_Kernel_Core_Bridge_MemNative_MemCmp_System_Void__System_Void__System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Bridge.MemNative.MemCmp(System.Void*,System.Void*,System.UIntPtr)">
+  MemCmp(void*, void*, nuint)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Compare memory using Cosmos MemoryOp.MemCmp</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Address</code></pre>
+    <pre><code class="lang-csharp hljs">public static int MemCmp(void* s1, void* s2, nuint count)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><code>s1</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+    <dt><code>s2</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -174,56 +193,39 @@ Struct IoApicInfo
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IoApicInfo_GsiBase" data-uid="Cosmos.Kernel.HAL.Acpi.IoApicInfo.GsiBase">
-  GsiBase
+
+  <a id="Cosmos_Kernel_Core_Bridge_MemNative_MemCopy_" data-uid="Cosmos.Kernel.Core.Bridge.MemNative.MemCopy*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_MemNative_MemCopy_System_Void__System_Void__System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Bridge.MemNative.MemCopy(System.Void*,System.Void*,System.UIntPtr)">
+  MemCopy(void*, void*, nuint)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Copy memory using Cosmos MemoryOp.MemCopy</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint GsiBase</code></pre>
+    <pre><code class="lang-csharp hljs">public static void* MemCopy(void* dest, void* src, nuint count)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><code>dest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+    <dt><code>src</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
     <dd></dd>
   </dl>
 
 
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Acpi_IoApicInfo_Id" data-uid="Cosmos.Kernel.HAL.Acpi.IoApicInfo.Id">
-  Id
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Id</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

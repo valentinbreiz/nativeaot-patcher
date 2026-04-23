@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct CpuInfo | Cosmos Gen 3 </title>
+      <title>Class ContextSwitchNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct CpuInfo | Cosmos Gen 3 ">
+      <meta name="title" content="Class ContextSwitchNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="CPU information from MADT">
+      <meta name="description" content="Native imports for the low-level context switch primitives. Symbols are unified across architectures: Cosmos.Kernel.Native.X64 (Interrupts.asm) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both export the same names, so no arch gating is needed here.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,30 +84,40 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_Acpi_CpuInfo" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo" class="text-break">
-Struct CpuInfo  
+  <h1 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative" class="text-break">
+Class ContextSwitchNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Acpi.html">Acpi</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>CPU information from MADT</p>
+  <div class="markdown summary"><p>Native imports for the low-level context switch primitives.
+Symbols are unified across architectures: Cosmos.Kernel.Native.X64
+(Interrupts.asm) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both
+export the same names, so no arch gating is needed here.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct CpuInfo</code></pre>
+    <pre><code class="lang-csharp hljs">public static class ContextSwitchNative</code></pre>
   </div>
 
 
 
 
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">ContextSwitchNative</span></div>
+    </dd>
+  </dl>
 
 
 
@@ -115,22 +125,25 @@ Struct CpuInfo
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -139,13 +152,14 @@ Struct CpuInfo
 
 
 
-  <h2 class="section" id="fields">Fields
+  <h2 class="section" id="methods">Methods
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetContextSwitchSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetContextSwitchSp*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_CpuInfo_ApicId" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo.ApicId">
-  ApicId
+  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetContextSwitchSp" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetContextSwitchSp">
+  GetContextSwitchSp()
   
   </h3>
 
@@ -153,15 +167,13 @@ Struct CpuInfo
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte ApicId</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern nuint GetContextSwitchSp()</code></pre>
   </div>
 
 
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
     <dd></dd>
   </dl>
 
@@ -174,8 +186,11 @@ Struct CpuInfo
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_CpuInfo_Flags" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo.Flags">
-  Flags
+
+  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetSp*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetSp" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetSp">
+  GetSp()
   
   </h3>
 
@@ -183,15 +198,13 @@ Struct CpuInfo
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Flags</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern nuint GetSp()</code></pre>
   </div>
 
 
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
     <dd></dd>
   </dl>
 
@@ -204,8 +217,11 @@ Struct CpuInfo
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_CpuInfo_ProcessorId" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo.ProcessorId">
-  ProcessorId
+
+  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchNewThread_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchNewThread*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchNewThread_System_Int32_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchNewThread(System.Int32)">
+  SetContextSwitchNewThread(int)
   
   </h3>
 
@@ -213,15 +229,12 @@ Struct CpuInfo
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte ProcessorId</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchNewThread(int isNew)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dt><code>isNew</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -233,14 +246,13 @@ Struct CpuInfo
 
 
 
-  <h2 class="section" id="properties">Properties
-</h2>
 
 
-  <a id="Cosmos_Kernel_HAL_Acpi_CpuInfo_IsEnabled_" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo.IsEnabled*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Acpi_CpuInfo_IsEnabled" data-uid="Cosmos.Kernel.HAL.Acpi.CpuInfo.IsEnabled">
-  IsEnabled
+  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchSp*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchSp_System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchSp(System.UIntPtr)">
+  SetContextSwitchSp(nuint)
   
   </h3>
 
@@ -248,18 +260,18 @@ Struct CpuInfo
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly bool IsEnabled { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchSp(nuint newSp)</code></pre>
   </div>
 
-
-
-
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><code>newSp</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
     <dd></dd>
   </dl>
+
+
+
+
 
 
 

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct IdtEntry | Cosmos Gen 3 </title>
+      <title>Struct AcpiMcfg.McfgInfo | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct IdtEntry | Cosmos Gen 3 ">
+      <meta name="title" content="Struct AcpiMcfg.McfgInfo | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Mirrors the C struct acpi_mcfg_info_t from ACPI/acpi_wrapper.c. Must match the native layout exactly.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,24 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry">
+        <article data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry" class="text-break">
-Struct IdtEntry  
+  <h1 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo" class="text-break">
+Struct AcpiMcfg.McfgInfo  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.html">Cpu</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.Data.html">Data</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Mirrors the C struct acpi_mcfg_info_t from ACPI/acpi_wrapper.c.
+Must match the native layout exactly.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct IdtEntry</code></pre>
+    <pre><code class="lang-csharp hljs">public struct AcpiMcfg.McfgInfo</code></pre>
   </div>
 
 
@@ -143,8 +145,8 @@ Struct IdtEntry
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_RawFlags" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.RawFlags">
-  RawFlags
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo_BaseAddress" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.BaseAddress">
+  BaseAddress
   
   </h3>
 
@@ -152,203 +154,138 @@ Struct IdtEntry
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort RawFlags</code></pre>
+    <pre><code class="lang-csharp hljs">public ulong BaseAddress</code></pre>
   </div>
 
 
 
 
   <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_RawOffsetHigh" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.RawOffsetHigh">
-  RawOffsetHigh
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint RawOffsetHigh</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_RawOffsetLow" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.RawOffsetLow">
-  RawOffsetLow
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort RawOffsetLow</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_RawOffsetMid" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.RawOffsetMid">
-  RawOffsetMid
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort RawOffsetMid</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_Reserved" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.Reserved">
-  Reserved
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Reserved</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_Selector" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.Selector">
-  Selector
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Selector</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="properties">Properties
-</h2>
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_Offset_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.Offset*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_Data_IdtEntry_Offset" data-uid="Cosmos.Kernel.HAL.X64.Cpu.Data.IdtEntry.Offset">
-  Offset
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong Offset { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo_EndBus" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.EndBus">
+  EndBus
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte EndBus</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo_Found" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.Found">
+  Found
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte Found</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo_Segment" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.Segment">
+  Segment
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort Segment</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_AcpiMcfg_McfgInfo_StartBus" data-uid="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.StartBus">
+  StartBus
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte StartBus</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
 
 
 

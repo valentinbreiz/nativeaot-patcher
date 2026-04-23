@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class LegacyPic | Cosmos Gen 3 </title>
+      <title>Class SerialNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class LegacyPic | Cosmos Gen 3 ">
+      <meta name="title" content="Class SerialNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="Legacy 8259 PIC (Programmable Interrupt Controller). Used to disable/mask all IRQs when using APIC.">
+      <meta name="description" content="Bridge functions for C library code (ACPI, libc stubs) to call C# methods. NOTE: These are NOT called from C bootstrap (kmain.c) - only from library code. C bootstrap uses pure C implementations for clean architecture.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,27 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.SerialNative">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_X64_Cpu_LegacyPic" data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic" class="text-break">
-Class LegacyPic  
+  <h1 id="Cosmos_Kernel_Core_Bridge_SerialNative" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative" class="text-break">
+Class SerialNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.html">X64</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Cpu.html">Cpu</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Legacy 8259 PIC (Programmable Interrupt Controller).
-Used to disable/mask all IRQs when using APIC.</p>
+  <div class="markdown summary"><p>Bridge functions for C library code (ACPI, libc stubs) to call C# methods.
+NOTE: These are NOT called from C bootstrap (kmain.c) - only from library code.
+C bootstrap uses pure C implementations for clean architecture.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class LegacyPic</code></pre>
+    <pre><code class="lang-csharp hljs">public static class SerialNative</code></pre>
   </div>
 
 
@@ -113,7 +114,7 @@ Used to disable/mask all IRQs when using APIC.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">LegacyPic</span></div>
+      <div><span class="xref">SerialNative</span></div>
     </dd>
   </dl>
 
@@ -154,20 +155,20 @@ Used to disable/mask all IRQs when using APIC.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_LegacyPic_Disable_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.Disable*"></a>
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_Init_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.Init*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_LegacyPic_Disable" data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.Disable">
-  Disable()
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_Init" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.Init">
+  Init()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disables the legacy 8259 PIC by masking all IRQs.
-This should be called when using the APIC.</p>
+  <div class="markdown level1 summary"><p>Initialize serial port (COM1 at 115200 baud, 8N1)
+Must be called before any serial output</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Disable()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Init()</code></pre>
   </div>
 
 
@@ -182,23 +183,154 @@ This should be called when using the APIC.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_X64_Cpu_LegacyPic_RemapAndDisable_" data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.RemapAndDisable*"></a>
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_Write_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.Write*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Cpu_LegacyPic_RemapAndDisable" data-uid="Cosmos.Kernel.HAL.X64.Cpu.LegacyPic.RemapAndDisable">
-  RemapAndDisable()
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_Write_System_Byte__" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.Write(System.Byte*)">
+  Write(byte*)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Remaps and disables the legacy PIC.
-Remaps IRQs to vectors 0x20-0x2F to avoid conflicts with CPU exceptions,
-then masks all IRQs.</p>
+  <div class="markdown level1 summary"><p>Write string to serial port for C library code logging</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RemapAndDisable()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Write(byte* str)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>str</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteDecU32_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteDecU32*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteDecU32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteDecU32(System.UInt32)">
+  WriteDecU32(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a 32-bit value as decimal to serial port</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteDecU32(uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteDecU64_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteDecU64*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteDecU64_System_UInt64_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteDecU64(System.UInt64)">
+  WriteDecU64(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a 64-bit value as decimal to serial port</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteDecU64(ulong value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteHexU32_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteHexU32*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteHexU32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteHexU32(System.UInt32)">
+  WriteHexU32(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a 32-bit value as hex to serial port</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHexU32(uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteHexU64_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteHexU64*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_SerialNative_WriteHexU64_System_UInt64_" data-uid="Cosmos.Kernel.Core.Bridge.SerialNative.WriteHexU64(System.UInt64)">
+  WriteHexU64(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a 64-bit value as hex to serial port</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHexU64(ulong value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
 
 
