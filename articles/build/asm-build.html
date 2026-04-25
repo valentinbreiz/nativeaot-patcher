@@ -86,12 +86,12 @@
 
         <article data-uid="">
 
-<p><code>Cosmos.Asm.Build</code> compiles handwritten assembly sources into object files that are linked with the NativeAOT output.</p>
+<p><code>Cosmos.Build.Asm</code> compiles handwritten assembly sources into object files that are linked with the NativeAOT output. Both x64 and ARM64 targets use the <strong>clang integrated assembler</strong> on GAS-syntax <code>.s</code> files.</p>
 <hr>
 <h2 id="flow-chart">Flow chart</h2>
 <pre><code class="lang-mermaid">flowchart TD
-    A[GetYasm] --&gt; B[FindSourceFilesForYasm]
-    B --&gt; C[BuildYasm]
+    A[GetAsmTool] --&gt; B[FindAsmSourceFiles]
+    B --&gt; C[BuildAsm]
     C --&gt; D[.obj files under cosmos/asm]
 </code></pre>
 <hr>
@@ -106,18 +106,18 @@
 </thead>
 <tbody>
 <tr>
-<td><code>YasmPath</code></td>
-<td>Full path to the <code>yasm</code> executable. Auto-detected by <code>GetYasm</code> if not set.</td>
-<td>Unix: <code>/usr/bin/yasm</code>; Windows: resolved via <code>where yasm</code></td>
+<td><code>AsmToolPath</code></td>
+<td>Full path to the <code>clang</code> executable. Auto-detected by <code>GetAsmTool</code> if not set.</td>
+<td>Resolved via <code>ResolveCosmosToolTask</code> (system PATH + Cosmos tools bundle)</td>
 </tr>
 <tr>
 <td><code>AsmSearchPath</code></td>
-<td>One or more directories to scan (non-recursive) for <code>*.asm</code>.</td>
+<td>One or more directories to scan (non-recursive) for <code>*.s</code>.</td>
 <td>none</td>
 </tr>
 <tr>
 <td><code>AsmFiles</code></td>
-<td>Explicit list of <code>*.asm</code> files to compile (added to scan results).</td>
+<td>Explicit list of <code>*.s</code> files to compile (added to scan results).</td>
 <td>none</td>
 </tr>
 <tr>
@@ -129,8 +129,8 @@
 </table>
 <p>Notes:</p>
 <ul>
-<li>On Unix, <code>YasmPath</code> also defaults from props if empty; on all platforms <code>GetYasm</code> attempts to locate <code>yasm</code> on PATH.</li>
-<li>When <code>RuntimeIdentifier</code> is set (e.g., <code>linux-x64</code>), <code>FindSourceFilesForYasm</code> will prefer an architecture subfolder if present (e.g., <code>&lt;searchDir&gt;/x64/</code>).</li>
+<li>When <code>RuntimeIdentifier</code> is set (e.g., <code>linux-x64</code>), <code>FindAsmSourceFiles</code> will prefer an architecture subfolder if present (e.g., <code>&lt;searchDir&gt;/x64/</code>).</li>
+<li>The target triple is selected by <code>AsmBuildTask</code> from <code>TargetArchitecture</code>: <code>x86_64-elf</code> for x64 and <code>aarch64-none-elf</code> for ARM64.</li>
 </ul>
 <hr>
 <h2 id="tasks">Tasks</h2>
@@ -144,22 +144,22 @@
 </thead>
 <tbody>
 <tr>
-<td><code>GetYasm</code></td>
-<td>Resolves <code>YasmPath</code> using <code>which</code> (Unix) or <code>where</code> (Windows).</td>
+<td><code>GetAsmTool</code></td>
+<td>Resolves <code>AsmToolPath</code> to the clang binary via <code>ResolveCosmosToolTask</code>.</td>
 <td>none</td>
 </tr>
 <tr>
-<td><code>FindSourceFilesForYasm</code></td>
-<td>Cleans inputs, applies arch overrides, and discovers <code>*.asm</code> under <code>AsmSearchPath</code>.</td>
+<td><code>FindAsmSourceFiles</code></td>
+<td>Cleans inputs, applies arch overrides, and discovers <code>*.s</code> under <code>AsmSearchPath</code>.</td>
 <td><code>Build</code></td>
 </tr>
 <tr>
-<td><code>BuildYasm</code></td>
-<td>Invokes <code>YasmBuildTask</code> for each file with <code>-felf64</code>, writing to <code>AsmOutputPath</code>.</td>
-<td><code>FindSourceFilesForYasm; GetYasm</code></td>
+<td><code>BuildAsm</code></td>
+<td>Invokes <code>AsmBuildTask</code> for each file with <code>--target=&lt;triple&gt; -c</code>, writing to <code>AsmOutputPath</code>.</td>
+<td><code>FindAsmSourceFiles; GetAsmTool</code></td>
 </tr>
 <tr>
-<td><code>CleanYasm</code></td>
+<td><code>CleanAsm</code></td>
 <td>Removes <code>$(IntermediateOutputPath)/cosmos/asm/</code>.</td>
 <td><code>Clean</code></td>
 </tr>
@@ -168,21 +168,21 @@
 <hr>
 <h2 id="detailed-workflow">Detailed Workflow</h2>
 <ol>
-<li><code>GetYasm</code> attempts to set <code>YasmPath</code> from the system (<code>which yasm</code> or <code>where yasm</code>). You can override <code>YasmPath</code> in your project.</li>
-<li><code>FindSourceFilesForYasm</code>:
+<li><code>GetAsmTool</code> resolves <code>AsmToolPath</code> to a <code>clang</code> binary (override / system / Cosmos tools bundle).</li>
+<li><code>FindAsmSourceFiles</code>:
 <ul>
 <li>Removes any nonexistent entries from <code>AsmSearchPath</code> and <code>AsmFiles</code> (emits warnings).</li>
 <li>If <code>RuntimeIdentifier</code> is set, replaces any <code>AsmSearchPath</code> that contains a matching arch subfolder with that subfolder (e.g., <code>x64</code>).</li>
-<li>Builds a non-recursive search pattern <code>%(AsmSearchPath.FullPath)/*.asm</code> and adds results to <code>AsmFiles</code> (deduplicated).</li>
+<li>Builds a non-recursive search pattern <code>%(AsmSearchPath.FullPath)/*.s</code> and adds results to <code>AsmFiles</code> (deduplicated).</li>
 </ul>
 </li>
-<li><code>BuildYasm</code> calls the <code>YasmBuildTask</code> for each file:
+<li><code>BuildAsm</code> calls the <code>AsmBuildTask</code> for each file:
 <ul>
 <li>Computes a SHA1 of the source and emits <code>&lt;name&gt;-&lt;sha1&gt;.obj</code> into <code>AsmOutputPath</code>.</li>
-<li>Executes <code>yasm -felf64 -o &lt;output.obj&gt; &lt;input.asm&gt;</code>.</li>
+<li>Executes <code>clang --target=&lt;x86_64-elf|aarch64-none-elf&gt; -c -o &lt;output.obj&gt; &lt;input.s&gt;</code>.</li>
 </ul>
 </li>
-<li><code>CleanYasm</code> deletes the <code>cosmos/asm</code> intermediate folder during <code>Clean</code>.</li>
+<li><code>CleanAsm</code> deletes the <code>cosmos/asm</code> intermediate folder during <code>Clean</code>.</li>
 </ol>
 <hr>
 <h2 id="outputs">Outputs</h2>

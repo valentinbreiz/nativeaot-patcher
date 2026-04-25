@@ -113,11 +113,11 @@
     COSMOS_ROOT --&gt; ILC
 
     subgraph &quot;Cosmos.Build.Asm&quot;
-        ASM_BUILD[YASM Compiler]
-        ASM_BUILD --&gt; |yasm -felf64| ASM_OBJ[&quot;Assembly Objects (.obj)&quot;]
+        ASM_BUILD[Clang Integrated Assembler]
+        ASM_BUILD --&gt; |clang --target=...-elf -c| ASM_OBJ[&quot;Assembly Objects (.obj)&quot;]
         ASM_OBJ --&gt; COSMOS_ASM[&quot;$(IntermediateOutputPath)/cosmos/asm/&quot;]
     end
-    ASM_SRC[&quot;Assembly Files (.asm)&quot;] --&gt; ASM_BUILD
+    ASM_SRC[&quot;Assembly Files (.s)&quot;] --&gt; ASM_BUILD
 
     subgraph &quot;Cosmos.Build.CC&quot;
         CC_BUILD[Clang Compiler]
@@ -166,13 +166,8 @@
 </tr>
 <tr>
 <td><strong>Clang</strong></td>
-<td>C compilation (x64/ARM64 via --target)</td>
+<td>C and assembly compilation (x64/ARM64 via --target)</td>
 <td>LLVM toolchain</td>
-</tr>
-<tr>
-<td><strong>YASM</strong></td>
-<td>x64 assembly compilation</td>
-<td>Latest</td>
 </tr>
 <tr>
 <td><strong>ld.lld</strong></td>
@@ -225,7 +220,7 @@
 <tr>
 <td>Assembly</td>
 <td><code>$(IntermediateOutputPath)/cosmos/asm/</code></td>
-<td>YASM objects (.obj)</td>
+<td>Clang assembler objects (.obj)</td>
 </tr>
 <tr>
 <td>C Code</td>

@@ -386,7 +386,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Bridge.ContextSwitchNative",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.yml\" sourcestartlinenumber=\"1\">Native imports for the low-level context switch primitives.\nSymbols are unified across architectures: Cosmos.Kernel.Native.X64\n(Interrupts.asm) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both\nexport the same names, so no arch gating is needed here.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.yml\" sourcestartlinenumber=\"1\">Native imports for the low-level context switch primitives.\nSymbols are unified across architectures: Cosmos.Kernel.Native.X64\n(Interrupts.s) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both\nexport the same names, so no arch gating is needed here.</p>\n"
     },
     {
       "type": "ManagedReference",

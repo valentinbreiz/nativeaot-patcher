@@ -142,11 +142,11 @@
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel.Native.X64</strong></td>
-<td>x86-64 assembly files (<code>.asm</code>) — interrupt stubs, context switching, SIMD.</td>
+<td>x86-64 assembly files (<code>.s</code>, GAS syntax) — interrupt stubs, context switching, SIMD.</td>
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel.Native.ARM64</strong></td>
-<td>ARM64 assembly files (<code>.S</code>) — exception vectors, context switching.</td>
+<td>ARM64 assembly files (<code>.s</code>, GAS syntax) — exception vectors, context switching.</td>
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel.Native.MultiArch</strong></td>
@@ -185,7 +185,7 @@
 </tr>
 <tr>
 <td><strong>Cosmos.Build.Asm</strong></td>
-<td>YASM/Clang assembly compilation.</td>
+<td>Clang assembly compilation (GAS-syntax <code>.s</code> files for both x64 and ARM64).</td>
 </tr>
 <tr>
 <td><strong>Cosmos.Build.CC</strong></td>
