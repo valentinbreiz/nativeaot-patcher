@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.Core | Cosmos Gen 3 </title>
+      <title>Class AcpiPmNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.Core | Cosmos Gen 3 ">
+      <meta name="title" content="Class AcpiPmNative | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -84,90 +84,135 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative">
 
-  <h1 id="Cosmos_Kernel_Core" data-uid="Cosmos.Kernel.Core" class="text-break">Namespace Cosmos.Kernel.Core</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Cosmos.Kernel.Core.Bridge</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.html">Cosmos.Kernel.Core.CPU</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Extensions.html">Cosmos.Kernel.Core.Extensions</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.IO.html">Cosmos.Kernel.Core.IO</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.html">Cosmos.Kernel.Core.Memory</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Power.html">Cosmos.Kernel.Core.Power</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Runtime.html">Cosmos.Kernel.Core.Runtime</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Cosmos.Kernel.Core.Scheduler</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Utilities.html">Cosmos.Kernel.Core.Utilities</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.CosmosFeatures.html">CosmosFeatures</a></dt>
-      <dd><p>Centralized feature flags for Cosmos kernel components.
-These flags can be set via RuntimeHostConfigurationOption in csproj
-and are used by ILC for trimming.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.html">Native</a></dt>
-      <dd><p>Native low-level hardware access primitives.
-Architecture-specific implementations for I/O operations.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.Debug.html">Native.Debug</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.IO.html">Native.IO</a></dt>
-      <dd><p>x86-64 Port I/O operations.
-Only available on x86-64 architecture (uses in/out instructions).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.MMIO.html">Native.MMIO</a></dt>
-      <dd><p>Memory-Mapped I/O operations.
-Available on all architectures for accessing hardware via memory addresses.
-NoInlining prevents compiler from reordering these operations.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Panic.html">Panic</a></dt>
-      <dd><p>Kernel panic handler for fatal errors.</p>
-</dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_Core_Bridge_AcpiPmNative" data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative" class="text-break">
+Class AcpiPmNative  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class AcpiPmNative</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">AcpiPmNative</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_AcpiPmNative_Reset_" data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_AcpiPmNative_Reset" data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset">
+  Reset()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static extern int Reset()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_AcpiPmNative_Shutdown_" data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_AcpiPmNative_Shutdown" data-uid="Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown">
+  Shutdown()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static extern int Shutdown()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
 
 
 </article>

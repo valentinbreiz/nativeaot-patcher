@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.Core | Cosmos Gen 3 </title>
+      <title>Interface IPowerOps | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.Core | Cosmos Gen 3 ">
+      <meta name="title" content="Interface IPowerOps | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Platform-specific system power transitions (reboot / shutdown). Implementations route through firmware mechanisms (8042 / ACPI on x64, PSCI on ARM64) rather than per-CPU instructions.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,90 +84,100 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core">
+        <article data-uid="Cosmos.Kernel.Core.Power.IPowerOps">
 
-  <h1 id="Cosmos_Kernel_Core" data-uid="Cosmos.Kernel.Core" class="text-break">Namespace Cosmos.Kernel.Core</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Cosmos.Kernel.Core.Bridge</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.html">Cosmos.Kernel.Core.CPU</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Extensions.html">Cosmos.Kernel.Core.Extensions</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.IO.html">Cosmos.Kernel.Core.IO</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.html">Cosmos.Kernel.Core.Memory</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Power.html">Cosmos.Kernel.Core.Power</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Runtime.html">Cosmos.Kernel.Core.Runtime</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Cosmos.Kernel.Core.Scheduler</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Utilities.html">Cosmos.Kernel.Core.Utilities</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.CosmosFeatures.html">CosmosFeatures</a></dt>
-      <dd><p>Centralized feature flags for Cosmos kernel components.
-These flags can be set via RuntimeHostConfigurationOption in csproj
-and are used by ILC for trimming.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.html">Native</a></dt>
-      <dd><p>Native low-level hardware access primitives.
-Architecture-specific implementations for I/O operations.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.Debug.html">Native.Debug</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.IO.html">Native.IO</a></dt>
-      <dd><p>x86-64 Port I/O operations.
-Only available on x86-64 architecture (uses in/out instructions).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Native.MMIO.html">Native.MMIO</a></dt>
-      <dd><p>Memory-Mapped I/O operations.
-Available on all architectures for accessing hardware via memory addresses.
-NoInlining prevents compiler from reordering these operations.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Panic.html">Panic</a></dt>
-      <dd><p>Kernel panic handler for fatal errors.</p>
-</dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_Core_Power_IPowerOps" data-uid="Cosmos.Kernel.Core.Power.IPowerOps" class="text-break">
+Interface IPowerOps  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Power.html">Power</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Platform-specific system power transitions (reboot / shutdown).
+Implementations route through firmware mechanisms (8042 / ACPI on x64,
+PSCI on ARM64) rather than per-CPU instructions.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IPowerOps</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Power_IPowerOps_Reboot_" data-uid="Cosmos.Kernel.Core.Power.IPowerOps.Reboot*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Power_IPowerOps_Reboot" data-uid="Cosmos.Kernel.Core.Power.IPowerOps.Reboot">
+  Reboot()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Restart the machine. Does not return on success.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[DoesNotReturn]
+void Reboot()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Power_IPowerOps_Shutdown_" data-uid="Cosmos.Kernel.Core.Power.IPowerOps.Shutdown*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Power_IPowerOps_Shutdown" data-uid="Cosmos.Kernel.Core.Power.IPowerOps.Shutdown">
+  Shutdown()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Power off the machine. Does not return on success.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[DoesNotReturn]
+void Shutdown()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 </article>

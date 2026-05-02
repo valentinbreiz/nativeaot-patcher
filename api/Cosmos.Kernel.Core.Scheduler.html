@@ -102,16 +102,24 @@ Namespaces
 Classes
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ConditionVariable.html">ConditionVariable</a></dt>
+      <dd><p>A condition variable primitive for coordinating scheduler threads around state changes.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ContextSwitch.html">ContextSwitch</a></dt>
       <dd><p>Low-level context switch operations.
 Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.MonitorImpl.html">MonitorImpl</a></dt>
-      <dd><p>Provides Monitor.Enter/Exit semantics using a hash table keyed by object address.
-Supports reentrancy (same thread can acquire the same lock multiple times).
-Used as the backing implementation for the C# lock keyword.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Monitor.html">Monitor</a></dt>
+      <dd><p>A simple monitor implementation for kernel threads.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a></dt>
+      <dd><p>A simple mutex primitive for protecting critical sections in the scheduler.</p>
 </dd>
     </dl>
     <dl class="jumplist">

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct SpinLock | Cosmos Gen 3 </title>
+      <title>Class Power | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct SpinLock | Cosmos Gen 3 ">
+      <meta name="title" content="Class Power | Cosmos Gen 3 ">
       
-      <meta name="description" content="Simple spinlock for SMP synchronization.">
+      <meta name="description" content="User-facing power-management API. Routes through the platform HAL.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,30 +84,37 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock">
+        <article data-uid="Cosmos.Kernel.System.Power">
 
 
 
-  <h1 id="Cosmos_Kernel_Core_Scheduler_SpinLock" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock" class="text-break">
-Struct SpinLock  
+  <h1 id="Cosmos_Kernel_System_Power" data-uid="Cosmos.Kernel.System.Power" class="text-break">
+Class Power  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Scheduler</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Simple spinlock for SMP synchronization.</p>
+  <div class="markdown summary"><p>User-facing power-management API. Routes through the platform HAL.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct SpinLock</code></pre>
+    <pre><code class="lang-csharp hljs">public static class Power</code></pre>
   </div>
 
 
 
 
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Power</span></div>
+    </dd>
+  </dl>
 
 
 
@@ -115,59 +122,27 @@ Struct SpinLock
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
   </dd></dl>
-
-
-
-
-
-
-  <h2 class="section" id="properties">Properties
-</h2>
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_IsLocked_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.IsLocked*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_IsLocked" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.IsLocked">
-  IsLocked
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly bool IsLocked { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
 
 
 
@@ -178,18 +153,19 @@ Struct SpinLock
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Acquire*"></a>
+  <a id="Cosmos_Kernel_System_Power_Halt_" data-uid="Cosmos.Kernel.System.Power.Halt*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Acquire">
-  Acquire()
+  <h3 id="Cosmos_Kernel_System_Power_Halt" data-uid="Cosmos.Kernel.System.Power.Halt">
+  Halt()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Park the CPU. Returns when an interrupt wakes it.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Acquire()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void Halt()</code></pre>
   </div>
 
 
@@ -204,18 +180,21 @@ Struct SpinLock
 
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_Release_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Release*"></a>
+  <a id="Cosmos_Kernel_System_Power_Reboot_" data-uid="Cosmos.Kernel.System.Power.Reboot*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_Release" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Release">
-  Release()
+  <h3 id="Cosmos_Kernel_System_Power_Reboot" data-uid="Cosmos.Kernel.System.Power.Reboot">
+  Reboot()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Restart the machine. Does not return on success; falls back to <a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt">Halt()</a>
+if power ops are unavailable.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Release()</code></pre>
+    <pre><code class="lang-csharp hljs">[DoesNotReturn]
+public static void Reboot()</code></pre>
   </div>
 
 
@@ -230,26 +209,24 @@ Struct SpinLock
 
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_TryAcquire_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.TryAcquire*"></a>
+  <a id="Cosmos_Kernel_System_Power_Shutdown_" data-uid="Cosmos.Kernel.System.Power.Shutdown*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_TryAcquire" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.TryAcquire">
-  TryAcquire()
+  <h3 id="Cosmos_Kernel_System_Power_Shutdown" data-uid="Cosmos.Kernel.System.Power.Shutdown">
+  Shutdown()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Power off the machine. Does not return on success; falls back to <a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt">Halt()</a>
+if power ops are unavailable.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool TryAcquire()</code></pre>
+    <pre><code class="lang-csharp hljs">[DoesNotReturn]
+public static void Shutdown()</code></pre>
   </div>
 
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct SpinLock | Cosmos Gen 3 </title>
+      <title>Struct LimineExecutableCmdlineRequest | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct SpinLock | Cosmos Gen 3 ">
+      <meta name="title" content="Struct LimineExecutableCmdlineRequest | Cosmos Gen 3 ">
       
-      <meta name="description" content="Simple spinlock for SMP synchronization.">
+      <meta name="description" content="Limine Executable Cmdline request. Returns the kernel command line set via cmdline: in limine.conf.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock">
+        <article data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest">
 
 
 
-  <h1 id="Cosmos_Kernel_Core_Scheduler_SpinLock" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock" class="text-break">
-Struct SpinLock  
+  <h1 id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest" class="text-break">
+Struct LimineExecutableCmdlineRequest  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Scheduler</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Boot.html">Boot</a>.<a class="xref" href="Cosmos.Kernel.Boot.Limine.html">Limine</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Boot.Limine.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Simple spinlock for SMP synchronization.</p>
+  <div class="markdown summary"><p>Limine Executable Cmdline request.
+Returns the kernel command line set via <code>cmdline:</code> in limine.conf.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct SpinLock</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly struct LimineExecutableCmdlineRequest</code></pre>
   </div>
 
 
@@ -139,14 +140,45 @@ Struct SpinLock
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_IsLocked_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.IsLocked*"></a>
+  <a id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest__ctor_" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_IsLocked" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.IsLocked">
-  IsLocked
+  <h3 id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest__ctor" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor">
+  LimineExecutableCmdlineRequest()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Limine Executable Cmdline request.
+Returns the kernel command line set via <code>cmdline:</code> in limine.conf.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LimineExecutableCmdlineRequest()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_ID" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.ID">
+  ID
   
   </h3>
 
@@ -154,16 +186,15 @@ Struct SpinLock
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly bool IsLocked { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly LimineID ID</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineID.html">LimineID</a></dt>
     <dd></dd>
   </dl>
 
@@ -174,14 +205,10 @@ Struct SpinLock
 
 
 
-  <h2 class="section" id="methods">Methods
-</h2>
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Acquire*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Acquire">
-  Acquire()
+  <h3 id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_Response" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Response">
+  Response
   
   </h3>
 
@@ -189,69 +216,47 @@ Struct SpinLock
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Acquire()</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly LimineExecutableCmdlineResponse* Response</code></pre>
   </div>
 
 
 
 
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_Release_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Release*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_Release" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.Release">
-  Release()
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Release()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_TryAcquire_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.TryAcquire*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_TryAcquire" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.TryAcquire">
-  TryAcquire()
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool TryAcquire()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.html">LimineExecutableCmdlineResponse</a>*</dt>
     <dd></dd>
   </dl>
 
 
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_Revision" data-uid="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Revision">
+  Revision
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly ulong Revision</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

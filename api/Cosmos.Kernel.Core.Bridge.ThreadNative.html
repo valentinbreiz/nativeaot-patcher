@@ -99,7 +99,7 @@ Class ThreadNative
 
   <div class="markdown summary"><p>Stable native entry point used as the initial RIP/PC for freshly scheduled
 threads. The architecture-specific context-switch assembly returns (via iretq
-on x64 / eret on ARM64) into <a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub">EntryPointStub()</a>, which then calls
+on x64 / eret on ARM64) into <a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_System_IntPtr_">EntryPointStub(nint)</a>, which then calls
 the scheduler's managed entry implementation. Thread-start registration lives
 in SchedulerManager.RegisterThreadStart.</p>
 </div>
@@ -159,8 +159,8 @@ in SchedulerManager.RegisterThreadStart.</p>
 
   <a id="Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_" data-uid="Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub" data-uid="Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub">
-  EntryPointStub()
+  <h3 id="Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_System_IntPtr_" data-uid="Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(System.IntPtr)">
+  EntryPointStub(nint)
   
   </h3>
 
@@ -168,9 +168,14 @@ in SchedulerManager.RegisterThreadStart.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void EntryPointStub()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void EntryPointStub(nint parameter)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>parameter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.intptr">nint</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

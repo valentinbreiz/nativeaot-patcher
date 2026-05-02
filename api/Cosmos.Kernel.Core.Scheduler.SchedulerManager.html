@@ -314,6 +314,37 @@ Class SchedulerManager
 
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnThreadExitCallback_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnThreadExitCallback" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback">
+  OnThreadExitCallback
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static nint OnThreadExitCallback { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.intptr">nint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_ThreadCount_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.ThreadCount*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_ThreadCount" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.ThreadCount">
@@ -575,6 +606,42 @@ Class SchedulerManager
 
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetBusyCpuTimeNs_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetBusyCpuTimeNs" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs">
+  GetBusyCpuTimeNs()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sum of TotalRuntime across all non-idle threads, in nanoseconds.
+One timer tick is charged to exactly one current thread per CPU, so this sum
+over a wall-clock window equals total busy CPU time for that window.
+Lock-free: registry slots are atomic and ulong reads are atomic on x64/ARM64;
+worst case is observing a stale value from an in-progress tick.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong GetBusyCpuTimeNs()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState(System.UInt32)">
@@ -598,6 +665,40 @@ Class SchedulerManager
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCurrentCpuId_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCurrentCpuId" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId">
+  GetCurrentCpuId()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the CPU ID currently executing this code path. Single-CPU today.
+TODO(SMP): replace with x86_64 GS-relative per-CPU storage or ARM64 MPIDR_EL1
+affinity read once application processors are brought online.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint GetCurrentCpuId()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
   </dl>
 
@@ -680,27 +781,33 @@ Class SchedulerManager
 
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart">
-  InvokeCurrentThreadStart()
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_System_IntPtr_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart(System.IntPtr)">
+  InvokeCurrentThreadStart(nint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Entry body for newly scheduled threads. Called from
-<a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub">EntryPointStub()</a>,
+  <div class="markdown level1 summary"><p>
+Entry body for newly scheduled threads. Called from
+<a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_System_IntPtr_">EntryPointStub(nint)</a>,
 whose address is passed as the initial RIP / PC to the context-switch
-assembly by whoever creates the thread (e.g. ThreadPlug).</p>
-<p>Reads the entry delegate off the current thread's <code>StartDelegate</code>
-field, clears it so the reference can be collected, invokes it, handles
-exceptions, marks the thread as exited, and halts. The scheduler will
+assembly by whoever creates the thread (e.g. ThreadPlug).
+</p>
+<p>This method handles exceptions, marks the thread as exited, and halts. The scheduler will
 never re-pick a halted thread; the halt loop is a safety net in case
 the exit path ever races with a context switch.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void InvokeCurrentThreadStart()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void InvokeCurrentThreadStart(nint parameter)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>parameter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.intptr">nint</a></dt>
+    <dd><p>Generic parameter of the Thread Start, it is decoded based on the <a class="xref" href="Cosmos.Kernel.Core.Scheduler.ThreadFlags.html">ThreadFlags</a> set in the thread.</p>
+</dd>
+  </dl>
 
 
 
@@ -1049,6 +1156,79 @@ Picks next thread and sets up context switch if needed.</p>
     <dd></dd>
     <dt><code>idleThread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32)">
+  Sleep(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Puts the current thread to sleep with a timeout.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Sleep(uint timeoutMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Timeout in milliseconds. 0 means indefinite sleep.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)">
+  Sleep(uint, Thread, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Puts a thread to sleep with a timeout.
+The thread may be woken up either by the timeout expires or when signaled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Sleep(uint cpuId, Thread thread, uint timeoutMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>CPU ID of the thread.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd><p>Thread to sleep.</p>
+</dd>
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Timeout in milliseconds. 0 means indefinite sleep (until signaled).</p>
+</dd>
   </dl>
 
 

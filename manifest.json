@@ -166,6 +166,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.yml\" sourcestartlinenumber=\"1\">Limine Executable Cmdline request.\nReturns the kernel command line set via <code>cmdline:</code> in limine.conf.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.yml",
       "output": {
         ".html": {
@@ -376,6 +404,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.AcpiPmNative",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.yml",
       "output": {
         ".html": {
@@ -512,7 +554,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Bridge.ThreadNative",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ThreadNative.yml\" sourcestartlinenumber=\"1\">Stable native entry point used as the initial RIP/PC for freshly scheduled\nthreads. The architecture-specific context-switch assembly returns (via iretq\non x64 / eret on ARM64) into <xref href=\"Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub\" data-throw-if-not-resolved=\"false\"></xref>, which then calls\nthe scheduler's managed entry implementation. Thread-start registration lives\nin SchedulerManager.RegisterThreadStart.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.ThreadNative.yml\" sourcestartlinenumber=\"1\">Stable native entry point used as the initial RIP/PC for freshly scheduled\nthreads. The architecture-specific context-switch assembly returns (via iretq\non x64 / eret on ARM64) into <xref href=\"Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(System.IntPtr)\" data-throw-if-not-resolved=\"false\"></xref>, which then calls\nthe scheduler's managed entry implementation. Thread-start registration lives\nin SchedulerManager.RegisterThreadStart.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1188,6 +1230,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Power.IPowerOps.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Power.IPowerOps.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Power.IPowerOps",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Power.IPowerOps.yml\" sourcestartlinenumber=\"1\">Platform-specific system power transitions (reboot / shutdown).\nImplementations route through firmware mechanisms (8042 / ACPI on x64,\nPSCI on ARM64) rather than per-CPU instructions.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Power.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Power.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Power",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.yml",
       "output": {
         ".html": {
@@ -1468,6 +1538,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.ConditionVariable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.yml\" sourcestartlinenumber=\"1\">A condition variable primitive for coordinating scheduler threads around state changes.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.yml",
       "output": {
         ".html": {
@@ -1496,17 +1580,31 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.yml",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Monitor.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html"
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Monitor.html"
         }
       },
       "version": "",
       "Uid": null,
       "IsMRef": true,
-      "Title": "Cosmos.Kernel.Core.Scheduler.MonitorImpl",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.yml\" sourcestartlinenumber=\"1\">Provides Monitor.Enter/Exit semantics using a hash table keyed by object address.\nSupports reentrancy (same thread can acquire the same lock multiple times).\nUsed as the backing implementation for the C# lock keyword.</p>\n"
+      "Title": "Cosmos.Kernel.Core.Scheduler.Monitor",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Monitor.yml\" sourcestartlinenumber=\"1\">A simple monitor implementation for kernel threads.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Mutex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.Mutex.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.Mutex",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.Mutex.yml\" sourcestartlinenumber=\"1\">A simple mutex primitive for protecting critical sections in the scheduler.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -4041,6 +4139,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Power.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Power.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Power",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Power.yml\" sourcestartlinenumber=\"1\">User-facing power-management API. Routes through the platform HAL.</p>\n"
     },
     {
       "type": "ManagedReference",

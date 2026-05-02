@@ -120,16 +120,26 @@ public enum ThreadFlags : ushort</code></pre>
   <dl class="parameters">
     <dt id="Cosmos_Kernel_Core_Scheduler_ThreadFlags_IdleThread"><code>IdleThread = 2</code></dt>
   
-  <dd></dd>
+  <dd><p>Per-CPU idle thread</p>
+</dd>
     <dt id="Cosmos_Kernel_Core_Scheduler_ThreadFlags_KernelThread"><code>KernelThread = 1</code></dt>
   
-  <dd></dd>
+  <dd><p>Kernel-mode thread</p>
+</dd>
+    <dt id="Cosmos_Kernel_Core_Scheduler_ThreadFlags_Managed"><code>Managed = 8</code></dt>
+  
+  <dd><p>Entrypoint parameter is a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.gchandle">GCHandle</a> of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.thread">Thread</a>,
+when set tells the <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_System_IntPtr_">InvokeCurrentThreadStart(nint)</a>
+to call the managed thread start.</p>
+</dd>
     <dt id="Cosmos_Kernel_Core_Scheduler_ThreadFlags_None"><code>None = 0</code></dt>
   
-  <dd></dd>
+  <dd><p>No flags set</p>
+</dd>
     <dt id="Cosmos_Kernel_Core_Scheduler_ThreadFlags_Pinned"><code>Pinned = 4</code></dt>
   
-  <dd></dd>
+  <dd><p>Cannot migrate to other CPUs</p>
+</dd>
   </dl>
 
 

@@ -243,6 +243,36 @@ Class Limine
 
 
 
+  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_ExecutableCmdline" data-uid="Cosmos.Kernel.Boot.Limine.Limine.ExecutableCmdline">
+  ExecutableCmdline
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly LimineExecutableCmdlineRequest ExecutableCmdline</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html">LimineExecutableCmdlineRequest</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="Cosmos_Kernel_Boot_Limine_Limine_Framebuffer" data-uid="Cosmos.Kernel.Boot.Limine.Limine.Framebuffer">
   Framebuffer
   
@@ -354,6 +384,44 @@ Class Limine
     <dd></dd>
   </dl>
 
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Boot_Limine_Limine_Cmdline_" data-uid="Cosmos.Kernel.Boot.Limine.Limine.Cmdline*"></a>
+
+  <h3 id="Cosmos_Kernel_Boot_Limine_Limine_Cmdline" data-uid="Cosmos.Kernel.Boot.Limine.Limine.Cmdline">
+  Cmdline
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Pointer to the kernel command line (null-terminated C string) passed
+via <code>cmdline:</code> in limine.conf. Returns null if Limine did not
+answer the request or the cmdline is unset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte* Cmdline { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+  </dl>
 
 
 

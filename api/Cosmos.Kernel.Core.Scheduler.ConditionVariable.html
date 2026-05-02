@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class FullScreenCanvas | Cosmos Gen 3 </title>
+      <title>Class ConditionVariable | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class FullScreenCanvas | Cosmos Gen 3 ">
+      <meta name="title" content="Class ConditionVariable | Cosmos Gen 3 ">
       
-      <meta name="description" content="Provides functionality to fetch canvases that write directly to the underlying display device.">
+      <meta name="description" content="A condition variable primitive for coordinating scheduler threads around state changes.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas">
+        <article data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas" class="text-break">
-Class FullScreenCanvas  
+  <h1 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable" class="text-break">
+Class ConditionVariable  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Graphics.html">Graphics</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Scheduler</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Provides functionality to fetch canvases that write directly to the
-underlying display device.</p>
+  <div class="markdown summary"><p>A condition variable primitive for coordinating scheduler threads around state changes.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class FullScreenCanvas</code></pre>
+    <pre><code class="lang-csharp hljs">public class ConditionVariable : IDisposable</code></pre>
   </div>
 
 
@@ -113,10 +112,16 @@ underlying display device.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">FullScreenCanvas</span></div>
+      <div><span class="xref">ConditionVariable</span></div>
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
@@ -150,23 +155,54 @@ underlying display device.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_IsInUse_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.IsInUse*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable__ctor_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_IsInUse" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.IsInUse">
-  IsInUse
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable__ctor" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor">
+  ConditionVariable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Whether the CGS (Cosmos Graphics Subsystem) is currently in use.</p>
+  <div class="markdown level1 summary"><p>Creates a new condition variable instance.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool IsInUse { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public ConditionVariable()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitingThreadCount_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitingThreadCount" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount">
+  WaitingThreadCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the number of waiting threads.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int WaitingThreadCount { get; }</code></pre>
   </div>
 
 
@@ -175,7 +211,7 @@ underlying display device.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -190,19 +226,19 @@ underlying display device.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_Disable_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.Disable*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Dispose_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_Disable" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.Disable">
-  Disable()
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Dispose" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose">
+  Dispose()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disables the specified graphics driver used, and returns to VGA text mode 80x25.</p>
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Disable()</code></pre>
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
   </div>
 
 
@@ -217,27 +253,22 @@ underlying display device.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetCurrentFullScreenCanvas_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetCurrentFullScreenCanvas*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Signal_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetCurrentFullScreenCanvas" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetCurrentFullScreenCanvas">
-  GetCurrentFullScreenCanvas()
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Signal" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal">
+  Signal()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the currently used screen display canvas.</p>
+  <div class="markdown level1 summary"><p>Signals one waiting thread, if there isn't any waiting thread then do nothing.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static Canvas GetCurrentFullScreenCanvas()</code></pre>
+    <pre><code class="lang-csharp hljs">public void Signal()</code></pre>
   </div>
 
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -249,30 +280,22 @@ underlying display device.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetFullScreenCanvas_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_SignalAll_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetFullScreenCanvas" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas">
-  GetFullScreenCanvas()
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_SignalAll" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll">
+  SignalAll()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the screen display canvas. The canvas's <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Mode">Mode</a> reflects the
-actual framebuffer resolution (set by the driver at construction); subsequent calls
-return the same canvas without resetting the mode, so callers always see the real
-screen width/height.</p>
+  <div class="markdown level1 summary"><p>Signals all waiting threads, if there isn't any waiting thread then do nothing.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreenCanvas()</code></pre>
+    <pre><code class="lang-csharp hljs">public void SignalAll()</code></pre>
   </div>
 
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -284,31 +307,26 @@ screen width/height.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetFullScreenCanvas_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_GetFullScreenCanvas_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas(Cosmos.Kernel.System.Graphics.Mode)">
-  GetFullScreenCanvas(Mode)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_Cosmos_Kernel_Core_Scheduler_Mutex_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait(Cosmos.Kernel.Core.Scheduler.Mutex)">
+  Wait(Mutex)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets a screen display canvas, and changes the display mode to the given <code class="paramref">mode</code>.</p>
+  <div class="markdown level1 summary"><p>Waits for a condition to be signaled. The associated mutex must be held by the calling thread.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreenCanvas(Mode mode)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Wait(Mutex mutex)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-    <dd></dd>
+    <dt><code>mutex</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a></dt>
+    <dd><p>The mutex protecting the condition.</p>
+</dd>
   </dl>
 
 
@@ -318,36 +336,42 @@ screen width/height.</p>
 
 
 
+  <h4 class="section" id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_Cosmos_Kernel_Core_Scheduler_Mutex__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>This method releases the mutex while the thread is blocked and re-acquires it before returning.</p>
+</div>
 
 
 
-  <a id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_TryGetFullScreenCanvas_" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_FullScreenCanvas_TryGetFullScreenCanvas_Cosmos_Kernel_System_Graphics_Mode_Cosmos_Kernel_System_Graphics_Canvas__" data-uid="Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas(Cosmos.Kernel.System.Graphics.Mode,Cosmos.Kernel.System.Graphics.Canvas@)">
-  TryGetFullScreenCanvas(Mode, out Canvas?)
+  <a id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitTimeout_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitTimeout_Cosmos_Kernel_Core_Scheduler_Mutex_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout(Cosmos.Kernel.Core.Scheduler.Mutex,System.UInt32)">
+  WaitTimeout(Mutex, uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Attempts to get a screen display canvas, and changes the display mode to the default.</p>
+  <div class="markdown level1 summary"><p>Waits for a condition with a timeout.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TryGetFullScreenCanvas(Mode mode, out Canvas? canvas)</code></pre>
+    <pre><code class="lang-csharp hljs">public bool WaitTimeout(Mutex mutex, uint timeoutMs)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
-    <dd></dd>
-    <dt><code>canvas</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-    <dd></dd>
+    <dt><code>mutex</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a></dt>
+    <dd><p>The mutex protecting the condition.</p>
+</dd>
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Timeout in milliseconds.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the operation was successful; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+    <dd><p>true if signaled, false if timeout occurred.</p>
 </dd>
   </dl>
 

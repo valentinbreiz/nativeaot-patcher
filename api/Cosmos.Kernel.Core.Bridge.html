@@ -102,6 +102,10 @@ GIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.</p>
 </dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.AcpiPmNative.html">AcpiPmNative</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.html">ContextSwitchNative</a></dt>
       <dd><p>Native imports for the low-level context switch primitives.
 Symbols are unified across architectures: Cosmos.Kernel.Native.X64
@@ -157,7 +161,7 @@ C bootstrap uses pure C implementations for clean architecture.</p>
       <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html">ThreadNative</a></dt>
       <dd><p>Stable native entry point used as the initial RIP/PC for freshly scheduled
 threads. The architecture-specific context-switch assembly returns (via iretq
-on x64 / eret on ARM64) into <a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub">EntryPointStub()</a>, which then calls
+on x64 / eret on ARM64) into <a class="xref" href="Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_System_IntPtr_">EntryPointStub(nint)</a>, which then calls
 the scheduler's managed entry implementation. Thread-start registration lives
 in SchedulerManager.RegisterThreadStart.</p>
 </dd>

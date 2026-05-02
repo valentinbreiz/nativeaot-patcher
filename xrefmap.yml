@@ -214,6 +214,19 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.BootTime
   fullName: Cosmos.Kernel.Boot.Limine.Limine.BootTime
   nameWithType: Limine.BootTime
+- uid: Cosmos.Kernel.Boot.Limine.Limine.Cmdline
+  name: Cmdline
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_Cmdline
+  commentId: P:Cosmos.Kernel.Boot.Limine.Limine.Cmdline
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.Cmdline
+  nameWithType: Limine.Cmdline
+- uid: Cosmos.Kernel.Boot.Limine.Limine.Cmdline*
+  name: Cmdline
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_Cmdline_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.Limine.Cmdline
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.Cmdline
+  nameWithType: Limine.Cmdline
 - uid: Cosmos.Kernel.Boot.Limine.Limine.DTB
   name: DTB
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_DTB
@@ -226,6 +239,12 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable
   fullName: Cosmos.Kernel.Boot.Limine.Limine.EfiSystemTable
   nameWithType: Limine.EfiSystemTable
+- uid: Cosmos.Kernel.Boot.Limine.Limine.ExecutableCmdline
+  name: ExecutableCmdline
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_ExecutableCmdline
+  commentId: F:Cosmos.Kernel.Boot.Limine.Limine.ExecutableCmdline
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.ExecutableCmdline
+  nameWithType: Limine.ExecutableCmdline
 - uid: Cosmos.Kernel.Boot.Limine.Limine.Framebuffer
   name: Framebuffer
   href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_Framebuffer
@@ -433,6 +452,67 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Revision
   fullName: Cosmos.Kernel.Boot.Limine.LimineEfiSystemTableResponse.Revision
   nameWithType: LimineEfiSystemTableResponse.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest
+  name: LimineExecutableCmdlineRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest
+  nameWithType: LimineExecutableCmdlineRequest
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor
+  name: LimineExecutableCmdlineRequest()
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest__ctor
+  commentId: M:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.LimineExecutableCmdlineRequest()
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.New()
+  nameWithType: LimineExecutableCmdlineRequest.LimineExecutableCmdlineRequest()
+  nameWithType.vb: LimineExecutableCmdlineRequest.New()
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor*
+  name: LimineExecutableCmdlineRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest__ctor_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.LimineExecutableCmdlineRequest
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.New
+  nameWithType: LimineExecutableCmdlineRequest.LimineExecutableCmdlineRequest
+  nameWithType.vb: LimineExecutableCmdlineRequest.New
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.ID
+  name: ID
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_ID
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.ID
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.ID
+  nameWithType: LimineExecutableCmdlineRequest.ID
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Response
+  nameWithType: LimineExecutableCmdlineRequest.Response
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineRequest_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineRequest.Revision
+  nameWithType: LimineExecutableCmdlineRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse
+  name: LimineExecutableCmdlineResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse
+  nameWithType: LimineExecutableCmdlineResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Cmdline
+  name: Cmdline
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineResponse_Cmdline
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Cmdline
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Cmdline
+  nameWithType: LimineExecutableCmdlineResponse.Cmdline
+- uid: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.html#Cosmos_Kernel_Boot_Limine_LimineExecutableCmdlineResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineExecutableCmdlineResponse.Revision
+  nameWithType: LimineExecutableCmdlineResponse.Revision
 - uid: Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel
   name: LimineFbMemoryModel
   href: api/Cosmos.Kernel.Boot.Limine.LimineFbMemoryModel.html
@@ -948,6 +1028,36 @@ references:
   commentId: Overload:Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.GetMcfgInfo
   fullName: Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.GetMcfgInfo
   nameWithType: AcpiMcfgNative.GetMcfgInfo
+- uid: Cosmos.Kernel.Core.Bridge.AcpiPmNative
+  name: AcpiPmNative
+  href: api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html
+  commentId: T:Cosmos.Kernel.Core.Bridge.AcpiPmNative
+  fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative
+  nameWithType: AcpiPmNative
+- uid: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset
+  name: Reset()
+  href: api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html#Cosmos_Kernel_Core_Bridge_AcpiPmNative_Reset
+  commentId: M:Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset
+  fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset()
+  nameWithType: AcpiPmNative.Reset()
+- uid: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset*
+  name: Reset
+  href: api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html#Cosmos_Kernel_Core_Bridge_AcpiPmNative_Reset_
+  commentId: Overload:Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset
+  fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Reset
+  nameWithType: AcpiPmNative.Reset
+- uid: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
+  name: Shutdown()
+  href: api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html#Cosmos_Kernel_Core_Bridge_AcpiPmNative_Shutdown
+  commentId: M:Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
+  fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown()
+  nameWithType: AcpiPmNative.Shutdown()
+- uid: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown*
+  name: Shutdown
+  href: api/Cosmos.Kernel.Core.Bridge.AcpiPmNative.html#Cosmos_Kernel_Core_Bridge_AcpiPmNative_Shutdown_
+  commentId: Overload:Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
+  fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
+  nameWithType: AcpiPmNative.Shutdown
 - uid: Cosmos.Kernel.Core.Bridge.ContextSwitchNative
   name: ContextSwitchNative
   href: api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.html
@@ -1400,12 +1510,15 @@ references:
   commentId: T:Cosmos.Kernel.Core.Bridge.ThreadNative
   fullName: Cosmos.Kernel.Core.Bridge.ThreadNative
   nameWithType: ThreadNative
-- uid: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub
-  name: EntryPointStub()
-  href: api/Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub
-  commentId: M:Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub
-  fullName: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub()
-  nameWithType: ThreadNative.EntryPointStub()
+- uid: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(System.IntPtr)
+  name: EntryPointStub(nint)
+  href: api/Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_System_IntPtr_
+  commentId: M:Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(System.IntPtr)
+  name.vb: EntryPointStub(IntPtr)
+  fullName: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(nint)
+  fullName.vb: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub(System.IntPtr)
+  nameWithType: ThreadNative.EntryPointStub(nint)
+  nameWithType.vb: ThreadNative.EntryPointStub(IntPtr)
 - uid: Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub*
   name: EntryPointStub
   href: api/Cosmos.Kernel.Core.Bridge.ThreadNative.html#Cosmos_Kernel_Core_Bridge_ThreadNative_EntryPointStub_
@@ -5112,6 +5225,44 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Panic.Halt
   nameWithType: Panic.Halt
+- uid: Cosmos.Kernel.Core.Power
+  name: Cosmos.Kernel.Core.Power
+  href: api/Cosmos.Kernel.Core.Power.html
+  commentId: N:Cosmos.Kernel.Core.Power
+  fullName: Cosmos.Kernel.Core.Power
+  nameWithType: Cosmos.Kernel.Core.Power
+- uid: Cosmos.Kernel.Core.Power.IPowerOps
+  name: IPowerOps
+  href: api/Cosmos.Kernel.Core.Power.IPowerOps.html
+  commentId: T:Cosmos.Kernel.Core.Power.IPowerOps
+  fullName: Cosmos.Kernel.Core.Power.IPowerOps
+  nameWithType: IPowerOps
+- uid: Cosmos.Kernel.Core.Power.IPowerOps.Reboot
+  name: Reboot()
+  href: api/Cosmos.Kernel.Core.Power.IPowerOps.html#Cosmos_Kernel_Core_Power_IPowerOps_Reboot
+  commentId: M:Cosmos.Kernel.Core.Power.IPowerOps.Reboot
+  fullName: Cosmos.Kernel.Core.Power.IPowerOps.Reboot()
+  nameWithType: IPowerOps.Reboot()
+- uid: Cosmos.Kernel.Core.Power.IPowerOps.Reboot*
+  name: Reboot
+  href: api/Cosmos.Kernel.Core.Power.IPowerOps.html#Cosmos_Kernel_Core_Power_IPowerOps_Reboot_
+  commentId: Overload:Cosmos.Kernel.Core.Power.IPowerOps.Reboot
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Power.IPowerOps.Reboot
+  nameWithType: IPowerOps.Reboot
+- uid: Cosmos.Kernel.Core.Power.IPowerOps.Shutdown
+  name: Shutdown()
+  href: api/Cosmos.Kernel.Core.Power.IPowerOps.html#Cosmos_Kernel_Core_Power_IPowerOps_Shutdown
+  commentId: M:Cosmos.Kernel.Core.Power.IPowerOps.Shutdown
+  fullName: Cosmos.Kernel.Core.Power.IPowerOps.Shutdown()
+  nameWithType: IPowerOps.Shutdown()
+- uid: Cosmos.Kernel.Core.Power.IPowerOps.Shutdown*
+  name: Shutdown
+  href: api/Cosmos.Kernel.Core.Power.IPowerOps.html#Cosmos_Kernel_Core_Power_IPowerOps_Shutdown_
+  commentId: Overload:Cosmos.Kernel.Core.Power.IPowerOps.Shutdown
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Power.IPowerOps.Shutdown
+  nameWithType: IPowerOps.Shutdown
 - uid: Cosmos.Kernel.Core.Runtime
   name: Cosmos.Kernel.Core.Runtime
   href: api/Cosmos.Kernel.Core.Runtime.html
@@ -6100,6 +6251,112 @@ references:
   commentId: N:Cosmos.Kernel.Core.Scheduler
   fullName: Cosmos.Kernel.Core.Scheduler
   nameWithType: Cosmos.Kernel.Core.Scheduler
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable
+  name: ConditionVariable
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.ConditionVariable
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable
+  nameWithType: ConditionVariable
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor
+  name: ConditionVariable()
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable__ctor
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.ConditionVariable()
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.ConditionVariable.New()
+  nameWithType: ConditionVariable.ConditionVariable()
+  nameWithType.vb: ConditionVariable.New()
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor*
+  name: ConditionVariable
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable__ctor_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.ConditionVariable
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.ConditionVariable.New
+  nameWithType: ConditionVariable.ConditionVariable
+  nameWithType.vb: ConditionVariable.New
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose
+  name: Dispose()
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Dispose
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose()
+  nameWithType: ConditionVariable.Dispose()
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose*
+  name: Dispose
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Dispose_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Dispose
+  nameWithType: ConditionVariable.Dispose
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal
+  name: Signal()
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Signal
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal()
+  nameWithType: ConditionVariable.Signal()
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal*
+  name: Signal
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Signal_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Signal
+  nameWithType: ConditionVariable.Signal
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll
+  name: SignalAll()
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_SignalAll
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll()
+  nameWithType: ConditionVariable.SignalAll()
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll*
+  name: SignalAll
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_SignalAll_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.SignalAll
+  nameWithType: ConditionVariable.SignalAll
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait(Cosmos.Kernel.Core.Scheduler.Mutex)
+  name: Wait(Mutex)
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_Cosmos_Kernel_Core_Scheduler_Mutex_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait(Cosmos.Kernel.Core.Scheduler.Mutex)
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait(Cosmos.Kernel.Core.Scheduler.Mutex)
+  nameWithType: ConditionVariable.Wait(Mutex)
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait*
+  name: Wait
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.Wait
+  nameWithType: ConditionVariable.Wait
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout(Cosmos.Kernel.Core.Scheduler.Mutex,System.UInt32)
+  name: WaitTimeout(Mutex, uint)
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitTimeout_Cosmos_Kernel_Core_Scheduler_Mutex_System_UInt32_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout(Cosmos.Kernel.Core.Scheduler.Mutex,System.UInt32)
+  name.vb: WaitTimeout(Mutex, UInteger)
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout(Cosmos.Kernel.Core.Scheduler.Mutex, uint)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout(Cosmos.Kernel.Core.Scheduler.Mutex, UInteger)
+  nameWithType: ConditionVariable.WaitTimeout(Mutex, uint)
+  nameWithType.vb: ConditionVariable.WaitTimeout(Mutex, UInteger)
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout*
+  name: WaitTimeout
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitTimeout_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitTimeout
+  nameWithType: ConditionVariable.WaitTimeout
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount
+  name: WaitingThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitingThreadCount
+  commentId: P:Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount
+  nameWithType: ConditionVariable.WaitingThreadCount
+- uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount*
+  name: WaitingThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html#Cosmos_Kernel_Core_Scheduler_ConditionVariable_WaitingThreadCount_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.ConditionVariable.WaitingThreadCount
+  nameWithType: ConditionVariable.WaitingThreadCount
 - uid: Cosmos.Kernel.Core.Scheduler.ContextSwitch
   name: ContextSwitch
   href: api/Cosmos.Kernel.Core.Scheduler.ContextSwitch.html
@@ -6377,76 +6634,250 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.IScheduler.ShutdownCpu
   nameWithType: IScheduler.ShutdownCpu
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl
-  name: MonitorImpl
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html
-  commentId: T:Cosmos.Kernel.Core.Scheduler.MonitorImpl
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl
-  nameWithType: MonitorImpl
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter(System.Object)
-  name: Enter(object)
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_Enter_System_Object_
-  commentId: M:Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter(System.Object)
-  name.vb: Enter(Object)
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter(object)
-  fullName.vb: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter(Object)
-  nameWithType: MonitorImpl.Enter(object)
-  nameWithType.vb: MonitorImpl.Enter(Object)
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter*
-  name: Enter
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_Enter_
-  commentId: Overload:Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor
+  name: Monitor
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.Monitor
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor
+  nameWithType: Monitor
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.#ctor
+  name: Monitor()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor__ctor
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Monitor()
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.Monitor.New()
+  nameWithType: Monitor.Monitor()
+  nameWithType.vb: Monitor.New()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.#ctor*
+  name: Monitor
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor__ctor_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.#ctor
   isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter
-  nameWithType: MonitorImpl.Enter
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit(System.Object)
-  name: Exit(object)
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_Exit_System_Object_
-  commentId: M:Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit(System.Object)
-  name.vb: Exit(Object)
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit(object)
-  fullName.vb: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit(Object)
-  nameWithType: MonitorImpl.Exit(object)
-  nameWithType.vb: MonitorImpl.Exit(Object)
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit*
-  name: Exit
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_Exit_
-  commentId: Overload:Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit
+  name.vb: New
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Monitor
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.Monitor.New
+  nameWithType: Monitor.Monitor
+  nameWithType.vb: Monitor.New
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Acquire
+  name: Acquire()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Acquire
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Acquire
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Acquire()
+  nameWithType: Monitor.Acquire()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Acquire*
+  name: Acquire
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Acquire_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Acquire
   isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit
-  nameWithType: MonitorImpl.Exit
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered(System.Object)
-  name: IsEntered(object)
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_IsEntered_System_Object_
-  commentId: M:Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered(System.Object)
-  name.vb: IsEntered(Object)
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered(object)
-  fullName.vb: Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered(Object)
-  nameWithType: MonitorImpl.IsEntered(object)
-  nameWithType.vb: MonitorImpl.IsEntered(Object)
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered*
-  name: IsEntered
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_IsEntered_
-  commentId: Overload:Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Acquire
+  nameWithType: Monitor.Acquire
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Dispose
+  name: Dispose()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Dispose
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Dispose
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Dispose()
+  nameWithType: Monitor.Dispose()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Dispose*
+  name: Dispose
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Dispose_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Dispose
   isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered
-  nameWithType: MonitorImpl.IsEntered
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter(System.Object)
-  name: TryEnter(object)
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_TryEnter_System_Object_
-  commentId: M:Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter(System.Object)
-  name.vb: TryEnter(Object)
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter(object)
-  fullName.vb: Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter(Object)
-  nameWithType: MonitorImpl.TryEnter(object)
-  nameWithType.vb: MonitorImpl.TryEnter(Object)
-- uid: Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter*
-  name: TryEnter
-  href: api/Cosmos.Kernel.Core.Scheduler.MonitorImpl.html#Cosmos_Kernel_Core_Scheduler_MonitorImpl_TryEnter_
-  commentId: Overload:Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Dispose
+  nameWithType: Monitor.Dispose
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Finalize
+  name: ~Monitor()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Finalize
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Finalize
+  name.vb: ''
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.~Monitor()
+  fullName.vb: ''
+  nameWithType: Monitor.~Monitor()
+  nameWithType.vb: ''
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Finalize*
+  name: ~Monitor
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Finalize_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Finalize
   isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter
-  nameWithType: MonitorImpl.TryEnter
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.~Monitor
+  nameWithType: Monitor.~Monitor
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Release
+  name: Release()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Release
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Release
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Release()
+  nameWithType: Monitor.Release()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Release*
+  name: Release
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Release_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Release
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Release
+  nameWithType: Monitor.Release
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Signal
+  name: Signal()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Signal
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Signal
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Signal()
+  nameWithType: Monitor.Signal()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Signal*
+  name: Signal
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Signal_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Signal
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Signal
+  nameWithType: Monitor.Signal
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll
+  name: SignalAll()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_SignalAll
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll()
+  nameWithType: Monitor.SignalAll()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll*
+  name: SignalAll
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_SignalAll_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll
+  nameWithType: Monitor.SignalAll
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Wait
+  name: Wait()
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Wait
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Wait
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Wait()
+  nameWithType: Monitor.Wait()
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Wait(System.Int32)
+  name: Wait(int)
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Wait_System_Int32_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Monitor.Wait(System.Int32)
+  name.vb: Wait(Integer)
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Wait(int)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.Monitor.Wait(Integer)
+  nameWithType: Monitor.Wait(int)
+  nameWithType.vb: Monitor.Wait(Integer)
+- uid: Cosmos.Kernel.Core.Scheduler.Monitor.Wait*
+  name: Wait
+  href: api/Cosmos.Kernel.Core.Scheduler.Monitor.html#Cosmos_Kernel_Core_Scheduler_Monitor_Wait_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Monitor.Wait
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Monitor.Wait
+  nameWithType: Monitor.Wait
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex
+  name: Mutex
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.Mutex
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex
+  nameWithType: Mutex
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.#ctor
+  name: Mutex()
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex__ctor
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Mutex.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Mutex()
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.Mutex.New()
+  nameWithType: Mutex.Mutex()
+  nameWithType.vb: Mutex.New()
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.#ctor*
+  name: Mutex
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex__ctor_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Mutex
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.Mutex.New
+  nameWithType: Mutex.Mutex
+  nameWithType.vb: Mutex.New
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Acquire
+  name: Acquire()
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Acquire
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Mutex.Acquire
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Acquire()
+  nameWithType: Mutex.Acquire()
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Acquire*
+  name: Acquire
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Acquire_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.Acquire
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Acquire
+  nameWithType: Mutex.Acquire
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Dispose
+  name: Dispose()
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Dispose
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Mutex.Dispose
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Dispose()
+  nameWithType: Mutex.Dispose()
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Dispose*
+  name: Dispose
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Dispose_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.Dispose
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Dispose
+  nameWithType: Mutex.Dispose
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked
+  name: IsLocked
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_IsLocked
+  commentId: P:Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked
+  nameWithType: Mutex.IsLocked
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked*
+  name: IsLocked
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_IsLocked_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.IsLocked
+  nameWithType: Mutex.IsLocked
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread
+  name: OwnerThread
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_OwnerThread
+  commentId: P:Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread
+  nameWithType: Mutex.OwnerThread
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread*
+  name: OwnerThread
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_OwnerThread_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.OwnerThread
+  nameWithType: Mutex.OwnerThread
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Release
+  name: Release()
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Release
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Mutex.Release
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Release()
+  nameWithType: Mutex.Release()
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.Release*
+  name: Release
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_Release_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.Release
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.Release
+  nameWithType: Mutex.Release
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire
+  name: TryAcquire()
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_TryAcquire
+  commentId: M:Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire()
+  nameWithType: Mutex.TryAcquire()
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire*
+  name: TryAcquire
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_TryAcquire_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.TryAcquire
+  nameWithType: Mutex.TryAcquire
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount
+  name: WaitingThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_WaitingThreadCount
+  commentId: P:Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount
+  nameWithType: Mutex.WaitingThreadCount
+- uid: Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount*
+  name: WaitingThreadCount
+  href: api/Cosmos.Kernel.Core.Scheduler.Mutex.html#Cosmos_Kernel_Core_Scheduler_Mutex_WaitingThreadCount_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.Mutex.WaitingThreadCount
+  nameWithType: Mutex.WaitingThreadCount
 - uid: Cosmos.Kernel.Core.Scheduler.PerCpuState
   name: PerCpuState
   href: api/Cosmos.Kernel.Core.Scheduler.PerCpuState.html
@@ -6687,6 +7118,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetAllCpuStates
   nameWithType: SchedulerManager.GetAllCpuStates
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs
+  name: GetBusyCpuTimeNs()
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetBusyCpuTimeNs
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs()
+  nameWithType: SchedulerManager.GetBusyCpuTimeNs()
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs*
+  name: GetBusyCpuTimeNs
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetBusyCpuTimeNs_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetBusyCpuTimeNs
+  nameWithType: SchedulerManager.GetBusyCpuTimeNs
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState(System.UInt32)
   name: GetCpuState(uint)
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_System_UInt32_
@@ -6703,6 +7147,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState
   nameWithType: SchedulerManager.GetCpuState
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId
+  name: GetCurrentCpuId()
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCurrentCpuId
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId()
+  nameWithType: SchedulerManager.GetCurrentCpuId()
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId*
+  name: GetCurrentCpuId
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCurrentCpuId_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId
+  nameWithType: SchedulerManager.GetCurrentCpuId
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetPriority(Cosmos.Kernel.Core.Scheduler.Thread)
   name: GetPriority(Thread)
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetPriority_Cosmos_Kernel_Core_Scheduler_Thread_
@@ -6732,12 +7189,15 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Initialize
   nameWithType: SchedulerManager.Initialize
-- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart
-  name: InvokeCurrentThreadStart()
-  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart
-  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart
-  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart()
-  nameWithType: SchedulerManager.InvokeCurrentThreadStart()
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart(System.IntPtr)
+  name: InvokeCurrentThreadStart(nint)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_System_IntPtr_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart(System.IntPtr)
+  name.vb: InvokeCurrentThreadStart(IntPtr)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart(nint)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart(System.IntPtr)
+  nameWithType: SchedulerManager.InvokeCurrentThreadStart(nint)
+  nameWithType.vb: SchedulerManager.InvokeCurrentThreadStart(IntPtr)
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.InvokeCurrentThreadStart*
   name: InvokeCurrentThreadStart
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_InvokeCurrentThreadStart_
@@ -6758,6 +7218,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsEnabled
   nameWithType: SchedulerManager.IsEnabled
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback
+  name: OnThreadExitCallback
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnThreadExitCallback
+  commentId: P:Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback
+  nameWithType: SchedulerManager.OnThreadExitCallback
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback*
+  name: OnThreadExitCallback
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnThreadExitCallback_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnThreadExitCallback
+  nameWithType: SchedulerManager.OnThreadExitCallback
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnTick(System.UInt32,System.UInt64)
   name: OnTick(uint, ulong)
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnTick_System_UInt32_System_UInt64_
@@ -6912,6 +7385,31 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetupIdleThread
   nameWithType: SchedulerManager.SetupIdleThread
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32)
+  name: Sleep(uint)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_System_UInt32_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32)
+  name.vb: Sleep(UInteger)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(uint)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(UInteger)
+  nameWithType: SchedulerManager.Sleep(uint)
+  nameWithType.vb: SchedulerManager.Sleep(UInteger)
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)
+  name: Sleep(uint, Thread, uint)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)
+  name.vb: Sleep(UInteger, Thread, UInteger)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(uint, Cosmos.Kernel.Core.Scheduler.Thread, uint)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep(UInteger, Cosmos.Kernel.Core.Scheduler.Thread, UInteger)
+  nameWithType: SchedulerManager.Sleep(uint, Thread, uint)
+  nameWithType.vb: SchedulerManager.Sleep(UInteger, Thread, UInteger)
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep*
+  name: Sleep
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_Sleep_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.Sleep
+  nameWithType: SchedulerManager.Sleep
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.ThreadCount
   name: ThreadCount
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_ThreadCount
@@ -7649,19 +8147,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.Thread.StackSize
   nameWithType: Thread.StackSize
-- uid: Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate
-  name: StartDelegate
-  href: api/Cosmos.Kernel.Core.Scheduler.Thread.html#Cosmos_Kernel_Core_Scheduler_Thread_StartDelegate
-  commentId: P:Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate
-  fullName: Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate
-  nameWithType: Thread.StartDelegate
-- uid: Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate*
-  name: StartDelegate
-  href: api/Cosmos.Kernel.Core.Scheduler.Thread.html#Cosmos_Kernel_Core_Scheduler_Thread_StartDelegate_
-  commentId: Overload:Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate
-  isSpec: "True"
-  fullName: Cosmos.Kernel.Core.Scheduler.Thread.StartDelegate
-  nameWithType: Thread.StartDelegate
 - uid: Cosmos.Kernel.Core.Scheduler.Thread.State
   name: State
   href: api/Cosmos.Kernel.Core.Scheduler.Thread.html#Cosmos_Kernel_Core_Scheduler_Thread_State
@@ -7897,6 +8382,12 @@ references:
   commentId: F:Cosmos.Kernel.Core.Scheduler.ThreadFlags.KernelThread
   fullName: Cosmos.Kernel.Core.Scheduler.ThreadFlags.KernelThread
   nameWithType: ThreadFlags.KernelThread
+- uid: Cosmos.Kernel.Core.Scheduler.ThreadFlags.Managed
+  name: Managed
+  href: api/Cosmos.Kernel.Core.Scheduler.ThreadFlags.html#Cosmos_Kernel_Core_Scheduler_ThreadFlags_Managed
+  commentId: F:Cosmos.Kernel.Core.Scheduler.ThreadFlags.Managed
+  fullName: Cosmos.Kernel.Core.Scheduler.ThreadFlags.Managed
+  nameWithType: ThreadFlags.Managed
 - uid: Cosmos.Kernel.Core.Scheduler.ThreadFlags.None
   name: None
   href: api/Cosmos.Kernel.Core.Scheduler.ThreadFlags.html#Cosmos_Kernel_Core_Scheduler_ThreadFlags_None
@@ -8308,6 +8799,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePortIO
   nameWithType: ARM64PlatformInitializer.CreatePortIO
+- uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps
+  name: CreatePowerOps()
+  href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_CreatePowerOps
+  commentId: M:Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps
+  fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps()
+  nameWithType: ARM64PlatformInitializer.CreatePowerOps()
+- uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps*
+  name: CreatePowerOps
+  href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_CreatePowerOps_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreatePowerOps
+  nameWithType: ARM64PlatformInitializer.CreatePowerOps
 - uid: Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.CreateTimer
   name: CreateTimer()
   href: api/Cosmos.Kernel.HAL.ARM64.ARM64PlatformInitializer.html#Cosmos_Kernel_HAL_ARM64_ARM64PlatformInitializer_CreateTimer
@@ -8472,6 +8976,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetCurrentTicks
   nameWithType: RTC.GetCurrentTicks
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks
+  name: GetElapsedTicks()
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetElapsedTicks
+  commentId: M:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks()
+  nameWithType: RTC.GetElapsedTicks()
+- uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks*
+  name: GetElapsedTicks
+  href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_GetElapsedTicks_
+  commentId: Overload:Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.GetElapsedTicks
+  nameWithType: RTC.GetElapsedTicks
 - uid: Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.Initialize
   name: Initialize()
   href: api/Cosmos.Kernel.HAL.ARM64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_ARM64_Devices_Clock_RTC_Initialize
@@ -11760,6 +12277,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePortIO
   nameWithType: IPlatformInitializer.CreatePortIO
+- uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps
+  name: CreatePowerOps()
+  href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_CreatePowerOps
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps
+  fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps()
+  nameWithType: IPlatformInitializer.CreatePowerOps()
+- uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps*
+  name: CreatePowerOps
+  href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_CreatePowerOps_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps
+  nameWithType: IPlatformInitializer.CreatePowerOps
 - uid: Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateTimer
   name: CreateTimer()
   href: api/Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.html#Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_CreateTimer
@@ -13880,6 +14410,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.PlatformHAL.PortIO
   nameWithType: PlatformHAL.PortIO
+- uid: Cosmos.Kernel.HAL.PlatformHAL.PowerOps
+  name: PowerOps
+  href: api/Cosmos.Kernel.HAL.PlatformHAL.html#Cosmos_Kernel_HAL_PlatformHAL_PowerOps
+  commentId: P:Cosmos.Kernel.HAL.PlatformHAL.PowerOps
+  fullName: Cosmos.Kernel.HAL.PlatformHAL.PowerOps
+  nameWithType: PlatformHAL.PowerOps
+- uid: Cosmos.Kernel.HAL.PlatformHAL.PowerOps*
+  name: PowerOps
+  href: api/Cosmos.Kernel.HAL.PlatformHAL.html#Cosmos_Kernel_HAL_PlatformHAL_PowerOps_
+  commentId: Overload:Cosmos.Kernel.HAL.PlatformHAL.PowerOps
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.PlatformHAL.PowerOps
+  nameWithType: PlatformHAL.PowerOps
 - uid: Cosmos.Kernel.HAL.PlatformHAL.SetInitializer(Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer)
   name: SetInitializer(IPlatformInitializer)
   href: api/Cosmos.Kernel.HAL.PlatformHAL.html#Cosmos_Kernel_HAL_PlatformHAL_SetInitializer_Cosmos_Kernel_HAL_Interfaces_IPlatformInitializer_
@@ -13953,6 +14496,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetCurrentTicks
   nameWithType: RTC.GetCurrentTicks
+- uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks
+  name: GetElapsedTicks()
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_GetElapsedTicks
+  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks()
+  nameWithType: RTC.GetElapsedTicks()
+- uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks*
+  name: GetElapsedTicks
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_GetElapsedTicks_
+  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.GetElapsedTicks
+  nameWithType: RTC.GetElapsedTicks
 - uid: Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.Initialize
   name: Initialize()
   href: api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.html#Cosmos_Kernel_HAL_X64_Devices_Clock_RTC_Initialize
@@ -15160,6 +15716,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePortIO
   nameWithType: X64PlatformInitializer.CreatePortIO
+- uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps
+  name: CreatePowerOps()
+  href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_CreatePowerOps
+  commentId: M:Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps
+  fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps()
+  nameWithType: X64PlatformInitializer.CreatePowerOps()
+- uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps*
+  name: CreatePowerOps
+  href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_CreatePowerOps_
+  commentId: Overload:Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreatePowerOps
+  nameWithType: X64PlatformInitializer.CreatePowerOps
 - uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer.CreateTimer
   name: CreateTimer()
   href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html#Cosmos_Kernel_HAL_X64_X64PlatformInitializer_CreateTimer
@@ -17775,6 +18344,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Kernel.Stop
   nameWithType: Kernel.Stop
+- uid: Cosmos.Kernel.System.Kernel.VersionString
+  name: VersionString
+  href: api/Cosmos.Kernel.System.Kernel.html#Cosmos_Kernel_System_Kernel_VersionString
+  commentId: F:Cosmos.Kernel.System.Kernel.VersionString
+  fullName: Cosmos.Kernel.System.Kernel.VersionString
+  nameWithType: Kernel.VersionString
 - uid: Cosmos.Kernel.System.Kernel.mStarted
   name: mStarted
   href: api/Cosmos.Kernel.System.Kernel.html#Cosmos_Kernel_System_Kernel_mStarted
@@ -22314,6 +22889,51 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.NetworkStack.Update
   nameWithType: NetworkStack.Update
+- uid: Cosmos.Kernel.System.Power
+  name: Power
+  href: api/Cosmos.Kernel.System.Power.html
+  commentId: T:Cosmos.Kernel.System.Power
+  fullName: Cosmos.Kernel.System.Power
+  nameWithType: Power
+- uid: Cosmos.Kernel.System.Power.Halt
+  name: Halt()
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt
+  commentId: M:Cosmos.Kernel.System.Power.Halt
+  fullName: Cosmos.Kernel.System.Power.Halt()
+  nameWithType: Power.Halt()
+- uid: Cosmos.Kernel.System.Power.Halt*
+  name: Halt
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt_
+  commentId: Overload:Cosmos.Kernel.System.Power.Halt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Power.Halt
+  nameWithType: Power.Halt
+- uid: Cosmos.Kernel.System.Power.Reboot
+  name: Reboot()
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Reboot
+  commentId: M:Cosmos.Kernel.System.Power.Reboot
+  fullName: Cosmos.Kernel.System.Power.Reboot()
+  nameWithType: Power.Reboot()
+- uid: Cosmos.Kernel.System.Power.Reboot*
+  name: Reboot
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Reboot_
+  commentId: Overload:Cosmos.Kernel.System.Power.Reboot
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Power.Reboot
+  nameWithType: Power.Reboot
+- uid: Cosmos.Kernel.System.Power.Shutdown
+  name: Shutdown()
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Shutdown
+  commentId: M:Cosmos.Kernel.System.Power.Shutdown
+  fullName: Cosmos.Kernel.System.Power.Shutdown()
+  nameWithType: Power.Shutdown()
+- uid: Cosmos.Kernel.System.Power.Shutdown*
+  name: Shutdown
+  href: api/Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Shutdown_
+  commentId: Overload:Cosmos.Kernel.System.Power.Shutdown
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Power.Shutdown
+  nameWithType: Power.Shutdown
 - uid: Cosmos.Kernel.System.Timer
   name: Cosmos.Kernel.System.Timer
   href: api/Cosmos.Kernel.System.Timer.html

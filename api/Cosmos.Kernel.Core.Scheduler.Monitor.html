@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class MonitorImpl | Cosmos Gen 3 </title>
+      <title>Class Monitor | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class MonitorImpl | Cosmos Gen 3 ">
+      <meta name="title" content="Class Monitor | Cosmos Gen 3 ">
       
-      <meta name="description" content="Provides Monitor.Enter/Exit semantics using a hash table keyed by object address. Supports reentrancy (same thread can acquire the same lock multiple times). Used as the backing implementation for the C# lock keyword.">
+      <meta name="description" content="A simple monitor implementation for kernel threads.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,12 +84,12 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl">
+        <article data-uid="Cosmos.Kernel.Core.Scheduler.Monitor">
 
 
 
-  <h1 id="Cosmos_Kernel_Core_Scheduler_MonitorImpl" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl" class="text-break">
-Class MonitorImpl  
+  <h1 id="Cosmos_Kernel_Core_Scheduler_Monitor" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor" class="text-break">
+Class Monitor  
   </h1>
 
   <div class="facts text-secondary">
@@ -97,14 +97,12 @@ Class MonitorImpl
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Provides Monitor.Enter/Exit semantics using a hash table keyed by object address.
-Supports reentrancy (same thread can acquire the same lock multiple times).
-Used as the backing implementation for the C# lock keyword.</p>
+  <div class="markdown summary"><p>A simple monitor implementation for kernel threads.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class MonitorImpl</code></pre>
+    <pre><code class="lang-csharp hljs">public class Monitor : IDisposable</code></pre>
   </div>
 
 
@@ -114,10 +112,16 @@ Used as the backing implementation for the C# lock keyword.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">MonitorImpl</span></div>
+      <div><span class="xref">Monitor</span></div>
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
@@ -149,33 +153,62 @@ Used as the backing implementation for the C# lock keyword.</p>
 
 
 
+  <h2 id="Cosmos_Kernel_Core_Scheduler_Monitor_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>This monitor combines a <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a> and a <a class="xref" href="Cosmos.Kernel.Core.Scheduler.ConditionVariable.html">ConditionVariable</a> to provide
+acquire/release semantics and wait/signal behavior for the scheduler.</p>
+</div>
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor__ctor_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor__ctor" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.#ctor">
+  Monitor()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Monitor.html">Monitor</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Monitor()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
 
 
   <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_Enter_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Acquire_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Acquire*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_Enter_System_Object_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.Enter(System.Object)">
-  Enter(object)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Acquire" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Acquire">
+  Acquire()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Acquires the monitor for the specified object. Blocks until acquired.
-Supports reentrancy.</p>
+  <div class="markdown level1 summary"><p>Acquires the monitor lock.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Enter(object obj)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Acquire()</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -188,26 +221,21 @@ Supports reentrancy.</p>
 
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_Exit_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Dispose_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Dispose*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_Exit_System_Object_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.Exit(System.Object)">
-  Exit(object)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Dispose" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Dispose">
+  Dispose()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Releases the monitor for the specified object.</p>
+  <div class="markdown level1 summary"><p>Releases resources used by the monitor.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Exit(object obj)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -220,32 +248,21 @@ Supports reentrancy.</p>
 
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_IsEntered_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered*"></a>
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Finalize_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Finalize*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_IsEntered_System_Object_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.IsEntered(System.Object)">
-  IsEntered(object)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Finalize" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Finalize">
+  ~Monitor()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Checks if the current thread holds the monitor for the specified object.</p>
+  <div class="markdown level1 summary"><p>Finalizes the monitor and ensures unmanaged resources are released.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool IsEntered(object obj)</code></pre>
+    <pre><code class="lang-csharp hljs">protected ~Monitor()</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -257,25 +274,138 @@ Supports reentrancy.</p>
 
 
 
-  <a id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_TryEnter_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_MonitorImpl_TryEnter_System_Object_" data-uid="Cosmos.Kernel.Core.Scheduler.MonitorImpl.TryEnter(System.Object)">
-  TryEnter(object)
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Release_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Release*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Release" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Release">
+  Release()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Attempts to acquire the monitor without blocking.</p>
+  <div class="markdown level1 summary"><p>Releases the monitor lock.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TryEnter(object obj)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Release()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Signal_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Signal*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Signal" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Signal">
+  Signal()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Signals one waiting thread and releases the monitor lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Signal()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_SignalAll_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_SignalAll" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.SignalAll">
+  SignalAll()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Signals all waiting threads and releases the monitor lock.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SignalAll()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Wait_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Wait*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Wait" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Wait">
+  Wait()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Waits on the condition variable until signaled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Wait()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_Core_Scheduler_Monitor_Wait_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The mutex is released while waiting and re-acquired before returning.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_Monitor_Wait_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Wait*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_Monitor_Wait_System_Int32_" data-uid="Cosmos.Kernel.Core.Scheduler.Monitor.Wait(System.Int32)">
+  Wait(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Waits on the condition variable until signaled or the timeout expires.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Wait(int timeoutMilliseconds)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
-    <dd></dd>
+    <dt><code>timeoutMilliseconds</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The timeout duration in milliseconds.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
