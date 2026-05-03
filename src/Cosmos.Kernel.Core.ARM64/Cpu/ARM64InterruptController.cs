@@ -3,6 +3,7 @@
 using Cosmos.Kernel.Core.ARM64.Bridge;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
 
@@ -10,7 +11,8 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// ARM64 interrupt controller - manages exception vectors and GIC.
 /// Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/ARM64InterruptNative.cs.
 /// </summary>
-public class ARM64InterruptController : IInterruptController
+[Logger]
+public partial class ARM64InterruptController : IInterruptController
 {
     private bool _initialized;
 
@@ -23,11 +25,11 @@ public class ARM64InterruptController : IInterruptController
 
     public void Initialize()
     {
-        Serial.Write("[ARM64InterruptController] Starting exception vector initialization...\n");
+        Log.Info("Starting exception vector initialization");
 
         // Initialize exception vectors (VBAR_EL1)
         Arm64ExceptionVectorNative.InitExceptionVectors();
-        Serial.Write("[ARM64InterruptController] Exception vectors initialized\n");
+        Log.Info("Exception vectors initialized");
 
         // Initialize the GIC (Generic Interrupt Controller)
         GIC.Initialize();
@@ -36,7 +38,7 @@ public class ARM64InterruptController : IInterruptController
         GIC.SetPriority(GIC.TIMER_NONSEC_PHYS, 0x80);  // Medium priority
         GIC.EnableInterrupt(GIC.TIMER_NONSEC_PHYS);
 
-        Serial.Write("[ARM64InterruptController] ARM64 interrupt system ready\n");
+        Log.Info("ARM64 interrupt system ready");
 
         _initialized = true;
     }
@@ -71,11 +73,7 @@ public class ARM64InterruptController : IInterruptController
             GIC.EnableInterrupt(irqNo);
         }
 
-        Serial.Write("[ARM64InterruptController] Routed IRQ ");
-        Serial.WriteNumber(irqNo);
-        Serial.Write(" -> vector ");
-        Serial.WriteNumber(vector);
-        Serial.Write("\n");
+        Log.Debug($"Routing IRQ {irqNo} -> vector {vector}");
     }
 
     /// <summary>

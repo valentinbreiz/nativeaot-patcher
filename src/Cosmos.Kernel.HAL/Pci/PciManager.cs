@@ -1,11 +1,12 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
-public class PciManager
+[Logger]
+public partial class PciManager
 {
     public static PciDevice[]? Devices;
 
@@ -13,10 +14,10 @@ public class PciManager
 
     public static void Setup()
     {
-        Serial.WriteString("[PciManager] Setup .\n");
-        Serial.WriteString("[PciManager] Setup Clearing List.\n");
+        Log.Debug("Setup");
+        Log.Debug("Clearing device list");
         Devices = new PciDevice[64];
-        Serial.WriteString("[PciManager] Setup Cleared List.\n");
+        Log.Debug("Cleared device list");
         if ((PciDevice.GetHeaderType(0x0, 0x0, 0x0) & 0x80) == 0)
         {
             CheckBus(0x0);
@@ -25,9 +26,7 @@ public class PciManager
         {
             for (ushort fn = 0; fn < 8; fn++)
             {
-                Serial.WriteString("[PciManager] Setup ");
-                Serial.WriteNumber(fn);
-                Serial.WriteString("\n");
+                Log.Debug("Setup fn=" + fn.ToString());
                 if (PciDevice.GetVendorId(0x0, 0x0, fn) != 0xFFFF)
                 {
                     break;
@@ -40,16 +39,10 @@ public class PciManager
         for (int i = 0; i < Count; i++)
         {
             PciDevice device = Devices[i];
-            Serial.WriteString("[PciManager] Found - ");
-            Serial.WriteString(device.GetDeviceString());
-            Serial.WriteString(" --- ");
-            Serial.WriteString(device.GetTypeString());
-            Serial.WriteString(" \n");
+            Log.Info("Found - " + device.GetDeviceString() + " --- " + device.GetTypeString());
         }
 
-        Serial.WriteString("[PciManager] Found Count ");
-        Serial.WriteNumber(Count);
-        Serial.WriteString("\n");
+        Log.Info("Scan complete");
     }
 
     /// <summary>
@@ -58,17 +51,11 @@ public class PciManager
     /// <param name="xBus">A bus to check.</param>
     private static void CheckBus(ushort xBus)
     {
-        Serial.WriteString("[PciManager] CheckBus(");
-        Serial.WriteNumber(xBus);
-        Serial.WriteString(")\n");
+        Log.Debug("CheckBus(" + xBus.ToString() + ")");
         for (ushort device = 0; device < 32; device++)
         {
-            Serial.WriteString("[PciManager] CheckBus - ");
-            Serial.WriteNumber(device);
             ushort vendorId = PciDevice.GetVendorId(xBus, device, 0x0);
-            Serial.WriteString(" VID: 0x");
-            Serial.WriteHex(vendorId);
-            Serial.WriteString("\n");
+            Log.Debug("CheckBus - device=" + device.ToString() + " VID=" + vendorId.ToString());
             if (vendorId == 0xFFFF)
             {
                 continue;
@@ -90,13 +77,9 @@ public class PciManager
 
     private static void CheckFunction(PciDevice xPCIDevice)
     {
-        Serial.WriteString("[PciManager] CheckFunction - ");
-        Serial.WriteString(xPCIDevice.GetDeviceString());
-        Serial.WriteString(" --- ");
-        Serial.WriteString(xPCIDevice.GetTypeString());
-        Serial.WriteString(" \n");
+        Log.Debug("CheckFunction - " + xPCIDevice.GetDeviceString() + " --- " + xPCIDevice.GetTypeString());
         Add(xPCIDevice);
-        Serial.WriteString("[PciManager] Cached\n");
+        Log.Debug("Cached");
         if (xPCIDevice.ClassCode == 0x6 && xPCIDevice.Subclass == 0x4)
         {
             CheckBus(xPCIDevice.SecondaryBusNumber);
@@ -107,7 +90,7 @@ public class PciManager
     {
         if (Count >= Devices.Length)
         {
-            Serial.WriteString("[PciManager] Device array full, cannot add more devices\n");
+            Log.Error("Device array full, cannot add more devices");
             return;
         }
         Devices[Count] = xPciDevice;

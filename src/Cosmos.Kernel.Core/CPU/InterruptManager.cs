@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 
 namespace Cosmos.Kernel.Core.CPU;
 
@@ -10,7 +11,8 @@ namespace Cosmos.Kernel.Core.CPU;
 /// arch-specific drivers implement <see cref="IInterruptController"/> in
 /// Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.
 /// </summary>
-public static class InterruptManager
+[Logger(Category = "InterruptManager")]
+public static partial class InterruptManager
 {
     /// <summary>
     /// Interrupt delegate signature.
@@ -20,8 +22,6 @@ public static class InterruptManager
 
     internal static IrqDelegate[]? s_irqHandlers;
     private static IInterruptController? s_controller;
-
-    private const string NewLine = "\n";
 
     /// <summary>
     /// Whether interrupt support is enabled. Uses centralized feature flag.
@@ -34,13 +34,13 @@ public static class InterruptManager
     /// <param name="controller">Platform-specific interrupt controller (X64 or ARM64).</param>
     public static void Initialize(IInterruptController controller)
     {
-        Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
+        Log.Debug("Allocating handlers array");
         s_irqHandlers = new IrqDelegate[256];
         s_controller = controller;
 
-        Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
+        Log.Debug("Initializing platform interrupt controller");
         controller.Initialize();
-        Serial.Write("[InterruptManager.Initialize] Interrupt system ready\n");
+        Log.Info("Interrupt system ready");
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public static class InterruptManager
     {
         if (s_irqHandlers == null)
         {
-            Serial.Write("[InterruptManager] ERROR: s_irqHandlers is null! Initialize() must be called first.\n");
+            Log.Error("s_irqHandlers is null, Initialize() must be called first");
             return;
         }
         s_irqHandlers[vector] = handler;
@@ -72,7 +72,7 @@ public static class InterruptManager
         // Route the IRQ through the platform-specific controller
         if (s_controller != null && s_controller.IsInitialized)
         {
-            Serial.Write("[InterruptManager] Routing IRQ ", irqNo, " -> vector 0x", vector.ToString("X"), NewLine);
+            Log.Debug($"Routing IRQ {irqNo} -> vector 0x{vector:X}");
             s_controller.RouteIrq(irqNo, vector, startMasked);
         }
     }
@@ -143,7 +143,7 @@ public static class InterruptManager
         else
         {
             // FIQ or SError - log and halt
-            Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, NewLine);
+            Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, "\n");
             if (s_controller != null)
             {
                 s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);

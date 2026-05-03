@@ -2,21 +2,23 @@
 
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
 
 /// <summary>
 /// X64 interrupt controller - manages IDT and APIC.
 /// </summary>
-public class X64InterruptController : IInterruptController
+[Logger]
+public partial class X64InterruptController : IInterruptController
 {
     public bool IsInitialized => ApicManager.IsInitialized;
 
     public void Initialize()
     {
-        Serial.Write("[X64InterruptController] Starting IDT initialization...\n");
+        Log.Info("Starting IDT initialization");
         Idt.RegisterAllInterrupts();
-        Serial.Write("[X64InterruptController] IDT initialization complete\n");
+        Log.Info("IDT initialization complete");
     }
 
     public void SendEOI()
