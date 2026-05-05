@@ -25,5 +25,5 @@ public struct SpinLock
         return Interlocked.CompareExchange(ref _locked, 1, 0) == 0;
     }
 
-    public bool IsLocked => _locked != 0;
+    public readonly bool IsLocked => _locked != 0;
 }

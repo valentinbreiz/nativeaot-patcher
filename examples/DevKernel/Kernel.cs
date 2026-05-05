@@ -30,7 +30,7 @@ public class Kernel : Sys.Kernel
 
         Console.Clear();
         Console.WriteLine("========================================");
-        Console.WriteLine($"         CosmosOS {Cosmos.Kernel.Kernel.VersionString} Shell       ");
+        Console.WriteLine($"         CosmosOS {Sys.Kernel.VersionString} Shell       ");
         Console.WriteLine("========================================");
         Console.WriteLine();
 
@@ -120,9 +120,18 @@ public class Kernel : Sys.Kernel
                     break;
 
                 case "halt":
+                    PrintWarning("Halting CPU...");
+                    Sys.Power.Halt();
+                    break;
+
+                case "reboot":
+                    PrintWarning("Rebooting...");
+                    Sys.Power.Reboot();
+                    break;
+
                 case "shutdown":
-                    PrintWarning("Halting system...");
-                    Stop();
+                    PrintWarning("Shutting down...");
+                    Sys.Power.Shutdown();
                     break;
 
                 case "netconfig":
@@ -168,6 +177,10 @@ public class Kernel : Sys.Kernel
 
                 case "gc":
                     GarbadgeColectorLiveInformation();
+                    break;
+
+                case "cpustat":
+                    CpuStat.Run();
                     break;
 
                 case "gcvar":
@@ -409,7 +422,9 @@ public class Kernel : Sys.Kernel
         PrintCommand("thread", "Test System.Threading.Thread");
         PrintCommand("gfx", "Start graphics thread (draws square)");
         PrintCommand("kill <id>", "Kill a thread by ID");
-        PrintCommand("halt", "Halt the system");
+        PrintCommand("halt", "Halt the CPU (does not power off)");
+        PrintCommand("reboot", "Restart the machine");
+        PrintCommand("shutdown", "Power off the machine");
         PrintCommand("netconfig", "Configure network stack");
         PrintCommand("netinfo", "Show network device info");
         PrintCommand("netsend", "Send UDP test packet");
@@ -417,6 +432,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("dhcp", "Auto-configure network via DHCP");
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
+        PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
     }
 
     private void PrintCommand(string cmd, string description)
@@ -432,7 +448,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("System Information:");
         Console.ResetColor();
 
-        PrintInfoLine("OS", $"CosmosOS v{Cosmos.Kernel.Kernel.VersionString} (gen3)");
+        PrintInfoLine("OS", $"CosmosOS v{Sys.Kernel.VersionString} (gen3)");
         PrintInfoLine("Runtime", "NativeAOT");
 #if ARCH_X64
         PrintInfoLine("Architecture", "x86-64");

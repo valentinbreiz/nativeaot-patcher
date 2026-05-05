@@ -42,6 +42,28 @@
     <Message Importance="High" Text="⚙️ [SDK] Cosmos.Kernel Bootstrap: $(_CosmosKernelProjectDir)Bootstrap\" Condition="'$(_CosmosKernelProjectDir)' != ''" />
   </Target>
 
+  <!-- Resolve InteropAPI.txt from Cosmos.Kernel.Core. Without this, ILC
+       has no DirectPInvokeList for project-referenced kernels and every
+       libSystem.Native P/Invoke (SystemNative_GetCpuUtilization etc.)
+       routes through the runtime's LoadLibrary fixup path instead of
+       being statically linked to the kernel's [UnmanagedCallersOnly]
+       exports in src/Cosmos.Kernel.Core/Bridge/Interop/libSystemNative.cs. -->
+  <Target Name="ResolveCosmosKernelCoreInteropAPI" BeforeTargets="CustomizeReferences">
+    <ItemGroup>
+      <_CosmosKernelCoreProjectRef Include="@(ProjectReference)" Condition="$([System.String]::Copy('%(Filename)').EndsWith('Cosmos.Kernel.Core'))" />
+    </ItemGroup>
+    <PropertyGroup>
+      <!-- %(FullPath) resolves the ProjectReference Include relative to the
+           consuming project, giving an absolute path. ILC runs from a deeply
+           nested obj/ folder, so the value MUST be absolute or it can't find
+           InteropAPI.txt and falls back to runtime P/Invoke fixup. -->
+      <_CosmosKernelCoreInteropApi Condition="@(_CosmosKernelCoreProjectRef) != ''">$([System.IO.Path]::GetDirectoryName('%(_CosmosKernelCoreProjectRef.FullPath)'))/build/InteropAPI.txt</_CosmosKernelCoreInteropApi>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(_CosmosKernelCoreInteropApi)' != '' AND Exists('$(_CosmosKernelCoreInteropApi)')">
+      <DirectPInvokeList Include="&quot;$(_CosmosKernelCoreInteropApi)&quot;" />
+    </ItemGroup>
+  </Target>
+
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcPath" BeforeTargets="CustomizeReferences" DependsOnTargets="ResolvePackageAssets">
     <PropertyGroup>

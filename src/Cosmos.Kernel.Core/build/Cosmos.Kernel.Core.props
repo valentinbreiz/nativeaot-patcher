@@ -1,5 +1,0 @@
-<Project>
-  <ItemGroup>
-    <IlcArg Include="--generateunmanagedentrypoints:Cosmos.Kernel.Core.Runtime" />
-  </ItemGroup>
-</Project>

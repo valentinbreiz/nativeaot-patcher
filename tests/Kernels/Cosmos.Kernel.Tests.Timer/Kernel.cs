@@ -68,7 +68,7 @@ public class Kernel : Sys.Kernel
     {
         // Flush coverage data and signal QEMU to terminate
         TR.Complete();
-        Cosmos.Kernel.Kernel.Halt();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
     // ==================== DateTime/RTC Tests ====================

@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System;
 /// Base class for all Cosmos user kernels.
 /// Provides the BeforeRun/Run/AfterRun lifecycle pattern.
 /// </summary>
-public abstract class Kernel
+public abstract partial class Kernel
 {
     protected bool mStarted;
     protected bool mStopped;

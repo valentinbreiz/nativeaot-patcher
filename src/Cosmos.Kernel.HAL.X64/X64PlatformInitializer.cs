@@ -4,9 +4,11 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.Core.X64;
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.Core.X64.IO;
+using Cosmos.Kernel.Core.X64.Power;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
@@ -31,6 +33,7 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public IPortIO CreatePortIO() => new X64PortIO();
     public ICpuOps CreateCpuOps() => new X64CpuOps();
+    public IPowerOps CreatePowerOps() => new X64PowerOps();
     public IInterruptController CreateInterruptController() => new X64InterruptController();
 
     public void PreparePciMapping(ulong ecamBase)

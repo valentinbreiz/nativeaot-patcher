@@ -27,15 +27,6 @@ public unsafe class Thread : SchedulerExtensible
     public ulong LastScheduledAt { get; set; }
     public ulong WakeupTime { get; set; }
 
-    /// <summary>
-    /// Managed entry delegate executed the first time this thread is scheduled.
-    /// Set by the thread creator (e.g. ThreadPlug.StartCore) before handing the
-    /// thread to the scheduler; invoked and cleared by
-    /// <see cref="SchedulerManager.InvokeCurrentThreadStart"/>.
-    /// Null for the idle thread and any thread whose entry is native.
-    /// </summary>
-    public Action? StartDelegate { get; set; }
-
     // ===== GC Allocation Context (TLAB) =====
     public AllocContext AllocContext;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.

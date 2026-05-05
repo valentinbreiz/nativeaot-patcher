@@ -130,7 +130,7 @@ public class Kernel : Sys.Kernel
     protected override void AfterRun()
     {
         TR.Complete();
-        Cosmos.Kernel.Kernel.Halt();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
     // =========================================================================

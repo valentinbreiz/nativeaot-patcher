@@ -26,6 +26,19 @@ public interface IQemuHost
 }
 
 /// <summary>
+/// Outcome of the UART log monitor task.
+/// </summary>
+public enum UartMonitorOutcome
+{
+    /// <summary>Cancelled before any decision could be made.</summary>
+    NotFinished,
+    /// <summary>Kernel emitted the suite-end marker (0xDEADBEEFCAFEBABE).</summary>
+    EndMarkerSeen,
+    /// <summary>UART went quiet after a TestPass — the kernel is hung after reaching a test.</summary>
+    Stalled
+}
+
+/// <summary>
 /// Result of running a kernel in QEMU
 /// </summary>
 public record QemuRunResult
@@ -34,4 +47,12 @@ public record QemuRunResult
     public string UartLog { get; init; } = string.Empty;
     public bool TimedOut { get; init; }
     public string ErrorMessage { get; init; } = string.Empty;
+
+    /// <summary>
+    /// True if the kernel emitted the suite-end marker (0xDEADBEEFCAFEBABE)
+    /// before QEMU exited. False means QEMU exited on its own (e.g. guest
+    /// rebooted or shut down) — which the multi-boot loop treats as a cue
+    /// to re-launch with the next <c>skip=N</c>.
+    /// </summary>
+    public bool SuiteMarkerSeen { get; init; }
 }

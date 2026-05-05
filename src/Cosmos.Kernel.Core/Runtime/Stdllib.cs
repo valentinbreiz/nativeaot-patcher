@@ -231,7 +231,7 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.Enabled)
             {
-                Scheduler.PerCpuState cpuState = Scheduler.SchedulerManager.GetCpuState(0);
+                Scheduler.PerCpuState cpuState = Scheduler.SchedulerManager.GetCpuState(Scheduler.SchedulerManager.GetCurrentCpuId());
                 return cpuState.CurrentThread?.Id ?? 1;
             }
 
@@ -267,30 +267,11 @@ namespace Cosmos.Kernel.Core.Runtime
 
         // RhpRethrow is now implemented in assembly (CPU/ExceptionHandling.s)
 
-        [RuntimeExport("RhSpinWait")]
-        internal static void RhSpinWait(int iterations)
-        {
-            // Simple spin wait
-            for (int i = 0; i < iterations; i++)
-            {
-                // Spin
-            }
-        }
-
-        [RuntimeExport("RhSetThreadExitCallback")]
-        internal static void RhSetThreadExitCallback(IntPtr callback) { }
-
         [RuntimeExport("RhCompatibleReentrantWaitAny")]
         internal static uint RhCompatibleReentrantWaitAny(int alertable, uint timeout, uint handleCount, IntPtr pHandles)
         {
             // Single-threaded kernel: always return success immediately
             return 0x00000000; // WAIT_OBJECT_0 (SUCCESS)
-        }
-
-        [RuntimeExport("RhYield")]
-        internal static int RhYield()
-        {
-            return 0;
         }
 
         [RuntimeExport("RhBuffer_BulkMoveWithWriteBarrier")]

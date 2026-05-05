@@ -11,6 +11,7 @@ extern void* cosmos_malloc(size_t size);
 extern void cosmos_free(void* ptr);
 extern void cosmos_log(const char* msg);
 extern void* cosmos_acpi_get_rsdp(void);
+extern void* cosmos_acpi_scan_table(const char* signature, size_t index);
 
 // ============================================================================
 // LAI Host Interface - Memory Management
@@ -66,7 +67,7 @@ void* laihost_scan(const char* signature, size_t index) {
     if (!signature) {
         return cosmos_acpi_get_rsdp();
     }
-    return (void*)0;
+    return cosmos_acpi_scan_table(signature, index);
 }
 
 // ============================================================================

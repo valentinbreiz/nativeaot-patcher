@@ -365,6 +365,40 @@
             "stopAtEntry": false
         },
         {
+            "name": "Debug Test Runner (Power x64)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Test Runner",
+            "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+            "args": [
+                "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Power",
+                "x64",
+                "180",
+                "${workspaceFolder}/test-results-power-x64.xml",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Debug Test Runner (Power ARM64)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Test Runner",
+            "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+            "args": [
+                "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Power",
+                "arm64",
+                "270",
+                "${workspaceFolder}/test-results-power-arm64.xml",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Debug Test Runner (GarbageCollector x64)",
             "type": "coreclr",
             "request": "launch",

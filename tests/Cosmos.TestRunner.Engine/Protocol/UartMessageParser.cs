@@ -72,7 +72,7 @@ public class UartMessageParser
         byte command = data[offset + 4];
 
         // Only proceed if this looks like a valid protocol command
-        if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.CoverageData)
+        if (command < Ds2Vs.TestSuiteStart || command > Ds2Vs.TestDestructiveReached)
         {
             return false;
         }
@@ -132,6 +132,11 @@ public class UartMessageParser
             case Ds2Vs.ArchitectureInfo:
                 // Architecture bootstrap message (arch + cpu count).
                 // Not used for test assertions, but must be consumed as a valid frame.
+                return true;
+
+            case Ds2Vs.TestDestructiveReached:
+                // Sentinel for the engine's re-launch heuristic. The frame must be
+                // consumed as a valid message; no parsing into TestResults needed.
                 return true;
 
             default:

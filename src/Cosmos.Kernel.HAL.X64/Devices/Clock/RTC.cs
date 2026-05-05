@@ -187,6 +187,34 @@ public class RTC : Device
         return BootTimeTicks + (long)elapsedTicks;
     }
 
+    public long GetElapsedTicks()
+    {
+        if (!IsInitialized)
+        {
+            return 0;
+        }
+
+        // Calculate elapsed time since boot using TSC
+        ulong currentTsc = X64CpuOps.ReadTSC();
+        ulong elapsedTsc = currentTsc - BootTsc;
+
+        // Convert TSC ticks to DateTime ticks (100-nanosecond intervals)
+        // TSC frequency is in Hz (ticks per second)
+        // DateTime ticks are 10,000,000 per second
+        long tscFrequency = X64CpuOps.TscFrequency;
+        if (tscFrequency <= 0)
+        {
+            tscFrequency = 1_000_000_000; // Default 1 GHz
+        }
+
+        // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
+        // Use 128-bit math to avoid overflow
+        ulong elapsedTicks = MultiplyDivide(elapsedTsc, 10_000_000, (ulong)tscFrequency);
+
+        return (long)elapsedTicks;
+    }
+
+
     /// <summary>
     /// Reads a byte from a CMOS register.
     /// </summary>

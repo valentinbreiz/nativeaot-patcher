@@ -54,7 +54,10 @@ public static class FullScreenCanvas
     }
 
     /// <summary>
-    /// Gets a screen display canvas, and changes the display mode to the default.
+    /// Gets the screen display canvas. The canvas's <see cref="Canvas.Mode"/> reflects the
+    /// actual framebuffer resolution (set by the driver at construction); subsequent calls
+    /// return the same canvas without resetting the mode, so callers always see the real
+    /// screen width/height.
     /// </summary>
     public static Canvas GetFullScreenCanvas()
     {
@@ -66,10 +69,6 @@ public static class FullScreenCanvas
         if (videoDriver == null)
         {
             videoDriver = GetVideoDriver();
-        }
-        else
-        {
-            videoDriver.Mode = videoDriver.DefaultGraphicsMode;
         }
 
         IsInUse = true;

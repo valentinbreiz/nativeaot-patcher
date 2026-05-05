@@ -6,6 +6,10 @@ using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
 using SysThread = System.Threading.Thread;
 using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+
 #if ARCH_X64
 using Cosmos.Kernel.Core.X64.Cpu;
 #endif
@@ -15,66 +19,27 @@ namespace Cosmos.Kernel.Plugs.System.Threading;
 [Plug(typeof(SysThread))]
 public static unsafe class ThreadPlug
 {
-    // Pending ThreadStart delegates queued between Ctor and StartCore.
-    // Per-thread entry storage lives in SchedulerManager (see RegisterThreadStart).
-    private static readonly Queue<ThreadStart> _pendingDelegates = new();
-
-    [PlugMember(".ctor")]
-    public static void Ctor(SysThread aThis, ThreadStart start)
+    [PlugMember]
+    public static bool CreateThread(SysThread aThis, GCHandle<SysThread> thisThreadHandle)
     {
-        Serial.WriteString("[ThreadPlug] Ctor(ThreadStart)\n");
+        Serial.WriteString("[ThreadPlug] CreateThread(GCHandle<Thread>)\n");
 
-        // Only disable interrupts if scheduler is running (to avoid issues during early boot)
-        if (SchedulerManager.Enabled)
-        {
-            using (InternalCpu.DisableInterruptsScope())
-            {
-                _pendingDelegates.Enqueue(start);
-            }
-        }
-    }
-
-    [PlugMember(".ctor")]
-    public static void Ctor(SysThread aThis, ThreadStart start, int maxStackSize)
-    {
-        Serial.WriteString("[ThreadPlug] Ctor(ThreadStart, maxStackSize)\n");
-
-        // Only disable interrupts if scheduler is running (to avoid issues during early boot)
-        if (SchedulerManager.Enabled)
-        {
-            using (InternalCpu.DisableInterruptsScope())
-            {
-                _pendingDelegates.Enqueue(start);
-            }
-        }
-    }
-
-    [PlugMember("StartCore")]
-    public static void StartCore(SysThread aThis)
-    {
-        Serial.WriteString("[ThreadPlug] StartCore()\n");
+        // Initialize the '_stopped' field
+        _stopped(aThis) = new ManualResetEvent(false);
 
         if (SchedulerManager.Enabled)
         {
             using (InternalCpu.DisableInterruptsScope())
             {
-                if (_pendingDelegates.Count == 0)
-                {
-                    Serial.WriteString("[ThreadPlug] No delegate found\n");
-                    return;
-                }
-
-                ThreadStart start = _pendingDelegates.Dequeue();
-
-                // Create scheduler thread with its entry delegate attached.
-                // SchedulerManager.InvokeCurrentThreadStart reads it back off
-                // the thread when it first runs.
+                // Create scheduler thread with the ThreadFlags.Managed set.
+                // SchedulerManager.InvokeCurrentThreadStart evaluates it to
+                // call the managed startup or not.
                 SchedThread thread = new SchedThread
                 {
                     Id = SchedulerManager.AllocateThreadId(),
                     CpuId = 0,
                     State = Cosmos.Kernel.Core.Scheduler.ThreadState.Created,
-                    StartDelegate = start.Invoke
+                    Flags = ThreadFlags.Managed
                 };
 
                 Serial.WriteString("[ThreadPlug] Thread ");
@@ -83,13 +48,13 @@ public static unsafe class ThreadPlug
 
                 // Initial RIP/PC is the stable native entry-point stub in Core;
                 // the scheduler's InvokeCurrentThreadStart runs the registered delegate.
-                nuint entryPoint = (nuint)(delegate* unmanaged<void>)&ThreadNative.EntryPointStub;
+                nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)&ThreadNative.EntryPointStub;
 #if ARCH_X64
                 ushort cs = (ushort)Idt.GetCurrentCodeSelector();
-                thread.InitializeStack(entryPoint, cs, thread.Id);
+                thread.InitializeStack(entryPoint, cs, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
 #elif ARCH_ARM64
                 // ARM64: no code selector needed, use 0.
-                thread.InitializeStack(entryPoint, 0, thread.Id);
+                thread.InitializeStack(entryPoint, 0, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
 #endif
                 Serial.WriteString("[ThreadPlug] Stack initialized, registering with scheduler\n");
 
@@ -101,29 +66,14 @@ public static unsafe class ThreadPlug
                 Serial.WriteString(" scheduled for execution\n");
             }
         }
+
+        return true;
     }
 
-    [PlugMember]
-    public static void Sleep(int millisecondsTimeout)
-    {
-        if (millisecondsTimeout > 0)
-        {
-            TimerManager.Wait((uint)millisecondsTimeout);
-        }
-    }
-
-    [PlugMember]
-    public static void Sleep(TimeSpan timeout)
-    {
-        Sleep((int)timeout.TotalMilliseconds);
-    }
-
+    // TODO: Implement RhYield
     [PlugMember]
     public static bool Yield() => true;
 
-    [PlugMember]
-    public static void SpinWait(int iterations)
-    {
-        for (int i = 0; i < iterations; i++) { }
-    }
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_stopped")]
+    private static extern ref ManualResetEvent _stopped(SysThread aThis);
 }

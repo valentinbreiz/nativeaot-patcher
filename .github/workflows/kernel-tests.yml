@@ -251,6 +251,31 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
+  # ── Power ─────────────────────────────────────────────────────────────────────
+  # Power exercises Reboot + Shutdown end-to-end. Each fires across a separate
+  # boot, so the suite needs ~3× the wall time of a single-boot suite.
+  power-tests:
+    needs: setup
+    uses: ./.github/workflows/kernel-test-run.yml
+    with:
+      suite_name: Power
+      suite_id: power
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Power
+      timeout_x64: 180
+      timeout_arm64: 270
+      step_timeout_minutes: 10
+
+  power-results:
+    needs: power-tests
+    if: always()
+    uses: ./.github/workflows/kernel-test-results.yml
+    with:
+      suite_name: Power
+      suite_id: power
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Power
+      event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
+
   # ── GarbageCollector ──────────────────────────────────────────────────────────
   garbagecollector-tests:
     needs: setup
@@ -278,7 +303,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-24.04
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, garbagecollector-results ]
+    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -307,6 +332,7 @@ jobs:
           add_row "Math"             "${{ needs.math-tests.result }}"
           add_row "Threading"        "${{ needs.threading-tests.result }}"
           add_row "Graphic"          "${{ needs.graphic-tests.result }}"
+          add_row "Power"            "${{ needs.power-tests.result }}"
           add_row "GarbageCollector" "${{ needs.garbagecollector-tests.result }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY

@@ -13,8 +13,8 @@ namespace Cosmos.Kernel.Core.Bridge;
 public static class ThreadNative
 {
     [UnmanagedCallersOnly]
-    public static void EntryPointStub()
+    public static void EntryPointStub(IntPtr parameter)
     {
-        SchedulerManager.InvokeCurrentThreadStart();
+        SchedulerManager.InvokeCurrentThreadStart(parameter);
     }
 }

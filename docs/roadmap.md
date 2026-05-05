@@ -42,7 +42,6 @@ Features planned after first release:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| **async/await** | ❌ Blocked | Requires RuntimeAsync support in NativeAOT. Tracked upstream: [dotnet/runtime#109632](https://github.com/dotnet/runtime/issues/109632), [dotnet/runtime#124101](https://github.com/dotnet/runtime/issues/124101). Expected in .NET 11. |
 | **SMP (Symmetric Multiprocessing)** | ❌ Not Started | Multi-core AP boot, per-CPU scheduling, load balancer. |
 | **USB Support** | ❌ Not Started | XHCI/EHCI host controller drivers, USB HID (keyboard/mouse), mass storage. |
 | **HTTPS** | ❌ Not Started | TLS/SSL implementation, certificate handling, secure sockets. |

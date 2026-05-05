@@ -3,6 +3,7 @@
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.Interfaces;
@@ -17,6 +18,7 @@ public interface IPlatformInitializer
     PlatformArchitecture Architecture { get; }
     IPortIO CreatePortIO();
     ICpuOps CreateCpuOps();
+    IPowerOps CreatePowerOps();
 
     /// <summary>
     /// Creates the platform-specific interrupt controller.

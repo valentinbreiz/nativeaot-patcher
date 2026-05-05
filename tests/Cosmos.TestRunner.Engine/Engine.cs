@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
@@ -150,13 +152,20 @@ public partial class Engine
         }
     }
 
+    // Cap on the number of boots a single suite can ask for. Any test that
+    // triggers a guest reboot/shutdown (Power.Reboot, Power.Shutdown) ends
+    // its boot without emitting the suite-end marker; the engine then
+    // re-launches the kernel, advancing `skip=N` on the Limine cmdline so
+    // the kernel knows which destructive test already fired.
+    private const int MaxBoots = 4;
+
     private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath)
     {
         // Setup UART log path
-        string uartLogPath = _config.UartLogPath;
-        if (string.IsNullOrEmpty(uartLogPath))
+        string baseUartLogPath = _config.UartLogPath;
+        if (string.IsNullOrEmpty(baseUartLogPath))
         {
-            uartLogPath = Path.Combine(
+            baseUartLogPath = Path.Combine(
                 Path.GetDirectoryName(isoPath) ?? ".",
                 "uart.log"
             );
@@ -165,8 +174,149 @@ public partial class Engine
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
-        // Launch QEMU and capture UART
-        return await _qemuHost.RunKernelAsync(isoPath, uartLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting);
+        var combinedLog = new StringBuilder();
+        QemuRunResult? lastResult = null;
+
+        for (int boot = 0; boot < MaxBoots; boot++)
+        {
+            string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot);
+            string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
+
+            if (boot > 0)
+            {
+                Console.WriteLine($"[Engine] Re-launching kernel for boot #{boot} (skip={boot})");
+            }
+
+            QemuRunResult result = await _qemuHost.RunKernelAsync(
+                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting);
+
+            combinedLog.Append(result.UartLog);
+            lastResult = result;
+
+            // Suite finished cleanly (kernel emitted the end marker).
+            if (result.SuiteMarkerSeen)
+            {
+                break;
+            }
+
+            // No suite-end marker: either the boot reached a destructive test
+            // (RunDestructive — Power.Reboot/Shutdown) and the guest exited /
+            // hung on purpose, or the kernel crashed mid-suite. The two are
+            // distinguished by the TestDestructiveReached sentinel emitted by
+            // RunDestructive immediately before invoking the destructive
+            // action. Without that marker, treat this boot as a real failure
+            // and let the suite fail — re-launching would just mask the bug.
+            if (!UartLogShowsDestructiveProgress(result.UartLog))
+            {
+                break;
+            }
+
+            string exitReason = result.TimedOut ? "timed out" : "guest exited";
+            Console.WriteLine($"[Engine] Boot #{boot} {exitReason} after a destructive test was reached — re-launching.");
+        }
+
+        return new QemuRunResult
+        {
+            ExitCode = lastResult?.ExitCode ?? -1,
+            UartLog = combinedLog.ToString(),
+            TimedOut = lastResult?.TimedOut ?? false,
+            ErrorMessage = lastResult?.ErrorMessage ?? string.Empty,
+            SuiteMarkerSeen = lastResult?.SuiteMarkerSeen ?? false
+        };
+    }
+
+    /// <summary>
+    /// Returns true if the per-boot UART log contains at least one
+    /// TestDestructiveReached frame from the binary protocol (magic 0x19740807
+    /// + command 108). Used to distinguish "destructive test was reached, then
+    /// the kernel exited/hung as expected" (continue to next boot, advancing
+    /// skip=N) from "the kernel crashed or hung in a non-destructive test"
+    /// (real failure — bail out and let the suite fail).
+    /// </summary>
+    private static bool UartLogShowsDestructiveProgress(string uartLog)
+    {
+        if (string.IsNullOrEmpty(uartLog))
+        {
+            return false;
+        }
+        // Magic 0x19740807 little-endian = bytes 07 08 74 19, then command byte.
+        // Command 108 = TestDestructiveReached (emitted only by RunDestructive).
+        byte[] needle = { 0x07, 0x08, 0x74, 0x19, 108 };
+        byte[] haystack = System.Text.Encoding.Latin1.GetBytes(uartLog);
+        for (int i = 0; i + needle.Length <= haystack.Length; i++)
+        {
+            bool match = true;
+            for (int j = 0; j < needle.Length; j++)
+            {
+                if (haystack[i + j] != needle[j]) { match = false; break; }
+            }
+            if (match)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the ISO path to use for boot <paramref name="bootIndex"/>. Boot 0
+    /// uses the as-built ISO unchanged (its limine.conf template already has
+    /// <c>skip=0</c> or no skip token). Subsequent boots clone the ISO and
+    /// rewrite /boot/limine/limine.conf so <c>cmdline: skip=N</c> matches the boot
+    /// index.
+    /// </summary>
+    private async Task<string> PrepareBootIsoAsync(string baseIsoPath, int bootIndex)
+    {
+        if (bootIndex == 0)
+        {
+            return baseIsoPath;
+        }
+
+        string bootIsoPath = $"{baseIsoPath}.boot{bootIndex}.iso";
+        File.Copy(baseIsoPath, bootIsoPath, overwrite: true);
+
+        // Read the original limine.conf from the kernel project's Bootloader
+        // directory and rewrite the skip= value. We avoid extracting from the
+        // ISO (no need to run xorriso twice) since the source is right there.
+        string sourceLimineConf = Path.Combine(_config.KernelProjectPath, "Bootloader", "limine.conf");
+        string template = await File.ReadAllTextAsync(sourceLimineConf);
+        string patched = Regex.IsMatch(template, @"skip=\d+")
+            ? Regex.Replace(template, @"skip=\d+", $"skip={bootIndex}")
+            : template + $"\n    cmdline: skip={bootIndex}\n";
+
+        string patchedConfPath = Path.Combine(
+            Path.GetDirectoryName(bootIsoPath) ?? ".",
+            $"limine.boot{bootIndex}.conf");
+        await File.WriteAllTextAsync(patchedConfPath, patched);
+
+        // Splice the patched limine.conf into the cloned ISO. `-boot_image any
+        // keep` preserves the existing Limine boot record so the ISO stays
+        // bootable; `-map` replaces /boot/limine/limine.conf in place.
+        var psi = new ProcessStartInfo
+        {
+            FileName = "xorriso",
+            ArgumentList =
+            {
+                "-boot_image", "any", "keep",
+                "-dev", bootIsoPath,
+                "-map", patchedConfPath, "/boot/limine/limine.conf",
+                "-commit_eject", "all"
+            },
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        using var proc = Process.Start(psi)
+            ?? throw new InvalidOperationException("Failed to start xorriso");
+        await proc.WaitForExitAsync();
+        if (proc.ExitCode != 0)
+        {
+            string stderr = await proc.StandardError.ReadToEndAsync();
+            throw new InvalidOperationException($"xorriso failed (exit {proc.ExitCode}): {stderr}");
+        }
+
+        return bootIsoPath;
     }
 
     private TestResults ParseResults(QemuRunResult qemuResult)

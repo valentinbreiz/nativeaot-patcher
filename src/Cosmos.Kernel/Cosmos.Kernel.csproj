@@ -39,36 +39,6 @@
   </ItemGroup>
 
   <!--
-    Generate the C# version constant for Cosmos.Kernel.Kernel from $(VersionPrefix).
-    This becomes a partial class that adds Kernel.VersionString at compile time.
-  -->
-  <Target Name="GenerateKernelVersionCs"
-          BeforeTargets="CoreCompile"
-          Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(IntermediateOutputPath)KernelVersion.g.cs">
-    <PropertyGroup>
-      <_KernelVersionCsFile>$(IntermediateOutputPath)KernelVersion.g.cs</_KernelVersionCsFile>
-    </PropertyGroup>
-    <ItemGroup>
-      <_KernelVersionCsLine Include="// &lt;auto-generated/&gt;" />
-      <_KernelVersionCsLine Include="namespace Cosmos.Kernel%3B" />
-      <_KernelVersionCsLine Include="public partial class Kernel" />
-      <_KernelVersionCsLine Include="{" />
-      <_KernelVersionCsLine Include="    public const string VersionString = &quot;$(VersionPrefix)&quot;%3B" />
-      <_KernelVersionCsLine Include="}" />
-    </ItemGroup>
-    <MakeDir Directories="$(IntermediateOutputPath)" />
-    <WriteLinesToFile File="$(_KernelVersionCsFile)"
-                      Lines="@(_KernelVersionCsLine)"
-                      Overwrite="true"
-                      WriteOnlyWhenDifferent="true" />
-    <ItemGroup>
-      <Compile Include="$(_KernelVersionCsFile)" />
-      <FileWrites Include="$(_KernelVersionCsFile)" />
-    </ItemGroup>
-  </Target>
-
-  <!--
     Generate the C version macros for kmain.c from $(VersionPrefix). Written
     directly into the source tree next to kmain.h (and gitignored) so the
     GCC #include resolves for both NuGet and ProjectReference consumers.

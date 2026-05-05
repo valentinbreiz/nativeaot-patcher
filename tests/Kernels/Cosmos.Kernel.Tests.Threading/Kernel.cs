@@ -1,9 +1,12 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
+using Monitor = System.Threading.Monitor;
 using SysThread = System.Threading.Thread;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
@@ -31,7 +34,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 42);
+        TR.Start("Threading Tests", expectedTests: 49);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -55,6 +58,15 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
+
+        // ThreadPool / Task / async-await tests (validate fix for #245, #246)
+        TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
+        TR.Run("Task_FromResult_IsCompleted", TestTaskFromResult);
+        TR.Run("Task_Run_ExecutesAction", TestTaskRunExecutesAction);
+        TR.Run("Task_Run_ReturnsResult", TestTaskRunReturnsResult);
+        TR.Run("Async_Method_ReturnsValueViaCompletedTask", TestAsyncCompletedTask);
+        TR.Run("Async_Await_TaskRun_ReturnsValue", TestAsyncAwaitsTaskRun);
+        TR.Run("Async_Chain_PropagatesValue", TestAsyncChain);
 
         // Delegate tests
         TR.Run("Delegate_Action_BasicInvoke", TestDelegateActionBasicInvoke);
@@ -99,7 +111,7 @@ public class Kernel : Sys.Kernel
     {
         // Flush coverage data and signal QEMU to terminate
         TR.Complete();
-        Cosmos.Kernel.Kernel.Halt();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
     // ==================== Monitor/Lock Tests ====================
@@ -217,8 +229,15 @@ public class Kernel : Sys.Kernel
     private static void TestMonitorExitWithoutEnter()
     {
         object obj = new object();
-        Monitor.Exit(obj); // Should not crash
-        Assert.True(true, "Monitor.Exit without prior Enter should not crash");
+        try
+        {
+            Monitor.Exit(obj); // Should not crash        
+            Assert.Fail("Monitor.Exit should throw if owning thread doesn't own the lock");
+        }
+        catch(SynchronizationLockException)
+        {
+            Assert.True(true, "Monitor.Exit without prior Enter should not crash");
+        }
     }
 
     // ==================== SpinLock Tests ====================
@@ -423,6 +442,128 @@ public class Kernel : Sys.Kernel
 
         Assert.Equal(18, StaticValue);
         Assert.Equal(42, secondThreadValue);
+    }
+
+    // ==================== ThreadPool / Task / Async-Await Tests ====================
+
+    private static volatile bool _threadPoolExecuted;
+
+    private static void TestThreadPoolQueueUserWorkItem()
+    {
+        Serial.WriteString("[Test] Testing ThreadPool.QueueUserWorkItem...\n");
+        _threadPoolExecuted = false;
+
+        ThreadPool.QueueUserWorkItem(_ => { _threadPoolExecuted = true; });
+
+        for (int i = 0; i < 30 && !_threadPoolExecuted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(_threadPoolExecuted, "ThreadPool work item should execute");
+    }
+
+    private static void TestTaskFromResult()
+    {
+        Task<int> t = Task.FromResult(42);
+        Assert.True(t.IsCompleted, "Task.FromResult should be already completed");
+        Assert.Equal(42, t.Result, "Task.FromResult should expose the value via .Result");
+    }
+
+    private static void TestTaskRunExecutesAction()
+    {
+        Serial.WriteString("[Test] Testing Task.Run with Action...\n");
+        bool ran = false;
+
+        Task t = Task.Run(() => { ran = true; });
+
+        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(t.IsCompleted, "Task.Run task should reach completion");
+        Assert.True(ran, "Task.Run delegate should have executed");
+    }
+
+    private static void TestTaskRunReturnsResult()
+    {
+        Serial.WriteString("[Test] Testing Task.Run<int>...\n");
+        Task<int> t = Task.Run(() => 7 * 6);
+
+        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(t.IsCompleted, "Task<int>.Run task should reach completion");
+        Assert.Equal(42, t.Result, "Task<int>.Run should return computed value");
+    }
+
+    private static async Task<int> AsyncReturnsValue()
+    {
+        await Task.CompletedTask;
+        return 42;
+    }
+
+    private static void TestAsyncCompletedTask()
+    {
+        Serial.WriteString("[Test] Testing async method with awaited completed task...\n");
+        Task<int> t = AsyncReturnsValue();
+
+        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(t.IsCompleted, "Async method should complete");
+        Assert.Equal(42, t.Result, "Async method should return 42 via await");
+    }
+
+    private static async Task<int> AsyncAwaitsTaskRun()
+    {
+        return await Task.Run(() => 21 + 21);
+    }
+
+    private static void TestAsyncAwaitsTaskRun()
+    {
+        Serial.WriteString("[Test] Testing async method awaiting Task.Run...\n");
+        Task<int> t = AsyncAwaitsTaskRun();
+
+        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(t.IsCompleted, "Async method awaiting Task.Run should complete");
+        Assert.Equal(42, t.Result, "Awaited Task.Run should yield 42");
+    }
+
+    private static async Task<int> InnerAsync(int x)
+    {
+        await Task.CompletedTask;
+        return x + 1;
+    }
+
+    private static async Task<int> OuterAsync()
+    {
+        int a = await InnerAsync(10);
+        int b = await InnerAsync(31);
+        return a + b;
+    }
+
+    private static void TestAsyncChain()
+    {
+        Serial.WriteString("[Test] Testing async chain composition...\n");
+        Task<int> t = OuterAsync();
+
+        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(100);
+        }
+
+        Assert.True(t.IsCompleted, "Chained async method should complete");
+        Assert.Equal(43, t.Result, "Async chain (10+1) + (31+1) should equal 43");
     }
 
     // ==================== Delegate Tests ====================

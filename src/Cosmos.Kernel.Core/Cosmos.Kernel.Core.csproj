@@ -67,7 +67,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\**" Pack="true" PackagePath="build\" />
+    <Content Include="build\**" PackagePath="build\" />
   </ItemGroup>
 
   <!-- Multi-arch packaging support -->

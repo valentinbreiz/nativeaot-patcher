@@ -236,10 +236,26 @@ public class RTC : Device
             ulong counterElapsed = current - _bootCounter;
             // Convert counter ticks → 100-ns DateTime ticks
             // = counterElapsed * 10_000_000 / frequency
-            elapsed = MultiplyDivide(counterElapsed, (ulong)TicksPerSecond, _timerFrequency);
+            elapsed = MultiplyDivide(counterElapsed, TicksPerSecond, _timerFrequency);
         }
 
         return BootTimeTicks + (long)elapsed;
+    }
+
+    public long GetElapsedTicks()
+    {
+        ulong elapsed = 0;
+
+        if (_timerFrequency > 0 && GenericTimer.Instance != null)
+        {
+            ulong current = GenericTimer.Instance.GetCurrentCounter();
+            ulong counterElapsed = current - _bootCounter;
+            // Convert counter ticks → 100-ns DateTime ticks
+            // = counterElapsed * 10_000_000 / frequency
+            elapsed = MultiplyDivide(counterElapsed, TicksPerSecond, _timerFrequency);
+        }
+
+        return (long)elapsed;
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ public static unsafe partial class GarbageCollector
         // alone is a compile-time flag that doesn't guarantee _cpuStates is allocated.
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.Enabled)
         {
-            PerCpuState cpuState = SchedulerManager.GetCpuState(0);
+            PerCpuState cpuState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
             if (cpuState?.CurrentThread != null)
             {
                 return ref cpuState.CurrentThread.AllocContext;

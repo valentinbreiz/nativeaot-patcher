@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 #include <lai/core.h>
+#include <lai/helpers/pm.h>
 #include <acpispec/tables.h>
 
 #define NULL_PTR ((void*)0)
@@ -20,6 +21,7 @@ extern void __cosmos_serial_write_dec_u64(uint64_t value);
 
 // Cosmos support
 extern void cosmos_acpi_set_rsdp(void* rsdp);
+extern void* cosmos_acpi_get_rsdp(void);
 
 // ============================================================================
 // ARM64 GIC structures (MADT subtable types 0x0B-0x0F)
@@ -120,6 +122,65 @@ static inline void* phys_to_virt(uint64_t phys) {
     // If address already looks virtual (high bit set), don't translate
     if (phys >= g_hhdm_offset && g_hhdm_offset != 0) return (void*)phys;
     return (void*)(phys + g_hhdm_offset);
+}
+
+// 4-byte signature compare (ACPI table signatures are exactly 4 ASCII chars).
+static inline int sig_eq(const char* a, const char* b) {
+    return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3];
+}
+
+// Walk XSDT/RSDT looking for the Nth table whose signature matches `signature`.
+// Returns a virtual pointer to the table header, or NULL if not found.
+// Used by laihost_scan() to fulfill LAI's namespace-creation table requests
+// (FACP/DSDT/SSDT/PSDT) and by lai_acpi_reset() for the FADT reset register.
+//
+// DSDT is special-cased: per ACPI spec it is NOT a top-level XSDT/RSDT entry —
+// its physical address is stored inside the FADT (x_dsdt / dsdt fields), so we
+// must resolve it via FACP before falling back to the XSDT/RSDT walk.
+void* cosmos_acpi_scan_table(const char* signature, size_t index) {
+    if (signature == NULL_PTR) return NULL_PTR;
+
+    acpi_rsdp_t* rsdp = (acpi_rsdp_t*)cosmos_acpi_get_rsdp();
+    if (rsdp == NULL_PTR) return NULL_PTR;
+
+    if (index == 0 && sig_eq(signature, "DSDT")) {
+        acpi_fadt_t* fadt = (acpi_fadt_t*)cosmos_acpi_scan_table("FACP", 0);
+        if (fadt == NULL_PTR) return NULL_PTR;
+        uint64_t dsdt_phys = 0;
+        if (fadt->header.length >= sizeof(acpi_fadt_t) && fadt->x_dsdt != 0) {
+            dsdt_phys = fadt->x_dsdt;
+        } else if (fadt->dsdt != 0) {
+            dsdt_phys = (uint64_t)fadt->dsdt;
+        }
+        if (dsdt_phys == 0) return NULL_PTR;
+        acpi_header_t* dsdt = (acpi_header_t*)phys_to_virt(dsdt_phys);
+        if (dsdt && sig_eq(dsdt->signature, "DSDT")) return dsdt;
+        return NULL_PTR;
+    }
+
+    size_t matches = 0;
+
+    if (rsdp->revision >= 2 && ((acpi_xsdp_t*)rsdp)->xsdt != 0) {
+        acpi_xsdt_t* xsdt = (acpi_xsdt_t*)phys_to_virt(((acpi_xsdp_t*)rsdp)->xsdt);
+        uint32_t count = (xsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint64_t);
+        for (uint32_t i = 0; i < count; i++) {
+            acpi_header_t* tbl = (acpi_header_t*)phys_to_virt(xsdt->tables[i]);
+            if (tbl && sig_eq(tbl->signature, signature)) {
+                if (matches++ == index) return tbl;
+            }
+        }
+    } else if (rsdp->rsdt != 0) {
+        acpi_rsdt_t* rsdt = (acpi_rsdt_t*)phys_to_virt((uint64_t)rsdp->rsdt);
+        uint32_t count = (rsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
+        for (uint32_t i = 0; i < count; i++) {
+            acpi_header_t* tbl = (acpi_header_t*)phys_to_virt((uint64_t)rsdt->tables[i]);
+            if (tbl && sig_eq(tbl->signature, signature)) {
+                if (matches++ == index) return tbl;
+            }
+        }
+    }
+
+    return NULL_PTR;
 }
 
 // ============================================================================
@@ -355,50 +416,10 @@ void acpi_early_init(void* rsdp_address, uint64_t hhdm_offset) {
     lai_set_acpi_revision(acpi_rev);
     cosmos_acpi_set_rsdp(rsdp_address);
 
-    // Find ACPI tables (MADT, MCFG) in XSDT or RSDT
-    acpi_header_t* madt = NULL_PTR;
-    acpi_header_t* mcfg = NULL_PTR;
-
-    if (rsdp->revision >= 2 && ((acpi_xsdp_t*)rsdp)->xsdt != 0) {
-        uint64_t xsdt_phys = ((acpi_xsdp_t*)rsdp)->xsdt;
-        acpi_xsdt_t* xsdt = (acpi_xsdt_t*)phys_to_virt(xsdt_phys);
-        __cosmos_serial_write("[ACPI] XSDT at phys 0x");
-        __cosmos_serial_write_hex_u64(xsdt_phys);
-        __cosmos_serial_write(" -> virt 0x");
-        __cosmos_serial_write_hex_u64((uint64_t)xsdt);
-        __cosmos_serial_write("\n");
-
-        uint32_t count = (xsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint64_t);
-        for (uint32_t i = 0; i < count; i++) {
-            acpi_header_t* tbl = (acpi_header_t*)phys_to_virt(xsdt->tables[i]);
-            char* sig = tbl->signature;
-            if (sig[0] == 'A' && sig[1] == 'P' && sig[2] == 'I' && sig[3] == 'C') {
-                madt = tbl;
-                __cosmos_serial_write("[ACPI] MADT found\n");
-            } else if (sig[0] == 'M' && sig[1] == 'C' && sig[2] == 'F' && sig[3] == 'G') {
-                mcfg = tbl;
-                __cosmos_serial_write("[ACPI] MCFG found\n");
-            }
-        }
-    } else if (rsdp->rsdt != 0) {
-        acpi_rsdt_t* rsdt = (acpi_rsdt_t*)phys_to_virt((uint64_t)rsdp->rsdt);
-        __cosmos_serial_write("[ACPI] RSDT at: 0x");
-        __cosmos_serial_write_hex_u32(rsdp->rsdt);
-        __cosmos_serial_write("\n");
-
-        uint32_t count = (rsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
-        for (uint32_t i = 0; i < count; i++) {
-            acpi_header_t* tbl = (acpi_header_t*)phys_to_virt((uint64_t)rsdt->tables[i]);
-            char* sig = tbl->signature;
-            if (sig[0] == 'A' && sig[1] == 'P' && sig[2] == 'I' && sig[3] == 'C') {
-                madt = tbl;
-                __cosmos_serial_write("[ACPI] MADT found\n");
-            } else if (sig[0] == 'M' && sig[1] == 'C' && sig[2] == 'F' && sig[3] == 'G') {
-                mcfg = tbl;
-                __cosmos_serial_write("[ACPI] MCFG found\n");
-            }
-        }
-    }
+    acpi_header_t* madt = (acpi_header_t*)cosmos_acpi_scan_table("APIC", 0);
+    acpi_header_t* mcfg = (acpi_header_t*)cosmos_acpi_scan_table("MCFG", 0);
+    if (madt) __cosmos_serial_write("[ACPI] MADT found\n");
+    if (mcfg) __cosmos_serial_write("[ACPI] MCFG found\n");
 
     if (madt) {
         __cosmos_serial_write("[ACPI] Parsing MADT...\n");
@@ -435,3 +456,38 @@ const acpi_gic_info_t* acpi_get_gic_info(void) {
 const acpi_mcfg_info_t* acpi_get_mcfg_info(void) {
     return g_initialized ? &g_mcfg_info : NULL_PTR;
 }
+
+// ============================================================================
+// Power management — ACPI _S5 / FADT reset via LAI (x86 only)
+// ============================================================================
+
+#ifdef ARCH_X64
+
+// Lazily build the AML namespace on first PM call. lai_acpi_reset() reads the
+// FADT directly via laihost_scan and doesn't need the namespace, but
+// lai_enter_sleep(5) must resolve \\_S5_ from the DSDT.
+static int g_namespace_created = 0;
+
+int cosmos_acpi_shutdown(void) {
+    if (cosmos_acpi_get_rsdp() == NULL_PTR) return 1;
+    if (!g_namespace_created) {
+        __cosmos_serial_write("[ACPI-PM] Creating AML namespace...\n");
+        lai_create_namespace();
+        g_namespace_created = 1;
+    }
+    __cosmos_serial_write("[ACPI-PM] lai_enter_sleep(S5)\n");
+    return (int)lai_enter_sleep(5);
+}
+
+int cosmos_acpi_reset(void) {
+    __cosmos_serial_write("[ACPI-PM] lai_acpi_reset\n");
+    return (int)lai_acpi_reset();
+}
+
+#else
+
+// LAI's PM helpers are x86-only (port I/O via FADT PM1a). ARM64 uses PSCI.
+int cosmos_acpi_shutdown(void) { return 1; }
+int cosmos_acpi_reset(void) { return 1; }
+
+#endif

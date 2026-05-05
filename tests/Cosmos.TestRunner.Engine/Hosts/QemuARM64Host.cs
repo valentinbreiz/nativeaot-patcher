@@ -63,7 +63,8 @@ public class QemuARM64Host : IQemuHost
                 MemoryMb = _memoryMb,
                 Headless = !showDisplay,
                 SerialOutputFile = uartLogPath,
-                EnableNetworkTesting = enableNetworkTesting
+                EnableNetworkTesting = enableNetworkTesting,
+                AllowGuestShutdown = true
             });
         }
         catch (FileNotFoundException ex)
@@ -101,20 +102,19 @@ public class QemuARM64Host : IQemuHost
             // Capture stderr asynchronously for diagnostics
             var stderrTask = process.StandardError.ReadToEndAsync();
 
-            // Monitor UART log for TestSuiteEnd while waiting for process
-            var monitorTask = MonitorUartLogForTestEndAsync(uartLogPath, cts.Token);
+            // Monitor UART log for the suite-end marker or a stall after a test
+            // was reached, while waiting for QEMU to exit on its own.
+            var monitorTask = MonitorUartLogAsync(uartLogPath, cts.Token);
             var processTask = process.WaitForExitAsync(cts.Token);
 
-            // Wait for either test completion or process exit
             var completedTask = await Task.WhenAny(monitorTask, processTask);
 
-            if (completedTask == monitorTask && await monitorTask)
+            if (completedTask == monitorTask)
             {
-                // Test suite completed - kill QEMU
-                testSuiteCompleted = true;
+                UartMonitorOutcome outcome = await monitorTask;
+                testSuiteCompleted = outcome == UartMonitorOutcome.EndMarkerSeen;
                 if (!process.HasExited)
                 {
-                    // Give a brief moment for final UART flush
                     await Task.Delay(200);
                     process.Kill(entireProcessTree: true);
                     await process.WaitForExitAsync();
@@ -122,7 +122,7 @@ public class QemuARM64Host : IQemuHost
             }
             else if (!process.HasExited)
             {
-                // Process task completed (process exited on its own)
+                // Process task completed (process exited on its own — guest reboot/shutdown)
                 await processTask;
             }
 
@@ -158,7 +158,8 @@ public class QemuARM64Host : IQemuHost
             {
                 ExitCode = testSuiteCompleted ? 0 : process.ExitCode,
                 UartLog = uartLog,
-                TimedOut = false
+                TimedOut = false,
+                SuiteMarkerSeen = testSuiteCompleted
             };
         }
         catch (OperationCanceledException)
@@ -223,13 +224,24 @@ public class QemuARM64Host : IQemuHost
     // End marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
     private static readonly byte[] TestEndMarker = { 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE };
 
+    // Test runner protocol: 0x19740807 magic LE + cmd 102 (TestPass).
+    private static readonly byte[] TestPassMarker = { 0x07, 0x08, 0x74, 0x19, 102 };
+    private const int StallSecondsAfterTestPass = 10;
+
     /// <summary>
-    /// Monitor UART log file for test suite end marker
+    /// Monitor UART log for the suite-end marker or a stall after a test was
+    /// reached. See <see cref="QemuX64Host"/> for the full rationale.
     /// </summary>
-    private static async Task<bool> MonitorUartLogForTestEndAsync(string uartLogPath, CancellationToken cancellationToken)
+    private static async Task<UartMonitorOutcome> MonitorUartLogAsync(string uartLogPath, CancellationToken cancellationToken)
     {
         long lastPosition = 0;
-        int markerIndex = 0;
+        int endMarkerIndex = 0;
+        int testPassMarkerIndex = 0;
+        bool sawTestPass = false;
+        // See QemuX64Host for the rationale: track the last protocol-frame
+        // magic, not raw UART bytes — a hung kernel keeps spamming scheduler
+        // text but stops emitting protocol frames.
+        DateTime lastMagicAt = DateTime.UtcNow;
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -245,27 +257,46 @@ public class QemuARM64Host : IQemuHost
                         int bytesRead = await fs.ReadAsync(buffer, cancellationToken);
                         lastPosition += bytesRead;
 
-                        // Look for end marker sequence
                         for (int i = 0; i < bytesRead; i++)
                         {
-                            if (buffer[i] == TestEndMarker[markerIndex])
+                            byte b = buffer[i];
+
+                            if (b == TestEndMarker[endMarkerIndex])
                             {
-                                markerIndex++;
-                                if (markerIndex == TestEndMarker.Length)
+                                endMarkerIndex++;
+                                if (endMarkerIndex == TestEndMarker.Length)
                                 {
-                                    return true;
+                                    return UartMonitorOutcome.EndMarkerSeen;
                                 }
                             }
                             else
                             {
-                                markerIndex = 0;
-                                // Check if current byte starts the marker
-                                if (buffer[i] == TestEndMarker[0])
+                                endMarkerIndex = (b == TestEndMarker[0]) ? 1 : 0;
+                            }
+
+                            if (b == TestPassMarker[testPassMarkerIndex])
+                            {
+                                testPassMarkerIndex++;
+                                if (testPassMarkerIndex == 4)
                                 {
-                                    markerIndex = 1;
+                                    lastMagicAt = DateTime.UtcNow;
+                                }
+                                if (testPassMarkerIndex == TestPassMarker.Length)
+                                {
+                                    sawTestPass = true;
+                                    testPassMarkerIndex = 0;
                                 }
                             }
+                            else
+                            {
+                                testPassMarkerIndex = (b == TestPassMarker[0]) ? 1 : 0;
+                            }
                         }
+                    }
+
+                    if (sawTestPass && (DateTime.UtcNow - lastMagicAt).TotalSeconds >= StallSecondsAfterTestPass)
+                    {
+                        return UartMonitorOutcome.Stalled;
                     }
                 }
             }
@@ -277,6 +308,6 @@ public class QemuARM64Host : IQemuHost
             await Task.Delay(100, cancellationToken);
         }
 
-        return false;
+        return UartMonitorOutcome.NotFinished;
     }
 }

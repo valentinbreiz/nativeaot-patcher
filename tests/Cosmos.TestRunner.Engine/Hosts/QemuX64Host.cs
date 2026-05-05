@@ -56,7 +56,8 @@ public class QemuX64Host : IQemuHost
             MemoryMb = _memoryMb,
             Headless = !showDisplay,
             SerialOutputFile = uartLogPath,
-            EnableNetworkTesting = enableNetworkTesting
+            EnableNetworkTesting = enableNetworkTesting,
+            AllowGuestShutdown = true
         });
         var startInfo = QemuLauncher.ToProcessStartInfo(plan);
         if (_qemuBinaryOverride is not null)
@@ -89,20 +90,23 @@ public class QemuX64Host : IQemuHost
             // Capture stderr asynchronously for diagnostics
             var stderrTask = process.StandardError.ReadToEndAsync();
 
-            // Monitor UART log for TestSuiteEnd while waiting for process
-            var monitorTask = MonitorUartLogForTestEndAsync(uartLogPath, cts.Token);
+            // Monitor UART log for the suite-end marker or a stall after a test
+            // was reached, while waiting for QEMU to exit on its own.
+            var monitorTask = MonitorUartLogAsync(uartLogPath, cts.Token);
             var processTask = process.WaitForExitAsync(cts.Token);
 
-            // Wait for either test completion or process exit
             var completedTask = await Task.WhenAny(monitorTask, processTask);
 
-            if (completedTask == monitorTask && await monitorTask)
+            if (completedTask == monitorTask)
             {
-                // Test suite completed - kill QEMU
-                testSuiteCompleted = true;
+                UartMonitorOutcome outcome = await monitorTask;
+                testSuiteCompleted = outcome == UartMonitorOutcome.EndMarkerSeen;
+                // Either EndMarkerSeen or Stalled — kill QEMU now. Stalled means
+                // a destructive op (e.g. Power.Shutdown) hung after pre-emitting
+                // its Pass marker; the engine will see the markers in the UART
+                // log and roll on to the next boot.
                 if (!process.HasExited)
                 {
-                    // Give a brief moment for final UART flush
                     await Task.Delay(200);
                     process.Kill(entireProcessTree: true);
                     await process.WaitForExitAsync();
@@ -110,7 +114,7 @@ public class QemuX64Host : IQemuHost
             }
             else if (!process.HasExited)
             {
-                // Process task completed (process exited on its own)
+                // Process task completed (process exited on its own — guest reboot/shutdown)
                 await processTask;
             }
 
@@ -146,7 +150,8 @@ public class QemuX64Host : IQemuHost
             {
                 ExitCode = testSuiteCompleted ? 0 : process.ExitCode,
                 UartLog = uartLog,
-                TimedOut = false
+                TimedOut = false,
+                SuiteMarkerSeen = testSuiteCompleted
             };
         }
         catch (OperationCanceledException)
@@ -211,13 +216,33 @@ public class QemuX64Host : IQemuHost
     // End marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
     private static readonly byte[] TestEndMarker = { 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE };
 
+    // Test runner protocol: 0x19740807 magic LE + command byte. Command 102 = TestPass.
+    // Used to detect "kernel reached at least one test" so we can declare a stall
+    // when UART goes silent — handles destructive ops (e.g. Power.Shutdown's LAI
+    // panic) that hang instead of cleanly exiting QEMU.
+    private static readonly byte[] TestPassMarker = { 0x07, 0x08, 0x74, 0x19, 102 };
+    private const int StallSecondsAfterTestPass = 10;
+
     /// <summary>
-    /// Monitor UART log file for test suite end marker
+    /// Monitor UART log file for either the suite-end marker or a stall after a
+    /// test was reached. Returns <see cref="UartMonitorOutcome.EndMarkerSeen"/>
+    /// when the kernel cleanly finished, or <see cref="UartMonitorOutcome.Stalled"/>
+    /// when a TestPass was observed and the UART has been quiet for
+    /// <see cref="StallSecondsAfterTestPass"/> seconds (treated as "destructive
+    /// op fired but didn't exit QEMU"). Returns <see cref="UartMonitorOutcome.NotFinished"/>
+    /// only on cancellation.
     /// </summary>
-    private static async Task<bool> MonitorUartLogForTestEndAsync(string uartLogPath, CancellationToken cancellationToken)
+    private static async Task<UartMonitorOutcome> MonitorUartLogAsync(string uartLogPath, CancellationToken cancellationToken)
     {
         long lastPosition = 0;
-        int markerIndex = 0;
+        int endMarkerIndex = 0;
+        int testPassMarkerIndex = 0;
+        bool sawTestPass = false;
+        // Track time of the last protocol-frame magic — not just any UART byte.
+        // After Power.Shutdown's LAI panic the scheduler keeps writing text to
+        // UART, so a "no growth" check would never fire; "no protocol magic"
+        // does, since the test framework emits no more frames once hung.
+        DateTime lastMagicAt = DateTime.UtcNow;
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -233,27 +258,50 @@ public class QemuX64Host : IQemuHost
                         int bytesRead = await fs.ReadAsync(buffer, cancellationToken);
                         lastPosition += bytesRead;
 
-                        // Look for end marker sequence
                         for (int i = 0; i < bytesRead; i++)
                         {
-                            if (buffer[i] == TestEndMarker[markerIndex])
+                            byte b = buffer[i];
+
+                            if (b == TestEndMarker[endMarkerIndex])
                             {
-                                markerIndex++;
-                                if (markerIndex == TestEndMarker.Length)
+                                endMarkerIndex++;
+                                if (endMarkerIndex == TestEndMarker.Length)
                                 {
-                                    return true;
+                                    return UartMonitorOutcome.EndMarkerSeen;
                                 }
                             }
                             else
                             {
-                                markerIndex = 0;
-                                // Check if current byte starts the marker
-                                if (buffer[i] == TestEndMarker[0])
+                                endMarkerIndex = (b == TestEndMarker[0]) ? 1 : 0;
+                            }
+
+                            // TestPass marker scan also reuses the magic prefix —
+                            // when its 4-byte magic+cmd are matched, both flags
+                            // get bumped: lastMagicAt and (once) sawTestPass.
+                            if (b == TestPassMarker[testPassMarkerIndex])
+                            {
+                                testPassMarkerIndex++;
+                                if (testPassMarkerIndex == 4)
                                 {
-                                    markerIndex = 1;
+                                    // Full magic 0x19740807 hit — kernel emitted a frame.
+                                    lastMagicAt = DateTime.UtcNow;
+                                }
+                                if (testPassMarkerIndex == TestPassMarker.Length)
+                                {
+                                    sawTestPass = true;
+                                    testPassMarkerIndex = 0;
                                 }
                             }
+                            else
+                            {
+                                testPassMarkerIndex = (b == TestPassMarker[0]) ? 1 : 0;
+                            }
                         }
+                    }
+
+                    if (sawTestPass && (DateTime.UtcNow - lastMagicAt).TotalSeconds >= StallSecondsAfterTestPass)
+                    {
+                        return UartMonitorOutcome.Stalled;
                     }
                 }
             }
@@ -265,6 +313,6 @@ public class QemuX64Host : IQemuHost
             await Task.Delay(100, cancellationToken);
         }
 
-        return false;
+        return UartMonitorOutcome.NotFinished;
     }
 }

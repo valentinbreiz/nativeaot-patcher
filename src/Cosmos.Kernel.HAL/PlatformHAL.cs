@@ -3,6 +3,7 @@
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL;
@@ -14,12 +15,14 @@ public static class PlatformHAL
 {
     private static IPortIO? _portIO;
     private static ICpuOps? _cpuOps;
+    private static IPowerOps? _powerOps;
     private static PlatformArchitecture _architecture;
     private static string? _platformName;
     private static IPlatformInitializer? _initializer;
 
     public static IPortIO PortIO => _portIO!;
     public static ICpuOps? CpuOps => _cpuOps;
+    public static IPowerOps? PowerOps => _powerOps;
     public static PlatformArchitecture Architecture => _architecture;
     public static string PlatformName => _platformName ?? "Unknown";
 
@@ -49,5 +52,6 @@ public static class PlatformHAL
         _architecture = initializer.Architecture;
         _portIO = initializer.CreatePortIO();
         _cpuOps = initializer.CreateCpuOps();
+        _powerOps = initializer.CreatePowerOps();
     }
 }

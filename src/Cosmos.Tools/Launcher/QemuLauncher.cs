@@ -15,6 +15,13 @@ public sealed class QemuLaunchOptions
     public string? SerialOutputFile { get; init; }
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
+    /// <summary>
+    /// When false (default, dev path), x64 launches with <c>-no-shutdown</c> so a guest-initiated
+    /// ACPI _S5 / panic just pauses the VM and the user can inspect it. When true (test path),
+    /// the flag is omitted so a working <c>Power.Shutdown()</c> actually exits QEMU and the test
+    /// runner can observe a clean process exit.
+    /// </summary>
+    public bool AllowGuestShutdown { get; init; }
     public IReadOnlyList<string> ExtraArgs { get; init; } = Array.Empty<string>();
 }
 
@@ -110,7 +117,11 @@ public static class QemuLauncher
     {
         args.Append($"-M q35 -cpu max -m {options.MemoryMb}M");
         args.Append($" -cdrom \"{options.IsoPath}\"");
-        args.Append(" -boot d -no-reboot -no-shutdown");
+        args.Append(" -boot d -no-reboot");
+        if (!options.AllowGuestShutdown)
+        {
+            args.Append(" -no-shutdown");
+        }
         if (!options.Headless)
         {
             args.Append(" -vga std");

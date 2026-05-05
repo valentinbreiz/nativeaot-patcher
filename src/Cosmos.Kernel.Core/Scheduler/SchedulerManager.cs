@@ -1,8 +1,11 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Bridge;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using SysThread = System.Threading.Thread;
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
@@ -11,6 +14,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </summary>
 public static class SchedulerManager
 {
+
     private static IScheduler? _currentScheduler;
     private static PerCpuState[]? _cpuStates;
     private static uint _cpuCount;
@@ -23,6 +27,11 @@ public static class SchedulerManager
     // Allocated once at init to avoid heap allocations during GC.
     private static Thread?[]? _allThreads;
     private static int _allThreadCount;
+
+    // Cumulative TotalRuntime of exited non-idle threads. Live-thread runtime
+    // disappears from _allThreads on UnregisterThread, so we move it here to
+    // keep GetBusyCpuTimeNs monotonic across thread lifecycle.
+    private static ulong _exitedNonIdleRuntimeNs;
 
     /// <summary>
     /// Default time slice in nanoseconds (10ms).
@@ -120,22 +129,25 @@ public static class SchedulerManager
     public static uint AllocateThreadId() => _nextThreadId++;
 
     // ========== Thread Entry Dispatch ==========
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "StartThread")]
+    private static extern void StartThread(SysThread aThis, IntPtr parameter);
 
     /// <summary>
+    /// <para>
     /// Entry body for newly scheduled threads. Called from
     /// <see cref="Cosmos.Kernel.Core.Bridge.ThreadNative.EntryPointStub"/>,
     /// whose address is passed as the initial RIP / PC to the context-switch
     /// assembly by whoever creates the thread (e.g. ThreadPlug).
+    /// </para>
     ///
-    /// Reads the entry delegate off the current thread's <c>StartDelegate</c>
-    /// field, clears it so the reference can be collected, invokes it, handles
-    /// exceptions, marks the thread as exited, and halts. The scheduler will
+    /// This method handles exceptions, marks the thread as exited, and halts. The scheduler will
     /// never re-pick a halted thread; the halt loop is a safety net in case
     /// the exit path ever races with a context switch.
     /// </summary>
-    public static void InvokeCurrentThreadStart()
+    /// <param name="parameter">Generic parameter of the Thread Start, it is decoded based on the <see cref="ThreadFlags"/> set in the thread.</param>
+    public static void InvokeCurrentThreadStart(IntPtr parameter)
     {
-        PerCpuState? cpuState = GetCpuState(0);
+        PerCpuState? cpuState = GetCpuState(GetCurrentCpuId());
         Thread? currentThread = cpuState?.CurrentThread;
 
         if (currentThread == null)
@@ -148,29 +160,33 @@ public static class SchedulerManager
         Serial.WriteNumber(threadId);
         Serial.WriteString("\n");
 
-        // Consume the entry delegate. Capture and clear in one critical section
-        // so neither the GC nor a concurrent reader sees a half-torn state.
-        Action? start;
-        using (InternalCpu.DisableInterruptsScope())
-        {
-            start = currentThread.StartDelegate;
-            currentThread.StartDelegate = null;
-        }
-
         int exitCode = 0;
-        if (start != null)
+        if (parameter != IntPtr.Zero)
         {
             try
             {
                 Serial.WriteString("[SCHED] Invoking thread entry\n");
-                start();
+
+                // Evaluate flags, if ThreadFlags.Managed is set then this thread comes from a managed thread,
+                // if not then we assume it's a gc handle holding a delegate.
+                if ((currentThread.Flags & ThreadFlags.Managed) != 0)
+                {
+                    StartThread(null!, parameter);
+                }
+                else
+                {
+                    var handle = GCHandle<Action>.FromIntPtr(parameter);
+                    Action start = handle.Target;
+                    handle.Dispose();
+                    start();
+                }
                 Serial.WriteString("[SCHED] Thread entry completed\n");
             }
             catch (Exception ex)
             {
                 exitCode = 1;
                 // Re-query thread ID — locals may be clobbered across the catch funclet.
-                PerCpuState? exCpuState = GetCpuState(0);
+                PerCpuState? exCpuState = GetCpuState(GetCurrentCpuId());
                 uint exThreadId = exCpuState?.CurrentThread?.Id ?? 0;
                 Serial.WriteString("[SCHED] Thread ");
                 Serial.WriteNumber(exThreadId);
@@ -187,7 +203,7 @@ public static class SchedulerManager
         }
 
         // Re-query current thread for exit — locals may be corrupted after the catch funclet.
-        PerCpuState? exitCpuState = GetCpuState(0);
+        PerCpuState? exitCpuState = GetCpuState(GetCurrentCpuId());
         Thread? exitThread = exitCpuState?.CurrentThread;
         uint exitThreadId = exitThread?.Id ?? 0;
 
@@ -199,7 +215,7 @@ public static class SchedulerManager
 
         if (exitThread != null)
         {
-            ExitThread(0, exitThread);
+            ExitThread(GetCurrentCpuId(), exitThread);
         }
 
         // Halt forever — scheduler should not pick this thread again.
@@ -220,6 +236,57 @@ public static class SchedulerManager
     /// Returns the number of registered threads. Safe to call from GC.
     /// </summary>
     public static int ThreadCount => _allThreadCount;
+
+    /// <summary>
+    /// Returns the CPU ID currently executing this code path. Single-CPU today.
+    /// TODO(SMP): replace with x86_64 GS-relative per-CPU storage or ARM64 MPIDR_EL1
+    /// affinity read once application processors are brought online.
+    /// </summary>
+    public static uint GetCurrentCpuId() => 0;
+
+    /// <summary>
+    /// Sum of TotalRuntime across all non-idle threads, in nanoseconds.
+    /// One timer tick is charged to exactly one current thread per CPU, so this sum
+    /// over a wall-clock window equals total busy CPU time for that window.
+    /// Lock-free: registry slots are atomic and ulong reads are atomic on x64/ARM64;
+    /// worst case is observing a stale value from an in-progress tick.
+    /// </summary>
+    public static ulong GetBusyCpuTimeNs()
+    {
+        Thread?[]? threads = _allThreads;
+        if (threads == null)
+        {
+            return 0;
+        }
+
+        ulong sum = _exitedNonIdleRuntimeNs;
+        for (int i = 0; i < threads.Length; i++)
+        {
+            Thread? t = threads[i];
+            if (t == null)
+            {
+                continue;
+            }
+            if ((t.Flags & ThreadFlags.IdleThread) != 0)
+            {
+                continue;
+            }
+            sum += t.TotalRuntime;
+        }
+        return sum;
+    }
+
+    public static nint OnThreadExitCallback
+    {
+        get;
+        internal set
+        {
+            Serial.WriteString("[SCHED] Setting thread exit callback: ");
+            Serial.WriteHexWithPrefix((ulong)value);
+            Serial.WriteString("\n");
+            field = value;
+        }
+    }
 
     /// <summary>
     /// Registers a thread in the global registry. Called during thread creation.
@@ -260,6 +327,10 @@ public static class SchedulerManager
         {
             if (_allThreads[i] == thread)
             {
+                if ((thread.Flags & ThreadFlags.IdleThread) == 0)
+                {
+                    _exitedNonIdleRuntimeNs += thread.TotalRuntime;
+                }
                 _allThreads[i] = null;
                 _allThreadCount--;
                 return;
@@ -322,6 +393,22 @@ public static class SchedulerManager
 
     public static void ExitThread(uint cpuId, Thread thread)
     {
+        // Is Hightly likely that the running thread have adquire some state on it's managed counter part (even if it wasn't started from a managed thread).
+        // Here we call the OnThreadExit Callback for the managed thread so it may be cleaned.
+        nint managedCallback = OnThreadExitCallback;
+        if (managedCallback != IntPtr.Zero)
+        {
+            Serial.WriteString("[ThreadPlug] Invoking managed thread exit callback for thread ");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString("\n");
+            unsafe
+            {
+                var callback = (delegate* unmanaged<void>)managedCallback;
+                callback();
+            }
+
+        }
+
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
@@ -351,6 +438,43 @@ public static class SchedulerManager
             PerCpuState state = _cpuStates[cpuId];
 
             _currentScheduler.OnThreadYield(state, thread);
+        }
+    }
+
+    /// <summary>
+    /// Puts a thread to sleep with a timeout.
+    /// The thread may be woken up either by the timeout expires or when signaled.
+    /// </summary>
+    /// <param name="cpuId">CPU ID of the thread.</param>
+    /// <param name="thread">Thread to sleep.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
+    public static void Sleep(uint cpuId, Thread thread, uint timeoutMs)
+    {
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            PerCpuState cpuState = _cpuStates[cpuId];
+
+            ulong timestamp = GetTimestamp();
+            ulong num = timeoutMs * 1_000_000UL;
+            thread.WakeupTime = timestamp + num;
+
+            _currentScheduler.OnThreadBlocked(cpuState, thread);
+            thread.State = ThreadState.Sleeping;
+        }
+
+        InternalCpu.Halt();
+    }
+
+    /// <summary>
+    /// Puts the current thread to sleep with a timeout.
+    /// </summary>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep.</param>
+    public static void Sleep(uint timeoutMs)
+    {
+        Thread? currentThread = GetCpuState(GetCurrentCpuId()).CurrentThread;
+        if (currentThread != null)
+        {
+            Sleep(currentThread.CpuId, currentThread, timeoutMs);
         }
     }
 
@@ -465,12 +589,51 @@ public static class SchedulerManager
             return;
         }
 
+        // Check and wake up sleeping threads whose timeout has expired
+        CheckSleepingThreads(elapsedNs);
+
         // Update timing and check if preemption needed
         bool needsReschedule = _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
 
         if (needsReschedule)
         {
             ScheduleFromInterrupt(cpuId, currentRsp);
+        }
+    }
+
+    /// <summary>
+    /// Checks all sleeping threads and wakes those whose wakeup time has expired.
+    /// Called from timer interrupt handler to implement timed waits.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CheckSleepingThreads(ulong elapsedNs)
+    {
+        if (_allThreads == null)
+        {
+            return;
+        }
+
+        ulong currentTime = GetTimestamp();
+
+        for (int i = 0; i < _allThreads.Length; i++)
+        {
+            Thread? thread = _allThreads[i];
+            if (thread == null || thread.State != ThreadState.Sleeping)
+            {
+                continue;
+            }
+
+            // Check if wakeup time has been reached
+            if (currentTime >= thread.WakeupTime)
+            {
+                Serial.WriteString("[SCHED] Waking sleeping thread ");
+                Serial.WriteNumber(thread.Id);
+                Serial.WriteString(" (time expired)\n");
+
+                // Wake the thread by marking it as ready
+                thread.WakeupTime = 0;
+                ReadyThread(thread.CpuId, thread);
+            }
         }
     }
 

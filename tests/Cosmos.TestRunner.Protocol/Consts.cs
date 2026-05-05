@@ -14,7 +14,7 @@ namespace Cosmos.TestRunner.Protocol
 
     /// <summary>
     /// Messages from Guest (Kernel) to Host (Test Runner)
-    /// Extended with test-specific message types (100-106)
+    /// Extended with test-specific message types (100-108)
     /// </summary>
     public static class Ds2Vs
     {
@@ -89,6 +89,16 @@ namespace Cosmos.TestRunner.Protocol
         /// Method IDs correspond to the coverage-map.txt generated at build time.
         /// </summary>
         public const byte CoverageData = 107;
+
+        /// <summary>
+        /// Sent by RunDestructive immediately before invoking a test action that
+        /// is expected to never return (e.g. Power.Reboot, Power.Shutdown). The
+        /// engine treats this marker — not a regular TestPass — as evidence that
+        /// the boot reached a destructive test, so a kernel crash mid-suite is
+        /// not misclassified as a successful destructive op. Payload: ushort
+        /// (test number).
+        /// </summary>
+        public const byte TestDestructiveReached = 108;
     }
 
     /// <summary>

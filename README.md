@@ -27,7 +27,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - Limine boot protocol
 - Cosmos plug system
 - Native runtime stubs
-- .NET runtime support (String, Collections, List, Dictionary, Math, Console, DateTime, Random, BitOperations, threading + `lock`, generics, reflection basics)
+- .NET runtime support (String, Collections, List, Dictionary, Math, Console, DateTime, Random, BitOperations, threading, generics, reflection basics)
 - Mark-and-sweep GC
 - Priority-based stride scheduler
 - Exception handling
