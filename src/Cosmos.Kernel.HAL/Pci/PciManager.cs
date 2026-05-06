@@ -193,4 +193,24 @@ public class PciManager
 
         return null;
     }
+
+    /// <summary>
+    /// Return every PCI device whose class + subclass match. Drivers that
+    /// can bind to multiple controllers of the same kind (e.g. multiple
+    /// NVMe SSDs) iterate this instead of <see cref="GetDeviceClass(ClassId, SubclassId)"/>.
+    /// </summary>
+    public static List<PciDevice> GetAllDevicesClass(ClassId aClass, SubclassId aSubClass)
+    {
+        List<PciDevice> matches = new();
+        for (uint i = 0; i < Count; i++)
+        {
+            PciDevice xDevice = Devices[i];
+            if ((ClassId)xDevice.ClassCode == aClass &&
+                (SubclassId)xDevice.Subclass == aSubClass)
+            {
+                matches.Add(xDevice);
+            }
+        }
+        return matches;
+    }
 }
