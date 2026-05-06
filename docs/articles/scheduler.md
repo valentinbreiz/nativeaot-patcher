@@ -286,7 +286,7 @@ sequenceDiagram
         SM->>SM: ScheduleFromInterrupt(cpuId, currentRsp)
         SM->>SC: PickNext(state)
         SC-->>SM: next (or null → IdleThread)
-        SM->>SM: prev.StackPointer = currentRsp; prev.State = Ready
+        SM->>SM: prev.StackPointer = currentRsp, prev.State = Ready
         SM->>SC: OnThreadYield(state, prev)
         SM->>CSN: SetContextSwitchNewThread(isNew ? 1 : 0)
         SM->>CSN: SetContextSwitchSp(next.StackPointer)
@@ -294,7 +294,7 @@ sequenceDiagram
     SM-->>ASM: return
     Note over ASM: Check _context_switch_target_rsp
     alt switch requested
-        ASM->>ASM: mov rsp, target_rsp; restore XMM/GPRs
+        ASM->>ASM: mov rsp, target_rsp, restore XMM/GPRs
         alt is_new_thread
             ASM->>ASM: pop r11(=RIP), skip CS, popfq, pop rsp, jmp r11
         else
