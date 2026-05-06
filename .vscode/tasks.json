@@ -210,7 +210,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -device i8042 -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=disk0,bus=ahci0.0 -no-reboot -no-shutdown"
+        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -device i8042 -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device nvme,drive=disk0,serial=cosmos-nvme -no-reboot -no-shutdown"
       ],
       "problemMatcher": [],
       "options": {
@@ -225,7 +225,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=disk0,bus=ahci0.0 -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
+        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device nvme,drive=disk0,serial=cosmos-nvme -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
       ],
       "isBackground": true,
       "problemMatcher": {

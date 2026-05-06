@@ -79,11 +79,14 @@ public class X64PlatformInitializer : IPlatformInitializer
             _ps2Controller.Initialize();
         }
 
-        // Initialize AHCI (SATA storage), if storage feature enabled
+        // Initialize storage controllers (AHCI for SATA, NVMe for PCIe), if storage feature enabled
         if (CosmosFeatures.StorageEnabled)
         {
             Serial.WriteString("[X64HAL] Initializing AHCI...\n");
             AHCI.InitDriver();
+
+            Serial.WriteString("[X64HAL] Initializing NVMe...\n");
+            NVMe.InitDriver();
         }
 
         // Try to find E1000E network device (if network feature enabled)
@@ -151,16 +154,23 @@ public class X64PlatformInitializer : IPlatformInitializer
             return [];
         }
 
-        var ports = AHCI.Ports;
-        if (ports.Count == 0)
+        List<AHCIPort> ports = AHCI.Ports;
+        List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
+        int total = ports.Count + nvmeNamespaces.Count;
+        if (total == 0)
         {
             return [];
         }
 
-        var devices = new IBlockDevice[ports.Count];
+        IBlockDevice[] devices = new IBlockDevice[total];
+        int idx = 0;
         for (int i = 0; i < ports.Count; i++)
         {
-            devices[i] = ports[i];
+            devices[idx++] = ports[i];
+        }
+        for (int i = 0; i < nvmeNamespaces.Count; i++)
+        {
+            devices[idx++] = nvmeNamespaces[i];
         }
         return devices;
     }
