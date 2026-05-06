@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.HAL.Devices.Storage;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// Abstract base class for AHCI ports (SATA, SATAPI, etc.).

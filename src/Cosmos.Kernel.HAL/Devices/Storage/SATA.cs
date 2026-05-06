@@ -3,7 +3,7 @@
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// SATA drive port driver.

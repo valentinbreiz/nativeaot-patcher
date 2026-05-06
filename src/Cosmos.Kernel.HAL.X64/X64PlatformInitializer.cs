@@ -14,7 +14,7 @@ using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Network;
-using Cosmos.Kernel.HAL.X64.Devices.Storage;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 
 namespace Cosmos.Kernel.HAL.X64;
