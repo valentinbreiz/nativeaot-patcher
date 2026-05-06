@@ -41,7 +41,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - Priority-based Stride Scheduler
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
-- ACPI (via LAI)
+- ACPI (via [LAI](https://github.com/managarm/lai))
 - PCI and MMIO drivers
 - UART serial
 - UEFI GOP framebuffer graphics
