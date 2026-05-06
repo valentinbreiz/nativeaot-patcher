@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.Core;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// AHCI Generic Host Control Registers.

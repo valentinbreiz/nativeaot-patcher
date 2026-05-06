@@ -6,7 +6,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// AHCI (Advanced Host Controller Interface) driver.

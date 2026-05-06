@@ -3,7 +3,7 @@
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Storage;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// One NVMe namespace exposed as an <see cref="HAL.Interfaces.Devices.IBlockDevice"/>.

@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.Core;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>NVMe admin opcodes (NVM Express 1.4 §5.x).</summary>
 public static class NVMeAdminOp

@@ -2,7 +2,7 @@
 
 using Cosmos.Kernel.Core;
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// NVMe controller register block accessor. Wraps the BAR0 virtual base

@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
+namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// AHCI base memory address constant.
