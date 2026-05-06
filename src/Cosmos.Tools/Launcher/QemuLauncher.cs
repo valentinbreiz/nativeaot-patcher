@@ -16,17 +16,17 @@ public sealed class QemuLaunchOptions
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
     /// <summary>
-    /// Path to a raw disk image to attach as an AHCI/SATA drive. When set on x64,
-    /// the launcher adds an <c>ich9-ahci</c> controller and an <c>ide-hd</c>
-    /// backed by this file so the AHCI driver finds a SATA device via PCI scan.
-    /// Ignored on ARM64 (storage stack is x64-only).
+    /// Path to a raw disk image to attach as an AHCI/SATA drive. The launcher
+    /// adds an <c>ich9-ahci</c> controller and an <c>ide-hd</c> backed by this
+    /// file so the AHCI driver finds a SATA device via PCI scan. Honoured on
+    /// both x64 (q35) and ARM64 (virt).
     /// </summary>
     public string? AhciDiskPath { get; init; }
 
     /// <summary>
-    /// Path to a raw disk image to attach as an NVMe drive. When set on x64, the
-    /// launcher adds an <c>nvme</c> PCIe device backed by this file so the NVMe
-    /// driver finds a controller via PCI scan. Ignored on ARM64.
+    /// Path to a raw disk image to attach as an NVMe drive. The launcher adds
+    /// an <c>nvme</c> PCIe device backed by this file so the NVMe driver finds
+    /// a controller via PCI scan. Honoured on both x64 (q35) and ARM64 (virt).
     /// </summary>
     public string? NvmeDiskPath { get; init; }
     /// <summary>
@@ -170,6 +170,19 @@ public static class QemuLauncher
         args.Append(" -boot d -no-reboot");
         // ramfb is required for Limine framebuffer support even when headless.
         args.Append(" -device ramfb");
+        if (options.AhciDiskPath is not null)
+        {
+            // ich9-ahci is a generic PCIe SATA HBA; QEMU exposes it on virt's
+            // PCIe root complex the same way q35 does on x64.
+            args.Append($" -drive file=\"{options.AhciDiskPath}\",if=none,id=ahcidisk,format=raw");
+            args.Append(" -device ich9-ahci,id=ahci0");
+            args.Append(" -device ide-hd,drive=ahcidisk,bus=ahci0.0");
+        }
+        if (options.NvmeDiskPath is not null)
+        {
+            args.Append($" -drive file=\"{options.NvmeDiskPath}\",if=none,id=nvmedisk,format=raw");
+            args.Append(" -device nvme,drive=nvmedisk,serial=cosmos-nvme");
+        }
     }
 
     public static ProcessStartInfo ToProcessStartInfo(QemuLaunchPlan plan)

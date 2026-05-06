@@ -243,6 +243,46 @@
       }
     },
     {
+      "label": "Run QEMU ARM64 DevKernel (Storage)",
+      "dependsOn": ["Build ARM64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-aarch64 -M virt,highmem=off -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device ramfb -display gtk,show-cursor=on -netdev user,id=net0,hostfwd=udp::5555-:5555 -device virtio-net-device,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets-arm64.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -no-reboot -no-shutdown"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Debug ARM64 DevKernel (Storage)",
+      "dependsOn": ["Build ARM64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-aarch64 -M virt,highmem=off -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device ramfb -display gtk,show-cursor=on -netdev user,id=net0,hostfwd=udp::5555-:5555 -device virtio-net-device,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets-arm64.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-ARM64-STORAGE-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-devkernel-arm64-storage",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-DEVKERNEL-ARM64-STORAGE-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Run QEMU macOS x64 DevKernel",
       "type": "shell",
       "dependsOn": "Build macOS x64 DevKernel",

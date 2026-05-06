@@ -31,7 +31,6 @@ public class QemuARM64Host : IQemuHost
 
     public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? ahciDiskPath = null, string? nvmeDiskPath = null)
     {
-        // ahciDiskPath / nvmeDiskPath are ignored on ARM64 — storage stack is x64-only.
         if (!File.Exists(isoPath))
         {
             return new QemuRunResult
@@ -65,6 +64,8 @@ public class QemuARM64Host : IQemuHost
                 Headless = !showDisplay,
                 SerialOutputFile = uartLogPath,
                 EnableNetworkTesting = enableNetworkTesting,
+                AhciDiskPath = ahciDiskPath,
+                NvmeDiskPath = nvmeDiskPath,
                 AllowGuestShutdown = true
             });
         }
