@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/63316499/89792973-43587480-daf3-11ea-99d6-82f89dd2ffc3.png" width="25%" />
+</p>
+
+<p align="center">
+  <a href="https://discord.com/invite/kwtBwv6jhD"><img src="https://img.shields.io/discord/833970409337913344?label=discord&logo=discord&color=5865F2" /></a>
+  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/dotnet.yml?branch=main&label=.NET%20tests&logo=github" /></a>
+  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/kernel-tests.yml?branch=main&label=kernel%20tests&logo=github" /></a>
+  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/release.yml?label=release&logo=github" /></a>
+  <a href="https://valentinbreiz.github.io/nativeaot-patcher/roadmap.html"><img src="https://img.shields.io/badge/gen3_release-90%25-yellow" /></a>
+</p>
+
+<hr/>
+
 <img width="546" height="538" alt="image" src="https://github.com/user-attachments/assets/7679c86d-68a3-4678-99c2-d5e1f3987eee" />
 
 > [Voted French law aimed at criminalizing free culture](https://www.assemblee-nationale.fr/dyn/17/textes/l17b1133_proposition-loi#). No to authoritarianism! No to fascism! Support your local sound systems!
@@ -8,13 +22,6 @@
 A bare-metal C# kernel framework built on **NativeAOT**. Cosmos gen3 is the next generation of the [Cosmos](https://github.com/CosmosOS/Cosmos) operating system project, replacing the IL2CPU transpiler with the official .NET ahead-of-time compiler. The result is an ordinary `dotnet build` that produces a bootable kernel ELF for **x64 or ARM64**, linked with an integrated runtime, plugged with the Cosmos plug system, and packaged into an ISO with the Limine bootloader.
 
 Originally based on [Zarlo's NativeAOT patcher](https://gitlab.com/liquip/nativeaot-patcher). See [CosmosOS/Cosmos#3088](https://github.com/CosmosOS/Cosmos/issues/3088) for the design discussion behind the gen3 effort.
-
-## Status
-
-[![.NET Tests](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml)
-[![Kernel Tests](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml/badge.svg?branch=main)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml)
-[![Release](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/release.yml/badge.svg)](https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/release.yml)
-[![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-90%25-yellow)](https://valentinbreiz.github.io/nativeaot-patcher/roadmap.html)
 
 ## Why gen3?
 
