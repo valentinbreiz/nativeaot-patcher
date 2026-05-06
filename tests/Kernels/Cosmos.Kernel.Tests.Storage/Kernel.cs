@@ -15,7 +15,9 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
         Serial.WriteString("[Storage] Starting tests...\n");
 
-        TR.Start("Storage Block Device Tests", expectedTests: 9);
+        // 2 meta tests (manager init, both controllers present) + 7 per-controller
+        // tests * 2 controllers = 16.
+        TR.Start("Storage Block Device Tests", expectedTests: 16);
 
         TR.Run("Test_StorageManager_Initialized", () =>
         {
@@ -23,24 +25,50 @@ public class Kernel : Sys.Kernel
             Assert.True(StorageManager.IsInitialized);
         });
 
-        TR.Run("Test_PrimaryDevice_Present", () =>
+        IBlockDevice? sata = FindDeviceByName("SATA");
+        IBlockDevice? nvme = FindDeviceByName("NVMe");
+
+        TR.Run("Test_BothControllers_Present", () =>
         {
-            Assert.True(StorageManager.DeviceCount >= 1);
-            Assert.NotNull(StorageManager.PrimaryDevice);
+            Assert.NotNull(sata);
+            Assert.NotNull(nvme);
         });
 
-        TR.Run("Test_BlockGeometry_Sane", () =>
+        RunDeviceSuite("SATA", sata);
+        RunDeviceSuite("NVMe", nvme);
+
+        TR.Finish();
+
+        Serial.WriteString("\n[Tests Complete - System Halting]\n");
+    }
+
+    private static IBlockDevice? FindDeviceByName(string name)
+    {
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
-            Assert.Equal<ulong>(512, dev.BlockSize);
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev != null && dev.Name == name)
+            {
+                return dev;
+            }
+        }
+        return null;
+    }
+
+    private static void RunDeviceSuite(string label, IBlockDevice? dev)
+    {
+        TR.Run($"Test_{label}_BlockGeometry_Sane", () =>
+        {
+            Assert.NotNull(dev);
+            Assert.Equal<ulong>(512, dev!.BlockSize);
             Assert.True(dev.BlockCount > 0);
         });
 
-        TR.Run("Test_WriteRead_SingleBlock", () =>
+        TR.Run($"Test_{label}_WriteRead_SingleBlock", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
+            Assert.NotNull(dev);
             const ulong lba = 100;
-            ulong size = dev.BlockSize;
+            ulong size = dev!.BlockSize;
 
             Span<byte> writeBuf = new byte[size];
             for (int i = 0; i < (int)size; i++)
@@ -58,12 +86,12 @@ public class Kernel : Sys.Kernel
             }
         });
 
-        TR.Run("Test_WriteRead_MultiBlock", () =>
+        TR.Run($"Test_{label}_WriteRead_MultiBlock", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
+            Assert.NotNull(dev);
             const ulong lba = 200;
             const ulong blocks = 4;
-            ulong total = blocks * dev.BlockSize;
+            ulong total = blocks * dev!.BlockSize;
 
             Span<byte> writeBuf = new byte[total];
             for (int i = 0; i < (int)total; i++)
@@ -81,11 +109,11 @@ public class Kernel : Sys.Kernel
             }
         });
 
-        TR.Run("Test_WriteRead_Idempotent", () =>
+        TR.Run($"Test_{label}_WriteRead_Idempotent", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
+            Assert.NotNull(dev);
             const ulong lba = 250;
-            ulong size = dev.BlockSize;
+            ulong size = dev!.BlockSize;
 
             Span<byte> first = new byte[size];
             first.Fill(0x11);
@@ -103,11 +131,11 @@ public class Kernel : Sys.Kernel
             }
         });
 
-        TR.Run("Test_ReReadStable", () =>
+        TR.Run($"Test_{label}_ReReadStable", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
+            Assert.NotNull(dev);
             const ulong lba = 300;
-            ulong size = dev.BlockSize;
+            ulong size = dev!.BlockSize;
 
             Span<byte> first = new byte[size];
             dev.ReadBlock(lba, 1, first);
@@ -121,12 +149,12 @@ public class Kernel : Sys.Kernel
             }
         });
 
-        TR.Run("Test_LargeTransfer", () =>
+        TR.Run($"Test_{label}_LargeTransfer", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
+            Assert.NotNull(dev);
             const ulong lba = 1000;
             const ulong blocks = 32;
-            ulong total = blocks * dev.BlockSize;
+            ulong total = blocks * dev!.BlockSize;
 
             Span<byte> writeBuf = new byte[total];
             for (int i = 0; i < (int)total; i++)
@@ -144,10 +172,10 @@ public class Kernel : Sys.Kernel
             }
         });
 
-        TR.Run("Test_BoundaryLBA", () =>
+        TR.Run($"Test_{label}_BoundaryLBA", () =>
         {
-            IBlockDevice dev = StorageManager.PrimaryDevice!;
-            ulong lba = dev.BlockCount - 1;
+            Assert.NotNull(dev);
+            ulong lba = dev!.BlockCount - 1;
             ulong size = dev.BlockSize;
 
             Span<byte> writeBuf = new byte[size];
@@ -165,10 +193,6 @@ public class Kernel : Sys.Kernel
                 Assert.Equal(writeBuf[i], readBuf[i]);
             }
         });
-
-        TR.Finish();
-
-        Serial.WriteString("\n[Tests Complete - System Halting]\n");
     }
 
     protected override void Run()

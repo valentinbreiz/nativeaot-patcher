@@ -16,11 +16,19 @@ public sealed class QemuLaunchOptions
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
     /// <summary>
-    /// Path to a raw disk image to attach as an NVMe drive. When set on x64, the launcher
-    /// adds an <c>nvme</c> PCIe device backed by this file so the NVMe driver has a
-    /// controller to discover. Ignored on ARM64 (storage stack is x64-only).
+    /// Path to a raw disk image to attach as an AHCI/SATA drive. When set on x64,
+    /// the launcher adds an <c>ich9-ahci</c> controller and an <c>ide-hd</c>
+    /// backed by this file so the AHCI driver finds a SATA device via PCI scan.
+    /// Ignored on ARM64 (storage stack is x64-only).
     /// </summary>
-    public string? TestDiskPath { get; init; }
+    public string? AhciDiskPath { get; init; }
+
+    /// <summary>
+    /// Path to a raw disk image to attach as an NVMe drive. When set on x64, the
+    /// launcher adds an <c>nvme</c> PCIe device backed by this file so the NVMe
+    /// driver finds a controller via PCI scan. Ignored on ARM64.
+    /// </summary>
+    public string? NvmeDiskPath { get; init; }
     /// <summary>
     /// When false (default, dev path), x64 launches with <c>-no-shutdown</c> so a guest-initiated
     /// ACPI _S5 / panic just pauses the VM and the user can inspect it. When true (test path),
@@ -132,13 +140,21 @@ public static class QemuLauncher
         {
             args.Append(" -vga std");
         }
-        if (options.TestDiskPath is not null)
+        if (options.AhciDiskPath is not null)
         {
-            // Attach as NVMe (PCIe). QEMU's `nvme` device exposes a controller
-            // with one namespace backed by the drive, which the guest's NVMe
-            // driver finds via PCI scan (class 0x01 / subclass 0x08).
-            args.Append($" -drive file=\"{options.TestDiskPath}\",if=none,id=testdisk,format=raw");
-            args.Append(" -device nvme,drive=testdisk,serial=cosmos-nvme");
+            // Q35 doesn't auto-instantiate ich9-ahci — add it explicitly so the
+            // guest's AHCI driver finds a SATA controller via PCI scan.
+            args.Append($" -drive file=\"{options.AhciDiskPath}\",if=none,id=ahcidisk,format=raw");
+            args.Append(" -device ich9-ahci,id=ahci0");
+            args.Append(" -device ide-hd,drive=ahcidisk,bus=ahci0.0");
+        }
+        if (options.NvmeDiskPath is not null)
+        {
+            // QEMU's `nvme` device exposes a controller with one namespace backed
+            // by the drive, which the guest's NVMe driver finds via PCI scan
+            // (class 0x01 / subclass 0x08).
+            args.Append($" -drive file=\"{options.NvmeDiskPath}\",if=none,id=nvmedisk,format=raw");
+            args.Append(" -device nvme,drive=nvmedisk,serial=cosmos-nvme");
         }
     }
 

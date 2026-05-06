@@ -29,9 +29,9 @@ public class QemuARM64Host : IQemuHost
         // uefiFirmwarePath ignored — QemuLauncher.ResolveArm64Firmware() handles it.
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? testDiskPath = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? ahciDiskPath = null, string? nvmeDiskPath = null)
     {
-        // testDiskPath is ignored on ARM64 — storage stack is x64-only.
+        // ahciDiskPath / nvmeDiskPath are ignored on ARM64 — storage stack is x64-only.
         if (!File.Exists(isoPath))
         {
             return new QemuRunResult
