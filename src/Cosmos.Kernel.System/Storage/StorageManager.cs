@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Storage;
@@ -26,6 +27,7 @@ public static class StorageManager
     private static IBlockDevice? _primaryDevice;
     private static IBlockDevice?[]? _devices;
     private static int _deviceCount;
+    private static List<Partition>? _partitions;
     private static bool _initialized;
 
     /// <summary>
@@ -44,6 +46,14 @@ public static class StorageManager
     public static int DeviceCount => _deviceCount;
 
     /// <summary>
+    /// Partitions discovered across every registered device. Each entry is
+    /// itself an <see cref="IBlockDevice"/> rooted at the partition's
+    /// starting LBA, so filesystem drivers consume them without knowing
+    /// whether the host disk is GPT-, MBR-, or unpartitioned.
+    /// </summary>
+    public static IReadOnlyList<Partition> Partitions => (IReadOnlyList<Partition>?)_partitions ?? Array.Empty<Partition>();
+
+    /// <summary>
     /// Initializes the storage manager.
     /// </summary>
     public static void Initialize()
@@ -57,11 +67,14 @@ public static class StorageManager
 
         _devices = new IBlockDevice[8];
         _deviceCount = 0;
+        _partitions = new List<Partition>();
         _initialized = true;
     }
 
     /// <summary>
-    /// Registers a block device with the manager.
+    /// Registers a block device with the manager and scans it for a GPT or
+    /// MBR partition table. Discovered partitions are appended to
+    /// <see cref="Partitions"/>.
     /// </summary>
     /// <param name="device">The block device to register.</param>
     public static void RegisterDevice(IBlockDevice device)
@@ -77,6 +90,74 @@ public static class StorageManager
         if (_primaryDevice == null)
         {
             _primaryDevice = device;
+        }
+
+        ScanPartitions(device);
+    }
+
+    /// <summary>
+    /// Re-scan a previously-registered device for a partition table.
+    /// Existing partitions belonging to that host are dropped first, so
+    /// callers that just wrote a new layout (tests, formatting tools) get
+    /// a clean partition list.
+    /// </summary>
+    public static void RescanPartitions(IBlockDevice device)
+    {
+        if (_partitions == null || device == null)
+        {
+            return;
+        }
+
+        for (int i = _partitions.Count - 1; i >= 0; i--)
+        {
+            if (ReferenceEquals(_partitions[i].Host, device))
+            {
+                _partitions.RemoveAt(i);
+            }
+        }
+
+        ScanPartitions(device);
+    }
+
+    private static void ScanPartitions(IBlockDevice device)
+    {
+        if (_partitions == null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (GPT.IsGPT(device))
+            {
+                Serial.WriteString("[StorageManager] GPT detected on ");
+                Serial.WriteString(device.Name);
+                Serial.WriteString("\n");
+                List<GPT.PartitionEntry> entries = GPT.Parse(device);
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    GPT.PartitionEntry e = entries[i];
+                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
+                }
+                return;
+            }
+
+            if (MBR.IsMBR(device))
+            {
+                Serial.WriteString("[StorageManager] MBR detected on ");
+                Serial.WriteString(device.Name);
+                Serial.WriteString("\n");
+                List<MBR.PartitionEntry> entries = MBR.Parse(device);
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    MBR.PartitionEntry e = entries[i];
+                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Best-effort scan: a flaky device shouldn't block storage init.
         }
     }
 

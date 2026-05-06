@@ -51,6 +51,25 @@ public class Kernel : Sys.Kernel
             RunDeviceSuite(label, dev);
         }
 
+        // Partition table round-trip tests run AFTER the per-device suites
+        // because they overwrite LBA 0..33, which the per-device tests
+        // also touch. Pick the last registered device so earlier devices'
+        // results aren't affected.
+        IBlockDevice? partitionTarget = null;
+        for (int i = StorageManager.DeviceCount - 1; i >= 0; i--)
+        {
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev != null)
+            {
+                partitionTarget = dev;
+                break;
+            }
+        }
+        if (partitionTarget != null)
+        {
+            RunPartitionTableSuite(partitionTarget);
+        }
+
         TR.Finish();
 
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
@@ -326,6 +345,111 @@ public class Kernel : Sys.Kernel
             for (int i = 0; i < (int)total; i++)
             {
                 Assert.Equal(writeBuf[i], readBuf[i]);
+            }
+        });
+    }
+
+    private static void RunPartitionTableSuite(IBlockDevice host)
+    {
+        TR.Run("Test_MBR_RoundTrip", () =>
+        {
+            // Wipe LBA 0 first so a leftover GPT signature from a prior
+            // sub-test doesn't taint the IsMBR check.
+            Span<byte> wipe = new byte[host.BlockSize];
+            host.WriteBlock(0, 1, wipe);
+
+            MBR.Create(host);
+            Assert.True(MBR.IsMBR(host));
+
+            // Two primary entries at distinct LBA windows.
+            MBR.WritePartition(host, 0, systemId: 0x83, startSector: 100, sectorCount: 200);
+            MBR.WritePartition(host, 1, systemId: 0x0B, startSector: 1000, sectorCount: 500);
+
+            List<MBR.PartitionEntry> parts = MBR.Parse(host);
+            Assert.Equal(2, parts.Count);
+            Assert.Equal<byte>(0x83, parts[0].SystemId);
+            Assert.Equal<ulong>(100, parts[0].StartSector);
+            Assert.Equal<ulong>(200, parts[0].SectorCount);
+            Assert.Equal<byte>(0x0B, parts[1].SystemId);
+            Assert.Equal<ulong>(1000, parts[1].StartSector);
+            Assert.Equal<ulong>(500, parts[1].SectorCount);
+        });
+
+        TR.Run("Test_GPT_RoundTrip", () =>
+        {
+            GPT.Create(host);
+            Assert.True(GPT.IsGPT(host));
+
+            const ulong startA = 2048;
+            const ulong countA = 4096;
+            const ulong startB = startA + countA;
+            const ulong countB = 8192;
+
+            Assert.True(GPT.AddPartition(host, startA, countA, GPT.BasicDataPartitionType));
+            Assert.True(GPT.AddPartition(host, startB, countB, GPT.BasicDataPartitionType));
+
+            List<GPT.PartitionEntry> parts = GPT.Parse(host);
+            Assert.Equal(2, parts.Count);
+            Assert.Equal(GPT.BasicDataPartitionType, parts[0].PartitionType);
+            Assert.Equal<ulong>(startA, parts[0].StartSector);
+            Assert.Equal<ulong>(countA, parts[0].SectorCount);
+            Assert.Equal<ulong>(startB, parts[1].StartSector);
+            Assert.Equal<ulong>(countB, parts[1].SectorCount);
+        });
+
+        TR.Run("Test_StorageManager_RescanPartitions", () =>
+        {
+            // Layout from the previous test: GPT with two partitions on `host`.
+            StorageManager.RescanPartitions(host);
+
+            int matches = 0;
+            for (int i = 0; i < StorageManager.Partitions.Count; i++)
+            {
+                Partition p = StorageManager.Partitions[i];
+                if (ReferenceEquals(p.Host, host))
+                {
+                    matches++;
+                }
+            }
+            Assert.Equal(2, matches);
+        });
+
+        TR.Run("Test_Partition_ReadWrite_TranslatesLba", () =>
+        {
+            // Attach a partition starting at an arbitrary LBA, write to its
+            // LBA 0, and verify the bytes show up at the host's
+            // StartingSector — proving the translation isn't off by one.
+            const ulong startSector = 3000;
+            const ulong sectorCount = 4;
+            Partition partition = new(host, startSector, sectorCount, "test-part");
+
+            Span<byte> writeBuf = new byte[host.BlockSize];
+            for (int i = 0; i < writeBuf.Length; i++)
+            {
+                writeBuf[i] = (byte)(i ^ 0x42);
+            }
+            partition.WriteBlock(0, 1, writeBuf);
+
+            Span<byte> hostBuf = new byte[host.BlockSize];
+            host.ReadBlock(startSector, 1, hostBuf);
+            for (int i = 0; i < hostBuf.Length; i++)
+            {
+                Assert.Equal(writeBuf[i], hostBuf[i]);
+            }
+        });
+
+        TR.Run("Test_Partition_OutOfBounds_Throws", () =>
+        {
+            Partition partition = new(host, startingSector: 5000, sectorCount: 8, name: "tiny-part");
+            Span<byte> buf = new byte[host.BlockSize];
+            try
+            {
+                partition.ReadBlock(blockNo: 8, blockCount: 1, buf);
+                Assert.Fail("Expected ArgumentOutOfRangeException for partition over-read.");
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Expected.
             }
         });
     }
