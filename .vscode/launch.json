@@ -433,6 +433,23 @@
             "stopAtEntry": false
         },
         {
+            "name": "Debug Test Runner (Storage x64)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Test Runner",
+            "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+            "args": [
+                "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Storage",
+                "x64",
+                "90",
+                "${workspaceFolder}/test-results-storage-x64.xml",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Cosmos: Debug Kernel",
             "type": "cosmos-debug",
             "request": "launch"

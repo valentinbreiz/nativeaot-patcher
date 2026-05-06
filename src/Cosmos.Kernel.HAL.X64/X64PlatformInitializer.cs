@@ -14,6 +14,7 @@ using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 using Cosmos.Kernel.HAL.X64.Devices.Input;
 using Cosmos.Kernel.HAL.X64.Devices.Network;
+using Cosmos.Kernel.HAL.X64.Devices.Storage;
 using Cosmos.Kernel.HAL.X64.Devices.Timer;
 
 namespace Cosmos.Kernel.HAL.X64;
@@ -78,6 +79,13 @@ public class X64PlatformInitializer : IPlatformInitializer
             _ps2Controller.Initialize();
         }
 
+        // Initialize AHCI (SATA storage), if storage feature enabled
+        if (CosmosFeatures.StorageEnabled)
+        {
+            Serial.WriteString("[X64HAL] Initializing AHCI...\n");
+            AHCI.InitDriver();
+        }
+
         // Try to find E1000E network device (if network feature enabled)
         if (CosmosFeatures.NetworkEnabled)
         {
@@ -134,6 +142,27 @@ public class X64PlatformInitializer : IPlatformInitializer
     public INetworkDevice? GetNetworkDevice()
     {
         return _networkDevice;
+    }
+
+    public IBlockDevice[] GetStorageDevices()
+    {
+        if (!CosmosFeatures.StorageEnabled)
+        {
+            return [];
+        }
+
+        var ports = AHCI.Ports;
+        if (ports.Count == 0)
+        {
+            return [];
+        }
+
+        var devices = new IBlockDevice[ports.Count];
+        for (int i = 0; i < ports.Count; i++)
+        {
+            devices[i] = ports[i];
+        }
+        return devices;
     }
 
     public unsafe uint GetCpuCount()

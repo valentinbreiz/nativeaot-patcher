@@ -8,6 +8,7 @@ using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Mouse;
 using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
 
 namespace Internal.Runtime.CompilerHelpers
@@ -70,6 +71,18 @@ namespace Internal.Runtime.CompilerHelpers
                         if (networkDevice != null)
                         {
                             NetworkManager.RegisterDevice(networkDevice);
+                        }
+                    }
+
+                    // Initialize Storage Manager and register platform block devices
+                    if (StorageManager.IsEnabled)
+                    {
+                        Serial.WriteString("[KERNEL]   - Initializing storage manager...\n");
+                        StorageManager.Initialize();
+                        var storageDevices = initializer.GetStorageDevices();
+                        foreach (var device in storageDevices)
+                        {
+                            StorageManager.RegisterDevice(device);
                         }
                     }
                 }

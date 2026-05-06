@@ -32,6 +32,11 @@ on:
         required: false
         type: boolean
         default: false
+      skip_arm64:
+        description: 'Skip the ARM64 leg (for suites that are x64-only, e.g. Storage)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   run-tests:
@@ -42,12 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
-        include:
-          - arch: x64
-            rid: linux-x64
-          - arch: arm64
-            rid: linux-arm64
+        arch: ${{ fromJSON(inputs.skip_arm64 && '["x64"]' || '["x64", "arm64"]') }}
 
     steps:
       - name: 📥 Checkout Repository

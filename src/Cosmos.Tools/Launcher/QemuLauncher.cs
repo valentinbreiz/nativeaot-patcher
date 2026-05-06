@@ -16,6 +16,12 @@ public sealed class QemuLaunchOptions
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
     /// <summary>
+    /// Path to a raw disk image to attach as a SATA drive. When set on x64, the launcher
+    /// adds an ich9-ahci controller and an ide-hd backed by this file so the AHCI driver
+    /// has a SATA device to discover. Ignored on ARM64 (storage stack is x64-only).
+    /// </summary>
+    public string? TestDiskPath { get; init; }
+    /// <summary>
     /// When false (default, dev path), x64 launches with <c>-no-shutdown</c> so a guest-initiated
     /// ACPI _S5 / panic just pauses the VM and the user can inspect it. When true (test path),
     /// the flag is omitted so a working <c>Power.Shutdown()</c> actually exits QEMU and the test
@@ -125,6 +131,14 @@ public static class QemuLauncher
         if (!options.Headless)
         {
             args.Append(" -vga std");
+        }
+        if (options.TestDiskPath is not null)
+        {
+            // Q35 doesn't auto-instantiate ich9-ahci — add it explicitly so
+            // the guest's AHCI driver finds a SATA controller via PCI scan.
+            args.Append($" -drive file=\"{options.TestDiskPath}\",if=none,id=testdisk,format=raw");
+            args.Append(" -device ich9-ahci,id=ahci0");
+            args.Append(" -device ide-hd,drive=testdisk,bus=ahci0.0");
         }
     }
 

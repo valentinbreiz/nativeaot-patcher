@@ -60,6 +60,11 @@ public interface IPlatformInitializer
     INetworkDevice? GetNetworkDevice();
 
     /// <summary>
+    /// Gets block storage devices available on this platform.
+    /// </summary>
+    IBlockDevice[] GetStorageDevices();
+
+    /// <summary>
     /// Gets the number of CPUs detected on this platform.
     /// </summary>
     uint GetCpuCount();

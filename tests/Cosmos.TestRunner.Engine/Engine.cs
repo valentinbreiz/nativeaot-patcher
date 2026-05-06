@@ -174,6 +174,25 @@ public partial class Engine
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
+        // Detect if this is a storage test kernel — attach a fresh 256 MiB
+        // sparse raw disk so the AHCI driver finds a SATA device on x64.
+        // ARM64 launcher ignores the path (storage stack is x64-only).
+        string? testDiskPath = null;
+        if (_config.KernelProjectPath.Contains("Storage", StringComparison.OrdinalIgnoreCase))
+        {
+            string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
+            testDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}.img");
+            if (File.Exists(testDiskPath))
+            {
+                File.Delete(testDiskPath);
+            }
+            using (var fs = new FileStream(testDiskPath, FileMode.Create, FileAccess.Write))
+            {
+                fs.SetLength(256L * 1024 * 1024);
+            }
+            Console.WriteLine($"[Engine] Created test disk: {testDiskPath} (256 MiB sparse)");
+        }
+
         var combinedLog = new StringBuilder();
         QemuRunResult? lastResult = null;
 
@@ -188,7 +207,7 @@ public partial class Engine
             }
 
             QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting);
+                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, testDiskPath);
 
             combinedLog.Append(result.UartLog);
             lastResult = result;

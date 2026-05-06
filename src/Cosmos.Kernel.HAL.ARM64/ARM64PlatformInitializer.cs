@@ -105,6 +105,12 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         return VirtioDevice.GetDevice<VirtioNet>();
     }
 
+    public IBlockDevice[] GetStorageDevices()
+    {
+        // ARM64 storage stack not implemented yet.
+        return [];
+    }
+
     public uint GetCpuCount()
     {
         // For now, single CPU on ARM64

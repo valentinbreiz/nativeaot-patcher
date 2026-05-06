@@ -299,11 +299,35 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
+  # ── Storage (x64-only) ────────────────────────────────────────────────────────
+  storage-tests:
+    needs: setup
+    uses: ./.github/workflows/kernel-test-run.yml
+    with:
+      suite_name: Storage
+      suite_id: storage
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Storage
+      timeout_x64: 90
+      timeout_arm64: 0
+      step_timeout_minutes: 5
+      skip_arm64: true
+
+  storage-results:
+    needs: storage-tests
+    if: always()
+    uses: ./.github/workflows/kernel-test-results.yml
+    with:
+      suite_name: Storage
+      suite_id: storage
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Storage
+      event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
+
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:
     name: Test Summary
     runs-on: ubuntu-24.04
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results ]
+    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, storage-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -334,6 +358,7 @@ jobs:
           add_row "Graphic"          "${{ needs.graphic-tests.result }}"
           add_row "Power"            "${{ needs.power-tests.result }}"
           add_row "GarbageCollector" "${{ needs.garbagecollector-tests.result }}"
+          add_row "Storage"          "${{ needs.storage-tests.result }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
