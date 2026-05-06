@@ -176,8 +176,9 @@ public partial class Engine
 
         // Detect if this is a storage test kernel — attach two fresh 256 MiB
         // sparse raw disks so the suite can validate both an AHCI/SATA disk
-        // and an NVMe disk in the same boot. ARM64 launcher ignores both
-        // (storage stack is x64-only).
+        // and an NVMe disk in the same boot. Both arches honour the disk
+        // paths via QemuLauncher; the storage suite skips per-controller
+        // tests if the controller fails to bind.
         string? ahciDiskPath = null;
         string? nvmeDiskPath = null;
         if (_config.KernelProjectPath.Contains("Storage", StringComparison.OrdinalIgnoreCase))
