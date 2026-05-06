@@ -33,7 +33,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 - NativeAOT compilation
 - x64 and ARM64
-- Limine boot protocol
+- [Limine](https://github.com/Limine-Bootloader/Limine) boot protocol
 - Cosmos plug system
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
