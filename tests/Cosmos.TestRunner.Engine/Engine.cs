@@ -174,23 +174,29 @@ public partial class Engine
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
-        // Detect if this is a storage test kernel — attach a fresh 256 MiB
-        // sparse raw disk so the AHCI driver finds a SATA device on x64.
-        // ARM64 launcher ignores the path (storage stack is x64-only).
-        string? testDiskPath = null;
+        // Detect if this is a storage test kernel — attach two fresh 256 MiB
+        // sparse raw disks so the suite can validate both an AHCI/SATA disk
+        // and an NVMe disk in the same boot. ARM64 launcher ignores both
+        // (storage stack is x64-only).
+        string? ahciDiskPath = null;
+        string? nvmeDiskPath = null;
         if (_config.KernelProjectPath.Contains("Storage", StringComparison.OrdinalIgnoreCase))
         {
             string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
-            testDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}.img");
-            if (File.Exists(testDiskPath))
+            ahciDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-ahci.img");
+            nvmeDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-nvme.img");
+            foreach (string path in new[] { ahciDiskPath, nvmeDiskPath })
             {
-                File.Delete(testDiskPath);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    fs.SetLength(256L * 1024 * 1024);
+                }
+                Console.WriteLine($"[Engine] Created test disk: {path} (256 MiB sparse)");
             }
-            using (var fs = new FileStream(testDiskPath, FileMode.Create, FileAccess.Write))
-            {
-                fs.SetLength(256L * 1024 * 1024);
-            }
-            Console.WriteLine($"[Engine] Created test disk: {testDiskPath} (256 MiB sparse)");
         }
 
         var combinedLog = new StringBuilder();
@@ -207,7 +213,7 @@ public partial class Engine
             }
 
             QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, testDiskPath);
+                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, ahciDiskPath, nvmeDiskPath);
 
             combinedLog.Append(result.UartLog);
             lastResult = result;

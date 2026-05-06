@@ -25,7 +25,7 @@ public class QemuX64Host : IQemuHost
         _memoryMb = memoryMb;
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? testDiskPath = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? ahciDiskPath = null, string? nvmeDiskPath = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -58,7 +58,8 @@ public class QemuX64Host : IQemuHost
             SerialOutputFile = uartLogPath,
             EnableNetworkTesting = enableNetworkTesting,
             AllowGuestShutdown = true,
-            TestDiskPath = testDiskPath
+            AhciDiskPath = ahciDiskPath,
+            NvmeDiskPath = nvmeDiskPath
         });
         var startInfo = QemuLauncher.ToProcessStartInfo(plan);
         if (_qemuBinaryOverride is not null)

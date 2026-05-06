@@ -21,9 +21,10 @@ public interface IQemuHost
     /// <param name="timeoutSeconds">Maximum time to run (default 30s)</param>
     /// <param name="showDisplay">Show QEMU display window (default false = headless)</param>
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
-    /// <param name="testDiskPath">Path to a raw disk image to attach as a SATA drive (default null = no disk). x64-only; ignored on ARM64.</param>
+    /// <param name="ahciDiskPath">Path to a raw disk image to attach as an AHCI/SATA drive (default null = no AHCI disk). x64-only; ignored on ARM64.</param>
+    /// <param name="nvmeDiskPath">Path to a raw disk image to attach as an NVMe drive (default null = no NVMe disk). x64-only; ignored on ARM64.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? testDiskPath = null);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? ahciDiskPath = null, string? nvmeDiskPath = null);
 }
 
 /// <summary>
