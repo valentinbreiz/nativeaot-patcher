@@ -131,6 +131,59 @@
             "launchCompleteCommand": "None"
         },
         {
+            "name": "Debug ARM64 DevKernel (Storage)",
+            "type": "cppdbg",
+            "request": "launch",
+            "MIMode": "gdb",
+            "sourceFileMap": {
+                "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+            },
+            "miDebuggerPath": "gdb-multiarch",
+            "targetArchitecture": "arm64",
+            "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/DevKernel.elf",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerServerAddress": "localhost:1234",
+            "preLaunchTask": "Debug ARM64 DevKernel (Storage)",
+            "postDebugTask": "Stop QEMU ARM64",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set pagination off",
+                    "text": "set pagination off",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set step mode",
+                    "text": "set step-mode on",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture",
+                    "text": "set architecture aarch64",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Set target endian",
+                    "text": "set endian little",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable scheduler locking",
+                    "text": "set scheduler-locking step",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "None"
+        },
+        {
             "name": "Debug Test Runner (HelloWorld x64)",
             "type": "coreclr",
             "request": "launch",
@@ -481,6 +534,23 @@
                 "x64",
                 "90",
                 "${workspaceFolder}/test-results-storage-x64.xml",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Debug Test Runner (Storage ARM64)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Test Runner",
+            "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
+            "args": [
+                "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Storage",
+                "arm64",
+                "180",
+                "${workspaceFolder}/test-results-storage-arm64.xml",
                 "dev"
             ],
             "cwd": "${workspaceFolder}",
