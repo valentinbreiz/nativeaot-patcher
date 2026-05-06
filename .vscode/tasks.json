@@ -203,6 +203,46 @@
       }
     },
     {
+      "label": "Run QEMU x64 DevKernel (Storage)",
+      "dependsOn": ["Build x64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -device i8042 -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=disk0,bus=ahci0.0 -no-reboot -no-shutdown"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Debug x64 DevKernel (Storage)",
+      "dependsOn": ["Build x64 DevKernel"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "[ -f ${workspaceFolder}/disk.img ] || truncate -s 256M ${workspaceFolder}/disk.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -cdrom ${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso -display gtk -vga std -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk.img,if=none,id=disk0,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=disk0,bus=ahci0.0 -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu-devkernel-storage",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^qemu",
+          "endsPattern": "QEMU-DEVKERNEL-DEBUG-READY"
+        },
+        "pattern": { "regexp": ".*" }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Run QEMU macOS x64 DevKernel",
       "type": "shell",
       "dependsOn": "Build macOS x64 DevKernel",

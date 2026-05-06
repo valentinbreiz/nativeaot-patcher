@@ -454,6 +454,9 @@ output-helloworld/
 # tasks/ 
 *.pcap
 
+# Dev disk image attached to DevKernel for storage testing
+disk.img
+
 # Installer bundle (downloaded tools, staged during CI build)
 setup/bundle/
 setup/output/

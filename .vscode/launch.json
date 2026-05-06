@@ -40,6 +40,44 @@
             "launchCompleteCommand": "None"
         },
         {
+            "name": "Debug x64 DevKernel (Storage)",
+            "type": "cppdbg",
+            "request": "launch",
+            "MIMode": "gdb",
+            "sourceFileMap": {
+                "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+            },
+            "miDebuggerPath": "gdb",
+            "targetArchitecture": "x64",
+            "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/DevKernel.elf",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerServerAddress": "localhost:1234",
+            "preLaunchTask": "Debug x64 DevKernel (Storage)",
+            "postDebugTask": "Stop QEMU x64",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set disassembly flavor",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set pagination off",
+                    "text": "set pagination off",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "None"
+        },
+        {
             "name": "Debug ARM64 DevKernel",
             "type": "cppdbg",
             "request": "launch",
