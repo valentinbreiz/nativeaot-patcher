@@ -34,10 +34,10 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - NativeAOT compilation
 - x64 and ARM64
 - [Limine](https://github.com/Limine-Bootloader/Limine) boot protocol
-- Cosmos plug system
+- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/plugs.html)
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
-- Mark-and-sweep Garbage Collector
+- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/garbage-collector.html)
 - Priority-based Stride Scheduler
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
