@@ -299,7 +299,7 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
-  # ── Storage (x64-only) ────────────────────────────────────────────────────────
+  # ── Storage ───────────────────────────────────────────────────────────────────
   storage-tests:
     needs: setup
     uses: ./.github/workflows/kernel-test-run.yml
@@ -308,9 +308,8 @@ jobs:
       suite_id: storage
       kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Storage
       timeout_x64: 90
-      timeout_arm64: 0
+      timeout_arm64: 180
       step_timeout_minutes: 5
-      skip_arm64: true
 
   storage-results:
     needs: storage-tests
