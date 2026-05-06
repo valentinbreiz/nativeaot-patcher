@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -174,19 +175,27 @@ public partial class Engine
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
-        // Detect if this is a storage test kernel — attach two fresh 256 MiB
-        // sparse raw disks so the suite can validate both an AHCI/SATA disk
-        // and an NVMe disk in the same boot. Both arches honour the disk
-        // paths via QemuLauncher; the storage suite skips per-controller
-        // tests if the controller fails to bind.
-        string? ahciDiskPath = null;
-        string? nvmeDiskPath = null;
+        // Detect if this is a storage test kernel — attach two AHCI/SATA
+        // disks (sharing one ich9-ahci controller across two SATA ports) +
+        // two NVMe controllers so the suite exercises multi-port AHCI
+        // enumeration AND multi-controller NVMe binding. Each disk is a
+        // fresh 256 MiB sparse raw image. Both arches honour the disk paths
+        // via QemuLauncher; the storage suite skips per-device tests if a
+        // device fails to bind.
+        const int StorageDiskCountPerType = 2;
+        string[] ahciDiskPaths = Array.Empty<string>();
+        string[] nvmeDiskPaths = Array.Empty<string>();
         if (_config.KernelProjectPath.Contains("Storage", StringComparison.OrdinalIgnoreCase))
         {
             string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
-            ahciDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-ahci.img");
-            nvmeDiskPath = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-nvme.img");
-            foreach (string path in new[] { ahciDiskPath, nvmeDiskPath })
+            ahciDiskPaths = new string[StorageDiskCountPerType];
+            nvmeDiskPaths = new string[StorageDiskCountPerType];
+            for (int i = 0; i < StorageDiskCountPerType; i++)
+            {
+                ahciDiskPaths[i] = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-ahci{i}.img");
+                nvmeDiskPaths[i] = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-nvme{i}.img");
+            }
+            foreach (string path in ahciDiskPaths.Concat(nvmeDiskPaths))
             {
                 if (File.Exists(path))
                 {
@@ -214,7 +223,7 @@ public partial class Engine
             }
 
             QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, ahciDiskPath, nvmeDiskPath);
+                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, ahciDiskPaths, nvmeDiskPaths);
 
             combinedLog.Append(result.UartLog);
             lastResult = result;
