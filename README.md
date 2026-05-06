@@ -36,18 +36,18 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - Limine boot protocol
 - Cosmos plug system
 - Native runtime stubs
-- .NET runtime support (String, Collections, List, Dictionary, Math, Console, DateTime, Random, BitOperations, threading, generics, reflection basics)
-- Mark-and-sweep GC
-- Priority-based stride scheduler
+- .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
+- Mark-and-sweep Garbage Collector
+- Priority-based Stride Scheduler
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
 - ACPI (via LAI)
 - PCI and MMIO drivers
 - UART serial
 - UEFI GOP framebuffer graphics
-- Keyboard and mouse input
+- Keyboard and Mouse input
 - Network stack
-- Timer / clock
+- Timer / Clock
 
 ## Documentation
 
