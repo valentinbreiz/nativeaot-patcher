@@ -46,7 +46,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - UART serial
 - UEFI GOP framebuffer graphics
 - Keyboard and Mouse input
-- Network stack
+- Network stack (no HTTPS *yet*)
 - Timer / Clock
 
 ## Documentation
