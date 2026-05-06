@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
 /// <summary>
 /// SATA drive port driver.
 /// </summary>
-public class SATA : StoragePort
+public class SATA : AHCIPort
 {
     public override PortType PortType => PortType.SATA;
     public override string PortName => "SATA";

@@ -5,9 +5,9 @@ using Cosmos.Kernel.HAL.Devices.Storage;
 namespace Cosmos.Kernel.HAL.X64.Devices.Storage;
 
 /// <summary>
-/// Abstract base class for AHCI storage ports (SATA, SATAPI, etc.).
+/// Abstract base class for AHCI ports (SATA, SATAPI, etc.).
 /// </summary>
-public abstract class StoragePort : BlockDevice
+public abstract class AHCIPort : BlockDevice
 {
     /// <summary>
     /// The port type (SATA, SATAPI, etc.).
