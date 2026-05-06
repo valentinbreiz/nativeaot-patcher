@@ -16,19 +16,21 @@ public sealed class QemuLaunchOptions
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
     /// <summary>
-    /// Path to a raw disk image to attach as an AHCI/SATA drive. The launcher
-    /// adds an <c>ich9-ahci</c> controller and an <c>ide-hd</c> backed by this
-    /// file so the AHCI driver finds a SATA device via PCI scan. Honoured on
-    /// both x64 (q35) and ARM64 (virt).
+    /// Raw disk images to attach as AHCI/SATA drives. The launcher adds a
+    /// single <c>ich9-ahci</c> controller and one <c>ide-hd</c> per path on
+    /// successive ports (<c>bus=ahci0.0</c>, <c>ahci0.1</c>, ...), so the AHCI
+    /// driver enumerates all of them via one PCI scan. Honoured on both x64
+    /// (q35) and ARM64 (virt).
     /// </summary>
-    public string? AhciDiskPath { get; init; }
+    public IReadOnlyList<string> AhciDiskPaths { get; init; } = Array.Empty<string>();
 
     /// <summary>
-    /// Path to a raw disk image to attach as an NVMe drive. The launcher adds
-    /// an <c>nvme</c> PCIe device backed by this file so the NVMe driver finds
-    /// a controller via PCI scan. Honoured on both x64 (q35) and ARM64 (virt).
+    /// Raw disk images to attach as NVMe drives. The launcher adds one
+    /// <c>nvme</c> PCIe controller per path (each with a unique <c>id</c> and
+    /// <c>serial</c>) so the NVMe driver binds to every controller via PCI
+    /// scan. Honoured on both x64 (q35) and ARM64 (virt).
     /// </summary>
-    public string? NvmeDiskPath { get; init; }
+    public IReadOnlyList<string> NvmeDiskPaths { get; init; } = Array.Empty<string>();
     /// <summary>
     /// When false (default, dev path), x64 launches with <c>-no-shutdown</c> so a guest-initiated
     /// ACPI _S5 / panic just pauses the VM and the user can inspect it. When true (test path),
@@ -140,22 +142,7 @@ public static class QemuLauncher
         {
             args.Append(" -vga std");
         }
-        if (options.AhciDiskPath is not null)
-        {
-            // Q35 doesn't auto-instantiate ich9-ahci — add it explicitly so the
-            // guest's AHCI driver finds a SATA controller via PCI scan.
-            args.Append($" -drive file=\"{options.AhciDiskPath}\",if=none,id=ahcidisk,format=raw");
-            args.Append(" -device ich9-ahci,id=ahci0");
-            args.Append(" -device ide-hd,drive=ahcidisk,bus=ahci0.0");
-        }
-        if (options.NvmeDiskPath is not null)
-        {
-            // QEMU's `nvme` device exposes a controller with one namespace backed
-            // by the drive, which the guest's NVMe driver finds via PCI scan
-            // (class 0x01 / subclass 0x08).
-            args.Append($" -drive file=\"{options.NvmeDiskPath}\",if=none,id=nvmedisk,format=raw");
-            args.Append(" -device nvme,drive=nvmedisk,serial=cosmos-nvme");
-        }
+        AppendStorageArgs(args, options);
     }
 
     private static void AppendArm64Args(StringBuilder args, QemuLaunchOptions options)
@@ -170,18 +157,32 @@ public static class QemuLauncher
         args.Append(" -boot d -no-reboot");
         // ramfb is required for Limine framebuffer support even when headless.
         args.Append(" -device ramfb");
-        if (options.AhciDiskPath is not null)
+        AppendStorageArgs(args, options);
+    }
+
+    /// <summary>
+    /// Attach AHCI/SATA + NVMe disks. AHCI disks share one <c>ich9-ahci</c>
+    /// controller and consume successive ports; NVMe disks each get a
+    /// dedicated <c>nvme</c> controller so the guest exercises multi-controller
+    /// binding.
+    /// </summary>
+    private static void AppendStorageArgs(StringBuilder args, QemuLaunchOptions options)
+    {
+        if (options.AhciDiskPaths.Count > 0)
         {
-            // ich9-ahci is a generic PCIe SATA HBA; QEMU exposes it on virt's
-            // PCIe root complex the same way q35 does on x64.
-            args.Append($" -drive file=\"{options.AhciDiskPath}\",if=none,id=ahcidisk,format=raw");
             args.Append(" -device ich9-ahci,id=ahci0");
-            args.Append(" -device ide-hd,drive=ahcidisk,bus=ahci0.0");
+            for (int i = 0; i < options.AhciDiskPaths.Count; i++)
+            {
+                string path = options.AhciDiskPaths[i];
+                args.Append($" -drive file=\"{path}\",if=none,id=ahcidisk{i},format=raw");
+                args.Append($" -device ide-hd,drive=ahcidisk{i},bus=ahci0.{i}");
+            }
         }
-        if (options.NvmeDiskPath is not null)
+        for (int i = 0; i < options.NvmeDiskPaths.Count; i++)
         {
-            args.Append($" -drive file=\"{options.NvmeDiskPath}\",if=none,id=nvmedisk,format=raw");
-            args.Append(" -device nvme,drive=nvmedisk,serial=cosmos-nvme");
+            string path = options.NvmeDiskPaths[i];
+            args.Append($" -drive file=\"{path}\",if=none,id=nvmedisk{i},format=raw");
+            args.Append($" -device nvme,id=nvme{i},drive=nvmedisk{i},serial=cosmos-nvme-{i}");
         }
     }
 

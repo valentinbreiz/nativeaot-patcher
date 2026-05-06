@@ -15,9 +15,12 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
         Serial.WriteString("[Storage] Starting tests...\n");
 
-        // Test count is dynamic: 2 meta tests + 12 per controller that bound.
-        // x64 (q35) gets both AHCI + NVMe = 26; ARM64 (virt) runs whichever
-        // controllers QEMU exposes. Pass 0 so the framework counts on the fly.
+        // Test count is dynamic: 2 meta tests + 12 per registered block device.
+        // The test runner attaches multiple AHCI ports + multiple NVMe
+        // controllers, so the suite walks StorageManager and runs the full
+        // round-trip suite against every device individually — catches
+        // cross-device aliasing, bounce-buffer reuse, and per-controller
+        // state that a single-device test would miss.
         TR.Start("Storage Block Device Tests", expectedTests: 0);
 
         TR.Run("Test_StorageManager_Initialized", () =>
@@ -26,39 +29,31 @@ public class Kernel : Sys.Kernel
             Assert.True(StorageManager.IsInitialized);
         });
 
-        IBlockDevice? sata = FindDeviceByName("SATA");
-        IBlockDevice? nvme = FindDeviceByName("NVMe");
-
-        TR.Run("Test_AtLeastOneController_Present", () =>
+        TR.Run("Test_AtLeastOneDevice_Present", () =>
         {
-            Assert.True(sata != null || nvme != null);
+            Assert.True(StorageManager.DeviceCount > 0);
         });
 
-        if (sata != null)
+        int sataIdx = 0;
+        int nvmeIdx = 0;
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
         {
-            RunDeviceSuite("SATA", sata);
-        }
-        if (nvme != null)
-        {
-            RunDeviceSuite("NVMe", nvme);
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev == null)
+            {
+                continue;
+            }
+            string label = dev.Name == "SATA"
+                ? $"SATA{sataIdx++}"
+                : dev.Name == "NVMe"
+                    ? $"NVMe{nvmeIdx++}"
+                    : $"{dev.Name}{i}";
+            RunDeviceSuite(label, dev);
         }
 
         TR.Finish();
 
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
-    }
-
-    private static IBlockDevice? FindDeviceByName(string name)
-    {
-        for (int i = 0; i < StorageManager.DeviceCount; i++)
-        {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev != null && dev.Name == name)
-            {
-                return dev;
-            }
-        }
-        return null;
     }
 
     private static void RunDeviceSuite(string label, IBlockDevice? dev)

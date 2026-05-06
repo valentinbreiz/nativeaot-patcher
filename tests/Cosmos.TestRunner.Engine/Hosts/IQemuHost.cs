@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cosmos.TestRunner.Engine;
@@ -21,10 +22,10 @@ public interface IQemuHost
     /// <param name="timeoutSeconds">Maximum time to run (default 30s)</param>
     /// <param name="showDisplay">Show QEMU display window (default false = headless)</param>
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
-    /// <param name="ahciDiskPath">Path to a raw disk image to attach as an AHCI/SATA drive (default null = no AHCI disk). x64-only; ignored on ARM64.</param>
-    /// <param name="nvmeDiskPath">Path to a raw disk image to attach as an NVMe drive (default null = no NVMe disk). x64-only; ignored on ARM64.</param>
+    /// <param name="ahciDiskPaths">Raw disk images to attach as AHCI/SATA drives (default null = no AHCI disks). One <c>ich9-ahci</c> controller carries them on successive ports.</param>
+    /// <param name="nvmeDiskPaths">Raw disk images to attach as NVMe drives (default null = no NVMe disks). Each path gets its own <c>nvme</c> controller, exercising multi-controller binding.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, string? ahciDiskPath = null, string? nvmeDiskPath = null);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<string>? ahciDiskPaths = null, IReadOnlyList<string>? nvmeDiskPaths = null);
 }
 
 /// <summary>
