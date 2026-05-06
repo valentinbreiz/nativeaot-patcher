@@ -5,7 +5,6 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
-using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.Kernel.System.Network;
@@ -14,6 +13,7 @@ using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
+using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
 using Sys = Cosmos.Kernel.System;
 
