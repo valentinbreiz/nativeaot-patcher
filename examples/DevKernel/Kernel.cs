@@ -231,11 +231,12 @@ public class Kernel : Sys.Kernel
                 case "format":
                     if (parts.Length >= 2 && int.TryParse(parts[1], out int fmtPartNum))
                     {
-                        FormatPartition(fmtPartNum);
+                        string fmtType = parts.Length >= 3 ? parts[2].ToLower() : "fat";
+                        FormatPartition(fmtPartNum, fmtType);
                     }
                     else
                     {
-                        PrintError("Usage: format <partition_number>");
+                        PrintError("Usage: format <partition_number> [fs_type]   (default: fat)");
                     }
                     break;
 
@@ -595,7 +596,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> <mb>", "Create a partition on disk n of size mb");
-        PrintCommand("format <n>", "Format partition n as FAT (auto type)");
+        PrintCommand("format <n> [fs]", "Format partition n (default fs: fat)");
         PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
         PrintCommand("cd <path>", "Change current directory");
@@ -1556,7 +1557,7 @@ public class Kernel : Sys.Kernel
         PrintSuccess("Partition created at LBA " + startSector + " (" + sectorCount + " sectors).");
     }
 
-    private void FormatPartition(int partNum)
+    private void FormatPartition(int partNum, string fsType)
     {
         IReadOnlyList<Partition> partitions = StorageManager.Partitions;
         if (partNum < 0 || partNum >= partitions.Count)
@@ -1565,13 +1566,13 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!VfsManager.TryFormat("fat", partNum.ToString(), null))
+        if (!VfsManager.TryFormat(fsType, partNum.ToString(), null))
         {
-            PrintError("Format failed.");
+            PrintError("Format failed. Unknown or unsupported filesystem: " + fsType);
             return;
         }
 
-        PrintSuccess("Partition " + partNum + " formatted as FAT.");
+        PrintSuccess("Partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
     }
 
     private void MountPartition(int partNum, string mountPoint)
@@ -1645,7 +1646,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("  2. partitions             - list partitions on each disk");
         Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
         Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB");
-        Console.WriteLine("  5. format <p>             - format partition <p> as FAT");
+        Console.WriteLine("  5. format <p> [fs]        - format partition <p> (default fs: fat)");
         Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
     }
