@@ -1675,6 +1675,28 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
     }
 
+    private void PrintAvailableMounts()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Available mount points (cd into one):");
+        Console.ResetColor();
+
+        IReadOnlyList<VfsManager.VfsMount> mounts = VfsManager.Mounts;
+        for (int i = 0; i < mounts.Count; i++)
+        {
+            VfsManager.VfsMount m = mounts[i];
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(m.MountPoint);
+            Console.ResetColor();
+            Console.Write(" (");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(m.Name);
+            Console.ResetColor();
+            Console.WriteLine(")");
+        }
+    }
+
     private void ChangeDirectory(string path)
     {
         string target = NormalizePath(ResolvePath(path));
@@ -1749,13 +1771,13 @@ public class Kernel : Sys.Kernel
 
         string fullPath = NormalizePath(ResolvePath(path));
 
-        // Plain `ls` (path "/") with no mount at "/" itself isn't a real
-        // failure — it just means the user needs to mount or switch drive.
-        // Show the same guide as the no-mount-at-all case rather than the
-        // cryptic "Cannot open directory: /".
+        // No mount lives at "/" itself, so plain `ls` would fail even when
+        // filesystems are mounted at sub-paths. List the available mount
+        // points so the user can `cd` into one rather than see a cryptic
+        // "Cannot open directory: /".
         if (fullPath == "/" && !VfsManager.TryGetMount("/", out _))
         {
-            PrintNoMountHelp();
+            PrintAvailableMounts();
             return;
         }
 
