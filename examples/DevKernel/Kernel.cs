@@ -596,7 +596,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> <mb>", "Create a partition on disk n of size mb");
-        PrintCommand("format <n> [fs]", "Format partition n (default fs: fat)");
+        PrintCommand("format <n> [fs]", "Format partition n (fs: fat | fat12 | fat16 | fat32, default fat)");
         PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
         PrintCommand("cd <path>", "Change current directory");
@@ -1566,7 +1566,31 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!VfsManager.TryFormat(fsType, partNum.ToString(), null))
+        // FAT family: accept fat / fat12 / fat16 / fat32 — all dispatched to
+        // the "fat" driver with a FatFormatOptions hint. Unknown fs types
+        // fall through to TryFormat which returns false.
+        string driverName = fsType;
+        IVfsFormatOptions? options = null;
+        switch (fsType)
+        {
+            case "fat":
+                driverName = "fat";
+                break;
+            case "fat12":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat12 };
+                break;
+            case "fat16":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat16 };
+                break;
+            case "fat32":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat32 };
+                break;
+        }
+
+        if (!VfsManager.TryFormat(driverName, partNum.ToString(), options))
         {
             PrintError("Format failed. Unknown or unsupported filesystem: " + fsType);
             return;
@@ -1646,7 +1670,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("  2. partitions             - list partitions on each disk");
         Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
         Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB");
-        Console.WriteLine("  5. format <p> [fs]        - format partition <p> (default fs: fat)");
+        Console.WriteLine("  5. format <p> [fs]        - format partition <p> (fs: fat | fat12 | fat16 | fat32)");
         Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
     }
