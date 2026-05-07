@@ -1747,6 +1747,11 @@ public class Kernel : Sys.Kernel
 
     private void DisplayFileContents(string path)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
         string fullPath = ResolvePath(path);
         if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
         {
@@ -1787,6 +1792,11 @@ public class Kernel : Sys.Kernel
 
     private void CreateDirectory(string path)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
         string fullPath = ResolvePath(path);
         (string parent, string leaf) = SplitPath(fullPath);
         if (string.IsNullOrEmpty(leaf))
@@ -1812,6 +1822,11 @@ public class Kernel : Sys.Kernel
 
     private void CreateEmptyFile(string path)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
         string fullPath = ResolvePath(path);
         (string parent, string leaf) = SplitPath(fullPath);
         if (string.IsNullOrEmpty(leaf))
@@ -1837,6 +1852,11 @@ public class Kernel : Sys.Kernel
 
     private void DeleteEntry(string path)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
         string fullPath = ResolvePath(path);
         (string parent, string leaf) = SplitPath(fullPath);
         if (string.IsNullOrEmpty(leaf))
@@ -1868,6 +1888,11 @@ public class Kernel : Sys.Kernel
 
     private void WriteToFile(string path, string text)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
         string fullPath = ResolvePath(path);
 
         if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
