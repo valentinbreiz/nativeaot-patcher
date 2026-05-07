@@ -9,6 +9,8 @@ public interface IInodeOperations
 {
     bool Lookup(IVfsInode dir, ReadOnlySpan<char> name, out IVfsInode? child);
 
+    bool ReadDir(IVfsInode dir, IList<VfsDirectoryEntry> entries);
+
     bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);
 
     bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);

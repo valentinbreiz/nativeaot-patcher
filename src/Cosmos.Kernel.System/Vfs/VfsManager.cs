@@ -56,6 +56,11 @@ public static class VfsManager
     private static readonly List<VfsMount> s_mounts = new();
 
     /// <summary>
+    /// All currently active mounts in registration order.
+    /// </summary>
+    public static IReadOnlyList<VfsMount> Mounts => s_mounts;
+
+    /// <summary>
     /// Register a filesystem driver by name.
     /// </summary>
     /// <returns><c>true</c> when registration succeeds; <c>false</c> if name is invalid, driver is null, or already registered.</returns>

@@ -44,6 +44,33 @@ internal sealed class FatInodeOperations : IInodeOperations
         return false;
     }
 
+    public bool ReadDir(IVfsInode dir, IList<VfsDirectoryEntry> entries)
+    {
+        if (entries == null || dir is not FatInode parent || !parent.IsDirectory)
+        {
+            return false;
+        }
+
+        byte[] data = _superblock.ReadDirectoryData(parent);
+        List<FatDirEntry> raw = FatDirectory.Parse(data);
+        for (int i = 0; i < raw.Count; i++)
+        {
+            FatDirEntry entry = raw[i];
+            if (entry.IsVolumeId)
+            {
+                continue;
+            }
+            if (entry.Name == "." || entry.Name == "..")
+            {
+                continue;
+            }
+
+            ModeEnum mode = FatAttributes.ToMode(entry.Attributes);
+            entries.Add(new VfsDirectoryEntry(entry.Name, mode, entry.Size, entry.FirstCluster));
+        }
+        return true;
+    }
+
     public bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode)
     {
         inode = null;
