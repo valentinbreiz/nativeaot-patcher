@@ -16,6 +16,8 @@
   href: testing.md
 - name: Garbage Collector
   href: garbage-collector.md
+- name: Scheduler
+  href: scheduler.md
 - name: Cosmos.Build.Asm
   href: build/asm-build.md
 - name: Cosmos.Build.CC
