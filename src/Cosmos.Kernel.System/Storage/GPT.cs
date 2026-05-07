@@ -214,6 +214,97 @@ public static class GPT
         return false;
     }
 
+    /// <summary>Mark the <paramref name="partitionIndex"/>-th non-empty entry as deleted (zeroed type / GUID / LBAs).</summary>
+    public static bool RemovePartition(IBlockDevice device, int partitionIndex)
+    {
+        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        {
+            entry.Slice(0, 56).Clear();
+        });
+    }
+
+    /// <summary>Rewrite end LBA of <paramref name="partitionIndex"/> so the partition spans <paramref name="newSectorCount"/> sectors. Start LBA / type / partition GUID preserved.</summary>
+    public static bool ResizePartition(IBlockDevice device, int partitionIndex, ulong newSectorCount)
+    {
+        if (newSectorCount == 0)
+        {
+            return false;
+        }
+
+        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        {
+            ulong startLba = BitConverter.ToUInt64(entry.Slice(32, 8));
+            BitConverter.TryWriteBytes(entry.Slice(40, 8), startLba + newSectorCount - 1);
+        });
+    }
+
+    /// <summary>Rewrite start and end LBAs of <paramref name="partitionIndex"/> so the partition lives at <paramref name="newStartSector"/>, same length. Table-level only — does not relocate data.</summary>
+    public static bool MovePartition(IBlockDevice device, int partitionIndex, ulong newStartSector)
+    {
+        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        {
+            ulong startLba = BitConverter.ToUInt64(entry.Slice(32, 8));
+            ulong endLba = BitConverter.ToUInt64(entry.Slice(40, 8));
+            ulong sectorCount = endLba + 1 - startLba;
+            BitConverter.TryWriteBytes(entry.Slice(32, 8), newStartSector);
+            BitConverter.TryWriteBytes(entry.Slice(40, 8), newStartSector + sectorCount - 1);
+        });
+    }
+
+    private delegate void EntryMutator(Span<byte> entry);
+
+    private static bool MutateEntry(IBlockDevice device, int partitionIndex, EntryMutator mutator)
+    {
+        if (partitionIndex < 0)
+        {
+            return false;
+        }
+
+        ulong blockSize = device.BlockSize;
+        Span<byte> header = new byte[blockSize];
+        device.ReadBlock(1, 1, header);
+        if (BitConverter.ToUInt64(header.Slice(0, 8)) != EfiPartSignature)
+        {
+            return false;
+        }
+
+        ulong entryStartLba = BitConverter.ToUInt64(header.Slice(72, 8));
+        uint entryCount = BitConverter.ToUInt32(header.Slice(80, 4));
+        uint entrySize = BitConverter.ToUInt32(header.Slice(84, 4));
+        uint entriesPerSector = (uint)(blockSize / entrySize);
+        if (entriesPerSector == 0)
+        {
+            return false;
+        }
+
+        int seen = 0;
+        Span<byte> sector = new byte[blockSize];
+        for (uint s = 0; s < entryCount; s += entriesPerSector)
+        {
+            ulong lba = entryStartLba + s / entriesPerSector;
+            device.ReadBlock(lba, 1, sector);
+            uint thisSector = (uint)Math.Min((ulong)entriesPerSector, entryCount - s);
+            for (uint j = 0; j < thisSector; j++)
+            {
+                int offset = (int)(j * entrySize);
+                if (IsZero(sector.Slice(offset, 16)))
+                {
+                    continue;
+                }
+
+                if (seen == partitionIndex)
+                {
+                    mutator(sector.Slice(offset, (int)entrySize));
+                    device.WriteBlock(lba, 1, sector);
+                    return true;
+                }
+                seen++;
+            }
+        }
+
+        return false;
+    }
+
     private static Guid ReadGuid(Span<byte> source)
     {
         byte[] bytes = new byte[16];

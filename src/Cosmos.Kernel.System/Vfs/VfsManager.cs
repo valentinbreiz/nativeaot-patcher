@@ -111,6 +111,33 @@ public static class VfsManager
     }
 
     /// <summary>
+    /// Format the backing store for a registered driver. The driver decides
+    /// what <paramref name="source"/> means (partition index, injected device,
+    /// etc.) and casts <paramref name="options"/> to its own option type.
+    /// </summary>
+    public static bool TryFormat(string name, ReadOnlySpan<char> source, IVfsFormatOptions? options)
+    {
+        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        {
+            return false;
+        }
+        return filesystemType.TryFormat(source, options);
+    }
+
+    /// <summary>
+    /// Wipe the filesystem signature on the backing store for a registered
+    /// driver so it no longer mounts.
+    /// </summary>
+    public static bool TryDestroy(string name, ReadOnlySpan<char> source)
+    {
+        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        {
+            return false;
+        }
+        return filesystemType.TryDestroy(source);
+    }
+
+    /// <summary>
     /// Retrieve a mount by its mount point.
     /// </summary>
     public static bool TryGetMount(string mountPoint, out VfsMount? mount)

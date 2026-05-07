@@ -1,10 +1,13 @@
 using System;
 using System.Drawing;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.HAL.Vfs;
+using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.Kernel.System.Network;
@@ -15,6 +18,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
+using Cosmos.Kernel.System.Vfs;
 using Sys = Cosmos.Kernel.System;
 
 namespace DevKernel;
@@ -29,6 +33,8 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[DevKernel] BeforeRun() called\n");
+
+        TryRegisterFat();
 
         Console.Clear();
         Console.WriteLine("========================================");
@@ -1103,6 +1109,36 @@ public class Kernel : Sys.Kernel
 
         dnsClient.Close();
         Console.WriteLine();
+    }
+
+    private static void TryRegisterFat()
+    {
+        if (!CosmosFeatures.FatEnabled)
+        {
+            return;
+        }
+
+        if (!VfsManager.RegisterFilesystem("fat", new FatFilesystemType()))
+        {
+            Serial.WriteString("[DevKernel] FAT driver already registered or invalid\n");
+            return;
+        }
+
+        Serial.WriteString("[DevKernel] FAT driver registered\n");
+
+        if (!CosmosFeatures.StorageEnabled || StorageManager.Partitions.Count == 0)
+        {
+            return;
+        }
+
+        if (VfsManager.TryMount("fat", "0", MountFlags.None, "/mnt", out _))
+        {
+            Serial.WriteString("[DevKernel] FAT mounted on /mnt from partition 0\n");
+        }
+        else
+        {
+            Serial.WriteString("[DevKernel] FAT mount on partition 0 skipped (not FAT or unreadable)\n");
+        }
     }
 
     private void ShowDiskInfo()
