@@ -36,6 +36,8 @@ extern void _native_arm64_disable_alignment_check(void);
 extern void acpi_early_init(void* rsdp_address, uint64_t hhdm_offset);
 extern void* __get_limine_rsdp_address(void);
 extern uint64_t __get_limine_hhdm_offset(void);
+extern char* __get_limine_cmd_line(void);
+extern char** __build_argv(char* input, int* argc);
 
 // Serial logging (C# functions)
 extern void __cosmos_serial_init(void);
