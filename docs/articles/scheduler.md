@@ -1,29 +1,29 @@
 ## Overview
 
-The scheduler is a **preemptive, pluggable, virtual-time** scheduler. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.
+The scheduler is preemptive, pluggable, and uses virtual time. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.
 
-The design separates **policy** from **mechanism**. Mechanism — context switching, the timer-tick entry, the thread registry, the GC bridge — is fixed and shared. Policy — what to pick next, what to do on a tick, how to balance CPUs — is a single interface (`IScheduler`) that any algorithm can implement. The default algorithm is **Stride** (virtual-time fair-share), but it is one of many possible plug-ins. See [Plugging in a scheduling algorithm](#plugging-in-a-scheduling-algorithm) for examples.
+The design splits policy from mechanism. Mechanism (context switching, the timer-tick entry, the thread registry, the GC bridge) is fixed and shared. Policy (what to pick next, what to do on a tick, how to balance CPUs) is a single interface, `IScheduler`, that any algorithm can implement. The default algorithm is Stride, a virtual-time fair-share scheduler. It is one of many possible plug-ins. See [Plugging in a scheduling algorithm](#plugging-in-a-scheduling-algorithm) for examples.
 
 ```
  ┌──────────────────────────────────────────────────────────────────┐
  │  Mechanism (fixed)                                               │
  │  ─────────────────                                               │
- │  • SchedulerManager      — lifecycle dispatch, thread registry   │
- │  • PerCpuState / Thread  — extensible TCB + per-CPU state        │
- │  • IRQ stub + ContextSwitch.s — register save/restore            │
- │  • Mutex / CV / Monitor  — park/unpark via SchedulerManager      │
- │  • GC stack-scan bridge                                          │
+ │  - SchedulerManager:    lifecycle dispatch, thread registry      │
+ │  - PerCpuState, Thread: extensible TCB and per-CPU state         │
+ │  - IRQ stub + asm:      register save and restore                │
+ │  - Mutex, CV, Monitor:  park and unpark via SchedulerManager     │
+ │  - GC stack-scan bridge                                          │
  └──────────────────────────┬───────────────────────────────────────┘
                             │ IScheduler interface
  ┌──────────────────────────┴───────────────────────────────────────┐
  │  Policy (pluggable)                                              │
  │  ───────────────────                                             │
- │  • StrideScheduler  (default)                                    │
- │  • RoundRobin / MLFQ / EDF / FIFO / …  (see examples below)      │
+ │  - StrideScheduler (default)                                     │
+ │  - RoundRobin, MLFQ, EDF, FIFO, ...  (see examples below)        │
  └──────────────────────────────────────────────────────────────────┘
 ```
 
-The architecture-specific assembly (`Interrupts.s` on x64, `ContextSwitch.s` on ARM64) handles the actual register save/restore and is the only part of the system that knows about register layouts.
+The architecture-specific assembly (`Interrupts.s` on x64, `ContextSwitch.s` on ARM64) handles the actual register save and restore. It is the only part of the system that knows about register layouts.
 
 ---
 
@@ -31,18 +31,18 @@ The architecture-specific assembly (`Interrupts.s` on x64, `ContextSwitch.s` on 
 
 | Layer | Responsibility |
 |-------|----------------|
-| `IScheduler` | Pluggable policy interface — lifecycle hooks, `PickNext`, `OnTick`, load balancing |
-| `SchedulerManager` | Mechanism — thread registry, lifecycle dispatch, timer-tick handler, GC bridge |
-| `SchedulerExtensible` | Base class adding a single per-instance slot used by the active scheduler to attach its own bookkeeping to `Thread` and `PerCpuState` |
+| `IScheduler` | Pluggable policy interface: lifecycle hooks, `PickNext`, `OnTick`, load balancing |
+| `SchedulerManager` | Mechanism: thread registry, lifecycle dispatch, timer-tick handler, GC bridge |
+| `SchedulerExtensible` | Base class with a single per-instance slot used by the active scheduler to attach its bookkeeping to `Thread` and `PerCpuState` |
 | `Thread` | Thread Control Block: identity, state, stack layout, TLAB |
-| `ThreadContext` (x64 / ARM64) | Saved-register layout that mirrors the IRQ stub |
-| `PerCpuState` | Per-CPU state: `CurrentThread`, `IdleThread`, lock, and the scheduler's own per-CPU slot |
-| Sync primitives (`SpinLock`, `Mutex`, `ConditionVariable`, `Monitor`) | Park/unpark on top of `BlockThread` / `ReadyThread` |
+| `ThreadContext` (x64, ARM64) | Saved-register layout that mirrors the IRQ stub |
+| `PerCpuState` | Per-CPU state: `CurrentThread`, `IdleThread`, lock, scheduler's per-CPU slot |
+| Sync primitives (`SpinLock`, `Mutex`, `ConditionVariable`, `Monitor`) | Park and unpark on top of `BlockThread` and `ReadyThread` |
 | `Stride/*` | The default `IScheduler` implementation |
 | `Bridge/Import` and `Bridge/Export` | Native trampolines and the stable initial-RIP entry stub |
 | `Runtime/Thread.cs` | Runtime exports (`RhYield`, stack bounds, thread-static storage) |
 
-The complete file map lives in [Source files](#source-files) at the bottom.
+The complete file map is at the bottom under [Source files](#source-files).
 
 ---
 
@@ -50,20 +50,20 @@ The complete file map lives in [Source files](#source-files) at the bottom.
 
 A `Thread` is a managed class that lives on the GC heap. It carries:
 
-- **Identity / state** — a globally unique `Id`, the assigned `CpuId`, a `ThreadState` (Created → Ready ⇄ Running → {Blocked, Sleeping} → Ready → … → Dead), and a `ThreadFlags` bitfield (`KernelThread`, `IdleThread`, `Pinned`, `Managed`).
-- **Stack** — `StackBase`, `StackSize`, `StackPointer`. The saved `ThreadContext` lives at the bottom of the stack; `StackPointer` points into it.
-- **Accounting** — `CreatedAt`, `LastScheduledAt`, `TotalRuntime`, `WakeupTime`.
-- **GC** — a thread-local bump allocator (`AllocContext`).
-- **Scheduler slot** — `SchedulerData`, an `object?` reserved for the active scheduler. Stride stores `StrideThreadData` here; another algorithm would store something different (see examples).
+- Identity and state: a globally unique `Id`, the assigned `CpuId`, a `ThreadState` (Created, Ready, Running, Blocked, Sleeping, Dead), and a `ThreadFlags` bitfield (`KernelThread`, `IdleThread`, `Pinned`, `Managed`).
+- Stack: `StackBase`, `StackSize`, `StackPointer`. The saved `ThreadContext` lives at the bottom of the stack; `StackPointer` points into it.
+- Accounting: `CreatedAt`, `LastScheduledAt`, `TotalRuntime`, `WakeupTime`.
+- GC: a thread-local bump allocator (`AllocContext`).
+- Scheduler slot: `SchedulerData`, an `object?` reserved for the active scheduler. Stride stores `StrideThreadData` here; another algorithm would store something different (see examples).
 
-Two flags are load-bearing for policy:
+Two flags affect policy:
 
-- `Pinned` — the thread cannot migrate. Both `SelectCpu` and `Balance` must skip it.
-- `Managed` — the entry parameter is a `GCHandle<System.Threading.Thread>`; the entry trampoline forwards into managed `Thread.StartThread` instead of decoding the parameter as a free `Action`.
+- `Pinned`: the thread cannot migrate. Both `SelectCpu` and `Balance` skip it.
+- `Managed`: the entry parameter is a `GCHandle<System.Threading.Thread>`; the entry trampoline forwards into managed `Thread.StartThread` instead of decoding the parameter as a free `Action`.
 
-### Memory layout — per-thread stack
+### Per-thread stack
 
-`Thread.InitializeStack` allocates one contiguous chunk and lays the saved `ThreadContext` at the **bottom** (low address). The usable call/locals stack grows downward from `StackBase + StackSize` toward the context.
+`Thread.InitializeStack` allocates one contiguous chunk and lays the saved `ThreadContext` at the bottom (low address). The usable call/locals stack grows downward from `StackBase + StackSize` toward the context.
 
 ```
               one stack (StackSize bytes)
@@ -80,31 +80,31 @@ Two flags are load-bearing for policy:
 │ └──────────────────────────┴────────────────────────────┘        │
   ▲
 │ │                                                                │
-  StackPointer (saved RSP — IRQ stub restores from here)
+  StackPointer (saved RSP; the IRQ stub restores from here)
 └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 The context address is rounded up so the SIMD save area is naturally aligned. The initial saved SP inside the new context is set so the first `call` inside the new thread lands on a 16-byte-aligned RSP after the prologue's `push rbp`.
 
-The saved-context layout itself differs by architecture (x64 saves XMM + GPRs + `iretq` frame; ARM64 saves NEON + X0–X30 + Sp/Elr/Spsr) but is opaque to the scheduler — only the IRQ stub indexes into it.
+The saved-context layout itself differs by architecture: x64 saves XMM, GPRs, and an `iretq` frame; ARM64 saves NEON, X0–X30, and Sp/Elr/Spsr. The scheduler does not look inside the context. Only the IRQ stub indexes into it.
 
 ### Global thread registry
 
-`SchedulerManager` owns a flat fixed-size array (`Thread?[]`) allocated once at boot. Every live thread, regardless of state, occupies one slot until it dies. This array is the GC's source of truth: the mark phase iterates it directly without going through any interface dispatch (which could allocate during a collection).
+`SchedulerManager` owns a flat fixed-size array (`Thread?[]`) allocated once at boot. Every live thread, regardless of state, occupies one slot until it dies. The GC reads the array directly during the mark phase, with no interface dispatch (which could allocate during a collection).
 
 ```
  SchedulerManager._allThreads (one slot per live thread)
  ═══════════════════════════════════════════════════════════════════════
 
-  [0] ──► Thread { Flags=IdleThread, State=Running   }   ← idle
-  [1] ──► Thread { Flags=Managed,    State=Ready     }
-  [2] ──► Thread { Flags=Managed,    State=Blocked   }   ← waiting on Mutex
-  [3] ──► Thread { Flags=None,       State=Sleeping  }   ← WakeupTime set
-  [4] ──► null                                            ← free slot
+  [0] -> Thread { Flags=IdleThread, State=Running   }   (idle)
+  [1] -> Thread { Flags=Managed,    State=Ready     }
+  [2] -> Thread { Flags=Managed,    State=Blocked   }   (waiting on Mutex)
+  [3] -> Thread { Flags=None,       State=Sleeping  }   (WakeupTime set)
+  [4] -> null                                            (free slot)
   ...
 ```
 
-Blocked, sleeping, and dead threads are absent from any scheduler-owned run queue — but they are still in `_allThreads`. That is the invariant that keeps the GC correct: stack roots on parked threads must remain reachable.
+Blocked, sleeping, and dead threads are not in any scheduler-owned run queue, but they remain in `_allThreads`. This is what keeps the GC correct: stack roots on parked threads must remain reachable.
 
 ---
 
@@ -119,15 +119,15 @@ stateDiagram-v2
     Running --> Blocked: BlockThread (Mutex / CV.Wait)
     Running --> Sleeping: Sleep(timeoutMs)
     Blocked --> Ready: ReadyThread (Mutex.Release / CV.Signal)
-    Sleeping --> Ready: CheckSleepingThreads (WakeupTime ≤ now)
+    Sleeping --> Ready: CheckSleepingThreads (WakeupTime <= now)
     Sleeping --> Ready: ReadyThread (signaled)
     Running --> Dead: ExitThread
     Dead --> [*]
 ```
 
-`SchedulerManager` is the single owner of every state transition. Each transition does two things: update `Thread.State` under interrupt-disabled scope, and notify the active `IScheduler` via the matching hook (`OnThreadCreate`, `OnThreadReady`, `OnThreadBlocked`, `OnThreadYield`, `OnThreadExit`). The scheduler uses these hooks to update its own data structures (run queue, priority bookkeeping, etc.).
+`SchedulerManager` owns every state transition. Each transition does two things: update `Thread.State` under interrupt-disabled scope, and notify the active `IScheduler` via the matching hook (`OnThreadCreate`, `OnThreadReady`, `OnThreadBlocked`, `OnThreadYield`, `OnThreadExit`). The scheduler uses these hooks to update its own data structures (run queue, priority bookkeeping, etc.).
 
-The first run of a freshly created thread is special: instead of resuming a saved frame with `iretq`, the IRQ exit path loads the configured RSP and jumps directly to the configured RIP. That RIP is always a single stable trampoline, `ThreadNative.EntryPointStub`, which forwards to the manager's invoke routine — which in turn either runs an `Action` delegate or reaches into the managed `System.Threading.Thread.StartThread` based on the `Managed` flag. This means every thread, kernel or managed, has the same initial entry shape.
+The first run of a freshly created thread is a special case. Instead of resuming a saved frame with `iretq`, the IRQ exit path loads the configured RSP and jumps directly to the configured RIP. That RIP is always a single trampoline, `ThreadNative.EntryPointStub`, which forwards to the manager's invoke routine. The invoke routine then either runs an `Action` delegate or calls into managed `System.Threading.Thread.StartThread`, depending on the `Managed` flag. After this first entry, every thread (kernel or managed) has the same shape.
 
 On exit, the manager flushes the TLAB back to the GC, calls `OnThreadExit` on the scheduler, and clears the registry slot. The thread's accumulated runtime is rolled into a global counter so the `GetBusyCpuTimeNs` metric stays monotonic across thread death.
 
@@ -142,16 +142,16 @@ sequenceDiagram
     participant SM as SchedulerManager
     participant SC as IScheduler (policy)
 
-    Note over ASM: Timer IRQ — interrupts disabled
+    Note over ASM: Timer IRQ, interrupts disabled
     ASM->>ASM: Save registers + IRQ frame at RSP
     ASM->>IM: __managed__irq(rdi = saved-context*)
     IM->>SM: OnTimerInterrupt(cpuId, currentRsp, elapsedNs)
-    SM->>SM: CheckSleepingThreads — wake any expired Sleeping threads
+    SM->>SM: CheckSleepingThreads (wake any expired Sleeping threads)
     SM->>SC: OnTick(state, current, elapsedNs)
     SC-->>SM: needsReschedule (bool)
     alt needsReschedule
         SM->>SC: PickNext(state)
-        SC-->>SM: next (or null → IdleThread)
+        SC-->>SM: next (or null, fall back to IdleThread)
         SM->>SM: prev.StackPointer = currentRsp, prev.State = Ready
         SM->>SC: OnThreadYield(state, prev)
         SM->>ASM: stage target RSP + new-thread flag
@@ -170,18 +170,18 @@ sequenceDiagram
     end
 ```
 
-Two things to note:
+Two notes on this flow:
 
-1. **The policy never touches registers.** The IRQ stub captures the outgoing RSP and hands it to the manager; the manager hands a target RSP back. Everything in between (`OnTick`, `PickNext`, `OnThreadYield`) is plain managed C# operating on `Thread` and `PerCpuState`.
-2. **The new-thread tail is what bootstraps a fresh thread.** Because a `Created` thread has no saved IRQ frame to `iretq` into, the IRQ exit path is told (via a flag staged from C#) to instead load the saved RSP and jump to the saved RIP. After that first entry, the thread is indistinguishable from any resumed thread.
+1. The policy never touches registers. The IRQ stub captures the outgoing RSP and hands it to the manager; the manager hands a target RSP back. Everything in between (`OnTick`, `PickNext`, `OnThreadYield`) is plain managed C# operating on `Thread` and `PerCpuState`.
+2. The new-thread tail is what bootstraps a fresh thread. Because a `Created` thread has no saved IRQ frame to `iretq` into, the IRQ exit path is told (via a flag staged from C#) to load the saved RSP and jump to the saved RIP instead. After that first entry, the thread is indistinguishable from any resumed thread.
 
-Voluntary (non-IRQ) switches go through `SchedulerManager.Schedule` / `ContextSwitch.Switch` and use the same target-RSP mechanism, but they are not the hot path — preemption dominates.
+Voluntary (non-IRQ) switches go through `SchedulerManager.Schedule` and `ContextSwitch.Switch`. They use the same target-RSP mechanism but are not the hot path; preemption dominates.
 
 ---
 
 ## Default algorithm: Stride
 
-Stride scheduling is virtual-time fair-share. Each thread has a weight (`Tickets`) and a stride (`Stride1 / Tickets`). Each scheduling round, the chosen thread's `Pass` advances by its stride; the run queue stays sorted by `Pass`, so the lowest-pass thread always runs next. Higher tickets ⇒ smaller stride ⇒ pass advances more slowly ⇒ more total CPU.
+Stride scheduling is virtual-time fair-share. Each thread has a weight (`Tickets`) and a stride (`Stride1 / Tickets`). Each scheduling round, the chosen thread's `Pass` advances by its stride. The run queue stays sorted by `Pass`, so the lowest-pass thread always runs next. Higher tickets means smaller stride, so `Pass` advances more slowly, so the thread gets more total CPU.
 
 The per-CPU run queue is a single list sorted ascending by `Pass`:
 
@@ -196,35 +196,35 @@ The per-CPU run queue is a single list sorted ascending by `Pass`:
    └─────────────┘        └─────────────┘       └─────────────┘
         ▲                                              ▲
         │                                              │
-   PickNext() pops here                       Tail (highest Pass)
-                                              — also the migration victim
-                                                picked by Balance()
+   PickNext() pops here                       Tail (highest Pass);
+                                              also the migration victim
+                                              picked by Balance()
 ```
 
-What Stride uses each `IScheduler` hook for:
+What Stride does in each `IScheduler` hook:
 
-| Hook | What Stride does |
-|------|------------------|
+| Hook | Behavior |
+|------|----------|
 | `OnThreadCreate` | Allocate `StrideThreadData` with default tickets, set `Pass = 0` |
-| `OnThreadReady` | Choose between an interactive boost (`Pass = GlobalPass − Stride/2`) or a CFS-style starvation cap, then insert into the queue sorted by `Pass` |
-| `OnThreadBlocked` | Remove from run queue, save `Remain = Pass − GlobalPass` to restore on wakeup |
+| `OnThreadReady` | Choose between an interactive boost (`Pass = GlobalPass - Stride/2`) or a CFS-style starvation cap, then insert into the queue sorted by `Pass` |
+| `OnThreadBlocked` | Remove from run queue, save `Remain = Pass - GlobalPass` to restore on wakeup |
 | `OnTick` | Advance current thread's `Pass` and the CPU's `GlobalPass`; signal preempt if the head of the queue now has a lower `Pass` or the quantum has elapsed |
-| `OnThreadYield` | Re-insert the yielding thread, but clamp `Pass` upward to `GlobalPass` so a long-blocked thread can't perpetually outrank others |
+| `OnThreadYield` | Re-insert the yielding thread, but clamp `Pass` upward to `GlobalPass` so a long-blocked thread cannot perpetually outrank others |
 | `PickNext` | Pop the head of the run queue (lowest `Pass`); return null if empty (manager runs the idle thread) |
 | `SelectCpu` | Honor `Pinned`; otherwise prefer any CPU under 80% of the current CPU's load |
-| `Balance` | Idle CPUs steal the **tail** thread (highest `Pass`, least hot) from the busiest peer |
+| `Balance` | Idle CPUs steal the tail thread (highest `Pass`, least hot) from the busiest peer |
 | `SetPriority` | Re-ticket without losing relative position by scaling `Remain` by the stride ratio |
 
-Two refinements deserve names because they are reused by other algorithms:
+Two refinements are reused by other algorithms:
 
-- **Interactive boost** — a thread that blocks frequently relative to its runtime is treated as I/O-bound and gets a head-start `Pass` on wakeup. The boost decays after a few ms.
-- **Starvation cap** — a long-blocked thread cannot wake with a `Pass` so far behind `GlobalPass` that it monopolizes the CPU. The cap is `Pass = max(GlobalPass + Remain, GlobalPass − 2 × Stride1)`.
+- Interactive boost: a thread that blocks frequently relative to its runtime is treated as I/O-bound and gets a head-start `Pass` on wakeup. The boost decays after a few ms.
+- Starvation cap: a long-blocked thread cannot wake with a `Pass` so far behind `GlobalPass` that it monopolizes the CPU. The cap is `Pass = max(GlobalPass + Remain, GlobalPass - 2 * Stride1)`.
 
 ---
 
 ## Plugging in a scheduling algorithm
 
-Any algorithm that implements `IScheduler` is a drop-in replacement. The mechanism layer never assumes virtual time, run queues, or priorities — those are policy. Switching the active scheduler is a single call:
+Any algorithm that implements `IScheduler` is a drop-in replacement. The mechanism layer never assumes virtual time, run queues, or priorities. Switching the active scheduler is a single call:
 
 ```
 SchedulerManager.SetScheduler(new MyScheduler());
@@ -232,18 +232,18 @@ SchedulerManager.SetScheduler(new MyScheduler());
 
 The manager calls `ShutdownCpu` on the outgoing scheduler and `InitializeCpu` on the incoming one for every CPU.
 
-The `IScheduler` contract is intentionally small — the algorithm decides what data to attach to threads and CPUs by storing whatever it wants in `Thread.SchedulerData` and `PerCpuState.SchedulerData` (both inherited from `SchedulerExtensible`). Below are sketches of how a few classic algorithms would map onto this interface.
+The algorithm decides what data to attach to threads and CPUs by storing whatever it wants in `Thread.SchedulerData` and `PerCpuState.SchedulerData` (both inherited from `SchedulerExtensible`). Below are sketches of how a few classic algorithms map onto this interface.
 
 ### Round-Robin
 
-The simplest preemptive algorithm: a FIFO queue, fixed-quantum preemption.
+A FIFO queue with fixed-quantum preemption.
 
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | A `Queue<Thread>` |
-| `Thread.SchedulerData` | None needed (or a remaining-quantum counter) |
+| `Thread.SchedulerData` | None, or a remaining-quantum counter |
 | `OnThreadReady` | Enqueue at the tail |
-| `OnThreadBlocked` | No-op (the thread isn't in the queue once it started running) |
+| `OnThreadBlocked` | No-op (the thread is not in the queue while it runs) |
 | `OnTick` | Decrement remaining quantum; preempt when it hits zero |
 | `OnThreadYield` | Re-enqueue at the tail, reset quantum |
 | `PickNext` | Dequeue the head |
@@ -251,49 +251,49 @@ The simplest preemptive algorithm: a FIFO queue, fixed-quantum preemption.
 | `Balance` | Steal half the queue from the busiest CPU |
 | `SetPriority` / `GetPriority` | No-op / constant |
 
-Round-Robin doesn't need an interactive boost or starvation cap — the FIFO order already bounds latency at `quantum × queue_depth`.
+Round-Robin does not need an interactive boost or starvation cap. The FIFO order already bounds latency at `quantum * queue_depth`.
 
 ### Multi-Level Feedback Queue (MLFQ)
 
-A classic interactivity-favoring policy: several priority queues, threads demote when they use a full quantum and promote when they block early.
+Several priority queues. Threads demote when they use a full quantum and promote when they block early.
 
 | Hook | Behavior |
 |------|----------|
-| `PerCpuState.SchedulerData` | An array of `Queue<Thread>` (one per priority level) |
+| `PerCpuState.SchedulerData` | An array of `Queue<Thread>`, one per priority level |
 | `Thread.SchedulerData` | Current level + quantum-used counter |
 | `OnThreadReady` | Enqueue at the thread's current level |
-| `OnThreadBlocked` | Promote one level (it blocked, so it's interactive) |
+| `OnThreadBlocked` | Promote one level (the thread blocked, treat it as interactive) |
 | `OnTick` | Charge time to the running thread; if it consumed a full quantum at this level, demote one level on next yield |
 | `PickNext` | Scan levels top-down for a non-empty queue |
 | `Balance` | Periodically reset all threads to top priority (anti-starvation) |
 
-MLFQ doesn't track virtual time at all — its bookkeeping is just integer levels.
+MLFQ does not track virtual time. Its bookkeeping is just integer levels.
 
 ### Real-time scheduling (RTOS)
 
-The framework is suitable for building a hard- or soft-real-time kernel: the policy/mechanism split lets you swap in a real-time algorithm without touching context switching or sync primitives. The three classic families all map cleanly onto `IScheduler`.
+The framework is suitable for building a hard- or soft-real-time kernel. The policy/mechanism split lets you swap in a real-time algorithm without touching context switching or sync primitives. The three classic families all map onto `IScheduler`.
 
-**Fixed-priority preemptive (FPP)** — every thread has a static priority; the highest-priority runnable thread always runs; ties are broken by FIFO at each level. The default policy in most RTOSes (FreeRTOS, Zephyr, ThreadX).
+**Fixed-priority preemptive (FPP).** Every thread has a static priority. The highest-priority runnable thread always runs. Ties are broken by FIFO at each level. This is the default policy in most RTOSes (FreeRTOS, Zephyr, ThreadX).
 
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | An array of `Queue<Thread>` indexed by priority |
 | `Thread.SchedulerData` | Static priority |
 | `OnThreadReady` | Enqueue at the tail of the thread's priority level |
-| `OnTick` | Preempt iff a higher-priority queue is non-empty (no quantum — pure priority) |
+| `OnTick` | Preempt if a higher-priority queue is non-empty (no quantum, pure priority) |
 | `PickNext` | Scan top-down for the first non-empty level, dequeue head |
 | `SetPriority` | Move between levels |
-| `Balance` | Usually disabled — RT threads are pinned (see below) |
+| `Balance` | Usually disabled. RT threads are pinned (see below) |
 
-**Rate Monotonic (RM)** — periodic tasks; priority is statically assigned by frequency (shorter period ⇒ higher priority). Optimal among static-priority schedulers when periods equal deadlines and the system is under the Liu/Layland bound.
+**Rate Monotonic (RM).** Periodic tasks. Priority is statically assigned by frequency: shorter period gets higher priority. Optimal among static-priority schedulers when periods equal deadlines and the system is under the Liu/Layland bound.
 
 | Hook | Behavior |
 |------|----------|
 | `Thread.SchedulerData` | `Period`, derived static priority |
 | `OnThreadCreate` | Assign priority from `1 / Period`; reject if total utilization exceeds the schedulability bound |
-| Otherwise | Same as FPP — RM is just FPP with a specific priority-assignment rule |
+| Otherwise | Same as FPP. RM is just FPP with a specific priority-assignment rule |
 
-**Earliest-Deadline-First (EDF)** — dynamic priority based on absolute deadline; theoretically optimal on a single CPU (achieves 100% utilization vs. RM's ~69%) but harder to analyze under overload.
+**Earliest-Deadline-First (EDF).** Dynamic priority based on absolute deadline. Theoretically optimal on a single CPU (achieves 100% utilization vs. RM's ~69%) but harder to analyze under overload.
 
 | Hook | Behavior |
 |------|----------|
@@ -302,24 +302,24 @@ The framework is suitable for building a hard- or soft-real-time kernel: the pol
 | `OnThreadReady` | Recompute `AbsoluteDeadline = now + RelativeDeadline`, insert into the heap |
 | `OnTick` | Preempt if the heap root's deadline is earlier than the current thread's |
 | `PickNext` | Pop the heap root |
-| `SelectCpu` | Partitioned EDF — pin tasks per-CPU so per-CPU utilization stays under 1.0 |
+| `SelectCpu` | Partitioned EDF: pin tasks per-CPU so per-CPU utilization stays under 1.0 |
 
-#### What the mechanism layer must guarantee for hard real-time
+#### Hard-real-time requirements
 
-Any of these algorithms is only as deterministic as the surrounding mechanism. For an RTOS build, four properties matter:
+Any of these algorithms is only as deterministic as the surrounding mechanism. For a hard-RT build, four things matter:
 
-1. **Bounded interrupt latency.** The IRQ stub captures RSP, calls into managed code, and returns — there's no unbounded loop on the path. Anything you add to `OnTick` or `PickNext` becomes part of worst-case latency, so RT algorithms keep these O(log n) or better. Stride's linear `InsertByPass` would not be acceptable; a heap or per-priority FIFO is.
-2. **Priority inheritance in `Mutex`.** The current `Mutex` is FIFO-wake — fine for fair-share, but a low-priority holder of a mutex contended by a high-priority waiter causes **priority inversion**. A real-time mutex must temporarily boost the holder to the highest waiter's priority via `SetPriority`, then restore on release. The hooks for this already exist; the policy is what's missing.
-3. **`Pinned` for IRQ-affine threads.** RT threads typically must not migrate — caches, deadline analysis, and partitioned EDF all assume affinity. The `Pinned` flag is the contract: `SelectCpu` and `Balance` already honor it.
-4. **Tickless / event-driven timer.** The current timer is periodic. A hard-RT build replaces it with a one-shot timer programmed to the next deadline (or next quantum, whichever is sooner). This is a HAL change, not a scheduler change — `OnTimerInterrupt` doesn't care whether ticks are periodic.
+1. Bounded interrupt latency. The IRQ stub captures RSP, calls into managed code, and returns. There is no unbounded loop on the path. Anything you add to `OnTick` or `PickNext` becomes part of worst-case latency, so RT algorithms keep these O(log n) or better. Stride's linear `InsertByPass` would not be acceptable; a heap or per-priority FIFO is.
+2. Priority inheritance in `Mutex`. The current `Mutex` is FIFO-wake. This is fine for fair-share, but a low-priority holder of a mutex contended by a high-priority waiter causes priority inversion. A real-time mutex must temporarily boost the holder to the highest waiter's priority via `SetPriority`, then restore on release. The hooks for this exist; the policy does not.
+3. `Pinned` for IRQ-affine threads. RT threads typically must not migrate (caches, deadline analysis, and partitioned EDF all assume affinity). The `Pinned` flag is the contract; `SelectCpu` and `Balance` already honor it.
+4. Tickless or event-driven timer. The current timer is periodic. A hard-RT build replaces it with a one-shot timer programmed to the next deadline (or next quantum, whichever is sooner). This is a HAL change, not a scheduler change. `OnTimerInterrupt` does not care whether ticks are periodic.
 
-What the mechanism already provides that RT needs: deterministic context switch (no allocation on the hot path), per-thread `Pinned`, `SetPriority` hook, sleep-with-wakeup-deadline (`Sleep(timeoutMs)` is exactly what a periodic task needs), and stack-bounded thread state (no dynamic stack growth to perturb timing).
+The mechanism already provides a deterministic context switch (no allocation on the hot path), per-thread `Pinned`, the `SetPriority` hook, sleep with a wakeup deadline (`Sleep(timeoutMs)` is what a periodic task needs), and stack-bounded thread state (no dynamic stack growth to perturb timing).
 
-What an RTOS build would still need to add: the priority-inheritance protocol on `Mutex`, a tickless timer driver, and — for analyzability — a worst-case-execution-time (WCET) budget on `OnTick` / `PickNext` of the chosen scheduler.
+What an RTOS build still has to add: the priority-inheritance protocol on `Mutex`, a tickless timer driver, and a worst-case-execution-time (WCET) budget on `OnTick` and `PickNext` of the chosen scheduler.
 
 ### FIFO (cooperative)
 
-A degenerate but useful debugging policy: one global queue, no preemption, threads run until they block or yield.
+A debugging policy: one global queue, no preemption. Threads run until they block or yield.
 
 | Hook | Behavior |
 |------|----------|
@@ -331,28 +331,28 @@ Useful when chasing a race that disappears under preemption.
 
 ### Common patterns
 
-Across all of these, the same shape recurs:
+The same shape recurs across all of these:
 
-1. **Define what to store per thread and per CPU.** Allocate them in `OnThreadCreate` / `InitializeCpu`, retrieve them with `GetSchedulerData<T>()`.
-2. **Decide queue shape** — FIFO, sorted list, heap, multi-level. The mechanism layer doesn't care; it only calls `PickNext`.
-3. **Decide preemption trigger** — quantum exhaustion, queue-head priority, deadline, never. That logic lives entirely in `OnTick`'s return value.
-4. **Decide migration policy** — which CPU to start on (`SelectCpu`), and how to rebalance (`Balance`). Honor the `Pinned` flag.
-5. **Hook into block/wake** so threads leave and re-enter the runnable set correctly. Whatever state needs to survive a sleep (saved progress, queue position, remaining quantum) is what `OnThreadBlocked` should stash.
+1. Define what to store per thread and per CPU. Allocate it in `OnThreadCreate` and `InitializeCpu`, retrieve with `GetSchedulerData<T>()`.
+2. Decide queue shape (FIFO, sorted list, heap, multi-level). The mechanism layer does not care; it only calls `PickNext`.
+3. Decide the preemption trigger (quantum exhaustion, queue-head priority, deadline, never). That logic lives in `OnTick`'s return value.
+4. Decide migration policy: which CPU to start on (`SelectCpu`) and how to rebalance (`Balance`). Honor the `Pinned` flag.
+5. Hook into block/wake so threads leave and re-enter the runnable set correctly. Anything that needs to survive a sleep (saved progress, queue position, remaining quantum) is what `OnThreadBlocked` should stash.
 
-A scheduler that doesn't need a hook can leave it as a no-op. The interface is wide so that the *mechanism* can drive any algorithm without per-algorithm special cases — not because every hook is mandatory.
+A scheduler that does not need a hook can leave it as a no-op. The interface is wide so the mechanism can drive any algorithm without per-algorithm special cases. Not every hook is mandatory.
 
 ---
 
 ## Synchronization primitives
 
-Synchronization sits on top of `BlockThread` / `ReadyThread` / `Sleep` and is therefore policy-agnostic.
+Synchronization sits on top of `BlockThread`, `ReadyThread`, and `Sleep`, so it is policy-agnostic.
 
-- **`SpinLock`** — pure CAS, no scheduler interaction. Used internally by `Mutex` and `ConditionVariable` to protect their wait queues.
-- **`Mutex`** — recursive blocking lock. Owner ID + recursion depth + a wait queue. On contention, the caller is parked via `BlockThread`; on release, the manager wakes the head of the queue. A bounded spin precedes parking so brief contention doesn't take the slow path.
-- **`ConditionVariable`** — signal/wait with mutex hand-off. `Wait` releases the mutex, parks, and re-acquires on wakeup. `WaitTimeout` parks with a wakeup deadline (`Sleep`) so the thread also resumes on expiry.
-- **`Monitor`** — Java-style composite of `Mutex` and `ConditionVariable`.
+- `SpinLock`: pure CAS, no scheduler interaction. Used internally by `Mutex` and `ConditionVariable` to protect their wait queues.
+- `Mutex`: recursive blocking lock. Owner ID, recursion depth, and a wait queue. On contention, the caller is parked via `BlockThread`. On release, the manager wakes the head of the queue. A bounded spin precedes parking so brief contention does not take the slow path.
+- `ConditionVariable`: signal/wait with mutex hand-off. `Wait` releases the mutex, parks, and re-acquires on wakeup. `WaitTimeout` parks with a wakeup deadline (`Sleep`) so the thread also resumes on expiry.
+- `Monitor`: Java-style composite of `Mutex` and `ConditionVariable`.
 
-All three blocking primitives delegate the actual state transition to the manager, which wraps the transition in a disable-interrupts scope so the timer interrupt cannot observe a half-finished park.
+All three blocking primitives delegate the actual state transition to the manager, which wraps it in a disable-interrupts scope so the timer interrupt cannot observe a half-finished park.
 
 ---
 
@@ -360,12 +360,12 @@ All three blocking primitives delegate the actual state transition to the manage
 
 The scheduler is the GC's source of truth for stack roots. Two invariants matter:
 
-1. **Every registered thread is scanned, not just the running one.** Stack locals on a thread blocked on a mutex are still reachable and must be marked. Earlier versions only scanned `CurrentThread` and lost objects whose only reference was on a parked stack.
-2. **Mark-phase iteration goes directly through the array, not via any interface.** Interface dispatch can allocate, and the mark phase cannot allocate. This is why the registry is a flat array and not, say, a `List<Thread>` exposed through `IEnumerable`.
+1. Every registered thread is scanned, not just the running one. Stack locals on a thread blocked on a mutex are still reachable and must be marked. Earlier versions only scanned `CurrentThread` and lost objects whose only reference was on a parked stack.
+2. Mark-phase iteration goes directly through the array, not via any interface. Interface dispatch can allocate, and the mark phase cannot allocate. This is why the registry is a flat array, not a `List<Thread>` exposed through `IEnumerable`.
 
 For each non-`Dead` thread, the mark phase scans the saved `ThreadContext` (every saved register is a root candidate) and conservatively scans stack memory between the saved SP and `StackBase + StackSize`. The currently running thread is scanned via the live SP captured by the IRQ stub, not the cached `StackPointer`.
 
-A defensive check rejects any candidate `MethodTable*` outside kernel higher-half (`>= 0xFFFF800000000000`). Without it, a stack-resident integer that happens to land in heap range can crash a downstream type-info read.
+A defensive check rejects any candidate `MethodTable*` outside kernel higher-half (`>= 0xFFFF800000000000`). Without it, a stack-resident integer that lands in heap range can crash a downstream type-info read.
 
 ---
 
@@ -373,9 +373,9 @@ A defensive check rejects any candidate `MethodTable*` outside kernel higher-hal
 
 The scheduler exposes a thin runtime surface so the .NET runtime and BCL see it as a real threading implementation:
 
-- **Runtime exports** (`RhYield`, `RhGetCurrentThreadStackBounds`, `RhGetThreadStaticStorage`, `RhSetThreadExitCallback`) live in `Runtime/Thread.cs` and either delegate to `SchedulerManager` or, when the scheduler feature switch is off, fall back to single-threaded behavior.
-- **`ThreadPlug`** redirects `System.Threading.Thread.CreateThread` so `new Thread(action).Start()` in a kernel project allocates a kernel `Thread` flagged `Managed`, sets the entry point to `EntryPointStub`, and registers it with the manager.
-- **`ContextSwitchNative`** is the C# side of the four native symbols that stage the IRQ exit path (`set_context_switch_sp`, `get_context_switch_sp`, `set_context_switch_new_thread`, `get_sp`). All four are `[SuppressGCTransition]` because they are pure register operations.
+- Runtime exports (`RhYield`, `RhGetCurrentThreadStackBounds`, `RhGetThreadStaticStorage`, `RhSetThreadExitCallback`) live in `Runtime/Thread.cs`. They delegate to `SchedulerManager`, or fall back to single-threaded behavior when the scheduler feature switch is off.
+- `ThreadPlug` redirects `System.Threading.Thread.CreateThread` so `new Thread(action).Start()` in a kernel project allocates a kernel `Thread` flagged `Managed`, sets the entry point to `EntryPointStub`, and registers it with the manager.
+- `ContextSwitchNative` is the C# side of the four native symbols that stage the IRQ exit path (`set_context_switch_sp`, `get_context_switch_sp`, `set_context_switch_new_thread`, `get_sp`). All four are `[SuppressGCTransition]` because they are pure register operations.
 
 ---
 
@@ -383,10 +383,10 @@ The scheduler exposes a thin runtime surface so the .NET runtime and BCL see it 
 
 The scheduler is gated by `CosmosEnableScheduler` in the kernel `.csproj`, surfaced as `CosmosFeatures.SchedulerEnabled`. Two checkpoints honor it:
 
-- `SchedulerManager.IsEnabled` — every public manager entry point that mutates state checks it.
-- `Runtime/Thread.cs` — runtime exports fall back to single-threaded behavior when off.
+- `SchedulerManager.IsEnabled`: every public manager entry point that mutates state checks it.
+- `Runtime/Thread.cs`: runtime exports fall back to single-threaded behavior when off.
 
-A separate runtime flag `SchedulerManager.Enabled` is set after `Initialize` + `SetScheduler` + idle-thread wiring is complete; the timer interrupt path returns early until it flips. This avoids racing the very first context switch against a half-built scheduler state.
+A separate runtime flag `SchedulerManager.Enabled` is set after `Initialize`, `SetScheduler`, and idle-thread wiring complete. The timer interrupt path returns early until it flips. This avoids racing the very first context switch against a half-built scheduler state.
 
 ---
 
