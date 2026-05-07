@@ -1686,15 +1686,14 @@ public class Kernel : Sys.Kernel
 
         string fullPath = path.Length > 0 && path[0] == '/' ? path : ResolvePath(path);
 
-        // No mount lives at "/" itself, so plain `ls` would fail even when
-        // filesystems are mounted at sub-paths (e.g. /mnt, /0). Fall back to
-        // the first available mount point so the user sees something useful.
+        // Plain `ls` (path "/") with no mount at "/" itself isn't a real
+        // failure — it just means the user needs to mount or switch drive.
+        // Show the same guide as the no-mount-at-all case rather than the
+        // cryptic "Cannot open directory: /".
         if (fullPath == "/" && !VfsManager.TryGetMount("/", out _))
         {
-            fullPath = VfsManager.Mounts[0].MountPoint;
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine("(no root mount; listing " + fullPath + ")");
-            Console.ResetColor();
+            PrintNoMountHelp();
+            return;
         }
 
         if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? dir) || dir == null)
