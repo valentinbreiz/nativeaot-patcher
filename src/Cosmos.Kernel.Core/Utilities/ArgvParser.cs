@@ -64,7 +64,6 @@ public static unsafe class ArgvParser
             return result;
         }
 
-
         byte* argvBuffer = Heap.Alloc(len + 1);
 
         MemoryOp.MemCopy(argvBuffer, input, (int)(len + 1));
@@ -174,11 +173,5 @@ public static unsafe class ArgvParser
         argv[0] = CosmosPtr;
 
         return argv;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte Peek(byte* ptr, int pos = 1)
-    {
-        return ptr[pos];
     }
 }
