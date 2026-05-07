@@ -20,9 +20,9 @@ internal static unsafe class ModuleHelpers
     [RuntimeExport("RhpRegisterOsModule")]
     internal static nint RhpRegisterOsModule(nint osModule)
     {
-        Serial.WriteString("[ModuleHelpers] - RhpRegisterOsModule called for OS Module 0x");
-        Serial.WriteHex((nuint)osModule);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[ModuleHelpers] - RhpRegisterOsModule called for OS Module 0x");
+        SerialDebug.WriteHex((nuint)osModule);
+        SerialDebug.WriteString("\n");
         //TODO: Should be saved on an array or some other struct.
         OsModule = osModule;
         return osModule;
@@ -65,9 +65,9 @@ internal static unsafe class ModuleHelpers
     [RuntimeExport("RhFindBlob")]
     internal static unsafe bool RhFindBlob(TypeManagerHandle* typeManagerHandle, uint blobId, byte** ppbBlob, uint* pcbBlob)
     {
-        Serial.WriteString("[ModuleHelpers] - RhFindBlob called for Blob ID ");
-        Serial.WriteNumber(blobId);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[ModuleHelpers] - RhFindBlob called for Blob ID ");
+        SerialDebug.WriteNumber(blobId);
+        SerialDebug.WriteString("\n");
         ReadyToRunSectionType sectionId = (ReadyToRunSectionType)((uint)ReadyToRunSectionType.ReadonlyBlobRegionStart + blobId);
 
         TypeManager* pModule = typeManagerHandle->AsTypeManager();
@@ -109,9 +109,9 @@ internal static unsafe class ModuleHelpers
                 IntPtr dehydratedRegion = handle.AsTypeManager()->GetModuleSection(ReadyToRunSectionType.DehydratedData, out int length);
                 if (dehydratedRegion != IntPtr.Zero)
                 {
-                    Serial.WriteString("[ManagedModule] - Dehydrated Data found for module ");
-                    Serial.WriteNumber(moduleIndex);
-                    Serial.WriteString("\n");
+                    SerialDebug.WriteString("[ManagedModule] - Dehydrated Data found for module ");
+                    SerialDebug.WriteNumber(moduleIndex);
+                    SerialDebug.WriteString("\n");
                 }
 
                 pHandles[moduleIndex] = handle;

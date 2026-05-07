@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" />
     <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Cosmos.Kernel.SourceGenerators\Cosmos.Kernel.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

@@ -41,6 +41,17 @@
     <CosmosDefaultFont Condition="'$(CosmosDefaultFont)' == ''">Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf</CosmosDefaultFont>
   </PropertyGroup>
 
+  <!--
+    Kernel debug-logging opt-in for SDK consumers. Mirrors the same property
+    in the repo's root Directory.Build.props so user kernels built against
+    the published Cosmos.Sdk can pass -p:CosmosEnableDebug=true to keep
+    Log.Debug/Trace call sites compiled in.
+  -->
+  <PropertyGroup>
+    <CosmosEnableDebug Condition="'$(CosmosEnableDebug)' == ''">false</CosmosEnableDebug>
+    <DefineConstants Condition="'$(CosmosEnableDebug)' == 'true'">$(DefineConstants);COSMOSDEBUG</DefineConstants>
+  </PropertyGroup>
+
   <!-- Default kernel class name - inferred from RootNamespace or AssemblyName -->
   <PropertyGroup>
     <CosmosKernelClass Condition="'$(CosmosKernelClass)' == '' AND '$(RootNamespace)' != ''">$(RootNamespace).Kernel</CosmosKernelClass>

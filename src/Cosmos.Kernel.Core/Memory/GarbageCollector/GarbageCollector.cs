@@ -299,7 +299,7 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        Serial.WriteString("[GC] Initializing with free list allocator\n");
+        SerialDebug.WriteString("[GC] Initializing with free list allocator\n");
 
         // Allocate free list array using page allocator (not GC heap)
         s_freeLists = (FreeBlock**)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
@@ -346,7 +346,7 @@ public static unsafe partial class GarbageCollector
         InitializeGCHandleStore();
 
         s_initialized = true;
-        Serial.WriteString("[GC] Initialization complete\n");
+        SerialDebug.WriteString("[GC] Initialization complete\n");
     }
 
     /// <summary>
@@ -367,9 +367,9 @@ public static unsafe partial class GarbageCollector
             // Record GC start timestamp
             long gcStart = Stopwatch.GetTimestamp();
 
-            Serial.WriteString("[GC] Collection #");
-            Serial.WriteNumber((uint)s_totalCollections + 1);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[GC] Collection #");
+            SerialDebug.WriteNumber((uint)s_totalCollections + 1);
+            SerialDebug.WriteString("\n");
 
             // Return all TLABs before collection — stamps unused gaps as FreeBlocks
             ReturnAllAllocContexts();
@@ -405,9 +405,9 @@ public static unsafe partial class GarbageCollector
             s_totalCollections++;
             s_totalObjectsFreed += freedCount;
 
-            Serial.WriteString("[GC] Freed ");
-            Serial.WriteNumber((uint)freedCount);
-            Serial.WriteString(" objects\n");
+            SerialDebug.WriteString("[GC] Freed ");
+            SerialDebug.WriteNumber((uint)freedCount);
+            SerialDebug.WriteString(" objects\n");
 
             // Record GC end timestamp and compute duration/interval
             long gcEnd = Stopwatch.GetTimestamp();

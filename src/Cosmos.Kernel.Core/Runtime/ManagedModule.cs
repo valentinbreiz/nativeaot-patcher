@@ -56,11 +56,11 @@ public static unsafe partial class ManagedModule
     [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
     public static void InitializeModules()
     {
-        Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Starting\n");
+        SerialDebug.WriteString("[ManagedModule] - Initilizing Module Handlers - Starting\n");
         uint count = GetModules(out var modulesptr);
-        Serial.WriteString("[ManagedModule] - Found ");
-        Serial.WriteNumber(count);
-        Serial.WriteString(" modules\n");
+        SerialDebug.WriteString("[ManagedModule] - Found ");
+        SerialDebug.WriteNumber(count);
+        SerialDebug.WriteString(" modules\n");
 
         // Allocate classlib functions array on unmanaged heap (never moved by GC)
         // Must match ClassLibFunctionId enum (12 entries, 0-11)
@@ -86,20 +86,20 @@ public static unsafe partial class ManagedModule
 
         for (int i = 0; i < modules.Length; i++)
         {
-            Serial.WriteString("[ManagedModule] - Setting TypeManagerSlot for module ");
-            Serial.WriteNumber(i);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[ManagedModule] - Setting TypeManagerSlot for module ");
+            SerialDebug.WriteNumber(i);
+            SerialDebug.WriteString("\n");
 
             InitializeGlobalTablesForModule(modules[i], i, ref gcStaticBaseSpines);
 
-            Serial.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");
+            SerialDebug.WriteString("[ManagedModule] - Running Static Constructors for all modules\n");
             RunInitializers(modules[i], ReadyToRunSectionType.EagerCctor);
         }
 
         s_modules = modules;
         s_moduleCount = modules.Length;
 
-        Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
+        SerialDebug.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
 
     public static int GetLoadedModules(TypeManagerHandle[] outputModules)
@@ -128,9 +128,9 @@ public static unsafe partial class ManagedModule
         IntPtr gcStaticBase = typeManager->GetModuleSection(ReadyToRunSectionType.GCStaticRegion, out length);
         if (gcStaticBase != IntPtr.Zero)
         {
-            Serial.WriteString("[ManagedModule] - Initializing Statics for module ");
-            Serial.WriteNumber(moduleIndex);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[ManagedModule] - Initializing Statics for module ");
+            SerialDebug.WriteNumber(moduleIndex);
+            SerialDebug.WriteString("\n");
 
             var spine = InitializeStatics(gcStaticBase, length);
             ref object rawSpineIndexData = ref MemoryMarshal.GetArrayDataReference(gcStaticBaseSpines);
@@ -155,9 +155,9 @@ public static unsafe partial class ManagedModule
     {
         for (int i = 0; i < s_moduleCount; i++)
         {
-            Serial.WriteString("[ManagedModule] - Running Module Initializers for module ");
-            Serial.WriteNumber(i);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[ManagedModule] - Running Module Initializers for module ");
+            SerialDebug.WriteNumber(i);
+            SerialDebug.WriteString("\n");
 
             RunInitializers(s_modules[i], ReadyToRunSectionType.ModuleInitializerList);
         }
@@ -167,24 +167,24 @@ public static unsafe partial class ManagedModule
     {
         byte* pInitializers = (byte*)typeManager.AsTypeManager()->GetModuleSection(section, out int length);
 
-        Serial.WriteString("[ManagedModule] - Running Initializers, found ");
-        Serial.WriteNumber(length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
-        Serial.WriteString(" initializers for section ");
-        Serial.WriteNumber((int)section);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[ManagedModule] - Running Initializers, found ");
+        SerialDebug.WriteNumber(length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint)));
+        SerialDebug.WriteString(" initializers for section ");
+        SerialDebug.WriteNumber((int)section);
+        SerialDebug.WriteString("\n");
 
         for (byte* pCurrent = pInitializers;
             pCurrent < (pInitializers + length);
             pCurrent += MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))
         {
-            Serial.WriteString("[ManagedModule] - Running Initializer at address ");
-            Serial.WriteHex((uint)(nint)pCurrent);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[ManagedModule] - Running Initializer at address ");
+            SerialDebug.WriteHex((uint)(nint)pCurrent);
+            SerialDebug.WriteString("\n");
             var initializer = MethodTable.SupportsRelativePointers ? (delegate*<void>)ReadRelPtr32(pCurrent) : *(delegate*<void>*)pCurrent;
             initializer();
-            Serial.WriteString("[ManagedModule] - Completed Initializer at address ");
-            Serial.WriteHex((uint)(nint)pCurrent);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[ManagedModule] - Completed Initializer at address ");
+            SerialDebug.WriteHex((uint)(nint)pCurrent);
+            SerialDebug.WriteString("\n");
         }
 
         static void* ReadRelPtr32(void* address)

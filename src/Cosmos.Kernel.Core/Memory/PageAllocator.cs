@@ -82,7 +82,7 @@ public static unsafe class PageAllocator
     {
         if (Limine.MemoryMap.Response == null)
         {
-            Serial.WriteString("[PageAllocator] Warning: No memory map available, assuming usable\n");
+            SerialDebug.WriteString("[PageAllocator] Warning: No memory map available, assuming usable\n");
             return true;
         }
 
@@ -93,11 +93,11 @@ public static unsafe class PageAllocator
         ulong physicalAddressStart = VirtualToPhysical(virtualAddressStart);
         ulong physicalAddressEnd = VirtualToPhysical(virtualAddressEnd);
 
-        Serial.WriteString("[PageAllocator] Checking virtual 0x");
-        Serial.WriteHex(virtualAddressStart);
-        Serial.WriteString(" -> physical 0x");
-        Serial.WriteHex(physicalAddressStart);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[PageAllocator] Checking virtual 0x");
+        SerialDebug.WriteHex(virtualAddressStart);
+        SerialDebug.WriteString(" -> physical 0x");
+        SerialDebug.WriteHex(physicalAddressStart);
+        SerialDebug.WriteString("\n");
 
         bool foundMatch = false;
         for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
@@ -110,19 +110,19 @@ public static unsafe class PageAllocator
             if (physicalAddressStart < entryEnd && physicalAddressEnd > entryStart)
             {
                 foundMatch = true;
-                Serial.WriteString("[PageAllocator] Physical region 0x");
-                Serial.WriteHex(physicalAddressStart);
-                Serial.WriteString("-0x");
-                Serial.WriteHex(physicalAddressEnd);
-                Serial.WriteString(" overlaps with entry ");
-                Serial.WriteNumber(i);
-                Serial.WriteString(" (0x");
-                Serial.WriteHex(entryStart);
-                Serial.WriteString("-0x");
-                Serial.WriteHex(entryEnd);
-                Serial.WriteString(") type: ");
-                Serial.WriteNumber((uint)entry->Type);
-                Serial.WriteString("\n");
+                SerialDebug.WriteString("[PageAllocator] Physical region 0x");
+                SerialDebug.WriteHex(physicalAddressStart);
+                SerialDebug.WriteString("-0x");
+                SerialDebug.WriteHex(physicalAddressEnd);
+                SerialDebug.WriteString(" overlaps with entry ");
+                SerialDebug.WriteNumber(i);
+                SerialDebug.WriteString(" (0x");
+                SerialDebug.WriteHex(entryStart);
+                SerialDebug.WriteString("-0x");
+                SerialDebug.WriteHex(entryEnd);
+                SerialDebug.WriteString(") type: ");
+                SerialDebug.WriteNumber((uint)entry->Type);
+                SerialDebug.WriteString("\n");
 
                 // Only allow allocation in usable memory
                 if (entry->Type != LimineMemmapType.Usable)
@@ -158,7 +158,7 @@ public static unsafe class PageAllocator
     /// </exception>
     public static void InitializeHeap(byte* aStartPtr, ulong aSize)
     {
-        Serial.WriteString("[PageAllocator] Initializing heap using Limine memory map...\n");
+        SerialDebug.WriteString("[PageAllocator] Initializing heap using Limine memory map...\n");
 
         // Find the largest usable memory region for our heap
         byte* usableStart = null;
@@ -166,60 +166,60 @@ public static unsafe class PageAllocator
 
         if (Limine.MemoryMap.Response != null)
         {
-            Serial.WriteString("[PageAllocator] Memory map detected with ");
-            Serial.WriteNumber(Limine.MemoryMap.Response->EntryCount);
-            Serial.WriteString(" entries:\n");
+            SerialDebug.WriteString("[PageAllocator] Memory map detected with ");
+            SerialDebug.WriteNumber(Limine.MemoryMap.Response->EntryCount);
+            SerialDebug.WriteString(" entries:\n");
 
             // Display all memory map entries for debugging
             for (ulong i = 0; i < Limine.MemoryMap.Response->EntryCount; i++)
             {
                 LimineMemmapEntry* entry = Limine.MemoryMap.Response->Entries[i];
-                Serial.WriteString("[MemMap] Entry ");
-                Serial.WriteNumber(i);
-                Serial.WriteString(": 0x");
-                Serial.WriteHex((ulong)entry->Base);
-                Serial.WriteString(" - 0x");
-                Serial.WriteHex((ulong)entry->Base + entry->Length);
-                Serial.WriteString(" (");
-                Serial.WriteNumber(entry->Length / 1024 / 1024);
-                Serial.WriteString(" MB) Type: ");
-                Serial.WriteNumber((uint)entry->Type);
+                SerialDebug.WriteString("[MemMap] Entry ");
+                SerialDebug.WriteNumber(i);
+                SerialDebug.WriteString(": 0x");
+                SerialDebug.WriteHex((ulong)entry->Base);
+                SerialDebug.WriteString(" - 0x");
+                SerialDebug.WriteHex((ulong)entry->Base + entry->Length);
+                SerialDebug.WriteString(" (");
+                SerialDebug.WriteNumber(entry->Length / 1024 / 1024);
+                SerialDebug.WriteString(" MB) Type: ");
+                SerialDebug.WriteNumber((uint)entry->Type);
 
                 // Add type name for clarity
                 switch (entry->Type)
                 {
                     case LimineMemmapType.Usable:
-                        Serial.WriteString(" (Usable)");
+                        SerialDebug.WriteString(" (Usable)");
                         break;
                     case LimineMemmapType.Reserved:
-                        Serial.WriteString(" (Reserved)");
+                        SerialDebug.WriteString(" (Reserved)");
                         break;
                     case LimineMemmapType.AcpiReclaimable:
-                        Serial.WriteString(" (ACPI Reclaimable)");
+                        SerialDebug.WriteString(" (ACPI Reclaimable)");
                         break;
                     case LimineMemmapType.AcpiNvs:
-                        Serial.WriteString(" (ACPI NVS)");
+                        SerialDebug.WriteString(" (ACPI NVS)");
                         break;
                     case LimineMemmapType.BadMemory:
-                        Serial.WriteString(" (Bad Memory)");
+                        SerialDebug.WriteString(" (Bad Memory)");
                         break;
                     case LimineMemmapType.BootloaderReclaimable:
-                        Serial.WriteString(" (Bootloader Reclaimable)");
+                        SerialDebug.WriteString(" (Bootloader Reclaimable)");
                         break;
                     case LimineMemmapType.KernelAndModules:
-                        Serial.WriteString(" (Kernel and Modules)");
+                        SerialDebug.WriteString(" (Kernel and Modules)");
                         break;
                     case LimineMemmapType.Framebuffer:
-                        Serial.WriteString(" (Framebuffer)");
+                        SerialDebug.WriteString(" (Framebuffer)");
                         break;
                     default:
-                        Serial.WriteString(" (Unknown)");
+                        SerialDebug.WriteString(" (Unknown)");
                         break;
                 }
-                Serial.WriteString("\n");
+                SerialDebug.WriteString("\n");
             }
 
-            Serial.WriteString("[PageAllocator] Searching for largest safe usable memory region...\n");
+            SerialDebug.WriteString("[PageAllocator] Searching for largest safe usable memory region...\n");
 
             // First, collect all protected regions (kernel, framebuffer, etc.)
             ulong kernelStart = 0;
@@ -235,25 +235,25 @@ public static unsafe class PageAllocator
                 {
                     kernelStart = (ulong)entry->Base;
                     kernelEnd = (ulong)entry->Base + entry->Length;
-                    Serial.WriteString("[PageAllocator] Protected: Kernel/Modules 0x");
-                    Serial.WriteHex(kernelStart);
-                    Serial.WriteString(" - 0x");
-                    Serial.WriteHex(kernelEnd);
-                    Serial.WriteString(" (");
-                    Serial.WriteNumber((kernelEnd - kernelStart) / 1024 / 1024);
-                    Serial.WriteString(" MB)\n");
+                    SerialDebug.WriteString("[PageAllocator] Protected: Kernel/Modules 0x");
+                    SerialDebug.WriteHex(kernelStart);
+                    SerialDebug.WriteString(" - 0x");
+                    SerialDebug.WriteHex(kernelEnd);
+                    SerialDebug.WriteString(" (");
+                    SerialDebug.WriteNumber((kernelEnd - kernelStart) / 1024 / 1024);
+                    SerialDebug.WriteString(" MB)\n");
                 }
                 else if (entry->Type == LimineMemmapType.Framebuffer)
                 {
                     framebufferStart = (ulong)entry->Base;
                     framebufferEnd = (ulong)entry->Base + entry->Length;
-                    Serial.WriteString("[PageAllocator] Protected: Framebuffer 0x");
-                    Serial.WriteHex(framebufferStart);
-                    Serial.WriteString(" - 0x");
-                    Serial.WriteHex(framebufferEnd);
-                    Serial.WriteString(" (");
-                    Serial.WriteNumber((framebufferEnd - framebufferStart) / 1024 / 1024);
-                    Serial.WriteString(" MB)\n");
+                    SerialDebug.WriteString("[PageAllocator] Protected: Framebuffer 0x");
+                    SerialDebug.WriteHex(framebufferStart);
+                    SerialDebug.WriteString(" - 0x");
+                    SerialDebug.WriteHex(framebufferEnd);
+                    SerialDebug.WriteString(" (");
+                    SerialDebug.WriteNumber((framebufferEnd - framebufferStart) / 1024 / 1024);
+                    SerialDebug.WriteString(" MB)\n");
                 }
             }
 
@@ -274,20 +274,20 @@ public static unsafe class PageAllocator
 #if ARCH_ARM64
                     // ARM64: Use physical addresses directly (identity mapping)
                     virtualStart = physStart;
-                    Serial.WriteString("[PageAllocator] ARM64: Using identity mapping (phys == virt)\n");
+                    SerialDebug.WriteString("[PageAllocator] ARM64: Using identity mapping (phys == virt)\n");
 #else
                     // x64: Use higher-half mapping
                     virtualStart = physStart + 0xFFFF800000000000UL;
 #endif
                     ulong entrySize = entry->Length;
 
-                    Serial.WriteString("[PageAllocator] Evaluating region: phys 0x");
-                    Serial.WriteHex(physStart);
-                    Serial.WriteString(" - 0x");
-                    Serial.WriteHex(physEnd);
-                    Serial.WriteString(" (");
-                    Serial.WriteNumber(entrySize / 1024 / 1024);
-                    Serial.WriteString(" MB)");
+                    SerialDebug.WriteString("[PageAllocator] Evaluating region: phys 0x");
+                    SerialDebug.WriteHex(physStart);
+                    SerialDebug.WriteString(" - 0x");
+                    SerialDebug.WriteHex(physEnd);
+                    SerialDebug.WriteString(" (");
+                    SerialDebug.WriteNumber(entrySize / 1024 / 1024);
+                    SerialDebug.WriteString(" MB)");
 
                     // Check if this region overlaps with kernel/modules
                     bool overlapsKernel = false;
@@ -297,7 +297,7 @@ public static unsafe class PageAllocator
                         if (physStart < kernelEnd && physEnd > kernelStart)
                         {
                             overlapsKernel = true;
-                            Serial.WriteString(" [OVERLAPS KERNEL]");
+                            SerialDebug.WriteString(" [OVERLAPS KERNEL]");
                         }
                     }
 
@@ -308,16 +308,16 @@ public static unsafe class PageAllocator
                         if (physStart < framebufferEnd && physEnd > framebufferStart)
                         {
                             overlapsFramebuffer = true;
-                            Serial.WriteString(" [OVERLAPS FRAMEBUFFER]");
+                            SerialDebug.WriteString(" [OVERLAPS FRAMEBUFFER]");
                         }
                     }
 
-                    Serial.WriteString("\n");
+                    SerialDebug.WriteString("\n");
 
                     // Skip regions that overlap with protected areas
                     if (overlapsKernel || overlapsFramebuffer)
                     {
-                        Serial.WriteString("[PageAllocator] ⚠ Region overlaps protected memory, skipping\n");
+                        SerialDebug.WriteString("[PageAllocator] ⚠ Region overlaps protected memory, skipping\n");
                         continue;
                     }
 
@@ -327,9 +327,9 @@ public static unsafe class PageAllocator
                         usableStart = (byte*)virtualStart;
                         usableSize = entrySize;
 
-                        Serial.WriteString("[PageAllocator] ✓ Best candidate so far: ");
-                        Serial.WriteNumber(usableSize / 1024 / 1024);
-                        Serial.WriteString(" MB\n");
+                        SerialDebug.WriteString("[PageAllocator] ✓ Best candidate so far: ");
+                        SerialDebug.WriteNumber(usableSize / 1024 / 1024);
+                        SerialDebug.WriteString(" MB\n");
                     }
                 }
             }
@@ -341,14 +341,14 @@ public static unsafe class PageAllocator
             throw new Exception("No usable memory found in Limine memory map");
         }
 
-        Serial.WriteString("[PageAllocator] Selected largest usable region:\n");
-        Serial.WriteString("  Start (virt): 0x");
-        Serial.WriteHex((ulong)usableStart);
-        Serial.WriteString("\n  Size: ");
-        Serial.WriteNumber(usableSize / 1024 / 1024);
-        Serial.WriteString(" MB (");
-        Serial.WriteNumber(usableSize);
-        Serial.WriteString(" bytes)\n");
+        SerialDebug.WriteString("[PageAllocator] Selected largest usable region:\n");
+        SerialDebug.WriteString("  Start (virt): 0x");
+        SerialDebug.WriteHex((ulong)usableStart);
+        SerialDebug.WriteString("\n  Size: ");
+        SerialDebug.WriteNumber(usableSize / 1024 / 1024);
+        SerialDebug.WriteString(" MB (");
+        SerialDebug.WriteNumber(usableSize);
+        SerialDebug.WriteString(" bytes)\n");
 
         // Check alignment
         if ((ulong)usableStart % PageSize != 0)
@@ -357,18 +357,18 @@ public static unsafe class PageAllocator
             ulong offset = PageSize - ((ulong)usableStart % PageSize);
             usableStart += offset;
             usableSize -= offset;
-            Serial.WriteString("[PageAllocator] Aligned start to page boundary: 0x");
-            Serial.WriteHex((ulong)usableStart);
-            Serial.WriteString("\n");
+            SerialDebug.WriteString("[PageAllocator] Aligned start to page boundary: 0x");
+            SerialDebug.WriteHex((ulong)usableStart);
+            SerialDebug.WriteString("\n");
         }
 
         if (usableSize % PageSize != 0)
         {
             // Align size down to page boundary
             usableSize = (usableSize / PageSize) * PageSize;
-            Serial.WriteString("[PageAllocator] Aligned size to page boundary: ");
-            Serial.WriteNumber(usableSize);
-            Serial.WriteString(" bytes\n");
+            SerialDebug.WriteString("[PageAllocator] Aligned size to page boundary: ");
+            SerialDebug.WriteNumber(usableSize);
+            SerialDebug.WriteString(" bytes\n");
         }
 
         // Calculate total pages and RAT size
@@ -377,13 +377,13 @@ public static unsafe class PageAllocator
         ulong xRatPageCount = (TotalPageCount - 1) / PageSize + 1;
         ulong xRatTotalSize = xRatPageCount * PageSize;
 
-        Serial.WriteString("[PageAllocator] Total pages: ");
-        Serial.WriteNumber(TotalPageCount);
-        Serial.WriteString(", RAT pages: ");
-        Serial.WriteNumber(xRatPageCount);
-        Serial.WriteString(", RAT size: ");
-        Serial.WriteNumber(xRatTotalSize / 1024);
-        Serial.WriteString(" KB\n");
+        SerialDebug.WriteString("[PageAllocator] Total pages: ");
+        SerialDebug.WriteNumber(TotalPageCount);
+        SerialDebug.WriteString(", RAT pages: ");
+        SerialDebug.WriteNumber(xRatPageCount);
+        SerialDebug.WriteString(", RAT size: ");
+        SerialDebug.WriteNumber(xRatTotalSize / 1024);
+        SerialDebug.WriteString(" KB\n");
 
         // IMPORTANT: Following Cosmos OS structure, place RAT at the END of usable memory
         // Heap: [RamStart ... HeapEnd] [RAT]
@@ -392,18 +392,18 @@ public static unsafe class PageAllocator
         RamSize = usableSize - xRatTotalSize;
         HeapEnd = mRAT;  // Heap ends where RAT begins
 
-        Serial.WriteString("[PageAllocator] Memory layout (Cosmos-style):\n");
-        Serial.WriteString("  RamStart (heap): 0x");
-        Serial.WriteHex((ulong)RamStart);
-        Serial.WriteString("\n  HeapEnd: 0x");
-        Serial.WriteHex((ulong)HeapEnd);
-        Serial.WriteString("\n  RAT location: 0x");
-        Serial.WriteHex((ulong)mRAT);
-        Serial.WriteString("\n  RAT end: 0x");
-        Serial.WriteHex((ulong)(mRAT + xRatTotalSize));
-        Serial.WriteString("\n  Heap size: ");
-        Serial.WriteNumber(RamSize / 1024 / 1024);
-        Serial.WriteString(" MB\n");
+        SerialDebug.WriteString("[PageAllocator] Memory layout (Cosmos-style):\n");
+        SerialDebug.WriteString("  RamStart (heap): 0x");
+        SerialDebug.WriteHex((ulong)RamStart);
+        SerialDebug.WriteString("\n  HeapEnd: 0x");
+        SerialDebug.WriteHex((ulong)HeapEnd);
+        SerialDebug.WriteString("\n  RAT location: 0x");
+        SerialDebug.WriteHex((ulong)mRAT);
+        SerialDebug.WriteString("\n  RAT end: 0x");
+        SerialDebug.WriteHex((ulong)(mRAT + xRatTotalSize));
+        SerialDebug.WriteString("\n  Heap size: ");
+        SerialDebug.WriteNumber(RamSize / 1024 / 1024);
+        SerialDebug.WriteString(" MB\n");
 
         // Sanity checks
         if (mRAT < RamStart)
@@ -416,16 +416,16 @@ public static unsafe class PageAllocator
         }
 
         // Initialize ALL RAT entries to Empty
-        Serial.WriteString("[PageAllocator] Initializing ");
-        Serial.WriteNumber(TotalPageCount);
-        Serial.WriteString(" RAT entries...\n");
+        SerialDebug.WriteString("[PageAllocator] Initializing ");
+        SerialDebug.WriteNumber(TotalPageCount);
+        SerialDebug.WriteString(" RAT entries...\n");
 
         // Test first write before loop
-        Serial.WriteString("[PageAllocator] Testing first RAT write at 0x");
-        Serial.WriteHex((ulong)mRAT);
-        Serial.WriteString("...\n");
+        SerialDebug.WriteString("[PageAllocator] Testing first RAT write at 0x");
+        SerialDebug.WriteHex((ulong)mRAT);
+        SerialDebug.WriteString("...\n");
         mRAT[0] = (byte)PageType.Empty;
-        Serial.WriteString("[PageAllocator] First write successful, initializing all entries...\n");
+        SerialDebug.WriteString("[PageAllocator] First write successful, initializing all entries...\n");
 
         for (ulong i = 0; i < TotalPageCount; i++)
         {
@@ -434,24 +434,24 @@ public static unsafe class PageAllocator
             // Progress indicator every 10000 pages to confirm loop is progressing
             if (i > 0 && i % 10000 == 0)
             {
-                Serial.WriteString("[PageAllocator] Initialized ");
-                Serial.WriteNumber(i);
-                Serial.WriteString(" / ");
-                Serial.WriteNumber(TotalPageCount);
-                Serial.WriteString(" entries...\n");
+                SerialDebug.WriteString("[PageAllocator] Initialized ");
+                SerialDebug.WriteNumber(i);
+                SerialDebug.WriteString(" / ");
+                SerialDebug.WriteNumber(TotalPageCount);
+                SerialDebug.WriteString(" entries...\n");
             }
         }
 
-        Serial.WriteString("[PageAllocator] All RAT entries initialized.\n");
+        SerialDebug.WriteString("[PageAllocator] All RAT entries initialized.\n");
 
         // Mark the RAT pages themselves as PageAllocator type
         // RAT pages are at the END, so we mark the LAST xRatPageCount pages
         ulong ratStartPage = TotalPageCount - xRatPageCount;
-        Serial.WriteString("[PageAllocator] Marking RAT pages (");
-        Serial.WriteNumber(xRatPageCount);
-        Serial.WriteString(" pages starting at index ");
-        Serial.WriteNumber(ratStartPage);
-        Serial.WriteString(")...\n");
+        SerialDebug.WriteString("[PageAllocator] Marking RAT pages (");
+        SerialDebug.WriteNumber(xRatPageCount);
+        SerialDebug.WriteString(" pages starting at index ");
+        SerialDebug.WriteNumber(ratStartPage);
+        SerialDebug.WriteString(")...\n");
 
         for (ulong i = ratStartPage; i < TotalPageCount; i++)
         {
@@ -461,17 +461,17 @@ public static unsafe class PageAllocator
         // Free page count is total minus RAT pages
         FreePageCount = TotalPageCount - xRatPageCount;
 
-        Serial.WriteString("[PageAllocator] Heap initialization complete!\n");
-        Serial.WriteString("  Total pages: ");
-        Serial.WriteNumber(TotalPageCount);
-        Serial.WriteString("\n  Free pages: ");
-        Serial.WriteNumber(FreePageCount);
-        Serial.WriteString("\n  Usable heap: ");
-        Serial.WriteNumber(FreePageCount * PageSize / 1024 / 1024);
-        Serial.WriteString(" MB\n");
+        SerialDebug.WriteString("[PageAllocator] Heap initialization complete!\n");
+        SerialDebug.WriteString("  Total pages: ");
+        SerialDebug.WriteNumber(TotalPageCount);
+        SerialDebug.WriteString("\n  Free pages: ");
+        SerialDebug.WriteNumber(FreePageCount);
+        SerialDebug.WriteString("\n  Usable heap: ");
+        SerialDebug.WriteNumber(FreePageCount * PageSize / 1024 / 1024);
+        SerialDebug.WriteString(" MB\n");
 
         // Test RAT is writable
-        Serial.WriteString("[PageAllocator] Testing RAT write access...\n");
+        SerialDebug.WriteString("[PageAllocator] Testing RAT write access...\n");
         byte testValue = mRAT[0];
         mRAT[0] = 123;
         if (mRAT[0] != 123)
@@ -480,10 +480,10 @@ public static unsafe class PageAllocator
             throw new Exception("RAT memory is not writable!");
         }
         mRAT[0] = testValue; // Restore
-        Serial.WriteString("[PageAllocator] RAT write test passed\n");
+        SerialDebug.WriteString("[PageAllocator] RAT write test passed\n");
 
         // Initialize small heap
-        Serial.WriteString("[PageAllocator] Initializing SmallHeap...\n");
+        SerialDebug.WriteString("[PageAllocator] Initializing SmallHeap...\n");
         SmallHeap.Init();
     }
 
@@ -496,13 +496,13 @@ public static unsafe class PageAllocator
     /// <returns>A pointer to the first page on success, null on failure.</returns>
     public static void* AllocPages(PageType aType, ulong aPageCount = 1, bool zero = false)
     {
-        Serial.WriteString("[PageAllocator] AllocPages - Type: ");
-        Serial.WriteNumber((uint)aType);
-        Serial.WriteString(", Count: ");
-        Serial.WriteNumber(aPageCount);
-        Serial.WriteString(", Free: ");
-        Serial.WriteNumber(FreePageCount);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[PageAllocator] AllocPages - Type: ");
+        SerialDebug.WriteNumber((uint)aType);
+        SerialDebug.WriteString(", Count: ");
+        SerialDebug.WriteNumber(aPageCount);
+        SerialDebug.WriteString(", Free: ");
+        SerialDebug.WriteNumber(FreePageCount);
+        SerialDebug.WriteString("\n");
 
         byte* startPage = null;
 
@@ -670,18 +670,18 @@ public static unsafe class PageAllocator
             }
         }
 
-        Serial.WriteString("[PageAllocator] Page counts by type:\n");
-        Serial.WriteString("  Empty: "); Serial.WriteNumber(empty); Serial.WriteString("\n");
-        Serial.WriteString("  GCHeap: "); Serial.WriteNumber(gcHeap); Serial.WriteString("\n");
-        Serial.WriteString("  HeapSmall: "); Serial.WriteNumber(heapSmall); Serial.WriteString("\n");
-        Serial.WriteString("  HeapMedium: "); Serial.WriteNumber(heapMedium); Serial.WriteString("\n");
-        Serial.WriteString("  HeapLarge: "); Serial.WriteNumber(heapLarge); Serial.WriteString("\n");
-        Serial.WriteString("  Unmanaged: "); Serial.WriteNumber(unmanaged); Serial.WriteString("\n");
-        Serial.WriteString("  PageDirectory: "); Serial.WriteNumber(pageDirectory); Serial.WriteString("\n");
-        Serial.WriteString("  PageAllocator: "); Serial.WriteNumber(pageAllocator); Serial.WriteString("\n");
-        Serial.WriteString("  SMT: "); Serial.WriteNumber(smt); Serial.WriteString("\n");
-        Serial.WriteString("  Extension: "); Serial.WriteNumber(extension); Serial.WriteString("\n");
-        if (unknown > 0) { Serial.WriteString("  Unknown/Other: "); Serial.WriteNumber(unknown); Serial.WriteString("\n"); }
-        Serial.WriteString("  Total: "); Serial.WriteNumber(TotalPageCount); Serial.WriteString("\n");
+        SerialDebug.WriteString("[PageAllocator] Page counts by type:\n");
+        SerialDebug.WriteString("  Empty: "); SerialDebug.WriteNumber(empty); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  GCHeap: "); SerialDebug.WriteNumber(gcHeap); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  HeapSmall: "); SerialDebug.WriteNumber(heapSmall); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  HeapMedium: "); SerialDebug.WriteNumber(heapMedium); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  HeapLarge: "); SerialDebug.WriteNumber(heapLarge); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  Unmanaged: "); SerialDebug.WriteNumber(unmanaged); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  PageDirectory: "); SerialDebug.WriteNumber(pageDirectory); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  PageAllocator: "); SerialDebug.WriteNumber(pageAllocator); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  SMT: "); SerialDebug.WriteNumber(smt); SerialDebug.WriteString("\n");
+        SerialDebug.WriteString("  Extension: "); SerialDebug.WriteNumber(extension); SerialDebug.WriteString("\n");
+        if (unknown > 0) { SerialDebug.WriteString("  Unknown/Other: "); SerialDebug.WriteNumber(unknown); SerialDebug.WriteString("\n"); }
+        SerialDebug.WriteString("  Total: "); SerialDebug.WriteNumber(TotalPageCount); SerialDebug.WriteString("\n");
     }
 }
