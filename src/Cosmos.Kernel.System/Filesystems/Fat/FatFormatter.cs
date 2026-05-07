@@ -200,20 +200,39 @@ internal static class FatFormatter
 
     private static byte PickSectorsPerCluster(uint totalSectors, FatType requested)
     {
-        // Table-driven defaults that stay inside the FAT band for typical sizes.
-        // For tiny test images (a few MiB) SPC=1 keeps us out of trouble.
-        if (totalSectors < 16 * 1024)
+        // FAT32 follows Microsoft fatgen103 §3.4: SPC must keep cluster count
+        // above 65525 so we stay in the FAT32 band. The table below matches
+        // what Windows/format.com pick.
+        if (requested == FatType.Fat32)
         {
-            return requested == FatType.Fat32 ? (byte)1 : (byte)8;
+            // < 260 MiB → SPC 1 (0.5 KiB cluster). Anything smaller than
+            // ~32 MiB still fits, just barely.
+            if (totalSectors < 532_480)
+            {
+                return 1;
+            }
+            // < 8 GiB → SPC 8 (4 KiB cluster).
+            if (totalSectors < 16_777_216)
+            {
+                return 8;
+            }
+            // < 16 GiB → SPC 16 (8 KiB).
+            if (totalSectors < 33_554_432)
+            {
+                return 16;
+            }
+            // < 32 GiB → SPC 32 (16 KiB).
+            if (totalSectors < 67_108_864)
+            {
+                return 32;
+            }
+            // ≥ 32 GiB → SPC 64 (32 KiB).
+            return 64;
         }
-        if (totalSectors < 128 * 1024)
-        {
-            return requested == FatType.Fat32 ? (byte)1 : (byte)8;
-        }
-        if (totalSectors < 512 * 1024)
-        {
-            return 8;
-        }
+
+        // FAT12/FAT16: 8 sectors/cluster keeps a few-MiB image inside the band
+        // and is fine up through the FAT16 ceiling (~2 GiB at SPC=64). FAT16
+        // on huge volumes is uncommon enough not to warrant a table.
         return 8;
     }
 
