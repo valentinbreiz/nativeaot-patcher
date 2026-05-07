@@ -1613,6 +1613,21 @@ public class Kernel : Sys.Kernel
         }
     }
 
+    private void PrintNoMountHelp()
+    {
+        PrintWarning("No filesystem mounted.");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("To mount a filesystem and use 'ls':");
+        Console.ResetColor();
+        Console.WriteLine("  1. disks               - list attached disks");
+        Console.WriteLine("  2. partitions          - list partitions on each disk");
+        Console.WriteLine("  3. creategpt <d>       - if disk has no partition table");
+        Console.WriteLine("  4. mkpart <d> <mb>     - create a partition of <mb> MiB");
+        Console.WriteLine("  5. format <p>          - format partition <p> as FAT32");
+        Console.WriteLine("  6. mount <p> <d>       - mount partition <p> as drive <d>");
+        Console.WriteLine("  7. <d>:                - switch to drive <d>, then 'ls'");
+    }
+
     private void SwitchDrive(int driveNum)
     {
         if (driveNum < 0 || driveNum >= s_drivePaths.Length)
@@ -1657,6 +1672,12 @@ public class Kernel : Sys.Kernel
 
     private void ListDirectory(string path)
     {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+
         if (_currentDrive < 0 && (path.Length == 0 || path[0] != '/'))
         {
             PrintError("No drive selected. Use 'mount' then '<n>:' first.");
