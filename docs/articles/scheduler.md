@@ -269,21 +269,53 @@ A classic interactivity-favoring policy: several priority queues, threads demote
 
 MLFQ doesn't track virtual time at all — its bookkeeping is just integer levels.
 
-### Earliest-Deadline-First (EDF)
+### Real-time scheduling (RTOS)
 
-For real-time workloads where each thread has an absolute deadline.
+The framework is suitable for building a hard- or soft-real-time kernel: the policy/mechanism split lets you swap in a real-time algorithm without touching context switching or sync primitives. The three classic families all map cleanly onto `IScheduler`.
+
+**Fixed-priority preemptive (FPP)** — every thread has a static priority; the highest-priority runnable thread always runs; ties are broken by FIFO at each level. The default policy in most RTOSes (FreeRTOS, Zephyr, ThreadX).
 
 | Hook | Behavior |
 |------|----------|
-| `PerCpuState.SchedulerData` | A min-heap keyed on deadline |
-| `Thread.SchedulerData` | `Deadline`, `Period`, `WorstCaseExecution` |
-| `OnThreadReady` | Insert into the heap |
+| `PerCpuState.SchedulerData` | An array of `Queue<Thread>` indexed by priority |
+| `Thread.SchedulerData` | Static priority |
+| `OnThreadReady` | Enqueue at the tail of the thread's priority level |
+| `OnTick` | Preempt iff a higher-priority queue is non-empty (no quantum — pure priority) |
+| `PickNext` | Scan top-down for the first non-empty level, dequeue head |
+| `SetPriority` | Move between levels |
+| `Balance` | Usually disabled — RT threads are pinned (see below) |
+
+**Rate Monotonic (RM)** — periodic tasks; priority is statically assigned by frequency (shorter period ⇒ higher priority). Optimal among static-priority schedulers when periods equal deadlines and the system is under the Liu/Layland bound.
+
+| Hook | Behavior |
+|------|----------|
+| `Thread.SchedulerData` | `Period`, derived static priority |
+| `OnThreadCreate` | Assign priority from `1 / Period`; reject if total utilization exceeds the schedulability bound |
+| Otherwise | Same as FPP — RM is just FPP with a specific priority-assignment rule |
+
+**Earliest-Deadline-First (EDF)** — dynamic priority based on absolute deadline; theoretically optimal on a single CPU (achieves 100% utilization vs. RM's ~69%) but harder to analyze under overload.
+
+| Hook | Behavior |
+|------|----------|
+| `PerCpuState.SchedulerData` | A min-heap keyed on absolute deadline |
+| `Thread.SchedulerData` | `Period`, `RelativeDeadline`, `AbsoluteDeadline`, `WCET` |
+| `OnThreadReady` | Recompute `AbsoluteDeadline = now + RelativeDeadline`, insert into the heap |
 | `OnTick` | Preempt if the heap root's deadline is earlier than the current thread's |
 | `PickNext` | Pop the heap root |
-| `SetPriority` | Re-prioritization is meaningless; the priority is the deadline |
-| `SelectCpu` | Partition by utilization to avoid overload |
+| `SelectCpu` | Partitioned EDF — pin tasks per-CPU so per-CPU utilization stays under 1.0 |
 
-EDF reuses none of Stride's bookkeeping — it stores deadlines, not virtual time. The mechanism layer doesn't care.
+#### What the mechanism layer must guarantee for hard real-time
+
+Any of these algorithms is only as deterministic as the surrounding mechanism. For an RTOS build, four properties matter:
+
+1. **Bounded interrupt latency.** The IRQ stub captures RSP, calls into managed code, and returns — there's no unbounded loop on the path. Anything you add to `OnTick` or `PickNext` becomes part of worst-case latency, so RT algorithms keep these O(log n) or better. Stride's linear `InsertByPass` would not be acceptable; a heap or per-priority FIFO is.
+2. **Priority inheritance in `Mutex`.** The current `Mutex` is FIFO-wake — fine for fair-share, but a low-priority holder of a mutex contended by a high-priority waiter causes **priority inversion**. A real-time mutex must temporarily boost the holder to the highest waiter's priority via `SetPriority`, then restore on release. The hooks for this already exist; the policy is what's missing.
+3. **`Pinned` for IRQ-affine threads.** RT threads typically must not migrate — caches, deadline analysis, and partitioned EDF all assume affinity. The `Pinned` flag is the contract: `SelectCpu` and `Balance` already honor it.
+4. **Tickless / event-driven timer.** The current timer is periodic. A hard-RT build replaces it with a one-shot timer programmed to the next deadline (or next quantum, whichever is sooner). This is a HAL change, not a scheduler change — `OnTimerInterrupt` doesn't care whether ticks are periodic.
+
+What the mechanism already provides that RT needs: deterministic context switch (no allocation on the hot path), per-thread `Pinned`, `SetPriority` hook, sleep-with-wakeup-deadline (`Sleep(timeoutMs)` is exactly what a periodic task needs), and stack-bounded thread state (no dynamic stack growth to perturb timing).
+
+What an RTOS build would still need to add: the priority-inheritance protocol on `Mutex`, a tickless timer driver, and — for analyzability — a worst-case-execution-time (WCET) budget on `OnTick` / `PickNext` of the chosen scheduler.
 
 ### FIFO (cooperative)
 
