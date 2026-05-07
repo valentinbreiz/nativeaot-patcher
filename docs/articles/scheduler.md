@@ -417,3 +417,13 @@ A separate runtime flag `SchedulerManager.Enabled` is set after `Initialize`, `S
 | x64 IRQ + switch asm | [`src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s`](../../src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s) |
 | ARM64 switch asm | [`src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s`](../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s) |
 | GC mark integration | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
+
+---
+
+## References
+
+The scheduler design draws on three primary sources:
+
+1. *Stride Scheduling: Deterministic Proportional-Share Resource Management*, Waldspurger and Weihl (MIT/LCS/TM-528). [PDF](https://web.eecs.umich.edu/~mosharaf/Readings/Stride.pdf). The virtual-time fair-share algorithm in `StrideScheduler` (pass, stride, tickets, sorted-by-`Pass` run queue) comes from this paper.
+2. *Ekiben: a pluggable scheduler API.* [arXiv:2306.15076](https://arxiv.org/pdf/2306.15076). The shape of `IScheduler` (lifecycle hooks, `PickNext`, `OnTick`, per-CPU state slot, policy/mechanism split) is modeled on Ekiben's `EkibenScheduler` trait. `IScheduler.cs` notes this inline.
+3. *Multithreading in .NET at the CLR Level: What Really Happens Under the Hood*. [codetodeploy on Medium](https://medium.com/codetodeploy/multithreading-in-net-at-the-clr-level-what-really-happens-under-the-hood-5699528b6e55). Background on how the CLR models threads. Used while wiring `RhYield`, thread-static storage, and the `ThreadPlug` for `System.Threading.Thread.CreateThread`.
