@@ -1,8 +1,8 @@
 ## Overview
 
-The scheduler is preemptive, pluggable, and uses virtual time. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.
+The scheduler is **preemptive, pluggable, virtual-time**. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.
 
-The design splits policy from mechanism. Mechanism (context switching, the timer-tick entry, the thread registry, the GC bridge) is fixed and shared. Policy (what to pick next, what to do on a tick, how to balance CPUs) is a single interface, `IScheduler`, that any algorithm can implement. The default algorithm is Stride, a virtual-time fair-share scheduler. It is one of many possible plug-ins. See [Plugging in a scheduling algorithm](#plugging-in-a-scheduling-algorithm) for examples.
+The design splits **policy** from **mechanism**. Mechanism (context switching, the timer-tick entry, the thread registry, the GC bridge) is fixed and shared. Policy (what to pick next, what to do on a tick, how to balance CPUs) is a single interface, `IScheduler`, that any algorithm can implement. The default algorithm is **Stride**, a virtual-time fair-share scheduler. It is one of many possible plug-ins. See [Plugging in a scheduling algorithm](#plugging-in-a-scheduling-algorithm) for examples.
 
 ```
  ┌──────────────────────────────────────────────────────────────────┐
