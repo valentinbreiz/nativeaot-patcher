@@ -12,7 +12,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 65);
+        TR.Start("Memory Tests", expectedTests: 68);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -87,6 +87,11 @@ public unsafe class Kernel : Sys.Kernel
         // Per-thread allocation accounting (TLAB)
         TR.Run("Memory_ThreadAllocBytesPositive", TestThreadAllocBytesPositive);
         TR.Run("Memory_TotalAllocBytesPositive", TestTotalAllocBytesPositive);
+
+        // Cmdline parsing — limine.conf passes "arg1 arg2 arg3"
+        TR.Run("Cmdline_ArgCount", TestCmdlineArgCount);
+        TR.Run("Cmdline_Argv0IsCosmos", TestCmdlineArgv0);
+        TR.Run("Cmdline_ArgValues", TestCmdlineArgValues);
 
         // Array.Copy Tests (uses SIMD via memmove/RhBulkMoveWithWriteBarrier)
         TR.Run("ArrayCopy_IntArray", TestArrayCopyIntArray);
@@ -1052,6 +1057,33 @@ public unsafe class Kernel : Sys.Kernel
                      arr[4] == 2 && arr[5] == 3 &&
                      arr[6] == 6 && arr[7] == 7;
         Assert.True(passed, "Array.Copy: overlapping regions");
+    }
+
+    // ==================== Cmdline Parsing Tests ====================
+    // Bootloader/limine.conf passes `cmdline: arg1 arg2 arg3`. These tests
+    // walk the full path: limine -> kmain -> __build_argv -> ArgvParser ->
+    // NativeAOT __managed__Main -> Environment.GetCommandLineArgs().
+
+    private static void TestCmdlineArgCount()
+    {
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.Equal(4, args.Length, "Cmdline: argv0 + 3 parsed args");
+    }
+
+    private static void TestCmdlineArgv0()
+    {
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.True(args.Length >= 1, "Cmdline: argv has argv[0]");
+        Assert.True(args[0] == "cosmos", "Cmdline: argv[0] is \"cosmos\"");
+    }
+
+    private static void TestCmdlineArgValues()
+    {
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.True(args.Length >= 4, "Cmdline: argv has 3 parsed args");
+        Assert.True(args[1] == "arg1", "Cmdline: argv[1] == arg1");
+        Assert.True(args[2] == "arg2", "Cmdline: argv[2] == arg2");
+        Assert.True(args[3] == "arg3", "Cmdline: argv[3] == arg3");
     }
 
     private class SimpleStringComparer : IEqualityComparer<string>

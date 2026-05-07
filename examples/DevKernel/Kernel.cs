@@ -35,6 +35,18 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
 
         Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Parameters:");
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        foreach (var param in Environment.GetCommandLineArgs())
+        {
+            Console.Write('\t');
+            Console.WriteLine(param);
+        }
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Cosmos booted successfully!");
         Console.ResetColor();
         Console.WriteLine("Type 'help' for available commands.");
