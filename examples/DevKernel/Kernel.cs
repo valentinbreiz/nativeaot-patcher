@@ -188,34 +188,6 @@ public class Kernel : Sys.Kernel
                     ShowDiskInfo();
                     break;
 
-                case "diskread":
-                    if (parts.Length > 1 && ulong.TryParse(parts[1], out ulong readLba))
-                    {
-                        DiskRead(readLba);
-                    }
-                    else
-                    {
-                        PrintError("Usage: diskread <lba>");
-                    }
-                    break;
-
-                case "diskwrite":
-                    if (parts.Length > 2
-                        && ulong.TryParse(parts[1], out ulong writeLba)
-                        && byte.TryParse(parts[2], System.Globalization.NumberStyles.HexNumber, null, out byte writeByte))
-                    {
-                        DiskWrite(writeLba, writeByte);
-                    }
-                    else
-                    {
-                        PrintError("Usage: diskwrite <lba> <hex-byte>   (e.g. diskwrite 100 A5)");
-                    }
-                    break;
-
-                case "disktest":
-                    DiskTest();
-                    break;
-
                 case "disks":
                 case "listdisks":
                     ListDisks();
@@ -621,9 +593,6 @@ public class Kernel : Sys.Kernel
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
         PrintCommand("diskinfo", "Show storage devices and geometry");
-        PrintCommand("diskread <lba>", "Read 1 block, hex-dump first 64 bytes");
-        PrintCommand("diskwrite <lba> <hex>", "Fill 1 block with byte value (e.g. A5) and write");
-        PrintCommand("disktest", "Run a quick write/read roundtrip on the primary disk");
         PrintCommand("disks", "List storage devices with partition table type");
         PrintCommand("partitions", "List discovered partitions");
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
@@ -1341,98 +1310,6 @@ public class Kernel : Sys.Kernel
                 PrintInfoLine("    Primary".PadRight(17), "yes");
             }
         }
-    }
-
-    private void DiskRead(ulong lba)
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> buf = new byte[dev.BlockSize];
-        dev.ReadBlock(lba, 1, buf);
-
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine($"Block {lba} (first 64 bytes):");
-        Console.ResetColor();
-
-        int show = (int)Math.Min((ulong)64, dev.BlockSize);
-        for (int i = 0; i < show; i++)
-        {
-            if (i > 0 && i % 16 == 0)
-            {
-                Console.WriteLine();
-            }
-            Console.Write(buf[i].ToString("X2"));
-            Console.Write(' ');
-        }
-        Console.WriteLine();
-    }
-
-    private void DiskWrite(ulong lba, byte value)
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> buf = new byte[dev.BlockSize];
-        buf.Fill(value);
-        dev.WriteBlock(lba, 1, buf);
-
-        PrintSuccess($"Wrote {dev.BlockSize} bytes of 0x{value:X2} to LBA {lba}.");
-    }
-
-    private void DiskTest()
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-
-        const ulong lba = 0xCAFE;
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"Test LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> writeBuf = new byte[dev.BlockSize];
-        for (int i = 0; i < (int)dev.BlockSize; i++)
-        {
-            writeBuf[i] = (byte)(i ^ 0x5A);
-        }
-        dev.WriteBlock(lba, 1, writeBuf);
-
-        Span<byte> readBuf = new byte[dev.BlockSize];
-        dev.ReadBlock(lba, 1, readBuf);
-
-        for (int i = 0; i < (int)dev.BlockSize; i++)
-        {
-            if (writeBuf[i] != readBuf[i])
-            {
-                PrintError($"Mismatch at byte {i}: wrote 0x{writeBuf[i]:X2}, read 0x{readBuf[i]:X2}.");
-                return;
-            }
-        }
-        PrintSuccess($"Disk W/R roundtrip OK at LBA {lba} ({dev.BlockSize} bytes).");
     }
 
     private void ListDisks()
