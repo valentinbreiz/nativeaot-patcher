@@ -38,7 +38,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
 - [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/garbage-collector.html)
-- Priority-based Stride Scheduler
+- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/scheduler.html)
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
 - ACPI (via [LAI](https://github.com/managarm/lai))
