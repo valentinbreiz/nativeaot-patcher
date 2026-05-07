@@ -29,12 +29,7 @@ namespace DevKernel;
 public class Kernel : Sys.Kernel
 {
     private string _prompt = "cosmos";
-    private int _currentDrive = -1;
-
-    private static readonly string[] s_drivePaths = new string[]
-    {
-        "/0", "/1", "/2", "/3", "/4", "/5", "/6", "/7", "/8", "/9"
-    };
+    private string _cwd = "/";
 
     protected override void BeforeRun()
     {
@@ -63,7 +58,7 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write(":");
         Console.ForegroundColor = ConsoleColor.Blue;
-        Console.Write("~");
+        Console.Write(_cwd);
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write("$ ");
         Console.ResetColor();
@@ -246,14 +241,13 @@ public class Kernel : Sys.Kernel
 
                 case "mount":
                     if (parts.Length >= 3
-                        && int.TryParse(parts[1], out int mountPartNum)
-                        && int.TryParse(parts[2], out int mountDriveNum))
+                        && int.TryParse(parts[1], out int mountPartNum))
                     {
-                        MountPartition(mountPartNum, mountDriveNum);
+                        MountPartition(mountPartNum, parts[2]);
                     }
                     else
                     {
-                        PrintError("Usage: mount <partition_number> <drive_number>");
+                        PrintError("Usage: mount <partition_number> <mountpoint>   (e.g. mount 0 /mnt)");
                     }
                     break;
 
@@ -261,9 +255,17 @@ public class Kernel : Sys.Kernel
                     ShowMountPoints();
                     break;
 
+                case "cd":
+                    ChangeDirectory(parts.Length >= 2 ? parts[1] : "/");
+                    break;
+
+                case "pwd":
+                    Console.WriteLine(_cwd);
+                    break;
+
                 case "ls":
                 case "dir":
-                    ListDirectory(parts.Length >= 2 ? parts[1] : "/");
+                    ListDirectory(parts.Length >= 2 ? parts[1] : _cwd);
                     break;
 
                 case "cat":
@@ -451,11 +453,6 @@ public class Kernel : Sys.Kernel
                 }
 
                 default:
-                    if (cmd.Length >= 2 && cmd.EndsWith(":") && int.TryParse(cmd[..^1], out int switchDrive))
-                    {
-                        SwitchDrive(switchDrive);
-                        break;
-                    }
                     PrintError($"\"{cmd}\" is not a command");
                     Console.WriteLine("Type 'help' for available commands.");
                     break;
@@ -599,10 +596,11 @@ public class Kernel : Sys.Kernel
         PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> <mb>", "Create a partition on disk n of size mb");
         PrintCommand("format <n>", "Format partition n as FAT (auto type)");
-        PrintCommand("mount <p> <d>", "Mount partition p as drive d (e.g. /0)");
+        PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
-        PrintCommand("<d>:", "Switch to drive d (e.g. 0:)");
-        PrintCommand("ls [path]", "List directory contents on the current drive");
+        PrintCommand("cd <path>", "Change current directory");
+        PrintCommand("pwd", "Print current directory");
+        PrintCommand("ls [path]", "List directory contents (defaults to cwd)");
         PrintCommand("cat <path>", "Display file contents");
         PrintCommand("mkdir <path>", "Create directory");
         PrintCommand("touch <path>", "Create empty file");
@@ -1547,14 +1545,8 @@ public class Kernel : Sys.Kernel
         PrintSuccess("Partition " + partNum + " formatted as FAT.");
     }
 
-    private void MountPartition(int partNum, int driveNum)
+    private void MountPartition(int partNum, string mountPoint)
     {
-        if (driveNum < 0 || driveNum >= s_drivePaths.Length)
-        {
-            PrintError("Drive number must be 0-9.");
-            return;
-        }
-
         IReadOnlyList<Partition> partitions = StorageManager.Partitions;
         if (partNum < 0 || partNum >= partitions.Count)
         {
@@ -1562,7 +1554,12 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        string mountPoint = s_drivePaths[driveNum];
+        if (string.IsNullOrEmpty(mountPoint) || mountPoint[0] != '/')
+        {
+            PrintError("Mount point must be an absolute path (e.g. /mnt).");
+            return;
+        }
+
         if (!VfsManager.TryMount("fat", partNum.ToString(), MountFlags.None, mountPoint, out _))
         {
             PrintError("Mount failed (not FAT or unreadable).");
@@ -1570,12 +1567,8 @@ public class Kernel : Sys.Kernel
         }
 
         PrintSuccess("Partition " + partNum + " mounted at " + mountPoint);
-        if (_currentDrive < 0)
-        {
-            _currentDrive = driveNum;
-            Console.WriteLine("Switched to drive " + driveNum);
-        }
     }
+
 
     private void ShowMountPoints()
     {
@@ -1619,45 +1612,67 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("To mount a filesystem and use 'ls':");
         Console.ResetColor();
-        Console.WriteLine("  1. disks               - list attached disks");
-        Console.WriteLine("  2. partitions          - list partitions on each disk");
-        Console.WriteLine("  3. creategpt <d>       - if disk has no partition table");
-        Console.WriteLine("  4. mkpart <d> <mb>     - create a partition of <mb> MiB");
-        Console.WriteLine("  5. format <p>          - format partition <p> as FAT32");
-        Console.WriteLine("  6. mount <p> <d>       - mount partition <p> as drive <d>");
-        Console.WriteLine("  7. <d>:                - switch to drive <d>, then 'ls'");
+        Console.WriteLine("  1. disks                  - list attached disks");
+        Console.WriteLine("  2. partitions             - list partitions on each disk");
+        Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
+        Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB");
+        Console.WriteLine("  5. format <p>             - format partition <p> as FAT");
+        Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
+        Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
     }
 
-    private void SwitchDrive(int driveNum)
+    private void ChangeDirectory(string path)
     {
-        if (driveNum < 0 || driveNum >= s_drivePaths.Length)
+        string target = NormalizePath(ResolvePath(path));
+
+        if (target != "/" && (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null))
         {
-            PrintError("Drive number must be 0-9.");
+            PrintError("No such directory: " + target);
             return;
         }
 
-        if (!VfsManager.TryGetMount(s_drivePaths[driveNum], out _))
-        {
-            PrintError("Drive " + driveNum + " is not mounted.");
-            return;
-        }
-
-        _currentDrive = driveNum;
-        PrintSuccess("Switched to drive " + driveNum);
+        _cwd = target;
     }
 
     private string ResolvePath(string path)
     {
         if (path.Length > 0 && path[0] == '/')
         {
-            // Allow absolute mount paths like /0/foo to bypass current drive.
             return path;
         }
-        if (_currentDrive < 0)
+        if (_cwd == "/")
         {
-            return path;
+            return "/" + path;
         }
-        return s_drivePaths[_currentDrive] + "/" + path;
+        return _cwd + "/" + path;
+    }
+
+    private static string NormalizePath(string path)
+    {
+        string[] parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        List<string> stack = new();
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string p = parts[i];
+            if (p == ".")
+            {
+                continue;
+            }
+            if (p == "..")
+            {
+                if (stack.Count > 0)
+                {
+                    stack.RemoveAt(stack.Count - 1);
+                }
+                continue;
+            }
+            stack.Add(p);
+        }
+        if (stack.Count == 0)
+        {
+            return "/";
+        }
+        return "/" + string.Join("/", stack);
     }
 
     private static (string parent, string leaf) SplitPath(string fullPath)
@@ -1678,13 +1693,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (_currentDrive < 0 && (path.Length == 0 || path[0] != '/'))
-        {
-            PrintError("No drive selected. Use 'mount' then '<n>:' first.");
-            return;
-        }
-
-        string fullPath = path.Length > 0 && path[0] == '/' ? path : ResolvePath(path);
+        string fullPath = NormalizePath(ResolvePath(path));
 
         // Plain `ls` (path "/") with no mount at "/" itself isn't a real
         // failure — it just means the user needs to mount or switch drive.
