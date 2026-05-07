@@ -1406,8 +1406,37 @@ public class Kernel : Sys.Kernel
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write("  " + (sizeBytes / 1024 / 1024) + " MiB");
             Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.Write("  " + DetectFilesystem(part));
+            Console.ResetColor();
             Console.WriteLine();
         }
+    }
+
+    private static string DetectFilesystem(Partition part)
+    {
+        Span<byte> boot = new byte[part.BlockSize];
+        try
+        {
+            part.ReadBlock(0, 1, boot);
+        }
+        catch
+        {
+            return "unreadable";
+        }
+
+        if (FatBootSector.TryParse(boot, out FatBootSector? bs) && bs != null)
+        {
+            return bs.Type switch
+            {
+                FatType.Fat12 => "FAT12",
+                FatType.Fat16 => "FAT16",
+                FatType.Fat32 => "FAT32",
+                _ => "FAT"
+            };
+        }
+
+        return "unknown";
     }
 
     private void CreateMbrTable(int diskNum)
