@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL | Cosmos Gen 3 </title>
+      <title>Interface IVfsOpenFile | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL | Cosmos Gen 3 ">
+      <meta name="title" content="Interface IVfsOpenFile | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Per-open file state (position, etc.).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,73 +84,135 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL">
+        <article data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile">
 
-  <h1 id="Cosmos_Kernel_HAL" data-uid="Cosmos.Kernel.HAL" class="text-break">Namespace Cosmos.Kernel.HAL</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">Cosmos.Kernel.HAL.ARM64</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.Enums.html">Cosmos.Kernel.HAL.Cpu.Enums</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Cosmos.Kernel.HAL.Devices</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.html">Cosmos.Kernel.HAL.Interfaces</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.html">Cosmos.Kernel.HAL.Pci</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Cosmos.Kernel.HAL.Vfs</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.html">Cosmos.Kernel.HAL.X64</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.AcpiMcfg.html">AcpiMcfg</a></dt>
-      <dd><p>C# bridge to native ACPI MCFG discovery (acpi_wrapper.c in MultiArch).
-The native code is called during early boot (kmain) and parses the MCFG
-table to extract the PCI ECAM base address. This class just retrieves the result.
-Native import lives in Cosmos.Kernel.Core/Bridge/Import/AcpiNative.cs.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.DebugInfo.html">DebugInfo</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.PlatformHAL.html">PlatformHAL</a></dt>
-      <dd><p>Platform HAL manager - provides access to platform-specific hardware.</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.html">AcpiMcfg.McfgInfo</a></dt>
-      <dd><p>Mirrors the C struct acpi_mcfg_info_t from ACPI/acpi_wrapper.c.
-Must match the native layout exactly.</p>
-</dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile" class="text-break">
+Interface IVfsOpenFile  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Vfs</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Per-open file state (position, etc.).</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IVfsOpenFile</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Inode_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Inode" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode">
+  Inode
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IVfsInode Inode { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Operations_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Operations" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations">
+  Operations
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IFileOperations Operations { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.IFileOperations.html">IFileOperations</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Position_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Position" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position">
+  Position
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long Position { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
 
 
 </article>

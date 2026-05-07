@@ -2868,6 +2868,216 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IFileOperations.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IFileOperations",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IFileOperations.yml\" sourcestartlinenumber=\"1\">Open-file byte I/O.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IInodeOperations",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.yml\" sourcestartlinenumber=\"1\">Directory and inode metadata operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.ISuperblockOperations",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.yml\" sourcestartlinenumber=\"1\">Per-superblock callbacks.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.yml\" sourcestartlinenumber=\"1\">Registered filesystem driver entry point.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsInode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IVfsInode",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsInode.yml\" sourcestartlinenumber=\"1\">Single inode (any type: file, directory, symlink, etc.).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IVfsOpenFile",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.yml\" sourcestartlinenumber=\"1\">Per-open file state (position, etc.).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IVfsSuperblock",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.yml\" sourcestartlinenumber=\"1\">Per-mount filesystem instance.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.ModeEnum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.ModeEnum",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.ModeEnum.yml\" sourcestartlinenumber=\"1\">POSIX-style file mode flags used by the VFS layer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.MountFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.MountFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.MountFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.MountFlags.yml\" sourcestartlinenumber=\"1\">Mount option bits.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.SeekWhence.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.SeekWhence.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.SeekWhence",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.SeekWhence.yml\" sourcestartlinenumber=\"1\">Origin for seek.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.SetAttrFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.yml\" sourcestartlinenumber=\"1\">Bitmask selecting which inode fields apply in <code>setattr</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsStat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsStat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.VfsStat",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.VfsStat.yml\" sourcestartlinenumber=\"1\">Inode attributes for <code>getattr</code> / <code>stat</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.VfsStatFs",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.yml\" sourcestartlinenumber=\"1\">Filesystem statistics.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.VfsTimespec",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.yml\" sourcestartlinenumber=\"1\">Linux <code>timespec64</code>-style instant for inode timestamps.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Clock.RTC.yml",
       "output": {
         ".html": {
@@ -4184,6 +4394,90 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.yml\" sourcestartlinenumber=\"1\">Managed handle for a directory node supporting lookup and mutation operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs.IVfsFileHandle",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.yml\" sourcestartlinenumber=\"1\">Managed handle for an open file with position and byte I/O.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs.IVfsNodeHandle",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.yml\" sourcestartlinenumber=\"1\">Common surface for VFS nodes (files or directories).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs.VfsManager.VfsMount",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.yml\" sourcestartlinenumber=\"1\">Represents a mounted filesystem instance.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.VfsManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.VfsManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs.VfsManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.VfsManager.yml\" sourcestartlinenumber=\"1\">Central entry point for registering filesystem drivers and resolving VFS paths.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Vfs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Vfs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Vfs",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.yml",
       "output": {
         ".html": {
@@ -4531,6 +4825,16 @@
       "output": {
         ".html": {
           "relative_path": "articles/plugs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/scheduler.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/scheduler.html"
         }
       },
       "version": ""

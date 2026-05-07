@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.HAL | Cosmos Gen 3 </title>
+      <title>Interface IVfsFilesystemType | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.HAL | Cosmos Gen 3 ">
+      <meta name="title" content="Interface IVfsFilesystemType | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Registered filesystem driver entry point.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,73 +84,85 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL">
+        <article data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType">
 
-  <h1 id="Cosmos_Kernel_HAL" data-uid="Cosmos.Kernel.HAL" class="text-break">Namespace Cosmos.Kernel.HAL</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">Cosmos.Kernel.HAL.ARM64</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Cpu.Enums.html">Cosmos.Kernel.HAL.Cpu.Enums</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Cosmos.Kernel.HAL.Devices</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.html">Cosmos.Kernel.HAL.Interfaces</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.html">Cosmos.Kernel.HAL.Pci</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Cosmos.Kernel.HAL.Vfs</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.html">Cosmos.Kernel.HAL.X64</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.AcpiMcfg.html">AcpiMcfg</a></dt>
-      <dd><p>C# bridge to native ACPI MCFG discovery (acpi_wrapper.c in MultiArch).
-The native code is called during early boot (kmain) and parses the MCFG
-table to extract the PCI ECAM base address. This class just retrieves the result.
-Native import lives in Cosmos.Kernel.Core/Bridge/Import/AcpiNative.cs.</p>
+
+  <h1 id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType" class="text-break">
+Interface IVfsFilesystemType  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Vfs</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Registered filesystem driver entry point.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IVfsFilesystemType</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock__" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock@)">
+  TryMount(ReadOnlySpan&lt;char&gt;, MountFlags, out IVfsSuperblock?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryMount(ReadOnlySpan&lt;char&gt; source, MountFlags flags, out IVfsSuperblock? superblock)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>Optional backing store identifier (device path, image id, etc.).</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.DebugInfo.html">DebugInfo</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.PlatformHAL.html">PlatformHAL</a></dt>
-      <dd><p>Platform HAL manager - provides access to platform-specific hardware.</p>
+    <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.MountFlags.html">MountFlags</a></dt>
+    <dd><p>Mount flags (<a class="xref" href="Cosmos.Kernel.HAL.Vfs.MountFlags.html">MountFlags</a>).</p>
 </dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.AcpiMcfg.McfgInfo.html">AcpiMcfg.McfgInfo</a></dt>
-      <dd><p>Mirrors the C struct acpi_mcfg_info_t from ACPI/acpi_wrapper.c.
-Must match the native layout exactly.</p>
+    <dt><code>superblock</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html">IVfsSuperblock</a></dt>
+    <dd><p>Populated superblock on success.</p>
 </dd>
-    </dl>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
 
 
 </article>

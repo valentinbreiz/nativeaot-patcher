@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IFileOperations | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IFileOperations | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Open-file byte I/O.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Vfs_IFileOperations" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations" class="text-break">
+Interface IFileOperations  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Vfs</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Open-file byte I/O.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IFileOperations</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Fsync_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Fsync_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)">
+  Fsync(IVfsOpenFile)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Fsync(IVfsOpenFile openFile)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Read_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Read*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Read_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_Span_System_Byte__" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Read(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Span{System.Byte})">
+  Read(IVfsOpenFile, Span&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Bytes read; <code>0</code> indicates end-of-file.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long Read(IVfsOpenFile openFile, Span&lt;byte&gt; buffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
+    <dd></dd>
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Release_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Release*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Release_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Release(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)">
+  Release(IVfsOpenFile)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Release(IVfsOpenFile openFile)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Seek_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Seek_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_Int64_Cosmos_Kernel_HAL_Vfs_SeekWhence_System_Int64__" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Int64,Cosmos.Kernel.HAL.Vfs.SeekWhence,System.Int64@)">
+  Seek(IVfsOpenFile, long, SeekWhence, out long)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Seek(IVfsOpenFile openFile, long offset, SeekWhence whence, out long newPosition)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+    <dt><code>whence</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SeekWhence.html">SeekWhence</a></dt>
+    <dd></dd>
+    <dt><code>newPosition</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Write_" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Write*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IFileOperations_Write_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.HAL.Vfs.IFileOperations.Write(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.ReadOnlySpan{System.Byte})">
+  Write(IVfsOpenFile, ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Bytes written.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long Write(IVfsOpenFile openFile, ReadOnlySpan&lt;byte&gt; buffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
+    <dd></dd>
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

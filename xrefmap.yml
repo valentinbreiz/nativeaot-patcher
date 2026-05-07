@@ -14436,6 +14436,868 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.PlatformHAL.SetInitializer
   nameWithType: PlatformHAL.SetInitializer
+- uid: Cosmos.Kernel.HAL.Vfs
+  name: Cosmos.Kernel.HAL.Vfs
+  href: api/Cosmos.Kernel.HAL.Vfs.html
+  commentId: N:Cosmos.Kernel.HAL.Vfs
+  fullName: Cosmos.Kernel.HAL.Vfs
+  nameWithType: Cosmos.Kernel.HAL.Vfs
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations
+  name: IFileOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IFileOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations
+  nameWithType: IFileOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  name: Fsync(IVfsOpenFile)
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Fsync_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  nameWithType: IFileOperations.Fsync(IVfsOpenFile)
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync*
+  name: Fsync
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Fsync_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Fsync
+  nameWithType: IFileOperations.Fsync
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Read(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Span{System.Byte})
+  name: Read(IVfsOpenFile, Span<byte>)
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Read_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_Span_System_Byte__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IFileOperations.Read(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Span{System.Byte})
+  name.vb: Read(IVfsOpenFile, Span(Of Byte))
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Read(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, System.Span<byte>)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IFileOperations.Read(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, System.Span(Of Byte))
+  nameWithType: IFileOperations.Read(IVfsOpenFile, Span<byte>)
+  nameWithType.vb: IFileOperations.Read(IVfsOpenFile, Span(Of Byte))
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Read*
+  name: Read
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Read_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IFileOperations.Read
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Read
+  nameWithType: IFileOperations.Read
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Release(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  name: Release(IVfsOpenFile)
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Release_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IFileOperations.Release(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Release(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile)
+  nameWithType: IFileOperations.Release(IVfsOpenFile)
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Release*
+  name: Release
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Release_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IFileOperations.Release
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Release
+  nameWithType: IFileOperations.Release
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Int64,Cosmos.Kernel.HAL.Vfs.SeekWhence,System.Int64@)
+  name: Seek(IVfsOpenFile, long, SeekWhence, out long)
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Seek_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_Int64_Cosmos_Kernel_HAL_Vfs_SeekWhence_System_Int64__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.Int64,Cosmos.Kernel.HAL.Vfs.SeekWhence,System.Int64@)
+  name.vb: Seek(IVfsOpenFile, Long, SeekWhence, Long)
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, long, Cosmos.Kernel.HAL.Vfs.SeekWhence, out long)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, Long, Cosmos.Kernel.HAL.Vfs.SeekWhence, Long)
+  nameWithType: IFileOperations.Seek(IVfsOpenFile, long, SeekWhence, out long)
+  nameWithType.vb: IFileOperations.Seek(IVfsOpenFile, Long, SeekWhence, Long)
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek*
+  name: Seek
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Seek_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Seek
+  nameWithType: IFileOperations.Seek
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Write(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.ReadOnlySpan{System.Byte})
+  name: Write(IVfsOpenFile, ReadOnlySpan<byte>)
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Write_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_ReadOnlySpan_System_Byte__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IFileOperations.Write(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile,System.ReadOnlySpan{System.Byte})
+  name.vb: Write(IVfsOpenFile, ReadOnlySpan(Of Byte))
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Write(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, System.ReadOnlySpan<byte>)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IFileOperations.Write(Cosmos.Kernel.HAL.Vfs.IVfsOpenFile, System.ReadOnlySpan(Of Byte))
+  nameWithType: IFileOperations.Write(IVfsOpenFile, ReadOnlySpan<byte>)
+  nameWithType.vb: IFileOperations.Write(IVfsOpenFile, ReadOnlySpan(Of Byte))
+- uid: Cosmos.Kernel.HAL.Vfs.IFileOperations.Write*
+  name: Write
+  href: api/Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Write_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IFileOperations.Write
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IFileOperations.Write
+  nameWithType: IFileOperations.Write
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations
+  name: IInodeOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IInodeOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations
+  nameWithType: IInodeOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name: Create(IVfsInode, ReadOnlySpan<char>, ModeEnum, out IVfsInode?)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Create_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_HAL_Vfs_IVfsInode__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name.vb: Create(IVfsInode, ReadOnlySpan(Of Char), ModeEnum, IVfsInode)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.ModeEnum, out Cosmos.Kernel.HAL.Vfs.IVfsInode?)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.ModeEnum, Cosmos.Kernel.HAL.Vfs.IVfsInode)
+  nameWithType: IInodeOperations.Create(IVfsInode, ReadOnlySpan<char>, ModeEnum, out IVfsInode?)
+  nameWithType.vb: IInodeOperations.Create(IVfsInode, ReadOnlySpan(Of Char), ModeEnum, IVfsInode)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create*
+  name: Create
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Create_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create
+  nameWithType: IInodeOperations.Create
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name: GetAttr(IVfsInode, out VfsStat)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_GetAttr_Cosmos_Kernel_HAL_Vfs_IVfsInode_Cosmos_Kernel_HAL_Vfs_VfsStat__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name.vb: GetAttr(IVfsInode, VfsStat)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode, out Cosmos.Kernel.HAL.Vfs.VfsStat)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode, Cosmos.Kernel.HAL.Vfs.VfsStat)
+  nameWithType: IInodeOperations.GetAttr(IVfsInode, out VfsStat)
+  nameWithType.vb: IInodeOperations.GetAttr(IVfsInode, VfsStat)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr*
+  name: GetAttr
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_GetAttr_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.GetAttr
+  nameWithType: IInodeOperations.GetAttr
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name: Lookup(IVfsInode, ReadOnlySpan<char>, out IVfsInode?)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Lookup_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsInode__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name.vb: Lookup(IVfsInode, ReadOnlySpan(Of Char), IVfsInode)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>, out Cosmos.Kernel.HAL.Vfs.IVfsInode?)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.IVfsInode)
+  nameWithType: IInodeOperations.Lookup(IVfsInode, ReadOnlySpan<char>, out IVfsInode?)
+  nameWithType.vb: IInodeOperations.Lookup(IVfsInode, ReadOnlySpan(Of Char), IVfsInode)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup*
+  name: Lookup
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Lookup_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Lookup
+  nameWithType: IInodeOperations.Lookup
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name: Mkdir(IVfsInode, ReadOnlySpan<char>, ModeEnum, out IVfsInode?)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Mkdir_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_HAL_Vfs_IVfsInode__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name.vb: Mkdir(IVfsInode, ReadOnlySpan(Of Char), ModeEnum, IVfsInode)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.ModeEnum, out Cosmos.Kernel.HAL.Vfs.IVfsInode?)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.ModeEnum, Cosmos.Kernel.HAL.Vfs.IVfsInode)
+  nameWithType: IInodeOperations.Mkdir(IVfsInode, ReadOnlySpan<char>, ModeEnum, out IVfsInode?)
+  nameWithType.vb: IInodeOperations.Mkdir(IVfsInode, ReadOnlySpan(Of Char), ModeEnum, IVfsInode)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir*
+  name: Mkdir
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Mkdir_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir
+  nameWithType: IInodeOperations.Mkdir
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name: Rename(IVfsInode, ReadOnlySpan<char>, IVfsInode, ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rename_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name.vb: Rename(IVfsInode, ReadOnlySpan(Of Char), IVfsInode, ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char))
+  nameWithType: IInodeOperations.Rename(IVfsInode, ReadOnlySpan<char>, IVfsInode, ReadOnlySpan<char>)
+  nameWithType.vb: IInodeOperations.Rename(IVfsInode, ReadOnlySpan(Of Char), IVfsInode, ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename*
+  name: Rename
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rename_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename
+  nameWithType: IInodeOperations.Rename
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name: Rmdir(IVfsInode, ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rmdir_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name.vb: Rmdir(IVfsInode, ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char))
+  nameWithType: IInodeOperations.Rmdir(IVfsInode, ReadOnlySpan<char>)
+  nameWithType.vb: IInodeOperations.Rmdir(IVfsInode, ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir*
+  name: Rmdir
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rmdir_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rmdir
+  nameWithType: IInodeOperations.Rmdir
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode,Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name: SetAttr(IVfsInode, SetAttrFlags, in VfsStat)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_SetAttr_Cosmos_Kernel_HAL_Vfs_IVfsInode_Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Cosmos_Kernel_HAL_Vfs_VfsStat__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode,Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name.vb: SetAttr(IVfsInode, SetAttrFlags, VfsStat)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode, Cosmos.Kernel.HAL.Vfs.SetAttrFlags, in Cosmos.Kernel.HAL.Vfs.VfsStat)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr(Cosmos.Kernel.HAL.Vfs.IVfsInode, Cosmos.Kernel.HAL.Vfs.SetAttrFlags, Cosmos.Kernel.HAL.Vfs.VfsStat)
+  nameWithType: IInodeOperations.SetAttr(IVfsInode, SetAttrFlags, in VfsStat)
+  nameWithType.vb: IInodeOperations.SetAttr(IVfsInode, SetAttrFlags, VfsStat)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr*
+  name: SetAttr
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_SetAttr_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.SetAttr
+  nameWithType: IInodeOperations.SetAttr
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name: Symlink(IVfsInode, ReadOnlySpan<char>, ReadOnlySpan<char>, out IVfsInode?)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Symlink_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsInode__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode@)
+  name.vb: Symlink(IVfsInode, ReadOnlySpan(Of Char), ReadOnlySpan(Of Char), IVfsInode)
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, out Cosmos.Kernel.HAL.Vfs.IVfsInode?)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char), System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.IVfsInode)
+  nameWithType: IInodeOperations.Symlink(IVfsInode, ReadOnlySpan<char>, ReadOnlySpan<char>, out IVfsInode?)
+  nameWithType.vb: IInodeOperations.Symlink(IVfsInode, ReadOnlySpan(Of Char), ReadOnlySpan(Of Char), IVfsInode)
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink*
+  name: Symlink
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Symlink_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Symlink
+  nameWithType: IInodeOperations.Symlink
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name: Unlink(IVfsInode, ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Unlink_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})
+  name.vb: Unlink(IVfsInode, ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink(Cosmos.Kernel.HAL.Vfs.IVfsInode, System.ReadOnlySpan(Of Char))
+  nameWithType: IInodeOperations.Unlink(IVfsInode, ReadOnlySpan<char>)
+  nameWithType.vb: IInodeOperations.Unlink(IVfsInode, ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink*
+  name: Unlink
+  href: api/Cosmos.Kernel.HAL.Vfs.IInodeOperations.html#Cosmos_Kernel_HAL_Vfs_IInodeOperations_Unlink_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IInodeOperations.Unlink
+  nameWithType: IInodeOperations.Unlink
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations
+  name: ISuperblockOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations
+  nameWithType: ISuperblockOperations
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  name: Drop(IVfsSuperblock)
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_Drop_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_
+  commentId: M:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  nameWithType: ISuperblockOperations.Drop(IVfsSuperblock)
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop*
+  name: Drop
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_Drop_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Drop
+  nameWithType: ISuperblockOperations.Drop
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock,Cosmos.Kernel.HAL.Vfs.VfsStatFs@)
+  name: StatFs(IVfsSuperblock, out VfsStatFs)
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_StatFs_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_Cosmos_Kernel_HAL_Vfs_VfsStatFs__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock,Cosmos.Kernel.HAL.Vfs.VfsStatFs@)
+  name.vb: StatFs(IVfsSuperblock, VfsStatFs)
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock, out Cosmos.Kernel.HAL.Vfs.VfsStatFs)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock, Cosmos.Kernel.HAL.Vfs.VfsStatFs)
+  nameWithType: ISuperblockOperations.StatFs(IVfsSuperblock, out VfsStatFs)
+  nameWithType.vb: ISuperblockOperations.StatFs(IVfsSuperblock, VfsStatFs)
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs*
+  name: StatFs
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_StatFs_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.StatFs
+  nameWithType: ISuperblockOperations.StatFs
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  name: Sync(IVfsSuperblock)
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_Sync_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_
+  commentId: M:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync(Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  nameWithType: ISuperblockOperations.Sync(IVfsSuperblock)
+- uid: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync*
+  name: Sync
+  href: api/Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.html#Cosmos_Kernel_HAL_Vfs_ISuperblockOperations_Sync_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.ISuperblockOperations.Sync
+  nameWithType: ISuperblockOperations.Sync
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType
+  name: IVfsFilesystemType
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType
+  nameWithType: IVfsFilesystemType
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock@)
+  name: TryMount(ReadOnlySpan<char>, MountFlags, out IVfsSuperblock?)
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html#Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock__
+  commentId: M:Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock@)
+  name.vb: TryMount(ReadOnlySpan(Of Char), MountFlags, IVfsSuperblock)
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.MountFlags, out Cosmos.Kernel.HAL.Vfs.IVfsSuperblock?)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.MountFlags, Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  nameWithType: IVfsFilesystemType.TryMount(ReadOnlySpan<char>, MountFlags, out IVfsSuperblock?)
+  nameWithType.vb: IVfsFilesystemType.TryMount(ReadOnlySpan(Of Char), MountFlags, IVfsSuperblock)
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount*
+  name: TryMount
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html#Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount
+  nameWithType: IVfsFilesystemType.TryMount
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsInode
+  name: IVfsInode
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IVfsInode
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsInode
+  nameWithType: IVfsInode
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations
+  name: FileOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html#Cosmos_Kernel_HAL_Vfs_IVfsInode_FileOperations
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations
+  nameWithType: IVfsInode.FileOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations*
+  name: FileOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html#Cosmos_Kernel_HAL_Vfs_IVfsInode_FileOperations_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsInode.FileOperations
+  nameWithType: IVfsInode.FileOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations
+  name: InodeOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html#Cosmos_Kernel_HAL_Vfs_IVfsInode_InodeOperations
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations
+  nameWithType: IVfsInode.InodeOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations*
+  name: InodeOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsInode.html#Cosmos_Kernel_HAL_Vfs_IVfsInode_InodeOperations_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsInode.InodeOperations
+  nameWithType: IVfsInode.InodeOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile
+  name: IVfsOpenFile
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile
+  nameWithType: IVfsOpenFile
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode
+  name: Inode
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Inode
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode
+  nameWithType: IVfsOpenFile.Inode
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode*
+  name: Inode
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Inode_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Inode
+  nameWithType: IVfsOpenFile.Inode
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations
+  name: Operations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Operations
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations
+  nameWithType: IVfsOpenFile.Operations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations*
+  name: Operations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Operations_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Operations
+  nameWithType: IVfsOpenFile.Operations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position
+  name: Position
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Position
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position
+  nameWithType: IVfsOpenFile.Position
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position*
+  name: Position
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html#Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_Position_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.Position
+  nameWithType: IVfsOpenFile.Position
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock
+  name: IVfsSuperblock
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock
+  nameWithType: IVfsSuperblock
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize
+  name: BlockSize
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_BlockSize
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize
+  nameWithType: IVfsSuperblock.BlockSize
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize*
+  name: BlockSize
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_BlockSize_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.BlockSize
+  nameWithType: IVfsSuperblock.BlockSize
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength
+  name: MaxNameLength
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_MaxNameLength
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength
+  nameWithType: IVfsSuperblock.MaxNameLength
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength*
+  name: MaxNameLength
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_MaxNameLength_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.MaxNameLength
+  nameWithType: IVfsSuperblock.MaxNameLength
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root
+  name: Root
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_Root
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root
+  nameWithType: IVfsSuperblock.Root
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root*
+  name: Root
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_Root_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.Root
+  nameWithType: IVfsSuperblock.Root
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations
+  name: SuperOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_SuperOperations
+  commentId: P:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations
+  nameWithType: IVfsSuperblock.SuperOperations
+- uid: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations*
+  name: SuperOperations
+  href: api/Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html#Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_SuperOperations_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.SuperOperations
+  nameWithType: IVfsSuperblock.SuperOperations
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum
+  name: ModeEnum
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.ModeEnum
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum
+  nameWithType: ModeEnum
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.BlockDevice
+  name: BlockDevice
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_BlockDevice
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.BlockDevice
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.BlockDevice
+  nameWithType: ModeEnum.BlockDevice
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.CharacterDevice
+  name: CharacterDevice
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_CharacterDevice
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.CharacterDevice
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.CharacterDevice
+  nameWithType: ModeEnum.CharacterDevice
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.Directory
+  name: Directory
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_Directory
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.Directory
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.Directory
+  nameWithType: ModeEnum.Directory
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.FileTypeMask
+  name: FileTypeMask
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_FileTypeMask
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.FileTypeMask
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.FileTypeMask
+  nameWithType: ModeEnum.FileTypeMask
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupExecute
+  name: GroupExecute
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_GroupExecute
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupExecute
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupExecute
+  nameWithType: ModeEnum.GroupExecute
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupRead
+  name: GroupRead
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_GroupRead
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupRead
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupRead
+  nameWithType: ModeEnum.GroupRead
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupWrite
+  name: GroupWrite
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_GroupWrite
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupWrite
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.GroupWrite
+  nameWithType: ModeEnum.GroupWrite
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.NamedPipe
+  name: NamedPipe
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_NamedPipe
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.NamedPipe
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.NamedPipe
+  nameWithType: ModeEnum.NamedPipe
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherExecute
+  name: OtherExecute
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OtherExecute
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherExecute
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherExecute
+  nameWithType: ModeEnum.OtherExecute
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherRead
+  name: OtherRead
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OtherRead
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherRead
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherRead
+  nameWithType: ModeEnum.OtherRead
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherWrite
+  name: OtherWrite
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OtherWrite
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherWrite
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OtherWrite
+  nameWithType: ModeEnum.OtherWrite
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerExecute
+  name: OwnerExecute
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OwnerExecute
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerExecute
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerExecute
+  nameWithType: ModeEnum.OwnerExecute
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerRead
+  name: OwnerRead
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OwnerRead
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerRead
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerRead
+  nameWithType: ModeEnum.OwnerRead
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerWrite
+  name: OwnerWrite
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_OwnerWrite
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerWrite
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.OwnerWrite
+  nameWithType: ModeEnum.OwnerWrite
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.PermissionMask
+  name: PermissionMask
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_PermissionMask
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.PermissionMask
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.PermissionMask
+  nameWithType: ModeEnum.PermissionMask
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.RegularFile
+  name: RegularFile
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_RegularFile
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.RegularFile
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.RegularFile
+  nameWithType: ModeEnum.RegularFile
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.SetGroupId
+  name: SetGroupId
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_SetGroupId
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.SetGroupId
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.SetGroupId
+  nameWithType: ModeEnum.SetGroupId
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.SetUserId
+  name: SetUserId
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_SetUserId
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.SetUserId
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.SetUserId
+  nameWithType: ModeEnum.SetUserId
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.Socket
+  name: Socket
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_Socket
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.Socket
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.Socket
+  nameWithType: ModeEnum.Socket
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.Sticky
+  name: Sticky
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_Sticky
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.Sticky
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.Sticky
+  nameWithType: ModeEnum.Sticky
+- uid: Cosmos.Kernel.HAL.Vfs.ModeEnum.SymbolicLink
+  name: SymbolicLink
+  href: api/Cosmos.Kernel.HAL.Vfs.ModeEnum.html#Cosmos_Kernel_HAL_Vfs_ModeEnum_SymbolicLink
+  commentId: F:Cosmos.Kernel.HAL.Vfs.ModeEnum.SymbolicLink
+  fullName: Cosmos.Kernel.HAL.Vfs.ModeEnum.SymbolicLink
+  nameWithType: ModeEnum.SymbolicLink
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags
+  name: MountFlags
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.MountFlags
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags
+  nameWithType: MountFlags
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags.NoDev
+  name: NoDev
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html#Cosmos_Kernel_HAL_Vfs_MountFlags_NoDev
+  commentId: F:Cosmos.Kernel.HAL.Vfs.MountFlags.NoDev
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags.NoDev
+  nameWithType: MountFlags.NoDev
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags.NoExec
+  name: NoExec
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html#Cosmos_Kernel_HAL_Vfs_MountFlags_NoExec
+  commentId: F:Cosmos.Kernel.HAL.Vfs.MountFlags.NoExec
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags.NoExec
+  nameWithType: MountFlags.NoExec
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags.NoSuid
+  name: NoSuid
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html#Cosmos_Kernel_HAL_Vfs_MountFlags_NoSuid
+  commentId: F:Cosmos.Kernel.HAL.Vfs.MountFlags.NoSuid
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags.NoSuid
+  nameWithType: MountFlags.NoSuid
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags.None
+  name: None
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html#Cosmos_Kernel_HAL_Vfs_MountFlags_None
+  commentId: F:Cosmos.Kernel.HAL.Vfs.MountFlags.None
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags.None
+  nameWithType: MountFlags.None
+- uid: Cosmos.Kernel.HAL.Vfs.MountFlags.ReadOnly
+  name: ReadOnly
+  href: api/Cosmos.Kernel.HAL.Vfs.MountFlags.html#Cosmos_Kernel_HAL_Vfs_MountFlags_ReadOnly
+  commentId: F:Cosmos.Kernel.HAL.Vfs.MountFlags.ReadOnly
+  fullName: Cosmos.Kernel.HAL.Vfs.MountFlags.ReadOnly
+  nameWithType: MountFlags.ReadOnly
+- uid: Cosmos.Kernel.HAL.Vfs.SeekWhence
+  name: SeekWhence
+  href: api/Cosmos.Kernel.HAL.Vfs.SeekWhence.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.SeekWhence
+  fullName: Cosmos.Kernel.HAL.Vfs.SeekWhence
+  nameWithType: SeekWhence
+- uid: Cosmos.Kernel.HAL.Vfs.SeekWhence.Cur
+  name: Cur
+  href: api/Cosmos.Kernel.HAL.Vfs.SeekWhence.html#Cosmos_Kernel_HAL_Vfs_SeekWhence_Cur
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SeekWhence.Cur
+  fullName: Cosmos.Kernel.HAL.Vfs.SeekWhence.Cur
+  nameWithType: SeekWhence.Cur
+- uid: Cosmos.Kernel.HAL.Vfs.SeekWhence.End
+  name: End
+  href: api/Cosmos.Kernel.HAL.Vfs.SeekWhence.html#Cosmos_Kernel_HAL_Vfs_SeekWhence_End
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SeekWhence.End
+  fullName: Cosmos.Kernel.HAL.Vfs.SeekWhence.End
+  nameWithType: SeekWhence.End
+- uid: Cosmos.Kernel.HAL.Vfs.SeekWhence.Set
+  name: Set
+  href: api/Cosmos.Kernel.HAL.Vfs.SeekWhence.html#Cosmos_Kernel_HAL_Vfs_SeekWhence_Set
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SeekWhence.Set
+  fullName: Cosmos.Kernel.HAL.Vfs.SeekWhence.Set
+  nameWithType: SeekWhence.Set
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags
+  name: SetAttrFlags
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.SetAttrFlags
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags
+  nameWithType: SetAttrFlags
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Atime
+  name: Atime
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Atime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Atime
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Atime
+  nameWithType: SetAttrFlags.Atime
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Ctime
+  name: Ctime
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Ctime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Ctime
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Ctime
+  nameWithType: SetAttrFlags.Ctime
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Gid
+  name: Gid
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Gid
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Gid
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Gid
+  nameWithType: SetAttrFlags.Gid
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mode
+  name: Mode
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Mode
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mode
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mode
+  nameWithType: SetAttrFlags.Mode
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mtime
+  name: Mtime
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Mtime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mtime
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Mtime
+  nameWithType: SetAttrFlags.Mtime
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.None
+  name: None
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_None
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.None
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.None
+  nameWithType: SetAttrFlags.None
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Size
+  name: Size
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Size
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Size
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Size
+  nameWithType: SetAttrFlags.Size
+- uid: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Uid
+  name: Uid
+  href: api/Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Uid
+  commentId: F:Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Uid
+  fullName: Cosmos.Kernel.HAL.Vfs.SetAttrFlags.Uid
+  nameWithType: SetAttrFlags.Uid
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat
+  name: VfsStat
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.VfsStat
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat
+  nameWithType: VfsStat
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Atime
+  name: Atime
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Atime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Atime
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Atime
+  nameWithType: VfsStat.Atime
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.BlkSize
+  name: BlkSize
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_BlkSize
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.BlkSize
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.BlkSize
+  nameWithType: VfsStat.BlkSize
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Blocks
+  name: Blocks
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Blocks
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Blocks
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Blocks
+  nameWithType: VfsStat.Blocks
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Ctime
+  name: Ctime
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Ctime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Ctime
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Ctime
+  nameWithType: VfsStat.Ctime
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Gid
+  name: Gid
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Gid
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Gid
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Gid
+  nameWithType: VfsStat.Gid
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Ino
+  name: Ino
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Ino
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Ino
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Ino
+  nameWithType: VfsStat.Ino
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Mode
+  name: Mode
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Mode
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Mode
+  nameWithType: VfsStat.Mode
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Mtime
+  name: Mtime
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mtime
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Mtime
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Mtime
+  nameWithType: VfsStat.Mtime
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.NLink
+  name: NLink
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_NLink
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.NLink
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.NLink
+  nameWithType: VfsStat.NLink
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Rdev
+  name: Rdev
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Rdev
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Rdev
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Rdev
+  nameWithType: VfsStat.Rdev
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Size
+  name: Size
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Size
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Size
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Size
+  nameWithType: VfsStat.Size
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStat.Uid
+  name: Uid
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Uid
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStat.Uid
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStat.Uid
+  nameWithType: VfsStat.Uid
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs
+  name: VfsStatFs
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.VfsStatFs
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs
+  nameWithType: VfsStatFs
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bavail
+  name: Bavail
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Bavail
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bavail
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bavail
+  nameWithType: VfsStatFs.Bavail
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bfree
+  name: Bfree
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Bfree
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bfree
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Bfree
+  nameWithType: VfsStatFs.Bfree
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.BlockSize
+  name: BlockSize
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_BlockSize
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.BlockSize
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.BlockSize
+  nameWithType: VfsStatFs.BlockSize
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Blocks
+  name: Blocks
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Blocks
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Blocks
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Blocks
+  nameWithType: VfsStatFs.Blocks
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Ffree
+  name: Ffree
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Ffree
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Ffree
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Ffree
+  nameWithType: VfsStatFs.Ffree
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Files
+  name: Files
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Files
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Files
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Files
+  nameWithType: VfsStatFs.Files
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Frsize
+  name: Frsize
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Frsize
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Frsize
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Frsize
+  nameWithType: VfsStatFs.Frsize
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.NameMax
+  name: NameMax
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_NameMax
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.NameMax
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.NameMax
+  nameWithType: VfsStatFs.NameMax
+- uid: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Type
+  name: Type
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Type
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsStatFs.Type
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsStatFs.Type
+  nameWithType: VfsStatFs.Type
+- uid: Cosmos.Kernel.HAL.Vfs.VfsTimespec
+  name: VfsTimespec
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html
+  commentId: T:Cosmos.Kernel.HAL.Vfs.VfsTimespec
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsTimespec
+  nameWithType: VfsTimespec
+- uid: Cosmos.Kernel.HAL.Vfs.VfsTimespec.#ctor(System.Int64,System.Int64)
+  name: VfsTimespec(long, long)
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html#Cosmos_Kernel_HAL_Vfs_VfsTimespec__ctor_System_Int64_System_Int64_
+  commentId: M:Cosmos.Kernel.HAL.Vfs.VfsTimespec.#ctor(System.Int64,System.Int64)
+  name.vb: New(Long, Long)
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsTimespec.VfsTimespec(long, long)
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.VfsTimespec.New(Long, Long)
+  nameWithType: VfsTimespec.VfsTimespec(long, long)
+  nameWithType.vb: VfsTimespec.New(Long, Long)
+- uid: Cosmos.Kernel.HAL.Vfs.VfsTimespec.#ctor*
+  name: VfsTimespec
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html#Cosmos_Kernel_HAL_Vfs_VfsTimespec__ctor_
+  commentId: Overload:Cosmos.Kernel.HAL.Vfs.VfsTimespec.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsTimespec.VfsTimespec
+  fullName.vb: Cosmos.Kernel.HAL.Vfs.VfsTimespec.New
+  nameWithType: VfsTimespec.VfsTimespec
+  nameWithType.vb: VfsTimespec.New
+- uid: Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvNsec
+  name: TvNsec
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html#Cosmos_Kernel_HAL_Vfs_VfsTimespec_TvNsec
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvNsec
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvNsec
+  nameWithType: VfsTimespec.TvNsec
+- uid: Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvSec
+  name: TvSec
+  href: api/Cosmos.Kernel.HAL.Vfs.VfsTimespec.html#Cosmos_Kernel_HAL_Vfs_VfsTimespec_TvSec
+  commentId: F:Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvSec
+  fullName: Cosmos.Kernel.HAL.Vfs.VfsTimespec.TvSec
+  nameWithType: VfsTimespec.TvSec
 - uid: Cosmos.Kernel.HAL.X64
   name: Cosmos.Kernel.HAL.X64
   href: api/Cosmos.Kernel.HAL.X64.html
@@ -23043,6 +23905,437 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Timer.TimerManager.Wait
   nameWithType: TimerManager.Wait
+- uid: Cosmos.Kernel.System.Vfs
+  name: Cosmos.Kernel.System.Vfs
+  href: api/Cosmos.Kernel.System.Vfs.html
+  commentId: N:Cosmos.Kernel.System.Vfs
+  fullName: Cosmos.Kernel.System.Vfs
+  nameWithType: Cosmos.Kernel.System.Vfs
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle
+  name: IVfsDirectoryHandle
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html
+  commentId: T:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle
+  nameWithType: IVfsDirectoryHandle
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle@)
+  name: TryCreateDirectory(ReadOnlySpan<char>, ModeEnum, out IVfsDirectoryHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateDirectory_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle@)
+  name.vb: TryCreateDirectory(ReadOnlySpan(Of Char), ModeEnum, IVfsDirectoryHandle)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.ModeEnum, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.ModeEnum, Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle)
+  nameWithType: IVfsDirectoryHandle.TryCreateDirectory(ReadOnlySpan<char>, ModeEnum, out IVfsDirectoryHandle?)
+  nameWithType.vb: IVfsDirectoryHandle.TryCreateDirectory(ReadOnlySpan(Of Char), ModeEnum, IVfsDirectoryHandle)
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory*
+  name: TryCreateDirectory
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory
+  nameWithType: IVfsDirectoryHandle.TryCreateDirectory
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name: TryCreateFile(ReadOnlySpan<char>, ModeEnum, out IVfsNodeHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateFile_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_System_Vfs_IVfsNodeHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name.vb: TryCreateFile(ReadOnlySpan(Of Char), ModeEnum, IVfsNodeHandle)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.ModeEnum, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.ModeEnum, Cosmos.Kernel.System.Vfs.IVfsNodeHandle)
+  nameWithType: IVfsDirectoryHandle.TryCreateFile(ReadOnlySpan<char>, ModeEnum, out IVfsNodeHandle?)
+  nameWithType.vb: IVfsDirectoryHandle.TryCreateFile(ReadOnlySpan(Of Char), ModeEnum, IVfsNodeHandle)
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile*
+  name: TryCreateFile
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateFile_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile
+  nameWithType: IVfsDirectoryHandle.TryCreateFile
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name: TryLookup(ReadOnlySpan<char>, out IVfsNodeHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryLookup_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsNodeHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name.vb: TryLookup(ReadOnlySpan(Of Char), IVfsNodeHandle)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan<char>, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan(Of Char), Cosmos.Kernel.System.Vfs.IVfsNodeHandle)
+  nameWithType: IVfsDirectoryHandle.TryLookup(ReadOnlySpan<char>, out IVfsNodeHandle?)
+  nameWithType.vb: IVfsDirectoryHandle.TryLookup(ReadOnlySpan(Of Char), IVfsNodeHandle)
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup*
+  name: TryLookup
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryLookup_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup
+  nameWithType: IVfsDirectoryHandle.TryLookup
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan{System.Char})
+  name: TryRemoveDirectory(ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRemoveDirectory_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan{System.Char})
+  name.vb: TryRemoveDirectory(ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan(Of Char))
+  nameWithType: IVfsDirectoryHandle.TryRemoveDirectory(ReadOnlySpan<char>)
+  nameWithType.vb: IVfsDirectoryHandle.TryRemoveDirectory(ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory*
+  name: TryRemoveDirectory
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRemoveDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory
+  nameWithType: IVfsDirectoryHandle.TryRemoveDirectory
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle,System.ReadOnlySpan{System.Char})
+  name: TryRename(ReadOnlySpan<char>, IVfsDirectoryHandle, ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRename_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle,System.ReadOnlySpan{System.Char})
+  name.vb: TryRename(ReadOnlySpan(Of Char), IVfsDirectoryHandle, ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename(System.ReadOnlySpan<char>, Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle, System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename(System.ReadOnlySpan(Of Char), Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle, System.ReadOnlySpan(Of Char))
+  nameWithType: IVfsDirectoryHandle.TryRename(ReadOnlySpan<char>, IVfsDirectoryHandle, ReadOnlySpan<char>)
+  nameWithType.vb: IVfsDirectoryHandle.TryRename(ReadOnlySpan(Of Char), IVfsDirectoryHandle, ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename*
+  name: TryRename
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRename_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename
+  nameWithType: IVfsDirectoryHandle.TryRename
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name: TrySetAttr(SetAttrFlags, in VfsStat)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySetAttr_Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Cosmos_Kernel_HAL_Vfs_VfsStat__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name.vb: TrySetAttr(SetAttrFlags, VfsStat)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags, in Cosmos.Kernel.HAL.Vfs.VfsStat)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags, Cosmos.Kernel.HAL.Vfs.VfsStat)
+  nameWithType: IVfsDirectoryHandle.TrySetAttr(SetAttrFlags, in VfsStat)
+  nameWithType.vb: IVfsDirectoryHandle.TrySetAttr(SetAttrFlags, VfsStat)
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr*
+  name: TrySetAttr
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySetAttr_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr
+  nameWithType: IVfsDirectoryHandle.TrySetAttr
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name: TrySymlink(ReadOnlySpan<char>, ReadOnlySpan<char>, out IVfsNodeHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySymlink_System_ReadOnlySpan_System_Char__System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsNodeHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)
+  name.vb: TrySymlink(ReadOnlySpan(Of Char), ReadOnlySpan(Of Char), IVfsNodeHandle)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan(Of Char), System.ReadOnlySpan(Of Char), Cosmos.Kernel.System.Vfs.IVfsNodeHandle)
+  nameWithType: IVfsDirectoryHandle.TrySymlink(ReadOnlySpan<char>, ReadOnlySpan<char>, out IVfsNodeHandle?)
+  nameWithType.vb: IVfsDirectoryHandle.TrySymlink(ReadOnlySpan(Of Char), ReadOnlySpan(Of Char), IVfsNodeHandle)
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink*
+  name: TrySymlink
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySymlink_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink
+  nameWithType: IVfsDirectoryHandle.TrySymlink
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan{System.Char})
+  name: TryUnlink(ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryUnlink_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan{System.Char})
+  name.vb: TryUnlink(ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan(Of Char))
+  nameWithType: IVfsDirectoryHandle.TryUnlink(ReadOnlySpan<char>)
+  nameWithType.vb: IVfsDirectoryHandle.TryUnlink(ReadOnlySpan(Of Char))
+- uid: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink*
+  name: TryUnlink
+  href: api/Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html#Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryUnlink_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink
+  nameWithType: IVfsDirectoryHandle.TryUnlink
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle
+  name: IVfsFileHandle
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html
+  commentId: T:Cosmos.Kernel.System.Vfs.IVfsFileHandle
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle
+  nameWithType: IVfsFileHandle
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush
+  name: Flush()
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Flush
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush()
+  nameWithType: IVfsFileHandle.Flush()
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush*
+  name: Flush
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Flush_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush
+  nameWithType: IVfsFileHandle.Flush
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position
+  name: Position
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Position
+  commentId: P:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position
+  nameWithType: IVfsFileHandle.Position
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position*
+  name: Position
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Position_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position
+  nameWithType: IVfsFileHandle.Position
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span{System.Byte})
+  name: Read(Span<byte>)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_System_Span_System_Byte__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span{System.Byte})
+  name.vb: Read(Span(Of Byte))
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span<byte>)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span(Of Byte))
+  nameWithType: IVfsFileHandle.Read(Span<byte>)
+  nameWithType.vb: IVfsFileHandle.Read(Span(Of Byte))
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read*
+  name: Read
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read
+  nameWithType: IVfsFileHandle.Read
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek(System.Int64,Cosmos.Kernel.HAL.Vfs.SeekWhence)
+  name: TrySeek(long, SeekWhence)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_TrySeek_System_Int64_Cosmos_Kernel_HAL_Vfs_SeekWhence_
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek(System.Int64,Cosmos.Kernel.HAL.Vfs.SeekWhence)
+  name.vb: TrySeek(Long, SeekWhence)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek(long, Cosmos.Kernel.HAL.Vfs.SeekWhence)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek(Long, Cosmos.Kernel.HAL.Vfs.SeekWhence)
+  nameWithType: IVfsFileHandle.TrySeek(long, SeekWhence)
+  nameWithType.vb: IVfsFileHandle.TrySeek(Long, SeekWhence)
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek*
+  name: TrySeek
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_TrySeek_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek
+  nameWithType: IVfsFileHandle.TrySeek
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write(System.ReadOnlySpan{System.Byte})
+  name: Write(ReadOnlySpan<byte>)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Write_System_ReadOnlySpan_System_Byte__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write(System.ReadOnlySpan{System.Byte})
+  name.vb: Write(ReadOnlySpan(Of Byte))
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write(System.ReadOnlySpan<byte>)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write(System.ReadOnlySpan(Of Byte))
+  nameWithType: IVfsFileHandle.Write(ReadOnlySpan<byte>)
+  nameWithType.vb: IVfsFileHandle.Write(ReadOnlySpan(Of Byte))
+- uid: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write*
+  name: Write
+  href: api/Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Write_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write
+  nameWithType: IVfsFileHandle.Write
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle
+  name: IVfsNodeHandle
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html
+  commentId: T:Cosmos.Kernel.System.Vfs.IVfsNodeHandle
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle
+  nameWithType: IVfsNodeHandle
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode
+  name: Inode
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Inode
+  commentId: P:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode
+  nameWithType: IVfsNodeHandle.Inode
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode*
+  name: Inode
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Inode_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode
+  nameWithType: IVfsNodeHandle.Inode
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name
+  name: Name
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Name
+  commentId: P:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name
+  nameWithType: IVfsNodeHandle.Name
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name*
+  name: Name
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Name_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name
+  nameWithType: IVfsNodeHandle.Name
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat(Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name: TryStat(out VfsStat)
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_TryStat_Cosmos_Kernel_HAL_Vfs_VfsStat__
+  commentId: M:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat(Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name.vb: TryStat(VfsStat)
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat(out Cosmos.Kernel.HAL.Vfs.VfsStat)
+  fullName.vb: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat(Cosmos.Kernel.HAL.Vfs.VfsStat)
+  nameWithType: IVfsNodeHandle.TryStat(out VfsStat)
+  nameWithType.vb: IVfsNodeHandle.TryStat(VfsStat)
+- uid: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat*
+  name: TryStat
+  href: api/Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_TryStat_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat
+  nameWithType: IVfsNodeHandle.TryStat
+- uid: Cosmos.Kernel.System.Vfs.VfsManager
+  name: VfsManager
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html
+  commentId: T:Cosmos.Kernel.System.Vfs.VfsManager
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager
+  nameWithType: VfsManager
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType)
+  name: RegisterFilesystem(string, IVfsFilesystemType)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_RegisterFilesystem_System_String_Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType)
+  name.vb: RegisterFilesystem(String, IVfsFilesystemType)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(string, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(String, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType)
+  nameWithType: VfsManager.RegisterFilesystem(string, IVfsFilesystemType)
+  nameWithType.vb: VfsManager.RegisterFilesystem(String, IVfsFilesystemType)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem*
+  name: RegisterFilesystem
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_RegisterFilesystem_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem
+  nameWithType: VfsManager.RegisterFilesystem
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount(System.String,Cosmos.Kernel.System.Vfs.VfsManager.VfsMount@)
+  name: TryGetMount(string, out VfsMount?)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryGetMount_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount(System.String,Cosmos.Kernel.System.Vfs.VfsManager.VfsMount@)
+  name.vb: TryGetMount(String, VfsMount)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount(string, out Cosmos.Kernel.System.Vfs.VfsManager.VfsMount?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount(String, Cosmos.Kernel.System.Vfs.VfsManager.VfsMount)
+  nameWithType: VfsManager.TryGetMount(string, out VfsManager.VfsMount?)
+  nameWithType.vb: VfsManager.TryGetMount(String, VfsManager.VfsMount)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount*
+  name: TryGetMount
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryGetMount_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount
+  nameWithType: VfsManager.TryGetMount
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryMount(System.String,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,System.String,Cosmos.Kernel.System.Vfs.VfsManager.VfsMount@)
+  name: TryMount(string, ReadOnlySpan<char>, MountFlags, string, out VfsMount?)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryMount(System.String,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,System.String,Cosmos.Kernel.System.Vfs.VfsManager.VfsMount@)
+  name.vb: TryMount(String, ReadOnlySpan(Of Char), MountFlags, String, VfsMount)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryMount(string, System.ReadOnlySpan<char>, Cosmos.Kernel.HAL.Vfs.MountFlags, string, out Cosmos.Kernel.System.Vfs.VfsManager.VfsMount?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryMount(String, System.ReadOnlySpan(Of Char), Cosmos.Kernel.HAL.Vfs.MountFlags, String, Cosmos.Kernel.System.Vfs.VfsManager.VfsMount)
+  nameWithType: VfsManager.TryMount(string, ReadOnlySpan<char>, MountFlags, string, out VfsManager.VfsMount?)
+  nameWithType.vb: VfsManager.TryMount(String, ReadOnlySpan(Of Char), MountFlags, String, VfsManager.VfsMount)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryMount*
+  name: TryMount
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryMount_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryMount
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryMount
+  nameWithType: VfsManager.TryMount
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory(System.String,Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle@)
+  name: TryOpenDirectory(string, out IVfsDirectoryHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryOpenDirectory_System_String_Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory(System.String,Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle@)
+  name.vb: TryOpenDirectory(String, IVfsDirectoryHandle)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory(string, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory(String, Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle)
+  nameWithType: VfsManager.TryOpenDirectory(string, out IVfsDirectoryHandle?)
+  nameWithType.vb: VfsManager.TryOpenDirectory(String, IVfsDirectoryHandle)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory*
+  name: TryOpenDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryOpenDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory
+  nameWithType: VfsManager.TryOpenDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile(System.String,Cosmos.Kernel.System.Vfs.IVfsFileHandle@)
+  name: TryOpenFile(string, out IVfsFileHandle?)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryOpenFile_System_String_Cosmos_Kernel_System_Vfs_IVfsFileHandle__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile(System.String,Cosmos.Kernel.System.Vfs.IVfsFileHandle@)
+  name.vb: TryOpenFile(String, IVfsFileHandle)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile(string, out Cosmos.Kernel.System.Vfs.IVfsFileHandle?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile(String, Cosmos.Kernel.System.Vfs.IVfsFileHandle)
+  nameWithType: VfsManager.TryOpenFile(string, out IVfsFileHandle?)
+  nameWithType.vb: VfsManager.TryOpenFile(String, IVfsFileHandle)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile*
+  name: TryOpenFile
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryOpenFile_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile
+  nameWithType: VfsManager.TryOpenFile
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount
+  name: VfsManager.VfsMount
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html
+  commentId: T:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount
+  nameWithType: VfsManager.VfsMount
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor(System.String,System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  name: VfsMount(string, string, IVfsFilesystemType, IVfsSuperblock)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_System_String_System_String_Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor(System.String,System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  name.vb: New(String, String, IVfsFilesystemType, IVfsSuperblock)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.VfsMount(string, string, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType, Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.New(String, String, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType, Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)
+  nameWithType: VfsManager.VfsMount.VfsMount(string, string, IVfsFilesystemType, IVfsSuperblock)
+  nameWithType.vb: VfsManager.VfsMount.New(String, String, IVfsFilesystemType, IVfsSuperblock)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor*
+  name: VfsMount
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.VfsMount
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.New
+  nameWithType: VfsManager.VfsMount.VfsMount
+  nameWithType.vb: VfsManager.VfsMount.New
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType
+  name: FilesystemType
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_FilesystemType
+  commentId: P:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType
+  nameWithType: VfsManager.VfsMount.FilesystemType
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType*
+  name: FilesystemType
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_FilesystemType_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType
+  nameWithType: VfsManager.VfsMount.FilesystemType
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint
+  name: MountPoint
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_MountPoint
+  commentId: P:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint
+  nameWithType: VfsManager.VfsMount.MountPoint
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint*
+  name: MountPoint
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_MountPoint_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint
+  nameWithType: VfsManager.VfsMount.MountPoint
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name
+  name: Name
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Name
+  commentId: P:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name
+  nameWithType: VfsManager.VfsMount.Name
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name*
+  name: Name
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Name_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name
+  nameWithType: VfsManager.VfsMount.Name
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock
+  name: Superblock
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Superblock
+  commentId: P:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock
+  nameWithType: VfsManager.VfsMount.Superblock
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock*
+  name: Superblock
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Superblock_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock
+  nameWithType: VfsManager.VfsMount.Superblock
 - uid: Internal.Runtime
   name: Internal.Runtime
   href: api/Internal.Runtime.html
