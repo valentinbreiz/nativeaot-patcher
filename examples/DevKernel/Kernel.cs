@@ -1567,9 +1567,8 @@ public class Kernel : Sys.Kernel
         }
 
         // FAT family: accept fat / fat12 / fat16 / fat32 — all dispatched to
-        // the "fat" driver with a FatFormatOptions hint. Unknown fs types
-        // fall through to TryFormat which returns false.
-        string driverName = fsType;
+        // the "fat" driver with a FatFormatOptions hint.
+        string driverName;
         IVfsFormatOptions? options = null;
         switch (fsType)
         {
@@ -1588,11 +1587,21 @@ public class Kernel : Sys.Kernel
                 driverName = "fat";
                 options = new FatFormatOptions { Type = FatType.Fat32 };
                 break;
+            default:
+                PrintError("Unknown filesystem: " + fsType + ". Supported: fat, fat12, fat16, fat32.");
+                return;
         }
 
         if (!VfsManager.TryFormat(driverName, partNum.ToString(), options))
         {
-            PrintError("Format failed. Unknown or unsupported filesystem: " + fsType);
+            // Driver is registered (fat is wired at boot), so a false return
+            // means the formatter rejected the request — almost always because
+            // the partition is too small for the requested variant. FAT32
+            // needs > 65525 clusters; FAT16 needs > 4084.
+            Partition target = partitions[partNum];
+            ulong sizeMiB = target.BlockCount * target.BlockSize / 1024 / 1024;
+            PrintError("Format failed: partition is likely too small for " + fsType.ToUpper() +
+                " (" + sizeMiB + " MiB). Try 'format " + partNum + " fat' to auto-pick a variant.");
             return;
         }
 
