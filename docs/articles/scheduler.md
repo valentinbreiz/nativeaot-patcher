@@ -2,143 +2,71 @@
 
 The scheduler is a **preemptive, pluggable, virtual-time** scheduler. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.
 
-The scheduler is partitioned across three layers: a generic **SchedulerManager** that owns lifecycle and the registry, an `IScheduler` algorithm interface, and the default **StrideScheduler** implementation. Architecture-specific assembly (`Interrupts.s` on x64, `ContextSwitch.s` on ARM64) handles the actual register save/restore.
-
-| File | Responsibility |
-|------|----------------|
-| [`IScheduler.cs`](../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs) | Pluggable scheduling algorithm interface (lifecycle hooks, `PickNext`, `OnTick`, load balancing) |
-| [`SchedulerManager.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs) | Central manager: thread registry, lifecycle dispatch, timer-tick handler, GC bridge |
-| [`SchedulerExtensible.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs) | Base class providing a `SchedulerData` slot on `Thread` and `PerCpuState` |
-| [`Thread.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs) | Thread Control Block (TCB): identity, state, stack layout, TLAB |
-| [`ThreadState.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs) | `ThreadState` enum and `ThreadFlags` |
-| [`ThreadContext.X64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) | x64 saved register layout (XMM, GPRs, IRQ frame) |
-| [`ThreadContext.ARM64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs) | ARM64 saved register layout (NEON, X0–X30, SP/ELR/SPSR) |
-| [`ContextSwitch.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs) | High-level switch dispatcher used outside interrupt context |
-| [`PerCpuState.cs`](../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs) | Per-CPU state (CurrentThread, IdleThread, lock, scheduler data) |
-| [`SpinLock.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs) | Non-blocking CAS spinlock |
-| [`Mutex.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs) | Recursive blocking mutex with wait queue |
-| [`ConditionVariable.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs) | Signal / Wait / WaitTimeout with mutex hand-off |
-| [`Monitor.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs) | Composite Mutex + ConditionVariable (Java-style monitor) |
-| [`Stride/StrideScheduler.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs) | Default `IScheduler` — virtual-time stride algorithm |
-| [`Stride/StrideThreadData.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs) | Per-thread stride bookkeeping |
-| [`Stride/StrideCpuData.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs) | Per-CPU stride bookkeeping (run queue) |
-| [`Bridge/Import/ContextSwitchNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) | Native imports: `_native_set_context_switch_sp`, `_native_set_context_switch_new_thread`, `_native_get_sp` |
-| [`Bridge/Export/ThreadNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs) | `EntryPointStub` — stable native entry trampoline used as initial RIP/PC |
-| [`Runtime/Thread.cs`](../../src/Cosmos.Kernel.Core/Runtime/Thread.cs) | Runtime exports: `RhYield`, `RhGetCurrentThreadStackBounds`, `RhGetThreadStaticStorage` |
-
----
-
-### Thread struct
-
-A [`Thread`](../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs) is the kernel's Thread Control Block. It is a managed class (inherits `SchedulerExtensible`), so it lives on the GC heap and is itself reachable through `SchedulerManager._allThreads`.
-
-| Field | Purpose |
-|-------|---------|
-| `Id` | Globally unique thread ID, allocated by `SchedulerManager.AllocateThreadId` |
-| `CpuId` | The CPU this thread is currently assigned to |
-| `State` | Current `ThreadState` (Created, Ready, Running, Blocked, Sleeping, Dead) |
-| `Flags` | `ThreadFlags` bitfield (KernelThread, IdleThread, Pinned, Managed) |
-| `StackPointer` | Saved RSP/SP — points to the saved `ThreadContext` at the bottom of the stack |
-| `StackBase` / `StackSize` | Bounds of the stack memory allocation |
-| `InstructionPointer` | Initial entry point recorded at creation |
-| `CreatedAt` / `LastScheduledAt` / `TotalRuntime` | Timing accounting; `TotalRuntime` is summed by `OnTick` for `GetBusyCpuTimeNs` |
-| `WakeupTime` | Absolute timestamp at which a `Sleeping` thread should be woken |
-| `AllocContext` | Thread-local bump allocator (TLAB) for the GC |
-| `SchedulerData` | Inherited from `SchedulerExtensible`; the active scheduler stores its own struct here (e.g. `StrideThreadData`) |
-
-Two constants on the type drive the rest of the layout:
-
-- `Thread.DefaultStackSize = 64 * 1024` — 64 KB stack per thread.
-- `Thread.MaxThreadCount = 256` — maximum number of slots in the global registry.
-
-### ThreadState / ThreadFlags
-
-`ThreadState` is a 6-state machine (`Created → Ready ⇄ Running → {Blocked, Sleeping} → Ready → … → Dead`). `ThreadFlags` carries semantic flags that the scheduler honors:
-
-| Flag | Effect |
-|------|--------|
-| `KernelThread` | Marks a thread as kernel-only (currently informational) |
-| `IdleThread` | Excluded from `GetBusyCpuTimeNs` and from migration |
-| `Pinned` | Cannot migrate to a different CPU (`SelectCpu` and `Balance` skip it) |
-| `Managed` | Entry parameter is a `GCHandle<System.Threading.Thread>`; `InvokeCurrentThreadStart` calls `StartThread` rather than a raw `Action` |
-
-### ThreadContext (x64)
-
-The x64 [`ThreadContext`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) mirrors exactly the layout the IRQ stub builds on the stack when an interrupt fires. `Pack = 1` is mandatory — the assembly indexes by raw byte offsets.
-
-| Field | Size | Purpose |
-|-------|------|---------|
-| `Xmm[256]` | 256 B | XMM/SSE state, saved first so RSP ends 16-byte aligned |
-| `R15`…`Rax` | 15 × 8 B | GPRs in reverse push order |
-| `Interrupt` | 8 B | IRQ vector number |
-| `CpuFlags` | 8 B | RFLAGS at the moment of the interrupt |
-| `Cr2` | 8 B | Page-fault address (only valid for #PF) |
-| `TempRcx` | 8 B | Temp slot — reused as the "is-new-thread" flag during context restore |
-| `Rip` / `Cs` / `Rflags` / `Rsp` / `Ss` | 5 × 8 B | The standard `iretq` interrupt frame |
-| `Size` | const | `256 + 15·8 + 3·8 + 8 + 5·8 = 432` bytes |
-
-`Initialize()` zeroes everything, sets `Rdi = arg` (System V first argument), `Rip = entryPoint`, `Cs = codeSegment`, `Rflags = 0x202` (`IF=1`, bit 1 reserved), and `Rsp = (stackTop & ~0xF) - 8` so the new thread's first `call` sees a 16-byte-aligned RSP.
-
-### ThreadContext (ARM64)
-
-The ARM64 [`ThreadContext`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs) is parallel: `Neon[512]` (Q0–Q31), then `X0`–`X30`, then `Sp`, `Elr`, `Spsr`, then exception info. `Size = 816`. `Initialize()` sets `X0 = arg` (AArch64 first argument), `Elr = entryPoint`, and `Spsr = 0x3C5` (EL1h, all interrupt masks clear). The IRQ context starts at offset `IrqContextOffset = 512`.
-
-### PerCpuState
-
-Per-CPU state ([`PerCpuState`](../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs)) is a class shared between the manager and the scheduler:
-
-| Field | Purpose |
-|-------|---------|
-| `CpuId` | This CPU's index |
-| `CurrentThread` | The thread currently in `Running` state on this CPU |
-| `IdleThread` | The per-CPU idle thread, picked when `PickNext` returns null |
-| `LastTickAt` | Timestamp of the last accounted tick |
-| `Lock` | `SpinLock` protecting the non-interrupt scheduling path |
-| `SchedulerData` | Inherited slot — `StrideScheduler` stores `StrideCpuData` here |
-
-### Stride bookkeeping
-
-Each thread carries a [`StrideThreadData`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs) and each CPU a [`StrideCpuData`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs):
-
-| `StrideThreadData` | Purpose |
-|---|---|
-| `Tickets` | CPU weight (higher = more time) |
-| `Stride` | `Stride1 / Tickets` — virtual time advance per quantum |
-| `Pass` | Virtual time position; the run queue is sorted ascending on this |
-| `Remain` | `Pass - GlobalPass` saved at block time, restored at wakeup |
-| `LastWakeup` | Timestamp of the last block→ready transition |
-| `SleepCount` | Number of times the thread has blocked (I/O pattern hint) |
-| `IsInteractive` / `IsBoosted` | Interactive-detection flags driving the wakeup priority boost |
-
-| `StrideCpuData` | Purpose |
-|---|---|
-| `TotalTickets` | Sum of `Tickets` across runnable threads on this CPU |
-| `GlobalPass` | CPU's virtual time |
-| `LastPassUpdate` | Timestamp of the last `UpdateGlobalPass` |
-| `RunQueue` | `List<Thread>` sorted ascending by `Pass` |
-
-The constants live on `StrideScheduler` and `SchedulerManager`:
-
-| Constant | Value | Where |
-|----------|-------|-------|
-| `Stride1` | `1 << 20` | `StrideScheduler.cs` line 16 |
-| `DefaultTickets` | `100` | `StrideScheduler.cs` line 21 |
-| `InteractiveSleepRatio` | `2` | `StrideScheduler.cs` line 26 |
-| `WakeupBoostDecayNs` | `5_000_000` (5 ms) | `StrideScheduler.cs` line 31 |
-| `DefaultQuantumNs` | `10_000_000` (10 ms) | `SchedulerManager.cs` line 39 |
-| `Thread.MaxThreadCount` | `256` | `Thread.cs` line 45 |
-| `Thread.DefaultStackSize` | `64 * 1024` | `Thread.cs` line 40 |
-
----
-
-## Memory layout
-
-### Per-thread stack
-
-`Thread.InitializeStack` allocates one contiguous chunk from `MemoryOp.Alloc` and lays the saved `ThreadContext` at the **bottom** (low address). `StackPointer` then points into that struct exactly where the IRQ stub expects it. The usable call/locals stack grows downward from `StackBase + StackSize` toward the context:
+The design separates **policy** from **mechanism**. Mechanism — context switching, the timer-tick entry, the thread registry, the GC bridge — is fixed and shared. Policy — what to pick next, what to do on a tick, how to balance CPUs — is a single interface (`IScheduler`) that any algorithm can implement. The default algorithm is **Stride** (virtual-time fair-share), but it is one of many possible plug-ins. See [Plugging in a scheduling algorithm](#plugging-in-a-scheduling-algorithm) for examples.
 
 ```
-              one stack (StackSize bytes from MemoryOp.Alloc)
+ ┌──────────────────────────────────────────────────────────────────┐
+ │  Mechanism (fixed)                                               │
+ │  ─────────────────                                               │
+ │  • SchedulerManager      — lifecycle dispatch, thread registry   │
+ │  • PerCpuState / Thread  — extensible TCB + per-CPU state        │
+ │  • IRQ stub + ContextSwitch.s — register save/restore            │
+ │  • Mutex / CV / Monitor  — park/unpark via SchedulerManager      │
+ │  • GC stack-scan bridge                                          │
+ └──────────────────────────┬───────────────────────────────────────┘
+                            │ IScheduler interface
+ ┌──────────────────────────┴───────────────────────────────────────┐
+ │  Policy (pluggable)                                              │
+ │  ───────────────────                                             │
+ │  • StrideScheduler  (default)                                    │
+ │  • RoundRobin / MLFQ / EDF / FIFO / …  (see examples below)      │
+ └──────────────────────────────────────────────────────────────────┘
+```
+
+The architecture-specific assembly (`Interrupts.s` on x64, `ContextSwitch.s` on ARM64) handles the actual register save/restore and is the only part of the system that knows about register layouts.
+
+---
+
+## Layers
+
+| Layer | Responsibility |
+|-------|----------------|
+| `IScheduler` | Pluggable policy interface — lifecycle hooks, `PickNext`, `OnTick`, load balancing |
+| `SchedulerManager` | Mechanism — thread registry, lifecycle dispatch, timer-tick handler, GC bridge |
+| `SchedulerExtensible` | Base class adding a single per-instance slot used by the active scheduler to attach its own bookkeeping to `Thread` and `PerCpuState` |
+| `Thread` | Thread Control Block: identity, state, stack layout, TLAB |
+| `ThreadContext` (x64 / ARM64) | Saved-register layout that mirrors the IRQ stub |
+| `PerCpuState` | Per-CPU state: `CurrentThread`, `IdleThread`, lock, and the scheduler's own per-CPU slot |
+| Sync primitives (`SpinLock`, `Mutex`, `ConditionVariable`, `Monitor`) | Park/unpark on top of `BlockThread` / `ReadyThread` |
+| `Stride/*` | The default `IScheduler` implementation |
+| `Bridge/Import` and `Bridge/Export` | Native trampolines and the stable initial-RIP entry stub |
+| `Runtime/Thread.cs` | Runtime exports (`RhYield`, stack bounds, thread-static storage) |
+
+The complete file map lives in [Source files](#source-files) at the bottom.
+
+---
+
+## Thread model
+
+A `Thread` is a managed class that lives on the GC heap. It carries:
+
+- **Identity / state** — a globally unique `Id`, the assigned `CpuId`, a `ThreadState` (Created → Ready ⇄ Running → {Blocked, Sleeping} → Ready → … → Dead), and a `ThreadFlags` bitfield (`KernelThread`, `IdleThread`, `Pinned`, `Managed`).
+- **Stack** — `StackBase`, `StackSize`, `StackPointer`. The saved `ThreadContext` lives at the bottom of the stack; `StackPointer` points into it.
+- **Accounting** — `CreatedAt`, `LastScheduledAt`, `TotalRuntime`, `WakeupTime`.
+- **GC** — a thread-local bump allocator (`AllocContext`).
+- **Scheduler slot** — `SchedulerData`, an `object?` reserved for the active scheduler. Stride stores `StrideThreadData` here; another algorithm would store something different (see examples).
+
+Two flags are load-bearing for policy:
+
+- `Pinned` — the thread cannot migrate. Both `SelectCpu` and `Balance` must skip it.
+- `Managed` — the entry parameter is a `GCHandle<System.Threading.Thread>`; the entry trampoline forwards into managed `Thread.StartThread` instead of decoding the parameter as a free `Action`.
+
+### Memory layout — per-thread stack
+
+`Thread.InitializeStack` allocates one contiguous chunk and lays the saved `ThreadContext` at the **bottom** (low address). The usable call/locals stack grows downward from `StackBase + StackSize` toward the context.
+
+```
+              one stack (StackSize bytes)
 ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
 
 │ StackBase                                 StackBase + StackSize  │
@@ -146,11 +74,9 @@ The constants live on `StrideScheduler` and `SchedulerManager`:
 │ ▼                                                       ▼        │
   ┌──────────────────────────┬────────────────────────────┐
 │ │ ThreadContext            │  usable stack              │        │
-  │  Xmm[256]                │  (grows downward from top) │
-│ │  R15..Rax                │                            │        │
-  │  Interrupt/CpuFlags/Cr2  │                            │
-│ │  TempRcx                 │                            │        │
-  │  Rip/Cs/Rflags/Rsp/Ss    │                            │
+  │  (saved registers,       │  (grows downward from top) │
+│ │   IRQ frame)             │                            │        │
+  │                          │                            │
 │ └──────────────────────────┴────────────────────────────┘        │
   ▲
 │ │                                                                │
@@ -158,49 +84,27 @@ The constants live on `StrideScheduler` and `SchedulerManager`:
 └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
-The context address is rounded up to 16 bytes for XMM alignment. `context->Initialize` sets `Rsp` inside the saved frame to `(StackBase + StackSize) & ~0xF - 8` so the **first** call inside the new thread lands on a 16-aligned RSP after `push rbp`.
+The context address is rounded up so the SIMD save area is naturally aligned. The initial saved SP inside the new context is set so the first `call` inside the new thread lands on a 16-byte-aligned RSP after the prologue's `push rbp`.
+
+The saved-context layout itself differs by architecture (x64 saves XMM + GPRs + `iretq` frame; ARM64 saves NEON + X0–X30 + Sp/Elr/Spsr) but is opaque to the scheduler — only the IRQ stub indexes into it.
 
 ### Global thread registry
 
-[`SchedulerManager._allThreads`](../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs) is a flat `Thread?[Thread.MaxThreadCount]` allocated once during `Initialize`. Every live thread (regardless of state, except `Dead`) occupies exactly one slot. The GC walks this array directly during the mark phase — interface dispatch is forbidden during GC because it can allocate.
+`SchedulerManager` owns a flat fixed-size array (`Thread?[]`) allocated once at boot. Every live thread, regardless of state, occupies one slot until it dies. This array is the GC's source of truth: the mark phase iterates it directly without going through any interface dispatch (which could allocate during a collection).
 
 ```
- SchedulerManager._allThreads (size 256, allocated once at Initialize)
+ SchedulerManager._allThreads (one slot per live thread)
  ═══════════════════════════════════════════════════════════════════════
 
-  [0] ──► Thread { Id=0,  Flags=IdleThread, State=Running }   ← idle
-  [1] ──► Thread { Id=1,  Flags=Managed,    State=Ready   }
-  [2] ──► Thread { Id=2,  Flags=Managed,    State=Blocked }   ← waiting on Mutex
-  [3] ──► Thread { Id=3,  Flags=None,       State=Sleeping}   ← WakeupTime set
-  [4] ──► null                                                ← free slot
-  [5] ──► null
-  ...                                                _allThreadCount = 4
-  [255]──► null
+  [0] ──► Thread { Flags=IdleThread, State=Running   }   ← idle
+  [1] ──► Thread { Flags=Managed,    State=Ready     }
+  [2] ──► Thread { Flags=Managed,    State=Blocked   }   ← waiting on Mutex
+  [3] ──► Thread { Flags=None,       State=Sleeping  }   ← WakeupTime set
+  [4] ──► null                                            ← free slot
+  ...
 ```
 
-`RegisterThread` linearly scans for the first null slot (called from `CreateThread` and `SetupIdleThread`). `UnregisterThread` clears the slot during `ExitThread`, accumulating `TotalRuntime` of non-idle threads into `_exitedNonIdleRuntimeNs` so `GetBusyCpuTimeNs` stays monotonic across the lifecycle.
-
-### Stride run queue
-
-Per-CPU, sorted ascending by `Pass`. `PickNext` always returns index 0; `InsertByPass` walks linearly to find the first index where `thread.Pass <= other.Pass`. Blocked / sleeping / dead threads are **not** in the run queue — only `_allThreads`.
-
-```
- StrideCpuData.RunQueue (one per CPU, in PerCpuState.SchedulerData)
- ═══════════════════════════════════════════════════════════════════════
-
-   Pass = 1042            Pass = 1130           Pass = 1320
-   ┌─────────────┐        ┌─────────────┐       ┌─────────────┐
-   │ Thread 5    │ ◄──── │ Thread 9    │ ◄──── │ Thread 2    │
-   │ Stride=10485│        │ Stride=10485│       │ Stride=5242 │
-   └─────────────┘        └─────────────┘       └─────────────┘
-        ▲                                              ▲
-        │                                              │
-   PickNext() pops here                       Tail (highest Pass)
-                                              — also the migration victim
-                                                picked by Balance()
-```
-
-`OnThreadBlocked` removes from the queue and saves `Remain = Pass - GlobalPass`. On wakeup `OnThreadReady` reinserts using either an interactive boost (`Pass = GlobalPass - Stride/2`) or a CFS-style starvation cap (`Pass = max(GlobalPass + Remain, GlobalPass - 2*Stride1)`).
+Blocked, sleeping, and dead threads are absent from any scheduler-owned run queue — but they are still in `_allThreads`. That is the invariant that keeps the GC correct: stack roots on parked threads must remain reachable.
 
 ---
 
@@ -221,47 +125,11 @@ stateDiagram-v2
     Dead --> [*]
 ```
 
-### Create
+`SchedulerManager` is the single owner of every state transition. Each transition does two things: update `Thread.State` under interrupt-disabled scope, and notify the active `IScheduler` via the matching hook (`OnThreadCreate`, `OnThreadReady`, `OnThreadBlocked`, `OnThreadYield`, `OnThreadExit`). The scheduler uses these hooks to update its own data structures (run queue, priority bookkeeping, etc.).
 
-`SchedulerManager.CreateThread(cpuId, thread)` (line 343):
+The first run of a freshly created thread is special: instead of resuming a saved frame with `iretq`, the IRQ exit path loads the configured RSP and jumps directly to the configured RIP. That RIP is always a single stable trampoline, `ThreadNative.EntryPointStub`, which forwards to the manager's invoke routine — which in turn either runs an `Action` delegate or reaches into the managed `System.Threading.Thread.StartThread` based on the `Managed` flag. This means every thread, kernel or managed, has the same initial entry shape.
 
-1. `RegisterThread(thread)` — claim a slot in `_allThreads`.
-2. Inside `DisableInterruptsScope`: `_currentScheduler.OnThreadCreate(state, thread)`. For Stride this allocates a `StrideThreadData` with `Tickets = 100`, `Stride = Stride1 / 100 = 10485`, `Pass = 0`.
-
-The caller is responsible for first calling `Thread.InitializeStack(entryPoint, codeSegment, arg)` so the saved `ThreadContext` is in place. `ThreadPlug.CreateThread` always uses `&ThreadNative.EntryPointStub` as the entry point and passes a `GCHandle<System.Threading.Thread>` as the argument.
-
-### First run
-
-The new thread starts as `Created`. When `ScheduleFromInterrupt` picks it (line 693), it sets `isNewThread = (next.State == ThreadState.Created)`, transitions to `Running`, and writes both `_context_switch_target_rsp` and `_context_switch_is_new_thread = 1`. The IRQ exit path then takes the new-thread tail (see [Preemption flow](#preemption-flow)) which loads the configured RSP and jumps to RIP rather than running `iretq`.
-
-The configured RIP is `ThreadNative.EntryPointStub`, an `[UnmanagedCallersOnly]` trampoline:
-
-```csharp
-[UnmanagedCallersOnly]
-public static void EntryPointStub(IntPtr parameter)
-{
-    SchedulerManager.InvokeCurrentThreadStart(parameter);
-}
-```
-
-`InvokeCurrentThreadStart` (line 148) inspects `currentThread.Flags`. If `Managed` is set, it forwards to `System.Threading.Thread.StartThread(null, parameter)` via `[UnsafeAccessor]`. Otherwise it decodes `parameter` as a `GCHandle<Action>`, invokes the delegate, and disposes the handle. On return (or after a top-level catch), it calls `ExitThread` and falls into a `Halt()` loop — the scheduler will not pick a `Dead` thread, but the loop is a safety net.
-
-### Ready / wake
-
-`SchedulerManager.ReadyThread` (line 357) preserves `Created` (so first-run detection works) and otherwise transitions to `Ready`, then calls `IScheduler.OnThreadReady`. `StrideScheduler.OnThreadReady` (line 59) recomputes `GlobalPass`, applies the interactive boost or starvation cap, calls `InsertByPass`, and adds `Tickets` back to `TotalTickets`.
-
-### Block / Sleep
-
-- `BlockThread` (line 383) sets `State = Blocked` and calls `OnThreadBlocked`, which saves `Remain` and removes from the run queue. The blocking primitive (Mutex / CV) calls `InternalCpu.Halt()` to wait for the next interrupt; on the next tick the scheduler will pick someone else.
-- `Sleep(cpuId, thread, timeoutMs)` (line 451) is the same path with `State = Sleeping` and `WakeupTime = now + timeoutMs * 1_000_000`. `OnTimerInterrupt` calls `CheckSleepingThreads` (line 609) every tick, which scans `_allThreads` for sleeping threads whose `WakeupTime ≤ now` and calls `ReadyThread`.
-
-### Exit
-
-`ExitThread` (line 394):
-
-1. If `OnThreadExitCallback` is set (registered via `RhSetThreadExitCallback`), invoke it so the managed `System.Threading.Thread` can release its `_stopped` event.
-2. Inside `DisableInterruptsScope`: return the TLAB via `GarbageCollector.ReturnAllocContext` and account the unused bytes through `AddDeadThreadNonAllocBytes`.
-3. Set `State = Dead`, call `OnThreadExit` (Stride removes from queue and decrements `TotalTickets`), then `UnregisterThread`.
+On exit, the manager flushes the TLAB back to the GC, calls `OnThreadExit` on the scheduler, and clears the registry slot. The thread's accumulated runtime is rolled into a global counter so the `GetBusyCpuTimeNs` metric stays monotonic across thread death.
 
 ---
 
@@ -272,31 +140,28 @@ sequenceDiagram
     participant ASM as IRQ stub (asm)
     participant IM as InterruptManager
     participant SM as SchedulerManager
-    participant SC as IScheduler (Stride)
-    participant CSN as ContextSwitchNative
+    participant SC as IScheduler (policy)
 
     Note over ASM: Timer IRQ — interrupts disabled
-    ASM->>ASM: Save XMM, GPRs, IRQ frame at RSP
+    ASM->>ASM: Save registers + IRQ frame at RSP
     ASM->>IM: __managed__irq(rdi = saved-context*)
     IM->>SM: OnTimerInterrupt(cpuId, currentRsp, elapsedNs)
     SM->>SM: CheckSleepingThreads — wake any expired Sleeping threads
     SM->>SC: OnTick(state, current, elapsedNs)
     SC-->>SM: needsReschedule (bool)
     alt needsReschedule
-        SM->>SM: ScheduleFromInterrupt(cpuId, currentRsp)
         SM->>SC: PickNext(state)
         SC-->>SM: next (or null → IdleThread)
         SM->>SM: prev.StackPointer = currentRsp, prev.State = Ready
         SM->>SC: OnThreadYield(state, prev)
-        SM->>CSN: SetContextSwitchNewThread(isNew ? 1 : 0)
-        SM->>CSN: SetContextSwitchSp(next.StackPointer)
+        SM->>ASM: stage target RSP + new-thread flag
     end
     SM-->>ASM: return
-    Note over ASM: Check _context_switch_target_rsp
+    Note over ASM: Check staged target RSP
     alt switch requested
-        ASM->>ASM: mov rsp, target_rsp, restore XMM/GPRs
-        alt is_new_thread
-            ASM->>ASM: pop r11(=RIP), skip CS, popfq, pop rsp, jmp r11
+        ASM->>ASM: load target RSP, restore registers
+        alt new thread
+            ASM->>ASM: jmp to entry RIP (skip iretq)
         else
             ASM->>ASM: iretq (resume saved frame)
         end
@@ -305,185 +170,191 @@ sequenceDiagram
     end
 ```
 
-The native side of this flow lives in [`Interrupts.s`](../../src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s) on x64 and [`ContextSwitch.s`](../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s) on ARM64. Both architectures expose the same four symbols — `_native_set_context_switch_sp`, `_native_get_context_switch_sp`, `_native_set_context_switch_new_thread`, `_native_get_sp` — so the C# bridge in [`ContextSwitchNative`](../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) needs no architecture gating.
+Two things to note:
 
-The new-thread tail is what makes a freshly created thread runnable: it loads the saved `Rsp` field as the new stack pointer, restores `Rflags` (re-enabling interrupts), and jumps to `Rip` (`EntryPointStub`). Resumed threads instead unwind through `iretq` so the saved interrupt frame is consumed normally.
+1. **The policy never touches registers.** The IRQ stub captures the outgoing RSP and hands it to the manager; the manager hands a target RSP back. Everything in between (`OnTick`, `PickNext`, `OnThreadYield`) is plain managed C# operating on `Thread` and `PerCpuState`.
+2. **The new-thread tail is what bootstraps a fresh thread.** Because a `Created` thread has no saved IRQ frame to `iretq` into, the IRQ exit path is told (via a flag staged from C#) to instead load the saved RSP and jump to the saved RIP. After that first entry, the thread is indistinguishable from any resumed thread.
 
-`SchedulerManager.Schedule` and the helper `ContextSwitch.Switch` exist for non-interrupt voluntary switches but are not the hot path — preemption goes through `ScheduleFromInterrupt`.
+Voluntary (non-IRQ) switches go through `SchedulerManager.Schedule` / `ContextSwitch.Switch` and use the same target-RSP mechanism, but they are not the hot path — preemption dominates.
 
 ---
 
-## Stride algorithm
+## Default algorithm: Stride
 
-Stride scheduling is virtual-time fair share. Each thread has a weight (`Tickets`) and a stride (`Stride1 / Tickets`). Each scheduling round, the chosen thread's `Pass` advances by its stride; the queue stays sorted by `Pass`, so the lowest-pass thread always runs next. Higher tickets ⇒ smaller stride ⇒ pass advances more slowly ⇒ more total CPU.
+Stride scheduling is virtual-time fair-share. Each thread has a weight (`Tickets`) and a stride (`Stride1 / Tickets`). Each scheduling round, the chosen thread's `Pass` advances by its stride; the run queue stays sorted by `Pass`, so the lowest-pass thread always runs next. Higher tickets ⇒ smaller stride ⇒ pass advances more slowly ⇒ more total CPU.
 
-### Pick
-
-```csharp
-public Thread? PickNext(PerCpuState cpuState)
-{
-    var cpuData = cpuState.GetSchedulerData<StrideCpuData>();
-    if (cpuData == null || cpuData.RunQueue.Count == 0) return null;
-    var selected = cpuData.RunQueue[0];
-    cpuData.RunQueue.RemoveAt(0);
-    return selected;
-}
-```
-
-If the queue is empty, `ScheduleFromInterrupt` falls back to `state.IdleThread`.
-
-### Tick accounting
-
-`OnTick` (line 206) charges the elapsed window to the running thread:
+The per-CPU run queue is a single list sorted ascending by `Pass`:
 
 ```
-current.TotalRuntime += elapsedNs
-threadData.Pass     += (Stride * elapsedNs) / DefaultQuantumNs
-GlobalPass          += (Stride1 / TotalTickets * elapsedNs) / DefaultQuantumNs
+ StrideCpuData.RunQueue (one per CPU)
+ ═══════════════════════════════════════════════════════════════════════
+
+   Pass = 1042            Pass = 1130           Pass = 1320
+   ┌─────────────┐        ┌─────────────┐       ┌─────────────┐
+   │ Thread A    │        │ Thread B    │       │ Thread C    │
+   │ Stride=10485│        │ Stride=10485│       │ Stride=5242 │
+   └─────────────┘        └─────────────┘       └─────────────┘
+        ▲                                              ▲
+        │                                              │
+   PickNext() pops here                       Tail (highest Pass)
+                                              — also the migration victim
+                                                picked by Balance()
 ```
 
-It returns `true` (preempt) if either:
+What Stride uses each `IScheduler` hook for:
 
-- the head of the run queue now has a strictly lower `Pass` than the running thread, or
-- the elapsed window is at least one quantum (10 ms).
+| Hook | What Stride does |
+|------|------------------|
+| `OnThreadCreate` | Allocate `StrideThreadData` with default tickets, set `Pass = 0` |
+| `OnThreadReady` | Choose between an interactive boost (`Pass = GlobalPass − Stride/2`) or a CFS-style starvation cap, then insert into the queue sorted by `Pass` |
+| `OnThreadBlocked` | Remove from run queue, save `Remain = Pass − GlobalPass` to restore on wakeup |
+| `OnTick` | Advance current thread's `Pass` and the CPU's `GlobalPass`; signal preempt if the head of the queue now has a lower `Pass` or the quantum has elapsed |
+| `OnThreadYield` | Re-insert the yielding thread, but clamp `Pass` upward to `GlobalPass` so a long-blocked thread can't perpetually outrank others |
+| `PickNext` | Pop the head of the run queue (lowest `Pass`); return null if empty (manager runs the idle thread) |
+| `SelectCpu` | Honor `Pinned`; otherwise prefer any CPU under 80% of the current CPU's load |
+| `Balance` | Idle CPUs steal the **tail** thread (highest `Pass`, least hot) from the busiest peer |
+| `SetPriority` | Re-ticket without losing relative position by scaling `Remain` by the stride ratio |
 
-### Interactive boost
+Two refinements deserve names because they are reused by other algorithms:
 
-When a thread wakes from `Blocked`, `OnThreadReady` measures `sleepDuration = now - LastWakeup`. If `sleepDuration > TotalRuntime * 2` the thread is flagged `IsInteractive` and gets a boost: `Pass = GlobalPass - Stride / 2`. The boost flag clears in `OnTick` once `now - LastWakeup > WakeupBoostDecayNs` (5 ms). Non-interactive wakers use the CFS-style cap:
+- **Interactive boost** — a thread that blocks frequently relative to its runtime is treated as I/O-bound and gets a head-start `Pass` on wakeup. The boost decays after a few ms.
+- **Starvation cap** — a long-blocked thread cannot wake with a `Pass` so far behind `GlobalPass` that it monopolizes the CPU. The cap is `Pass = max(GlobalPass + Remain, GlobalPass − 2 × Stride1)`.
+
+---
+
+## Plugging in a scheduling algorithm
+
+Any algorithm that implements `IScheduler` is a drop-in replacement. The mechanism layer never assumes virtual time, run queues, or priorities — those are policy. Switching the active scheduler is a single call:
 
 ```
-Pass = max(GlobalPass + Remain, GlobalPass - 2 * Stride1)
+SchedulerManager.SetScheduler(new MyScheduler());
 ```
 
-This both honors saved progress and prevents long-blocked threads from monopolizing the CPU on resume.
+The manager calls `ShutdownCpu` on the outgoing scheduler and `InitializeCpu` on the incoming one for every CPU.
 
-### Yield correction
+The `IScheduler` contract is intentionally small — the algorithm decides what data to attach to threads and CPUs by storing whatever it wants in `Thread.SchedulerData` and `PerCpuState.SchedulerData` (both inherited from `SchedulerExtensible`). Below are sketches of how a few classic algorithms would map onto this interface.
 
-`OnThreadYield` (line 154) re-inserts the yielding thread but first clamps `Pass` upward to `GlobalPass`. Without the clamp, a thread that started with `Pass = 0` (notably the idle thread) would perpetually outrank later threads created with `Pass = GlobalPass`.
+### Round-Robin
 
-### SetPriority
+The simplest preemptive algorithm: a FIFO queue, fixed-quantum preemption.
 
-Re-tickets a thread without losing its relative position:
+| Hook | Behavior |
+|------|----------|
+| `PerCpuState.SchedulerData` | A `Queue<Thread>` |
+| `Thread.SchedulerData` | None needed (or a remaining-quantum counter) |
+| `OnThreadReady` | Enqueue at the tail |
+| `OnThreadBlocked` | No-op (the thread isn't in the queue once it started running) |
+| `OnTick` | Decrement remaining quantum; preempt when it hits zero |
+| `OnThreadYield` | Re-enqueue at the tail, reset quantum |
+| `PickNext` | Dequeue the head |
+| `SelectCpu` | Round-robin or shortest-queue |
+| `Balance` | Steal half the queue from the busiest CPU |
+| `SetPriority` / `GetPriority` | No-op / constant |
 
-```
-remain     = Pass - GlobalPass
-remain    *= newStride / oldStride
-Pass       = GlobalPass + remain
-Tickets    = newTickets
-Stride     = Stride1 / newTickets
-```
+Round-Robin doesn't need an interactive boost or starvation cap — the FIFO order already bounds latency at `quantum × queue_depth`.
 
-If the thread is `Ready`, it is removed and re-inserted to maintain queue order.
+### Multi-Level Feedback Queue (MLFQ)
 
-### Load balancing
+A classic interactivity-favoring policy: several priority queues, threads demote when they use a full quantum and promote when they block early.
 
-- `SelectCpu` honors `Pinned` and otherwise prefers any CPU whose load is below 80% of the current CPU's load.
-- `Balance` runs only on idle CPUs (`RunQueue.Count == 0`). It finds the busiest peer (largest `RunQueue.Count > 1`) and steals its **tail** thread (highest `Pass`) — that thread is the least likely to be hot. Pinned threads are skipped.
-- `OnThreadMigrate` removes from the old CPU, re-bases `Pass = toData.GlobalPass + Remain`, and inserts on the new CPU.
+| Hook | Behavior |
+|------|----------|
+| `PerCpuState.SchedulerData` | An array of `Queue<Thread>` (one per priority level) |
+| `Thread.SchedulerData` | Current level + quantum-used counter |
+| `OnThreadReady` | Enqueue at the thread's current level |
+| `OnThreadBlocked` | Promote one level (it blocked, so it's interactive) |
+| `OnTick` | Charge time to the running thread; if it consumed a full quantum at this level, demote one level on next yield |
+| `PickNext` | Scan levels top-down for a non-empty queue |
+| `Balance` | Periodically reset all threads to top priority (anti-starvation) |
+
+MLFQ doesn't track virtual time at all — its bookkeeping is just integer levels.
+
+### Earliest-Deadline-First (EDF)
+
+For real-time workloads where each thread has an absolute deadline.
+
+| Hook | Behavior |
+|------|----------|
+| `PerCpuState.SchedulerData` | A min-heap keyed on deadline |
+| `Thread.SchedulerData` | `Deadline`, `Period`, `WorstCaseExecution` |
+| `OnThreadReady` | Insert into the heap |
+| `OnTick` | Preempt if the heap root's deadline is earlier than the current thread's |
+| `PickNext` | Pop the heap root |
+| `SetPriority` | Re-prioritization is meaningless; the priority is the deadline |
+| `SelectCpu` | Partition by utilization to avoid overload |
+
+EDF reuses none of Stride's bookkeeping — it stores deadlines, not virtual time. The mechanism layer doesn't care.
+
+### FIFO (cooperative)
+
+A degenerate but useful debugging policy: one global queue, no preemption, threads run until they block or yield.
+
+| Hook | Behavior |
+|------|----------|
+| `OnTick` | Always return `false` (never preempt) |
+| `OnThreadYield` | Move to the tail |
+| `PickNext` | Pop the head |
+
+Useful when chasing a race that disappears under preemption.
+
+### Common patterns
+
+Across all of these, the same shape recurs:
+
+1. **Define what to store per thread and per CPU.** Allocate them in `OnThreadCreate` / `InitializeCpu`, retrieve them with `GetSchedulerData<T>()`.
+2. **Decide queue shape** — FIFO, sorted list, heap, multi-level. The mechanism layer doesn't care; it only calls `PickNext`.
+3. **Decide preemption trigger** — quantum exhaustion, queue-head priority, deadline, never. That logic lives entirely in `OnTick`'s return value.
+4. **Decide migration policy** — which CPU to start on (`SelectCpu`), and how to rebalance (`Balance`). Honor the `Pinned` flag.
+5. **Hook into block/wake** so threads leave and re-enter the runnable set correctly. Whatever state needs to survive a sleep (saved progress, queue position, remaining quantum) is what `OnThreadBlocked` should stash.
+
+A scheduler that doesn't need a hook can leave it as a no-op. The interface is wide so that the *mechanism* can drive any algorithm without per-algorithm special cases — not because every hook is mandatory.
 
 ---
 
 ## Synchronization primitives
 
-### SpinLock
+Synchronization sits on top of `BlockThread` / `ReadyThread` / `Sleep` and is therefore policy-agnostic.
 
-[`SpinLock`](../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs) is a single `int _locked` driven by `Interlocked.CompareExchange`. It does not park the caller and does not interact with the scheduler — it is the guard used inside `Mutex` and `ConditionVariable` to protect their wait queues.
+- **`SpinLock`** — pure CAS, no scheduler interaction. Used internally by `Mutex` and `ConditionVariable` to protect their wait queues.
+- **`Mutex`** — recursive blocking lock. Owner ID + recursion depth + a wait queue. On contention, the caller is parked via `BlockThread`; on release, the manager wakes the head of the queue. A bounded spin precedes parking so brief contention doesn't take the slow path.
+- **`ConditionVariable`** — signal/wait with mutex hand-off. `Wait` releases the mutex, parks, and re-acquires on wakeup. `WaitTimeout` parks with a wakeup deadline (`Sleep`) so the thread also resumes on expiry.
+- **`Monitor`** — Java-style composite of `Mutex` and `ConditionVariable`.
 
-### Mutex
-
-[`Mutex`](../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs) is a recursive blocking lock backed by a `SpinLock` guard.
-
-| API | Behavior |
-|-----|----------|
-| `Acquire()` | Spin on the guard; if `_ownerThread == null` claim it; if `_ownerThread == self` increment `_recursionDepth`; else add to `_waitingThreads`, release guard, call `SchedulerManager.BlockThread`, halt — then loop and retry on wakeup |
-| `TryAcquire()` | Same logic without the wait/halt step |
-| `Release()` | Caller must be owner. Decrement depth; on zero, clear owner and wake the head of `_waitingThreads` via `ReadyThread` |
-| `IsLocked` / `OwnerThread` / `WaitingThreadCount` | Read accessors that briefly take the guard |
-
-The 10 000-spin halt fallback in `Acquire` (line 64) keeps a contending CPU from burning the bus indefinitely if the holder is descheduled.
-
-### ConditionVariable
-
-[`ConditionVariable`](../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs) implements signal / wait with mutex hand-off:
-
-- `Wait(Mutex mutex)`: enqueue self, release the mutex, `BlockThread`, halt, and re-acquire the mutex on resume.
-- `WaitTimeout(Mutex, timeoutMs)`: same, but uses `SchedulerManager.Sleep` so the thread also wakes when `WakeupTime ≤ now`. Returns `true` if signaled (the signaller clears `WakeupTime`), `false` on timeout.
-- `Signal()`: pop the head of `_waitingThreads` and `ReadyThread` it.
-- `SignalAll()`: drain `_waitingThreads`, calling `ReadyThread` on each.
-
-### Monitor
-
-[`Monitor`](../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs) is a thin composite over `Mutex` + `ConditionVariable` providing Java-style `Acquire / Release / Wait / Signal / SignalAll`. `Signal()` and `SignalAll()` release the underlying mutex after notifying.
-
-All three primitives delegate parking to `SchedulerManager.BlockThread / ReadyThread / Sleep`. Those manager methods wrap their state changes in `DisableInterruptsScope` so the timer interrupt cannot observe a half-finished transition; the primitives themselves do **not** disable interrupts directly.
+All three blocking primitives delegate the actual state transition to the manager, which wraps the transition in a disable-interrupts scope so the timer interrupt cannot observe a half-finished park.
 
 ---
 
 ## GC integration
 
-The scheduler is the GC's source of truth for stack roots:
+The scheduler is the GC's source of truth for stack roots. Two invariants matter:
 
-- `SchedulerManager.Threads` (and `ThreadCount`) expose `_allThreads` directly. The GC iterates the array — interface dispatch (which can allocate) is off-limits during a collection.
-- For each non-`Dead` thread, the mark phase scans the saved `ThreadContext` at `Thread.GetContext()` (which equals `StackPointer`): every saved register is treated as a root candidate, and stack memory from the saved SP up to `StackBase + StackSize` is conservatively scanned. The `Running` thread on each CPU is scanned via the live RSP recorded by the IRQ entry, not the cached `StackPointer`.
-- Live threads' `TotalRuntime` is summed in `GetBusyCpuTimeNs`. On exit, that runtime moves into `_exitedNonIdleRuntimeNs` so the metric stays monotonic when slots are freed.
+1. **Every registered thread is scanned, not just the running one.** Stack locals on a thread blocked on a mutex are still reachable and must be marked. Earlier versions only scanned `CurrentThread` and lost objects whose only reference was on a parked stack.
+2. **Mark-phase iteration goes directly through the array, not via any interface.** Interface dispatch can allocate, and the mark phase cannot allocate. This is why the registry is a flat array and not, say, a `List<Thread>` exposed through `IEnumerable`.
 
-Two invariants from prior incidents are load-bearing here:
+For each non-`Dead` thread, the mark phase scans the saved `ThreadContext` (every saved register is a root candidate) and conservatively scans stack memory between the saved SP and `StackBase + StackSize`. The currently running thread is scanned via the live SP captured by the IRQ stub, not the cached `StackPointer`.
 
-1. The mark phase rejects any candidate `MethodTable*` outside kernel higher-half (`mtPtr >= 0xFFFF800000000000`). Without that check, a stack-resident integer that happens to fall inside the heap range can crash `mt->ContainsGCPointers`.
-2. `ScanStackRoots` must scan **every** registered thread, not just `state.CurrentThread`. Earlier versions only scanned the running thread, which let stack locals on threads in the run queue or blocked on a mutex be collected and reused.
-
-Both checks live in [`GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs).
+A defensive check rejects any candidate `MethodTable*` outside kernel higher-half (`>= 0xFFFF800000000000`). Without it, a stack-resident integer that happens to land in heap range can crash a downstream type-info read.
 
 ---
 
-## Runtime bridge
+## Runtime and managed-thread bridge
 
-### Runtime exports (`Runtime/Thread.cs`)
+The scheduler exposes a thin runtime surface so the .NET runtime and BCL see it as a real threading implementation:
 
-| Runtime function | Maps to | Purpose |
-|------------------|---------|---------|
-| `RhYield` | `SchedulerManager.YieldThread` + `InternalCpu.Halt` | Cooperative yield from `Thread.Yield` |
-| `RhGetThreadStaticStorage` | `Thread.GetThreadStaticStorage()` on `CurrentThread` | Per-thread static field storage; falls back to a shared array if `CosmosFeatures.SchedulerEnabled` is false |
-| `RhGetCurrentThreadStackBounds` | `ContextSwitchNative.GetSp` + `Thread.DefaultStackSize` | Stack low/high reported to runtime stack walkers |
-| `RhSetCurrentThreadName` | logs the name | Currently informational |
-| `RhSetThreadExitCallback` | `SchedulerManager.OnThreadExitCallback` | Managed-side hook called by `ExitThread` before tearing down |
-| `RhSpinWait` | inline loop | Pure spin, no scheduler interaction |
-
-### Native imports (`Bridge/Import/ContextSwitchNative.cs`)
-
-| C# call | Native symbol | Direction |
-|---------|---------------|-----------|
-| `SetContextSwitchSp(nuint)` | `_native_set_context_switch_sp` | Stage target RSP for the IRQ exit path |
-| `GetContextSwitchSp()` | `_native_get_context_switch_sp` | Diagnostic |
-| `SetContextSwitchNewThread(int)` | `_native_set_context_switch_new_thread` | 1 = new thread (jmp to RIP), 0 = resume (iretq) |
-| `GetSp()` | `_native_get_sp` | Read current SP |
-
-All four are tagged `[SuppressGCTransition]` — they are pure register operations with no GC observation.
-
-### Native export (`Bridge/Export/ThreadNative.cs`)
-
-`ThreadNative.EntryPointStub` is the stable initial RIP/PC for every kernel thread. It is `[UnmanagedCallersOnly]`, so it has a fixed C ABI signature regardless of compiler-generated calling conventions for managed methods, and it forwards immediately to `SchedulerManager.InvokeCurrentThreadStart`.
-
-### Managed thread plug
-
-[`ThreadPlug`](../../src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs) plugs `System.Threading.Thread.CreateThread` so that calling `new System.Threading.Thread(action).Start()` in user kernel code:
-
-1. Allocates a kernel `Thread` with `Flags = ThreadFlags.Managed` and a fresh ID.
-2. Calls `InitializeStack` with `entryPoint = &ThreadNative.EntryPointStub` and `arg = GCHandle<System.Threading.Thread>.ToIntPtr(handle)`.
-3. Calls `SchedulerManager.CreateThread` then `ReadyThread` under `DisableInterruptsScope`.
-
-Because `Flags.Managed` is set, `InvokeCurrentThreadStart` invokes `System.Threading.Thread.StartThread(null, parameter)` (reached via `[UnsafeAccessor]`) instead of decoding the parameter as a free `Action`.
+- **Runtime exports** (`RhYield`, `RhGetCurrentThreadStackBounds`, `RhGetThreadStaticStorage`, `RhSetThreadExitCallback`) live in `Runtime/Thread.cs` and either delegate to `SchedulerManager` or, when the scheduler feature switch is off, fall back to single-threaded behavior.
+- **`ThreadPlug`** redirects `System.Threading.Thread.CreateThread` so `new Thread(action).Start()` in a kernel project allocates a kernel `Thread` flagged `Managed`, sets the entry point to `EntryPointStub`, and registers it with the manager.
+- **`ContextSwitchNative`** is the C# side of the four native symbols that stage the IRQ exit path (`set_context_switch_sp`, `get_context_switch_sp`, `set_context_switch_new_thread`, `get_sp`). All four are `[SuppressGCTransition]` because they are pure register operations.
 
 ---
 
 ## Feature switch
 
-The scheduler is gated by `CosmosEnableScheduler` in the kernel `.csproj`, surfaced as `CosmosFeatures.SchedulerEnabled` and consumed in two places:
+The scheduler is gated by `CosmosEnableScheduler` in the kernel `.csproj`, surfaced as `CosmosFeatures.SchedulerEnabled`. Two checkpoints honor it:
 
-- `SchedulerManager.IsEnabled` — every public manager entry point that mutates state calls `ThrowIfDisabled`.
-- `Runtime/Thread.cs` — `RhGetThreadStaticStorage`, `RhYield`, and `RhSetThreadExitCallback` fall back to single-threaded behavior when the switch is off.
+- `SchedulerManager.IsEnabled` — every public manager entry point that mutates state checks it.
+- `Runtime/Thread.cs` — runtime exports fall back to single-threaded behavior when off.
 
-`SchedulerManager.Enabled` is a separate runtime flag (set after `Initialize` + `SetScheduler` + idle threads are wired up) gating the timer interrupt path: `OnTimerInterrupt` returns early until `Enabled = true`.
+A separate runtime flag `SchedulerManager.Enabled` is set after `Initialize` + `SetScheduler` + idle-thread wiring is complete; the timer interrupt path returns early until it flips. This avoids racing the very first context switch against a half-built scheduler state.
 
 ---
 
