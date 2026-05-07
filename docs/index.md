@@ -28,6 +28,7 @@ If you want to develop or contribute to the project, clone the repository and op
  - [Plugs](articles/plugs.md)
  - [Testing](articles/testing.md)
  - [Garbage Collector](articles/garbage-collector.md)
+ - [Scheduler](articles/scheduler.md)
  - [Cosmos.Build.Asm](articles/build/asm-build.md)
  - [Cosmos.Build.CC](articles/build/cc-build.md)
  - [Cosmos.Build.Patcher](articles/build/patcher-build.md)
