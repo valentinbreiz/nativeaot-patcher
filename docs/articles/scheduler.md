@@ -67,21 +67,21 @@ Two flags affect policy:
 
 ```
               one stack (StackSize bytes)
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
 
-│ StackBase                                 StackBase + StackSize  │
-  │                                                       │
-│ ▼                                                       ▼        │
-  ┌──────────────────────────┬────────────────────────────┐
-│ │ ThreadContext            │  usable stack              │        │
-  │  (saved registers,       │  (grows downward from top) │
-│ │   IRQ frame)             │                            │        │
-  │                          │                            │
-│ └──────────────────────────┴────────────────────────────┘        │
-  ▲
-│ │                                                                │
-  StackPointer (saved RSP; the IRQ stub restores from here)
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+│   StackBase                                 StackBase + StackSize   │
+    │                                                       │
+│   ▼                                                       ▼         │
+    ┌──────────────────────────┬────────────────────────────┐
+│   │ ThreadContext            │  usable stack              │         │
+    │  (saved registers,       │  (grows downward from top) │
+│   │   IRQ frame)             │                            │         │
+    │                          │                            │
+│   └──────────────────────────┴────────────────────────────┘         │
+    ▲
+│   │                                                                 │
+    StackPointer (saved RSP; the IRQ stub restores from here)
+└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 The context address is rounded up so the SIMD save area is naturally aligned. The initial saved SP inside the new context is set so the first `call` inside the new thread lands on a 16-byte-aligned RSP after the prologue's `push rbp`.
