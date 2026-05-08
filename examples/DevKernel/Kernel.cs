@@ -1904,8 +1904,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        List<VfsDirectoryEntry> entries = new();
-        if (!dir.TryReadDir(entries))
+        if (!dir.TryReadDir(out IList<IVfsInode> entries))
         {
             PrintError("ReadDir failed.");
             return;
@@ -1923,9 +1922,13 @@ public class Kernel : Sys.Kernel
 
         for (int i = 0; i < entries.Count; i++)
         {
-            VfsDirectoryEntry e = entries[i];
+            IVfsInode e = entries[i];
+            VfsStat stat = default;
+            bool haveStat = e.InodeOperations != null && e.InodeOperations.GetAttr(e, out stat);
+            bool isDirectory = haveStat && (stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+
             Console.Write("  ");
-            if (e.IsDirectory)
+            if (isDirectory)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("[DIR] ");
@@ -1939,7 +1942,7 @@ public class Kernel : Sys.Kernel
             Console.Write(" ");
             Console.Write(e.Name.PadRight(24));
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write(e.Size.ToString().PadLeft(10));
+            Console.Write(stat.Size.ToString().PadLeft(10));
             Console.Write(" bytes");
             Console.ResetColor();
             Console.WriteLine();

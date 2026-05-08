@@ -1,5 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System;
+using System.Collections.Generic;
 using Cosmos.Kernel.HAL.Vfs;
 
 namespace Cosmos.Kernel.System.Filesystems.Fat;
@@ -44,15 +46,17 @@ internal sealed class FatInodeOperations : IInodeOperations
         return false;
     }
 
-    public bool ReadDir(IVfsInode dir, IList<VfsDirectoryEntry> entries)
+    public bool ReadDir(IVfsInode dir, out IList<IVfsInode> entries)
     {
-        if (entries == null || dir is not FatInode parent || !parent.IsDirectory)
+        entries = Array.Empty<IVfsInode>();
+        if (dir is not FatInode parent || !parent.IsDirectory)
         {
             return false;
         }
 
         byte[] data = _superblock.ReadDirectoryData(parent);
         List<FatDirEntry> raw = FatDirectory.Parse(data);
+        List<IVfsInode> result = new(raw.Count);
         for (int i = 0; i < raw.Count; i++)
         {
             FatDirEntry entry = raw[i];
@@ -65,9 +69,9 @@ internal sealed class FatInodeOperations : IInodeOperations
                 continue;
             }
 
-            ModeEnum mode = FatAttributes.ToMode(entry.Attributes);
-            entries.Add(new VfsDirectoryEntry(entry.Name, mode, entry.Size, entry.FirstCluster));
+            result.Add(_superblock.GetOrCreateInode(parent, entry));
         }
+        entries = result;
         return true;
     }
 

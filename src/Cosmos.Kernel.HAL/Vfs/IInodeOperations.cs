@@ -9,7 +9,7 @@ public interface IInodeOperations
 {
     bool Lookup(IVfsInode dir, ReadOnlySpan<char> name, out IVfsInode? child);
 
-    bool ReadDir(IVfsInode dir, IList<VfsDirectoryEntry> entries);
+    bool ReadDir(IVfsInode dir, out IList<IVfsInode> entries);
 
     bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);
 
