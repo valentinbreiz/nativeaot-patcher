@@ -1376,8 +1376,8 @@ public class Kernel : Sys.Kernel
         if (detailed)
         {
             PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
-            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
         }
+        PrintInfoLine("    Sectors".PadRight(17), dev.BlockCount.ToString());
         PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
 
         string table;
