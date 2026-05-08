@@ -230,37 +230,42 @@ public class Kernel : Sys.Kernel
                     break;
 
                 case "rmpart":
-                    if (parts.Length >= 2 && int.TryParse(parts[1], out int rmPartNum))
+                    if (parts.Length >= 3
+                        && int.TryParse(parts[1], out int rmDisk)
+                        && int.TryParse(parts[2], out int rmPart))
                     {
-                        DeletePartitionEntry(rmPartNum);
+                        DeletePartitionEntry(rmDisk, rmPart);
                     }
                     else
                     {
-                        PrintError("Usage: rmpart <partition_number>");
+                        PrintError("Usage: rmpart <disk> <part>");
                     }
                     break;
 
                 case "format":
-                    if (parts.Length >= 2 && int.TryParse(parts[1], out int fmtPartNum))
+                    if (parts.Length >= 3
+                        && int.TryParse(parts[1], out int fmtDisk)
+                        && int.TryParse(parts[2], out int fmtPart))
                     {
-                        string fmtType = parts.Length >= 3 ? parts[2].ToLower() : "fat";
-                        FormatPartition(fmtPartNum, fmtType);
+                        string fmtType = parts.Length >= 4 ? parts[3].ToLower() : "fat";
+                        FormatPartition(fmtDisk, fmtPart, fmtType);
                     }
                     else
                     {
-                        PrintError("Usage: format <partition_number> [fs_type]   (default: fat)");
+                        PrintError("Usage: format <disk> <part> [fs_type]   (default: fat)");
                     }
                     break;
 
                 case "mount":
-                    if (parts.Length >= 3
-                        && int.TryParse(parts[1], out int mountPartNum))
+                    if (parts.Length >= 4
+                        && int.TryParse(parts[1], out int mntDisk)
+                        && int.TryParse(parts[2], out int mntPart))
                     {
-                        MountPartition(mountPartNum, parts[2]);
+                        MountPartition(mntDisk, mntPart, parts[3]);
                     }
                     else
                     {
-                        PrintError("Usage: mount <partition_number> <mountpoint>   (e.g. mount 0 /mnt)");
+                        PrintError("Usage: mount <disk> <part> <mountpoint>   (e.g. mount 0 0 /mnt)");
                     }
                     break;
 
@@ -607,9 +612,9 @@ public class Kernel : Sys.Kernel
         PrintCommand("mkmbr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("mkgpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
-        PrintCommand("rmpart <p>", "Delete partition p");
-        PrintCommand("format <n> [fs]", "Format partition n (fs: fat | fat12 | fat16 | fat32, default fat)");
-        PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
+        PrintCommand("rmpart <d> <p>", "Delete partition p on disk d");
+        PrintCommand("format <d> <p> [fs]", "Format disk d partition p (fs: fat | fat12 | fat16 | fat32, default fat)");
+        PrintCommand("mount <d> <p> <path>", "Mount disk d partition p at <path> (e.g. mount 0 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
         PrintCommand("cd <path>", "Change current directory");
         PrintCommand("pwd", "Print current directory");
@@ -1358,11 +1363,12 @@ public class Kernel : Sys.Kernel
                     continue;
                 }
 
+                int localIndex = diskPartCount;
                 diskPartCount++;
                 ulong sizeBytes = part.BlockCount * part.BlockSize;
                 Console.Write("        ");
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write("[" + p + "] ");
+                Console.Write("[" + localIndex + "] ");
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Write(part.Name);
@@ -1554,16 +1560,50 @@ public class Kernel : Sys.Kernel
         PrintSuccess("Partition created at LBA " + startSector + " (" + sectorCount + " sectors).");
     }
 
-    private void DeletePartitionEntry(int partNum)
+    /// <summary>
+    /// Resolve a (disk, per-disk part) pair to (global index, Partition).
+    /// The global index is what VfsManager / PartitionManager expect under
+    /// the hood; per-disk numbering is what the user sees.
+    /// </summary>
+    private static bool TryResolvePartition(int diskNum, int partNum, out int globalIndex, out Partition? partition)
     {
-        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
-        if (partNum < 0 || partNum >= partitions.Count)
+        globalIndex = -1;
+        partition = null;
+
+        IBlockDevice? dev = StorageManager.GetDevice(diskNum);
+        if (dev == null)
         {
-            PrintError("Invalid partition number. Use 'lspart' to list.");
+            return false;
+        }
+
+        int local = 0;
+        IReadOnlyList<Partition> all = StorageManager.Partitions;
+        for (int i = 0; i < all.Count; i++)
+        {
+            Partition p = all[i];
+            if (!ReferenceEquals(p.Host, dev))
+            {
+                continue;
+            }
+            if (local == partNum)
+            {
+                globalIndex = i;
+                partition = p;
+                return true;
+            }
+            local++;
+        }
+        return false;
+    }
+
+    private void DeletePartitionEntry(int diskNum, int partNum)
+    {
+        if (!TryResolvePartition(diskNum, partNum, out _, out Partition? part) || part == null)
+        {
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
             return;
         }
 
-        Partition part = partitions[partNum];
         IBlockDevice host = part.Host;
         ulong start = part.StartingSector;
         ulong count = part.BlockCount;
@@ -1575,15 +1615,14 @@ public class Kernel : Sys.Kernel
         }
 
         StorageManager.RescanPartitions(host);
-        PrintSuccess("Partition " + partNum + " deleted (LBA " + start + ", " + count + " sectors).");
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " deleted (LBA " + start + ", " + count + " sectors).");
     }
 
-    private void FormatPartition(int partNum, string fsType)
+    private void FormatPartition(int diskNum, int partNum, string fsType)
     {
-        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
-        if (partNum < 0 || partNum >= partitions.Count)
+        if (!TryResolvePartition(diskNum, partNum, out int globalIndex, out Partition? target) || target == null)
         {
-            PrintError("Invalid partition number. Use 'lspart' to list.");
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
             return;
         }
 
@@ -1613,20 +1652,15 @@ public class Kernel : Sys.Kernel
                 return;
         }
 
-        if (!VfsManager.TryFormat(driverName, partNum.ToString(), options))
+        if (!VfsManager.TryFormat(driverName, globalIndex.ToString(), options))
         {
-            // Driver is registered (fat is wired at boot), so a false return
-            // means the formatter rejected the request — almost always because
-            // the partition is too small for the requested variant. FAT32
-            // needs > 65525 clusters; FAT16 needs > 4084.
-            Partition target = partitions[partNum];
             ulong sizeMiB = target.BlockCount * target.BlockSize / 1024 / 1024;
             PrintError("Format failed: partition is likely too small for " + fsType.ToUpper() +
-                " (" + sizeMiB + " MiB). Try 'format " + partNum + " fat' to auto-pick a variant.");
+                " (" + sizeMiB + " MiB). Try 'format " + diskNum + " " + partNum + " fat' to auto-pick a variant.");
             return;
         }
 
-        PrintSuccess("Partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
 
         // Warn if any mount likely targets this partition. We can't (yet)
         // ask VfsManager which superblock backs which IBlockDevice, so this
@@ -1638,12 +1672,11 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    private void MountPartition(int partNum, string mountPoint)
+    private void MountPartition(int diskNum, int partNum, string mountPoint)
     {
-        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
-        if (partNum < 0 || partNum >= partitions.Count)
+        if (!TryResolvePartition(diskNum, partNum, out int globalIndex, out Partition? _))
         {
-            PrintError("Invalid partition number.");
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
             return;
         }
 
@@ -1653,13 +1686,13 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!VfsManager.TryMount("fat", partNum.ToString(), MountFlags.None, mountPoint, out _))
+        if (!VfsManager.TryMount("fat", globalIndex.ToString(), MountFlags.None, mountPoint, out _))
         {
             PrintError("Mount failed (not FAT or unreadable).");
             return;
         }
 
-        PrintSuccess("Partition " + partNum + " mounted at " + mountPoint);
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " mounted at " + mountPoint);
     }
 
 
@@ -1709,8 +1742,8 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("  2. lspart                 - list partitions on each disk");
         Console.WriteLine("  3. mkgpt <d>              - if disk has no partition table");
         Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB (or 'mkpart <d> <start> <mb>')");
-        Console.WriteLine("  5. format <p> [fs]        - format partition <p> (fs: fat | fat12 | fat16 | fat32)");
-        Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
+        Console.WriteLine("  5. format <d> <p> [fs]    - format disk <d> partition <p> (fs: fat | fat12 | fat16 | fat32)");
+        Console.WriteLine("  6. mount <d> <p> <path>   - mount disk <d> partition <p> at any path (e.g. /mnt)");
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
     }
 
