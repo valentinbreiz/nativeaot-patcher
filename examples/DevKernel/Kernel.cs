@@ -1293,7 +1293,7 @@ public class Kernel : Sys.Kernel
             }
 
             Console.WriteLine();
-            PrintDiskBlock(i, dev);
+            PrintDiskBlock(i, dev, detailed: true);
         }
     }
 
@@ -1325,7 +1325,7 @@ public class Kernel : Sys.Kernel
             }
 
             Console.WriteLine();
-            PrintDiskBlock(i, dev);
+            PrintDiskBlock(i, dev, detailed: false);
             if (ReferenceEquals(dev, StorageManager.PrimaryDevice))
             {
                 PrintInfoLine("    Primary".PadRight(17), "yes");
@@ -1369,12 +1369,15 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    private void PrintDiskBlock(int index, IBlockDevice dev)
+    private void PrintDiskBlock(int index, IBlockDevice dev, bool detailed)
     {
         ulong totalBytes = dev.BlockCount * dev.BlockSize;
         PrintInfoLine($"[{index}] Name".PadRight(17), dev.Name);
-        PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
-        PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
+        if (detailed)
+        {
+            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
+            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
+        }
         PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
 
         string table;
