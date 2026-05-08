@@ -1326,6 +1326,10 @@ public class Kernel : Sys.Kernel
 
             Console.WriteLine();
             PrintDiskBlock(i, dev);
+            if (ReferenceEquals(dev, StorageManager.PrimaryDevice))
+            {
+                PrintInfoLine("    Primary".PadRight(17), "yes");
+            }
 
             int diskPartCount = 0;
             for (int p = 0; p < partitions.Count; p++)
@@ -1387,11 +1391,6 @@ public class Kernel : Sys.Kernel
             table = "None";
         }
         PrintInfoLine("    Table".PadRight(17), table);
-
-        if (index == 0)
-        {
-            PrintInfoLine("    Primary".PadRight(17), "yes");
-        }
     }
 
     private static string DetectFilesystem(Partition part)
