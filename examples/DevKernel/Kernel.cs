@@ -179,9 +179,8 @@ public class Kernel : Sys.Kernel
                     ShowMemoryInfo();
                     break;
 
-                case "disks":
-                case "listdisks":
-                    ListDisks();
+                case "diskinfo":
+                    ShowDiskInfo();
                     break;
 
                 case "partitions":
@@ -586,8 +585,8 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
-        PrintCommand("disks", "List storage devices with partition table type");
-        PrintCommand("partitions", "List discovered partitions");
+        PrintCommand("diskinfo", "Show storage devices and geometry");
+        PrintCommand("partitions", "List partitions, grouped under each disk");
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> <mb>", "Create a partition on disk n of size mb");
@@ -1266,23 +1265,24 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    private void ListDisks()
+    private void ShowDiskInfo()
     {
-        if (!StorageManager.IsEnabled)
-        {
-            PrintError("Storage support is disabled.");
-            return;
-        }
-
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine("Storage Devices:");
+        Console.WriteLine("Storage Information:");
         Console.ResetColor();
 
-        if (StorageManager.DeviceCount == 0)
+        if (!StorageManager.IsEnabled)
         {
-            PrintWarning("No storage devices discovered.");
+            PrintError("Storage support is disabled (CosmosEnableStorage=false).");
             return;
         }
+        if (StorageManager.DeviceCount == 0)
+        {
+            PrintWarning("No storage devices discovered. Attach a SATA disk to QEMU and reboot.");
+            return;
+        }
+
+        PrintInfoLine("Device Count", StorageManager.DeviceCount.ToString());
 
         for (int i = 0; i < StorageManager.DeviceCount; i++)
         {
@@ -1292,37 +1292,8 @@ public class Kernel : Sys.Kernel
                 continue;
             }
 
-            ulong sizeBytes = dev.BlockCount * dev.BlockSize;
-            Console.Write("  ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("[" + i + "] ");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(dev.Name);
-            Console.ResetColor();
-            Console.Write(" Sectors=" + dev.BlockCount);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("  " + (sizeBytes / 1024 / 1024) + " MiB");
-            Console.ResetColor();
-
-            Console.Write("  Table: ");
-            if (GPT.IsGPT(dev))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("GPT");
-            }
-            else if (MBR.IsMBR(dev))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("MBR");
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("None");
-            }
-            Console.ResetColor();
             Console.WriteLine();
+            PrintDiskBlock(i, dev);
         }
     }
 
@@ -1338,50 +1309,89 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("Partitions:");
         Console.ResetColor();
 
-        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
-        if (partitions.Count == 0)
+        if (StorageManager.DeviceCount == 0)
         {
-            PrintWarning("No partitions found. Run 'mkpart' or 'creatembr' first.");
+            PrintWarning("No storage devices discovered.");
             return;
         }
 
-        for (int i = 0; i < partitions.Count; i++)
+        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
         {
-            Partition part = partitions[i];
-            ulong sizeBytes = part.BlockCount * part.BlockSize;
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev == null)
+            {
+                continue;
+            }
 
-            Console.Write("  ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("[" + i + "] ");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(part.Name);
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write(" on disk " + GetHostIndex(part.Host) + " (" + part.Host.Name + ")");
-            Console.ResetColor();
-            Console.Write("  Start=" + part.StartingSector);
-            Console.Write("  Sectors=" + part.BlockCount);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("  " + (sizeBytes / 1024 / 1024) + " MiB");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write("  " + DetectFilesystem(part));
-            Console.ResetColor();
             Console.WriteLine();
+            PrintDiskBlock(i, dev);
+
+            int diskPartCount = 0;
+            for (int p = 0; p < partitions.Count; p++)
+            {
+                Partition part = partitions[p];
+                if (!ReferenceEquals(part.Host, dev))
+                {
+                    continue;
+                }
+
+                diskPartCount++;
+                ulong sizeBytes = part.BlockCount * part.BlockSize;
+                Console.Write("        ");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("[" + p + "] ");
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(part.Name);
+                Console.ResetColor();
+                Console.Write("  Start=" + part.StartingSector);
+                Console.Write("  Sectors=" + part.BlockCount);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("  " + (sizeBytes / 1024 / 1024) + " MiB");
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("  " + DetectFilesystem(part));
+                Console.ResetColor();
+                Console.WriteLine();
+            }
+
+            if (diskPartCount == 0)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine("        (no partitions)");
+                Console.ResetColor();
+            }
         }
     }
 
-    private static int GetHostIndex(IBlockDevice host)
+    private void PrintDiskBlock(int index, IBlockDevice dev)
     {
-        for (int i = 0; i < StorageManager.DeviceCount; i++)
+        ulong totalBytes = dev.BlockCount * dev.BlockSize;
+        PrintInfoLine($"[{index}] Name".PadRight(17), dev.Name);
+        PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
+        PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
+        PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
+
+        string table;
+        if (GPT.IsGPT(dev))
         {
-            if (ReferenceEquals(StorageManager.GetDevice(i), host))
-            {
-                return i;
-            }
+            table = "GPT";
         }
-        return -1;
+        else if (MBR.IsMBR(dev))
+        {
+            table = "MBR";
+        }
+        else
+        {
+            table = "None";
+        }
+        PrintInfoLine("    Table".PadRight(17), table);
+
+        if (index == 0)
+        {
+            PrintInfoLine("    Primary".PadRight(17), "yes");
+        }
     }
 
     private static string DetectFilesystem(Partition part)
@@ -1654,7 +1664,7 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("To mount a filesystem and use 'ls':");
         Console.ResetColor();
-        Console.WriteLine("  1. disks                  - list attached disks");
+        Console.WriteLine("  1. diskinfo               - show attached disks");
         Console.WriteLine("  2. partitions             - list partitions on each disk");
         Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
         Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB");
