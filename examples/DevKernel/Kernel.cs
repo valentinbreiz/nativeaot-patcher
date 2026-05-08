@@ -179,10 +179,6 @@ public class Kernel : Sys.Kernel
                     ShowMemoryInfo();
                     break;
 
-                case "diskinfo":
-                    ShowDiskInfo();
-                    break;
-
                 case "disks":
                 case "listdisks":
                     ListDisks();
@@ -590,7 +586,6 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
-        PrintCommand("diskinfo", "Show storage devices and geometry");
         PrintCommand("disks", "List storage devices with partition table type");
         PrintCommand("partitions", "List discovered partitions");
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
@@ -1268,46 +1263,6 @@ public class Kernel : Sys.Kernel
         else
         {
             Serial.WriteString("[DevKernel] FAT mount on partition 0 skipped (not FAT or unreadable)\n");
-        }
-    }
-
-    private void ShowDiskInfo()
-    {
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine("Storage Information:");
-        Console.ResetColor();
-
-        if (!StorageManager.IsEnabled)
-        {
-            PrintError("Storage support is disabled (CosmosEnableStorage=false).");
-            return;
-        }
-        if (StorageManager.DeviceCount == 0)
-        {
-            PrintWarning("No storage devices discovered. Attach a SATA disk to QEMU and reboot.");
-            return;
-        }
-
-        PrintInfoLine("Device Count", StorageManager.DeviceCount.ToString());
-
-        for (int i = 0; i < StorageManager.DeviceCount; i++)
-        {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev == null)
-            {
-                continue;
-            }
-
-            ulong totalBytes = dev.BlockCount * dev.BlockSize;
-            Console.WriteLine();
-            PrintInfoLine($"[{i}] Name".PadRight(17), dev.Name);
-            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
-            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
-            PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
-            if (i == 0)
-            {
-                PrintInfoLine("    Primary".PadRight(17), "yes");
-            }
         }
     }
 
