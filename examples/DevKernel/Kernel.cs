@@ -1717,9 +1717,54 @@ public class Kernel : Sys.Kernel
             Console.Write(m.MountPoint);
             Console.ResetColor();
             Console.Write(" -> ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(m.Name);
-            Console.ResetColor();
+
+            // For the FAT driver, m.Source is the global partition index in
+            // StorageManager.Partitions. Turn that into the per-disk view
+            // ('disk D part P  PartitionName  FAT32') the user reasons about.
+            if (int.TryParse(m.Source, out int globalIdx)
+                && globalIdx >= 0
+                && globalIdx < StorageManager.Partitions.Count)
+            {
+                Partition p = StorageManager.Partitions[globalIdx];
+                int diskIdx = -1;
+                int localIdx = 0;
+                int seen = 0;
+                for (int d = 0; d < StorageManager.DeviceCount; d++)
+                {
+                    IBlockDevice? dev = StorageManager.GetDevice(d);
+                    if (dev == null) { continue; }
+                    int local = 0;
+                    for (int g = 0; g < StorageManager.Partitions.Count; g++)
+                    {
+                        if (!ReferenceEquals(StorageManager.Partitions[g].Host, dev)) { continue; }
+                        if (g == globalIdx)
+                        {
+                            diskIdx = d;
+                            localIdx = local;
+                            seen = 1;
+                            break;
+                        }
+                        local++;
+                    }
+                    if (seen != 0) { break; }
+                }
+
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("disk " + diskIdx + " part " + localIdx);
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("  " + p.Name);
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("  " + DetectFilesystem(p));
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(m.Name);
+                Console.ResetColor();
+            }
 
             if (m.Superblock.SuperOperations.StatFs(m.Superblock, out VfsStatFs sf))
             {

@@ -35,15 +35,20 @@ public static class VfsManager
     /// </summary>
     public sealed class VfsMount
     {
-        public VfsMount(string name, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
+        public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
         {
             Name = name;
+            Source = source;
             MountPoint = mountPoint;
             FilesystemType = filesystemType;
             Superblock = superblock;
         }
 
+        /// <summary>Registered driver name (e.g. "fat").</summary>
         public string Name { get; }
+
+        /// <summary>Driver-specific backing-store identifier passed to <see cref="TryMount"/> — for the FAT driver, this is the global partition index in <c>StorageManager.Partitions</c> as a decimal string.</summary>
+        public string Source { get; }
 
         public string MountPoint { get; }
 
@@ -109,7 +114,7 @@ public static class VfsManager
         }
 
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
-        mount = new VfsMount(name, normalizedMountPoint, filesystemType, superblock);
+        mount = new VfsMount(name, source.ToString(), normalizedMountPoint, filesystemType, superblock);
         s_mounts.Add(mount);
 
         return true;
