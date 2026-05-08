@@ -180,6 +180,7 @@ public class Kernel : Sys.Kernel
                     break;
 
                 case "diskinfo":
+                case "lsdisk":
                     ShowDiskInfo();
                     break;
 
@@ -603,8 +604,8 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
-        PrintCommand("diskinfo", "Show storage devices and geometry");
-        PrintCommand("partitions", "List partitions, grouped under each disk");
+        PrintCommand("diskinfo (lsdisk)", "Show storage devices and geometry");
+        PrintCommand("partitions (lspart)", "List partitions, grouped under each disk");
         PrintCommand("mkmbr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("mkgpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
