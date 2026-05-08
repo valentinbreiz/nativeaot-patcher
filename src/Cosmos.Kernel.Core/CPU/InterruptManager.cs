@@ -58,6 +58,48 @@ public static class InterruptManager
         s_irqHandlers[vector] = handler;
     }
 
+    // Dynamic vector allocations (MSI / MSI-X) start above the legacy
+    // ISA-IRQ window (0x20–0x2F) and any future arch-reserved range
+    // (0x30–0x3F), and stop one short of the APIC spurious vector 0xFF.
+    private const byte DynamicVectorMin = 0x40;
+    private const byte DynamicVectorMax = 0xFE;
+    private static int s_nextDynamicVector = DynamicVectorMin;
+
+    /// <summary>
+    /// Allocates an unused interrupt vector in [0x40..0xFE], registers
+    /// <paramref name="handler"/> for it, and returns the vector. Used by
+    /// MSI / MSI-X programmers that need a fresh vector unique to their
+    /// device. Throws if the dynamic range is exhausted.
+    /// </summary>
+    public static byte AllocateVector(IrqDelegate handler)
+    {
+        if (s_irqHandlers == null)
+        {
+            throw new System.InvalidOperationException("InterruptManager.Initialize must be called before AllocateVector");
+        }
+
+        for (int v = s_nextDynamicVector; v <= DynamicVectorMax; v++)
+        {
+            if (s_irqHandlers[v] == null)
+            {
+                s_irqHandlers[v] = handler;
+                s_nextDynamicVector = v + 1;
+                return (byte)v;
+            }
+        }
+        // Wrap once in case earlier vectors were freed.
+        for (int v = DynamicVectorMin; v < s_nextDynamicVector; v++)
+        {
+            if (s_irqHandlers[v] == null)
+            {
+                s_irqHandlers[v] = handler;
+                s_nextDynamicVector = v + 1;
+                return (byte)v;
+            }
+        }
+        throw new System.InvalidOperationException("InterruptManager: dynamic vector range exhausted");
+    }
+
     /// <summary>
     /// Registers a handler for a hardware IRQ and routes it through the interrupt controller.
     /// </summary>

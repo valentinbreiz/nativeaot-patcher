@@ -112,6 +112,41 @@ public class PciDevice : Device
     public void EnableDevice() => Command |= PciCommand.Master | PciCommand.Io | PciCommand.Memory;
 
     /// <summary>
+    /// Walks the PCI capabilities linked list and returns the config-space
+    /// offset of the first capability whose ID matches <paramref name="capId"/>,
+    /// or 0 if not found. The list is gated on Status[4] (Capabilities List)
+    /// and the capability pointer at config offset 0x34 (only valid for
+    /// Type-0 / Normal headers).
+    /// </summary>
+    public byte FindCapability(byte capId)
+    {
+        if (HeaderType != PciHeaderType.Normal)
+        {
+            return 0;
+        }
+
+        ushort status = ReadRegister16((byte)Config.Status);
+        if ((status & 0x0010) == 0)
+        {
+            return 0;
+        }
+
+        byte offset = (byte)(ReadRegister8(0x34) & 0xFC);
+        // The list is at most 48 entries long (the cap area is 0x40..0xFF).
+        // Bound the walk so a malformed list cannot loop forever.
+        for (int i = 0; offset != 0 && i < 48; i++)
+        {
+            byte id = ReadRegister8(offset);
+            if (id == capId)
+            {
+                return offset;
+            }
+            offset = (byte)(ReadRegister8((byte)(offset + 1)) & 0xFC);
+        }
+        return 0;
+    }
+
+    /// <summary>
     /// Get header type.
     /// </summary>
     /// <param name="bus">A bus.</param>
@@ -191,7 +226,12 @@ public class PciDevice : Device
 #else
         uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteByte(ConfigDataPort, value);
+        // PCI Configuration Mechanism #1 mirrors the 32-bit data port at
+        // 0xCFC..0xCFF. A byte access to offset N within the dword must
+        // hit port 0xCFC + (N & 3), otherwise the byte lands at the wrong
+        // position in the dword.
+        ushort dataPort = (ushort)(ConfigDataPort + (offset & 3));
+        PlatformHAL.PortIO.WriteByte(dataPort, value);
 #endif
     }
 
@@ -232,7 +272,10 @@ public class PciDevice : Device
 #else
         uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteWord(ConfigDataPort, value);
+        // 16-bit access at offset 2 within the dword must hit port 0xCFE,
+        // not 0xCFC — see WriteConfig8 for the rationale.
+        ushort dataPort = (ushort)(ConfigDataPort + (offset & 2));
+        PlatformHAL.PortIO.WriteWord(dataPort, value);
 #endif
     }
 

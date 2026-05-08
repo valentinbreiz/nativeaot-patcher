@@ -107,6 +107,18 @@ public static class LocalApic
         Write(LAPIC_ERROR_LVT, 0x10000);  // Masked
 
         _initialized = true;
+
+        // Register the x64 MSI message backend for HAL-level PCI MSI-X code.
+        // Intel SDM Vol 3 §10.11: address [31:20]=0xFEE, [19:12]=destination
+        // APIC ID (physical, no redirection); data low byte = vector,
+        // delivery mode = fixed (0), trigger = edge.
+        MsiRouting.RegisterBackend(static (byte vector, uint targetCpu, out ulong address, out uint data) =>
+        {
+            byte apicId = (byte)targetCpu;
+            address = 0xFEE00000UL | ((ulong)apicId << 12);
+            data = vector;
+        });
+
         Serial.Write("[LocalAPIC] Initialization complete\n");
     }
 

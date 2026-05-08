@@ -74,16 +74,24 @@ namespace Internal.Runtime.CompilerHelpers
                         }
                     }
 
-                    // Initialize Storage Manager and register platform block devices
+                    // Initialize Storage Manager (manager-level state only)
                     if (StorageManager.IsEnabled)
                     {
                         Serial.WriteString("[KERNEL]   - Initializing storage manager...\n");
                         StorageManager.Initialize();
-                        var storageDevices = initializer.GetStorageDevices();
-                        foreach (var device in storageDevices)
-                        {
-                            StorageManager.RegisterDevice(device);
-                        }
+                    }
+                }
+
+                // Storage device registration runs OUTSIDE the
+                // DisableInterruptsScope: ScanPartitions issues real I/O
+                // (LBA 0 read for MBR/GPT detection), and interrupt-driven
+                // drivers like NVMe need IF=1 to receive completion IRQs.
+                if (StorageManager.IsEnabled)
+                {
+                    var storageDevices = initializer.GetStorageDevices();
+                    foreach (var device in storageDevices)
+                    {
+                        StorageManager.RegisterDevice(device);
                     }
                 }
             }
