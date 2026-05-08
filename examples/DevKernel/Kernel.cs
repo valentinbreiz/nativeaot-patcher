@@ -1621,6 +1621,15 @@ public class Kernel : Sys.Kernel
         }
 
         PrintSuccess("Partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
+
+        // Warn if any mount likely targets this partition. We can't (yet)
+        // ask VfsManager which superblock backs which IBlockDevice, so this
+        // fires whenever there's any mount — better a stray warning than a
+        // confused user staring at the pre-format files in /mnt.
+        if (VfsManager.Mounts.Count > 0)
+        {
+            PrintWarning("If this partition is currently mounted, its cached state is now stale. Reboot to pick up the fresh layout.");
+        }
     }
 
     private void MountPartition(int partNum, string mountPoint)
