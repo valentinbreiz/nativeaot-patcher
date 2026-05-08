@@ -1402,6 +1402,9 @@ public class Kernel : Sys.Kernel
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write(part.Name);
             Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(" on disk " + GetHostIndex(part.Host) + " (" + part.Host.Name + ")");
+            Console.ResetColor();
             Console.Write("  Start=" + part.StartingSector);
             Console.Write("  Sectors=" + part.BlockCount);
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -1412,6 +1415,18 @@ public class Kernel : Sys.Kernel
             Console.ResetColor();
             Console.WriteLine();
         }
+    }
+
+    private static int GetHostIndex(IBlockDevice host)
+    {
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
+        {
+            if (ReferenceEquals(StorageManager.GetDevice(i), host))
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static string DetectFilesystem(Partition part)
