@@ -179,12 +179,10 @@ public class Kernel : Sys.Kernel
                     ShowMemoryInfo();
                     break;
 
-                case "diskinfo":
                 case "lsdisk":
                     ShowDiskInfo();
                     break;
 
-                case "partitions":
                 case "lspart":
                     ListPartitions();
                     break;
@@ -604,8 +602,8 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
-        PrintCommand("diskinfo (lsdisk)", "Show storage devices and geometry");
-        PrintCommand("partitions (lspart)", "List partitions, grouped under each disk");
+        PrintCommand("lsdisk", "Show storage devices and geometry");
+        PrintCommand("lspart", "List partitions, grouped under each disk");
         PrintCommand("mkmbr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("mkgpt <n>", "Write a fresh empty GPT to disk n");
         PrintCommand("mkpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
@@ -1561,7 +1559,7 @@ public class Kernel : Sys.Kernel
         IReadOnlyList<Partition> partitions = StorageManager.Partitions;
         if (partNum < 0 || partNum >= partitions.Count)
         {
-            PrintError("Invalid partition number. Use 'partitions' to list.");
+            PrintError("Invalid partition number. Use 'lspart' to list.");
             return;
         }
 
@@ -1585,7 +1583,7 @@ public class Kernel : Sys.Kernel
         IReadOnlyList<Partition> partitions = StorageManager.Partitions;
         if (partNum < 0 || partNum >= partitions.Count)
         {
-            PrintError("Invalid partition number. Use 'partitions' to list.");
+            PrintError("Invalid partition number. Use 'lspart' to list.");
             return;
         }
 
@@ -1707,8 +1705,8 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("To mount a filesystem and use 'ls':");
         Console.ResetColor();
-        Console.WriteLine("  1. diskinfo               - show attached disks");
-        Console.WriteLine("  2. partitions             - list partitions on each disk");
+        Console.WriteLine("  1. lsdisk                 - show attached disks");
+        Console.WriteLine("  2. lspart                 - list partitions on each disk");
         Console.WriteLine("  3. mkgpt <d>              - if disk has no partition table");
         Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB (or 'mkpart <d> <start> <mb>')");
         Console.WriteLine("  5. format <p> [fs]        - format partition <p> (fs: fat | fat12 | fat16 | fat32)");
