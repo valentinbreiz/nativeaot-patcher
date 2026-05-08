@@ -188,29 +188,29 @@ public class Kernel : Sys.Kernel
                     ListPartitions();
                     break;
 
-                case "creatembr":
+                case "mkmbr":
                     if (parts.Length > 1 && int.TryParse(parts[1], out int mbrDiskNum))
                     {
                         CreateMbrTable(mbrDiskNum);
                     }
                     else
                     {
-                        PrintError("Usage: creatembr <disk_number>");
+                        PrintError("Usage: mkmbr <disk_number>");
                     }
                     break;
 
-                case "creategpt":
+                case "mkgpt":
                     if (parts.Length > 1 && int.TryParse(parts[1], out int gptDiskNum))
                     {
                         CreateGptTable(gptDiskNum);
                     }
                     else
                     {
-                        PrintError("Usage: creategpt <disk_number>");
+                        PrintError("Usage: mkgpt <disk_number>");
                     }
                     break;
 
-                case "createpart":
+                case "mkpart":
                     if (parts.Length == 3
                         && int.TryParse(parts[1], out int cpDiskAuto)
                         && int.TryParse(parts[2], out int cpSizeMbAuto))
@@ -226,7 +226,18 @@ public class Kernel : Sys.Kernel
                     }
                     else
                     {
-                        PrintError("Usage: createpart <disk> [start_lba] <size_mb>");
+                        PrintError("Usage: mkpart <disk> [start_lba] <size_mb>");
+                    }
+                    break;
+
+                case "rmpart":
+                    if (parts.Length >= 2 && int.TryParse(parts[1], out int rmPartNum))
+                    {
+                        DeletePartitionEntry(rmPartNum);
+                    }
+                    else
+                    {
+                        PrintError("Usage: rmpart <partition_number>");
                     }
                     break;
 
@@ -594,9 +605,10 @@ public class Kernel : Sys.Kernel
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
         PrintCommand("diskinfo", "Show storage devices and geometry");
         PrintCommand("partitions", "List partitions, grouped under each disk");
-        PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
-        PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
-        PrintCommand("createpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
+        PrintCommand("mkmbr <n>", "Write a fresh empty MBR to disk n");
+        PrintCommand("mkgpt <n>", "Write a fresh empty GPT to disk n");
+        PrintCommand("mkpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
+        PrintCommand("rmpart <p>", "Delete partition p");
         PrintCommand("format <n> [fs]", "Format partition n (fs: fat | fat12 | fat16 | fat32, default fat)");
         PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
@@ -1476,7 +1488,7 @@ public class Kernel : Sys.Kernel
         bool isMbr = !isGpt && MBR.IsMBR(dev);
         if (!isGpt && !isMbr)
         {
-            PrintError("Disk has no partition table. Run 'creatembr " + diskNum + "' or 'creategpt " + diskNum + "' first.");
+            PrintError("Disk has no partition table. Run 'mkmbr " + diskNum + "' or 'mkgpt " + diskNum + "' first.");
             return;
         }
 
@@ -1541,6 +1553,30 @@ public class Kernel : Sys.Kernel
 
         StorageManager.RescanPartitions(dev);
         PrintSuccess("Partition created at LBA " + startSector + " (" + sectorCount + " sectors).");
+    }
+
+    private void DeletePartitionEntry(int partNum)
+    {
+        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
+        if (partNum < 0 || partNum >= partitions.Count)
+        {
+            PrintError("Invalid partition number. Use 'partitions' to list.");
+            return;
+        }
+
+        Partition part = partitions[partNum];
+        IBlockDevice host = part.Host;
+        ulong start = part.StartingSector;
+        ulong count = part.BlockCount;
+
+        if (!PartitionManager.Delete(host, new PartitionManager.PartitionLocation(start, count)))
+        {
+            PrintError("Failed to delete partition.");
+            return;
+        }
+
+        StorageManager.RescanPartitions(host);
+        PrintSuccess("Partition " + partNum + " deleted (LBA " + start + ", " + count + " sectors).");
     }
 
     private void FormatPartition(int partNum, string fsType)
@@ -1672,8 +1708,8 @@ public class Kernel : Sys.Kernel
         Console.ResetColor();
         Console.WriteLine("  1. diskinfo               - show attached disks");
         Console.WriteLine("  2. partitions             - list partitions on each disk");
-        Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
-        Console.WriteLine("  4. createpart <d> <mb>    - create a partition of <mb> MiB (or 'createpart <d> <start> <mb>')");
+        Console.WriteLine("  3. mkgpt <d>              - if disk has no partition table");
+        Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB (or 'mkpart <d> <start> <mb>')");
         Console.WriteLine("  5. format <p> [fs]        - format partition <p> (fs: fat | fat12 | fat16 | fat32)");
         Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
