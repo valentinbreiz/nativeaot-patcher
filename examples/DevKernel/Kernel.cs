@@ -210,16 +210,23 @@ public class Kernel : Sys.Kernel
                     }
                     break;
 
-                case "mkpart":
-                    if (parts.Length >= 3
-                        && int.TryParse(parts[1], out int mkDiskNum)
-                        && int.TryParse(parts[2], out int mkSizeMB))
+                case "createpart":
+                    if (parts.Length == 3
+                        && int.TryParse(parts[1], out int cpDiskAuto)
+                        && int.TryParse(parts[2], out int cpSizeMbAuto))
                     {
-                        CreatePartitionEntry(mkDiskNum, mkSizeMB);
+                        CreatePartitionEntry(cpDiskAuto, startSectorOrAuto: null, sizeMB: cpSizeMbAuto);
+                    }
+                    else if (parts.Length >= 4
+                        && int.TryParse(parts[1], out int cpDisk)
+                        && ulong.TryParse(parts[2], out ulong cpStart)
+                        && int.TryParse(parts[3], out int cpSizeMb))
+                    {
+                        CreatePartitionEntry(cpDisk, cpStart, cpSizeMb);
                     }
                     else
                     {
-                        PrintError("Usage: mkpart <disk_number> <size_mb>");
+                        PrintError("Usage: createpart <disk> [start_lba] <size_mb>");
                     }
                     break;
 
@@ -589,7 +596,7 @@ public class Kernel : Sys.Kernel
         PrintCommand("partitions", "List partitions, grouped under each disk");
         PrintCommand("creatembr <n>", "Write a fresh empty MBR to disk n");
         PrintCommand("creategpt <n>", "Write a fresh empty GPT to disk n");
-        PrintCommand("mkpart <n> <mb>", "Create a partition on disk n of size mb");
+        PrintCommand("createpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
         PrintCommand("format <n> [fs]", "Format partition n (fs: fat | fat12 | fat16 | fat32, default fat)");
         PrintCommand("mount <p> <path>", "Mount partition p at <path> (e.g. mount 0 /mnt)");
         PrintCommand("mounts", "Show mounted filesystems");
@@ -1450,7 +1457,7 @@ public class Kernel : Sys.Kernel
         PrintSuccess("GPT table written to disk " + diskNum + ".");
     }
 
-    private void CreatePartitionEntry(int diskNum, int sizeMB)
+    private void CreatePartitionEntry(int diskNum, ulong? startSectorOrAuto, int sizeMB)
     {
         if (sizeMB <= 0)
         {
@@ -1465,62 +1472,59 @@ public class Kernel : Sys.Kernel
             return;
         }
 
+        bool isGpt = GPT.IsGPT(dev);
+        bool isMbr = !isGpt && MBR.IsMBR(dev);
+        if (!isGpt && !isMbr)
+        {
+            PrintError("Disk has no partition table. Run 'creatembr " + diskNum + "' or 'creategpt " + diskNum + "' first.");
+            return;
+        }
+
+        ulong firstUsable = isGpt ? 34UL : 2048UL;
         ulong sectorsPerMB = (1024UL * 1024UL) / dev.BlockSize;
         ulong sectorCount = (ulong)sizeMB * sectorsPerMB;
 
         ulong startSector;
-        if (GPT.IsGPT(dev))
+        if (startSectorOrAuto.HasValue)
         {
-            startSector = 34;
-            if (StorageManager.Partitions.Count > 0)
+            startSector = startSectorOrAuto.Value;
+            if (startSector < firstUsable)
             {
-                ulong tail = 0;
-                for (int i = 0; i < StorageManager.Partitions.Count; i++)
-                {
-                    Partition p = StorageManager.Partitions[i];
-                    if (ReferenceEquals(p.Host, dev))
-                    {
-                        ulong end = p.StartingSector + p.BlockCount;
-                        if (end > tail)
-                        {
-                            tail = end;
-                        }
-                    }
-                }
-                if (tail > startSector)
-                {
-                    startSector = tail;
-                }
+                PrintError("start_lba must be >= " + firstUsable + " on " + (isGpt ? "GPT" : "MBR") + " disks.");
+                return;
             }
-        }
-        else if (MBR.IsMBR(dev))
-        {
-            startSector = 2048;
-            if (StorageManager.Partitions.Count > 0)
+            // Reject overlap with any existing partition on the same disk.
+            for (int i = 0; i < StorageManager.Partitions.Count; i++)
             {
-                ulong tail = 0;
-                for (int i = 0; i < StorageManager.Partitions.Count; i++)
+                Partition p = StorageManager.Partitions[i];
+                if (!ReferenceEquals(p.Host, dev))
                 {
-                    Partition p = StorageManager.Partitions[i];
-                    if (ReferenceEquals(p.Host, dev))
-                    {
-                        ulong end = p.StartingSector + p.BlockCount;
-                        if (end > tail)
-                        {
-                            tail = end;
-                        }
-                    }
+                    continue;
                 }
-                if (tail > startSector)
+                ulong pEnd = p.StartingSector + p.BlockCount;
+                if (startSector < pEnd && startSector + sectorCount > p.StartingSector)
                 {
-                    startSector = tail;
+                    PrintError("Range overlaps partition [" + p.StartingSector + ".." + pEnd + ").");
+                    return;
                 }
             }
         }
         else
         {
-            PrintError("Disk has no partition table. Run 'creatembr " + diskNum + "' or 'creategpt " + diskNum + "' first.");
-            return;
+            startSector = firstUsable;
+            for (int i = 0; i < StorageManager.Partitions.Count; i++)
+            {
+                Partition p = StorageManager.Partitions[i];
+                if (!ReferenceEquals(p.Host, dev))
+                {
+                    continue;
+                }
+                ulong end = p.StartingSector + p.BlockCount;
+                if (end > startSector)
+                {
+                    startSector = end;
+                }
+            }
         }
 
         if (startSector + sectorCount > dev.BlockCount)
@@ -1669,7 +1673,7 @@ public class Kernel : Sys.Kernel
         Console.WriteLine("  1. diskinfo               - show attached disks");
         Console.WriteLine("  2. partitions             - list partitions on each disk");
         Console.WriteLine("  3. creategpt <d>          - if disk has no partition table");
-        Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB");
+        Console.WriteLine("  4. createpart <d> <mb>    - create a partition of <mb> MiB (or 'createpart <d> <start> <mb>')");
         Console.WriteLine("  5. format <p> [fs]        - format partition <p> (fs: fat | fat12 | fat16 | fat32)");
         Console.WriteLine("  6. mount <p> <mountpoint> - mount partition <p> at any path (e.g. /mnt)");
         Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
