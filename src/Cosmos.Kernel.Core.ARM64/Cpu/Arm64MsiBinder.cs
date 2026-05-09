@@ -30,6 +30,11 @@ internal sealed class Arm64MsiBinder : IMsiBinder
         uint bdf = (bus << 8) | (slot << 3) | function;
         // Resolve PCI requester ID -> ITS DeviceID via IORT. Fall back to
         // identity (DeviceID == BDF) if no IORT is present.
+        //
+        // Segment is hardcoded to 0: Cosmos's PCI scan today uses a single
+        // ECAM region (one segment). When multi-segment support lands on
+        // PciDevice, plumb the device's segment through MsiRouting.PrepareDevice
+        // instead of assuming 0 here.
         if (AcpiIortNative.ResolveDeviceId(0, bdf, out uint devId) != 0)
         {
             devId = bdf;

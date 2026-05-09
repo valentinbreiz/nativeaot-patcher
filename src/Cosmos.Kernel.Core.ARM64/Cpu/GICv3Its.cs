@@ -110,12 +110,18 @@ public static unsafe class GICv3Its
         if ((ctlr & GITS_CTLR_ENABLED) != 0)
         {
             Native.MMIO.Write32(_itsBase + GITS_CTLR, ctlr & ~GITS_CTLR_ENABLED);
+            bool quiesced = false;
             for (int i = 0; i < 1_000_000; i++)
             {
                 if ((Native.MMIO.Read32(_itsBase + GITS_CTLR) & GITS_CTLR_QUIESCENT) != 0)
                 {
+                    quiesced = true;
                     break;
                 }
+            }
+            if (!quiesced)
+            {
+                throw new System.InvalidOperationException("[GICv3-ITS] timed out waiting for QUIESCENT after disable");
             }
         }
 
@@ -357,23 +363,20 @@ public static unsafe class GICv3Its
             {
                 // Spec: GITS_CREADR.Stalled (bit 0) == 1 means the ITS
                 // rejected the last command and won't advance further.
+                // Treat that as fatal — the next MAPD/MAPTI would be issued
+                // against an ITS in unknown state and devices would never
+                // see their interrupts.
                 if ((reader & 0x1) != 0)
                 {
-                    Serial.WriteString("[GICv3-ITS] WARNING: command queue STALLED at 0x");
-                    Serial.WriteHex(reader);
-                    Serial.WriteString("\n");
+                    _cmdLock.Release();
+                    throw new System.InvalidOperationException("[GICv3-ITS] command queue STALLED");
                 }
                 _cmdLock.Release();
                 return;
             }
         }
-        ulong stuckReader = Native.MMIO.Read64(_itsBase + GITS_CREADR);
-        Serial.WriteString("[GICv3-ITS] WARNING: command queue flush timeout, CREADR=0x");
-        Serial.WriteHex(stuckReader);
-        Serial.WriteString(" CWRITER=0x");
-        Serial.WriteHex(_cmdWriteOff);
-        Serial.WriteString("\n");
         _cmdLock.Release();
+        throw new System.InvalidOperationException("[GICv3-ITS] command queue flush timeout");
     }
 
     private static uint RoundUpPow2(uint v)

@@ -77,6 +77,11 @@ public static class InterruptManager
     private const byte DynamicVectorMax = 0xFE;
     private static int s_nextDynamicVector = DynamicVectorMin;
 
+    // Guards s_irqHandlers / s_lpiHandlers RMW in AllocateVector /
+    // AllocateLpi so concurrent device probes can't both grab the same
+    // slot and silently drop one handler.
+    private static Scheduler.SpinLock s_allocLock;
+
     /// <summary>
     /// Allocates an unused interrupt vector in [0x40..0xFE], registers
     /// <paramref name="handler"/> for it, and returns the vector. Used by
@@ -90,24 +95,32 @@ public static class InterruptManager
             throw new System.InvalidOperationException("InterruptManager.Initialize must be called before AllocateVector");
         }
 
-        for (int v = s_nextDynamicVector; v <= DynamicVectorMax; v++)
+        s_allocLock.Acquire();
+        try
         {
-            if (s_irqHandlers[v] == null)
+            for (int v = s_nextDynamicVector; v <= DynamicVectorMax; v++)
             {
-                s_irqHandlers[v] = handler;
-                s_nextDynamicVector = v + 1;
-                return (byte)v;
+                if (s_irqHandlers[v] == null)
+                {
+                    s_irqHandlers[v] = handler;
+                    s_nextDynamicVector = v + 1;
+                    return (byte)v;
+                }
+            }
+            // Wrap once in case earlier vectors were freed.
+            for (int v = DynamicVectorMin; v < s_nextDynamicVector; v++)
+            {
+                if (s_irqHandlers[v] == null)
+                {
+                    s_irqHandlers[v] = handler;
+                    s_nextDynamicVector = v + 1;
+                    return (byte)v;
+                }
             }
         }
-        // Wrap once in case earlier vectors were freed.
-        for (int v = DynamicVectorMin; v < s_nextDynamicVector; v++)
+        finally
         {
-            if (s_irqHandlers[v] == null)
-            {
-                s_irqHandlers[v] = handler;
-                s_nextDynamicVector = v + 1;
-                return (byte)v;
-            }
+            s_allocLock.Release();
         }
         throw new System.InvalidOperationException("InterruptManager: dynamic vector range exhausted");
     }
@@ -126,23 +139,31 @@ public static class InterruptManager
             throw new System.InvalidOperationException("InterruptManager.Initialize must be called before AllocateLpi");
         }
 
-        for (int o = s_nextLpiOffset; o < s_lpiHandlers.Length; o++)
+        s_allocLock.Acquire();
+        try
         {
-            if (s_lpiHandlers[o] == null)
+            for (int o = s_nextLpiOffset; o < s_lpiHandlers.Length; o++)
             {
-                s_lpiHandlers[o] = handler;
-                s_nextLpiOffset = o + 1;
-                return LpiBase + (uint)o;
+                if (s_lpiHandlers[o] == null)
+                {
+                    s_lpiHandlers[o] = handler;
+                    s_nextLpiOffset = o + 1;
+                    return LpiBase + (uint)o;
+                }
+            }
+            for (int o = 0; o < s_nextLpiOffset; o++)
+            {
+                if (s_lpiHandlers[o] == null)
+                {
+                    s_lpiHandlers[o] = handler;
+                    s_nextLpiOffset = o + 1;
+                    return LpiBase + (uint)o;
+                }
             }
         }
-        for (int o = 0; o < s_nextLpiOffset; o++)
+        finally
         {
-            if (s_lpiHandlers[o] == null)
-            {
-                s_lpiHandlers[o] = handler;
-                s_nextLpiOffset = o + 1;
-                return LpiBase + (uint)o;
-            }
+            s_allocLock.Release();
         }
         throw new System.InvalidOperationException("InterruptManager: LPI range exhausted");
     }
