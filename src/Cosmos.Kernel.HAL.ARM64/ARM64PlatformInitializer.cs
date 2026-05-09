@@ -123,7 +123,7 @@ public class ARM64PlatformInitializer : IPlatformInitializer
             return [];
         }
 
-        List<AHCIPort> ports = AHCI.Ports;
+        List<BlockDevice> ports = AHCI.Ports;
         List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
         int total = ports.Count + nvmeNamespaces.Count;
         if (total == 0)

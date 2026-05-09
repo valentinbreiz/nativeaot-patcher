@@ -14,9 +14,10 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 public class AHCI
 {
     private static PciDevice? _device;
-    private static List<AHCIPort>? _ports;
+    private static List<BlockDevice>? _ports;
     private static GenericRegisters? _generic;
     private static ulong _abar;
+    private static bool _initialized;
 
     // Capabilities
     private static bool _supports64bitAddressing;
@@ -65,17 +66,23 @@ public class AHCI
     /// <summary>
     /// List of discovered AHCI ports.
     /// </summary>
-    public static List<AHCIPort> Ports => _ports ?? new List<AHCIPort>();
+    public static List<BlockDevice> Ports => _ports ?? new List<BlockDevice>();
 
     /// <summary>
-    /// Initialize the AHCI driver.
+    /// Initialize the AHCI driver. Idempotent — subsequent calls are no-ops.
     /// </summary>
     public static void InitDriver()
     {
+        if (_initialized)
+        {
+            return;
+        }
+        _initialized = true;
+
         Serial.WriteString("[AHCI] Looking for AHCI controller...\n");
 
         // Initialize ports list
-        _ports = new List<AHCIPort>();
+        _ports = new List<BlockDevice>();
 
         // Try to find AHCI controller (ProgIf = 0x01 for AHCI mode)
         _device = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.SataController, ProgramIf.SataAhci);

@@ -8,11 +8,11 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// <summary>
 /// SATA drive port driver.
 /// </summary>
-public class SATA : AHCIPort
+public class SATA : BlockDevice
 {
-    public override PortType PortType => PortType.SATA;
-    public override string PortName => "SATA";
-    public override uint PortNumber => _portReg.PortNumber;
+    public override string Name => "SATA";
+
+    public uint PortNumber => _portReg.PortNumber;
 
     private readonly PortRegisters _portReg;
     private readonly uint _dataBlockBase;
@@ -45,7 +45,7 @@ public class SATA : AHCIPort
         BlockSize = RegularSectorSize;
 
         // Send Identify command to get drive info
-        SendSATA28Command(0, 0, 0);
+        SendSATACommand(ATACommands.Identify);
 
         // Read identify data
         ushort[] xBuffer = new ushort[256];
@@ -65,162 +65,35 @@ public class SATA : AHCIPort
     }
 
     /// <summary>
-    /// Send a SATA command.
+    /// Issue a non-LBA command (Identify, CacheFlush, …). Reads up to one
+    /// sector into the bounce buffer.
     /// </summary>
-    public void SendSATACommand(ATACommands command)
-    {
-        _portReg.IS = 0xFFFF;
-
-        int slot = FindCMDSlot();
-        if (slot == -1)
-        {
-            return;
-        }
-
-        var cmdHeader = new HBACommandHeader(_portReg.CLB, (uint)slot);
-        cmdHeader.CFL = 5;
-        cmdHeader.PRDTL = 1;
-        cmdHeader.Write = 0;
-
-        cmdHeader.CTBA = (uint)((uint)(AHCIBase.AHCI + 0xA000) + 0x2000 * PortNumber + 0x100 * slot);
-
-        var cmdTable = new HBACommandTable(cmdHeader.CTBA, cmdHeader.PRDTL);
-
-        cmdTable.PRDTEntry[0].DBA = _dataBlockBase;
-        cmdTable.PRDTEntry[0].DBC = 511;
-        cmdTable.PRDTEntry[0].InterruptOnCompletion = 1;
-
-        var cmdFIS = new FISRegisterH2D(cmdTable.CFIS)
-        {
-            FISType = (byte)FISType.FIS_Type_RegisterH2D,
-            IsCommand = 1,
-            Command = (byte)command,
-            Device = 0
-        };
-
-        int spin = 0;
-        while ((_portReg.TFD & 0x88) != 0 && spin < 1000000)
-        {
-            spin++;
-        }
-
-        if (spin == 1000000)
-        {
-            Serial.WriteString("[SATA] Port timed out!\n");
-            return;
-        }
-
-        _portReg.CI = 1U;
-
-        while (true)
-        {
-            if ((_portReg.CI & (1 << slot)) == 0)
-            {
-                break;
-            }
-
-            if ((_portReg.IS & (1 << 30)) != 0)
-            {
-                throw new Exception("SATA Fatal error: Command aborted");
-            }
-        }
-    }
+    public void SendSATACommand(ATACommands command) =>
+        IssueCommand((byte)command, lba: 0, count: 0, isWrite: false, useLba48: false);
 
     /// <summary>
-    /// Send a 28-bit SATA command.
-    /// </summary>
-    public void SendSATA28Command(ATACommands command, uint start, uint count)
-    {
-        bool isIdentify = (start == 0 && count == 0);
-
-        _portReg.IS = 0xFFFF;
-
-        int slot = FindCMDSlot();
-        if (slot == -1)
-        {
-            return;
-        }
-
-        var cmdHeader = new HBACommandHeader(_portReg.CLB, (uint)slot);
-        cmdHeader.CFL = 5;
-        cmdHeader.PRDTL = 1;
-        cmdHeader.Write = 0;
-
-        cmdHeader.CTBA = (uint)((uint)(AHCIBase.AHCI + 0xA000) + 0x2000 * PortNumber + 0x100 * slot);
-
-        var cmdTable = new HBACommandTable(cmdHeader.CTBA, cmdHeader.PRDTL);
-
-        // Last entry
-        if (isIdentify)
-        {
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBA = _dataBlockBase;
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBC = 511;
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].InterruptOnCompletion = 1;
-        }
-        else
-        {
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBA = _dataBlockBase;
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBC = count * 512 - 1;
-            cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].InterruptOnCompletion = 1;
-        }
-
-        if (isIdentify)
-        {
-            var cmdFIS = new FISRegisterH2D(cmdTable.CFIS)
-            {
-                FISType = (byte)FISType.FIS_Type_RegisterH2D,
-                IsCommand = 1,
-                Command = (byte)ATACommands.Identify,
-                Device = 0
-            };
-        }
-        else
-        {
-            var cmdFIS = new FISRegisterH2D(cmdTable.CFIS)
-            {
-                FISType = (byte)FISType.FIS_Type_RegisterH2D,
-                IsCommand = 1,
-                Command = (byte)command,
-                LBA0 = (byte)(start & 0xFF),
-                LBA1 = (byte)((start >> 8) & 0xFF),
-                LBA2 = (byte)((start >> 16) & 0xFF),
-                Device = (byte)(0x40 | ((start >> 24) & 0x0F)),
-                CountL = (byte)(count & 0xFF)
-            };
-        }
-
-        int spin = 0;
-        while ((_portReg.TFD & 0x88) != 0 && spin < 1000000)
-        {
-            spin++;
-        }
-
-        if (spin == 1000000)
-        {
-            Serial.WriteString("[SATA] Port timed out!\n");
-            return;
-        }
-
-        _portReg.CI = 1U;
-
-        while (true)
-        {
-            if ((_portReg.CI & (1 << slot)) == 0)
-            {
-                break;
-            }
-            if ((_portReg.IS & (1 << 30)) != 0)
-            {
-                throw new Exception("SATA Fatal error: Command aborted");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Send a 48-bit SATA command.
+    /// Issue an LBA48 read or write spanning <paramref name="count"/>
+    /// sectors starting at <paramref name="start"/>.
     /// </summary>
     public void SendSATA48Command(ATACommands command, ulong start, uint count)
     {
+        bool isWrite = command == ATACommands.WriteDmaExt || command == ATACommands.WriteDma;
+        IssueCommand((byte)command, start, count, isWrite, useLba48: true);
+    }
+
+    /// <summary>
+    /// Build the command-list / FIS / PRDT for one in-flight command, ring
+    /// the doorbell, and spin until the slot drops. Caller picks the FIS
+    /// shape via <paramref name="useLba48"/>:
+    /// <list type="bullet">
+    /// <item><c>false</c>: no LBA / no transfer count, PRDT sized for one
+    /// sector. Used for Identify and CacheFlush.</item>
+    /// <item><c>true</c>: 48-bit LBA + sector count, PRDT sized for
+    /// <paramref name="count"/> sectors.</item>
+    /// </list>
+    /// </summary>
+    private void IssueCommand(byte command, ulong lba, uint count, bool isWrite, bool useLba48)
+    {
         _portReg.IS = 0xFFFF;
 
         int slot = FindCMDSlot();
@@ -229,45 +102,43 @@ public class SATA : AHCIPort
             return;
         }
 
-        // Determine if this is a write command
-        bool isWrite = command == ATACommands.WriteDmaExt || command == ATACommands.WriteDma;
+        HBACommandHeader cmdHeader = new(_portReg.CLB, (uint)slot)
+        {
+            CFL = 5,
+            PRDTL = 1,
+            Write = (byte)(isWrite ? 1 : 0),
+            CTBA = (uint)((uint)(AHCIBase.AHCI + 0xA000) + 0x2000 * PortNumber + 0x100 * slot)
+        };
 
-        var cmdHeader = new HBACommandHeader(_portReg.CLB, (uint)slot);
-        cmdHeader.CFL = 5;
-        cmdHeader.PRDTL = 1;
-        cmdHeader.Write = (byte)(isWrite ? 1 : 0);
+        HBACommandTable cmdTable = new(cmdHeader.CTBA, cmdHeader.PRDTL);
+        cmdTable.PRDTEntry[0].DBA = _dataBlockBase;
+        cmdTable.PRDTEntry[0].DBC = useLba48 ? count * 512 - 1 : 511;
+        cmdTable.PRDTEntry[0].InterruptOnCompletion = 1;
 
-        cmdHeader.CTBA = (uint)((uint)(AHCIBase.AHCI + 0xA000) + 0x2000 * PortNumber + 0x100 * slot);
-
-        var cmdTable = new HBACommandTable(cmdHeader.CTBA, cmdHeader.PRDTL);
-
-        // Last entry
-        cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBA = _dataBlockBase;
-        cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].DBC = count * 512 - 1;
-        cmdTable.PRDTEntry[cmdHeader.PRDTL - 1].InterruptOnCompletion = 1;
-
-        var cmdFIS = new FISRegisterH2D(cmdTable.CFIS)
+        FISRegisterH2D cmdFIS = new(cmdTable.CFIS)
         {
             FISType = (byte)FISType.FIS_Type_RegisterH2D,
             IsCommand = 1,
-            Command = (byte)command,
-            LBA0 = (byte)((start >> 00) & 0xFF),
-            LBA1 = (byte)((start >> 08) & 0xFF),
-            LBA2 = (byte)((start >> 16) & 0xFF),
-            LBA3 = (byte)((start >> 24) & 0xFF),
-            LBA4 = (byte)((start >> 32) & 0xFF),
-            LBA5 = (byte)((start >> 40) & 0xFF),
-            Device = 1 << 6,
-            CountL = (byte)(count & 0xFF),
-            CountH = (byte)((count >> 8) & 0xFF)
+            Command = command,
+            Device = useLba48 ? (byte)(1 << 6) : (byte)0
         };
+        if (useLba48)
+        {
+            cmdFIS.LBA0 = (byte)((lba >> 0) & 0xFF);
+            cmdFIS.LBA1 = (byte)((lba >> 8) & 0xFF);
+            cmdFIS.LBA2 = (byte)((lba >> 16) & 0xFF);
+            cmdFIS.LBA3 = (byte)((lba >> 24) & 0xFF);
+            cmdFIS.LBA4 = (byte)((lba >> 32) & 0xFF);
+            cmdFIS.LBA5 = (byte)((lba >> 40) & 0xFF);
+            cmdFIS.CountL = (byte)(count & 0xFF);
+            cmdFIS.CountH = (byte)((count >> 8) & 0xFF);
+        }
 
         int spin = 0;
         while ((_portReg.TFD & 0x88) != 0 && spin < 1000000)
         {
             spin++;
         }
-
         if (spin == 1000000)
         {
             Serial.WriteString("[SATA] Port timed out!\n");
@@ -282,7 +153,6 @@ public class SATA : AHCIPort
             {
                 break;
             }
-
             if ((_portReg.IS & (1 << 30)) != 0)
             {
                 throw new Exception("SATA Fatal error: Command aborted");
