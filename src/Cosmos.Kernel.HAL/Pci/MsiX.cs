@@ -62,24 +62,11 @@ public static class MsiX
         int bir = (int)(tableBirOff & 0x7);
         uint tableOffset = tableBirOff & 0xFFFFFFF8u;
 
-        if (pci.BaseAddressBar == null || bir >= pci.BaseAddressBar.Length)
+        ulong barPhys = pci.GetBar64Address(bir);
+        if (barPhys == 0)
         {
-            Serial.WriteString("[MSI-X] table BIR out of range\n");
+            Serial.WriteString("[MSI-X] table BAR is I/O or out of range\n");
             return null;
-        }
-
-        PciBaseAddressBar bar = pci.BaseAddressBar[bir];
-        if (bar.IsIo)
-        {
-            Serial.WriteString("[MSI-X] table BAR is I/O, not MMIO\n");
-            return null;
-        }
-
-        ulong barPhys = bar.BaseAddress;
-        if (bar.Is64Bit && bir + 1 < pci.BaseAddressBar.Length)
-        {
-            ulong upper = pci.ReadRegister32((byte)(0x10 + (bir + 1) * 4));
-            barPhys |= upper << 32;
         }
 
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;

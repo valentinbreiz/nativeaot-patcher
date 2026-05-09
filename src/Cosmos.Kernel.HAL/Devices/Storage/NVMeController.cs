@@ -29,9 +29,6 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 ///
 /// Limitations:
 /// <list type="bullet">
-/// <item>QEMU NVMe BAR0 fits in 32 bits, so only the lower BAR is consumed.
-/// Real-hardware NVMe with BAR0 above 4 GiB would need a 64-bit BAR
-/// helper on <see cref="PciDeviceNormal"/>.</item>
 /// <item>One IO submission and one IO completion queue (qid=1), depth 8.</item>
 /// <item>Single-PRP transfers — caller never asks for more than one LBA
 /// per command, so PRP2 is always 0.</item>
@@ -111,7 +108,11 @@ public unsafe class NVMeController
         }
 
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        ulong bar0Phys = pci.BaseAddressBar[0].BaseAddress;
+        ulong bar0Phys = pci.GetBar64Address(0);
+        if (bar0Phys == 0)
+        {
+            throw new Exception("[NVMe] BAR0 is not a memory BAR");
+        }
         ulong bar0Virt = bar0Phys + hhdmOffset;
         _regs = new NVMeRegisters(bar0Virt);
 
@@ -518,36 +519,53 @@ public unsafe class NVMeController
         ulong identifyVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
         ulong identifyPhys = PageAllocator.VirtualToPhysical(identifyVirt);
 
-        // Identify Controller (CNS=0x01) — only used to confirm the controller is responsive.
-        uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.Controller, cdw11: 0, cdw12: 0);
-        if (sc != 0)
+        try
         {
-            Serial.WriteString("[NVMe] Identify Controller failed, status=0x");
-            Serial.WriteHex(sc);
-            Serial.WriteString("\n");
-            return;
-        }
-
-        // Identify Active Namespace List (CNS=0x02) — returns up to 1024 NSIDs.
-        ZeroPage(identifyVirt);
-        sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
-        if (sc != 0)
-        {
-            Serial.WriteString("[NVMe] Identify Active NS List failed, status=0x");
-            Serial.WriteHex(sc);
-            Serial.WriteString("\n");
-            return;
-        }
-
-        uint* nsidList = (uint*)identifyVirt;
-        for (int i = 0; i < 1024; i++)
-        {
-            uint nsid = nsidList[i];
-            if (nsid == 0)
+            // Identify Controller (CNS=0x01) — only used to confirm the controller is responsive.
+            uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.Controller, cdw11: 0, cdw12: 0);
+            if (sc != 0)
             {
-                break;
+                Serial.WriteString("[NVMe] Identify Controller failed, status=0x");
+                Serial.WriteHex(sc);
+                Serial.WriteString("\n");
+                return;
             }
-            RegisterNamespace(nsid, identifyVirt, identifyPhys);
+
+            // Identify Active Namespace List (CNS=0x02) — returns up to 1024 NSIDs.
+            ZeroPage(identifyVirt);
+            sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
+            if (sc != 0)
+            {
+                Serial.WriteString("[NVMe] Identify Active NS List failed, status=0x");
+                Serial.WriteHex(sc);
+                Serial.WriteString("\n");
+                return;
+            }
+
+            // Snapshot the namespace list before reusing the buffer for
+            // per-namespace identifies — RegisterNamespace overwrites the
+            // page, so we cannot iterate nsidList in place.
+            uint* nsidList = (uint*)identifyVirt;
+            Span<uint> nsids = stackalloc uint[1024];
+            int nsCount = 0;
+            for (int i = 0; i < 1024; i++)
+            {
+                uint nsid = nsidList[i];
+                if (nsid == 0)
+                {
+                    break;
+                }
+                nsids[nsCount++] = nsid;
+            }
+
+            for (int i = 0; i < nsCount; i++)
+            {
+                RegisterNamespace(nsids[i], identifyVirt, identifyPhys);
+            }
+        }
+        finally
+        {
+            PageAllocator.Free((void*)identifyVirt);
         }
     }
 

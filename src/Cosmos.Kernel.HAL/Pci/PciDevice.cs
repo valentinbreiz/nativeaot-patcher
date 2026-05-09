@@ -112,6 +112,35 @@ public class PciDevice : Device
     public void EnableDevice() => Command |= PciCommand.Master | PciCommand.Io | PciCommand.Memory;
 
     /// <summary>
+    /// Returns the full physical base address of memory BAR
+    /// <paramref name="barIndex"/>. For 64-bit BARs this combines the
+    /// lower BAR with the immediately-following upper BAR; for 32-bit
+    /// BARs it returns just the lower 32 bits. I/O BARs and out-of-range
+    /// indices return 0.
+    /// </summary>
+    public ulong GetBar64Address(int barIndex)
+    {
+        if (BaseAddressBar == null || barIndex < 0 || barIndex >= BaseAddressBar.Length)
+        {
+            return 0;
+        }
+
+        PciBaseAddressBar bar = BaseAddressBar[barIndex];
+        if (bar.IsIo)
+        {
+            return 0;
+        }
+
+        ulong addr = bar.BaseAddress;
+        if (bar.Is64Bit && barIndex + 1 < BaseAddressBar.Length)
+        {
+            ulong upper = ReadRegister32((byte)(0x10 + (barIndex + 1) * 4));
+            addr |= upper << 32;
+        }
+        return addr;
+    }
+
+    /// <summary>
     /// Walks the PCI capabilities linked list and returns the config-space
     /// offset of the first capability whose ID matches <paramref name="capId"/>,
     /// or 0 if not found. The list is gated on Status[4] (Capabilities List)
