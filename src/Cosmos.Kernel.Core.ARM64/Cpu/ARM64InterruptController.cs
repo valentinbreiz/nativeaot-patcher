@@ -43,8 +43,13 @@ public class ARM64InterruptController : IInterruptController
 
     public void SendEOI()
     {
-        // Send End Of Interrupt to GIC
-        if (_lastAckedIntId < 1020)  // Valid interrupt ID
+        // INTIDs 1020..1023 are GIC-reserved (1023 = spurious); writing those
+        // to ICC_EOIR1_EL1 is UNPREDICTABLE per ARM IHI 0069G. Everything
+        // else — SPI/PPI/SGI in [0..1019] *and* LPIs in [8192..16777215]
+        // delivered by the ITS — must be EOI'd or the CPU interface keeps
+        // the priority active and silently drops every subsequent IRQ at
+        // equal/lower priority.
+        if (_lastAckedIntId < 1020 || _lastAckedIntId >= 1024)
         {
             GIC.EndOfInterrupt(_lastAckedIntId);
         }

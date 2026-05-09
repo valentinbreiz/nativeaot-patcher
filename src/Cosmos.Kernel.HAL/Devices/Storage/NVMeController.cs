@@ -83,7 +83,6 @@ public unsafe class NVMeController
     // I/O completion plumbing (MSI-X driven when possible).
     private MsiXContext _msiX;
     private bool _msiXEnabled;
-    private byte _ioVector;
     private IoSlot[]? _ioSlots;
 
     // Slot allocation. SpinLock guards both the slot in-use bits and the
@@ -165,13 +164,12 @@ public unsafe class NVMeController
         }
 
         _msiX = ctx.Value;
-        _ioVector = InterruptManager.AllocateVector(OnIoCompletion);
-        MsiX.SetEntry(_msiX, 0, _ioVector);
+        // The binder allocates the underlying vector / LPI itself (x64 IDT
+        // vector or ARM64 LPI INTID) and wires it to OnIoCompletion.
+        MsiX.SetEntry(_msiX, 0, OnIoCompletion);
         _msiXEnabled = true;
 
-        Serial.WriteString("[NVMe] I/O CQ -> MSI-X vector 0x");
-        Serial.WriteHex(_ioVector);
-        Serial.WriteString("\n");
+        Serial.WriteString("[NVMe] I/O CQ -> MSI-X entry 0\n");
     }
 
     private void DisableController()

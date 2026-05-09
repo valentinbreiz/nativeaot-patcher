@@ -97,6 +97,13 @@ public static class GICv3
     public static bool IsMmioAvailable => _mmioAvailable;
 
     /// <summary>
+    /// RD_base of the redistributor for the current (boot) CPU, discovered
+    /// via TYPER walk. Exposed so the LPI / ITS drivers can program
+    /// PROPBASER/PENDBASER and the ITS collection-mapping target.
+    /// </summary>
+    public static ulong CurrentCpuRdBase => _currentCpuRdBase;
+
+    /// <summary>
     /// Configures the GICv3 base addresses. Must be called before Initialize()
     /// if running on hardware with non-QEMU addresses (e.g., from DTB).
     /// </summary>
@@ -528,12 +535,14 @@ public static class GICv3
 
     /// <summary>
     /// Acknowledges an interrupt and returns its ID.
-    /// Uses ICC_IAR1_EL1 system register.
+    /// Uses ICC_IAR1_EL1 system register. The INTID field is 24 bits wide
+    /// (LPIs occupy 8192..16777215), so we mask to that width — masking to
+    /// 10 bits would truncate any LPI delivered via the ITS.
     /// </summary>
     /// <returns>The interrupt ID, or 1023 if spurious.</returns>
     public static uint AcknowledgeInterrupt()
     {
-        return GICv3Native.ReadIar1() & 0x3FF;
+        return GICv3Native.ReadIar1() & 0xFFFFFF;
     }
 
     /// <summary>

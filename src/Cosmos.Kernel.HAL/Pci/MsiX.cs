@@ -93,6 +93,10 @@ public static class MsiX
             Native.MMIO.Write32(entry + EntryVectorControl, VectorControlMask);
         }
 
+        // Per-arch device prep (ARM64 ITS allocates an ITT + MAPDs the
+        // device here; x64 returns null).
+        object? deviceCtx = MsiRouting.PrepareDevice(pci.Bus, pci.Slot, pci.Function, tableSize);
+
         // Enable MSI-X, clear function mask.
         msgCtrl = (ushort)((msgCtrl & ~MsgCtrlFunctionMask) | MsgCtrlEnable);
         pci.WriteRegister16((byte)(cap + 0x02), msgCtrl);
@@ -101,30 +105,22 @@ public static class MsiX
         ushort cmd = pci.ReadRegister16(0x04);
         pci.WriteRegister16(0x04, (ushort)(cmd | PciCommandInterruptDisable));
 
-        Serial.WriteString("[MSI-X] enabled cap=0x");
-        Serial.WriteHex(cap);
-        Serial.WriteString(" tableSize=");
-        Serial.WriteNumber((uint)tableSize);
-        Serial.WriteString(" tableVirt=0x");
-        Serial.WriteHex(tableVirt);
-        Serial.WriteString("\n");
-
-        return new MsiXContext(tableVirt, tableSize);
+        return new MsiXContext(tableVirt, tableSize, deviceCtx);
     }
 
     /// <summary>
-    /// Programs entry <paramref name="index"/> to deliver
-    /// <paramref name="vector"/> to <paramref name="targetCpu"/> and
-    /// unmasks it.
+    /// Allocate a routing slot (IDT vector on x64, LPI on ARM64) for
+    /// <paramref name="handler"/> via <see cref="MsiRouting"/>, then
+    /// program entry <paramref name="index"/> to deliver to it and unmask.
     /// </summary>
-    public static void SetEntry(MsiXContext ctx, int index, byte vector, uint targetCpu = 0)
+    public static void SetEntry(MsiXContext ctx, int index, InterruptManager.IrqDelegate handler, uint targetCpu = 0)
     {
         if (index < 0 || index >= ctx.EntryCount)
         {
             throw new System.ArgumentOutOfRangeException(nameof(index));
         }
 
-        MsiRouting.ComputeMessage(vector, targetCpu, out ulong address, out uint data);
+        MsiRouting.BindEntry(ctx.DeviceCtx, index, handler, targetCpu, out ulong address, out uint data);
 
         ulong entry = ctx.TableVirt + (ulong)index * EntryStride;
         Native.MMIO.Write32(entry + EntryAddrLo, (uint)address);
@@ -148,16 +144,20 @@ public static class MsiX
 
 /// <summary>
 /// Handle returned by <see cref="MsiX.Enable"/> identifying the mapped
-/// MSI-X table for a device.
+/// MSI-X table for a device. Carries the platform-binder's per-device
+/// state (e.g. ARM64 ITS DeviceID + ITT pointer) so subsequent
+/// <see cref="MsiX.SetEntry"/> calls can route through the same context.
 /// </summary>
 public readonly struct MsiXContext
 {
     public ulong TableVirt { get; }
     public int EntryCount { get; }
+    public object? DeviceCtx { get; }
 
-    public MsiXContext(ulong tableVirt, int entryCount)
+    public MsiXContext(ulong tableVirt, int entryCount, object? deviceCtx)
     {
         TableVirt = tableVirt;
         EntryCount = entryCount;
+        DeviceCtx = deviceCtx;
     }
 }

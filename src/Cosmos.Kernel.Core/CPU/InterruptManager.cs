@@ -19,6 +19,17 @@ public static class InterruptManager
     public delegate void IrqDelegate(ref IRQContext context);
 
     internal static IrqDelegate[]? s_irqHandlers;
+
+    // ARM64 LPIs (GICv3 ITS) live in INTID space starting at 8192. The
+    // dense s_irqHandlers[256] table can't index them — we keep a separate
+    // sparse array sized to the LPI window the kernel commits to. 1024
+    // covers many devices' worth of MSI-X vectors and matches the default
+    // PROPBASER allocation in GICv3Lpi.
+    internal const uint LpiBase = 8192;
+    internal const int LpiCount = 1024;
+    internal static IrqDelegate[]? s_lpiHandlers;
+    private static int s_nextLpiOffset;
+
     private static IInterruptController? s_controller;
 
     private const string NewLine = "\n";
@@ -36,6 +47,7 @@ public static class InterruptManager
     {
         Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
         s_irqHandlers = new IrqDelegate[256];
+        s_lpiHandlers = new IrqDelegate[LpiCount];
         s_controller = controller;
 
         Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
@@ -101,6 +113,41 @@ public static class InterruptManager
     }
 
     /// <summary>
+    /// Allocates an unused LPI (ARM64 GICv3 ITS), registers
+    /// <paramref name="handler"/>, and returns the absolute INTID
+    /// (>= <see cref="LpiBase"/>). The matching LPI must still be enabled
+    /// in the redistributor's PROPBASER table by the GICv3 LPI driver
+    /// before it can fire. Throws on exhaustion.
+    /// </summary>
+    public static uint AllocateLpi(IrqDelegate handler)
+    {
+        if (s_lpiHandlers == null)
+        {
+            throw new System.InvalidOperationException("InterruptManager.Initialize must be called before AllocateLpi");
+        }
+
+        for (int o = s_nextLpiOffset; o < s_lpiHandlers.Length; o++)
+        {
+            if (s_lpiHandlers[o] == null)
+            {
+                s_lpiHandlers[o] = handler;
+                s_nextLpiOffset = o + 1;
+                return LpiBase + (uint)o;
+            }
+        }
+        for (int o = 0; o < s_nextLpiOffset; o++)
+        {
+            if (s_lpiHandlers[o] == null)
+            {
+                s_lpiHandlers[o] = handler;
+                s_nextLpiOffset = o + 1;
+                return LpiBase + (uint)o;
+            }
+        }
+        throw new System.InvalidOperationException("InterruptManager: LPI range exhausted");
+    }
+
+    /// <summary>
     /// Registers a handler for a hardware IRQ and routes it through the interrupt controller.
     /// </summary>
     /// <param name="irqNo">IRQ index (0-15 for ISA IRQs).</param>
@@ -139,25 +186,36 @@ public static class InterruptManager
             {
                 uint intId = s_controller.AcknowledgeInterrupt();
 
-                // Check for spurious interrupt
-                if (intId >= 1020)
+                // Check for spurious interrupt. INTIDs 1020..1023 are
+                // GICv3-reserved and 1023 specifically is "spurious"; LPIs
+                // start at 8192 and must NOT be treated as spurious.
+                if (intId >= 1020 && intId < LpiBase)
                 {
-                    // Spurious interrupt - no EOI needed
                     return;
                 }
 
-                // Dispatch to handler based on GIC interrupt ID
-                if (s_irqHandlers != null && intId < (uint)s_irqHandlers.Length)
+                // Dispatch: SPI/PPI/SGI -> dense s_irqHandlers[256];
+                // LPI (>= 8192) -> sparse s_lpiHandlers[].
+                IrqDelegate? handler = null;
+                if (intId >= LpiBase)
                 {
-                    IrqDelegate handler = s_irqHandlers[(int)intId];
-                    if (handler != null)
+                    uint off = intId - LpiBase;
+                    if (s_lpiHandlers != null && off < (uint)s_lpiHandlers.Length)
                     {
-                        ctx.interrupt = intId;  // Update context with actual interrupt ID
-                        handler(ref ctx);
+                        handler = s_lpiHandlers[(int)off];
                     }
                 }
+                else if (s_irqHandlers != null && intId < (uint)s_irqHandlers.Length)
+                {
+                    handler = s_irqHandlers[(int)intId];
+                }
+                if (handler != null)
+                {
+                    ctx.interrupt = intId;
+                    handler(ref ctx);
+                }
 
-                // Send EOI
+                // Send EOI (works uniformly for SPI/PPI/SGI/LPI).
                 s_controller.SendEOI();
             }
             return;
