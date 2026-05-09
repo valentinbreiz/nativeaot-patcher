@@ -459,6 +459,10 @@ disk.img
 disk-ahci.img
 disk-nvme.img
 
+# Local QEMU boot logs / scratch deploy scripts
+log.txt
+deploy-pzserver.sh
+
 # Installer bundle (downloaded tools, staged during CI build)
 setup/bundle/
 setup/output/
