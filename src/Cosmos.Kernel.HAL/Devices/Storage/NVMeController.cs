@@ -7,9 +7,9 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Pci;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using SchedMutex = Cosmos.Kernel.Core.Scheduler.Mutex;
 using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
+using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
