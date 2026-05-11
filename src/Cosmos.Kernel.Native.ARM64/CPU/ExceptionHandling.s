@@ -7,21 +7,10 @@
 .global __cosmos_exinfo_stack_head
 __cosmos_exinfo_stack_head: .quad 0
 
-// Debug strings
-.debug_x20_str: .asciz "[ASM] x20="
-.debug_x29_str: .asciz " x29="
-.debug_sp_str: .asciz " SP="
-.debug_newline: .asciz "\n"
-.debug_pfp_str: .asciz "[ASM] pFP="
-.debug_pfp_val_str: .asciz " *pFP="
-.debug_regdisp_str: .asciz "[ASM] REGDISPLAY*="
-
 .section .text
 
 // External managed functions
 .extern RhThrowEx                    // C# exception dispatcher
-.extern __cosmos_serial_write        // Serial write string
-.extern __cosmos_serial_write_hex_u64 // Serial write hex
 
 //=============================================================================
 // Structure offsets
@@ -170,12 +159,13 @@ RhpThrowEx:
 .balign 4
 .cfi_startproc
 RhpCallCatchFunclet:
-    // Save callee-saved registers (like x64 does)
+    // Save callee-saved registers (like x64 does). No `mov x29, sp` frame-pointer setup:
+    // x29 is reloaded from REGDISPLAY below for the funclet call, so it would be dead — and the
+    // CFA is kept SP-based anyway (see the note above).
     stp     x29, x30, [sp, #-0x80]!
     .cfi_def_cfa_offset 0x80
     .cfi_rel_offset x29, 0
     .cfi_rel_offset x30, 8
-    mov     x29, sp
     stp     x19, x20, [sp, #0x10]
     .cfi_rel_offset x19, 0x10
     .cfi_rel_offset x20, 0x18
@@ -276,12 +266,12 @@ RhpCallCatchFunclet:
 .balign 4
 .cfi_startproc
 RhpCallFilterFunclet:
-    // Save callee-saved registers and allocate space for arguments
+    // Save callee-saved registers and allocate space for arguments. No `mov x29, sp`:
+    // x29 is reloaded from REGDISPLAY below, so it would be dead; CFA stays SP-based.
     stp     x29, x30, [sp, #-0x70]!
     .cfi_def_cfa_offset 0x70
     .cfi_rel_offset x29, 0
     .cfi_rel_offset x30, 8
-    mov     x29, sp
     stp     x19, x20, [sp, #0x10]
     .cfi_rel_offset x19, 0x10
     .cfi_rel_offset x20, 0x18
