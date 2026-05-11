@@ -105,8 +105,8 @@ public static unsafe partial class GarbageCollector
             }
             else
             {
-                // Boot/idle thread on the bootloader stack — no StackBase/StackSize; use a generous bound.
-                stackEnd = ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize;
+                // Boot/idle thread on the bootloader stack — no StackBase/StackSize.
+                stackEnd = GetCurrentStackEndForBootStack();
             }
 
             PreciseScanCurrentThread(stackEnd);
@@ -127,8 +127,19 @@ public static unsafe partial class GarbageCollector
         else
         {
             // No scheduler — only one stack, and it is the GC-triggering thread's.
-            PreciseScanCurrentThread(ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize);
+            PreciseScanCurrentThread(GetCurrentStackEndForBootStack());
         }
+    }
+
+    /// <summary>
+    /// Stack-end bound for the current thread when its <see cref="Scheduler.Thread"/> has no
+    /// allocated <c>StackBase</c>/<c>StackSize</c> — the boot/idle thread runs on the bootloader's
+    /// stack. Returns the current SP plus the default stack size: a deliberately generous bound, so
+    /// a word or two of slop from this helper's own frame is immaterial.
+    /// </summary>
+    private static nuint GetCurrentStackEndForBootStack()
+    {
+        return ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize;
     }
 
     /// <summary>
@@ -251,8 +262,7 @@ public static unsafe partial class GarbageCollector
             else
             {
                 // Boot/idle thread uses the bootloader's stack — no StackBase/StackSize.
-                // Scan upward from RSP for a conservative fixed range.
-                stackEnd = stackStart + Scheduler.Thread.DefaultStackSize;
+                stackEnd = GetCurrentStackEndForBootStack();
             }
         }
         else
