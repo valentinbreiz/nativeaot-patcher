@@ -127,22 +127,45 @@ RhpThrowEx:
 //
 // The catch funclet expects the exception object in RDI.
 // After the funclet returns, we resume at the address it returns.
+//
+// CFI: the prologue is described so the precise GC stack scan / exception unwinder (issue #346)
+// can step from inside the funclet up through this trampoline into the dispatcher's managed frame.
+// Only the post-`call qword ptr [rsp + 16]` IP is ever a CFI target here (GC cannot fire elsewhere
+// in this stub — interrupts off, no allocations), and the exotic "mov rsp, r9 / ret" tail runs
+// strictly after that point, so describing just the prologue is sufficient and correct.
 //=============================================================================
 .global RhpCallCatchFunclet
+.cfi_startproc
 RhpCallCatchFunclet:
     // Save callee-saved registers
     push    rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    r12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    r13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
 
-    // Save arguments
+    // Save arguments (caller-saved — only the CFA offset advances)
     push    rdi                     // exception object
+    .cfi_adjust_cfa_offset 8
     push    rsi                     // handler address
+    .cfi_adjust_cfa_offset 8
     push    rdx                     // REGDISPLAY*
+    .cfi_adjust_cfa_offset 8
     push    rcx                     // ExInfo*
+    .cfi_adjust_cfa_offset 8
 
     // Restore callee-saved registers from REGDISPLAY
     // These are the registers the funclet expects to have the values from the throwing method
@@ -234,6 +257,7 @@ RhpCallCatchFunclet:
     mov     rsp, r9
     add     rsp, 8                  // Point RSP to return address
     ret                             // Return to Start (pops [r9+8] as return addr)
+.cfi_endproc
 
 
 //=============================================================================
@@ -247,21 +271,40 @@ RhpCallCatchFunclet:
 //
 // The filter funclet expects the exception object in RDI.
 // It returns non-zero if the exception should be caught by this handler.
+//
+// CFI: see the note on RhpCallCatchFunclet. The epilogue here is the ordinary
+// `add rsp, 24` + 6 pops + `ret`; GC cannot fire in it, so prologue CFI is sufficient.
 //=============================================================================
 .global RhpCallFilterFunclet
+.cfi_startproc
 RhpCallFilterFunclet:
     // Save callee-saved registers
     push    rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    r12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    r13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
 
-    // Save arguments
+    // Save arguments (caller-saved — only the CFA offset advances)
     push    rdi                     // exception object
+    .cfi_adjust_cfa_offset 8
     push    rsi                     // filter address
+    .cfi_adjust_cfa_offset 8
     push    rdx                     // REGDISPLAY*
+    .cfi_adjust_cfa_offset 8
 
     // Restore callee-saved registers from REGDISPLAY
     // These are the registers the funclet expects to have the values from the method
@@ -315,6 +358,7 @@ RhpCallFilterFunclet:
     // Return filter result
     mov     rax, r8
     ret
+.cfi_endproc
 
 
 //=============================================================================
