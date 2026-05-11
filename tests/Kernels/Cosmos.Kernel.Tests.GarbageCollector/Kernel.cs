@@ -715,6 +715,13 @@ public class Kernel : Sys.Kernel
     }
 
     // ==================== Precise funclet-frame stack scan (issue #346, phase 3) ====================
+    //
+    // Both tests do their allocation, GC, AND assertion inside the catch handler, so the funclet
+    // frame is the one precisely scanned when CoreGC.Collect runs and nothing has to flow back out
+    // across the catch (the catch-resume path is not under test, and its x64/ARM64 implementations
+    // differ). Helpers are void and the callers are unrolled — no value or loop counter has to
+    // survive the call, so the tests don't depend on how the trampoline returns. (Assert records
+    // failures in static state — Assert.cs — so an assertion inside a catch is sound.)
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ThrowFuncletSentinel(int shape)
@@ -723,75 +730,74 @@ public class Kernel : Sys.Kernel
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static int RunCatchAllocShape(int shape)
+    private static void FuncletAllocAndCollectShape(int shape)
     {
-        int observed = 0;
         try
         {
             ThrowFuncletSentinel(shape);
         }
         catch (Exception ex)
         {
-            // This block IS the catch funclet's stack frame. Before phase 3 the precise scan
-            // bailed to a conservative scan of the remaining stack the moment it reached a
-            // funclet — and the funclet trampoline carried no CFI, so the parent method's frame
-            // stayed conservatively scanned too. Allocating and forcing a GC from inside the
-            // funclet exercises the issue #227 path: the scan must now walk funclet -> trampoline
-            // -> dispatcher -> parent precisely without faulting.
+            // This block IS the catch funclet's stack frame. Before phase 3 the precise scan bailed
+            // to a conservative scan of the rest of the stack the moment it reached a funclet, and
+            // the funclet trampoline carried no CFI so the parent method's frame stayed
+            // conservatively scanned too. Allocating + forcing a GC from inside the funclet
+            // exercises the issue #227 path: the scan must walk funclet -> trampoline -> dispatcher
+            // -> parent precisely without faulting. Reaching the assertion with the funclet's locals
+            // intact means it did.
             byte[] keep = new byte[128];
             keep[0] = (byte)shape;
             string msg = ex.Message;          // materializes a string inside the funclet body
             CoreGC.Collect();
             CoreGC.Collect();
-            observed = keep[0] + (msg != null ? 1 : 0);
+            Assert.True(keep[0] == (byte)shape && msg != null && msg.Length > 0,
+                "GC: catch-handler alloc + GC.Collect must complete without faulting or corrupting funclet locals (shape " + shape + ", issue #227)");
         }
-        return observed;
     }
 
     private static void TestGCFuncletNoCrashOnAllocInCatch()
     {
-        for (int shape = 0; shape < 4; shape++)
-        {
-            int observed = RunCatchAllocShape(shape);
-            Assert.True(observed >= 1,
-                "GC: catch-handler alloc + GC.Collect must complete without crashing (shape " + shape + ", issue #227)");
-        }
+        FuncletAllocAndCollectShape(0);
+        FuncletAllocAndCollectShape(1);
+        FuncletAllocAndCollectShape(2);
+        FuncletAllocAndCollectShape(3);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static WeakReference CreateWeakRefInCatch(int shape)
+    private static void FuncletNoFalseRootShape(int shape)
     {
-        WeakReference wr = null!;
         try
         {
             ThrowFuncletSentinel(shape);
         }
         catch (Exception ex)
         {
-            // `dead` lives only in the catch funclet's frame. Its GCInfo marks the slot dead at
-            // the IP right before the closing brace, so a precise scan of the funclet frame must
-            // not root it. A conservative scan over the same stack range could (the layout-fragile
-            // false-rooting case issue #346 fights) — this test is the funclet-frame analogue of
-            // TestGCPreciseStackScan.
-            byte[] dead = new byte[128];
-            dead[0] = (byte)shape;
-            wr = new WeakReference(dead);
-            GC.KeepAlive(dead);
+            WeakReference wr;
+            {
+                // `dead`'s only strong ref is this inner-block local — a slot in the catch funclet's
+                // frame. It goes out of scope at the inner brace.
+                byte[] dead = new byte[128];
+                dead[0] = (byte)shape;
+                wr = new WeakReference(dead);
+            }
+            // From here `dead`'s slot is dead in the funclet's GCInfo. A precise scan of the funclet
+            // frame must not over-root it; a conservative scan over the same stack range could (the
+            // layout-fragile false-rooting case issue #346 fights). This is the funclet-frame
+            // analogue of TestGCPreciseStackScan.
             _ = ex.Message;                   // touch ex so the funclet keeps a real frame
+            CoreGC.Collect();
+            CoreGC.Collect();
+            Assert.True(!wr.IsAlive,
+                "GC: a value whose only ref lived in a catch funclet's now-dead local must be collected (shape " + shape + ", precise funclet scan, issue #346)");
         }
-        return wr;
     }
 
     private static void TestGCFuncletNoFalseRoot()
     {
-        for (int shape = 0; shape < 4; shape++)
-        {
-            WeakReference wr = CreateWeakRefInCatch(shape);
-            CoreGC.Collect();
-            CoreGC.Collect();
-            Assert.True(!wr.IsAlive,
-                "GC: weak ref to a value allocated inside a catch must clear after the catch exits (shape " + shape + ", precise funclet scan, issue #346)");
-        }
+        FuncletNoFalseRootShape(0);
+        FuncletNoFalseRootShape(1);
+        FuncletNoFalseRootShape(2);
+        FuncletNoFalseRootShape(3);
     }
 
     // ==================== GC Info & Configuration Tests ====================
