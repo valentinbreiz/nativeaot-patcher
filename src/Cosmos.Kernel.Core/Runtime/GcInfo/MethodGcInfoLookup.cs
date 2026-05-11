@@ -9,12 +9,12 @@
 // NOTE: the .eh_frame walk here duplicates a slice of ExceptionHelper.ParseEhFrameForIP; the two
 // are intended to be unified in a later phase (epic #348, phase 2).
 
-using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.Bridge;
 
 namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 
 /// <summary>Maps an instruction pointer to its method's GCInfo blob and code offset.</summary>
-public static unsafe partial class MethodGcInfoLookup
+public static unsafe class MethodGcInfoLookup
 {
     // LSDA "unwind block" flags (UnixNativeCodeManager.cpp).
     private const byte UBF_FUNC_KIND_MASK = 0x03;
@@ -22,14 +22,6 @@ public static unsafe partial class MethodGcInfoLookup
     private const byte UBF_FUNC_KIND_FILTER = 0x02;
     private const byte UBF_FUNC_HAS_EHINFO = 0x04;
     private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
-
-    [LibraryImport("*", EntryPoint = "get_eh_frame_start")]
-    [SuppressGCTransition]
-    private static partial byte* GetEhFrameStart();
-
-    [LibraryImport("*", EntryPoint = "get_eh_frame_end")]
-    [SuppressGCTransition]
-    private static partial byte* GetEhFrameEnd();
 
     /// <summary>Resolved GCInfo location for an instruction pointer.</summary>
     public struct MethodGcInfo
@@ -102,8 +94,8 @@ public static unsafe partial class MethodGcInfoLookup
         funcEnd = 0;
         pLsda = null;
 
-        byte* ehFrameStart = GetEhFrameStart();
-        byte* ehFrameEnd = GetEhFrameEnd();
+        byte* ehFrameStart = EhFrameNative.GetStart();
+        byte* ehFrameEnd = EhFrameNative.GetEnd();
         if (ehFrameStart == null || ehFrameEnd == null || ehFrameStart >= ehFrameEnd)
         {
             return false;

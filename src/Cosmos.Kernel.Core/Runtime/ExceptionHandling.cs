@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.Bridge;
 using Cosmos.Kernel.Core.IO;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
@@ -410,15 +411,6 @@ public static unsafe partial class ExceptionHelper
     [LibraryImport("*", EntryPoint = "RhpCallFilterFunclet")]
     [SuppressGCTransition]
     private static partial nint RhpCallFilterFunclet(nint exceptionPtr, void* filterAddress, void* pRegDisplay);
-
-    // C functions from kmain.c that return eh_frame section addresses
-    [LibraryImport("*", EntryPoint = "get_eh_frame_start")]
-    [SuppressGCTransition]
-    private static partial byte* GetEhFrameStart();
-
-    [LibraryImport("*", EntryPoint = "get_eh_frame_end")]
-    [SuppressGCTransition]
-    private static partial byte* GetEhFrameEnd();
 
     // Guard against recursive exception handling
     private static bool s_isHandlingException = false;
@@ -881,8 +873,8 @@ public static unsafe partial class ExceptionHelper
         pLSDA = null;
 
         // Get eh_frame section bounds from C helper functions
-        byte* ehFrameStart = GetEhFrameStart();
-        byte* ehFrameEnd = GetEhFrameEnd();
+        byte* ehFrameStart = EhFrameNative.GetStart();
+        byte* ehFrameEnd = EhFrameNative.GetEnd();
 
         if (ehFrameStart == null || ehFrameEnd == null || ehFrameStart >= ehFrameEnd)
         {
@@ -1373,8 +1365,8 @@ public static unsafe partial class ExceptionHelper
         pFDEInstructionsEnd = null;
         pLSDA = null;
 
-        byte* ehFrameStart = GetEhFrameStart();
-        byte* ehFrameEnd = GetEhFrameEnd();
+        byte* ehFrameStart = EhFrameNative.GetStart();
+        byte* ehFrameEnd = EhFrameNative.GetEnd();
 
         if (ehFrameStart == null || ehFrameEnd == null)
         {
@@ -1895,8 +1887,8 @@ public static unsafe partial class ExceptionHelper
         pFDEInstructionsEnd = null;
         pLSDA = null;
 
-        byte* ehFrameStart = GetEhFrameStart();
-        byte* ehFrameEnd = GetEhFrameEnd();
+        byte* ehFrameStart = EhFrameNative.GetStart();
+        byte* ehFrameEnd = EhFrameNative.GetEnd();
 
         if (ehFrameStart == null || ehFrameEnd == null)
         {
