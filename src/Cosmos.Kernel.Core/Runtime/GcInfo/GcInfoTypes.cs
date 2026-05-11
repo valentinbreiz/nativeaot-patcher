@@ -16,53 +16,53 @@ namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 [Flags]
 public enum GcInfoDecoderFlags : uint
 {
-    DECODE_EVERYTHING            = 0x0,
-    DECODE_SECURITY_OBJECT       = 0x01,
-    DECODE_CODE_LENGTH           = 0x02,
-    DECODE_VARARG                = 0x04,
-    DECODE_INTERRUPTIBILITY      = 0x08,
-    DECODE_GC_LIFETIMES          = 0x10,
-    DECODE_NO_VALIDATION         = 0x20,
-    DECODE_PSP_SYM               = 0x40,    // unused starting with v4
+    DECODE_EVERYTHING = 0x0,
+    DECODE_SECURITY_OBJECT = 0x01,
+    DECODE_CODE_LENGTH = 0x02,
+    DECODE_VARARG = 0x04,
+    DECODE_INTERRUPTIBILITY = 0x08,
+    DECODE_GC_LIFETIMES = 0x10,
+    DECODE_NO_VALIDATION = 0x20,
+    DECODE_PSP_SYM = 0x40,    // unused starting with v4
     DECODE_GENERICS_INST_CONTEXT = 0x80,
-    DECODE_GS_COOKIE             = 0x100,
-    DECODE_FOR_RANGES_CALLBACK   = 0x200,
-    DECODE_PROLOG_LENGTH         = 0x400,
-    DECODE_EDIT_AND_CONTINUE     = 0x800,
-    DECODE_REVERSE_PINVOKE_VAR   = 0x1000,
-    DECODE_RETURN_KIND           = 0x2000,  // unused starting with v4
-    DECODE_HAS_TAILCALLS         = 0x4000,  // ARM/ARM64 only
+    DECODE_GS_COOKIE = 0x100,
+    DECODE_FOR_RANGES_CALLBACK = 0x200,
+    DECODE_PROLOG_LENGTH = 0x400,
+    DECODE_EDIT_AND_CONTINUE = 0x800,
+    DECODE_REVERSE_PINVOKE_VAR = 0x1000,
+    DECODE_RETURN_KIND = 0x2000,  // unused starting with v4
+    DECODE_HAS_TAILCALLS = 0x4000,  // ARM/ARM64 only
 }
 
 /// <summary>Flags stored at the start of a (fat) GCInfo header.</summary>
 [Flags]
 public enum GcInfoHeaderFlags : uint
 {
-    GC_INFO_IS_VARARG                      = 0x1,
-    GC_INFO_HAS_GS_COOKIE                  = 0x4,
-    GC_INFO_HAS_PSP_SYM                    = 0x8,    // unused starting with v4
+    GC_INFO_IS_VARARG = 0x1,
+    GC_INFO_HAS_GS_COOKIE = 0x4,
+    GC_INFO_HAS_PSP_SYM = 0x8,    // unused starting with v4
     GC_INFO_HAS_GENERICS_INST_CONTEXT_MASK = 0x30,
     GC_INFO_HAS_GENERICS_INST_CONTEXT_NONE = 0x00,
-    GC_INFO_HAS_GENERICS_INST_CONTEXT_MT   = 0x10,
-    GC_INFO_HAS_GENERICS_INST_CONTEXT_MD   = 0x20,
+    GC_INFO_HAS_GENERICS_INST_CONTEXT_MT = 0x10,
+    GC_INFO_HAS_GENERICS_INST_CONTEXT_MD = 0x20,
     GC_INFO_HAS_GENERICS_INST_CONTEXT_THIS = 0x30,
-    GC_INFO_HAS_STACK_BASE_REGISTER        = 0x40,
+    GC_INFO_HAS_STACK_BASE_REGISTER = 0x40,
 #if ARCH_X64
-    GC_INFO_WANTS_REPORT_ONLY_LEAF         = 0x80,
+    GC_INFO_WANTS_REPORT_ONLY_LEAF = 0x80,
 #elif ARCH_ARM64
     GC_INFO_HAS_TAILCALLS                  = 0x80,
 #endif
-    GC_INFO_HAS_EDIT_AND_CONTINUE_INFO     = 0x100,
-    GC_INFO_REVERSE_PINVOKE_FRAME          = 0x200,
+    GC_INFO_HAS_EDIT_AND_CONTINUE_INFO = 0x100,
+    GC_INFO_REVERSE_PINVOKE_FRAME = 0x200,
 }
 
 /// <summary>Per-slot flags decoded from the 2-bit field in the slot table (matches GcSlotFlags / GC_CALL_*).</summary>
 [Flags]
 public enum GcSlotFlags
 {
-    GC_SLOT_BASE      = 0x0,
-    GC_SLOT_INTERIOR  = 0x1,   // == GC_CALL_INTERIOR
-    GC_SLOT_PINNED    = 0x2,   // == GC_CALL_PINNED
+    GC_SLOT_BASE = 0x0,
+    GC_SLOT_INTERIOR = 0x1,   // == GC_CALL_INTERIOR
+    GC_SLOT_PINNED = 0x2,   // == GC_CALL_PINNED
     GC_SLOT_UNTRACKED = 0x4,
 }
 
@@ -70,27 +70,27 @@ public enum GcSlotFlags
 public enum GcStackSlotBase
 {
     GC_CALLER_SP_REL = 0x0,
-    GC_SP_REL        = 0x1,
-    GC_FRAMEREG_REL  = 0x2,
+    GC_SP_REL = 0x1,
+    GC_FRAMEREG_REL = 0x2,
 }
 
 /// <summary>Per-frame flags passed to <see cref="GcInfoDecoder.EnumerateLiveSlots"/> (subset of ICodeManagerFlags).</summary>
 [Flags]
 public enum CodeManagerFlags : uint
 {
-    None                      = 0,
-    ActiveStackFrame          = 0x0001, // currently-active (leaf) frame
-    ExecutionAborted          = 0x0002, // execution will not resume here
+    None = 0,
+    ActiveStackFrame = 0x0001, // currently-active (leaf) frame
+    ExecutionAborted = 0x0002, // execution will not resume here
     ParentOfFuncletStackFrame = 0x0040,
-    NoReportUntracked         = 0x0080, // do not report untracked slots (filters)
-    ReportFPBasedSlotsOnly    = 0x0200,
+    NoReportUntracked = 0x0080, // do not report untracked slots (filters)
+    ReportFPBasedSlotsOnly = 0x0200,
 }
 
 /// <summary>GC reference flags reported to the enum callback (matches GC_CALL_INTERIOR / GC_CALL_PINNED).</summary>
 public static class GcRefFlags
 {
     public const uint GC_CALL_INTERIOR = 0x1;
-    public const uint GC_CALL_PINNED   = 0x2;
+    public const uint GC_CALL_PINNED = 0x2;
 }
 
 /// <summary>One decoded slot-table entry: a register, or a (base,offset) stack location.</summary>
