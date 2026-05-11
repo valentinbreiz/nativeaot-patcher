@@ -1,6 +1,6 @@
 ## Overview
 
-The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.
+The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through conservative stack scanning (being replaced by a precise scan — see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)) and GC handles, and runs with interrupts disabled as a stop-the-world collection.
 
 All GC code lives in the `GarbageCollector` partial class split across seven files:
 
@@ -315,6 +315,8 @@ flowchart LR
 **Static root scanning** walks GCStaticRegion sections from all loaded modules. This is currently disabled.
 
 **Stack scanning** is **conservative**: every pointer-sized value on the stack is treated as a potential object reference. If the scheduler is active, the GC iterates all thread contexts and scans both saved registers and stack memory. Without a scheduler, it scans the current stack from RSP to the stack base.
+
+This conservative scan over-roots (stale heap pointers in dead spill slots keep objects alive) and is layout-fragile (a codegen shift can resurrect a dead object — see [issue #346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346)). It is being replaced by a **precise** scan driven by NativeAOT GCInfo — see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md) for the target design, why, and the staged rollout ([issues #346 / #348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348)).
 
 **GC handle scanning** walks the handle table and marks objects referenced by `Normal` and `Pinned` handles. `Weak` handles do not keep objects alive.
 
