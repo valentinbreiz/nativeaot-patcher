@@ -4,6 +4,8 @@
 .global _native_cpu_rdtsc
 .global _native_cpu_disable_interrupts
 .global _native_cpu_enable_interrupts
+.global _native_cpu_save_irq_and_disable
+.global _native_cpu_restore_irq
 
 .text
 
@@ -19,6 +21,20 @@ _native_cpu_disable_interrupts:
 // Enable interrupts (STI)
 _native_cpu_enable_interrupts:
     sti
+    ret
+
+// Save RFLAGS and disable interrupts.
+// Returns: previous RFLAGS in RAX (System V ABI).
+_native_cpu_save_irq_and_disable:
+    pushfq
+    pop     rax
+    cli
+    ret
+
+// Restore RFLAGS from first argument (RDI on System V ABI).
+_native_cpu_restore_irq:
+    push    rdi
+    popfq
     ret
 
 // Read Time Stamp Counter

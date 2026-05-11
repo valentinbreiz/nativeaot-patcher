@@ -19,7 +19,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 35);
+        TR.Start("GarbageCollector Tests", expectedTests: 36);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -44,6 +44,7 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_DependentHandleCleanup", TestGCDependentHandleCleanup);
         TR.Run("GC_HandleStoreIntegrity", TestGCHandleStoreIntegrity);
         TR.Run("GC_PinnedHeapReuse", TestGCPinnedHeapReuse);
+        TR.Run("GC_StackScanPaddingStress", TestGCStackScanPaddingStress);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -506,6 +507,69 @@ public class Kernel : Sys.Kernel
         CoreGC.Collect();
         byte[] arr = GC.AllocateArray<byte>(32, pinned: true);
         Assert.True(arr != null, "GC: pinned allocation works after collection");
+    }
+
+    // ==================== Stack-Scan Padding Stress (issue #346) ====================
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateWeakRefBare()
+    {
+        // The byte[128] strong ref only lives on this frame. On return the
+        // compiler-chosen spill slot becomes a stale pointer — exactly the
+        // shape conservative-scan false-rooting feeds on (issue #346).
+        object target = new byte[128];
+        return new WeakReference(target);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void RunStackScanPaddingShape(int shape)
+    {
+        // `shape + 1` stack-resident longs change the frame size in 8-byte
+        // increments per call, shifting spill-slot offsets across runs.
+        Span<long> pad = stackalloc long[shape + 1];
+        for (int i = 0; i < pad.Length; i++)
+        {
+            // Sentinel values stay below the kernel higher-half (0xFFFF8000...)
+            // so the scanner's MethodTable check rejects them even if they
+            // accidentally satisfy IsInGCHeap.
+            pad[i] = (long)(0x00C0DE00L | (long)((shape << 4) | i));
+        }
+
+        WeakReference wr = CreateWeakRefBare();
+
+        CoreGC.Collect();
+        CoreGC.Collect();
+
+        // Keep `pad` live across the collect so the JIT can't shrink its
+        // lifetime and undo the padding before the GC scan runs.
+        long sink = 0;
+        for (int i = 0; i < pad.Length; i++)
+        {
+            sink ^= pad[i];
+        }
+        if (sink == -1L)
+        {
+            Serial.WriteString("");
+        }
+
+        Assert.True(!wr.IsAlive,
+            "GC: padding shape " + shape + " must clear weak ref (issue #346)");
+    }
+
+    private static void TestGCStackScanPaddingStress()
+    {
+        // The mark phase walks every word of each thread's stack and treats
+        // anything that looks like a heap pointer as a root. TestGCWeakReference
+        // already covers one frame shape; this test widens the net by varying
+        // the count of stack-resident locals across 8 shapes so a stale spill
+        // from CreateWeakRefBare lands at different offsets per run. All shapes
+        // must clear the weak reference — a flake on any shape means
+        // conservative-scan false-rooting has crept back (the failure mode that
+        // commit 2f1b6d17 reverted).
+        for (int shape = 0; shape < 8; shape++)
+        {
+            RunStackScanPaddingShape(shape);
+        }
     }
 
     // ==================== GC Info & Configuration Tests ====================

@@ -83,6 +83,11 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void ScanStackRoots()
     {
+        if (!CosmosFeatures.ConservativeStackScan)
+        {
+            Panic.Halt("GC: precise stack scan not implemented; see issue #346. Re-enable CosmosEnableConservativeGCStackScan to keep the current conservative scanner.");
+        }
+
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
             var Threads = SchedulerManager.Threads;
