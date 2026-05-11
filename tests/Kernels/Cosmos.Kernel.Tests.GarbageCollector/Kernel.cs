@@ -20,7 +20,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 37);
+        TR.Start("GarbageCollector Tests", expectedTests: 38);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -47,6 +47,7 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_PinnedHeapReuse", TestGCPinnedHeapReuse);
         TR.Run("GC_StackScanPaddingStress", TestGCStackScanPaddingStress);
         TR.Run("GC_GcInfoDecoder", TestGCGcInfoDecoder);
+        TR.Run("GC_PreciseStackScan", TestGCPreciseStackScan);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -644,6 +645,65 @@ public class Kernel : Sys.Kernel
     {
         // Do NOT dereference pObjRef — the REGDISPLAY passed by the test is a zeroed stub; only count.
         *(int*)ctx = *(int*)ctx + 1;
+    }
+
+    // ==================== Precise GCInfo stack scan (issue #346, phase 2) ====================
+
+    private static unsafe void TestGCPreciseStackScan()
+    {
+        // 1. The shared .eh_frame / LSDA parser: TryGetMethodLSDA must agree with TryGetMethodGcInfo
+        //    (ExceptionHelper.TryGetMethodLSDA now delegates to MethodGcInfoLookup — one parser).
+        delegate*<int, string> probe = &DescribeShape;
+        nuint probeIp = (nuint)(void*)probe;
+
+        bool gotGcInfo = MethodGcInfoLookup.TryGetMethodGcInfo(probeIp, out MethodGcInfoLookup.MethodGcInfo mi);
+        Assert.True(gotGcInfo, "GC: TryGetMethodGcInfo must locate the probe method");
+        bool gotLsda = MethodGcInfoLookup.TryGetMethodLSDA(probeIp, out nuint methodStart, out byte* pLsda);
+        Assert.True(gotLsda, "GC: TryGetMethodLSDA must locate the probe method");
+        Assert.True(pLsda != null, "GC: TryGetMethodLSDA must return a non-null LSDA pointer");
+        Assert.True(methodStart == mi.MethodStart, "GC: TryGetMethodLSDA and TryGetMethodGcInfo agree on method start");
+
+        // 2. Spill-aliasing repro (issue #346): a byte[128] whose only strong ref outlives the local
+        //    in a compiler-chosen spill slot. A precise scan ignores that dead slot, so the weak ref
+        //    must be cleared after collection. The assertion also holds under the conservative scan
+        //    for these layouts (so the suite stays green in the default config) — and additionally
+        //    proves the precise leg when the kernel is built CosmosEnableConservativeGCStackScan=false.
+        for (int shape = 0; shape < 6; shape++)
+        {
+            RunPreciseProbeShape(shape);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void RunPreciseProbeShape(int shape)
+    {
+        // `shape + 1` stack-resident longs shift spill-slot offsets across runs (see #346).
+        Span<long> pad = stackalloc long[shape + 1];
+        for (int i = 0; i < pad.Length; i++)
+        {
+            // Sentinels stay below the kernel higher-half so the scanner's MethodTable check
+            // rejects them even if they happen to satisfy IsInGCHeap.
+            pad[i] = (long)(0x00BEEF00L | (long)((shape << 4) | i));
+        }
+
+        WeakReference wr = CreateWeakRefBare();
+
+        CoreGC.Collect();
+        CoreGC.Collect();
+
+        // Keep `pad` live across the collect so the JIT can't shrink its lifetime.
+        long sink = 0;
+        for (int i = 0; i < pad.Length; i++)
+        {
+            sink ^= pad[i];
+        }
+        if (sink == -1L)
+        {
+            Serial.WriteString("");
+        }
+
+        Assert.True(!wr.IsAlive,
+            "GC: precise scan must clear weak ref (shape " + shape + ", issue #346)");
     }
 
     // ==================== GC Info & Configuration Tests ====================

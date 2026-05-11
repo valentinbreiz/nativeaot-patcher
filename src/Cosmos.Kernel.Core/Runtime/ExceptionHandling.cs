@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Bridge;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 namespace Cosmos.Kernel.Core.Runtime;
@@ -397,11 +398,11 @@ public static unsafe partial class ExceptionHelper
     // Maximum stack frames to walk
     private const int MAX_STACK_FRAMES = 64;
 
-    // LSDA parsing constants (from UnixNativeCodeManager.cpp)
-    private const byte UBF_FUNC_KIND_MASK = 0x03;
-    private const byte UBF_FUNC_KIND_ROOT = 0x00;
-    private const byte UBF_FUNC_HAS_EHINFO = 0x04;
-    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
+    // LSDA "unwind block" flags — shared with the precise GC stack scan.
+    private const byte UBF_FUNC_KIND_MASK = MethodGcInfoLookup.UBF_FUNC_KIND_MASK;
+    private const byte UBF_FUNC_KIND_ROOT = MethodGcInfoLookup.UBF_FUNC_KIND_ROOT;
+    private const byte UBF_FUNC_HAS_EHINFO = MethodGcInfoLookup.UBF_FUNC_HAS_EHINFO;
+    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = MethodGcInfoLookup.UBF_FUNC_HAS_ASSOCIATED_DATA;
 
     // Assembly funclet callers - use nint for object reference since P/Invoke doesn't support object
     [LibraryImport("*", EntryPoint = "RhpCallCatchFunclet")]
@@ -865,131 +866,11 @@ public static unsafe partial class ExceptionHelper
     }
 
     /// <summary>
-    /// Try to find the LSDA for a given IP address by parsing eh_frame
+    /// Try to find the FDE PC-begin and LSDA pointer for a given IP. Delegates to the shared
+    /// .eh_frame / LSDA-header parser in <see cref="MethodGcInfoLookup"/>.
     /// </summary>
     private static bool TryGetMethodLSDA(nuint ip, out nuint methodStart, out byte* pLSDA)
-    {
-        methodStart = 0;
-        pLSDA = null;
-
-        // Get eh_frame section bounds from C helper functions
-        byte* ehFrameStart = EhFrameNative.GetStart();
-        byte* ehFrameEnd = EhFrameNative.GetEnd();
-
-        if (ehFrameStart == null || ehFrameEnd == null || ehFrameStart >= ehFrameEnd)
-        {
-            Serial.WriteString("[EH] No eh_frame section available\n");
-            return false;
-        }
-
-        Serial.WriteString("[EH] Searching eh_frame from 0x");
-        Serial.WriteHex((nuint)ehFrameStart);
-        Serial.WriteString(" to 0x");
-        Serial.WriteHex((nuint)ehFrameEnd);
-        Serial.WriteString("\n");
-
-        // Parse eh_frame to find the FDE (Frame Description Entry) containing our IP
-        // eh_frame uses DWARF CFI format
-        return ParseEhFrameForIP(ehFrameStart, ehFrameEnd, ip, out methodStart, out pLSDA);
-    }
-
-    /// <summary>
-    /// Parse eh_frame section to find method info for a given IP
-    /// eh_frame contains CIE (Common Information Entry) and FDE (Frame Description Entry) records
-    /// </summary>
-    private static bool ParseEhFrameForIP(byte* ehFrameStart, byte* ehFrameEnd, nuint ip,
-                                           out nuint methodStart, out byte* pLSDA)
-    {
-        methodStart = 0;
-        pLSDA = null;
-
-        byte* p = ehFrameStart;
-
-        while (p < ehFrameEnd)
-        {
-            // Read length (4 bytes, or 0xFFFFFFFF for extended length)
-            uint length = *(uint*)p;
-            if (length == 0)
-            {
-                break; // End of eh_frame
-            }
-
-            if (length == 0xFFFFFFFF)
-            {
-                // Extended length - skip for now
-                Serial.WriteString("[EH] Extended length FDE not supported\n");
-                break;
-            }
-
-            byte* recordStart = p;
-            byte* recordEnd = p + 4 + length;
-            p += 4;
-
-            // Read CIE pointer (0 = this is a CIE, non-zero = offset to CIE, this is an FDE)
-            uint ciePointer = *(uint*)p;
-            p += 4;
-
-            if (ciePointer == 0)
-            {
-                // This is a CIE - skip it
-                p = recordEnd;
-                continue;
-            }
-
-            // This is an FDE - parse it
-            // ciePointer is relative offset back to the CIE
-            byte* cie = (recordStart + 4) - ciePointer;
-
-            // Read PC begin (encoded, usually as pc-relative)
-            // For simplicity, assume sdata4 encoding (signed 4-byte PC-relative)
-            int pcBeginRel = *(int*)p;
-            nuint pcBegin = (nuint)(p + pcBeginRel);
-            p += 4;
-
-            // Read PC range
-            uint pcRange = *(uint*)p;
-            p += 4;
-
-            nuint pcEnd = pcBegin + pcRange;
-
-            // Check if IP is in this FDE's range
-            if (ip >= pcBegin && ip < pcEnd)
-            {
-                Serial.WriteString("[EH] Found FDE: PC 0x");
-                Serial.WriteHex(pcBegin);
-                Serial.WriteString(" - 0x");
-                Serial.WriteHex(pcEnd);
-                Serial.WriteString("\n");
-
-                methodStart = pcBegin;
-
-                // Read augmentation length (ULEB128) to find LSDA pointer
-                // For now, skip augmentation data parsing - LSDA pointer is typically at the start
-                uint augLen = ReadULEB128(ref p);
-
-                if (augLen > 0)
-                {
-                    // First item in augmentation data is usually the LSDA pointer (if CIE has 'L' in augmentation string)
-                    // Assuming sdata4 encoding for LSDA pointer
-                    int lsdaRel = *(int*)p;
-                    if (lsdaRel != 0)
-                    {
-                        pLSDA = p + lsdaRel;
-                        Serial.WriteString("[EH] LSDA at 0x");
-                        Serial.WriteHex((nuint)pLSDA);
-                        Serial.WriteString("\n");
-                    }
-                }
-
-                return pLSDA != null;
-            }
-
-            p = recordEnd;
-        }
-
-        Serial.WriteString("[EH] IP not found in eh_frame\n");
-        return false;
-    }
+        => MethodGcInfoLookup.TryGetMethodLSDA(ip, out methodStart, out pLSDA);
 
     /// <summary>
     /// Read unsigned LEB128 encoded value
@@ -1447,7 +1328,7 @@ public static unsafe partial class ExceptionHelper
     /// <summary>
     /// Unwind one frame using DWARF CFI information
     /// </summary>
-    private static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
+    internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
         Serial.WriteString("[CFI] Unwinding for IP 0x");
         Serial.WriteHex(returnAddress);
@@ -1559,7 +1440,7 @@ public static unsafe partial class ExceptionHelper
     /// <summary>
     /// Initialize unwind state from throw-site context
     /// </summary>
-    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    internal static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
     {
         // Copy register values from context
         state.RBX = pContext->Rbx;
@@ -1575,6 +1456,57 @@ public static unsafe partial class ExceptionHelper
         for (int i = 0; i < (int)DwarfRegX64.MAX; i++)
         {
             state.SetRegLocation((DwarfRegX64)i, RegSaveKind.SameValue);
+        }
+    }
+
+    /// <summary>
+    /// Fill a <see cref="REGDISPLAY"/> from the current callee-saved register values in
+    /// <paramref name="s"/>. The <c>pRxx</c> save-location pointers point at the value slots inside
+    /// <paramref name="rd"/> itself (so they stay valid as long as <paramref name="rd"/> is alive).
+    /// Used by the precise GC stack scan; mirrors the projection the exception pass-1 loop does.
+    /// </summary>
+    internal static void ProjectRegDisplay(ref UnwindState s, REGDISPLAY* rd)
+    {
+        rd->Rbx = s.RBX;
+        rd->Rbp = s.RBP;
+        rd->Rsi = s.RSI;
+        rd->Rdi = s.RDI;
+        rd->R12 = s.R12;
+        rd->R13 = s.R13;
+        rd->R14 = s.R14;
+        rd->R15 = s.R15;
+        rd->SP = s.RSP;
+
+        rd->pRbx = &rd->Rbx;
+        rd->pRbp = &rd->Rbp;
+        rd->pRsi = &rd->Rsi;
+        rd->pRdi = &rd->Rdi;
+        rd->pR12 = &rd->R12;
+        rd->pR13 = &rd->R13;
+        rd->pR14 = &rd->R14;
+        rd->pR15 = &rd->R15;
+    }
+
+    /// <summary>
+    /// Seed an <see cref="UnwindState"/> from a <see cref="REGDISPLAY"/> and an instruction pointer,
+    /// ready for <see cref="UnwindOneFrameWithCFI"/>. All register rules start as <c>SameValue</c>.
+    /// </summary>
+    internal static void SeedUnwindStateFromRegDisplay(ref UnwindState s, REGDISPLAY* rd, nuint ip)
+    {
+        s.RBX = rd->Rbx;
+        s.RBP = rd->Rbp;
+        s.RSI = rd->Rsi;
+        s.RDI = rd->Rdi;
+        s.R12 = rd->R12;
+        s.R13 = rd->R13;
+        s.R14 = rd->R14;
+        s.R15 = rd->R15;
+        s.RSP = rd->SP;
+        s.ReturnAddress = ip;
+
+        for (int i = 0; i < (int)DwarfRegX64.MAX; i++)
+        {
+            s.SetRegLocation((DwarfRegX64)i, RegSaveKind.SameValue);
         }
     }
 #elif ARCH_ARM64
@@ -1963,7 +1895,7 @@ public static unsafe partial class ExceptionHelper
     /// <summary>
     /// Unwind one frame using CFI for ARM64
     /// </summary>
-    private static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
+    internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
         Serial.WriteString("[CFI] Unwinding for IP 0x");
         Serial.WriteHex(returnAddress);
@@ -2065,7 +1997,7 @@ public static unsafe partial class ExceptionHelper
     /// <summary>
     /// Initialize unwind state from throw-site context for ARM64
     /// </summary>
-    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    internal static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
     {
         // Copy register values from context
         state.SP = pContext->SP;
@@ -2087,6 +2019,55 @@ public static unsafe partial class ExceptionHelper
         for (int i = 0; i < (int)DwarfRegARM64.MAX; i++)
         {
             state.SetRegLocation((DwarfRegARM64)i, RegSaveKind.SameValue);
+        }
+    }
+
+    /// <summary>
+    /// Fill a <see cref="REGDISPLAY"/> from the current callee-saved register values in
+    /// <paramref name="s"/>. ARM64's REGDISPLAY stores values directly (no save-location pointers).
+    /// Used by the precise GC stack scan; mirrors the projection the exception pass-1 loop does.
+    /// </summary>
+    internal static void ProjectRegDisplay(ref UnwindState s, REGDISPLAY* rd)
+    {
+        rd->SP = s.SP;
+        rd->FP = s.FP;
+        rd->X19 = s.X19;
+        rd->X20 = s.X20;
+        rd->X21 = s.X21;
+        rd->X22 = s.X22;
+        rd->X23 = s.X23;
+        rd->X24 = s.X24;
+        rd->X25 = s.X25;
+        rd->X26 = s.X26;
+        rd->X27 = s.X27;
+        rd->X28 = s.X28;
+        rd->LR = s.LR;
+    }
+
+    /// <summary>
+    /// Seed an <see cref="UnwindState"/> from a <see cref="REGDISPLAY"/> and an instruction pointer,
+    /// ready for <see cref="UnwindOneFrameWithCFI"/>. All register rules start as <c>SameValue</c>.
+    /// </summary>
+    internal static void SeedUnwindStateFromRegDisplay(ref UnwindState s, REGDISPLAY* rd, nuint ip)
+    {
+        s.SP = rd->SP;
+        s.FP = rd->FP;
+        s.LR = rd->LR;
+        s.ReturnAddress = ip;
+        s.X19 = rd->X19;
+        s.X20 = rd->X20;
+        s.X21 = rd->X21;
+        s.X22 = rd->X22;
+        s.X23 = rd->X23;
+        s.X24 = rd->X24;
+        s.X25 = rd->X25;
+        s.X26 = rd->X26;
+        s.X27 = rd->X27;
+        s.X28 = rd->X28;
+
+        for (int i = 0; i < (int)DwarfRegARM64.MAX; i++)
+        {
+            s.SetRegLocation((DwarfRegARM64)i, RegSaveKind.SameValue);
         }
     }
 #endif

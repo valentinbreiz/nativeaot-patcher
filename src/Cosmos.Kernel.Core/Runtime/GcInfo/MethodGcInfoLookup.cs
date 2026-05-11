@@ -6,8 +6,8 @@
 // NativeAOT LSDA header — mirrors UnixNativeCodeManager::FindMethodInfo + GetCodeOffset
 // (dotnet/runtime/src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp). See issue #346.
 //
-// NOTE: the .eh_frame walk here duplicates a slice of ExceptionHelper.ParseEhFrameForIP; the two
-// are intended to be unified in a later phase (epic #348, phase 2).
+// This is the single .eh_frame / LSDA-header parser in the kernel: ExceptionHelper.TryGetMethodLSDA
+// delegates here, and the precise GC stack scan (epic #348, phase 2) uses TryGetMethodGcInfo.
 
 using Cosmos.Kernel.Core.Bridge;
 
@@ -17,11 +17,11 @@ namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 public static unsafe class MethodGcInfoLookup
 {
     // LSDA "unwind block" flags (UnixNativeCodeManager.cpp).
-    private const byte UBF_FUNC_KIND_MASK = 0x03;
-    private const byte UBF_FUNC_KIND_ROOT = 0x00;
-    private const byte UBF_FUNC_KIND_FILTER = 0x02;
-    private const byte UBF_FUNC_HAS_EHINFO = 0x04;
-    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
+    public const byte UBF_FUNC_KIND_MASK = 0x03;
+    public const byte UBF_FUNC_KIND_ROOT = 0x00;
+    public const byte UBF_FUNC_KIND_FILTER = 0x02;
+    public const byte UBF_FUNC_HAS_EHINFO = 0x04;
+    public const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 0x10;
 
     /// <summary>Resolved GCInfo location for an instruction pointer.</summary>
     public struct MethodGcInfo
@@ -84,6 +84,23 @@ public static unsafe class MethodGcInfoLookup
         info.CodeOffset = (uint)(ip - methodStartAddress);
         info.MethodStart = funcStart;
         info.MethodEnd = funcEnd;
+        return true;
+    }
+
+    /// <summary>
+    /// Resolve <paramref name="ip"/> to its method's FDE PC-begin and LSDA pointer. Mirrors the
+    /// behaviour the exception handler relies on (<c>ExceptionHelper.TryGetMethodLSDA</c> delegates here).
+    /// </summary>
+    public static bool TryGetMethodLSDA(nuint ip, out nuint methodStart, out byte* pLSDA)
+    {
+        methodStart = 0;
+        pLSDA = null;
+        if (!TryGetFde(ip, out nuint funcStart, out _, out byte* p) || p == null)
+        {
+            return false;
+        }
+        methodStart = funcStart;
+        pLSDA = p;
         return true;
     }
 
