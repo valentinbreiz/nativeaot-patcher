@@ -496,11 +496,17 @@ public class Kernel : Sys.Kernel
         Assert.True(!wr2.IsAlive, "GC: handle store wr2 cleared");
         Assert.True(!wr3.IsAlive, "GC: handle store wr3 cleared");
 
-        // Allocate more handles to verify store still works
+        // Allocate one more handle to verify store still works. The final assertion compares
+        // wr4.Target against the strong local `alive` — this forces `alive` to be live across
+        // the Collect (NativeAOT/RyuJIT would otherwise drop it after the WeakReference ctor,
+        // since weak handles don't root the target, and GCInfo would omit it at the safepoint —
+        // making the byte[64] unreachable under precise stack scan, issue #346). Conservative
+        // scan happened to over-root the dead spill slot, hiding the missing real use.
         object alive = new byte[64];
         WeakReference wr4 = new WeakReference(alive);
         CoreGC.Collect();
-        Assert.True(wr4.IsAlive, "GC: handle store works after cleanup");
+        Assert.True(ReferenceEquals(wr4.Target, alive),
+            "GC: handle store works after cleanup (weak ref still resolves to the strong local)");
     }
 
     private static void TestGCPinnedHeapReuse()
