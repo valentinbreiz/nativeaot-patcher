@@ -11,12 +11,13 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 /// <summary>
 /// Precise GC stack scanning for the GC-triggering thread, driven by NativeAOT GCInfo
-/// (issue #346, epic #348 phase 2). Walks the thread's managed frames one at a time using the CFI
-/// unwinder from <see cref="ExceptionHelper"/>, decoding each method's GCInfo at the matching
-/// instruction pointer and reporting only the slots it names. Falls back to a conservative scan of
-/// the rest of the stack when the walk leaves managed code (asm entry stubs / native imports / IRQ
-/// entry), reaches an exception funclet (precise funclet handling is phase 3), or a frame's slot
-/// table is too large to decode.
+/// (issue #346, epic #348 phases 2–3). Walks the thread's managed frames one at a time using the
+/// CFI unwinder from <see cref="ExceptionHelper"/>, decoding each method's GCInfo at the matching
+/// instruction pointer — including exception-funclet frames (catch / filter / finally bodies),
+/// which share their main method's slot table — and reporting only the slots it names. Falls back
+/// to a conservative scan of the rest of the stack when the walk leaves managed code (asm entry
+/// stubs / native imports / IRQ entry — including any funclet trampoline without CFI) or a frame's
+/// slot table is too large to decode.
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
@@ -116,16 +117,21 @@ public static unsafe partial class GarbageCollector
             return FrameResult.Stop;
         }
 
-        if (mi.IsFunclet)
+        // Exception funclet frames (catch / filter / finally bodies) share the main method's slot
+        // table; MethodGcInfoLookup already resolved mi.CodeOffset against the main method start
+        // (issue #227, phase 3). A filter runs mid-throw, so the main method's *untracked* slots
+        // are stale and must not be reported — NoReportUntracked. Catch / finally funclets keep the
+        // default: they re-report untracked slots, which the parent method's frame will report
+        // again later, but mark is idempotent so the duplicate is harmless. The slot offsets resolve
+        // against the funclet's own frame, so the REGDISPLAY from this frame's CFI walk is correct.
+        CodeManagerFlags flags = CodeManagerFlags.None;
+        if (mi.IsFunclet && mi.IsFilter)
         {
-            // Exception funclet frames (catch/filter/finally bodies) are precisely scanned in phase 3
-            // (issue #227). Until then, conservatively scan the remaining stack and stop.
-            ScanMemoryRange((nint*)sp, (nint*)threadStackEnd);
-            return FrameResult.Stop;
+            flags = CodeManagerFlags.NoReportUntracked;
         }
 
         GcInfoDecoder decoder = new GcInfoDecoder(mi.GcInfo, GcInfoEncoding.GCINFO_VERSION, GcInfoDecoderFlags.DECODE_GC_LIFETIMES, mi.CodeOffset);
-        bool fit = decoder.EnumerateLiveSlots(rd, reportScratchSlots: false, CodeManagerFlags.None, &PreciseRootTrampoline, null);
+        bool fit = decoder.EnumerateLiveSlots(rd, reportScratchSlots: false, flags, &PreciseRootTrampoline, null);
         if (!fit)
         {
             // Slot table overflowed the decoder's fixed buffer — fall back conservatively for the rest.

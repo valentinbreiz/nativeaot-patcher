@@ -20,7 +20,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 38);
+        TR.Start("GarbageCollector Tests", expectedTests: 40);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -48,6 +48,8 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_StackScanPaddingStress", TestGCStackScanPaddingStress);
         TR.Run("GC_GcInfoDecoder", TestGCGcInfoDecoder);
         TR.Run("GC_PreciseStackScan", TestGCPreciseStackScan);
+        TR.Run("GC_FuncletNoCrashOnAllocInCatch", TestGCFuncletNoCrashOnAllocInCatch);
+        TR.Run("GC_FuncletNoFalseRoot", TestGCFuncletNoFalseRoot);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -710,6 +712,86 @@ public class Kernel : Sys.Kernel
 
         Assert.True(!wr.IsAlive,
             "GC: precise scan must clear weak ref (shape " + shape + ", issue #346)");
+    }
+
+    // ==================== Precise funclet-frame stack scan (issue #346, phase 3) ====================
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ThrowFuncletSentinel(int shape)
+    {
+        throw new InvalidOperationException("phase3-funclet-scan-" + shape);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int RunCatchAllocShape(int shape)
+    {
+        int observed = 0;
+        try
+        {
+            ThrowFuncletSentinel(shape);
+        }
+        catch (Exception ex)
+        {
+            // This block IS the catch funclet's stack frame. Before phase 3 the precise scan
+            // bailed to a conservative scan of the remaining stack the moment it reached a
+            // funclet — and the funclet trampoline carried no CFI, so the parent method's frame
+            // stayed conservatively scanned too. Allocating and forcing a GC from inside the
+            // funclet exercises the issue #227 path: the scan must now walk funclet -> trampoline
+            // -> dispatcher -> parent precisely without faulting.
+            byte[] keep = new byte[128];
+            keep[0] = (byte)shape;
+            string msg = ex.Message;          // materializes a string inside the funclet body
+            CoreGC.Collect();
+            CoreGC.Collect();
+            observed = keep[0] + (msg != null ? 1 : 0);
+        }
+        return observed;
+    }
+
+    private static void TestGCFuncletNoCrashOnAllocInCatch()
+    {
+        for (int shape = 0; shape < 4; shape++)
+        {
+            int observed = RunCatchAllocShape(shape);
+            Assert.True(observed >= 1,
+                "GC: catch-handler alloc + GC.Collect must complete without crashing (shape " + shape + ", issue #227)");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateWeakRefInCatch(int shape)
+    {
+        WeakReference wr = null!;
+        try
+        {
+            ThrowFuncletSentinel(shape);
+        }
+        catch (Exception ex)
+        {
+            // `dead` lives only in the catch funclet's frame. Its GCInfo marks the slot dead at
+            // the IP right before the closing brace, so a precise scan of the funclet frame must
+            // not root it. A conservative scan over the same stack range could (the layout-fragile
+            // false-rooting case issue #346 fights) — this test is the funclet-frame analogue of
+            // TestGCPreciseStackScan.
+            byte[] dead = new byte[128];
+            dead[0] = (byte)shape;
+            wr = new WeakReference(dead);
+            GC.KeepAlive(dead);
+            _ = ex.Message;                   // touch ex so the funclet keeps a real frame
+        }
+        return wr;
+    }
+
+    private static void TestGCFuncletNoFalseRoot()
+    {
+        for (int shape = 0; shape < 4; shape++)
+        {
+            WeakReference wr = CreateWeakRefInCatch(shape);
+            CoreGC.Collect();
+            CoreGC.Collect();
+            Assert.True(!wr.IsAlive,
+                "GC: weak ref to a value allocated inside a catch must clear after the catch exits (shape " + shape + ", precise funclet scan, issue #346)");
+        }
     }
 
     // ==================== GC Info & Configuration Tests ====================
