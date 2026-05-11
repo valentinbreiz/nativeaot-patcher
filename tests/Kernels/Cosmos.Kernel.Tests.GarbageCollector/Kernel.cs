@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Cosmos.TestRunner.Framework;
 using CoreGC = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
 using Sys = Cosmos.Kernel.System;
@@ -19,7 +20,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 36);
+        TR.Start("GarbageCollector Tests", expectedTests: 37);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -45,6 +46,7 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_HandleStoreIntegrity", TestGCHandleStoreIntegrity);
         TR.Run("GC_PinnedHeapReuse", TestGCPinnedHeapReuse);
         TR.Run("GC_StackScanPaddingStress", TestGCStackScanPaddingStress);
+        TR.Run("GC_GcInfoDecoder", TestGCGcInfoDecoder);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -570,6 +572,78 @@ public class Kernel : Sys.Kernel
         {
             RunStackScanPaddingShape(shape);
         }
+    }
+
+    // ==================== Precise GCInfo decoder (issue #346, phase 1) ====================
+
+    private static unsafe void TestGCGcInfoDecoder()
+    {
+        // --- 1. Bit-stream reader on synthetic data (alignment-independent: assertions are
+        //        phrased in terms of the logical bit stream, which the reader normalizes). ---
+        // buf[0] = 0xA5 (LSB-first 1,0,1,0 | 0,1,0,1): Read(4)==5, Read(4)==10.
+        // buf[1] = 0x55 (0,1,0,1 | 0,1,0,1): DecodeVarLengthUnsigned(3) reads 4 bits == 5 (no
+        //          extension bit); DecodeVarLengthSigned(3) reads 4 bits, payload 0b101 -> -3.
+        // buf[2..7] = 0: Read(48) of those bytes == 0. buf[8] = 0xAB: the next Read(8) crosses the
+        //          internal word boundary and yields 0xAB.
+        byte* buf = stackalloc byte[24];
+        for (int i = 0; i < 24; i++)
+        {
+            buf[i] = 0;
+        }
+        buf[0] = 0xA5;
+        buf[1] = 0x55;
+        buf[8] = 0xAB;
+
+        GcInfoBitStreamReader r = new GcInfoBitStreamReader(buf);
+        Assert.True(r.Read(4) == 5UL, "GcInfo.BitReader: Read(4) of 0xA5 low nibble == 5");
+        Assert.True(r.Read(4) == 10UL, "GcInfo.BitReader: Read(4) of 0xA5 high nibble == 10");
+        Assert.True(r.DecodeVarLengthUnsigned(3) == 5UL, "GcInfo.BitReader: DecodeVarLengthUnsigned(3) == 5");
+        Assert.True(r.DecodeVarLengthSigned(3) == -3L, "GcInfo.BitReader: DecodeVarLengthSigned(3) == -3");
+        Assert.True(r.Read(48) == 0UL, "GcInfo.BitReader: Read(48) over zero bytes == 0");
+        Assert.True(r.Read(8) == 0xABUL, "GcInfo.BitReader: Read(8) across the word boundary == 0xAB");
+
+        // --- 2. Decode real GCInfo for a known method via the .eh_frame -> LSDA walk ---
+        delegate*<int, string> probe = &DescribeShape;
+        nuint probeIp = (nuint)(void*)probe;
+
+        bool found = MethodGcInfoLookup.TryGetMethodGcInfo(probeIp, out MethodGcInfoLookup.MethodGcInfo mi);
+        Assert.True(found, "GcInfo: TryGetMethodGcInfo must locate the probe method's GCInfo");
+        Assert.True(mi.GcInfo != null, "GcInfo: resolved GCInfo pointer must be non-null");
+        Assert.False(mi.IsFunclet, "GcInfo: probe method entry must resolve to a root function");
+        Assert.Equal(0u, mi.CodeOffset, "GcInfo: probe ip == method entry -> code offset 0");
+
+        GcInfoDecoder headerDecoder = new GcInfoDecoder(mi.GcInfo, GcInfoEncoding.GCINFO_VERSION, GcInfoDecoderFlags.DECODE_EVERYTHING, 0);
+        Assert.Equal(GcInfoEncoding.GCINFO_VERSION, headerDecoder.Version, "GcInfo: decoded version must be GCINFO_VERSION (4)");
+        uint fdeRange = (uint)(mi.MethodEnd - mi.MethodStart);
+        Assert.Equal(fdeRange, headerDecoder.CodeLength, "GcInfo: decoded code length must equal the FDE PC-range for a root method");
+
+        // The probe holds object references live across calls, so its GCInfo describes >= 1 slot.
+        GcInfoDecoder lifetimesDecoder = new GcInfoDecoder(mi.GcInfo, GcInfoEncoding.GCINFO_VERSION, GcInfoDecoderFlags.DECODE_GC_LIFETIMES, mi.CodeOffset);
+        uint slotCount = lifetimesDecoder.GetGcSlotCount();
+        Assert.True(slotCount > 0u, "GcInfo: a method with object refs must have at least one GC slot");
+
+        // --- 3. EnumerateLiveSlots must run to completion at the prolog without faulting ---
+        GcInfoDecoder enumDecoder = new GcInfoDecoder(mi.GcInfo, GcInfoEncoding.GCINFO_VERSION, GcInfoDecoderFlags.DECODE_GC_LIFETIMES, 0);
+        Cosmos.Kernel.Core.Runtime.REGDISPLAY rd = default;
+        int reportCount = 0;
+        bool ok = enumDecoder.EnumerateLiveSlots(&rd, reportScratchSlots: false, CodeManagerFlags.None, &CountGcRefCallback, &reportCount);
+        Assert.True(ok, "GcInfo: EnumerateLiveSlots must return true (slot table fit, no fault)");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static string DescribeShape(int shape)
+    {
+        // A non-trivial method whose locals/args/return are object references, used only as a stable
+        // managed code address for GCInfo decoding (it is never actually invoked for its result).
+        string[] names = new string[] { "alpha", "beta", "gamma" };
+        string s = names[((uint)shape) % 3u];
+        return s + "-" + shape.ToString();
+    }
+
+    private static unsafe void CountGcRefCallback(void* ctx, nuint* pObjRef, uint gcRefFlags)
+    {
+        // Do NOT dereference pObjRef — the REGDISPLAY passed by the test is a zeroed stub; only count.
+        *(int*)ctx = *(int*)ctx + 1;
     }
 
     // ==================== GC Info & Configuration Tests ====================
