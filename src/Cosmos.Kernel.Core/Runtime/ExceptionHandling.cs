@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cosmos.Kernel.Core.Bridge;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
@@ -397,12 +396,6 @@ public static unsafe partial class ExceptionHelper
 {
     // Maximum stack frames to walk
     private const int MAX_STACK_FRAMES = 64;
-
-    // LSDA "unwind block" flags — shared with the precise GC stack scan.
-    private const byte UBF_FUNC_KIND_MASK = MethodGcInfoLookup.UBF_FUNC_KIND_MASK;
-    private const byte UBF_FUNC_KIND_ROOT = MethodGcInfoLookup.UBF_FUNC_KIND_ROOT;
-    private const byte UBF_FUNC_HAS_EHINFO = MethodGcInfoLookup.UBF_FUNC_HAS_EHINFO;
-    private const byte UBF_FUNC_HAS_ASSOCIATED_DATA = MethodGcInfoLookup.UBF_FUNC_HAS_ASSOCIATED_DATA;
 
     // Assembly funclet callers - use nint for object reference since P/Invoke doesn't support object
     [LibraryImport("*", EntryPoint = "RhpCallCatchFunclet")]
@@ -873,25 +866,6 @@ public static unsafe partial class ExceptionHelper
         => MethodGcInfoLookup.TryGetMethodLSDA(ip, out methodStart, out pLSDA);
 
     /// <summary>
-    /// Read unsigned LEB128 encoded value
-    /// </summary>
-    private static uint ReadULEB128(ref byte* p)
-    {
-        uint result = 0;
-        int shift = 0;
-        byte b;
-
-        do
-        {
-            b = *p++;
-            result |= (uint)(b & 0x7F) << shift;
-            shift += 7;
-        } while ((b & 0x80) != 0);
-
-        return result;
-    }
-
-    /// <summary>
     /// Read signed LEB128 encoded value
     /// </summary>
     private static int ReadSLEB128(ref byte* p)
@@ -995,7 +969,7 @@ public static unsafe partial class ExceptionHelper
         p++;  // Skip null terminator
 
         // Read code alignment factor (ULEB128)
-        codeAlignFactor = (int)ReadULEB128(ref p);
+        codeAlignFactor = (int)MethodGcInfoLookup.ReadULEB128(ref p);
 
         // Read data alignment factor (SLEB128)
         dataAlignFactor = ReadSLEB128(ref p);
@@ -1007,13 +981,13 @@ public static unsafe partial class ExceptionHelper
         }
         else
         {
-            returnAddressReg = (byte)ReadULEB128(ref p);
+            returnAddressReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
         }
 
         // Handle augmentation data if present
         if (*augString == 'z')
         {
-            uint augLen = ReadULEB128(ref p);
+            uint augLen = MethodGcInfoLookup.ReadULEB128(ref p);
             p += augLen;  // Skip augmentation data
         }
 
@@ -1052,7 +1026,7 @@ public static unsafe partial class ExceptionHelper
             {
                 // Register is saved at CFA + offset * data_align_factor
                 byte reg = lowBits;
-                uint offset = ReadULEB128(ref p);
+                uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
                 if (reg < (byte)DwarfRegX64.MAX)
                 {
                     state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
@@ -1096,16 +1070,16 @@ public static unsafe partial class ExceptionHelper
                         break;
 
                     case DW_CFA_def_cfa:
-                        state.CfaRegister = (byte)ReadULEB128(ref p);
-                        state.CfaOffset = (int)ReadULEB128(ref p);
+                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_register:
-                        state.CfaRegister = (byte)ReadULEB128(ref p);
+                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_offset:
-                        state.CfaOffset = (int)ReadULEB128(ref p);
+                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_offset_sf:
@@ -1114,8 +1088,8 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_offset_extended:
                     {
-                        byte reg = (byte)ReadULEB128(ref p);
-                        uint offset = ReadULEB128(ref p);
+                        byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                        uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
                         if (reg < (byte)DwarfRegX64.MAX)
                         {
                             state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
@@ -1126,7 +1100,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_offset_extended_sf:
                     {
-                        byte reg = (byte)ReadULEB128(ref p);
+                        byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         int offset = ReadSLEB128(ref p);
                         if (reg < (byte)DwarfRegX64.MAX)
                         {
@@ -1138,7 +1112,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_same_value:
                     {
-                        byte reg = (byte)ReadULEB128(ref p);
+                        byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         if (reg < (byte)DwarfRegX64.MAX)
                         {
                             state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.SameValue);
@@ -1148,8 +1122,8 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_register:
                     {
-                        byte reg = (byte)ReadULEB128(ref p);
-                        byte inReg = (byte)ReadULEB128(ref p);
+                        byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                        byte inReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         if (reg < (byte)DwarfRegX64.MAX)
                         {
                             state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.InRegister, 0, inReg);
@@ -1159,7 +1133,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_undefined:
                     {
-                        byte reg = (byte)ReadULEB128(ref p);
+                        byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         if (reg < (byte)DwarfRegX64.MAX)
                         {
                             state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.Undefined);
@@ -1177,7 +1151,7 @@ public static unsafe partial class ExceptionHelper
                     case DW_CFA_val_expression:
                     {
                         // Skip expression - read ULEB128 length and skip bytes
-                        uint exprLen = ReadULEB128(ref p);
+                        uint exprLen = MethodGcInfoLookup.ReadULEB128(ref p);
                         p += exprLen;
                     }
                     break;
@@ -1234,99 +1208,13 @@ public static unsafe partial class ExceptionHelper
     }
 
     /// <summary>
-    /// Find and parse FDE for a given IP, returning CFI data pointers
-    /// </summary>
-    private static bool FindFDEForIP(nuint ip, out nuint methodStart, out byte* pCIE,
-                                      out byte* pFDEInstructions, out byte* pFDEInstructionsEnd,
-                                      out byte* pLSDA)
-    {
-        methodStart = 0;
-        pCIE = null;
-        pFDEInstructions = null;
-        pFDEInstructionsEnd = null;
-        pLSDA = null;
-
-        byte* ehFrameStart = EhFrameNative.GetStart();
-        byte* ehFrameEnd = EhFrameNative.GetEnd();
-
-        if (ehFrameStart == null || ehFrameEnd == null)
-        {
-            return false;
-        }
-
-        byte* p = ehFrameStart;
-
-        while (p < ehFrameEnd)
-        {
-            uint length = *(uint*)p;
-            if (length == 0)
-            {
-                break;
-            }
-
-            if (length == 0xFFFFFFFF)
-            {
-                break;
-            }
-
-            byte* recordStart = p;
-            byte* recordEnd = p + 4 + length;
-            p += 4;
-
-            uint ciePointer = *(uint*)p;
-            p += 4;
-
-            if (ciePointer == 0)
-            {
-                // CIE - skip
-                p = recordEnd;
-                continue;
-            }
-
-            // FDE - parse it
-            pCIE = (recordStart + 4) - ciePointer;
-
-            int pcBeginRel = *(int*)p;
-            nuint pcBegin = (nuint)(p + pcBeginRel);
-            p += 4;
-
-            uint pcRange = *(uint*)p;
-            p += 4;
-
-            nuint pcEnd = pcBegin + pcRange;
-
-            if (ip >= pcBegin && ip < pcEnd)
-            {
-                methodStart = pcBegin;
-
-                // Read augmentation length
-                uint augLen = ReadULEB128(ref p);
-
-                if (augLen > 0)
-                {
-                    // LSDA pointer
-                    int lsdaRel = *(int*)p;
-                    if (lsdaRel != 0)
-                    {
-                        pLSDA = p + lsdaRel;
-                    }
-
-                    p += (int)augLen;
-                }
-
-                pFDEInstructions = p;
-                pFDEInstructionsEnd = recordEnd;
-                return true;
-            }
-
-            p = recordEnd;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Unwind one frame using DWARF CFI information
+    /// Unwind one frame using DWARF CFI information.
+    /// <para>
+    /// FDE lookup delegates to <see cref="MethodGcInfoLookup.TryGetMethodCFI"/> — the single
+    /// <c>.eh_frame</c> walker in the kernel. The arch-specific CFI rule execution
+    /// (<see cref="ParseCIE"/> / <see cref="ParseCFIInstructions"/> / <see cref="ApplyUnwindRules"/>)
+    /// stays here because it touches the x86-64 register file directly.
+    /// </para>
     /// </summary>
     internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
@@ -1335,19 +1223,18 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteString("\n");
 
         // Find FDE for this return address
-        if (!FindFDEForIP(returnAddress, out nuint methodStart, out byte* pCIE,
-                          out byte* pFDEInstructions, out byte* pFDEInstructionsEnd, out _))
+        if (!MethodGcInfoLookup.TryGetMethodCFI(returnAddress, out MethodGcInfoLookup.MethodCFIInfo cfi))
         {
             Serial.WriteString("[CFI] FDE not found\n");
             return false;
         }
 
         Serial.WriteString("[CFI] Found FDE for method at 0x");
-        Serial.WriteHex(methodStart);
+        Serial.WriteHex(cfi.MethodStart);
         Serial.WriteString("\n");
 
         // Parse CIE
-        if (!ParseCIE(pCIE, out int codeAlignFactor, out int dataAlignFactor,
+        if (!ParseCIE(cfi.pCIE, out int codeAlignFactor, out int dataAlignFactor,
                       out byte returnAddressReg, out byte* initialInstructions, out byte* initialInstructionsEnd))
         {
             Serial.WriteString("[CFI] CIE parse failed\n");
@@ -1373,13 +1260,13 @@ public static unsafe partial class ExceptionHelper
         if (initialInstructions != null && initialInstructionsEnd != null)
         {
             ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
-                                 methodStart, returnAddress,
+                                 cfi.MethodStart, returnAddress,
                                  codeAlignFactor, dataAlignFactor, ref state);
         }
 
         // Parse FDE instructions
-        ParseCFIInstructions(pFDEInstructions, pFDEInstructionsEnd,
-                             methodStart, returnAddress,
+        ParseCFIInstructions(cfi.pFDEInstrs, cfi.pFDEInstrsEnd,
+                             cfi.MethodStart, returnAddress,
                              codeAlignFactor, dataAlignFactor, ref state);
 
         // Debug: show register save rules
@@ -1588,7 +1475,7 @@ public static unsafe partial class ExceptionHelper
             p++;  // segment_selector_size
         }
 
-        codeAlignFactor = (int)ReadULEB128(ref p);
+        codeAlignFactor = (int)MethodGcInfoLookup.ReadULEB128(ref p);
         dataAlignFactor = ReadSLEB128(ref p);
 
         if (version == 1)
@@ -1597,12 +1484,12 @@ public static unsafe partial class ExceptionHelper
         }
         else
         {
-            returnAddressReg = (byte)ReadULEB128(ref p);
+            returnAddressReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
         }
 
         if (*augString == 'z')
         {
-            uint augLen = ReadULEB128(ref p);
+            uint augLen = MethodGcInfoLookup.ReadULEB128(ref p);
             p += augLen;
         }
 
@@ -1636,7 +1523,7 @@ public static unsafe partial class ExceptionHelper
             else if (highBits == DW_CFA_offset)
             {
                 byte reg = lowBits;
-                uint offset = ReadULEB128(ref p);
+                uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
                 if (reg < (byte)DwarfRegARM64.MAX)
                 {
                     state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.AtCfaOffset,
@@ -1678,16 +1565,16 @@ public static unsafe partial class ExceptionHelper
                         break;
 
                     case DW_CFA_def_cfa:
-                        state.CfaRegister = (byte)ReadULEB128(ref p);
-                        state.CfaOffset = (int)ReadULEB128(ref p);
+                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_register:
-                        state.CfaRegister = (byte)ReadULEB128(ref p);
+                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_offset:
-                        state.CfaOffset = (int)ReadULEB128(ref p);
+                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
                         break;
 
                     case DW_CFA_def_cfa_offset_sf:
@@ -1696,8 +1583,8 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_offset_extended:
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            uint offset = ReadULEB128(ref p);
+                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                            uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
                             if (reg < (byte)DwarfRegARM64.MAX)
                             {
                                 state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.AtCfaOffset,
@@ -1708,7 +1595,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_offset_extended_sf:
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
+                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                             int offset = ReadSLEB128(ref p);
                             if (reg < (byte)DwarfRegARM64.MAX)
                             {
@@ -1720,7 +1607,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_same_value:
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
+                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                             if (reg < (byte)DwarfRegARM64.MAX)
                             {
                                 state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.SameValue);
@@ -1730,8 +1617,8 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_register:
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
-                            byte inReg = (byte)ReadULEB128(ref p);
+                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
+                            byte inReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                             if (reg < (byte)DwarfRegARM64.MAX)
                             {
                                 state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.InRegister, 0, inReg);
@@ -1741,7 +1628,7 @@ public static unsafe partial class ExceptionHelper
 
                     case DW_CFA_undefined:
                         {
-                            byte reg = (byte)ReadULEB128(ref p);
+                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                             if (reg < (byte)DwarfRegARM64.MAX)
                             {
                                 state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.Undefined);
@@ -1757,7 +1644,7 @@ public static unsafe partial class ExceptionHelper
                     case DW_CFA_expression:
                     case DW_CFA_val_expression:
                         {
-                            uint exprLen = ReadULEB128(ref p);
+                            uint exprLen = MethodGcInfoLookup.ReadULEB128(ref p);
                             p += exprLen;
                         }
                         break;
@@ -1807,93 +1694,13 @@ public static unsafe partial class ExceptionHelper
     }
 
     /// <summary>
-    /// Find FDE for ARM64
-    /// </summary>
-    private static bool FindFDEForIP(nuint ip, out nuint methodStart, out byte* pCIE,
-                                      out byte* pFDEInstructions, out byte* pFDEInstructionsEnd,
-                                      out byte* pLSDA)
-    {
-        methodStart = 0;
-        pCIE = null;
-        pFDEInstructions = null;
-        pFDEInstructionsEnd = null;
-        pLSDA = null;
-
-        byte* ehFrameStart = EhFrameNative.GetStart();
-        byte* ehFrameEnd = EhFrameNative.GetEnd();
-
-        if (ehFrameStart == null || ehFrameEnd == null)
-        {
-            return false;
-        }
-
-        byte* p = ehFrameStart;
-
-        while (p < ehFrameEnd)
-        {
-            uint length = *(uint*)p;
-            if (length == 0)
-            {
-                break;
-            }
-
-            if (length == 0xFFFFFFFF)
-            {
-                break;
-            }
-
-            byte* recordStart = p;
-            byte* recordEnd = p + 4 + length;
-            p += 4;
-
-            uint ciePointer = *(uint*)p;
-            p += 4;
-
-            if (ciePointer == 0)
-            {
-                p = recordEnd;
-                continue;
-            }
-
-            pCIE = (recordStart + 4) - ciePointer;
-
-            int pcBeginRel = *(int*)p;
-            nuint pcBegin = (nuint)(p + pcBeginRel);
-            p += 4;
-
-            uint pcRange = *(uint*)p;
-            p += 4;
-
-            nuint pcEnd = pcBegin + pcRange;
-
-            if (ip >= pcBegin && ip < pcEnd)
-            {
-                methodStart = pcBegin;
-
-                uint augLen = ReadULEB128(ref p);
-                if (augLen > 0)
-                {
-                    int lsdaRel = *(int*)p;
-                    if (lsdaRel != 0)
-                    {
-                        pLSDA = p + lsdaRel;
-                    }
-                    p += (int)augLen;
-                }
-
-                pFDEInstructions = p;
-                pFDEInstructionsEnd = recordEnd;
-                return true;
-            }
-
-            p = recordEnd;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Unwind one frame using CFI for ARM64
+    /// Unwind one frame using DWARF CFI information (ARM64).
+    /// <para>
+    /// FDE lookup delegates to <see cref="MethodGcInfoLookup.TryGetMethodCFI"/> — the single
+    /// <c>.eh_frame</c> walker in the kernel. The arch-specific CFI rule execution
+    /// (<see cref="ParseCIE"/> / <see cref="ParseCFIInstructions"/> / <see cref="ApplyUnwindRules"/>)
+    /// stays here because it touches the ARM64 register file directly.
+    /// </para>
     /// </summary>
     internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
@@ -1901,18 +1708,17 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteHex(returnAddress);
         Serial.WriteString("\n");
 
-        if (!FindFDEForIP(returnAddress, out nuint methodStart, out byte* pCIE,
-                          out byte* pFDEInstructions, out byte* pFDEInstructionsEnd, out _))
+        if (!MethodGcInfoLookup.TryGetMethodCFI(returnAddress, out MethodGcInfoLookup.MethodCFIInfo cfi))
         {
             Serial.WriteString("[CFI] FDE not found\n");
             return false;
         }
 
         Serial.WriteString("[CFI] Found FDE for method at 0x");
-        Serial.WriteHex(methodStart);
+        Serial.WriteHex(cfi.MethodStart);
         Serial.WriteString("\n");
 
-        if (!ParseCIE(pCIE, out int codeAlignFactor, out int dataAlignFactor,
+        if (!ParseCIE(cfi.pCIE, out int codeAlignFactor, out int dataAlignFactor,
                       out byte returnAddressReg, out byte* initialInstructions, out byte* initialInstructionsEnd))
         {
             Serial.WriteString("[CFI] CIE parse failed\n");
@@ -1935,13 +1741,13 @@ public static unsafe partial class ExceptionHelper
         if (initialInstructions != null && initialInstructionsEnd != null)
         {
             ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
-                                 methodStart, returnAddress,
+                                 cfi.MethodStart, returnAddress,
                                  codeAlignFactor, dataAlignFactor, ref state);
         }
 
         // Parse FDE instructions
-        ParseCFIInstructions(pFDEInstructions, pFDEInstructionsEnd,
-                             methodStart, returnAddress,
+        ParseCFIInstructions(cfi.pFDEInstrs, cfi.pFDEInstrsEnd,
+                             cfi.MethodStart, returnAddress,
                              codeAlignFactor, dataAlignFactor, ref state);
 
         // Debug output
@@ -2090,7 +1896,7 @@ public static unsafe partial class ExceptionHelper
         byte unwindBlockFlags = *p++;
 
         // Skip funclet reference if not root
-        if ((unwindBlockFlags & UBF_FUNC_KIND_MASK) != UBF_FUNC_KIND_ROOT)
+        if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_KIND_MASK) != MethodGcInfoLookup.UBF_FUNC_KIND_ROOT)
         {
             // Funclet - skip relative offsets
             p += sizeof(int); // mainLSDA offset
@@ -2098,13 +1904,13 @@ public static unsafe partial class ExceptionHelper
         }
 
         // Skip associated data if present
-        if ((unwindBlockFlags & UBF_FUNC_HAS_ASSOCIATED_DATA) != 0)
+        if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_HAS_ASSOCIATED_DATA) != 0)
         {
             p += sizeof(int);
         }
 
         // Check if method has EH info
-        if ((unwindBlockFlags & UBF_FUNC_HAS_EHINFO) == 0)
+        if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_HAS_EHINFO) == 0)
         {
             Serial.WriteString("[EH] Method has no EH info\n");
             return false;
