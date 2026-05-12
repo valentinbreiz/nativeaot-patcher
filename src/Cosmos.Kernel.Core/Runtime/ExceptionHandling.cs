@@ -1224,116 +1224,42 @@ public static unsafe partial class ExceptionHelper
     /// </summary>
     internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
-        Serial.WriteString("[CFI] Unwinding for IP 0x");
-        Serial.WriteHex(returnAddress);
-        Serial.WriteString("\n");
-
-        // Find FDE for this return address
         if (!MethodGcInfoLookup.TryGetMethodCFI(returnAddress, out MethodGcInfoLookup.MethodCFIInfo cfi))
         {
-            Serial.WriteString("[CFI] FDE not found\n");
             return false;
         }
 
-        Serial.WriteString("[CFI] Found FDE for method at 0x");
-        Serial.WriteHex(cfi.MethodStart);
-        Serial.WriteString("\n");
-
-        // Parse CIE
         if (!ParseCIE(cfi.pCIE, out int codeAlignFactor, out int dataAlignFactor,
                       out byte returnAddressReg, out byte* initialInstructions, out byte* initialInstructionsEnd))
         {
-            Serial.WriteString("[CFI] CIE parse failed\n");
             return false;
         }
 
-        Serial.WriteString("[CFI] CIE: codeAlign=");
-        Serial.WriteNumber((nuint)codeAlignFactor);
-        Serial.WriteString(" dataAlign=");
-        Serial.WriteNumber((nuint)(uint)dataAlignFactor);
-        Serial.WriteString(" RA reg=");
-        Serial.WriteNumber(returnAddressReg);
-        Serial.WriteString("\n");
-
-        // Initialize default CFA (typically RSP + 8 at function entry on x86-64)
+        // Default CFA at function entry on x86-64 is RSP + 8, with the return address at CFA - 8.
         state.CfaRegister = (byte)DwarfRegX64.RSP;
         state.CfaOffset = 8;
-
-        // Mark return address register as saved at CFA-8 (typical x86-64 convention)
         state.SetRegLocation((DwarfRegX64)returnAddressReg, RegSaveKind.AtCfaOffset, -8);
 
-        // Parse initial instructions from CIE
+        // Replay the CIE initial instructions, then the FDE instructions up to returnAddress.
         if (initialInstructions != null && initialInstructionsEnd != null)
         {
             ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
                                  cfi.MethodStart, returnAddress,
                                  codeAlignFactor, dataAlignFactor, ref state);
         }
-
-        // Parse FDE instructions
         ParseCFIInstructions(cfi.pFDEInstrs, cfi.pFDEInstrsEnd,
                              cfi.MethodStart, returnAddress,
                              codeAlignFactor, dataAlignFactor, ref state);
 
-        // Debug: show register save rules
-        Serial.WriteString("[CFI] RBP rule: kind=");
-        RegLocation* rbpLoc = state.GetRegLocation(DwarfRegX64.RBP);
-        Serial.WriteNumber((nuint)rbpLoc->Kind);
-        if (rbpLoc->Kind == RegSaveKind.AtCfaOffset)
-        {
-            Serial.WriteString(" offset=");
-            Serial.WriteNumber((nuint)(uint)rbpLoc->Offset);
-        }
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] R12 rule: kind=");
-        RegLocation* r12Loc = state.GetRegLocation(DwarfRegX64.R12);
-        Serial.WriteNumber((nuint)r12Loc->Kind);
-        if (r12Loc->Kind == RegSaveKind.AtCfaOffset)
-        {
-            Serial.WriteString(" offset=");
-            Serial.WriteNumber((nuint)(uint)r12Loc->Offset);
-        }
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] RA rule: kind=");
-        RegLocation* raLoc = state.GetRegLocation(DwarfRegX64.RA);
-        Serial.WriteNumber((nuint)raLoc->Kind);
-        if (raLoc->Kind == RegSaveKind.AtCfaOffset)
-        {
-            Serial.WriteString(" offset=");
-            Serial.WriteNumber((nuint)(uint)raLoc->Offset);
-        }
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] Before apply: CFA reg=");
-        Serial.WriteNumber(state.CfaRegister);
-        Serial.WriteString(" offset=");
-        Serial.WriteNumber((nuint)(uint)state.CfaOffset);
-        Serial.WriteString(" RSP=0x");
-        Serial.WriteHex(state.RSP);
-        Serial.WriteString(" RBP=0x");
-        Serial.WriteHex(state.RBP);
-        Serial.WriteString("\n");
-
-        // Apply unwind rules
+        // Resolve the accumulated rules into the caller's register values.
         ApplyUnwindRules(ref state);
-
-        Serial.WriteString("[CFI] After apply: RSP=0x");
-        Serial.WriteHex(state.RSP);
-        Serial.WriteString(" RBP=0x");
-        Serial.WriteHex(state.RBP);
-        Serial.WriteString(" R12=0x");
-        Serial.WriteHex(state.R12);
-        Serial.WriteString("\n");
-
         return true;
     }
 
     /// <summary>
     /// Initialize unwind state from throw-site context
     /// </summary>
-    internal static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
     {
         // Copy register values from context
         state.RBX = pContext->Rbx;
@@ -1710,106 +1636,41 @@ public static unsafe partial class ExceptionHelper
     /// </summary>
     internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
-        Serial.WriteString("[CFI] Unwinding for IP 0x");
-        Serial.WriteHex(returnAddress);
-        Serial.WriteString("\n");
-
         if (!MethodGcInfoLookup.TryGetMethodCFI(returnAddress, out MethodGcInfoLookup.MethodCFIInfo cfi))
         {
-            Serial.WriteString("[CFI] FDE not found\n");
             return false;
         }
-
-        Serial.WriteString("[CFI] Found FDE for method at 0x");
-        Serial.WriteHex(cfi.MethodStart);
-        Serial.WriteString("\n");
 
         if (!ParseCIE(cfi.pCIE, out int codeAlignFactor, out int dataAlignFactor,
                       out byte returnAddressReg, out byte* initialInstructions, out byte* initialInstructionsEnd))
         {
-            Serial.WriteString("[CFI] CIE parse failed\n");
             return false;
         }
 
-        Serial.WriteString("[CFI] CIE: codeAlign=");
-        Serial.WriteNumber((nuint)codeAlignFactor);
-        Serial.WriteString(" dataAlign=");
-        Serial.WriteNumber((nuint)(uint)dataAlignFactor);
-        Serial.WriteString(" RA reg=");
-        Serial.WriteNumber(returnAddressReg);
-        Serial.WriteString("\n");
-
-        // Initialize default CFA for ARM64 (SP + 0 at function entry)
+        // Default CFA for ARM64 is SP + 0 at function entry.
         state.CfaRegister = (byte)DwarfRegARM64.SP;
         state.CfaOffset = 0;
 
-        // Parse initial instructions from CIE
+        // Replay the CIE initial instructions, then the FDE instructions up to returnAddress.
         if (initialInstructions != null && initialInstructionsEnd != null)
         {
             ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
                                  cfi.MethodStart, returnAddress,
                                  codeAlignFactor, dataAlignFactor, ref state);
         }
-
-        // Parse FDE instructions
         ParseCFIInstructions(cfi.pFDEInstrs, cfi.pFDEInstrsEnd,
                              cfi.MethodStart, returnAddress,
                              codeAlignFactor, dataAlignFactor, ref state);
 
-        // Debug output
-        Serial.WriteString("[CFI] CFA: reg=");
-        Serial.WriteNumber(state.CfaRegister);
-        Serial.WriteString(" offset=");
-        Serial.WriteNumber((nuint)(uint)state.CfaOffset);
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] FP rule: kind=");
-        RegLocation* fpLoc = state.GetRegLocation(DwarfRegARM64.FP);
-        Serial.WriteNumber((nuint)fpLoc->Kind);
-        if (fpLoc->Kind == RegSaveKind.AtCfaOffset)
-        {
-            Serial.WriteString(" offset=");
-            Serial.WriteNumber((nuint)(uint)fpLoc->Offset);
-        }
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] LR rule: kind=");
-        RegLocation* lrLoc = state.GetRegLocation(DwarfRegARM64.LR);
-        Serial.WriteNumber((nuint)lrLoc->Kind);
-        if (lrLoc->Kind == RegSaveKind.AtCfaOffset)
-        {
-            Serial.WriteString(" offset=");
-            Serial.WriteNumber((nuint)(uint)lrLoc->Offset);
-        }
-        Serial.WriteString("\n");
-
-        // Apply unwind rules
+        // Resolve the accumulated rules into the caller's register values.
         ApplyUnwindRules(ref state);
-
-        // Debug: show unwound values
-        Serial.WriteString("[CFI] Unwound: SP=0x");
-        Serial.WriteHex(state.SP);
-        Serial.WriteString(" FP=0x");
-        Serial.WriteHex(state.FP);
-        Serial.WriteString(" LR=0x");
-        Serial.WriteHex(state.LR);
-        Serial.WriteString("\n");
-
-        Serial.WriteString("[CFI] X19=0x");
-        Serial.WriteHex(state.X19);
-        Serial.WriteString(" X20=0x");
-        Serial.WriteHex(state.X20);
-        Serial.WriteString(" X21=0x");
-        Serial.WriteHex(state.X21);
-        Serial.WriteString("\n");
-
         return true;
     }
 
     /// <summary>
     /// Initialize unwind state from throw-site context for ARM64
     /// </summary>
-    internal static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
     {
         // Copy register values from context
         state.SP = pContext->SP;

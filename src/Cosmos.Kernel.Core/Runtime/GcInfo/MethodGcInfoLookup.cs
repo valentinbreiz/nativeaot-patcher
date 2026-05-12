@@ -10,7 +10,7 @@
 // - ExceptionHelper.TryGetMethodLSDA delegates here (handler lookup).
 // - ExceptionHelper.UnwindOneFrameWithCFI delegates here (CFI unwinding — needs the CIE + FDE
 //   instruction range, returned via TryGetMethodCFI).
-// - The precise GC stack scan (epic #348, phase 2/3) uses TryGetMethodGcInfo.
+// - The precise GC stack scan uses TryGetMethodGcInfo.
 
 using Cosmos.Kernel.Core.Bridge;
 
@@ -132,8 +132,7 @@ public static unsafe class MethodGcInfoLookup
     /// Walk <c>.eh_frame</c> and locate the FDE that covers <paramref name="ip"/>. Reports the
     /// FDE's PC range, LSDA pointer (may be null), CIE pointer, and FDE-instruction range. This is
     /// the single <c>.eh_frame</c> walker in the kernel; the exception dispatcher's CFI unwinder
-    /// (<c>ExceptionHelper.UnwindOneFrameWithCFI</c>) and the precise GC stack scan (epic #348)
-    /// both delegate here.
+    /// (<c>ExceptionHelper.UnwindOneFrameWithCFI</c>) and the precise GC stack scan both delegate here.
     /// </summary>
     internal static bool TryGetMethodCFI(nuint ip, out MethodCFIInfo info)
     {

@@ -78,9 +78,9 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Scans stack roots. The GC-triggering (current) thread is scanned precisely from NativeAOT
     /// GCInfo — it is parked at a call-site safepoint, so the scan is sound — while every other
-    /// registered thread (preempted at an arbitrary IP, so no valid GCInfo) still gets a conservative
-    /// word-by-word scan of its saved registers and stack until return-address hijacking lands
-    /// (epic #348 phase 4). See issue #346.
+    /// registered thread (preempted at an arbitrary IP, where its GCInfo lookup may be meaningless)
+    /// still gets a conservative word-by-word scan of its saved registers and stack until
+    /// return-address hijacking lands. See issue #346.
     /// <para>
     /// <see cref="GarbageCollector.Collect"/> runs this inside <c>InternalCpu.DisableInterruptsScope()</c>,
     /// so the other registered threads are quiescent for the duration.

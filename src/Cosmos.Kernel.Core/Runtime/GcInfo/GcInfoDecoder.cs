@@ -2,18 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 //
 // Port of TGcInfoDecoder from dotnet/runtime/src/coreclr/vm/gcinfodecoder.cpp (the decoder
-// NativeAOT itself compiles with GCINFODECODER_NO_EE). Decodes a per-method GCInfo blob
-// (GCINFO_VERSION 4) — the header, safepoint table, interruptible ranges and slot lifetimes —
-// and reports live GC references at a given code offset. Only the DECODE_GC_LIFETIMES /
-// DECODE_INTERRUPTIBILITY paths needed by the precise GC stack scanner are ported; the legacy
-// (version < 4) and x86 paths are omitted. See issue #346.
+// NativeAOT compiles with GCINFODECODER_NO_EE). Decodes a per-method GCInfo blob (GCINFO_VERSION 4)
+// — header, safepoint table, slot lifetimes — and reports the live GC references at a code offset
+// via EnumerateLiveSlots. The legacy (version < 4) / x86 / ReturnKind / PSPSym paths and the
+// interruptibility queries the precise scan does not use are omitted. See issue #346.
 //
-// The pre-v4 ReturnKind / PSPSym handling is intentionally not ported (those are unused in v4).
-//
-// Cosmos's REGDISPLAY does not track scratch (caller-saved) registers; GetRegisterSlot returns
-// null for those, and ReportRegisterToGC skips null slots. That is sound for the scanner's
-// initial scope (the GC-triggering thread, always stopped at a call site), where GC refs are
-// never live in caller-saved registers.
+// Cosmos's REGDISPLAY tracks only callee-saved registers, so GetRegisterSlot returns null for
+// scratch registers and they are skipped — sound for the GC-triggering thread, which is always
+// stopped at a call site, where GC refs are never live in caller-saved registers.
 
 namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 
@@ -22,13 +18,7 @@ namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 /// <summary>Decodes one method's GCInfo blob. Construct, then query / <see cref="EnumerateLiveSlots"/>.</summary>
 public unsafe struct GcInfoDecoder
 {
-    // Sentinels (NO_*).
-    private const int NO_GS_COOKIE = -1;
     private const uint NO_STACK_BASE_REGISTER = 0xFFFFFFFF;
-    private const uint NO_SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA = 0xFFFFFFFF;
-    private const int NO_GENERICS_INST_CONTEXT = -1;
-    private const int NO_REVERSE_PINVOKE_FRAME = -1;
-    private const int NO_PSP_SYM = -1;
 
     private const int MAX_LINEAR_SEARCH = 32;
 
@@ -37,23 +27,11 @@ public unsafe struct GcInfoDecoder
 
     private GcInfoBitStreamReader _reader;
     private uint _instructionOffset;
-    private GcInfoDecoderFlags _flags;
     private uint _version;
 
     private GcInfoHeaderFlags _headerFlags;
-    private bool _isInterruptible;
     private uint _codeLength;
-    private uint _validRangeStart;
-    private uint _validRangeEnd;
-    private int _gsCookieStackSlot;
-    private int _pspSymStackSlot;
-    private int _genericsInstContextStackSlot;
-    private int _reversePInvokeFrameStackSlot;
     private uint _stackBaseRegister;
-    private uint _sizeOfEditAndContinuePreservedArea;
-#if ARCH_ARM64
-    private uint _sizeOfEditAndContinueFixedStackFrame;
-#endif
     private uint _numSafePoints;
     private uint _safePointIndex;
     private uint _numInterruptibleRanges;
@@ -63,22 +41,10 @@ public unsafe struct GcInfoDecoder
     {
         _reader = new GcInfoBitStreamReader(gcInfo);
         _instructionOffset = instructionOffset;
-        _flags = flags;
         _version = version;
-        _isInterruptible = false;
         _headerFlags = 0;
         _codeLength = 0;
-        _validRangeStart = 0;
-        _validRangeEnd = 0;
-        _gsCookieStackSlot = NO_GS_COOKIE;
-        _pspSymStackSlot = NO_PSP_SYM;
-        _genericsInstContextStackSlot = NO_GENERICS_INST_CONTEXT;
-        _reversePInvokeFrameStackSlot = NO_REVERSE_PINVOKE_FRAME;
         _stackBaseRegister = NO_STACK_BASE_REGISTER;
-        _sizeOfEditAndContinuePreservedArea = NO_SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA;
-#if ARCH_ARM64
-        _sizeOfEditAndContinueFixedStackFrame = 0;
-#endif
         _numSafePoints = 0;
         _safePointIndex = 0;
         _numInterruptibleRanges = 0;
@@ -119,19 +85,8 @@ public unsafe struct GcInfoDecoder
 
             _codeLength = GcInfoEncoding.DenormalizeCodeLength((uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.CODE_LENGTH_ENCBASE));
 
-            // The rest of the slim header requires no reads.
-            _validRangeStart = 0;
-            _validRangeEnd = 0;
-            _gsCookieStackSlot = NO_GS_COOKIE;
-            _pspSymStackSlot = NO_PSP_SYM;
-            _genericsInstContextStackSlot = NO_GENERICS_INST_CONTEXT;
-            _sizeOfEditAndContinuePreservedArea = NO_SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA;
-#if ARCH_ARM64
-            _sizeOfEditAndContinueFixedStackFrame = 0;
-#endif
-            _reversePInvokeFrameStackSlot = NO_REVERSE_PINVOKE_FRAME;
-            _sizeOfStackOutgoingAndScratchArea = 0;
-
+            // The rest of the slim header has no encoded fields: no GS cookie, generics context,
+            // edit-and-continue info or reverse-PInvoke frame, and a 0-byte outgoing/scratch area.
             remainingFlags &= ~(int)(GcInfoDecoderFlags.DECODE_CODE_LENGTH
                 | GcInfoDecoderFlags.DECODE_PROLOG_LENGTH
                 | GcInfoDecoderFlags.DECODE_GS_COOKIE
@@ -152,58 +107,33 @@ public unsafe struct GcInfoDecoder
             ? 0u
             : (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.NUM_INTERRUPTIBLE_RANGES_ENCBASE);
 
-        if ((flags & (GcInfoDecoderFlags.DECODE_GC_LIFETIMES | GcInfoDecoderFlags.DECODE_INTERRUPTIBILITY)) != 0)
+        if ((flags & GcInfoDecoderFlags.DECODE_GC_LIFETIMES) != 0 && _numSafePoints != 0)
         {
-            if (_numSafePoints != 0)
-            {
-                _safePointIndex = FindSafePoint(_instructionOffset);
-            }
-        }
-        else if ((flags & GcInfoDecoderFlags.DECODE_FOR_RANGES_CALLBACK) != 0)
-        {
-            uint normCodeLength = GcInfoEncoding.NormalizeCodeOffset(_codeLength);
-            int numBitsPerOffset = GcInfoEncoding.CeilOfLog2(normCodeLength);
-            _reader.Skip((long)_numSafePoints * numBitsPerOffset);
-        }
-
-        if ((flags & GcInfoDecoderFlags.DECODE_INTERRUPTIBILITY) != 0)
-        {
-            _isInterruptible = ComputeIsInterruptible(_instructionOffset);
+            _safePointIndex = FindSafePoint(_instructionOffset);
         }
     }
 
-    // --- Accessors ---
-
-    public readonly GcInfoDecoderFlags Flags => _flags;
+    /// <summary>The GCInfo format version this blob was decoded as (always <see cref="GcInfoEncoding.GCINFO_VERSION"/>).</summary>
     public readonly uint Version => _version;
+
+    /// <summary>The method's code length — must equal the FDE's PC range.</summary>
     public readonly uint CodeLength => _codeLength;
-    public readonly bool HasStackBaseRegister => (_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_STACK_BASE_REGISTER) != 0;
-    public readonly uint StackBaseRegister => _stackBaseRegister;
-    public readonly bool IsInterruptible => _isInterruptible;
-    public readonly bool HasInterruptibleRanges => _numInterruptibleRanges > 0;
-    public readonly bool IsSafePoint => _safePointIndex != _numSafePoints;
-    public readonly uint NumSafePoints => _numSafePoints;
-    public readonly uint NumInterruptibleRanges => _numInterruptibleRanges;
-    public readonly int GenericsInstContextStackSlot => _genericsInstContextStackSlot;
-    public readonly int GSCookieStackSlot => _gsCookieStackSlot;
-    public readonly int PSPSymStackSlot => _pspSymStackSlot;
-    public readonly int ReversePInvokeFrameStackSlot => _reversePInvokeFrameStackSlot;
-    public readonly uint GSCookieValidRangeStart => _validRangeStart;
-    public readonly uint GSCookieValidRangeEnd => _validRangeEnd;
-    public readonly uint SizeOfEditAndContinuePreservedArea => _sizeOfEditAndContinuePreservedArea;
-#if ARCH_ARM64
-    public readonly uint SizeOfEditAndContinueFixedStackFrame => _sizeOfEditAndContinueFixedStackFrame;
-#endif
 
 #if ARCH_X64
-    public readonly bool WantsReportOnlyLeaf => (_headerFlags & GcInfoHeaderFlags.GC_INFO_WANTS_REPORT_ONLY_LEAF) != 0;
+    private readonly bool WantsReportOnlyLeaf => (_headerFlags & GcInfoHeaderFlags.GC_INFO_WANTS_REPORT_ONLY_LEAF) != 0;
 #else
-    public readonly bool WantsReportOnlyLeaf => false;
+    private readonly bool WantsReportOnlyLeaf => false;
 #endif
 
     // --- Header ---
 
-    /// <summary>Pre-decode the fat header. Returns true if everything the caller asked for is decoded.</summary>
+    /// <summary>
+    /// Pre-decode the fat header, advancing the bit stream past it. Returns true once everything
+    /// <paramref name="remainingFlags"/> asked for has been decoded (the caller can stop). Header
+    /// fields the precise GC scan does not consume — GS cookie / valid range, generics-instantiation
+    /// context, edit-and-continue sizes, reverse-PInvoke frame slot — are decoded and discarded:
+    /// the reads still have to happen to keep the stream aligned for the safepoint / slot tables.
+    /// </summary>
     private bool PredecodeFatHeader(ref int remainingFlags)
     {
         _headerFlags = (GcInfoHeaderFlags)_reader.Read(GcInfoEncoding.GC_INFO_FLAGS_BIT_SIZE);
@@ -225,24 +155,15 @@ public unsafe struct GcInfoDecoder
             return true;
         }
 
+        // Prolog / epilog sizes (the GS-cookie valid range) — discarded.
         if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GS_COOKIE) != 0)
         {
-            uint normCodeLength = GcInfoEncoding.NormalizeCodeOffset(_codeLength);
-            uint normPrologSize = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_PROLOG_SIZE_ENCBASE) + 1;
-            uint normEpilogSize = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_EPILOG_SIZE_ENCBASE);
-            _validRangeStart = GcInfoEncoding.DenormalizeCodeOffset(normPrologSize);
-            _validRangeEnd = GcInfoEncoding.DenormalizeCodeOffset(normCodeLength - normEpilogSize);
+            _reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_PROLOG_SIZE_ENCBASE);
+            _reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_EPILOG_SIZE_ENCBASE);
         }
         else if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_MASK) != GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_NONE)
         {
-            uint normPrologSize = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_PROLOG_SIZE_ENCBASE) + 1;
-            _validRangeStart = GcInfoEncoding.DenormalizeCodeOffset(normPrologSize);
-            _validRangeEnd = _validRangeStart + 1;
-        }
-        else
-        {
-            _validRangeStart = 0;
-            _validRangeEnd = 0;
+            _reader.DecodeVarLengthUnsigned(GcInfoEncoding.NORM_PROLOG_SIZE_ENCBASE);
         }
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_PROLOG_LENGTH;
         if (remainingFlags == 0)
@@ -250,26 +171,29 @@ public unsafe struct GcInfoDecoder
             return true;
         }
 
-        _gsCookieStackSlot = (_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GS_COOKIE) != 0
-            ? GcInfoEncoding.DenormalizeStackSlot((int)_reader.DecodeVarLengthSigned(GcInfoEncoding.GS_COOKIE_STACK_SLOT_ENCBASE))
-            : NO_GS_COOKIE;
+        // GS-cookie stack slot — discarded.
+        if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GS_COOKIE) != 0)
+        {
+            _reader.DecodeVarLengthSigned(GcInfoEncoding.GS_COOKIE_STACK_SLOT_ENCBASE);
+        }
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_GS_COOKIE;
         if (remainingFlags == 0)
         {
             return true;
         }
 
-        // v4: no PSPSym.
-        _pspSymStackSlot = NO_PSP_SYM;
+        // v4: no PSPSym in the header.
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_PSP_SYM;
         if (remainingFlags == 0)
         {
             return true;
         }
 
-        _genericsInstContextStackSlot = (_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_MASK) != GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_NONE
-            ? GcInfoEncoding.DenormalizeStackSlot((int)_reader.DecodeVarLengthSigned(GcInfoEncoding.GENERICS_INST_CONTEXT_STACK_SLOT_ENCBASE))
-            : NO_GENERICS_INST_CONTEXT;
+        // Generics-instantiation-context stack slot — discarded.
+        if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_MASK) != GcInfoHeaderFlags.GC_INFO_HAS_GENERICS_INST_CONTEXT_NONE)
+        {
+            _reader.DecodeVarLengthSigned(GcInfoEncoding.GENERICS_INST_CONTEXT_STACK_SLOT_ENCBASE);
+        }
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_GENERICS_INST_CONTEXT;
         if (remainingFlags == 0)
         {
@@ -280,18 +204,12 @@ public unsafe struct GcInfoDecoder
             ? GcInfoEncoding.DenormalizeStackBaseRegister((uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.STACK_BASE_REGISTER_ENCBASE))
             : NO_STACK_BASE_REGISTER;
 
+        // Edit-and-continue preserved-area (+ ARM64 fixed-stack-frame) sizes — discarded.
         if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_HAS_EDIT_AND_CONTINUE_INFO) != 0)
         {
-            _sizeOfEditAndContinuePreservedArea = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA_ENCBASE);
+            _reader.DecodeVarLengthUnsigned(GcInfoEncoding.SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA_ENCBASE);
 #if ARCH_ARM64
-            _sizeOfEditAndContinueFixedStackFrame = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.SIZE_OF_EDIT_AND_CONTINUE_FIXED_STACK_FRAME_ENCBASE);
-#endif
-        }
-        else
-        {
-            _sizeOfEditAndContinuePreservedArea = NO_SIZE_OF_EDIT_AND_CONTINUE_PRESERVED_AREA;
-#if ARCH_ARM64
-            _sizeOfEditAndContinueFixedStackFrame = 0;
+            _reader.DecodeVarLengthUnsigned(GcInfoEncoding.SIZE_OF_EDIT_AND_CONTINUE_FIXED_STACK_FRAME_ENCBASE);
 #endif
         }
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_EDIT_AND_CONTINUE;
@@ -300,9 +218,11 @@ public unsafe struct GcInfoDecoder
             return true;
         }
 
-        _reversePInvokeFrameStackSlot = (_headerFlags & GcInfoHeaderFlags.GC_INFO_REVERSE_PINVOKE_FRAME) != 0
-            ? GcInfoEncoding.DenormalizeStackSlot((int)_reader.DecodeVarLengthSigned(GcInfoEncoding.REVERSE_PINVOKE_FRAME_ENCBASE))
-            : NO_REVERSE_PINVOKE_FRAME;
+        // Reverse-PInvoke frame stack slot — discarded.
+        if ((_headerFlags & GcInfoHeaderFlags.GC_INFO_REVERSE_PINVOKE_FRAME) != 0)
+        {
+            _reader.DecodeVarLengthSigned(GcInfoEncoding.REVERSE_PINVOKE_FRAME_ENCBASE);
+        }
         remainingFlags &= ~(int)GcInfoDecoderFlags.DECODE_REVERSE_PINVOKE_VAR;
         if (remainingFlags == 0)
         {
@@ -374,69 +294,9 @@ public unsafe struct GcInfoDecoder
     }
 
     /// <summary>
-    /// True iff <paramref name="codeOffset"/> is a partially-interruptible call site. Requires a decoder
-    /// constructed with <see cref="GcInfoDecoderFlags.DECODE_EVERYTHING"/> (so the safepoint table was not consumed).
-    /// </summary>
-    public bool IsSafePointAt(uint codeOffset)
-    {
-        if (_numSafePoints == 0)
-        {
-            return false;
-        }
-        ulong savedPos = _reader.GetCurrentPos();
-        uint safePointIndex = FindSafePoint(codeOffset);
-        _reader.SetCurrentPos(savedPos);
-        return safePointIndex != _numSafePoints;
-    }
-
-    // --- Interruptible ranges ---
-
-    private bool ComputeIsInterruptible(uint codeOffset)
-    {
-        uint lastStopNorm = 0;
-        for (uint i = 0; i < _numInterruptibleRanges; i++)
-        {
-            uint startDelta = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.INTERRUPTIBLE_RANGE_DELTA1_ENCBASE);
-            uint stopDelta = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.INTERRUPTIBLE_RANGE_DELTA2_ENCBASE) + 1;
-            uint startNorm = lastStopNorm + startDelta;
-            uint stopNorm = startNorm + stopDelta;
-            uint start = GcInfoEncoding.DenormalizeCodeOffset(startNorm);
-            uint stop = GcInfoEncoding.DenormalizeCodeOffset(stopNorm);
-            if (codeOffset >= start && codeOffset < stop)
-            {
-                return true;
-            }
-            lastStopNorm = stopNorm;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Enumerate the (denormalized) interruptible code ranges. Callback returning true stops the
-    /// enumeration. Requires the reader to be positioned at the interruptible-range table (true right
-    /// after construction when no flag consumed it).
-    /// </summary>
-    public void EnumerateInterruptibleRanges(delegate*<uint, uint, void*, bool> callback, void* ctx)
-    {
-        uint lastStopNorm = 0;
-        for (uint i = 0; i < _numInterruptibleRanges; i++)
-        {
-            uint startDelta = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.INTERRUPTIBLE_RANGE_DELTA1_ENCBASE);
-            uint stopDelta = (uint)_reader.DecodeVarLengthUnsigned(GcInfoEncoding.INTERRUPTIBLE_RANGE_DELTA2_ENCBASE) + 1;
-            uint startNorm = lastStopNorm + startDelta;
-            uint stopNorm = startNorm + stopDelta;
-            if (callback(GcInfoEncoding.DenormalizeCodeOffset(startNorm), GcInfoEncoding.DenormalizeCodeOffset(stopNorm), ctx))
-            {
-                return;
-            }
-            lastStopNorm = stopNorm;
-        }
-    }
-
-    /// <summary>
     /// Total number of slot-table entries (registers + tracked stack + untracked stack). Consumes the
     /// reader; valid only on a decoder freshly constructed with <see cref="GcInfoDecoderFlags.DECODE_GC_LIFETIMES"/>.
-    /// Intended for diagnostics/tests.
+    /// Used by the GCInfo decoder validation test.
     /// </summary>
     public uint GetGcSlotCount()
     {
@@ -485,10 +345,8 @@ public unsafe struct GcInfoDecoder
         }
         else
         {
-            if (!executionAborted && _numInterruptibleRanges == 0)
-            {
-                // No safepoint, no ranges: MinOpts method with untracked refs only.
-            }
+            // Not at a known safepoint: either inside a fully-interruptible range (handled below),
+            // or a MinOpts method with only untracked refs and no ranges (nothing to read here).
             if (_numInterruptibleRanges != 0)
             {
                 int countIntersections = 0;
