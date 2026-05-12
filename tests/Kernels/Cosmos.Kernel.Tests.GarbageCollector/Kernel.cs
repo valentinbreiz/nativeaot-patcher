@@ -20,7 +20,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 38);
+        TR.Start("GarbageCollector Tests", expectedTests: 40);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -48,6 +48,8 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_StackScanPaddingStress", TestGCStackScanPaddingStress);
         TR.Run("GC_GcInfoDecoder", TestGCGcInfoDecoder);
         TR.Run("GC_PreciseStackScan", TestGCPreciseStackScan);
+        TR.Run("GC_FuncletNoFalseRoot", TestGCFuncletNoFalseRoot);
+        TR.Run("GC_FuncletNoCrashOnAllocInCatch", TestGCFuncletNoCrashOnAllocInCatch);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -710,6 +712,102 @@ public class Kernel : Sys.Kernel
 
         Assert.True(!wr.IsAlive,
             "GC: precise scan must clear weak ref (shape " + shape + ", issue #346)");
+    }
+
+    // ==================== Precise funclet-frame stack scan (issue #346, phase 3) ====================
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ThrowFuncletSentinel(int shape)
+    {
+        throw new Exception("funclet-sentinel-" + shape);
+    }
+
+    // A real catch funclet that does work: allocates, writes through the `out` byref (which ILC may
+    // keep in a callee-saved register across the try), and references `ex`. Exercises that
+    // RhpCallCatchFunclet sets the establisher frame's registers up for the funclet AND resumes the
+    // catching method properly (jump to the funclet's returned IP at the body SP, run the epilogue)
+    // rather than force-returning from it. `result` (= the caller's local) is written here and read
+    // after this returns; once the catch exits, `dead`'s only strong ref is gone.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void PopulateFuncletWeakRef(int shape, out WeakReference result)
+    {
+        result = null!;
+        try
+        {
+            ThrowFuncletSentinel(shape);
+        }
+        catch (Exception ex)
+        {
+            byte[] dead = new byte[128];
+            dead[0] = (byte)shape;
+            result = new WeakReference(dead);
+            GC.KeepAlive(dead);   // force dead's GCInfo slot live to exactly this IP, then dead
+            _ = ex;               // keep a real funclet frame (ex slot reported by GCInfo)
+        }
+    }
+
+    private static void TestGCFuncletNoFalseRoot()
+    {
+        // GC.Collect is called AFTER the catch exits so no funclet frame is on the stack during
+        // the scan. `dead` had its only strong ref inside the funclet; once the funclet returns,
+        // the precise scan of the parent frame must not resurrect it from a stale slot.
+        // This is the funclet-frame analogue of GC_PreciseStackScan (issue #346).
+        for (int shape = 0; shape < 4; shape++)
+        {
+            PopulateFuncletWeakRef(shape, out WeakReference wr);
+            CoreGC.Collect();
+            CoreGC.Collect();
+            Assert.True(!wr.IsAlive,
+                "GC: a value whose only ref lived in a catch funclet must be collected after the catch exits (shape " + shape + ", issue #346)");
+        }
+    }
+
+    // A catch handler that does real work while its funclet frame is live on the stack: allocates,
+    // forces a collection from *inside* the catch, then reads its allocation and the exception back.
+    // The GC's stack walk meets the funclet frame, the RhpCallCatchFunclet trampoline, and the
+    // exception-dispatch frames mid-dispatch. `keep` and `ex` are referenced after the collect so
+    // their GCInfo slots stay live across it (and so the precise funclet scan must report them).
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int AllocAndCollectInCatch(int shape)
+    {
+        try
+        {
+            ThrowFuncletSentinel(shape);
+            return -1;   // unreachable — ThrowFuncletSentinel always throws
+        }
+        catch (Exception ex)
+        {
+            byte[] keep = new byte[256];
+            for (int i = 0; i < keep.Length; i++)
+            {
+                keep[i] = (byte)(shape + i);
+            }
+            CoreGC.Collect();
+            CoreGC.Collect();
+            int sum = 0;
+            for (int i = 0; i < keep.Length; i++)
+            {
+                sum += keep[i];
+            }
+            return ex != null ? sum : -1;
+        }
+    }
+
+    private static void TestGCFuncletNoCrashOnAllocInCatch()
+    {
+        // GC.Collect() forced from inside a catch funclet must run to completion: the precise stack
+        // scan reaches the funclet frame (decoded from the main method's GCInfo at the synthetic
+        // funclet offset, against the establisher RBP the funclet shares), steps through the
+        // RhpCallCatchFunclet trampoline, and precisely scans the managed exception-dispatch frames
+        // below it — without faulting, and with the funclet's live locals surviving. Issue #227 /
+        // epic #348 phase 3.
+        for (int shape = 1; shape <= 4; shape++)
+        {
+            int sum = AllocAndCollectInCatch(shape);
+            // (shape + i) mod 256 over i in [0, 256) is a permutation of [0, 256) → sum is always 32640.
+            Assert.Equal(32640, sum,
+                "GC: a catch funclet's allocations must survive a collection forced from inside the catch (shape " + shape + ", issue #227)");
+        }
     }
 
     // ==================== GC Info & Configuration Tests ====================
