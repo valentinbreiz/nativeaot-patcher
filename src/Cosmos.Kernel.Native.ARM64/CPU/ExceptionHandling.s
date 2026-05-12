@@ -7,21 +7,10 @@
 .global __cosmos_exinfo_stack_head
 __cosmos_exinfo_stack_head: .quad 0
 
-// Debug strings
-.debug_x20_str: .asciz "[ASM] x20="
-.debug_x29_str: .asciz " x29="
-.debug_sp_str: .asciz " SP="
-.debug_newline: .asciz "\n"
-.debug_pfp_str: .asciz "[ASM] pFP="
-.debug_pfp_val_str: .asciz " *pFP="
-.debug_regdisp_str: .asciz "[ASM] REGDISPLAY*="
-
 .section .text
 
 // External managed functions
 .extern RhThrowEx                    // C# exception dispatcher
-.extern __cosmos_serial_write        // Serial write string
-.extern __cosmos_serial_write_hex_u64 // Serial write hex
 
 //=============================================================================
 // Structure offsets
@@ -159,18 +148,39 @@ RhpThrowEx:
 //
 // The catch funclet expects the exception object in x0.
 // After the funclet returns, we resume at the address it returns.
+//
+// CFI: the prologue is described so the precise GC stack scan / exception unwinder (issue #346)
+// can step from inside the funclet up through this trampoline into the dispatcher's managed frame.
+// The CFA stays SP-based (not switched to x29) on purpose — the body reloads x29 from REGDISPLAY,
+// so an x29-based CFA would be wrong at the post-`blr` IP, which is the only CFI target here. The
+// `mov sp, x11 / br x9` resume tail runs strictly after that point.
 //=============================================================================
 .global RhpCallCatchFunclet
 .balign 4
+.cfi_startproc
 RhpCallCatchFunclet:
-    // Save callee-saved registers (like x64 does)
+    // Save callee-saved registers (like x64 does). No `mov x29, sp` frame-pointer setup:
+    // x29 is reloaded from REGDISPLAY below for the funclet call, so it would be dead — and the
+    // CFA is kept SP-based anyway (see the note above).
     stp     x29, x30, [sp, #-0x80]!
-    mov     x29, sp
+    .cfi_def_cfa_offset 0x80
+    .cfi_rel_offset x29, 0
+    .cfi_rel_offset x30, 8
     stp     x19, x20, [sp, #0x10]
+    .cfi_rel_offset x19, 0x10
+    .cfi_rel_offset x20, 0x18
     stp     x21, x22, [sp, #0x20]
+    .cfi_rel_offset x21, 0x20
+    .cfi_rel_offset x22, 0x28
     stp     x23, x24, [sp, #0x30]
+    .cfi_rel_offset x23, 0x30
+    .cfi_rel_offset x24, 0x38
     stp     x25, x26, [sp, #0x40]
+    .cfi_rel_offset x25, 0x40
+    .cfi_rel_offset x26, 0x48
     stp     x27, x28, [sp, #0x50]
+    .cfi_rel_offset x27, 0x50
+    .cfi_rel_offset x28, 0x58
 
     // Save arguments on stack
     str     x0, [sp, #0x60]             // exception object
@@ -234,6 +244,7 @@ RhpCallCatchFunclet:
 
     // Jump to the resume address
     br      x9
+.cfi_endproc
 
 
 //=============================================================================
@@ -247,18 +258,35 @@ RhpCallCatchFunclet:
 //
 // The filter funclet expects the exception object in x0.
 // It returns non-zero if the exception should be caught by this handler.
+//
+// CFI: see the note on RhpCallCatchFunclet. The epilogue here is the ordinary 5x ldp + indexed
+// ldp + ret; GC cannot fire in it, so prologue CFI is sufficient.
 //=============================================================================
 .global RhpCallFilterFunclet
 .balign 4
+.cfi_startproc
 RhpCallFilterFunclet:
-    // Save callee-saved registers and allocate space for arguments
+    // Save callee-saved registers and allocate space for arguments. No `mov x29, sp`:
+    // x29 is reloaded from REGDISPLAY below, so it would be dead; CFA stays SP-based.
     stp     x29, x30, [sp, #-0x70]!
-    mov     x29, sp
+    .cfi_def_cfa_offset 0x70
+    .cfi_rel_offset x29, 0
+    .cfi_rel_offset x30, 8
     stp     x19, x20, [sp, #0x10]
+    .cfi_rel_offset x19, 0x10
+    .cfi_rel_offset x20, 0x18
     stp     x21, x22, [sp, #0x20]
+    .cfi_rel_offset x21, 0x20
+    .cfi_rel_offset x22, 0x28
     stp     x23, x24, [sp, #0x30]
+    .cfi_rel_offset x23, 0x30
+    .cfi_rel_offset x24, 0x38
     stp     x25, x26, [sp, #0x40]
+    .cfi_rel_offset x25, 0x40
+    .cfi_rel_offset x26, 0x48
     stp     x27, x28, [sp, #0x50]
+    .cfi_rel_offset x27, 0x50
+    .cfi_rel_offset x28, 0x58
 
     // Save arguments on stack (funclet may clobber callee-saved registers)
     str     x0, [sp, #0x60]             // Save exception object
@@ -300,6 +328,7 @@ RhpCallFilterFunclet:
     // Return filter result
     mov     x0, x9
     ret
+.cfi_endproc
 
 
 //=============================================================================
