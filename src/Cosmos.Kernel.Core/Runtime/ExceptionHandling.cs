@@ -621,23 +621,21 @@ public static unsafe partial class ExceptionHelper
         }
 
 #if ARCH_X64
-        // Build REGDISPLAY from the frame chain (more reliable than CFI for RBP)
-        // CFI says RBP is "SameValue" because function may use -fomit-frame-pointer,
-        // but the frame chain walk correctly reads the saved RBP from the stack.
+        // Build the REGDISPLAY the catch funclet runs with — and that RhpCallCatchFunclet resumes
+        // from once the funclet returns. RBP comes from the frame-pointer chain (CFI can report it
+        // "SameValue" for a -fomit-frame-pointer caller); the callee-saved registers and the resume
+        // SP come from the CFI unwind state, which holds the catching method's body state at the
+        // call that threw.
         if (pThrowContext != null)
         {
-            // Use frame chain's RBP (correct) instead of CFI-unwound RBP (may be wrong)
             nuint handlerRbp = catchFrame.FramePointer;
-
-            // For SP, read from the handler frame's stack to get the correct value
-            // In a standard frame: [RBP] = saved caller RBP, [RBP+8] = return addr
-            // The frame's own SP is typically close to RBP for the resume point
-            nuint handlerSp = handlerRbp;  // Start with RBP as baseline
 
             Serial.WriteString("[EH] Frame chain RBP=0x");
             Serial.WriteHex(handlerRbp);
             Serial.WriteString(" CFI RBP=0x");
             Serial.WriteHex(unwindState.RBP);
+            Serial.WriteString(" resume RSP=0x");
+            Serial.WriteHex(unwindState.RSP);
             Serial.WriteString("\n");
 
             Serial.WriteString("[EH] Unwound registers - RBX=0x");
@@ -646,29 +644,37 @@ public static unsafe partial class ExceptionHelper
             Serial.WriteHex(unwindState.R12);
             Serial.WriteString(" R13=0x");
             Serial.WriteHex(unwindState.R13);
+            Serial.WriteString(" R14=0x");
+            Serial.WriteHex(unwindState.R14);
+            Serial.WriteString(" R15=0x");
+            Serial.WriteHex(unwindState.R15);
             Serial.WriteString("\n");
 
             pRegDisplay = &regDisplay;
 
-            // Use frame chain's RBP, CFI's other registers
+            // The catch funclet — and, once it returns, the resumed catching method — needs the
+            // catching method's *body* register state at the call that threw. The CFI walk that
+            // landed on this frame reconstructed exactly that, so `unwindState` carries it directly.
+            // RBP is taken from the frame-pointer chain instead: CFI can legitimately report RBP
+            // "SameValue" for a -fomit-frame-pointer caller, while `[RBP]` always has the saved RBP.
+            // pRxx point at our value copies in this REGDISPLAY (RhpCallCatchFunclet dereferences
+            // them, so the funclet can both read the values and write through them).
             regDisplay.Rbx = unwindState.RBX;
-            regDisplay.Rbp = handlerRbp;  // Use frame chain RBP
+            regDisplay.Rbp = handlerRbp;
             regDisplay.R12 = unwindState.R12;
             regDisplay.R13 = unwindState.R13;
             regDisplay.R14 = unwindState.R14;
             regDisplay.R15 = unwindState.R15;
 
-            // For SP, we need to use the stack pointer value that the resumed code expects
-            // In NativeAOT, the continuation after catch expects RSP to be at the handler
-            // frame's stack position. Using RBP directly works because the epilogue code
-            // typically does "leave; ret" which expects RSP at or near RBP.
-            // Read the return address at [RBP+8] to verify the stack is sane
-            regDisplay.SP = handlerRbp;
+            // Resume SP: the catching method's body RSP at the protected region (the CFA the unwind
+            // landed on), NOT its RBP. RhpCallCatchFunclet sets RSP to this before jumping to the
+            // funclet's returned resume IP, so the catching method finds its own frame intact and
+            // its ordinary epilogue restores our caller's callee-saved registers.
+            regDisplay.SP = unwindState.RSP;
 
-            // Set up pointers to storage locations
             regDisplay.pRbx = &pRegDisplay->Rbx;
             regDisplay.pRbp = &pRegDisplay->Rbp;
-            // pRsi and pRdi intentionally left null - not callee-saved
+            // pRsi / pRdi stay null — not callee-saved under the System V x86-64 ABI.
             regDisplay.pR12 = &pRegDisplay->R12;
             regDisplay.pR13 = &pRegDisplay->R13;
             regDisplay.pR14 = &pRegDisplay->R14;
