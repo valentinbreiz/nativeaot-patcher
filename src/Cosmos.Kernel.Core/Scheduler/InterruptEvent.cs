@@ -49,22 +49,20 @@ public class InterruptEvent
         {
             // IRQ-safe: holding the plain spinlock with IF=1 deadlocks
             // when the matching ISR-side Signal fires on the same CPU
-            // (single-CPU spinlock against itself). Disable interrupts
-            // for the duration of the lock-held region.
-            ulong flags = _lockGuard.AcquireIrqSave();
-
-            if (_signaled)
+            // (single-CPU spinlock against itself).
+            using (_lockGuard.AcquireIrqSafe())
             {
-                _signaled = false;
-                _lockGuard.ReleaseIrqRestore(flags);
-                return;
-            }
+                if (_signaled)
+                {
+                    _signaled = false;
+                    return;
+                }
 
-            if (!_waiters.Contains(currentThread))
-            {
-                _waiters.Add(currentThread);
+                if (!_waiters.Contains(currentThread))
+                {
+                    _waiters.Add(currentThread);
+                }
             }
-            _lockGuard.ReleaseIrqRestore(flags);
 
             SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
             InternalCpu.Halt();
@@ -87,19 +85,22 @@ public class InterruptEvent
         // IRQ-safe acquire — Signal runs in ISR context; using the plain
         // Acquire would deadlock against a same-CPU mainline Wait that is
         // already holding the lock when the ISR fires.
-        ulong flags = _lockGuard.AcquireIrqSave();
-        _signaled = true;
-
-        if (_waiters.Count > 0)
+        SchedThread? toReady = null;
+        using (_lockGuard.AcquireIrqSafe())
         {
-            SchedThread waiter = _waiters[0];
-            _waiters.RemoveAt(0);
-            _lockGuard.ReleaseIrqRestore(flags);
-            SchedulerManager.ReadyThread(waiter.CpuId, waiter);
-            return;
+            _signaled = true;
+
+            if (_waiters.Count > 0)
+            {
+                toReady = _waiters[0];
+                _waiters.RemoveAt(0);
+            }
         }
 
-        _lockGuard.ReleaseIrqRestore(flags);
+        if (toReady != null)
+        {
+            SchedulerManager.ReadyThread(toReady.CpuId, toReady);
+        }
     }
 
     /// <summary>

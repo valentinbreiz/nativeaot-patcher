@@ -1,4 +1,6 @@
-using Cosmos.Kernel.Core.Bridge;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Core.CPU;
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
@@ -8,9 +10,9 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// <para>The plain <see cref="Acquire"/> / <see cref="Release"/> pair is
 /// only safe for locks that are never taken from interrupt context. If an
 /// ISR can acquire the same lock as mainline code (e.g. a wait/signal
-/// pair where the ISR signals), use <see cref="AcquireIrqSave"/> /
-/// <see cref="ReleaseIrqRestore"/>: a single CPU holding the plain lock
-/// when the ISR fires will spin forever waiting for itself.</para>
+/// pair where the ISR signals), use <see cref="AcquireIrqSafe"/>: a single
+/// CPU holding the plain lock when the ISR fires will spin forever waiting
+/// for itself.</para>
 /// </summary>
 public struct SpinLock
 {
@@ -35,32 +37,53 @@ public struct SpinLock
     }
 
     /// <summary>
-    /// Disable interrupts and acquire the lock atomically. Returns the
-    /// prior interrupt state (full RFLAGS on x64, full DAIF on ARM64) which
-    /// must be passed back to <see cref="ReleaseIrqRestore"/>. Use this
+    /// Disable interrupts and acquire the lock as a single scope. Dispose
+    /// releases the lock then restores the prior interrupt state. Use
     /// whenever the same lock can be taken from both mainline and ISR
-    /// context — without it, a single CPU holding the lock when its ISR
-    /// fires will deadlock against itself.
+    /// context — without IRQ-safe acquisition, a single CPU holding the
+    /// lock when its ISR fires will deadlock against itself.
     /// </summary>
-    public ulong AcquireIrqSave()
+    [UnscopedRef]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IrqLockScope AcquireIrqSafe()
     {
-        ulong saved = CpuNative.SaveIrqAndDisable();
-        while (Interlocked.CompareExchange(ref _locked, 1, 0) != 0)
-        {
-            // Spin until lock is acquired (interrupts already disabled)
-        }
-        return saved;
-    }
-
-    /// <summary>
-    /// Release the lock and restore the prior interrupt state captured by
-    /// <see cref="AcquireIrqSave"/>.
-    /// </summary>
-    public void ReleaseIrqRestore(ulong saved)
-    {
-        Interlocked.Exchange(ref _locked, 0);
-        CpuNative.RestoreIrq(saved);
+        return new IrqLockScope(ref this);
     }
 
     public readonly bool IsLocked => _locked != 0;
+}
+
+/// <summary>
+/// RAII scope returned by <see cref="SpinLock.AcquireIrqSafe"/>. Disables
+/// interrupts and acquires the lock on creation; on dispose, releases the
+/// lock then restores the prior interrupt state. Dispose order matters:
+/// the lock must be released before interrupts are re-enabled so an ISR
+/// firing immediately after restore never sees the lock held.
+/// </summary>
+public ref struct IrqLockScope
+{
+    private InternalCpu.InterruptScope _irq;
+    private readonly ref SpinLock _lock;
+    private bool _disposed;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal IrqLockScope(ref SpinLock spinLock)
+    {
+        _irq = new InternalCpu.InterruptScope();
+        _lock = ref spinLock;
+        _disposed = false;
+        spinLock.Acquire();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        _disposed = true;
+        _lock.Release();
+        _irq.Dispose();
+    }
 }
