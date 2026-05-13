@@ -5,13 +5,13 @@ stacks: a **precise** per-frame scan driven by the **GCInfo** metadata the Nativ
 emits for every method. It replaces the **conservative** scan documented in
 [Garbage Collector → Mark phase](garbage-collector.md#mark-phase).
 
-> **Status — not yet implemented.** The GC still uses the conservative scan today. This is the
-> architecture the project is moving to. The problem is tracked in
-> [issue #346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346); the staged rollout
-> is [issue #348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348); the first
-> plumbing (a feature flag, IRQ save/restore natives, a stress test) landed in
-> [PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347). The conservative scan
-> stays the default until the rollout in [Rollout status](#rollout-status) completes.
+> **Status.** The precise scan is live for the **GC-triggering thread** and for **exception-funclet
+> frames** (epic [#348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348), phases 1–3,
+> and the phase-5 cleanup that removed the old opt-out feature flag). The conservative scan from
+> [Garbage Collector → Mark phase](garbage-collector.md#mark-phase) now covers only threads preempted
+> in the scheduler — replacing that needs [return-address hijacking](#the-safepoint-constraint)
+> (#348 phase 4, not yet done). Problem tracked in
+> [issue #346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346).
 
 ---
 
@@ -66,8 +66,10 @@ and `using (InternalCpu.DisableInterruptsScope())` wraps GC, heap and scheduler 
 stale `byte[128]` pointer left in a returned frame landed in a slot the conservative scan reads, the
 array was kept alive, its weak handle was not cleared, and the GarbageCollector suite's tests 14
 (`GC_WeakReference`) and 20 (`GC_DependentHandleCleanup`) failed **on ARM64**. The field was
-reverted in `2f1b6d17`, and `InterruptScope` is now frozen — no field may be added to it until
-precise scanning lands.
+reverted in `2f1b6d17`, and has since been re-added (as the `SaveIrqAndDisable` / `RestoreIrq` pair)
+— safe now that the precise scan covers the GC-triggering thread: `GC.Collect`'s own frame, where
+that stale `byte[128]` pointer lived, is no longer scanned conservatively, so the layout shift can't
+false-root it.
 
 ### Why ARM64 broke and x64 didn't
 
@@ -241,9 +243,13 @@ flowchart TD
 
 `TryMarkRoot` stays the callback — its heap-range and `MethodTable` checks are harmless
 belt-and-braces on a precisely-reported root, and it is also what the conservative-tail fallback
-uses. The fallback matters: Cosmos has frames with no GCInfo — interrupt entry stubs, the context
-switch, native imports — so when the walk reaches an IP outside managed code, the scanner
-conservative-scans the remaining stack range for that thread and stops, rather than crashing.
+uses. Two non-GCInfo cases come up. A hand-written asm trampoline that still carries `.cfi`
+directives (`RhpCallCatchFunclet` / `RhpCallFilterFunclet`, and the throw stub `RhpThrowEx`) is
+*stepped through* reporting nothing — the managed frames on either side cover its register save
+locations, and the in-flight exception object is in the funclet's / `RhThrowEx`'s `ex` slot deeper
+on the stack — so the precise walk continues. A frame with no CFI at all (interrupt entry stubs, the
+context switch, native imports) ends the walk: the scanner conservative-scans the remaining stack
+range for that thread and stops, rather than crashing.
 
 ---
 
@@ -267,31 +273,34 @@ where that thread's instruction pointer is when the GC runs:
    by construction), scans it precisely, then restores the real return address. Cosmos has no such
    subsystem yet.
 
-Consequence — the rollout is staged: precise scanning is enabled where it is provably sound first
-(the GC-triggering thread, then funclet frames), hijacking for preempted threads comes next, and the
-default flip comes last. Until then the conservative scan covers every thread the precise scan does
-not yet handle. The threads the GC iterates and their saved register state come from the scheduler's
+Consequence — the rollout was staged: precise scanning landed where it is provably sound first (the
+GC-triggering thread, then funclet frames), and the conservative scan now covers only the threads
+the precise scan does not yet handle — those preempted in the scheduler, until return-address
+hijacking lands. The threads the GC iterates and their saved register state come from the scheduler's
 thread registry — see [Scheduler](scheduler.md), `SchedulerManager`, and
 [`ThreadContext.X64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) /
 [`ThreadContext.ARM64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs).
 
 ---
 
-## What already exists
+## What it's built from
 
-So the article is honest about design-vs-done, here is what is already in the tree and what the
-precise scan reuses:
+The precise scan reuses the exception-handling machinery and adds the GCInfo decoder plus the
+per-frame walk on top. No build-pipeline, post-link, ILC, or `Cosmos.Patcher` change is part of this
+work — GCInfo is already emitted into `.dotnet_eh_table` and reachable via the FDE LSDA.
 
-| Piece | Where | Status |
-|-------|-------|--------|
-| CFI unwinder, `REGDISPLAY`, `TryGetMethodLSDA`, `UnwindOneFrameWithCFI`, `.eh_frame` FDE/CIE parsing | [`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) | exists (built for [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227)) — the per-frame walk machinery |
-| `.dotnet_eh_table` kept, with `__dotnet_eh_table_start/end` | [`linker.x64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | exists — GCInfo is reachable at runtime via the FDE LSDA |
-| `CosmosEnableConservativeGCStackScan` MSBuild prop → `CosmosFeatures.ConservativeStackScan` | [`CosmosFeatures.cs`](../../src/Cosmos.Kernel.Core/CosmosFeatures.cs), Sdk props | exists ([PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347)) — default `true`; when `false` today, `ScanStackRoots` panics with a `#346` message until the precise path is wired |
-| `_native_cpu_save_irq_and_disable` / `_native_cpu_restore_irq` natives + `CpuNative` partials | [`CpuNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs), `Cosmos.Kernel.Native.X64/CPU/CpuOps.s`, `Cosmos.Kernel.Native.ARM64/CPU/CpuOps.s` | exists ([PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347)) — **unused**; staged for re-adding `InterruptScope._savedFlags` once precise scan covers every thread |
-| `GC_StackScanPaddingStress` test (GarbageCollector suite) | `tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector` | exists ([PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347)) — runs the weak-ref pattern across several `stackalloc` padding shapes; widens the net for layout-sensitive false-rooting |
-
-No build-pipeline, post-link, ILC, or `Cosmos.Patcher` change is part of this work — GCInfo is
-already emitted into `.dotnet_eh_table` and reachable via the FDE LSDA.
+| Piece | Where | Notes |
+|-------|-------|-------|
+| CFI unwinder, `REGDISPLAY`, `UnwindOneFrameWithCFI` | [`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) | the per-frame walk machinery, built for [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227); its `.eh_frame` / LSDA parsing was factored out to `MethodGcInfoLookup` |
+| `.eh_frame` / LSDA / GCInfo lookup | [`MethodGcInfoLookup.cs`](../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs), [`EhFrameNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs) | the kernel's single `.eh_frame` walker — IP → FDE/CIE/LSDA → GCInfo blob (incl. funclet → main redirect) |
+| GCInfo v4 decoder | [`GcInfoDecoder.cs`](../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs) (+ `GcInfoBitStreamReader`, `GcSlotTable`, `GcInfoTypes`) | header, slot table, `EnumerateLiveSlots` — port of `gcinfodecoder.cpp` |
+| Precise per-frame walk | [`GarbageCollector.PreciseStack.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | the walk loop; `ScanStackRoots` in `GarbageCollector.Mark.cs` dispatches to it for the GC-triggering thread |
+| `_native_capture_regdisplay` asm stub | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s`, [`ContextSwitchNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) | seeds the initial `REGDISPLAY` for the GC-triggering thread |
+| `.dotnet_eh_table` kept, with `__dotnet_eh_table_start/end` | [`linker.x64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | GCInfo is reachable at runtime via the FDE LSDA |
+| IRQ save/restore natives | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s`, [`CpuNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs) | used by [`InterruptScope`](../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) (the re-added `_savedFlags` / save-restore-IRQ form) |
+| Mark phase (conservative scan, for parked threads) | [`GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | `ScanThreadStack` / `ScanMemoryRange` / `TryMarkRoot` — what the precise scan replaces, frame by frame |
+| Tests | `tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector` | `GC_GcInfoDecoder`, `GC_PreciseStackScan`, `GC_FuncletNoFalseRoot`, `GC_FuncletNoCrashOnAllocInCatch`, `GC_StackScanPaddingStress` |
+| Hijack stub | `Cosmos.Kernel.Native.X64/.../Hijack.s` (+ ARM64 sibling) | **not yet written** — phase 4 |
 
 ---
 
@@ -300,42 +309,31 @@ already emitted into `.dotnet_eh_table` and reachable via the FDE LSDA.
 The staged plan; [issue #348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348) is the
 source of truth (roughly one PR per phase, x64 first, ARM64 follow-up).
 
-| Phase | Lands | State |
-|-------|-------|-------|
-| 0 | Scaffolding: feature flag, IRQ save/restore natives, padding-stress test | done — [PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347) |
-| 1 | `GcInfoDecoder` (port of the bit-stream decoder) — header, slot table, `EnumerateLiveSlots`, `IsSafePoint`; x64 first, ARM64 behind `#if ARCH_ARM64` | planned |
-| 2 | IP→GCInfo plumbing (LSDA-header walk, incl. funclet→main redirect) + precise-scan the GC-triggering thread; other threads stay conservative | planned |
-| 3 | Exception-funclet frames scanned precisely — targets [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227) | planned |
-| 4 | Return-address hijacking for preempted threads (the subsystem stock NativeAOT has, Cosmos lacks); `InterruptScope._savedFlags` becomes safe to re-add | planned |
-| 5 | Flip `CosmosEnableConservativeGCStackScan` default to `false`; keep the conservative branch as an explicit opt-out debugging fallback; close [#346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346) | planned |
+| Phase | What | State |
+|-------|------|-------|
+| 0 | Scaffolding: a (now-removed) opt-out feature flag, IRQ save/restore natives, padding-stress test | done — [PR #347](https://github.com/valentinbreiz/nativeaot-patcher/pull/347) |
+| 1 | `GcInfoDecoder` v4 port — header, slot table, `EnumerateLiveSlots` (+ bit-stream reader, slot table); ARM64 behind `#if ARCH_ARM64` | done — [PR #349](https://github.com/valentinbreiz/nativeaot-patcher/pull/349) |
+| 2 | IP→GCInfo plumbing (`MethodGcInfoLookup`, LSDA-header walk incl. funclet→main redirect) + precise scan of the GC-triggering thread; other threads stay conservative | done — [PR #350](https://github.com/valentinbreiz/nativeaot-patcher/pull/350) |
+| 3 | Exception-funclet frames scanned precisely, plus the x64 catch-funclet trampoline fixes — targets [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227) | done — [PR #351](https://github.com/valentinbreiz/nativeaot-patcher/pull/351) |
+| 4 | Return-address hijacking for preempted threads (the subsystem stock NativeAOT has, Cosmos lacks); lets the residual conservative `ScanThreadStack` path go too | **not yet done** |
+| 5 | Remove the `CosmosEnableConservativeGCStackScan` opt-out and the conservative-everything path; re-add `InterruptScope._savedFlags` | done — [PR #352](https://github.com/valentinbreiz/nativeaot-patcher/pull/352) |
 
-Boundary today: the conservative scan in [Garbage Collector → Mark phase](garbage-collector.md#mark-phase)
-is the only stack-root scan that runs. Each phase shrinks the set of frames that need it.
+Today the GC-triggering thread and exception-funclet frames are scanned precisely; the conservative
+scan in [Garbage Collector → Mark phase](garbage-collector.md#mark-phase) covers only threads
+preempted in the scheduler. Phase 4 removes that last conservative path.
 
 ---
 
-## Source files
-
-| File | Path | Role |
-|------|------|------|
-| Exception handling / CFI unwinder | [`src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) | `REGDISPLAY`, `TryGetMethodLSDA`, `UnwindOneFrameWithCFI`, `.eh_frame` parsing — reused as-is |
-| Mark phase (conservative scan) | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | `ScanStackRoots`, `ScanThreadStack`, `ScanMemoryRange`, `TryMarkRoot` |
-| Linker scripts | [`src/Cosmos.Build.Templates/Linker/linker.x64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | keep `.dotnet_eh_table` + `__dotnet_eh_table_start/end` |
-| Feature flag | [`src/Cosmos.Kernel.Core/CosmosFeatures.cs`](../../src/Cosmos.Kernel.Core/CosmosFeatures.cs) | `ConservativeStackScan` |
-| IRQ save/restore natives | [`src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs), `Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s` | staged for `InterruptScope._savedFlags` re-add |
-| `InterruptScope` | [`src/Cosmos.Kernel.Core/CPU/InternalCpu.cs`](../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) | the frozen `ref struct` from the [#346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346) regression |
-| Thread context | [`src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs), [`ThreadContext.ARM64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs) | saved registers / IP per parked thread |
-| GCInfo decoder | `src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs` (+ bit-stream reader, slot table) | **planned** — Phase 1 |
-| IP→GCInfo lookup | `src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs` | **planned** — Phase 2 |
-| Precise stack scan | `src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs` | **planned** — Phase 2 |
-| Hijack stub | `src/Cosmos.Kernel.Native.X64/.../Hijack.s` (+ ARM64 sibling) | **planned** — Phase 4 |
-
-### References
+## References
 
 - Issues: [#346 — replace conservative stack scanning](https://github.com/valentinbreiz/nativeaot-patcher/issues/346),
   [#348 — EPIC: precise GCInfo stack scan](https://github.com/valentinbreiz/nativeaot-patcher/issues/348),
   [#227 — catch-handler crash printing `ex.Message`](https://github.com/valentinbreiz/nativeaot-patcher/issues/227)
-- PR: [#347 — #346 scaffolding](https://github.com/valentinbreiz/nativeaot-patcher/pull/347)
+- PRs: [#347 scaffolding](https://github.com/valentinbreiz/nativeaot-patcher/pull/347),
+  [#349 phase 1 (GCInfo decoder)](https://github.com/valentinbreiz/nativeaot-patcher/pull/349),
+  [#350 phase 2 (precise scan)](https://github.com/valentinbreiz/nativeaot-patcher/pull/350),
+  [#351 phase 3 (funclet frames)](https://github.com/valentinbreiz/nativeaot-patcher/pull/351),
+  [#352 phase 5 (drop the opt-out flag)](https://github.com/valentinbreiz/nativeaot-patcher/pull/352)
 - Commits: `6c497186` (added `InterruptScope._savedFlags`, triggered the regression), `2f1b6d17` (the revert)
 - Upstream `dotnet/runtime`: `src/coreclr/vm/gcinfodecoder.cpp`, `src/coreclr/inc/{gcinfotypes.h,gcinfodecoder.h}`,
   `src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp` (`FindMethodInfo` / `GetCodeOffset`),

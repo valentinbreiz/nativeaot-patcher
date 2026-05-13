@@ -5,7 +5,7 @@
 // LSB-first, word-granular bit stream that ILC emits for GCInfo blobs. 64-bit only
 // (BITS_PER_SIZE_T == 64 on both x64 and arm64). See issue #346.
 
-namespace Cosmos.Kernel.Core.Runtime.GcInfo;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 
 /// <summary>
 /// Reads a GCInfo bit stream. Mutable struct — pass by <c>ref</c> for sequential reads;

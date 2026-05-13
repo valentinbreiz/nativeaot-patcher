@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Bridge;
+using Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
 
@@ -10,17 +11,16 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 #pragma warning disable CS8500
 
 /// <summary>
-/// Precise GC stack scanning for the GC-triggering thread, driven by NativeAOT GCInfo
-/// (issue #346, epic #348 phases 2–3). Walks the thread's managed frames one at a time using the
-/// CFI unwinder from <see cref="ExceptionHelper"/>, decoding each method's GCInfo at the matching
-/// instruction pointer — including exception-funclet frames (catch / filter / finally bodies),
-/// which share their main method's slot table — and reporting only the slots it names. CFI-described
-/// asm trampolines (the funclet-invoke stubs) carry no GCInfo of their own; the walk steps through
-/// them without reporting anything (their frame contents are reported by the managed frames on
-/// either side, via register save locations, and the in-flight exception object by the funclet's
-/// <c>ex</c> slot / the dispatcher's locals). Falls back to a conservative scan of the rest of the
-/// stack only when the walk leaves everything it can describe (asm entry stubs / native imports /
-/// IRQ entry — no CFI at all) or a frame's slot table is too large to decode.
+/// Precise GC stack scanning for the GC-triggering thread, driven by NativeAOT GCInfo (issue #346).
+/// Walks the thread's managed frames one at a time with the CFI unwinder from
+/// <see cref="ExceptionHelper"/>, decoding each method's GCInfo at the matching instruction pointer
+/// — including exception-funclet frames (catch / filter / finally bodies), which share their main
+/// method's slot table — and reporting only the slots it names. A CFI-described asm trampoline (the
+/// funclet-invoke stubs) carries no GCInfo of its own; the walk steps through it reporting nothing —
+/// its frame holds no managed references the managed frames on either side don't already cover.
+/// Falls back to a conservative scan of the remaining stack only when the walk leaves everything it
+/// can describe (asm entry stubs, native imports, IRQ entry — no CFI at all) or a frame's slot table
+/// is too large to decode.
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
@@ -76,11 +76,7 @@ public static unsafe partial class GarbageCollector
                 return;
             }
 
-#if ARCH_ARM64
-            nuint sp = st.SP;
-#else
-            nuint sp = st.RSP;
-#endif
+            nuint sp = st.StackPointer;
             ip = st.ReturnAddress;
 
             // Stack grows down: each older frame has a strictly higher SP. Anything else is a sign
@@ -115,12 +111,12 @@ public static unsafe partial class GarbageCollector
         if (!MethodGcInfoLookup.TryGetMethodGcInfo(ip, out MethodGcInfoLookup.MethodGcInfo mi) || mi.GcInfo == null)
         {
             // No GCInfo for this IP. A hand-written asm trampoline (RhpCallCatchFunclet /
-            // RhpCallFilterFunclet) still carries .cfi directives — it just has no .dotnet_eh_table
-            // LSDA. Its own frame holds no managed references the managed frames on either side
-            // don't already report via their register save locations (and the in-flight exception
-            // object is reported by the funclet's `ex` slot above it and the dispatcher's locals
-            // below it), so step through it and keep the precise walk going. Only when there is no
-            // CFI at all (IRQ entry, the bootloader) do we conservatively scan the rest and stop.
+            // RhpCallFilterFunclet / RhpThrowEx) still carries .cfi directives — it just has no
+            // .dotnet_eh_table LSDA. Its own frame holds no managed references the managed frames on
+            // either side don't already report via their register save locations (the in-flight
+            // exception object is reported by the funclet's / RhThrowEx's `ex` slot deeper on the
+            // stack), so step through it and keep the precise walk going. Only when there is no CFI
+            // at all (IRQ entry, the bootloader) do we conservatively scan the rest and stop.
             if (MethodGcInfoLookup.TryGetMethodCFI(ip, out _))
             {
                 return FrameResult.Continue;
@@ -129,17 +125,15 @@ public static unsafe partial class GarbageCollector
             return FrameResult.Stop;
         }
 
-        // Exception funclet frames (catch / filter / finally bodies) carry no GCInfo of their own —
-        // they share the main method's slot table, indexed at a synthetic code offset past the main
-        // body (MethodGcInfoLookup already resolved mi.CodeOffset against the main method start;
-        // issue #227). The funclet runs on the establisher (main) frame's RBP — RhpCallCatchFunclet
-        // restores it and the funclet sets up no RBP frame of its own — so the main method's
-        // RBP-relative slots (every stack slot, for an EH-bearing method, which always keeps a frame
-        // register) resolve correctly against this frame's REGDISPLAY. A filter runs mid-throw, so
-        // the main method's *untracked* slots may be stale and must not be reported
-        // (NoReportUntracked); catch / finally funclets re-report untracked slots — the conservative
-        // tail (and, later, the parent frame's own precise scan) reports them again, but mark is
-        // idempotent so the duplicate is harmless. This mirrors UnixNativeCodeManager::EnumGcRefs.
+        // A funclet (catch / filter / finally body) carries no GCInfo of its own — it shares the
+        // main method's slot table at a synthetic code offset past the main body (MethodGcInfoLookup
+        // already resolved mi.CodeOffset against the main method start). It runs on the establisher
+        // (main) frame's frame register — RhpCallCatchFunclet restores it and the funclet sets up no
+        // frame of its own — so the main method's frame-relative slots resolve against this frame's
+        // REGDISPLAY. A filter runs mid-throw, so the main method's *untracked* slots may be stale
+        // and must not be reported (NoReportUntracked); a catch / finally funclet re-reports them —
+        // the parent frame's own scan reports them again too, but mark is idempotent. Mirrors
+        // UnixNativeCodeManager::EnumGcRefs; this is the scan path that targets issue #227.
         CodeManagerFlags flags = (mi.IsFunclet && mi.IsFilter) ? CodeManagerFlags.NoReportUntracked : CodeManagerFlags.None;
 
         GcInfoDecoder decoder = new GcInfoDecoder(mi.GcInfo, GcInfoEncoding.GCINFO_VERSION, GcInfoDecoderFlags.DECODE_GC_LIFETIMES, mi.CodeOffset);
@@ -157,12 +151,11 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// <see cref="GcInfoDecoder.EnumerateLiveSlots"/> callback: marks each reported root via
     /// <see cref="TryMarkRoot"/>. <paramref name="pObjRef"/> is null for scratch registers Cosmos's
-    /// REGDISPLAY does not track — skipped. Interior pointers (GC_CALL_INTERIOR) are passed through
-    /// as-is in phase 2: <see cref="TryMarkRoot"/>'s MethodTable check drops a non-header byref, the
-    /// same hole the conservative scanner has today. Pinned (GC_CALL_PINNED) is a no-op for the
+    /// REGDISPLAY does not track (skipped). An interior pointer (<c>GC_CALL_INTERIOR</c>) is passed
+    /// through as-is — <see cref="TryMarkRoot"/>'s MethodTable check then drops a non-header byref,
+    /// the same hole the conservative scanner has; pinned (<c>GC_CALL_PINNED</c>) is a no-op for the
     /// non-moving mark phase.
     /// </summary>
-    [MethodImpl(MethodImplOptions.NoOptimization)]
     private static void PreciseRootTrampoline(void* ctx, nuint* pObjRef, uint gcRefFlags)
     {
         if (pObjRef == null)

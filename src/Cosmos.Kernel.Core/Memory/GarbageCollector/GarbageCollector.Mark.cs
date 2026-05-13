@@ -24,7 +24,8 @@ public static unsafe partial class GarbageCollector
         s_markStackCount = 0;
         ScanStackRoots();
         ScanGCHandles();
-        //ScanStaticRoots();
+        // TODO: scan static roots — objects reachable only through static fields aren't rooted
+        //       yet (see the s_maxSegmentSize note in GarbageCollector.cs).
     }
 
     /// <summary>
@@ -76,11 +77,11 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Scans stack roots. With <see cref="CosmosFeatures.ConservativeStackScan"/> on (the default)
-    /// every thread is scanned conservatively. With it off, the GC-triggering (current) thread is
-    /// scanned precisely from NativeAOT GCInfo — it is parked at a call-site safepoint, so the scan
-    /// is sound — while every other registered thread (preempted at an arbitrary IP) still gets the
-    /// conservative scan until return-address hijacking lands (epic #348 phases 4–5). See issue #346.
+    /// Scans stack roots. The GC-triggering (current) thread is scanned precisely from NativeAOT
+    /// GCInfo — it is parked at a call-site safepoint, so the scan is sound — while every other
+    /// registered thread (preempted at an arbitrary IP, where its GCInfo lookup may be meaningless)
+    /// still gets a conservative word-by-word scan of its saved registers and stack until
+    /// return-address hijacking lands. See issue #346.
     /// <para>
     /// <see cref="GarbageCollector.Collect"/> runs this inside <c>InternalCpu.DisableInterruptsScope()</c>,
     /// so the other registered threads are quiescent for the duration.
@@ -88,12 +89,6 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void ScanStackRoots()
     {
-        if (CosmosFeatures.ConservativeStackScan)
-        {
-            ScanStackRootsConservative();
-            return;
-        }
-
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
             Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
@@ -140,36 +135,6 @@ public static unsafe partial class GarbageCollector
     private static nuint GetCurrentStackEndForBootStack()
     {
         return ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize;
-    }
-
-    /// <summary>
-    /// Conservative stack-root scan: walks every word of each registered thread's stack (and saved
-    /// registers) and roots anything that looks like a heap pointer. This is the default path; it
-    /// over-roots and is layout-fragile (issue #346) but never misses a root.
-    /// </summary>
-    private static void ScanStackRootsConservative()
-    {
-        if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
-        {
-            var Threads = SchedulerManager.Threads;
-            if (Threads != null)
-            {
-                for (int i = 0; i < Threads.Length; i++)
-                {
-                    var thread = Threads[i];
-                    if (thread != null && thread.State != Scheduler.ThreadState.Dead)
-                    {
-                        ScanThreadStack(thread);
-                    }
-                }
-            }
-        }
-        else
-        {
-            nuint rsp = ContextSwitchNative.GetSp();
-            nuint stackEnd = rsp + Scheduler.Thread.DefaultStackSize;
-            ScanMemoryRange((nint*)rsp, (nint*)stackEnd);
-        }
     }
 
     /// <summary>

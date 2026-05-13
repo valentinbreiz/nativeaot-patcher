@@ -31,17 +31,22 @@ public static class InternalCpu
     }
 
     /// <summary>
-    /// A disposable scope that disables interrupts on creation and re-enables them on dispose.
+    /// A disposable scope that disables interrupts on creation and restores
+    /// the prior interrupt-enable state on dispose. Critically, this saves
+    /// the full RFLAGS / DAIF on entry and restores it on exit, so nested
+    /// scopes are correct: an inner scope disposing inside an outer
+    /// disabled region does NOT prematurely re-enable interrupts.
     /// </summary>
     public ref struct InterruptScope
     {
         private bool _disposed;
+        private ulong _savedFlags;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InterruptScope()
         {
             _disposed = false;
-            InternalCpu.DisableInterrupts();
+            _savedFlags = CpuNative.SaveIrqAndDisable();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -50,7 +55,7 @@ public static class InternalCpu
             if (!_disposed)
             {
                 _disposed = true;
-                InternalCpu.EnableInterrupts();
+                CpuNative.RestoreIrq(_savedFlags);
             }
         }
     }

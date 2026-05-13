@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Cosmos.TestRunner.Framework;
 using CoreGC = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
@@ -672,10 +673,9 @@ public class Kernel : Sys.Kernel
         Assert.True(methodStart == mi.MethodStart, "GC: TryGetMethodLSDA and TryGetMethodGcInfo agree on method start");
 
         // 2. Spill-aliasing repro (issue #346): a byte[128] whose only strong ref outlives the local
-        //    in a compiler-chosen spill slot. A precise scan ignores that dead slot, so the weak ref
-        //    must be cleared after collection. The assertion also holds under the conservative scan
-        //    for these layouts (so the suite stays green in the default config) — and additionally
-        //    proves the precise leg when the kernel is built CosmosEnableConservativeGCStackScan=false.
+        //    in a compiler-chosen spill slot. The precise scan ignores that dead slot, so the weak
+        //    ref must be cleared after collection — this is the shape that false-rooted under the old
+        //    conservative scan when InterruptScope's layout shifted.
         for (int shape = 0; shape < 6; shape++)
         {
             RunPreciseProbeShape(shape);

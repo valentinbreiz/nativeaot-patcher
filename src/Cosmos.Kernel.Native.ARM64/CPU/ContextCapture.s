@@ -1,4 +1,4 @@
-// Register-context capture for the precise GC stack scan (issue #346 / epic #348, phase 2).
+// Register-context capture for the precise GC stack scan (issue #346).
 //
 // _native_capture_regdisplay(REGDISPLAY* rd) fills *rd with the calling frame's callee-saved
 // register values + stack pointer (at the call site) and returns the caller's return address (IP)
