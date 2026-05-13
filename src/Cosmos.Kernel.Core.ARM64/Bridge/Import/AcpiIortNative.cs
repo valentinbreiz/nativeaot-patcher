@@ -2,14 +2,14 @@
 
 using System.Runtime.InteropServices;
 
-namespace Cosmos.Kernel.Core.Bridge;
+namespace Cosmos.Kernel.Core.ARM64.Bridge;
 
 /// <summary>
-/// Bridge to native ARM64 ACPI IORT resolver
+/// Bridge to the native ACPI IORT resolver
 /// (<c>src/Cosmos.Kernel.Native.MultiArch/ACPI/acpi_wrapper.c</c>). Maps a
 /// PCI requester ID (segment, BDF) to the ITS DeviceID the platform's
-/// IORT advertises. On non-ARM64 builds the native side is a stub that
-/// returns failure and the kernel falls back to <c>DeviceID = BDF</c>.
+/// IORT advertises. Returns non-zero when no IORT mapping is present, in
+/// which case callers fall back to <c>DeviceID = BDF</c>.
 /// </summary>
 public static unsafe partial class AcpiIortNative
 {

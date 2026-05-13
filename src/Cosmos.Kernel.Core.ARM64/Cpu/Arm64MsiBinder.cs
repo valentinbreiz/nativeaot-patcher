@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.Core.Bridge;
+using Cosmos.Kernel.Core.ARM64.Bridge;
 using Cosmos.Kernel.Core.CPU;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
