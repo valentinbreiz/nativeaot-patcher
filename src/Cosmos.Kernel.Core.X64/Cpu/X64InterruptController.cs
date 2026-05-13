@@ -50,7 +50,7 @@ public class X64InterruptController : IInterruptController
         // No managed handler - for CPU exceptions (0-31), fall through to fatal halt
         if (ctx.interrupt <= 31)
         {
-            HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.cr2);
+            HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
             return;
         }
 

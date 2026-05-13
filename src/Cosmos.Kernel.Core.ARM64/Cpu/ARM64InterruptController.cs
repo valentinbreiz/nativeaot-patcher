@@ -171,13 +171,13 @@ public class ARM64InterruptController : IInterruptController
                 }
             }
 
-            HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
+            HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
             return;
         }
 
         // FIQ or SError - log and halt
         Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, "\n");
-        HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
+        HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
     }
 
     private void SendEOI()
