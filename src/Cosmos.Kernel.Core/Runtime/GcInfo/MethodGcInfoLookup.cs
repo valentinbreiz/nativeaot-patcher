@@ -1,19 +1,22 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 //
-// Resolves an instruction pointer to the corresponding method's GCInfo blob. Parses the DWARF
-// .eh_frame section to find the FDE (and its LSDA pointer into .dotnet_eh_table), then walks the
-// NativeAOT LSDA header — mirrors UnixNativeCodeManager::FindMethodInfo + GetCodeOffset
+// Resolves an instruction pointer to the corresponding method's GCInfo blob and exposes the DWARF
+// .eh_frame walk results (CIE pointer, FDE-instruction range, LSDA pointer) every other CFI
+// consumer in the kernel needs. Mirrors UnixNativeCodeManager::FindMethodInfo + GetCodeOffset
 // (dotnet/runtime/src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp). See issue #346.
 //
-// This is the single .eh_frame / LSDA-header parser in the kernel: ExceptionHelper.TryGetMethodLSDA
-// delegates here, and the precise GC stack scan (epic #348, phase 2) uses TryGetMethodGcInfo.
+// This is the single .eh_frame / LSDA-header parser in the kernel:
+// - ExceptionHelper.TryGetMethodLSDA delegates here (handler lookup).
+// - ExceptionHelper.UnwindOneFrameWithCFI delegates here (CFI unwinding — needs the CIE + FDE
+//   instruction range, returned via TryGetMethodCFI).
+// - The precise GC stack scan uses TryGetMethodGcInfo.
 
 using Cosmos.Kernel.Core.Bridge;
 
 namespace Cosmos.Kernel.Core.Runtime.GcInfo;
 
-/// <summary>Maps an instruction pointer to its method's GCInfo blob and code offset.</summary>
+/// <summary>Maps an instruction pointer to its method's GCInfo blob, LSDA, and CFI data.</summary>
 public static unsafe class MethodGcInfoLookup
 {
     // LSDA "unwind block" flags (UnixNativeCodeManager.cpp).
@@ -38,17 +41,38 @@ public static unsafe class MethodGcInfoLookup
         public bool IsFilter;
     }
 
+    /// <summary>
+    /// Raw <c>.eh_frame</c> walk result for an instruction pointer — everything callers need to
+    /// drive a DWARF CFI unwind: the FDE's PC range, its LSDA pointer, the CIE it references, and
+    /// the FDE-instruction range.
+    /// </summary>
+    internal struct MethodCFIInfo
+    {
+        /// <summary>FDE PC-begin (start of the (sub)function containing ip).</summary>
+        public nuint MethodStart;
+        /// <summary>FDE PC-end (= <see cref="MethodStart"/> + range).</summary>
+        public nuint MethodEnd;
+        /// <summary>Pointer to the augmentation block's LSDA (null if the FDE has no LSDA).</summary>
+        public byte* pLSDA;
+        /// <summary>Pointer to the FDE's CIE record (32-bit length field at offset 0).</summary>
+        public byte* pCIE;
+        /// <summary>First byte of FDE call-frame instructions (after the augmentation block).</summary>
+        public byte* pFDEInstrs;
+        /// <summary>One past the last FDE call-frame instruction byte.</summary>
+        public byte* pFDEInstrsEnd;
+    }
+
     /// <summary>Resolve <paramref name="ip"/> to its method's GCInfo. Returns false if no managed FDE/LSDA covers it.</summary>
     public static bool TryGetMethodGcInfo(nuint ip, out MethodGcInfo info)
     {
         info = default;
 
-        if (!TryGetFde(ip, out nuint funcStart, out nuint funcEnd, out byte* pLsda) || pLsda == null)
+        if (!TryGetMethodCFI(ip, out MethodCFIInfo cfi) || cfi.pLSDA == null)
         {
             return false;
         }
 
-        byte* p = pLsda;
+        byte* p = cfi.pLSDA;
         byte unwindBlockFlags = *p++;
 
         byte* pMainLsda;
@@ -58,14 +82,14 @@ public static unsafe class MethodGcInfoLookup
             // Funclet: refers to the main function's blob, with its own start-delta.
             pMainLsda = p + *(int*)p;
             p += sizeof(int);
-            methodStartAddress = funcStart - (nuint)(nint)(*(int*)p);
+            methodStartAddress = cfi.MethodStart - (nuint)(nint)(*(int*)p);
             info.IsFunclet = true;
             info.IsFilter = (unwindBlockFlags & UBF_FUNC_KIND_MASK) == UBF_FUNC_KIND_FILTER;
         }
         else
         {
-            pMainLsda = pLsda;
-            methodStartAddress = funcStart;
+            pMainLsda = cfi.pLSDA;
+            methodStartAddress = cfi.MethodStart;
         }
 
         // GetCodeOffset: skip optional associated-data / EH-info pointers at the main LSDA, then the GCInfo blob follows.
@@ -82,8 +106,8 @@ public static unsafe class MethodGcInfoLookup
 
         info.GcInfo = mp;
         info.CodeOffset = (uint)(ip - methodStartAddress);
-        info.MethodStart = funcStart;
-        info.MethodEnd = funcEnd;
+        info.MethodStart = cfi.MethodStart;
+        info.MethodEnd = cfi.MethodEnd;
         return true;
     }
 
@@ -95,21 +119,24 @@ public static unsafe class MethodGcInfoLookup
     {
         methodStart = 0;
         pLSDA = null;
-        if (!TryGetFde(ip, out nuint funcStart, out _, out byte* p) || p == null)
+        if (!TryGetMethodCFI(ip, out MethodCFIInfo cfi) || cfi.pLSDA == null)
         {
             return false;
         }
-        methodStart = funcStart;
-        pLSDA = p;
+        methodStart = cfi.MethodStart;
+        pLSDA = cfi.pLSDA;
         return true;
     }
 
-    /// <summary>Find the FDE whose PC range contains <paramref name="ip"/>; report its range and LSDA pointer.</summary>
-    private static bool TryGetFde(nuint ip, out nuint funcStart, out nuint funcEnd, out byte* pLsda)
+    /// <summary>
+    /// Walk <c>.eh_frame</c> and locate the FDE that covers <paramref name="ip"/>. Reports the
+    /// FDE's PC range, LSDA pointer (may be null), CIE pointer, and FDE-instruction range. This is
+    /// the single <c>.eh_frame</c> walker in the kernel; the exception dispatcher's CFI unwinder
+    /// (<c>ExceptionHelper.UnwindOneFrameWithCFI</c>) and the precise GC stack scan both delegate here.
+    /// </summary>
+    internal static bool TryGetMethodCFI(nuint ip, out MethodCFIInfo info)
     {
-        funcStart = 0;
-        funcEnd = 0;
-        pLsda = null;
+        info = default;
 
         byte* ehFrameStart = EhFrameNative.GetStart();
         byte* ehFrameEnd = EhFrameNative.GetEnd();
@@ -126,6 +153,8 @@ public static unsafe class MethodGcInfoLookup
             {
                 break; // end of section / extended length not supported
             }
+
+            byte* recordStart = p;
             byte* recordEnd = p + 4 + length;
             p += 4;
 
@@ -147,8 +176,11 @@ public static unsafe class MethodGcInfoLookup
 
             if (ip >= pcBegin && ip < pcEnd)
             {
-                funcStart = pcBegin;
-                funcEnd = pcEnd;
+                info.MethodStart = pcBegin;
+                info.MethodEnd = pcEnd;
+                // CIE pointer is the offset from the position immediately after the length field
+                // back to the referenced CIE record (per DWARF .eh_frame encoding).
+                info.pCIE = (recordStart + 4) - ciePointer;
 
                 uint augLen = ReadULEB128(ref p);
                 if (augLen > 0)
@@ -156,17 +188,25 @@ public static unsafe class MethodGcInfoLookup
                     int lsdaRel = *(int*)p;
                     if (lsdaRel != 0)
                     {
-                        pLsda = p + lsdaRel;
+                        info.pLSDA = p + lsdaRel;
                     }
+                    p += (int)augLen;
                 }
-                return pLsda != null;
+
+                info.pFDEInstrs = p;
+                info.pFDEInstrsEnd = recordEnd;
+                return true;
             }
             p = recordEnd;
         }
         return false;
     }
 
-    private static uint ReadULEB128(ref byte* p)
+    /// <summary>
+    /// Read a DWARF unsigned LEB128 integer at <paramref name="p"/>, advancing the pointer.
+    /// Canonical copy for the whole kernel (<c>ExceptionHelper</c>'s CFI parsers use this too).
+    /// </summary>
+    internal static uint ReadULEB128(ref byte* p)
     {
         uint result = 0;
         int shift = 0;
