@@ -38,7 +38,6 @@
     <CosmosEnableNetwork Condition="'$(CosmosEnableNetwork)' == ''">true</CosmosEnableNetwork>
     <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
-    <CosmosEnableConservativeGCStackScan Condition="'$(CosmosEnableConservativeGCStackScan)' == ''">true</CosmosEnableConservativeGCStackScan>
     <CosmosDefaultFont Condition="'$(CosmosDefaultFont)' == ''">Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf</CosmosDefaultFont>
   </PropertyGroup>
 
@@ -66,7 +65,6 @@
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Network.Enabled" Value="$(CosmosEnableNetwork)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
-    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Memory.GC.ConservativeStackScan" Value="$(CosmosEnableConservativeGCStackScan)" Trim="true"/>
     <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.CustomFont" Value="$(CosmosDefaultFont)" />
     <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
