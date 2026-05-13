@@ -410,35 +410,30 @@ public static unsafe partial class ExceptionHelper
     private static bool s_isHandlingException = false;
 
     /// <summary>
-    /// Main exception dispatcher called from RhThrowEx (managed entry from assembly)
-    /// This version receives context from the assembly stub.
+    /// Managed entry point for a thrown exception, called from <c>RhThrowEx</c> (the assembly stub)
+    /// with the throw-site register context. Walks the stack, runs filters, and transfers to the
+    /// catch handler; if nothing catches it, halts.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowExceptionWithContext(Exception ex, nuint throwAddress, nuint throwRbp, nuint throwRsp, void* pExInfo)
     {
         if (ex == null)
         {
-            Serial.WriteString("[EH] Null exception thrown\n");
             FailFast("Null exception", ex);
             return;
         }
 
-        // Check for recursive exception handling
+        // Guard against an exception thrown while we're already dispatching one.
         if (s_isHandlingException)
         {
-            Serial.WriteString("[EH] ERROR: Recursive exception detected!\n");
             FailFast("Recursive exception", ex);
             return;
         }
-
-        // Set guard
         s_isHandlingException = true;
 
-        // Print exception info
         Serial.WriteString("\n=== DOTNET EXCEPTION THROWN ===\n");
-
-        // Print message first (before stack walk which may crash)
-        // Avoid GetType().Name as it causes heap allocations
+        // Print the message before the stack walk, in case the walk crashes. Avoid GetType().Name —
+        // it allocates.
         string? msg = ex.Message;
         if (msg != null)
         {
@@ -446,7 +441,6 @@ public static unsafe partial class ExceptionHelper
             Serial.WriteString(msg);
             Serial.WriteString("\n");
         }
-
         Serial.WriteString("Exception at 0x");
         Serial.WriteNumber(throwAddress);
         Serial.WriteString("\n");
@@ -457,45 +451,36 @@ public static unsafe partial class ExceptionHelper
         Serial.WriteNumber(throwRsp);
         Serial.WriteString("\n");
 
-        // Try to find and invoke a handler using the context from assembly
-        bool handled = DispatchExceptionWithContext(ex, throwAddress, throwRbp, throwRsp, pExInfo);
+        DispatchExceptionWithContext(ex, throwAddress, throwRbp, throwRsp, pExInfo);
 
-        if (!handled)
-        {
-            Serial.WriteString("\n*** UNHANDLED EXCEPTION ***\n");
-            Serial.WriteString("No catch handler found. System halting...\n");
-            FailFast("Unhandled exception", ex);
-        }
-
-        // Clear guard (only reached if exception was handled)
-        s_isHandlingException = false;
+        // DispatchExceptionWithContext transfers to the handler on success; it only returns here
+        // when no handler covered the throw.
+        Serial.WriteString("\n*** UNHANDLED EXCEPTION ***\n");
+        Serial.WriteString("No catch handler found. System halting...\n");
+        FailFast("Unhandled exception", ex);
     }
 
     /// <summary>
-    /// Two-pass exception dispatch with context from assembly
-    /// Pass 1: Find a handler
-    /// Pass 2: Execute finally handlers and then the catch handler
+    /// Two-pass exception dispatch from the throw-site context: pass 1 walks the stack to find a
+    /// handler (unwinding the register state at each frame so filters can run); pass 2 transfers to
+    /// the catch handler via <see cref="InvokeCatchHandler"/>, which does not return. Returns only
+    /// when no handler was found (or the throw-site frame pointer was missing).
     /// </summary>
-    private static bool DispatchExceptionWithContext(Exception ex, nuint throwAddress, nuint throwRbp, nuint throwRsp, void* pExInfo)
+    private static void DispatchExceptionWithContext(Exception ex, nuint throwAddress, nuint throwRbp, nuint throwRsp, void* pExInfo)
     {
-        Serial.WriteString("[EH] Starting exception dispatch with context\n");
-
-        // If we don't have valid RBP from context, we can't walk the stack properly
+        // No frame pointer from the throw-site context → can't walk the stack.
         if (throwRbp == 0)
         {
-            Serial.WriteString("[EH] WARNING: No valid RBP from context, cannot walk stack\n");
-            return false;
+            return;
         }
 
-        // Build a REGDISPLAY from the context for filter evaluation
+        // REGDISPLAY built from the unwound register state, passed to filter / catch funclets.
         REGDISPLAY regDisplay = default;
         REGDISPLAY* pRegDisplay = null;
 
-#if ARCH_X64
-        // Initialize unwind state from throw-site context for CFI-based unwinding
+        // Seed the CFI unwind state from the throw-site context.
         UnwindState unwindState = default;
         PAL_LIMITED_CONTEXT* pThrowContext = null;
-
         if (pExInfo != null)
         {
             pThrowContext = *(PAL_LIMITED_CONTEXT**)((byte*)pExInfo + 0x08);
@@ -504,28 +489,12 @@ public static unsafe partial class ExceptionHelper
                 InitUnwindStateFromContext(ref unwindState, pThrowContext);
             }
         }
-#elif ARCH_ARM64
-        // Initialize unwind state from throw-site context for CFI-based unwinding
-        UnwindState unwindState = default;
-        PAL_LIMITED_CONTEXT* pThrowContext = null;
 
-        if (pExInfo != null)
-        {
-            pThrowContext = *(PAL_LIMITED_CONTEXT**)((byte*)pExInfo + 0x08);
-            if (pThrowContext != null)
-            {
-                InitUnwindStateFromContext(ref unwindState, pThrowContext);
-            }
-        }
-#endif
-
-        // Pass 1: Walk stack to find a handler, unwinding registers at each frame
+        // Pass 1: walk the frame-pointer chain looking for a handler, unwinding registers as we go.
         StackFrame catchFrame = default;
         EHClause catchClause = default;
         bool foundHandler = false;
-        int catchFrameIndex = 0;
 
-        // Walk the stack looking for handlers
         StackFrame frame;
         frame.FramePointer = throwRbp;
         frame.StackPointer = throwRsp;
@@ -534,15 +503,7 @@ public static unsafe partial class ExceptionHelper
         int frameCount = 0;
         while (frameCount < MAX_STACK_FRAMES && frame.FramePointer != 0)
         {
-            Serial.WriteString("[EH] Frame ");
-            Serial.WriteNumber((nuint)frameCount);
-            Serial.WriteString(": RBP=0x");
-            Serial.WriteNumber(frame.FramePointer);
-            Serial.WriteString(" RIP=0x");
-            Serial.WriteNumber(frame.ReturnAddress);
-            Serial.WriteString("\n");
-
-            // Update REGDISPLAY from current UnwindState for filter evaluation
+            // Refresh the REGDISPLAY from the current unwind state so a filter can be evaluated.
             if (pThrowContext != null)
             {
                 pRegDisplay = &regDisplay;
@@ -578,32 +539,30 @@ public static unsafe partial class ExceptionHelper
 #endif
             }
 
-            // Check if this frame has an exception handler for our exception
+            // Does this frame have a handler covering the call that threw?
             if (TryFindHandler(ex, frame.ReturnAddress, out EHClause clause, pRegDisplay))
             {
-                Serial.WriteString("[EH] FOUND HANDLER at 0x");
-                Serial.WriteNumber((nuint)clause.HandlerAddress);
+                Serial.WriteString("[EH] Handler found at 0x");
+                Serial.WriteHex((nuint)clause.HandlerAddress);
                 Serial.WriteString("\n");
 
                 catchFrame = frame;
                 catchClause = clause;
-                catchFrameIndex = frameCount;
                 foundHandler = true;
                 break;
             }
 
-            // Save current frame's IP for CFI unwinding BEFORE moving to next frame
+            // Capture this frame's IP before stepping up — CFI unwinds it below.
             nuint currentFrameIP = frame.ReturnAddress;
 
-            // Move to caller's frame using simple frame pointer chain
+            // Step to the caller via the frame-pointer chain; stop if it runs out.
             if (!UnwindOneFrame(ref frame))
             {
-                Serial.WriteString("[EH] Cannot unwind further\n");
                 break;
             }
 
-            // Unwind register state using CFI for the frame we just left
-            // This restores registers to the values they had in the caller (next frame)
+            // Unwind the register state with CFI for the frame we just left, so it reflects the
+            // caller's values on the next iteration (needed for filter evaluation).
             if (pThrowContext != null)
             {
                 UnwindOneFrameWithCFI(ref unwindState, currentFrameIP);
@@ -614,62 +573,31 @@ public static unsafe partial class ExceptionHelper
 
         if (!foundHandler)
         {
-            Serial.WriteString("[EH] No handler found after ");
-            Serial.WriteNumber((nuint)frameCount);
-            Serial.WriteString(" frames\n");
-            return false;
+            return;
         }
 
 #if ARCH_X64
         // Build the REGDISPLAY the catch funclet runs with — and that RhpCallCatchFunclet resumes
-        // from once the funclet returns. RBP comes from the frame-pointer chain (CFI can report it
-        // "SameValue" for a -fomit-frame-pointer caller); the callee-saved registers and the resume
-        // SP come from the CFI unwind state, which holds the catching method's body state at the
-        // call that threw.
+        // the catching method from once the funclet returns. The CFI walk that landed on the
+        // catching frame already reconstructed its body register state at the call that threw, so
+        // `unwindState` carries the callee-saved registers and the resume SP directly. RBP is the
+        // one exception: it comes from the frame-pointer chain (`[RBP]`), because CFI can legitimately
+        // report RBP "SameValue" for a -fomit-frame-pointer caller. The pRxx fields point at our
+        // value copies here so RhpCallCatchFunclet can read them and the funclet can write through.
         if (pThrowContext != null)
         {
-            nuint handlerRbp = catchFrame.FramePointer;
-
-            Serial.WriteString("[EH] Frame chain RBP=0x");
-            Serial.WriteHex(handlerRbp);
-            Serial.WriteString(" CFI RBP=0x");
-            Serial.WriteHex(unwindState.RBP);
-            Serial.WriteString(" resume RSP=0x");
-            Serial.WriteHex(unwindState.RSP);
-            Serial.WriteString("\n");
-
-            Serial.WriteString("[EH] Unwound registers - RBX=0x");
-            Serial.WriteHex(unwindState.RBX);
-            Serial.WriteString(" R12=0x");
-            Serial.WriteHex(unwindState.R12);
-            Serial.WriteString(" R13=0x");
-            Serial.WriteHex(unwindState.R13);
-            Serial.WriteString(" R14=0x");
-            Serial.WriteHex(unwindState.R14);
-            Serial.WriteString(" R15=0x");
-            Serial.WriteHex(unwindState.R15);
-            Serial.WriteString("\n");
-
             pRegDisplay = &regDisplay;
 
-            // The catch funclet — and, once it returns, the resumed catching method — needs the
-            // catching method's *body* register state at the call that threw. The CFI walk that
-            // landed on this frame reconstructed exactly that, so `unwindState` carries it directly.
-            // RBP is taken from the frame-pointer chain instead: CFI can legitimately report RBP
-            // "SameValue" for a -fomit-frame-pointer caller, while `[RBP]` always has the saved RBP.
-            // pRxx point at our value copies in this REGDISPLAY (RhpCallCatchFunclet dereferences
-            // them, so the funclet can both read the values and write through them).
             regDisplay.Rbx = unwindState.RBX;
-            regDisplay.Rbp = handlerRbp;
+            regDisplay.Rbp = catchFrame.FramePointer;
             regDisplay.R12 = unwindState.R12;
             regDisplay.R13 = unwindState.R13;
             regDisplay.R14 = unwindState.R14;
             regDisplay.R15 = unwindState.R15;
 
-            // Resume SP: the catching method's body RSP at the protected region (the CFA the unwind
-            // landed on), NOT its RBP. RhpCallCatchFunclet sets RSP to this before jumping to the
-            // funclet's returned resume IP, so the catching method finds its own frame intact and
-            // its ordinary epilogue restores our caller's callee-saved registers.
+            // Resume SP = the CFA the CFI unwind landed on (the catching frame's top), NOT its RBP.
+            // RhpCallCatchFunclet sets RSP to this before jumping to the funclet's resume IP, so the
+            // catching method finds its frame intact and its epilogue restores the caller's regs.
             regDisplay.SP = unwindState.RSP;
 
             regDisplay.pRbx = &pRegDisplay->Rbx;
@@ -681,43 +609,21 @@ public static unsafe partial class ExceptionHelper
             regDisplay.pR15 = &pRegDisplay->R15;
         }
 #elif ARCH_ARM64
-        // Build REGDISPLAY from frame chain and CFI unwound register values
-        // Similar to x64: use frame chain for FP, CFI for callee-saved registers
+        // Build the REGDISPLAY for the catch funclet. As on x64, FP comes from the frame-pointer
+        // chain (CFI can report it "SameValue" for a -fomit-frame-pointer caller) and the callee-
+        // saved registers come from the CFI unwind state. ARM64's REGDISPLAY holds register values
+        // inline (no pRxx pointer fields like x64), so there's nothing to point at a temporary.
+        // NOTE: SP is set to the frame pointer here, not the CFA — RhpCallCatchFunclet's resume tail
+        // assumes SP == FP in the handler frame. x64 uses the CFA instead (PR #351); aligning ARM64
+        // is a known follow-up (catch handlers in methods with a non-trivial frame).
         if (pThrowContext != null)
         {
-            // Use frame chain's FP (correct) instead of CFI-unwound FP (may be wrong due to SameValue)
             nuint handlerFp = catchFrame.FramePointer;
-
-            Serial.WriteString("[EH] Frame chain FP=0x");
-            Serial.WriteHex(handlerFp);
-            Serial.WriteString(" CFI FP=0x");
-            Serial.WriteHex(unwindState.FP);
-            Serial.WriteString("\n");
-
-            Serial.WriteString("[EH] Unwound registers:\n");
-            Serial.WriteString("  X19=0x"); Serial.WriteHex(unwindState.X19);
-            Serial.WriteString(" X20=0x"); Serial.WriteHex(unwindState.X20);
-            Serial.WriteString(" X21=0x"); Serial.WriteHex(unwindState.X21);
-            Serial.WriteString("\n");
-            Serial.WriteString("  X22=0x"); Serial.WriteHex(unwindState.X22);
-            Serial.WriteString(" X23=0x"); Serial.WriteHex(unwindState.X23);
-            Serial.WriteString(" X24=0x"); Serial.WriteHex(unwindState.X24);
-            Serial.WriteString("\n");
-            Serial.WriteString("  X25=0x"); Serial.WriteHex(unwindState.X25);
-            Serial.WriteString(" X26=0x"); Serial.WriteHex(unwindState.X26);
-            Serial.WriteString(" X27=0x"); Serial.WriteHex(unwindState.X27);
-            Serial.WriteString(" X28=0x"); Serial.WriteHex(unwindState.X28);
-            Serial.WriteString("\n");
-            Serial.WriteString("  SP=0x"); Serial.WriteHex(unwindState.SP);
-            Serial.WriteString(" LR=0x"); Serial.WriteHex(unwindState.LR);
-            Serial.WriteString("\n");
 
             pRegDisplay = &regDisplay;
 
-            // Store values directly in REGDISPLAY structure (no pointers/stackalloc)
-            // This avoids stack corruption issues
-            regDisplay.SP = handlerFp;           // Use frame chain FP (simulating SP)
-            regDisplay.FP = handlerFp;           // Use frame chain FP
+            regDisplay.SP = handlerFp;
+            regDisplay.FP = handlerFp;
             regDisplay.X19 = unwindState.X19;
             regDisplay.X20 = unwindState.X20;
             regDisplay.X21 = unwindState.X21;
@@ -729,138 +635,74 @@ public static unsafe partial class ExceptionHelper
             regDisplay.X27 = unwindState.X27;
             regDisplay.X28 = unwindState.X28;
             regDisplay.LR = unwindState.LR;
-
-            Serial.WriteString("[EH] REGDISPLAY setup: SP=0x");
-            Serial.WriteHex(regDisplay.SP);
-            Serial.WriteString(" FP=0x");
-            Serial.WriteHex(regDisplay.FP);
-            Serial.WriteString(" X20=0x");
-            Serial.WriteHex(regDisplay.X20);
-            Serial.WriteString("\n");
         }
 #endif
 
-        // Pass 2: Execute finally handlers between throw and catch, then invoke catch
-        Serial.WriteString("[EH] Pass 2: Executing handlers\n");
-
-        // For now, just invoke the catch handler directly
-        // TODO: Execute finally handlers first
-        InvokeCatchHandler(ex, ref catchFrame, ref catchClause, pExInfo, pRegDisplay);
-
-        // InvokeCatchHandler should not return - it jumps to the resume address
-        // If we reach here, something went wrong
-        Serial.WriteString("[EH] ERROR: InvokeCatchHandler returned unexpectedly!\n");
-        return false;
+        // Pass 2: transfer to the catch handler.
+        // TODO: execute finally handlers between the throw and the catch first.
+        InvokeCatchHandler(ex, ref catchClause, pExInfo, pRegDisplay);
+        // InvokeCatchHandler jumps to the resume address and does not return.
     }
 
     /// <summary>
-    /// Unwind one stack frame using frame pointer chain
+    /// Steps one frame up the frame-pointer chain: <c>[RBP]</c> holds the caller's saved RBP and
+    /// <c>[RBP+8]</c> the return address. Returns <c>false</c> at the bottom of the chain or on a
+    /// frame pointer / return address that doesn't look valid.
     /// </summary>
     private static bool UnwindOneFrame(ref StackFrame frame)
     {
-        // Read caller's saved RBP from current frame
-        // Stack layout: [saved_rbp][return_address]...
         nuint* rbpPtr = (nuint*)frame.FramePointer;
-
         if (rbpPtr == null || frame.FramePointer < 0x1000)
         {
-            Serial.WriteString("[EH] Invalid frame pointer\n");
+            Serial.WriteString("[EH] Corrupt frame pointer, stopping stack walk\n");
             return false;
         }
 
-        // Saved RBP is at [RBP+0]
         nuint savedRbp = rbpPtr[0];
-
-        // Return address is at [RBP+8]
         nuint returnAddr = rbpPtr[1];
 
-        Serial.WriteString("[EH] Unwinding: savedRbp=0x");
-        Serial.WriteNumber(savedRbp);
-        Serial.WriteString(" returnAddr=0x");
-        Serial.WriteNumber(returnAddr);
-        Serial.WriteString("\n");
-
-        // Validate the saved RBP
-        // savedRbp of 0 means end of chain
+        // savedRbp == 0 is the bottom of the chain.
         if (savedRbp == 0)
         {
-            Serial.WriteString("[EH] End of frame chain (savedRbp=0)\n");
             return false;
         }
 
-        // Validate return address - should be in kernel code range
-        // Kernel code typically at 0xFFFFFFFF80000000 and above
         if (returnAddr == 0 || returnAddr < 0x1000)
         {
-            Serial.WriteString("[EH] Invalid return address\n");
+            Serial.WriteString("[EH] Corrupt return address, stopping stack walk\n");
             return false;
         }
 
-        // Update frame
         frame.FramePointer = savedRbp;
-        frame.StackPointer = frame.FramePointer + 16;  // Approximate RSP after pop rbp; ret
+        frame.StackPointer = savedRbp + 16;  // approximate RSP after `pop rbp; ret`
         frame.ReturnAddress = returnAddr;
-
         return true;
     }
 
     /// <summary>
-    /// Try to find an exception handler for the given IP
-    /// Uses LSDA (Language Specific Data Area) parsing to find EH clauses
-    /// </summary>
-    private static bool TryFindHandler(Exception ex, nuint instructionPointer, out EHClause clause)
-    {
-        return TryFindHandler(ex, instructionPointer, out clause, null);
-    }
-
-    /// <summary>
-    /// Try to find an exception handler for the given IP with context for filter evaluation
-    /// Uses LSDA (Language Specific Data Area) parsing to find EH clauses
+    /// Looks for an exception handler covering <paramref name="instructionPointer"/> by parsing the
+    /// method's LSDA. <paramref name="pRegDisplay"/> (if non-null) lets a <c>when</c>-filter clause
+    /// be evaluated. Also appends the method name to the exception's stack trace.
     /// </summary>
     private static bool TryFindHandler(Exception ex, nuint instructionPointer, out EHClause clause, REGDISPLAY* pRegDisplay)
     {
         clause = default;
 
-        Serial.WriteString("[EH] Looking for handler for IP 0x");
-        Serial.WriteHex(instructionPointer);
-        Serial.WriteString("\n");
-
-        // Try to find the method info and LSDA for this IP
         if (!TryGetMethodLSDA(instructionPointer, out nuint methodStart, out byte* pLSDA))
         {
-            Serial.WriteString("[EH] Could not find LSDA for IP\n");
             return false;
         }
 
-        Serial.WriteString("[EH] Found method at 0x");
-        Serial.WriteHex(methodStart);
-        Serial.WriteString(", LSDA at 0x");
-        Serial.WriteHex((nuint)pLSDA);
-        Serial.WriteString("\n");
-
-        if (StackTraceMetadata.IsSupported)
+        if (StackTraceMetadata.IsSupported
+            && StackTraceMetadata.TryGetMethodNameFromStartAddress(methodStart, out string methodName))
         {
-            if (StackTraceMetadata.TryGetMethodNameFromStartAddress(methodStart, out string methodName))
-            {
-                ref string? stackTraceString = ref StackTraceMetadata.GetStackTraceString(ex);
-                if (stackTraceString == null)
-                {
-                    stackTraceString = methodName;
-                }
-                else
-                {
-                    stackTraceString += Environment.NewLine + "at " + methodName;
-                }
-            }
+            ref string? stackTraceString = ref StackTraceMetadata.GetStackTraceString(ex);
+            stackTraceString = stackTraceString == null
+                ? methodName
+                : stackTraceString + Environment.NewLine + "at " + methodName;
         }
 
-        // Calculate offset within method
         uint codeOffset = (uint)(instructionPointer - methodStart);
-        Serial.WriteString("[EH] Code offset: 0x");
-        Serial.WriteHex(codeOffset);
-        Serial.WriteString("\n");
-
-        // Parse LSDA and enumerate EH clauses
         return TryFindHandlerInLSDA(ex, pLSDA, methodStart, codeOffset, out clause, pRegDisplay);
     }
 
@@ -1746,7 +1588,10 @@ public static unsafe partial class ExceptionHelper
 #endif
 
     /// <summary>
-    /// Parse LSDA and find a handler for the given code offset
+    /// Parses the LSDA EH-clause table for <paramref name="codeOffset"/> and returns the first
+    /// clause that covers it: a typed catch, or a <c>when</c>-filter clause whose filter funclet
+    /// (called via <see cref="RhpCallFilterFunclet"/>) returns non-zero. Fault clauses are
+    /// recognised but not yet executed. Returns <c>false</c> if no clause matches.
     /// </summary>
     private static bool TryFindHandlerInLSDA(Exception ex, byte* pLSDA, nuint methodStart, uint codeOffset, out EHClause clause, REGDISPLAY* pRegDisplay)
     {
@@ -1758,43 +1603,31 @@ public static unsafe partial class ExceptionHelper
         }
 
         byte* p = pLSDA;
-
-        // Read unwind block flags
         byte unwindBlockFlags = *p++;
 
-        // Skip funclet reference if not root
+        // Skip the funclet→main redirect (present only in a funclet's LSDA).
         if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_KIND_MASK) != MethodGcInfoLookup.UBF_FUNC_KIND_ROOT)
         {
-            // Funclet - skip relative offsets
-            p += sizeof(int); // mainLSDA offset
-            p += sizeof(int); // method start offset
+            p += sizeof(int); // main-LSDA offset
+            p += sizeof(int); // method-start offset
         }
 
-        // Skip associated data if present
+        // Skip the associated-data offset if present.
         if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_HAS_ASSOCIATED_DATA) != 0)
         {
             p += sizeof(int);
         }
 
-        // Check if method has EH info
         if ((unwindBlockFlags & MethodGcInfoLookup.UBF_FUNC_HAS_EHINFO) == 0)
         {
-            Serial.WriteString("[EH] Method has no EH info\n");
             return false;
         }
 
-        // Read EH info offset and follow it
+        // Follow the EH-info offset to the clause table.
         int ehInfoOffset = *(int*)p;
         byte* pEHInfo = p + ehInfoOffset;
-        p += sizeof(int);
 
-        // Read number of clauses
         uint nClauses = ReadUnsigned(ref pEHInfo);
-        Serial.WriteString("[EH] Method has ");
-        Serial.WriteNumber(nClauses);
-        Serial.WriteString(" EH clauses\n");
-
-        // Enumerate clauses looking for a match
         for (uint i = 0; i < nClauses; i++)
         {
             uint tryStartOffset = ReadUnsigned(ref pEHInfo);
@@ -1803,17 +1636,6 @@ public static unsafe partial class ExceptionHelper
             EHClauseKind kind = (EHClauseKind)(tryEndDeltaAndKind & 0x3);
             uint tryEndOffset = tryStartOffset + (tryEndDeltaAndKind >> 2);
 
-            Serial.WriteString("[EH] Clause ");
-            Serial.WriteNumber(i);
-            Serial.WriteString(": try 0x");
-            Serial.WriteHex(tryStartOffset);
-            Serial.WriteString("-0x");
-            Serial.WriteHex(tryEndOffset);
-            Serial.WriteString(" kind=");
-            Serial.WriteNumber((uint)kind);
-            Serial.WriteString("\n");
-
-            // Read handler address
             uint handlerOffset = 0;
             byte* filterAddress = null;
             void* targetType = null;
@@ -1822,7 +1644,6 @@ public static unsafe partial class ExceptionHelper
             {
                 case EHClauseKind.EH_CLAUSE_TYPED:
                     handlerOffset = ReadUnsigned(ref pEHInfo);
-                    // Read type RVA
                     byte* pTypeBase = pEHInfo;
                     int typeRelAddr = ReadInt32(ref pEHInfo);
                     targetType = pTypeBase + typeRelAddr;
@@ -1839,74 +1660,42 @@ public static unsafe partial class ExceptionHelper
                     break;
             }
 
-            // Check if this clause covers our code offset
-            if (codeOffset >= tryStartOffset && codeOffset < tryEndOffset)
+            if (codeOffset < tryStartOffset || codeOffset >= tryEndOffset)
             {
-                Serial.WriteString("[EH] Found matching clause!\n");
+                continue;
+            }
 
-                // Skip fault handlers for now - they need different handling
-                // Fault handlers (like finally) should run during unwinding, not catch the exception
-                if (kind == EHClauseKind.EH_CLAUSE_FAULT)
+            // Fault handlers run during unwinding, not as a catch — not implemented yet.
+            if (kind == EHClauseKind.EH_CLAUSE_FAULT)
+            {
+                continue;
+            }
+
+            // A `when`-filter clause matches only if its filter funclet returns non-zero, and that
+            // needs a register context to run the funclet against.
+            if (kind == EHClauseKind.EH_CLAUSE_FILTER)
+            {
+                if (pRegDisplay == null || filterAddress == null)
                 {
-                    Serial.WriteString("[EH] Skipping fault handler (not implemented yet)\n");
                     continue;
                 }
 
-                // For filter clauses, we need to evaluate the filter to see if it matches
-                if (kind == EHClauseKind.EH_CLAUSE_FILTER)
+                nint exceptionPtr = Unsafe.As<Exception, nint>(ref ex);
+                if (RhpCallFilterFunclet(exceptionPtr, filterAddress, pRegDisplay) == 0)
                 {
-                    Serial.WriteString("[EH] Evaluating filter at 0x");
-                    Serial.WriteHex((nuint)filterAddress);
-                    Serial.WriteString("\n");
-
-                    // If we have a valid REGDISPLAY, call the filter funclet
-                    if (pRegDisplay != null && filterAddress != null)
-                    {
-                        nint exceptionPtr = Unsafe.As<Exception, nint>(ref ex);
-                        nint filterResult = RhpCallFilterFunclet(exceptionPtr, filterAddress, pRegDisplay);
-
-                        Serial.WriteString("[EH] Filter returned: ");
-                        Serial.WriteNumber((nuint)filterResult);
-                        Serial.WriteString("\n");
-
-                        // If filter returned 0, this clause doesn't match - continue to next clause
-                        if (filterResult == 0)
-                        {
-                            Serial.WriteString("[EH] Filter did not match, continuing search\n");
-                            continue;
-                        }
-
-                        Serial.WriteString("[EH] Filter matched!\n");
-                    }
-                    else
-                    {
-                        // Without REGDISPLAY we can't call the filter - skip this clause
-                        Serial.WriteString("[EH] No REGDISPLAY available for filter evaluation, skipping\n");
-                        continue;
-                    }
+                    continue;
                 }
-
-                clause.ClauseKind = kind;
-                clause.TryStartOffset = tryStartOffset;
-                clause.TryEndOffset = tryEndOffset;
-                clause.HandlerAddress = (byte*)(methodStart + handlerOffset);
-                clause.FilterAddress = filterAddress;
-                clause.TargetType = targetType;
-
-                Serial.WriteString("[EH] Handler offset: 0x");
-                Serial.WriteHex(handlerOffset);
-                Serial.WriteString(" methodStart: 0x");
-                Serial.WriteHex((nuint)methodStart);
-                Serial.WriteString("\n");
-                Serial.WriteString("[EH] Handler at 0x");
-                Serial.WriteHex((nuint)clause.HandlerAddress);
-                Serial.WriteString("\n");
-
-                return true;
             }
+
+            clause.ClauseKind = kind;
+            clause.TryStartOffset = tryStartOffset;
+            clause.TryEndOffset = tryEndOffset;
+            clause.HandlerAddress = (byte*)(methodStart + handlerOffset);
+            clause.FilterAddress = filterAddress;
+            clause.TargetType = targetType;
+            return true;
         }
 
-        Serial.WriteString("[EH] No matching clause found\n");
         return false;
     }
 
@@ -1958,52 +1747,25 @@ public static unsafe partial class ExceptionHelper
     }
 
     /// <summary>
-    /// Invoke a catch handler funclet using the assembly helper that properly restores
-    /// the stack and registers before jumping to the resume address.
+    /// Hands the in-flight exception to its catch funclet via <see cref="RhpCallCatchFunclet"/>,
+    /// which restores the establisher frame's registers, runs the funclet, then resumes the catching
+    /// method at the address the funclet returns. Does not return.
     /// </summary>
-    private static void InvokeCatchHandler(Exception ex, ref StackFrame frame, ref EHClause clause, void* pExInfo, REGDISPLAY* pRegDisplay)
+    private static void InvokeCatchHandler(Exception ex, ref EHClause clause, void* pExInfo, REGDISPLAY* pRegDisplay)
     {
-        Serial.WriteString("[EH] Invoking catch handler\n");
-        Serial.WriteString("[EH] Handler at: 0x");
-        Serial.WriteHex((nuint)clause.HandlerAddress);
-        Serial.WriteString("\n");
-
-        // Convert exception object to pointer for funclet
-        nint exceptionPtr = Unsafe.As<Exception, nint>(ref ex);
-
-        Serial.WriteString("[EH] Calling funclet with exception at 0x");
-        Serial.WriteHex((nuint)exceptionPtr);
-        Serial.WriteString("\n");
-
-        if (pRegDisplay != null)
+        if (pRegDisplay == null)
         {
-#if ARCH_X64
-            Serial.WriteString("[EH] REGDISPLAY: SP=0x");
-            Serial.WriteHex(pRegDisplay->SP);
-            Serial.WriteString(" RBP=0x");
-            Serial.WriteHex(pRegDisplay->Rbp);
-            Serial.WriteString(" R12=0x");
-            Serial.WriteHex(pRegDisplay->R12);
-            Serial.WriteString(" R13=0x");
-            Serial.WriteHex(pRegDisplay->R13);
-            Serial.WriteString("\n");
-#elif ARCH_ARM64
-            Serial.WriteString("[EH] REGDISPLAY: SP=0x");
-            Serial.WriteHex(pRegDisplay->SP);
-            Serial.WriteString("\n");
-#endif
-
-            // Clear the exception handling flag BEFORE calling funclet
-            s_isHandlingException = false;
-
-            // Call the assembly helper that invokes the catch funclet and resumes execution
-            // This function never returns - it jumps directly to the resume address
-            RhpCallCatchFunclet(exceptionPtr, clause.HandlerAddress, pRegDisplay, pExInfo);
+            Serial.WriteString("[EH] No register context for the catch funclet\n");
+            FailFast("Invalid exception context", ex);
+            return;
         }
 
-        // Should not reach here - RhpCallCatchFunclet never returns
-        Serial.WriteString("[EH] ERROR: No valid REGDISPLAY for funclet call\n");
-        FailFast("Invalid exception context", ex);
+        nint exceptionPtr = Unsafe.As<Exception, nint>(ref ex);
+
+        // The exception is about to be handled — clear the recursion guard before transferring out
+        // (RhpCallCatchFunclet jumps to the resume address and never comes back here).
+        s_isHandlingException = false;
+        RhpCallCatchFunclet(exceptionPtr, clause.HandlerAddress, pRegDisplay, pExInfo);
     }
 
     /// <summary>

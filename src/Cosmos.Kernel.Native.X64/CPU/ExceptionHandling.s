@@ -51,8 +51,16 @@ __cosmos_exinfo_stack_head: .quad 0
 //
 // This is called by the ILC-generated code when a 'throw' statement executes.
 // System V AMD64 ABI: RDI = first argument (exception object)
+//
+// CFI: the prologue (the PAL_LIMITED_CONTEXT this builds on the stack, then the ExInfo space) is
+// described so the precise GC stack scan / exception unwinder (issue #346) can step from inside the
+// dispatcher up through this stub into the throwing method. The post-`call RhThrowEx` IP is the
+// only CFI target here — RhThrowEx transfers to a handler or halts, it never returns — so describing
+// just the prologue is sufficient. RBX/RBP/R12-R15 are written into the context, so their throw-site
+// values live at known stack slots; RAX/RDX/RSI/RDI are scratch.
 //=============================================================================
 .global RhpThrowEx
+.cfi_startproc
 RhpThrowEx:
     // Save the RSP of the throw site (before call pushed return address)
     lea     rax, [rsp + 8]          // rax = original RSP at throw site
@@ -61,23 +69,41 @@ RhpThrowEx:
     // Align stack to 16 bytes
     xor     rdx, rdx
     push    rdx                     // padding for alignment
+    .cfi_adjust_cfa_offset 8
 
     // Build PAL_LIMITED_CONTEXT structure on stack
     // Push in reverse order so they end up at correct offsets
     push    r15                     // +0x48: R15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
     push    r14                     // +0x40: R14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r13                     // +0x38: R13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r12                     // +0x30: R12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    rdx                     // +0x28: Rdx (0)
+    .cfi_adjust_cfa_offset 8
     push    rbx                     // +0x20: Rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    rdx                     // +0x18: Rax (0)
+    .cfi_adjust_cfa_offset 8
     push    rbp                     // +0x10: Rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rax                     // +0x08: Rsp (original)
+    .cfi_adjust_cfa_offset 8
     push    rsi                     // +0x00: IP (return address)
+    .cfi_adjust_cfa_offset 8
 
     // Now RSP points to PAL_LIMITED_CONTEXT
     // Allocate space for ExInfo
     sub     rsp, STACKSIZEOF_ExInfo
+    .cfi_adjust_cfa_offset STACKSIZEOF_ExInfo
 
     // Save exception object temporarily
     mov     rbx, rdi                // rbx = exception object
@@ -114,6 +140,7 @@ RhpThrowEx:
 .Lthrow_unreachable:
     int     3
     jmp     .Lthrow_unreachable
+.cfi_endproc
 
 //=============================================================================
 // RhpCallCatchFunclet - Call a catch handler funclet

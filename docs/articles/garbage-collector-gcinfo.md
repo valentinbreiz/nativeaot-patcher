@@ -244,10 +244,10 @@ flowchart TD
 `TryMarkRoot` stays the callback — its heap-range and `MethodTable` checks are harmless
 belt-and-braces on a precisely-reported root, and it is also what the conservative-tail fallback
 uses. Two non-GCInfo cases come up. A hand-written asm trampoline that still carries `.cfi`
-directives (the funclet-invoke stubs `RhpCallCatchFunclet` / `RhpCallFilterFunclet`) is *stepped
-through* reporting nothing — the managed frames on either side cover its register save locations,
-and the in-flight exception object is in the funclet's `ex` slot above and the dispatcher's locals
-below — so the precise walk continues. A frame with no CFI at all (interrupt entry stubs, the
+directives (`RhpCallCatchFunclet` / `RhpCallFilterFunclet`, and the throw stub `RhpThrowEx`) is
+*stepped through* reporting nothing — the managed frames on either side cover its register save
+locations, and the in-flight exception object is in the funclet's / `RhThrowEx`'s `ex` slot deeper
+on the stack — so the precise walk continues. A frame with no CFI at all (interrupt entry stubs, the
 context switch, native imports) ends the walk: the scanner conservative-scans the remaining stack
 range for that thread and stops, rather than crashing.
 

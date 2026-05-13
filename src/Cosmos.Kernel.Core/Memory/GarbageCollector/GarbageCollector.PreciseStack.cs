@@ -114,12 +114,12 @@ public static unsafe partial class GarbageCollector
         if (!MethodGcInfoLookup.TryGetMethodGcInfo(ip, out MethodGcInfoLookup.MethodGcInfo mi) || mi.GcInfo == null)
         {
             // No GCInfo for this IP. A hand-written asm trampoline (RhpCallCatchFunclet /
-            // RhpCallFilterFunclet) still carries .cfi directives — it just has no .dotnet_eh_table
-            // LSDA. Its own frame holds no managed references the managed frames on either side
-            // don't already report via their register save locations (and the in-flight exception
-            // object is reported by the funclet's `ex` slot above it and the dispatcher's locals
-            // below it), so step through it and keep the precise walk going. Only when there is no
-            // CFI at all (IRQ entry, the bootloader) do we conservatively scan the rest and stop.
+            // RhpCallFilterFunclet / RhpThrowEx) still carries .cfi directives — it just has no
+            // .dotnet_eh_table LSDA. Its own frame holds no managed references the managed frames on
+            // either side don't already report via their register save locations (the in-flight
+            // exception object is reported by the funclet's / RhThrowEx's `ex` slot deeper on the
+            // stack), so step through it and keep the precise walk going. Only when there is no CFI
+            // at all (IRQ entry, the bootloader) do we conservatively scan the rest and stop.
             if (MethodGcInfoLookup.TryGetMethodCFI(ip, out _))
             {
                 return FrameResult.Continue;

@@ -24,7 +24,8 @@ public static unsafe partial class GarbageCollector
         s_markStackCount = 0;
         ScanStackRoots();
         ScanGCHandles();
-        //ScanStaticRoots();
+        // TODO: scan static roots — objects reachable only through static fields aren't rooted
+        //       yet (see the s_maxSegmentSize note in GarbageCollector.cs).
     }
 
     /// <summary>
