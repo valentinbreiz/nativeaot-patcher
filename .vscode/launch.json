@@ -465,11 +465,6 @@
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
-        },
-        {
-            "name": "Cosmos: Debug Kernel",
-            "type": "cosmos-debug",
-            "request": "launch"
         }
     ]
 }

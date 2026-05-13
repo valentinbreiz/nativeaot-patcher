@@ -41,14 +41,9 @@
     },
     {
       "label": "Debug x64 DevKernel",
-      "dependsOn": ["Build x64 DevKernel"],
-      "dependsOrder": "sequence",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -drive file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso,if=none,id=cosmoscd,format=raw,readonly=on -device ide-cd,drive=cosmoscd,bootindex=0 -display gtk -vga std -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -s -S -no-reboot -no-shutdown & sleep 1 && echo QEMU-DEVKERNEL-DEBUG-READY && wait"
-      ],
+      "command": "make",
+      "args": ["debug-dev", "ARCH=x64"],
       "isBackground": true,
       "problemMatcher": {
         "owner": "qemu-devkernel",
@@ -66,14 +61,9 @@
     },
     {
       "label": "Debug ARM64 DevKernel",
-      "dependsOn": ["Build ARM64 DevKernel"],
-      "dependsOrder": "sequence",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-aarch64 -M virt,highmem=off,gic-version=3 -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device virtio-mouse-device -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets-arm64.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -device ramfb -display gtk,show-cursor=on -serial stdio -s -S & sleep 1 && echo QEMU-DEVKERNEL-ARM64-DEBUG-READY && wait"
-      ],
+      "command": "make",
+      "args": ["debug-dev", "ARCH=arm64"],
       "isBackground": true,
       "problemMatcher": {
         "owner": "qemu-devkernel-arm64",
@@ -91,14 +81,9 @@
     },
     {
       "label": "Run QEMU x64 DevKernel",
-      "dependsOn": ["Build x64 DevKernel"],
-      "dependsOrder": "sequence",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-x86_64 -M q35 -cpu max -m 512M -serial stdio -drive file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/cosmos/DevKernel.iso,if=none,id=cosmoscd,format=raw,readonly=on -device ide-cd,drive=cosmoscd,bootindex=0 -display gtk -vga std -device i8042 -netdev user,id=net0,hostfwd=udp::5555-:5555 -device e1000,netdev=net0 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -no-reboot -no-shutdown"
-      ],
+      "command": "make",
+      "args": ["run-dev", "ARCH=x64"],
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -106,14 +91,9 @@
     },
     {
       "label": "Run QEMU ARM64 DevKernel",
-      "dependsOn": ["Build ARM64 DevKernel"],
-      "dependsOrder": "sequence",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "[ -f ${workspaceFolder}/disk-ahci.img ] || truncate -s 256M ${workspaceFolder}/disk-ahci.img && [ -f ${workspaceFolder}/disk-nvme.img ] || truncate -s 256M ${workspaceFolder}/disk-nvme.img && qemu-system-aarch64 -M virt,highmem=off,gic-version=3 -cpu cortex-a53 -m 1G -bios /usr/share/AAVMF/AAVMF_CODE.fd -drive if=none,id=cd,file=${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/cosmos/DevKernel.iso -device virtio-scsi-pci -device scsi-cd,drive=cd,bootindex=0 -device virtio-keyboard-device -device virtio-mouse-device -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -object filter-dump,id=dump0,netdev=net0,file=${workspaceFolder}/packets-arm64.pcap -drive file=${workspaceFolder}/disk-ahci.img,if=none,id=ahcidisk,format=raw -device ich9-ahci,id=ahci0 -device ide-hd,drive=ahcidisk,bus=ahci0.0 -drive file=${workspaceFolder}/disk-nvme.img,if=none,id=nvmedisk,format=raw -device nvme,drive=nvmedisk,serial=cosmos-nvme -device ramfb -display gtk,show-cursor=on -serial stdio -no-reboot -no-shutdown"
-      ],
+      "command": "make",
+      "args": ["run-dev", "ARCH=arm64"],
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -146,295 +126,6 @@
       "args": [
         "build",
         "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj"
-      ],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "Run Test: HelloWorld (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "x64",
-        "60",
-        "${workspaceFolder}/test-results.xml",
-        "ci"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Test: HelloWorld (x64, Console Only)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "x64",
-        "60"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Test: HelloWorld (ARM64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "arm64",
-        "90",
-        "${workspaceFolder}/test-results-arm64.xml",
-        "ci"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Dev Test: HelloWorld (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "x64",
-        "60",
-        "-",
-        "dev"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Build HelloWorld Test Kernel (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "-c",
-        "Debug",
-        "-r",
-        "linux-x64",
-        "-p:DefineConstants=ARCH_X64",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj",
-        "-o",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-x64"
-      ],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "Build HelloWorld Test Kernel (ARM64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "-c",
-        "Debug",
-        "-r",
-        "linux-arm64",
-        "-p:DefineConstants=ARCH_ARM64",
-        "-p:CosmosArch=arm64",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj",
-        "-o",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/output-arm64"
-      ],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "Clean Test Artifacts",
-      "type": "shell",
-      "command": "rm",
-      "args": [
-        "-f",
-        "${workspaceFolder}/test-results*.xml",
-        "${workspaceFolder}/uart-output.log"
-      ],
-      "presentation": {
-        "reveal": "silent",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Run Test: Threading (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "x64",
-        "120",
-        "${workspaceFolder}/test-results-threading-x64.xml",
-        "ci"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Test: Threading (ARM64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "arm64",
-        "180",
-        "${workspaceFolder}/test-results-threading-arm64.xml",
-        "ci"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Dev Test: Threading (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "x64",
-        "120",
-        "-",
-        "dev"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Dev Test: Threading (ARM64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj",
-        "--",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "arm64",
-        "180",
-        "-",
-        "dev"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Build Threading Test Kernel (x64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "-c",
-        "Debug",
-        "-r",
-        "linux-x64",
-        "-p:DefineConstants=ARCH_X64",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading/Cosmos.Kernel.Tests.Threading.csproj",
-        "-o",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading/output-x64"
-      ],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "Build Threading Test Kernel (ARM64)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "-c",
-        "Debug",
-        "-r",
-        "linux-arm64",
-        "-p:DefineConstants=ARCH_ARM64",
-        "-p:CosmosArch=arm64",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading/Cosmos.Kernel.Tests.Threading.csproj",
-        "-o",
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading/output-arm64"
       ],
       "group": "build",
       "presentation": {
