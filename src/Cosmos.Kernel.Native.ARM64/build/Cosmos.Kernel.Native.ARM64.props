@@ -4,6 +4,7 @@
   <ItemGroup Condition="$(RuntimeIdentifier.EndsWith('-arm64'))">
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/IO/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/CPU/" />
+    <AsmSearchPath Include="$(MSBuildThisFileDirectory)/CPU/Gic/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Debug/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Runtime/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Memory/" />

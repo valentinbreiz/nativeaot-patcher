@@ -84,7 +84,7 @@ public static class Panic
         Serial.WriteString("  R13: 0x"); Serial.WriteHex(ctx.r13);
         Serial.WriteString("  R14: 0x"); Serial.WriteHex(ctx.r14); Serial.WriteString("\n");
         Serial.WriteString("  R15: 0x"); Serial.WriteHex(ctx.r15); Serial.WriteString("\n");
-        Serial.WriteString("  CR2: 0x"); Serial.WriteHex(ctx.cr2); Serial.WriteString("\n");
+        Serial.WriteString("  CR2: 0x"); Serial.WriteHex(ctx.fault_address); Serial.WriteString("\n");
 #endif
     }
 

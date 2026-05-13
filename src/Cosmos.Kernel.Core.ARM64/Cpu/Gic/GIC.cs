@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
@@ -71,6 +72,51 @@ public static class GIC
     /// Initializes the GIC, auto-detecting v2 or v3.
     /// Discovery priority: ACPI MADT → default QEMU addresses.
     /// </summary>
+    /// <summary>
+    /// Brings the LPI/ITS path online if the platform reports an ITS, then
+    /// registers the ARM64 MSI binder. Safe to call when no ITS is present
+    /// — it logs and returns, leaving MsiRouting unregistered so callers
+    /// fall back to whatever non-MSI path they support.
+    /// </summary>
+    private static unsafe void InitializeMsi(ulong itsBase)
+    {
+        if (!_isV3)
+        {
+            Serial.Write("[GIC] MSI/ITS only supported on GICv3, skipping\n");
+            return;
+        }
+        if (itsBase == 0)
+        {
+            Serial.Write("[GIC] No ITS in MADT, MSI-X path disabled\n");
+            return;
+        }
+        if (GICv3.CurrentCpuRdBase == 0)
+        {
+            Serial.Write("[GIC] CurrentCpuRdBase == 0, ITS init skipped\n");
+            return;
+        }
+
+        DeviceMapper.EnsureMapped(itsBase);
+        DeviceMapper.EnsureMapped(itsBase + 0x10000);
+
+        GICv3Lpi.Initialize(GICv3.CurrentCpuRdBase);
+        if (!GICv3Lpi.IsInitialized)
+        {
+            Serial.Write("[GIC] LPI init failed, MSI-X path disabled\n");
+            return;
+        }
+
+        GICv3Its.Initialize(itsBase, GICv3.CurrentCpuRdBase);
+        if (!GICv3Its.IsInitialized)
+        {
+            Serial.Write("[GIC] ITS init failed, MSI-X path disabled\n");
+            return;
+        }
+
+        MsiRouting.RegisterBinder(new Arm64MsiBinder());
+        Serial.Write("[GIC] MsiRouting registered (GICv3 ITS)\n");
+    }
+
     public static unsafe void Initialize()
     {
         // Priority 1: Try ACPI MADT (parsed by C code in kmain via acpi_early_init)
@@ -82,14 +128,41 @@ public static class GIC
 
             if (_isV3 && acpiGic->RedistBase != 0)
             {
-                // Real hardware GICv3: use sysreg-only mode (MMIO may be inaccessible)
+                // Default to sysreg-only (safe on hardware where GICD/GICR
+                // MMIO is inaccessible). When the firmware advertises an
+                // ITS, we MUST take the full MMIO path — LPI delivery
+                // requires GICR_PROPBASER/PENDBASER writes against the
+                // redistributor, and the redistributor walk to populate
+                // CurrentCpuRdBase, neither of which run in sysreg-only.
+                bool useSysregOnly = acpiGic->ItsFound == 0;
                 Serial.Write("[GIC] ACPI: GICv3 GICD=0x");
                 Serial.WriteHex(acpiGic->DistBase);
                 Serial.Write(" GICR=0x");
                 Serial.WriteHex(acpiGic->RedistBase);
-                Serial.Write(" (sysreg-only)\n");
-                GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
-                GICv3.Initialize(sysregOnly: true);
+                if (acpiGic->ItsFound != 0)
+                {
+                    Serial.Write(" ITS=0x");
+                    Serial.WriteHex(acpiGic->ItsBase);
+                    Serial.Write(" (full MMIO for ITS)");
+                }
+                else
+                {
+                    Serial.Write(" (sysreg-only)");
+                }
+                Serial.Write("\n");
+
+                if (useSysregOnly)
+                {
+                    GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
+                    GICv3.Initialize(sysregOnly: true);
+                }
+                else
+                {
+                    DeviceMapper.EnsureMapped(acpiGic->DistBase);
+                    DeviceMapper.EnsureMapped(acpiGic->RedistBase);
+                    GICv3.Configure(acpiGic->DistBase, acpiGic->RedistBase);
+                    GICv3.Initialize(sysregOnly: false);
+                }
             }
             else if (_isV3)
             {
@@ -119,6 +192,7 @@ public static class GIC
             }
 
             _initialized = true;
+            InitializeMsi(acpiGic->ItsFound != 0 ? acpiGic->ItsBase : 0);
             return;
         }
 
@@ -144,6 +218,15 @@ public static class GIC
         }
 
         _initialized = true;
+
+        // Default QEMU virt with gic-version=3 puts the ITS at 0x08080000.
+        // This is only used when ACPI didn't supply an MADT — typically a
+        // bare-metal early-boot smoke-test path.
+        if (_isV3)
+        {
+            const ulong DefaultQemuItsBase = 0x08080000;
+            InitializeMsi(DefaultQemuItsBase);
+        }
     }
 
     /// <summary>

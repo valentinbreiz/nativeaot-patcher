@@ -18,14 +18,6 @@ public abstract class BlockDevice : Device, IBlockDevice
     /// <inheritdoc />
     public abstract string Name { get; }
 
-    /// <summary>
-    /// Allocate a managed buffer sized for <paramref name="blockCount"/> blocks.
-    /// </summary>
-    public Span<byte> NewBlockArray(ulong blockCount)
-    {
-        return new byte[blockCount * BlockSize];
-    }
-
     /// <inheritdoc />
     public abstract void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data);
 

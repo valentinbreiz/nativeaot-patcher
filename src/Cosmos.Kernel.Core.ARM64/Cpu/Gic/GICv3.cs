@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// GICv3 uses system registers (ICC_*) for the CPU interface instead of MMIO,
 /// and adds a Redistributor component (one per CPU).
 /// Base addresses are configurable to support both QEMU and real hardware.
-/// Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/GICv3Native.cs.
+/// Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/Gic/GICv3Native.cs.
 /// </summary>
 public static class GICv3
 {
@@ -95,6 +95,13 @@ public static class GICv3
     /// the GIC bus doesn't respond (e.g., Qualcomm wearable SoCs).
     /// </summary>
     public static bool IsMmioAvailable => _mmioAvailable;
+
+    /// <summary>
+    /// RD_base of the redistributor for the current (boot) CPU, discovered
+    /// via TYPER walk. Exposed so the LPI / ITS drivers can program
+    /// PROPBASER/PENDBASER and the ITS collection-mapping target.
+    /// </summary>
+    public static ulong CurrentCpuRdBase => _currentCpuRdBase;
 
     /// <summary>
     /// Configures the GICv3 base addresses. Must be called before Initialize()
@@ -528,12 +535,14 @@ public static class GICv3
 
     /// <summary>
     /// Acknowledges an interrupt and returns its ID.
-    /// Uses ICC_IAR1_EL1 system register.
+    /// Uses ICC_IAR1_EL1 system register. The INTID field is 24 bits wide
+    /// (LPIs occupy 8192..16777215), so we mask to that width — masking to
+    /// 10 bits would truncate any LPI delivered via the ITS.
     /// </summary>
     /// <returns>The interrupt ID, or 1023 if spurious.</returns>
     public static uint AcknowledgeInterrupt()
     {
-        return GICv3Native.ReadIar1() & 0x3FF;
+        return GICv3Native.ReadIar1() & 0xFFFFFF;
     }
 
     /// <summary>

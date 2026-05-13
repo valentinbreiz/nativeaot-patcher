@@ -2,6 +2,7 @@
 
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Storage;
@@ -69,6 +70,31 @@ public static class StorageManager
         _deviceCount = 0;
         _partitions = new List<Partition>();
         _initialized = true;
+    }
+
+    /// <summary>
+    /// Registers every block device produced by the HAL storage drivers
+    /// (AHCI ports, NVMe namespaces). Called once during boot after the HAL
+    /// has initialized the controllers.
+    /// </summary>
+    public static void RegisterHALDevices()
+    {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
+        List<BlockDevice> ports = AHCI.Ports;
+        for (int i = 0; i < ports.Count; i++)
+        {
+            RegisterDevice(ports[i]);
+        }
+
+        List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
+        for (int i = 0; i < nvmeNamespaces.Count; i++)
+        {
+            RegisterDevice(nvmeNamespaces[i]);
+        }
     }
 
     /// <summary>

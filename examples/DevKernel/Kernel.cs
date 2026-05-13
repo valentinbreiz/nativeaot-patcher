@@ -44,6 +44,18 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
 
         Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Parameters:");
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        foreach (var param in Environment.GetCommandLineArgs())
+        {
+            Console.Write('\t');
+            Console.WriteLine(param);
+        }
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Cosmos booted successfully!");
         Console.ResetColor();
         Console.WriteLine("Type 'help' for available commands.");
@@ -478,13 +490,7 @@ public class Kernel : Sys.Kernel
         }
         catch (Exception ex)
         {
-            // Use Serial instead of Console to avoid OOM from threading initialization
-            Serial.WriteString("[CATCH] Exception caught: ");
-            Serial.WriteString(ex.Message);
-            Serial.WriteString("\n");
-
-            // Call Stop() to signal the main loop to exit
-            Serial.WriteString("[CATCH] Calling Stop()...\n");
+            PrintError($"Exception: {ex.Message}");
             Stop();
         }
     }

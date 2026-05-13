@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.Utilities;
 
 namespace Cosmos.Kernel.Core.Bridge;
 
@@ -34,5 +35,32 @@ public static unsafe class LimineNative
             return Limine.HHDM.Response->Offset;
         }
         return 0;
+    }
+
+    /// <summary>
+    /// Wrapper to expose Limine cmdline pointer.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "__get_limine_cmd_line")]
+    public static byte* GetCmdLine()
+    {
+        if (Limine.ExecutableCmdline.Response != null)
+        {
+            return Limine.ExecutableCmdline.Response->Cmdline;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Wrapper to expose the <see cref="ArgvParser.BuildArgv"/> method, utility to parse byte* into argv style.
+    /// </summary>
+    /// <param name="input">Input pointer to be parsed</param>
+    /// <param name="argc">Pointer to Save the number of parameters</param>
+    /// <returns>The argv pointer</returns>
+    /// <remarks>The string "cosmos" is added as the parameter at index 0 in result, this is to take place of the exe.</remarks>
+    [UnmanagedCallersOnly(EntryPoint = "__build_argv")]
+    public static byte** __build_argv(byte* input, int* argc)
+    {
+        return ArgvParser.BuildArgv(input, argc);
     }
 }

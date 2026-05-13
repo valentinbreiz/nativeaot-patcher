@@ -2,24 +2,34 @@
 
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Pci;
+using SchedMutex = Cosmos.Kernel.Core.Scheduler.Mutex;
+using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
+using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
 /// One initialized NVMe controller. Owns its admin and a single IO
-/// queue pair, and the namespaces it discovered. Submission is polled —
-/// matching the SATA driver's discipline; no interrupts.
+/// queue pair, and the namespaces it discovered. The admin queue is
+/// polled (it only runs once at init); the I/O queue is interrupt-driven
+/// via MSI-X so callers of <see cref="Read"/> / <see cref="Write"/> can
+/// yield instead of burning a CPU on a spinloop, and up to
+/// <see cref="IoQueueDepth"/> commands can be in flight concurrently
+/// because every slot owns its own 4 KiB DMA bounce buffer.
+///
+/// <para>If MSI-X is unavailable (e.g. ARM64 today, or a pathological
+/// PCI device with no MSI-X capability) the controller falls back to
+/// polled completion, but in that mode commands are serialized through
+/// an internal mutex.</para>
 ///
 /// Limitations:
 /// <list type="bullet">
-/// <item>QEMU NVMe BAR0 fits in 32 bits, so only the lower BAR is consumed.
-/// Real-hardware NVMe with BAR0 above 4 GiB would need a 64-bit BAR
-/// helper on <see cref="PciDeviceNormal"/>.</item>
-/// <item>One IO submission and one IO completion queue (qid=1), depth 8.
-/// Sufficient for serialized 4 KiB-and-under transfers.</item>
+/// <item>One IO submission and one IO completion queue (qid=1), depth 8.</item>
 /// <item>Single-PRP transfers — caller never asks for more than one LBA
 /// per command, so PRP2 is always 0.</item>
 /// </list>
@@ -31,6 +41,21 @@ public unsafe class NVMeController
     private const uint IoQueueId = 1;
     private const ulong PageSize = 4096;
 
+    /// <summary>
+    /// Per-CID bookkeeping for in-flight I/O commands. Each slot carries
+    /// its own bounce buffer so multiple namespaces (or threads) can hold
+    /// independent in-flight commands without trampling one shared page.
+    /// </summary>
+    private sealed class IoSlot
+    {
+        public InterruptEvent Done = new();
+        public uint Status;
+        public bool InUse;
+        public ulong DmaBufferVirt;
+        public ulong DmaBufferPhys;
+    }
+
+    private readonly PciDevice _pci;
     private readonly NVMeRegisters _regs;
 
     // Admin queue
@@ -51,16 +76,29 @@ public unsafe class NVMeController
     private uint _ioSqTail;
     private uint _ioCqHead;
     private bool _ioCqPhase;
-    private ushort _ioCmdId;
 
-    /// <summary>Shared 4 KiB DMA bounce buffer used by all namespaces on this controller.</summary>
-    public ulong DmaBufferVirt { get; private set; }
-    public ulong DmaBufferPhys { get; private set; }
+    // I/O completion plumbing (MSI-X driven when possible).
+    private MsiXContext _msiX;
+    private bool _msiXEnabled;
+    private IoSlot[]? _ioSlots;
+
+    // Slot allocation. SpinLock guards both the slot in-use bits and the
+    // _slotWaiters queue. SubmitSqLock guards the SQ tail + doorbell
+    // critical section so concurrent submits don't clobber _ioSqTail.
+    private SchedSpinLock _slotLock;
+    private SchedSpinLock _submitSqLock;
+    private readonly List<SchedThread> _slotWaiters = [];
+
+    // Polled-completion fallback path: serializes the entire submit/wait
+    // sequence so concurrent callers don't race on _ioCqHead / _ioCqPhase.
+    // Unused once MSI-X is enabled.
+    private readonly SchedMutex _polledIoMutex = new();
 
     public List<NVMeNamespace> Namespaces { get; } = new();
 
     public NVMeController(PciDevice pci)
     {
+        _pci = pci;
         pci.EnableBusMaster(true);
         pci.EnableMemory(true);
 
@@ -70,7 +108,11 @@ public unsafe class NVMeController
         }
 
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        ulong bar0Phys = pci.BaseAddressBar[0].BaseAddress;
+        ulong bar0Phys = pci.GetBar64Address(0);
+        if (bar0Phys == 0)
+        {
+            throw new Exception("[NVMe] BAR0 is not a memory BAR");
+        }
         ulong bar0Virt = bar0Phys + hhdmOffset;
         _regs = new NVMeRegisters(bar0Virt);
 
@@ -93,12 +135,42 @@ public unsafe class NVMeController
         EnableController();
         Serial.WriteString("[NVMe] Controller ready\n");
 
-        // Pre-allocate the shared bounce buffer used for IO transfers.
-        DmaBufferVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
-        DmaBufferPhys = PageAllocator.VirtualToPhysical(DmaBufferVirt);
-
         DiscoverNamespaces();
+        SetupIoCompletionPlumbing();
         CreateIoQueues();
+    }
+
+    /// <summary>
+    /// Allocate per-slot DMA buffers + InterruptEvent, enable MSI-X on
+    /// the device, allocate an interrupt vector, and program the MSI-X
+    /// table to deliver to it. Falls back to polled mode if the device
+    /// has no MSI-X cap or the platform has no MSI routing backend.
+    /// </summary>
+    private void SetupIoCompletionPlumbing()
+    {
+        _ioSlots = new IoSlot[IoQueueDepth];
+        for (int i = 0; i < IoQueueDepth; i++)
+        {
+            IoSlot slot = new();
+            slot.DmaBufferVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+            slot.DmaBufferPhys = PageAllocator.VirtualToPhysical(slot.DmaBufferVirt);
+            _ioSlots[i] = slot;
+        }
+
+        MsiXContext? ctx = MsiX.Enable(_pci);
+        if (ctx == null)
+        {
+            Serial.WriteString("[NVMe] MSI-X unavailable, falling back to polled I/O\n");
+            return;
+        }
+
+        _msiX = ctx.Value;
+        // The binder allocates the underlying vector / LPI itself (x64 IDT
+        // vector or ARM64 LPI INTID) and wires it to OnIoCompletion.
+        MsiX.SetEntry(_msiX, 0, OnIoCompletion);
+        _msiXEnabled = true;
+
+        Serial.WriteString("[NVMe] I/O CQ -> MSI-X entry 0\n");
     }
 
     private void DisableController()
@@ -175,25 +247,237 @@ public unsafe class NVMeController
     }
 
     /// <summary>
-    /// Submit an IO command on the IO queue pair (qid=1) and poll for completion.
+    /// Read <paramref name="dst"/>.Length bytes (must equal block size *
+    /// (numLogicalBlocksMinusOne+1)) starting at LBA <paramref name="lba"/>
+    /// from namespace <paramref name="nsid"/>. Thread-safe — multiple
+    /// callers run on independent slots up to <see cref="IoQueueDepth"/>.
     /// </summary>
-    public uint SubmitIo(byte opcode, uint nsid, ulong prp1, ulong slba, ushort numLogicalBlocksMinusOne)
+    public uint Read(uint nsid, ulong lba, Span<byte> dst, ushort numLogicalBlocksMinusOne)
     {
-        ushort cid = _ioCmdId++;
+        int slotIndex = AcquireSlot();
+        if (slotIndex < 0)
+        {
+            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
+        }
+        try
+        {
+            IoSlot slot = _ioSlots![slotIndex];
+            uint sc = SubmitOnSlot(NVMeIoOp.Read, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
+            if (sc == 0)
+            {
+                CopyOut(slot.DmaBufferVirt, dst);
+            }
+            return sc;
+        }
+        finally
+        {
+            ReleaseSlot(slotIndex);
+        }
+    }
 
-        NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
-        sqe.SetOpcode(opcode, cid);
-        sqe.SetNsid(nsid);
-        sqe.SetPrp1(prp1);
-        sqe.SetPrp2(0);
-        sqe.SetCdw10((uint)(slba & 0xFFFFFFFF));
-        sqe.SetCdw11((uint)(slba >> 32));
-        sqe.SetCdw12(numLogicalBlocksMinusOne);
+    /// <summary>
+    /// Write <paramref name="src"/> to namespace <paramref name="nsid"/>
+    /// starting at LBA <paramref name="lba"/>. Thread-safe.
+    /// </summary>
+    public uint Write(uint nsid, ulong lba, ReadOnlySpan<byte> src, ushort numLogicalBlocksMinusOne)
+    {
+        int slotIndex = AcquireSlot();
+        if (slotIndex < 0)
+        {
+            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
+        }
+        try
+        {
+            IoSlot slot = _ioSlots![slotIndex];
+            CopyIn(src, slot.DmaBufferVirt);
+            return SubmitOnSlot(NVMeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
+        }
+        finally
+        {
+            ReleaseSlot(slotIndex);
+        }
+    }
 
-        _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
-        Native.MMIO.Write32(_regs.SubmissionDoorbell(IoQueueId), _ioSqTail);
+    /// <summary>Flush volatile write cache for namespace <paramref name="nsid"/>.</summary>
+    public uint Flush(uint nsid)
+    {
+        int slotIndex = AcquireSlot();
+        if (slotIndex < 0)
+        {
+            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
+        }
+        try
+        {
+            return SubmitOnSlot(NVMeIoOp.Flush, nsid, slotIndex, 0, 0);
+        }
+        finally
+        {
+            ReleaseSlot(slotIndex);
+        }
+    }
 
-        return WaitCompletion(_ioCqVirt, ref _ioCqHead, ref _ioCqPhase, IoQueueDepth, qid: IoQueueId, expectCid: cid);
+    /// <summary>
+    /// Find a free slot, mark it in-use, and return its index. If every
+    /// slot is in flight, blocks the caller on the slot waiter queue
+    /// until <see cref="ReleaseSlot"/> wakes one.
+    /// </summary>
+    private int AcquireSlot()
+    {
+        SchedThread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        if (current == null)
+        {
+            return -1;
+        }
+
+        while (true)
+        {
+            _slotLock.Acquire();
+            for (int i = 0; i < _ioSlots!.Length; i++)
+            {
+                if (!_ioSlots[i].InUse)
+                {
+                    _ioSlots[i].InUse = true;
+                    _slotLock.Release();
+                    return i;
+                }
+            }
+
+            if (!_slotWaiters.Contains(current))
+            {
+                _slotWaiters.Add(current);
+            }
+            _slotLock.Release();
+
+            SchedulerManager.BlockThread(current.CpuId, current);
+            InternalCpu.Halt();
+        }
+    }
+
+    private void ReleaseSlot(int index)
+    {
+        _slotLock.Acquire();
+        _ioSlots![index].InUse = false;
+        if (_slotWaiters.Count > 0)
+        {
+            SchedThread waiter = _slotWaiters[0];
+            _slotWaiters.RemoveAt(0);
+            _slotLock.Release();
+            SchedulerManager.ReadyThread(waiter.CpuId, waiter);
+            return;
+        }
+        _slotLock.Release();
+    }
+
+    /// <summary>
+    /// Build the SQE for an already-acquired slot, ring the SQ doorbell,
+    /// and wait for the matching CQE. Returns the device's status code
+    /// (0 = success). Thread-safe.
+    /// </summary>
+    private uint SubmitOnSlot(byte opcode, uint nsid, int slotIndex, ulong lba, ushort numLogicalBlocksMinusOne)
+    {
+        IoSlot slot = _ioSlots![slotIndex];
+        slot.Status = 0;
+        ushort cid = (ushort)slotIndex;
+
+        if (_msiXEnabled)
+        {
+            // Submit under the SQ lock, then wait outside it so other
+            // threads can enqueue while this one is parked.
+            _submitSqLock.Acquire();
+            try
+            {
+                NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+                sqe.SetOpcode(opcode, cid);
+                sqe.SetNsid(nsid);
+                sqe.SetPrp1(slot.DmaBufferPhys);
+                sqe.SetPrp2(0);
+                sqe.SetCdw10((uint)(lba & 0xFFFFFFFF));
+                sqe.SetCdw11((uint)(lba >> 32));
+                sqe.SetCdw12(numLogicalBlocksMinusOne);
+
+                _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
+                Native.MMIO.Write32(_regs.SubmissionDoorbell(IoQueueId), _ioSqTail);
+            }
+            finally
+            {
+                _submitSqLock.Release();
+            }
+
+            slot.Done.Wait();
+            return slot.Status;
+        }
+
+        // Polled fallback: the CQ head/phase aren't safe to share, so
+        // serialize the whole submit/wait sequence.
+        _polledIoMutex.Acquire();
+        try
+        {
+            NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+            sqe.SetOpcode(opcode, cid);
+            sqe.SetNsid(nsid);
+            sqe.SetPrp1(slot.DmaBufferPhys);
+            sqe.SetPrp2(0);
+            sqe.SetCdw10((uint)(lba & 0xFFFFFFFF));
+            sqe.SetCdw11((uint)(lba >> 32));
+            sqe.SetCdw12(numLogicalBlocksMinusOne);
+
+            _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
+            Native.MMIO.Write32(_regs.SubmissionDoorbell(IoQueueId), _ioSqTail);
+
+            slot.Status = WaitCompletion(_ioCqVirt, ref _ioCqHead, ref _ioCqPhase, IoQueueDepth, qid: IoQueueId, expectCid: cid);
+            return slot.Status;
+        }
+        finally
+        {
+            _polledIoMutex.Release();
+        }
+    }
+
+    /// <summary>
+    /// MSI-X handler for the I/O completion queue. Drains every CQE
+    /// whose phase matches the expected phase, advances the CQ head,
+    /// rings the doorbell, and signals each slot's
+    /// <see cref="InterruptEvent"/>. Performs no allocation and no
+    /// interface dispatch (per the project's ISR-safety rules).
+    /// </summary>
+    private void OnIoCompletion(ref IRQContext context)
+    {
+        if (_ioSlots == null || _ioCqVirt == 0)
+        {
+            return;
+        }
+
+        bool drained = false;
+        while (true)
+        {
+            NVMeCqe cqe = new(_ioCqVirt + (ulong)_ioCqHead * 16);
+            if (cqe.Phase != _ioCqPhase)
+            {
+                break;
+            }
+
+            ushort cid = cqe.CommandIdentifier;
+            uint sc = cqe.StatusCode;
+
+            _ioCqHead = (_ioCqHead + 1) % IoQueueDepth;
+            if (_ioCqHead == 0)
+            {
+                _ioCqPhase = !_ioCqPhase;
+            }
+            drained = true;
+
+            if (cid < _ioSlots.Length)
+            {
+                IoSlot slot = _ioSlots[cid];
+                slot.Status = sc;
+                slot.Done.Signal();
+            }
+        }
+
+        if (drained)
+        {
+            Native.MMIO.Write32(_regs.CompletionDoorbell(IoQueueId), _ioCqHead);
+        }
     }
 
     private uint WaitCompletion(ulong cqBase, ref uint head, ref bool expectedPhase, uint depth, uint qid, ushort expectCid)
@@ -235,36 +519,53 @@ public unsafe class NVMeController
         ulong identifyVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
         ulong identifyPhys = PageAllocator.VirtualToPhysical(identifyVirt);
 
-        // Identify Controller (CNS=0x01) — only used to confirm the controller is responsive.
-        uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.Controller, cdw11: 0, cdw12: 0);
-        if (sc != 0)
+        try
         {
-            Serial.WriteString("[NVMe] Identify Controller failed, status=0x");
-            Serial.WriteHex(sc);
-            Serial.WriteString("\n");
-            return;
-        }
-
-        // Identify Active Namespace List (CNS=0x02) — returns up to 1024 NSIDs.
-        ZeroPage(identifyVirt);
-        sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
-        if (sc != 0)
-        {
-            Serial.WriteString("[NVMe] Identify Active NS List failed, status=0x");
-            Serial.WriteHex(sc);
-            Serial.WriteString("\n");
-            return;
-        }
-
-        uint* nsidList = (uint*)identifyVirt;
-        for (int i = 0; i < 1024; i++)
-        {
-            uint nsid = nsidList[i];
-            if (nsid == 0)
+            // Identify Controller (CNS=0x01) — only used to confirm the controller is responsive.
+            uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.Controller, cdw11: 0, cdw12: 0);
+            if (sc != 0)
             {
-                break;
+                Serial.WriteString("[NVMe] Identify Controller failed, status=0x");
+                Serial.WriteHex(sc);
+                Serial.WriteString("\n");
+                return;
             }
-            RegisterNamespace(nsid, identifyVirt, identifyPhys);
+
+            // Identify Active Namespace List (CNS=0x02) — returns up to 1024 NSIDs.
+            ZeroPage(identifyVirt);
+            sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
+            if (sc != 0)
+            {
+                Serial.WriteString("[NVMe] Identify Active NS List failed, status=0x");
+                Serial.WriteHex(sc);
+                Serial.WriteString("\n");
+                return;
+            }
+
+            // Snapshot the namespace list before reusing the buffer for
+            // per-namespace identifies — RegisterNamespace overwrites the
+            // page, so we cannot iterate nsidList in place.
+            uint* nsidList = (uint*)identifyVirt;
+            Span<uint> nsids = stackalloc uint[1024];
+            int nsCount = 0;
+            for (int i = 0; i < 1024; i++)
+            {
+                uint nsid = nsidList[i];
+                if (nsid == 0)
+                {
+                    break;
+                }
+                nsids[nsCount++] = nsid;
+            }
+
+            for (int i = 0; i < nsCount; i++)
+            {
+                RegisterNamespace(nsids[i], identifyVirt, identifyPhys);
+            }
+        }
+        finally
+        {
+            PageAllocator.Free((void*)identifyVirt);
         }
     }
 
@@ -318,9 +619,9 @@ public unsafe class NVMeController
 
         // Create IO Completion Queue first — Create IO SQ refers to it.
         // CDW10: bits [31:16] = qsize-1, bits [15:0] = qid
-        // CDW11: bit 0 = PC (Physically Contiguous), bit 1 = IEN (0 = no interrupts)
+        // CDW11: bits [31:16] = IV (interrupt vector), bit 1 = IEN, bit 0 = PC
         uint cqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
-        uint cqCdw11 = 1; // PC=1, IEN=0
+        uint cqCdw11 = _msiXEnabled ? ((0u << 16) | (1u << 1) | 1u) : 1u;
         uint sc = SubmitAdmin(NVMeAdminOp.CreateIoCq, nsid: 0, prp1: _ioCqPhys, cdw10: cqCdw10, cdw11: cqCdw11, cdw12: 0);
         if (sc != 0)
         {
@@ -348,6 +649,24 @@ public unsafe class NVMeController
         for (int i = 0; i < (int)(PageSize / 8); i++)
         {
             p[i] = 0;
+        }
+    }
+
+    private static void CopyIn(ReadOnlySpan<byte> src, ulong dstVirt)
+    {
+        byte* dst = (byte*)dstVirt;
+        for (int i = 0; i < src.Length; i++)
+        {
+            dst[i] = src[i];
+        }
+    }
+
+    private static void CopyOut(ulong srcVirt, Span<byte> dst)
+    {
+        byte* src = (byte*)srcVirt;
+        for (int i = 0; i < dst.Length; i++)
+        {
+            dst[i] = src[i];
         }
     }
 }

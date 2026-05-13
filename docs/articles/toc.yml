@@ -16,6 +16,8 @@
   href: testing.md
 - name: Garbage Collector
   href: garbage-collector.md
+- name: Garbage Collector — Precise Stack Scan (GCInfo)
+  href: garbage-collector-gcinfo.md
 - name: Scheduler
   href: scheduler.md
 - name: Cosmos.Build.Asm

@@ -74,17 +74,30 @@ namespace Internal.Runtime.CompilerHelpers
                         }
                     }
 
-                    // Initialize Storage Manager and register platform block devices
+                    // Initialize Storage Manager (manager-level state only)
                     if (StorageManager.IsEnabled)
                     {
                         Serial.WriteString("[KERNEL]   - Initializing storage manager...\n");
                         StorageManager.Initialize();
-                        var storageDevices = initializer.GetStorageDevices();
-                        foreach (var device in storageDevices)
-                        {
-                            StorageManager.RegisterDevice(device);
-                        }
                     }
+                }
+
+                // Storage device registration runs OUTSIDE the
+                // DisableInterruptsScope: ScanPartitions issues real I/O
+                // (LBA 0 read for MBR/GPT detection), and interrupt-driven
+                // drivers like NVMe need IF=1 / DAIF.I=0 to receive
+                // completion IRQs. Disposing the scope only RESTORES the
+                // prior state — on ARM64 IRQs were still masked from boot
+                // at this point, so explicitly unmask before doing I/O.
+                // The kernel re-enables IRQs again in Kernel.Start; this
+                // call is idempotent.
+                if (StorageManager.IsEnabled)
+                {
+                    if (InterruptManager.IsEnabled)
+                    {
+                        InternalCpu.EnableInterrupts();
+                    }
+                    StorageManager.RegisterHALDevices();
                 }
             }
         }

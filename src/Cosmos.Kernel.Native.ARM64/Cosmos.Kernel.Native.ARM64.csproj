@@ -18,6 +18,7 @@
     <Content Include="IO\*.s" PackagePath="build\IO" />
     <Content Include="Debug\*.s" PackagePath="build\Debug" />
     <Content Include="CPU\*.s" PackagePath="build\CPU" />
+    <Content Include="CPU\Gic\*.s" PackagePath="build\CPU\Gic" />
     <Content Include="Runtime\*.s" PackagePath="build\Runtime" />
     <Content Include="Memory\*.s" PackagePath="build\Memory" />
     <Content Include="Devices\*.s" PackagePath="build\Devices" />
