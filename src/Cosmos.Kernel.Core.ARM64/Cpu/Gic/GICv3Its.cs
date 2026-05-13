@@ -226,7 +226,7 @@ public static unsafe class GICv3Its
     /// <summary>
     /// Wire (deviceId, eventId) → LPI INTID <paramref name="lpi"/> on the
     /// boot CPU's collection. The caller is expected to have allocated the
-    /// LPI via <c>InterruptManager.AllocateLpi</c> and enabled it via
+    /// LPI via <c>ARM64InterruptController.AllocateLpi</c> and enabled it via
     /// <c>GICv3Lpi.EnableLpi</c>.
     /// </summary>
     public static void MapEvent(uint deviceId, uint eventId, uint lpi)

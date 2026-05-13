@@ -63,6 +63,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Runtime" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Core.X64" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Core.ARM64" />
   </ItemGroup>
 
   <ItemGroup>

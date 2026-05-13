@@ -52,7 +52,7 @@ internal sealed class Arm64MsiBinder : IMsiBinder
             throw new System.InvalidOperationException("Arm64MsiBinder: PrepareDevice was not called");
         }
 
-        uint lpi = InterruptManager.AllocateLpi(handler);
+        uint lpi = ARM64InterruptController.AllocateLpi(handler);
         GICv3Lpi.EnableLpi(lpi);
         GICv3Its.MapEvent(ctx.DeviceId, (uint)entryIndex, lpi);
 
