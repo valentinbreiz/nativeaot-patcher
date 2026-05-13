@@ -97,11 +97,7 @@ namespace Internal.Runtime.CompilerHelpers
                     {
                         InternalCpu.EnableInterrupts();
                     }
-                    var storageDevices = initializer.GetStorageDevices();
-                    foreach (var device in storageDevices)
-                    {
-                        StorageManager.RegisterDevice(device);
-                    }
+                    StorageManager.RegisterHALDevices();
                 }
             }
         }

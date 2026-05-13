@@ -9,7 +9,6 @@ using Cosmos.Kernel.Core.X64;
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.Core.X64.IO;
 using Cosmos.Kernel.Core.X64.Power;
-using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
@@ -79,16 +78,6 @@ public class X64PlatformInitializer : IPlatformInitializer
             _ps2Controller.Initialize();
         }
 
-        // Initialize storage controllers (AHCI for SATA, NVMe for PCIe), if storage feature enabled
-        if (CosmosFeatures.StorageEnabled)
-        {
-            Serial.WriteString("[X64HAL] Initializing AHCI...\n");
-            AHCI.InitDriver();
-
-            Serial.WriteString("[X64HAL] Initializing NVMe...\n");
-            NVMe.InitDriver();
-        }
-
         // Try to find E1000E network device (if network feature enabled)
         if (CosmosFeatures.NetworkEnabled)
         {
@@ -145,34 +134,6 @@ public class X64PlatformInitializer : IPlatformInitializer
     public INetworkDevice? GetNetworkDevice()
     {
         return _networkDevice;
-    }
-
-    public IBlockDevice[] GetStorageDevices()
-    {
-        if (!CosmosFeatures.StorageEnabled)
-        {
-            return [];
-        }
-
-        List<BlockDevice> ports = AHCI.Ports;
-        List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
-        int total = ports.Count + nvmeNamespaces.Count;
-        if (total == 0)
-        {
-            return [];
-        }
-
-        IBlockDevice[] devices = new IBlockDevice[total];
-        int idx = 0;
-        for (int i = 0; i < ports.Count; i++)
-        {
-            devices[idx++] = ports[i];
-        }
-        for (int i = 0; i < nvmeNamespaces.Count; i++)
-        {
-            devices[idx++] = nvmeNamespaces[i];
-        }
-        return devices;
     }
 
     public unsafe uint GetCpuCount()

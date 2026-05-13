@@ -13,7 +13,6 @@ using Cosmos.Kernel.HAL.ARM64.Devices.Input;
 using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
@@ -65,15 +64,6 @@ public class ARM64PlatformInitializer : IPlatformInitializer
             VirtioDevice.InitializeDevices();
         }
 
-        // Initialize storage controllers (AHCI for SATA, NVMe for PCIe), if storage feature enabled
-        if (CosmosFeatures.StorageEnabled)
-        {
-            Serial.WriteString("[ARM64HAL] Initializing AHCI...\n");
-            AHCI.InitDriver();
-
-            Serial.WriteString("[ARM64HAL] Initializing NVMe...\n");
-            NVMe.InitDriver();
-        }
     }
 
     public ITimerDevice CreateTimer()
@@ -114,34 +104,6 @@ public class ARM64PlatformInitializer : IPlatformInitializer
     public INetworkDevice? GetNetworkDevice()
     {
         return VirtioDevice.GetDevice<VirtioNet>();
-    }
-
-    public IBlockDevice[] GetStorageDevices()
-    {
-        if (!CosmosFeatures.StorageEnabled)
-        {
-            return [];
-        }
-
-        List<BlockDevice> ports = AHCI.Ports;
-        List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
-        int total = ports.Count + nvmeNamespaces.Count;
-        if (total == 0)
-        {
-            return [];
-        }
-
-        IBlockDevice[] devices = new IBlockDevice[total];
-        int idx = 0;
-        for (int i = 0; i < ports.Count; i++)
-        {
-            devices[idx++] = ports[i];
-        }
-        for (int i = 0; i < nvmeNamespaces.Count; i++)
-        {
-            devices[idx++] = nvmeNamespaces[i];
-        }
-        return devices;
     }
 
     public uint GetCpuCount()
