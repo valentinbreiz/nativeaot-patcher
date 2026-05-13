@@ -24,6 +24,7 @@ internal static class CfiArch
     public const byte CfaRegAtEntry = (byte)DwarfReg.RSP;        // CFA = RSP + 8 at function entry
     public const int CfaOffsetAtEntry = 8;
     public const int StackPointerReg = (int)DwarfReg.RSP;        // Regs[7] = unwound caller SP
+    public const int FramePointerReg = (int)DwarfReg.RBP;        // Regs[6] = unwound caller frame pointer
     public const int RaColumn = (int)DwarfReg.RA;                // 16 — default return-address register
     public const int DefaultCodeAlignFactor = 1;
     public const RegSaveKind RaInitRule = RegSaveKind.AtCfaOffset;  // return address at CFA - 8 by default
