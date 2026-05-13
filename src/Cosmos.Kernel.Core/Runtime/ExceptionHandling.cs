@@ -6,235 +6,166 @@ using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 namespace Cosmos.Kernel.Core.Runtime;
 
+/// <summary>
+/// How the CFI rule table describes where a register's caller-side value lives.
+/// </summary>
+internal enum RegSaveKind : byte
+{
+    Undefined = 0,    // Register value is unknown after the unwind.
+    SameValue = 1,    // Register keeps its value (the callee-saved default).
+    AtCfaOffset = 2,  // Register was spilled to memory at CFA + Offset.
+    InRegister = 3,   // Register's value is currently held in another register.
+}
+
+/// <summary>
+/// One row of the CFI rule table: how a register is saved at the current PC in a function.
+/// </summary>
+[StructLayout(LayoutKind.Explicit, Size = 8)]
+internal struct RegLocation
+{
+    [FieldOffset(0)] public RegSaveKind Kind;
+    [FieldOffset(1)] public byte Register;   // For InRegister: the source DWARF register.
+    [FieldOffset(4)] public int Offset;      // For AtCfaOffset: offset (typically negative) from the CFA.
+}
+
 #if ARCH_X64
 /// <summary>
-/// DWARF register numbers for x86-64
+/// DWARF register numbers for x86-64.
 /// </summary>
-public enum DwarfRegX64 : byte
+internal enum DwarfRegX64 : byte
 {
     RAX = 0, RDX = 1, RCX = 2, RBX = 3,
     RSI = 4, RDI = 5, RBP = 6, RSP = 7,
     R8 = 8, R9 = 9, R10 = 10, R11 = 11,
     R12 = 12, R13 = 13, R14 = 14, R15 = 15,
-    RA = 16,  // Return address (pseudo-register)
+    RA = 16,  // Return address (pseudo-register; x86-64 has no architectural RA reg).
     MAX = 17
 }
 
 /// <summary>
-/// Register save location during unwind
+/// Compile-time knobs the (otherwise arch-neutral) DWARF CFI unwinder needs to drive
+/// <see cref="UnwindState"/>: how big the register table is, which slot is the SP, which slot is
+/// the return-address column, and what the default rules at function entry are.
 /// </summary>
-public enum RegSaveKind : byte
+internal static class CfiArch
 {
-    Undefined = 0,  // Register value unknown
-    SameValue = 1,  // Register keeps its value (callee-saved)
-    AtCfaOffset = 2, // Register saved at CFA + offset
-    InRegister = 3,  // Register value is in another register
-}
-
-/// <summary>
-/// Tracks where a register is saved during unwind
-/// </summary>
-[StructLayout(LayoutKind.Explicit, Size = 8)]
-public struct RegLocation
-{
-    [FieldOffset(0)] public RegSaveKind Kind;
-    [FieldOffset(4)] public int Offset;  // For AtCfaOffset: offset from CFA
-    [FieldOffset(1)] public byte Register; // For InRegister: which register holds the value
-}
-
-/// <summary>
-/// State of all registers during stack unwinding
-/// </summary>
-[StructLayout(LayoutKind.Sequential)]
-public unsafe struct UnwindState
-{
-    // CFA (Canonical Frame Address) definition
-    public byte CfaRegister;  // Which register CFA is based on
-    public int CfaOffset;     // Offset from that register
-
-    // Register save locations
-    public fixed byte RegLocations[(int)DwarfRegX64.MAX * 8]; // Array of RegLocation
-
-    // Current register values (unwound)
-    public nuint RAX, RDX, RCX, RBX, RSI, RDI, RBP, RSP;
-    public nuint R8, R9, R10, R11, R12, R13, R14, R15;
-    public nuint ReturnAddress;
-
-    public RegLocation* GetRegLocation(DwarfRegX64 reg)
-    {
-        fixed (byte* p = RegLocations)
-        {
-            return (RegLocation*)(p + (int)reg * sizeof(RegLocation));
-        }
-    }
-
-    public void SetRegLocation(DwarfRegX64 reg, RegSaveKind kind, int offset = 0, byte inReg = 0)
-    {
-        RegLocation* loc = GetRegLocation(reg);
-        loc->Kind = kind;
-        loc->Offset = offset;
-        loc->Register = inReg;
-    }
-
-    public nuint GetRegValue(DwarfRegX64 reg)
-    {
-        return reg switch
-        {
-            DwarfRegX64.RAX => RAX,
-            DwarfRegX64.RDX => RDX,
-            DwarfRegX64.RCX => RCX,
-            DwarfRegX64.RBX => RBX,
-            DwarfRegX64.RSI => RSI,
-            DwarfRegX64.RDI => RDI,
-            DwarfRegX64.RBP => RBP,
-            DwarfRegX64.RSP => RSP,
-            DwarfRegX64.R8 => R8,
-            DwarfRegX64.R9 => R9,
-            DwarfRegX64.R10 => R10,
-            DwarfRegX64.R11 => R11,
-            DwarfRegX64.R12 => R12,
-            DwarfRegX64.R13 => R13,
-            DwarfRegX64.R14 => R14,
-            DwarfRegX64.R15 => R15,
-            DwarfRegX64.RA => ReturnAddress,
-            _ => 0
-        };
-    }
-
-    public void SetRegValue(DwarfRegX64 reg, nuint value)
-    {
-        switch (reg)
-        {
-            case DwarfRegX64.RAX: RAX = value; break;
-            case DwarfRegX64.RDX: RDX = value; break;
-            case DwarfRegX64.RCX: RCX = value; break;
-            case DwarfRegX64.RBX: RBX = value; break;
-            case DwarfRegX64.RSI: RSI = value; break;
-            case DwarfRegX64.RDI: RDI = value; break;
-            case DwarfRegX64.RBP: RBP = value; break;
-            case DwarfRegX64.RSP: RSP = value; break;
-            case DwarfRegX64.R8: R8 = value; break;
-            case DwarfRegX64.R9: R9 = value; break;
-            case DwarfRegX64.R10: R10 = value; break;
-            case DwarfRegX64.R11: R11 = value; break;
-            case DwarfRegX64.R12: R12 = value; break;
-            case DwarfRegX64.R13: R13 = value; break;
-            case DwarfRegX64.R14: R14 = value; break;
-            case DwarfRegX64.R15: R15 = value; break;
-            case DwarfRegX64.RA: ReturnAddress = value; break;
-        }
-    }
+    public const int RegCount = (int)DwarfRegX64.MAX;               // 17 slots (0..15 + RA pseudo)
+    public const byte CfaRegAtEntry = (byte)DwarfRegX64.RSP;        // CFA = RSP + 8 at function entry
+    public const int CfaOffsetAtEntry = 8;
+    public const int StackPointerReg = (int)DwarfRegX64.RSP;        // Regs[7] = unwound caller SP
+    public const int RaColumn = (int)DwarfRegX64.RA;                // 16 — default return-address register
+    public const int DefaultCodeAlignFactor = 1;
+    public const RegSaveKind RaInitRule = RegSaveKind.AtCfaOffset;  // return address at CFA - 8 by default
+    public const int RaInitOffset = -8;
 }
 #elif ARCH_ARM64
 /// <summary>
-/// DWARF register numbers for AArch64 (ARM64)
+/// DWARF register numbers for AArch64 (ARM64).
 /// </summary>
-public enum DwarfRegARM64 : byte
+internal enum DwarfRegARM64 : byte
 {
     X0 = 0, X1 = 1, X2 = 2, X3 = 3, X4 = 4, X5 = 5, X6 = 6, X7 = 7,
     X8 = 8, X9 = 9, X10 = 10, X11 = 11, X12 = 12, X13 = 13, X14 = 14, X15 = 15,
     X16 = 16, X17 = 17, X18 = 18, X19 = 19, X20 = 20, X21 = 21, X22 = 22, X23 = 23,
     X24 = 24, X25 = 25, X26 = 26, X27 = 27, X28 = 28,
-    FP = 29,  // X29 - Frame Pointer
-    LR = 30,  // X30 - Link Register (Return Address)
+    FP = 29,  // X29 — Frame Pointer
+    LR = 30,  // X30 — Link Register (return address)
     SP = 31,  // Stack Pointer
     MAX = 32
 }
 
 /// <summary>
-/// Register save location during unwind
+/// Compile-time knobs the (otherwise arch-neutral) DWARF CFI unwinder needs to drive
+/// <see cref="UnwindState"/>: how big the register table is, which slot is the SP, which slot is
+/// the return-address column, and what the default rules at function entry are.
 /// </summary>
-public enum RegSaveKind : byte
+internal static class CfiArch
 {
-    Undefined = 0,  // Register value unknown
-    SameValue = 1,  // Register keeps its value (callee-saved)
-    AtCfaOffset = 2, // Register saved at CFA + offset
-    InRegister = 3,  // Register value is in another register
+    public const int RegCount = (int)DwarfRegARM64.MAX;             // 32 slots
+    public const byte CfaRegAtEntry = (byte)DwarfRegARM64.SP;       // CFA = SP at function entry (AAPCS64)
+    public const int CfaOffsetAtEntry = 0;
+    public const int StackPointerReg = (int)DwarfRegARM64.SP;       // Regs[31] = unwound caller SP
+    public const int RaColumn = (int)DwarfRegARM64.LR;              // 30 — LR is the RA reg (no pseudo-reg)
+    public const int DefaultCodeAlignFactor = 4;                    // every ARM64 instruction is 4 bytes
+    public const RegSaveKind RaInitRule = RegSaveKind.SameValue;    // LR is a normal reg; SameValue = the seeded default
+    public const int RaInitOffset = 0;
 }
+#endif
 
 /// <summary>
-/// Tracks where a register is saved during unwind
-/// </summary>
-[StructLayout(LayoutKind.Explicit, Size = 8)]
-public struct RegLocation
-{
-    [FieldOffset(0)] public RegSaveKind Kind;
-    [FieldOffset(4)] public int Offset;  // For AtCfaOffset: offset from CFA
-    [FieldOffset(1)] public byte Register; // For InRegister: which register holds the value
-}
-
-/// <summary>
-/// State of all registers during stack unwinding for ARM64
+/// Register state during a DWARF CFI stack unwind. Indexed by DWARF register number — the unwound
+/// register values live in <c>Regs</c>, the per-register save-location rules in <c>RegLocations</c>.
+/// The DWARF interpreter (<see cref="ExceptionHelper.ParseCFIInstructions"/> etc.) is single-source
+/// across architectures; only the slot count, the CFA seed at function entry, and the return-address
+/// column differ — those come from <see cref="CfiArch"/>.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public unsafe struct UnwindState
+internal unsafe struct UnwindState
 {
-    // CFA (Canonical Frame Address) definition
-    public byte CfaRegister;  // Which register CFA is based on
-    public int CfaOffset;     // Offset from that register
+    public byte CfaRegister;   // DWARF register number the CFA is expressed relative to.
+    public int CfaOffset;      // CFA = Regs[CfaRegister] + CfaOffset.
 
-    // Register save locations
-    public fixed byte RegLocations[(int)DwarfRegARM64.MAX * 8]; // Array of RegLocation
+    // Per-register save-location rules. `fixed` sizes need a compile-time constant; CfiArch.RegCount is one.
+    public fixed byte RegLocations[CfiArch.RegCount * 8];   // RegLocation[CfiArch.RegCount]
 
-    // Current register values (unwound) - callee-saved registers
-    public nuint X19, X20, X21, X22, X23, X24, X25, X26, X27, X28;
-    public nuint FP;   // X29
-    public nuint LR;   // X30 - also serves as return address
-    public nuint SP;
+    // Unwound register values, indexed by DWARF register number. Scratch slots the unwind never
+    // touches stay at the zero-init default — fine, the CFI rules wouldn't reference them anyway.
+    public fixed nuint Regs[CfiArch.RegCount];
+
+    /// <summary>
+    /// IP to unwind from; after a successful unwind, the caller's return address.
+    /// Also lands in <c>Regs[CfiArch.RaColumn]</c> via <see cref="ExceptionHelper.ApplyUnwindRules"/>;
+    /// kept here as an explicit field so callers don't need to know the RA column.
+    /// </summary>
     public nuint ReturnAddress;
 
-    public RegLocation* GetRegLocation(DwarfRegARM64 reg)
+    public RegLocation* GetRegLocation(int reg)
     {
+        if ((uint)reg >= CfiArch.RegCount)
+        {
+            reg = 0;   // paranoia: a malformed FDE reg# must not index past the buffer
+        }
         fixed (byte* p = RegLocations)
         {
-            return (RegLocation*)(p + (int)reg * sizeof(RegLocation));
+            return (RegLocation*)(p + reg * sizeof(RegLocation));
         }
     }
 
-    public void SetRegLocation(DwarfRegARM64 reg, RegSaveKind kind, int offset = 0, byte inReg = 0)
+    public void SetRegLocation(int reg, RegSaveKind kind, int offset = 0, byte inReg = 0)
     {
+        if ((uint)reg >= CfiArch.RegCount)
+        {
+            return;   // ignore out-of-range reg# from a malformed FDE
+        }
         RegLocation* loc = GetRegLocation(reg);
         loc->Kind = kind;
         loc->Offset = offset;
         loc->Register = inReg;
     }
 
-    public nuint GetRegValue(DwarfRegARM64 reg)
+    public nuint GetRegValue(int reg)
     {
-        return reg switch
-        {
-            DwarfRegARM64.X19 => X19, DwarfRegARM64.X20 => X20,
-            DwarfRegARM64.X21 => X21, DwarfRegARM64.X22 => X22,
-            DwarfRegARM64.X23 => X23, DwarfRegARM64.X24 => X24,
-            DwarfRegARM64.X25 => X25, DwarfRegARM64.X26 => X26,
-            DwarfRegARM64.X27 => X27, DwarfRegARM64.X28 => X28,
-            DwarfRegARM64.FP => FP, DwarfRegARM64.LR => LR,
-            DwarfRegARM64.SP => SP,
-            _ => 0
-        };
+        return (uint)reg < CfiArch.RegCount ? Regs[reg] : 0;
     }
 
-    public void SetRegValue(DwarfRegARM64 reg, nuint value)
+    public void SetRegValue(int reg, nuint value)
     {
-        switch (reg)
+        if ((uint)reg < CfiArch.RegCount)
         {
-            case DwarfRegARM64.X19: X19 = value; break;
-            case DwarfRegARM64.X20: X20 = value; break;
-            case DwarfRegARM64.X21: X21 = value; break;
-            case DwarfRegARM64.X22: X22 = value; break;
-            case DwarfRegARM64.X23: X23 = value; break;
-            case DwarfRegARM64.X24: X24 = value; break;
-            case DwarfRegARM64.X25: X25 = value; break;
-            case DwarfRegARM64.X26: X26 = value; break;
-            case DwarfRegARM64.X27: X27 = value; break;
-            case DwarfRegARM64.X28: X28 = value; break;
-            case DwarfRegARM64.FP: FP = value; break;
-            case DwarfRegARM64.LR: LR = value; ReturnAddress = value; break;
-            case DwarfRegARM64.SP: SP = value; break;
+            Regs[reg] = value;
         }
     }
+
+    /// <summary>
+    /// Arch-neutral name for the caller-side stack pointer the unwind resolves to
+    /// (DWARF reg 7 on x64, reg 31 on ARM64).
+    /// </summary>
+    public nuint StackPointer
+    {
+        get => Regs[CfiArch.StackPointerReg];
+        set => Regs[CfiArch.StackPointerReg] = value;
+    }
 }
-#endif
 
 /// <summary>
 /// Runtime exception IDs
@@ -504,39 +435,18 @@ public static unsafe partial class ExceptionHelper
         while (frameCount < MAX_STACK_FRAMES && frame.FramePointer != 0)
         {
             // Refresh the REGDISPLAY from the current unwind state so a filter can be evaluated.
+            // Filter funclets run on the current frame's establisher, so we pin the frame pointer
+            // and SP to `frame.FramePointer` regardless of what the CFI unwind resolved them to.
             if (pThrowContext != null)
             {
                 pRegDisplay = &regDisplay;
+                ProjectRegDisplay(ref unwindState, pRegDisplay);
 #if ARCH_X64
-                regDisplay.Rbx = unwindState.RBX;
                 regDisplay.Rbp = frame.FramePointer;
-                regDisplay.R12 = unwindState.R12;
-                regDisplay.R13 = unwindState.R13;
-                regDisplay.R14 = unwindState.R14;
-                regDisplay.R15 = unwindState.R15;
-                regDisplay.SP = frame.FramePointer;
-
-                regDisplay.pRbx = &pRegDisplay->Rbx;
-                regDisplay.pRbp = &pRegDisplay->Rbp;
-                regDisplay.pR12 = &pRegDisplay->R12;
-                regDisplay.pR13 = &pRegDisplay->R13;
-                regDisplay.pR14 = &pRegDisplay->R14;
-                regDisplay.pR15 = &pRegDisplay->R15;
 #elif ARCH_ARM64
-                regDisplay.SP = frame.FramePointer;
                 regDisplay.FP = frame.FramePointer;
-                regDisplay.X19 = unwindState.X19;
-                regDisplay.X20 = unwindState.X20;
-                regDisplay.X21 = unwindState.X21;
-                regDisplay.X22 = unwindState.X22;
-                regDisplay.X23 = unwindState.X23;
-                regDisplay.X24 = unwindState.X24;
-                regDisplay.X25 = unwindState.X25;
-                regDisplay.X26 = unwindState.X26;
-                regDisplay.X27 = unwindState.X27;
-                regDisplay.X28 = unwindState.X28;
-                regDisplay.LR = unwindState.LR;
 #endif
+                regDisplay.SP = frame.FramePointer;
             }
 
             // Does this frame have a handler covering the call that threw?
@@ -576,67 +486,32 @@ public static unsafe partial class ExceptionHelper
             return;
         }
 
-#if ARCH_X64
         // Build the REGDISPLAY the catch funclet runs with — and that RhpCallCatchFunclet resumes
         // the catching method from once the funclet returns. The CFI walk that landed on the
         // catching frame already reconstructed its body register state at the call that threw, so
-        // `unwindState` carries the callee-saved registers and the resume SP directly. RBP is the
-        // one exception: it comes from the frame-pointer chain (`[RBP]`), because CFI can legitimately
-        // report RBP "SameValue" for a -fomit-frame-pointer caller. The pRxx fields point at our
-        // value copies here so RhpCallCatchFunclet can read them and the funclet can write through.
+        // `unwindState` carries the callee-saved registers and the resume SP directly — that's what
+        // `ProjectRegDisplay` copies in (and, on x64, what it wires the pRxx pointers to point at).
+        // The frame pointer is the one exception: it comes from the frame-pointer chain (`[RBP]` on
+        // x64, `[FP]` on ARM64), because CFI can legitimately report it "SameValue" for a
+        // -fomit-frame-pointer caller — so we override it here after the projection.
         if (pThrowContext != null)
         {
             pRegDisplay = &regDisplay;
-
-            regDisplay.Rbx = unwindState.RBX;
-            regDisplay.Rbp = catchFrame.FramePointer;
-            regDisplay.R12 = unwindState.R12;
-            regDisplay.R13 = unwindState.R13;
-            regDisplay.R14 = unwindState.R14;
-            regDisplay.R15 = unwindState.R15;
-
-            // Resume SP = the CFA the CFI unwind landed on (the catching frame's top), NOT its RBP.
+            ProjectRegDisplay(ref unwindState, pRegDisplay);
+#if ARCH_X64
+            // SP stays at unwindState.StackPointer = the CFA (the catching frame's top, NOT its RBP).
             // RhpCallCatchFunclet sets RSP to this before jumping to the funclet's resume IP, so the
             // catching method finds its frame intact and its epilogue restores the caller's regs.
-            regDisplay.SP = unwindState.RSP;
-
-            regDisplay.pRbx = &pRegDisplay->Rbx;
-            regDisplay.pRbp = &pRegDisplay->Rbp;
-            // pRsi / pRdi stay null — not callee-saved under the System V x86-64 ABI.
-            regDisplay.pR12 = &pRegDisplay->R12;
-            regDisplay.pR13 = &pRegDisplay->R13;
-            regDisplay.pR14 = &pRegDisplay->R14;
-            regDisplay.pR15 = &pRegDisplay->R15;
-        }
+            regDisplay.Rbp = catchFrame.FramePointer;
 #elif ARCH_ARM64
-        // Build the REGDISPLAY for the catch funclet. As on x64, FP comes from the frame-pointer
-        // chain (CFI can report it "SameValue" for a -fomit-frame-pointer caller) and the callee-
-        // saved registers come from the CFI unwind state. ARM64's REGDISPLAY holds register values
-        // inline (no pRxx pointer fields like x64), so there's nothing to point at a temporary.
-        // NOTE: SP is set to the frame pointer here, not the CFA — RhpCallCatchFunclet's resume tail
-        // assumes SP == FP in the handler frame. x64 uses the CFA instead (PR #351); aligning ARM64
-        // is a known follow-up (catch handlers in methods with a non-trivial frame).
-        if (pThrowContext != null)
-        {
+            // NOTE: SP is set to the frame pointer here, not the CFA — RhpCallCatchFunclet's resume
+            // tail assumes SP == FP in the handler frame. x64 uses the CFA instead (PR #351);
+            // aligning ARM64 is a known follow-up (catch handlers in methods with a non-trivial frame).
             nuint handlerFp = catchFrame.FramePointer;
-
-            pRegDisplay = &regDisplay;
-
-            regDisplay.SP = handlerFp;
             regDisplay.FP = handlerFp;
-            regDisplay.X19 = unwindState.X19;
-            regDisplay.X20 = unwindState.X20;
-            regDisplay.X21 = unwindState.X21;
-            regDisplay.X22 = unwindState.X22;
-            regDisplay.X23 = unwindState.X23;
-            regDisplay.X24 = unwindState.X24;
-            regDisplay.X25 = unwindState.X25;
-            regDisplay.X26 = unwindState.X26;
-            regDisplay.X27 = unwindState.X27;
-            regDisplay.X28 = unwindState.X28;
-            regDisplay.LR = unwindState.LR;
-        }
+            regDisplay.SP = handlerFp;
 #endif
+        }
 
         // Pass 2: transfer to the catch handler.
         // TODO: execute finally handlers between the throw and the catch first.
@@ -738,11 +613,10 @@ public static unsafe partial class ExceptionHelper
         return result;
     }
 
-#if ARCH_X64
-    // DWARF CFI opcodes
-    private const byte DW_CFA_advance_loc = 0x40;      // 0x40 + delta (high 2 bits = 01)
-    private const byte DW_CFA_offset = 0x80;           // 0x80 + reg (high 2 bits = 10), followed by ULEB128 offset
-    private const byte DW_CFA_restore = 0xC0;          // 0xC0 + reg (high 2 bits = 11)
+    // DWARF CFI opcodes (DWARF 5 §6.4.2 — architecturally agnostic).
+    private const byte DW_CFA_advance_loc = 0x40;       // 0x40 + delta (high 2 bits = 01)
+    private const byte DW_CFA_offset = 0x80;            // 0x80 + reg   (high 2 bits = 10), then ULEB128 offset
+    private const byte DW_CFA_restore = 0xC0;           // 0xC0 + reg   (high 2 bits = 11)
     private const byte DW_CFA_nop = 0x00;
     private const byte DW_CFA_set_loc = 0x01;
     private const byte DW_CFA_advance_loc1 = 0x02;
@@ -768,20 +642,21 @@ public static unsafe partial class ExceptionHelper
     private const byte DW_CFA_val_expression = 0x16;
 
     /// <summary>
-    /// Parse CIE (Common Information Entry) to get initial unwind rules
+    /// Decode a CIE (Common Information Entry): returns the code/data alignment factors, the
+    /// return-address register, and the byte range of the CIE's "initial instructions" (which the
+    /// caller will replay to seed the unwind state before applying the FDE's instructions).
     /// </summary>
     private static bool ParseCIE(byte* cie, out int codeAlignFactor, out int dataAlignFactor,
-                                  out byte returnAddressReg, out byte* initialInstructions, out byte* instructionsEnd)
+                                 out byte returnAddressReg, out byte* initialInstructions, out byte* instructionsEnd)
     {
-        codeAlignFactor = 1;
-        dataAlignFactor = -8;  // Default for x86-64
-        returnAddressReg = (byte)DwarfRegX64.RA;
+        codeAlignFactor = CfiArch.DefaultCodeAlignFactor;
+        dataAlignFactor = -8;
+        returnAddressReg = (byte)CfiArch.RaColumn;
         initialInstructions = null;
         instructionsEnd = null;
 
         byte* p = cie;
 
-        // Read length
         uint length = *(uint*)p;
         if (length == 0 || length == 0xFFFFFFFF)
         {
@@ -791,38 +666,38 @@ public static unsafe partial class ExceptionHelper
         byte* cieEnd = p + 4 + length;
         p += 4;
 
-        // Read CIE ID (should be 0)
         uint cieId = *(uint*)p;
         if (cieId != 0)
         {
-            return false;  // Not a CIE
+            return false;   // Not a CIE.
         }
-
         p += 4;
 
-        // Read version
         byte version = *p++;
-        if (version != 1 && version != 3)
+        if (version != 1 && version != 3 && version != 4)
         {
             return false;
         }
 
-        // Read augmentation string
         byte* augString = p;
         while (*p != 0)
         {
             p++;
         }
+        p++;   // skip the augmentation string's null terminator
 
-        p++;  // Skip null terminator
+        // DWARF 4 added address_size + segment_selector_size between the augmentation string and the
+        // alignment factors. ILC emits v3 on x64 and v4 on ARM64; accepting v4 on both is harmless.
+        if (version == 4)
+        {
+            p++;   // address_size
+            p++;   // segment_selector_size
+        }
 
-        // Read code alignment factor (ULEB128)
         codeAlignFactor = (int)MethodGcInfoLookup.ReadULEB128(ref p);
-
-        // Read data alignment factor (SLEB128)
         dataAlignFactor = ReadSLEB128(ref p);
 
-        // Read return address register
+        // Version-1 CIEs encode the return-address register as a single byte; v3/v4 use ULEB128.
         if (version == 1)
         {
             returnAddressReg = *p++;
@@ -832,27 +707,28 @@ public static unsafe partial class ExceptionHelper
             returnAddressReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
         }
 
-        // Handle augmentation data if present
         if (*augString == 'z')
         {
             uint augLen = MethodGcInfoLookup.ReadULEB128(ref p);
-            p += augLen;  // Skip augmentation data
+            p += augLen;
         }
 
-        // Remaining bytes are initial instructions
         initialInstructions = p;
         instructionsEnd = cieEnd;
-
         return true;
     }
 
     /// <summary>
-    /// Parse CFI instructions and update unwind state
+    /// Replay a stream of DWARF CFI instructions, updating <paramref name="state"/>'s CFA definition
+    /// and per-register save-location rules. Stops once the synthetic PC has caught up with
+    /// <paramref name="targetPC"/>; the resulting rules describe the register state at that PC.
+    /// Out-of-range register numbers from a malformed FDE are silently dropped by
+    /// <see cref="UnwindState.SetRegLocation"/>.
     /// </summary>
     private static void ParseCFIInstructions(byte* instructions, byte* instructionsEnd,
-                                              nuint pcBegin, nuint targetPC,
-                                              int codeAlignFactor, int dataAlignFactor,
-                                              ref UnwindState state)
+                                             nuint pcBegin, nuint targetPC,
+                                             int codeAlignFactor, int dataAlignFactor,
+                                             ref UnwindState state)
     {
         byte* p = instructions;
         nuint currentPC = pcBegin;
@@ -861,38 +737,28 @@ public static unsafe partial class ExceptionHelper
         {
             byte opcode = *p++;
 
-            // High 2 bits determine opcode type for some instructions
+            // The DW_CFA_advance_loc / DW_CFA_offset / DW_CFA_restore opcodes pack a 6-bit operand
+            // into the high 2 bits of the byte; everything else uses the byte verbatim.
             byte highBits = (byte)(opcode & 0xC0);
             byte lowBits = (byte)(opcode & 0x3F);
 
             if (highBits == DW_CFA_advance_loc)
             {
-                // Advance location by delta * code_align_factor
                 currentPC += (uint)(lowBits * codeAlignFactor);
             }
             else if (highBits == DW_CFA_offset)
             {
-                // Register is saved at CFA + offset * data_align_factor
                 byte reg = lowBits;
                 uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
-                if (reg < (byte)DwarfRegX64.MAX)
-                {
-                    state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
-                                         (int)(offset * dataAlignFactor));
-                }
+                state.SetRegLocation(reg, RegSaveKind.AtCfaOffset, (int)(offset * dataAlignFactor));
             }
             else if (highBits == DW_CFA_restore)
             {
-                // Restore register to initial rule
                 byte reg = lowBits;
-                if (reg < (byte)DwarfRegX64.MAX)
-                {
-                    state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.SameValue);
-                }
+                state.SetRegLocation(reg, RegSaveKind.SameValue);
             }
             else
             {
-                // Low 6 bits are the actual opcode
                 switch (opcode)
                 {
                     case DW_CFA_nop:
@@ -938,11 +804,7 @@ public static unsafe partial class ExceptionHelper
                     {
                         byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
-                        if (reg < (byte)DwarfRegX64.MAX)
-                        {
-                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
-                                                 (int)(offset * dataAlignFactor));
-                        }
+                        state.SetRegLocation(reg, RegSaveKind.AtCfaOffset, (int)(offset * dataAlignFactor));
                     }
                     break;
 
@@ -950,21 +812,14 @@ public static unsafe partial class ExceptionHelper
                     {
                         byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         int offset = ReadSLEB128(ref p);
-                        if (reg < (byte)DwarfRegX64.MAX)
-                        {
-                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.AtCfaOffset,
-                                                 offset * dataAlignFactor);
-                        }
+                        state.SetRegLocation(reg, RegSaveKind.AtCfaOffset, offset * dataAlignFactor);
                     }
                     break;
 
                     case DW_CFA_same_value:
                     {
                         byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                        if (reg < (byte)DwarfRegX64.MAX)
-                        {
-                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.SameValue);
-                        }
+                        state.SetRegLocation(reg, RegSaveKind.SameValue);
                     }
                     break;
 
@@ -972,40 +827,34 @@ public static unsafe partial class ExceptionHelper
                     {
                         byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
                         byte inReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                        if (reg < (byte)DwarfRegX64.MAX)
-                        {
-                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.InRegister, 0, inReg);
-                        }
+                        state.SetRegLocation(reg, RegSaveKind.InRegister, 0, inReg);
                     }
                     break;
 
                     case DW_CFA_undefined:
                     {
                         byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                        if (reg < (byte)DwarfRegX64.MAX)
-                        {
-                            state.SetRegLocation((DwarfRegX64)reg, RegSaveKind.Undefined);
-                        }
+                        state.SetRegLocation(reg, RegSaveKind.Undefined);
                     }
                     break;
 
                     case DW_CFA_remember_state:
                     case DW_CFA_restore_state:
-                        // TODO: Implement state stack if needed
+                        // Not used by ILC's emitted CFI; a rule-state stack would push/pop here.
                         break;
 
                     case DW_CFA_def_cfa_expression:
                     case DW_CFA_expression:
                     case DW_CFA_val_expression:
                     {
-                        // Skip expression - read ULEB128 length and skip bytes
+                        // DWARF expressions aren't evaluated — skip the length-prefixed body.
                         uint exprLen = MethodGcInfoLookup.ReadULEB128(ref p);
                         p += exprLen;
                     }
                     break;
 
                     default:
-                        // Unknown opcode - skip
+                        // Unknown opcode — best effort: skip; the next opcode boundary may still be valid.
                         break;
                 }
             }
@@ -1013,56 +862,51 @@ public static unsafe partial class ExceptionHelper
     }
 
     /// <summary>
-    /// Apply unwind rules to restore register values
+    /// Resolve the accumulated CFI rules into actual caller-side register values. Computes the CFA,
+    /// then for each register applies its <see cref="RegLocation"/> rule. Finally pins the caller
+    /// SP slot to the CFA and exposes the caller's return address through
+    /// <see cref="UnwindState.ReturnAddress"/>.
     /// </summary>
     private static void ApplyUnwindRules(ref UnwindState state)
     {
-        // Calculate CFA (use signed arithmetic for offset since it can be negative)
-        long cfaBase = (long)state.GetRegValue((DwarfRegX64)state.CfaRegister);
+        // CfaOffset is signed (DW_CFA_def_cfa_offset_sf and SLEB128 forms can be negative).
+        long cfaBase = (long)state.GetRegValue(state.CfaRegister);
         nuint cfa = (nuint)(cfaBase + state.CfaOffset);
 
-        // Apply rules for each register
-        for (int i = 0; i < (int)DwarfRegX64.MAX; i++)
+        for (int i = 0; i < CfiArch.RegCount; i++)
         {
-            DwarfRegX64 reg = (DwarfRegX64)i;
-            RegLocation* loc = state.GetRegLocation(reg);
+            RegLocation* loc = state.GetRegLocation(i);
 
             switch (loc->Kind)
             {
                 case RegSaveKind.AtCfaOffset:
-                    // Register is saved at CFA + offset (offset is typically negative)
                     nuint* savedLoc = (nuint*)((long)cfa + loc->Offset);
-                    state.SetRegValue(reg, *savedLoc);
+                    state.SetRegValue(i, *savedLoc);
                     break;
 
                 case RegSaveKind.InRegister:
-                    // Register value is in another register
-                    state.SetRegValue(reg, state.GetRegValue((DwarfRegX64)loc->Register));
+                    state.SetRegValue(i, state.GetRegValue(loc->Register));
                     break;
 
                 case RegSaveKind.SameValue:
-                    // Register keeps its value - no change needed
-                    break;
-
                 case RegSaveKind.Undefined:
                 default:
-                    // Value is undefined - keep current value
+                    // Leave Regs[i] alone — same value, or its value at this PC is undefined.
                     break;
             }
         }
 
-        // Update RSP to CFA (standard convention: RSP at call site = CFA)
-        state.RSP = cfa;
+        // Standard CFI convention: the caller's SP equals the CFA we just resolved.
+        state.SetRegValue(CfiArch.StackPointerReg, cfa);
+        // After the loop, the return-address column holds the caller's IP — surface it explicitly.
+        state.ReturnAddress = state.GetRegValue(CfiArch.RaColumn);
     }
 
     /// <summary>
-    /// Unwind one frame using DWARF CFI information.
-    /// <para>
-    /// FDE lookup delegates to <see cref="MethodGcInfoLookup.TryGetMethodCFI"/> — the single
-    /// <c>.eh_frame</c> walker in the kernel. The arch-specific CFI rule execution
-    /// (<see cref="ParseCIE"/> / <see cref="ParseCFIInstructions"/> / <see cref="ApplyUnwindRules"/>)
-    /// stays here because it touches the x86-64 register file directly.
-    /// </para>
+    /// Unwind one frame using DWARF CFI: looks up the method's FDE/CIE via the
+    /// <c>.eh_frame</c> walker, seeds the CFA + RA rule for function entry, replays the CIE initial
+    /// instructions then the FDE's body up to <paramref name="returnAddress"/>, and resolves the
+    /// resulting rules into caller-side register values.
     /// </summary>
     internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
     {
@@ -1077,12 +921,13 @@ public static unsafe partial class ExceptionHelper
             return false;
         }
 
-        // Default CFA at function entry on x86-64 is RSP + 8, with the return address at CFA - 8.
-        state.CfaRegister = (byte)DwarfRegX64.RSP;
-        state.CfaOffset = 8;
-        state.SetRegLocation((DwarfRegX64)returnAddressReg, RegSaveKind.AtCfaOffset, -8);
+        // Default CFA + RA rule at function entry. On x64 the RA pseudo-reg lives at CFA-8; on
+        // ARM64 LR is a normal reg and SameValue is the seeded default, so the SetRegLocation call
+        // is a no-op there, letting the FDE's prologue rules describe where LR was spilled.
+        state.CfaRegister = CfiArch.CfaRegAtEntry;
+        state.CfaOffset = CfiArch.CfaOffsetAtEntry;
+        state.SetRegLocation(returnAddressReg, CfiArch.RaInitRule, CfiArch.RaInitOffset);
 
-        // Replay the CIE initial instructions, then the FDE instructions up to returnAddress.
         if (initialInstructions != null && initialInstructionsEnd != null)
         {
             ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
@@ -1093,50 +938,59 @@ public static unsafe partial class ExceptionHelper
                              cfi.MethodStart, returnAddress,
                              codeAlignFactor, dataAlignFactor, ref state);
 
-        // Resolve the accumulated rules into the caller's register values.
         ApplyUnwindRules(ref state);
         return true;
     }
 
     /// <summary>
-    /// Initialize unwind state from throw-site context
+    /// Reset every register's rule to <c>SameValue</c> (the callee-saved default). Shared by every
+    /// site that builds a fresh <see cref="UnwindState"/> before any FDE rules are applied.
     /// </summary>
-    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    private static void InitRegRulesSameValue(ref UnwindState state)
     {
-        // Copy register values from context
-        state.RBX = pContext->Rbx;
-        state.RBP = pContext->Rbp;
-        state.RSP = pContext->Rsp;
-        state.R12 = pContext->R12;
-        state.R13 = pContext->R13;
-        state.R14 = pContext->R14;
-        state.R15 = pContext->R15;
-        state.ReturnAddress = pContext->IP;
-
-        // Initialize all registers to SameValue (callee-saved by default)
-        for (int i = 0; i < (int)DwarfRegX64.MAX; i++)
+        for (int i = 0; i < CfiArch.RegCount; i++)
         {
-            state.SetRegLocation((DwarfRegX64)i, RegSaveKind.SameValue);
+            state.SetRegLocation(i, RegSaveKind.SameValue);
         }
     }
 
+#if ARCH_X64
     /// <summary>
-    /// Fill a <see cref="REGDISPLAY"/> from the current callee-saved register values in
-    /// <paramref name="s"/>. The <c>pRxx</c> save-location pointers point at the value slots inside
-    /// <paramref name="rd"/> itself (so they stay valid as long as <paramref name="rd"/> is alive).
-    /// Used by the precise GC stack scan; mirrors the projection the exception pass-1 loop does.
+    /// Seed an <see cref="UnwindState"/> from the throw-site <see cref="PAL_LIMITED_CONTEXT"/>
+    /// captured by <c>RhpThrowEx</c>: copy the callee-saved registers (plus RSP and IP) into the
+    /// register table, then set every per-register rule to <c>SameValue</c>.
+    /// </summary>
+    private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
+    {
+        state.SetRegValue((int)DwarfRegX64.RBX, pContext->Rbx);
+        state.SetRegValue((int)DwarfRegX64.RBP, pContext->Rbp);
+        state.SetRegValue((int)DwarfRegX64.RSP, pContext->Rsp);
+        state.SetRegValue((int)DwarfRegX64.R12, pContext->R12);
+        state.SetRegValue((int)DwarfRegX64.R13, pContext->R13);
+        state.SetRegValue((int)DwarfRegX64.R14, pContext->R14);
+        state.SetRegValue((int)DwarfRegX64.R15, pContext->R15);
+        state.ReturnAddress = pContext->IP;
+        InitRegRulesSameValue(ref state);
+    }
+
+    /// <summary>
+    /// Fill a <see cref="REGDISPLAY"/> from the current register values in <paramref name="s"/>.
+    /// The <c>pRxx</c> save-location pointers point at the value slots inside <paramref name="rd"/>
+    /// itself (so they stay valid as long as <paramref name="rd"/> is alive) — they must be wired
+    /// after the value slots are populated. Used by the precise GC stack scan and by the exception
+    /// dispatcher when it hands a REGDISPLAY to a filter/catch funclet.
     /// </summary>
     internal static void ProjectRegDisplay(ref UnwindState s, REGDISPLAY* rd)
     {
-        rd->Rbx = s.RBX;
-        rd->Rbp = s.RBP;
-        rd->Rsi = s.RSI;
-        rd->Rdi = s.RDI;
-        rd->R12 = s.R12;
-        rd->R13 = s.R13;
-        rd->R14 = s.R14;
-        rd->R15 = s.R15;
-        rd->SP = s.RSP;
+        rd->Rbx = s.GetRegValue((int)DwarfRegX64.RBX);
+        rd->Rbp = s.GetRegValue((int)DwarfRegX64.RBP);
+        rd->Rsi = s.GetRegValue((int)DwarfRegX64.RSI);
+        rd->Rdi = s.GetRegValue((int)DwarfRegX64.RDI);
+        rd->R12 = s.GetRegValue((int)DwarfRegX64.R12);
+        rd->R13 = s.GetRegValue((int)DwarfRegX64.R13);
+        rd->R14 = s.GetRegValue((int)DwarfRegX64.R14);
+        rd->R15 = s.GetRegValue((int)DwarfRegX64.R15);
+        rd->SP = s.StackPointer;
 
         rd->pRbx = &rd->Rbx;
         rd->pRbp = &rd->Rbp;
@@ -1154,409 +1008,64 @@ public static unsafe partial class ExceptionHelper
     /// </summary>
     internal static void SeedUnwindStateFromRegDisplay(ref UnwindState s, REGDISPLAY* rd, nuint ip)
     {
-        s.RBX = rd->Rbx;
-        s.RBP = rd->Rbp;
-        s.RSI = rd->Rsi;
-        s.RDI = rd->Rdi;
-        s.R12 = rd->R12;
-        s.R13 = rd->R13;
-        s.R14 = rd->R14;
-        s.R15 = rd->R15;
-        s.RSP = rd->SP;
+        s.SetRegValue((int)DwarfRegX64.RBX, rd->Rbx);
+        s.SetRegValue((int)DwarfRegX64.RBP, rd->Rbp);
+        s.SetRegValue((int)DwarfRegX64.RSI, rd->Rsi);
+        s.SetRegValue((int)DwarfRegX64.RDI, rd->Rdi);
+        s.SetRegValue((int)DwarfRegX64.R12, rd->R12);
+        s.SetRegValue((int)DwarfRegX64.R13, rd->R13);
+        s.SetRegValue((int)DwarfRegX64.R14, rd->R14);
+        s.SetRegValue((int)DwarfRegX64.R15, rd->R15);
+        s.StackPointer = rd->SP;
         s.ReturnAddress = ip;
-
-        for (int i = 0; i < (int)DwarfRegX64.MAX; i++)
-        {
-            s.SetRegLocation((DwarfRegX64)i, RegSaveKind.SameValue);
-        }
+        InitRegRulesSameValue(ref s);
     }
 #elif ARCH_ARM64
-    // DWARF CFI opcodes (same across architectures)
-    private const byte DW_CFA_advance_loc = 0x40;
-    private const byte DW_CFA_offset = 0x80;
-    private const byte DW_CFA_restore = 0xC0;
-    private const byte DW_CFA_nop = 0x00;
-    private const byte DW_CFA_set_loc = 0x01;
-    private const byte DW_CFA_advance_loc1 = 0x02;
-    private const byte DW_CFA_advance_loc2 = 0x03;
-    private const byte DW_CFA_advance_loc4 = 0x04;
-    private const byte DW_CFA_offset_extended = 0x05;
-    private const byte DW_CFA_restore_extended = 0x06;
-    private const byte DW_CFA_undefined = 0x07;
-    private const byte DW_CFA_same_value = 0x08;
-    private const byte DW_CFA_register = 0x09;
-    private const byte DW_CFA_remember_state = 0x0A;
-    private const byte DW_CFA_restore_state = 0x0B;
-    private const byte DW_CFA_def_cfa = 0x0C;
-    private const byte DW_CFA_def_cfa_register = 0x0D;
-    private const byte DW_CFA_def_cfa_offset = 0x0E;
-    private const byte DW_CFA_def_cfa_expression = 0x0F;
-    private const byte DW_CFA_expression = 0x10;
-    private const byte DW_CFA_offset_extended_sf = 0x11;
-    private const byte DW_CFA_def_cfa_sf = 0x12;
-    private const byte DW_CFA_def_cfa_offset_sf = 0x13;
-    private const byte DW_CFA_val_offset = 0x14;
-    private const byte DW_CFA_val_offset_sf = 0x15;
-    private const byte DW_CFA_val_expression = 0x16;
-
     /// <summary>
-    /// Parse CIE for ARM64
-    /// </summary>
-    private static bool ParseCIE(byte* cie, out int codeAlignFactor, out int dataAlignFactor,
-                                  out byte returnAddressReg, out byte* initialInstructions, out byte* instructionsEnd)
-    {
-        codeAlignFactor = 4;   // ARM64 instructions are 4 bytes
-        dataAlignFactor = -8;  // Default for AArch64
-        returnAddressReg = (byte)DwarfRegARM64.LR;  // X30 is return address
-        initialInstructions = null;
-        instructionsEnd = null;
-
-        byte* p = cie;
-        uint length = *(uint*)p;
-        if (length == 0 || length == 0xFFFFFFFF)
-        {
-            return false;
-        }
-
-        byte* cieEnd = p + 4 + length;
-        p += 4;
-
-        uint cieId = *(uint*)p;
-        p += 4;
-
-        if (cieId != 0)
-        {
-            return false;
-        }
-
-        byte version = *p++;
-        if (version != 1 && version != 3 && version != 4)
-        {
-            return false;
-        }
-
-        byte* augString = p;
-        while (*p != 0)
-        {
-            p++;
-        }
-
-        p++;
-
-        if (version == 4)
-        {
-            p++;  // address_size
-            p++;  // segment_selector_size
-        }
-
-        codeAlignFactor = (int)MethodGcInfoLookup.ReadULEB128(ref p);
-        dataAlignFactor = ReadSLEB128(ref p);
-
-        if (version == 1)
-        {
-            returnAddressReg = *p++;
-        }
-        else
-        {
-            returnAddressReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-        }
-
-        if (*augString == 'z')
-        {
-            uint augLen = MethodGcInfoLookup.ReadULEB128(ref p);
-            p += augLen;
-        }
-
-        initialInstructions = p;
-        instructionsEnd = cieEnd;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Parse CFI instructions for ARM64
-    /// </summary>
-    private static void ParseCFIInstructions(byte* instructions, byte* instructionsEnd,
-                                              nuint pcBegin, nuint targetPC,
-                                              int codeAlignFactor, int dataAlignFactor,
-                                              ref UnwindState state)
-    {
-        byte* p = instructions;
-        nuint currentPC = pcBegin;
-
-        while (p < instructionsEnd && currentPC <= targetPC)
-        {
-            byte opcode = *p++;
-            byte highBits = (byte)(opcode & 0xC0);
-            byte lowBits = (byte)(opcode & 0x3F);
-
-            if (highBits == DW_CFA_advance_loc)
-            {
-                currentPC += (uint)(lowBits * codeAlignFactor);
-            }
-            else if (highBits == DW_CFA_offset)
-            {
-                byte reg = lowBits;
-                uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
-                if (reg < (byte)DwarfRegARM64.MAX)
-                {
-                    state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.AtCfaOffset,
-                                         (int)(offset * dataAlignFactor));
-                }
-            }
-            else if (highBits == DW_CFA_restore)
-            {
-                byte reg = lowBits;
-                if (reg < (byte)DwarfRegARM64.MAX)
-                {
-                    state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.SameValue);
-                }
-            }
-            else
-            {
-                switch (opcode)
-                {
-                    case DW_CFA_nop:
-                        break;
-
-                    case DW_CFA_set_loc:
-                        currentPC = *(nuint*)p;
-                        p += sizeof(nuint);
-                        break;
-
-                    case DW_CFA_advance_loc1:
-                        currentPC += (uint)(*p++ * codeAlignFactor);
-                        break;
-
-                    case DW_CFA_advance_loc2:
-                        currentPC += (uint)(*(ushort*)p * codeAlignFactor);
-                        p += 2;
-                        break;
-
-                    case DW_CFA_advance_loc4:
-                        currentPC += (uint)(*(uint*)p * codeAlignFactor);
-                        p += 4;
-                        break;
-
-                    case DW_CFA_def_cfa:
-                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
-                        break;
-
-                    case DW_CFA_def_cfa_register:
-                        state.CfaRegister = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                        break;
-
-                    case DW_CFA_def_cfa_offset:
-                        state.CfaOffset = (int)MethodGcInfoLookup.ReadULEB128(ref p);
-                        break;
-
-                    case DW_CFA_def_cfa_offset_sf:
-                        state.CfaOffset = ReadSLEB128(ref p) * dataAlignFactor;
-                        break;
-
-                    case DW_CFA_offset_extended:
-                        {
-                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            uint offset = MethodGcInfoLookup.ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegARM64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.AtCfaOffset,
-                                                     (int)(offset * dataAlignFactor));
-                            }
-                        }
-                        break;
-
-                    case DW_CFA_offset_extended_sf:
-                        {
-                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            int offset = ReadSLEB128(ref p);
-                            if (reg < (byte)DwarfRegARM64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.AtCfaOffset,
-                                                     offset * dataAlignFactor);
-                            }
-                        }
-                        break;
-
-                    case DW_CFA_same_value:
-                        {
-                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegARM64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.SameValue);
-                            }
-                        }
-                        break;
-
-                    case DW_CFA_register:
-                        {
-                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            byte inReg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegARM64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.InRegister, 0, inReg);
-                            }
-                        }
-                        break;
-
-                    case DW_CFA_undefined:
-                        {
-                            byte reg = (byte)MethodGcInfoLookup.ReadULEB128(ref p);
-                            if (reg < (byte)DwarfRegARM64.MAX)
-                            {
-                                state.SetRegLocation((DwarfRegARM64)reg, RegSaveKind.Undefined);
-                            }
-                        }
-                        break;
-
-                    case DW_CFA_remember_state:
-                    case DW_CFA_restore_state:
-                        break;
-
-                    case DW_CFA_def_cfa_expression:
-                    case DW_CFA_expression:
-                    case DW_CFA_val_expression:
-                        {
-                            uint exprLen = MethodGcInfoLookup.ReadULEB128(ref p);
-                            p += exprLen;
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Apply unwind rules for ARM64
-    /// </summary>
-    private static void ApplyUnwindRules(ref UnwindState state)
-    {
-        // Calculate CFA
-        long cfaBase = (long)state.GetRegValue((DwarfRegARM64)state.CfaRegister);
-        nuint cfa = (nuint)(cfaBase + state.CfaOffset);
-
-        // Apply rules for callee-saved registers (X19-X28, FP, LR, SP)
-        for (int i = 0; i < (int)DwarfRegARM64.MAX; i++)
-        {
-            DwarfRegARM64 reg = (DwarfRegARM64)i;
-            RegLocation* loc = state.GetRegLocation(reg);
-
-            switch (loc->Kind)
-            {
-                case RegSaveKind.AtCfaOffset:
-                    nuint* savedLoc = (nuint*)((long)cfa + loc->Offset);
-                    state.SetRegValue(reg, *savedLoc);
-                    break;
-
-                case RegSaveKind.InRegister:
-                    state.SetRegValue(reg, state.GetRegValue((DwarfRegARM64)loc->Register));
-                    break;
-
-                case RegSaveKind.SameValue:
-                case RegSaveKind.Undefined:
-                default:
-                    break;
-            }
-        }
-
-        // Update SP to CFA
-        state.SP = cfa;
-    }
-
-    /// <summary>
-    /// Unwind one frame using DWARF CFI information (ARM64).
-    /// <para>
-    /// FDE lookup delegates to <see cref="MethodGcInfoLookup.TryGetMethodCFI"/> — the single
-    /// <c>.eh_frame</c> walker in the kernel. The arch-specific CFI rule execution
-    /// (<see cref="ParseCIE"/> / <see cref="ParseCFIInstructions"/> / <see cref="ApplyUnwindRules"/>)
-    /// stays here because it touches the ARM64 register file directly.
-    /// </para>
-    /// </summary>
-    internal static bool UnwindOneFrameWithCFI(ref UnwindState state, nuint returnAddress)
-    {
-        if (!MethodGcInfoLookup.TryGetMethodCFI(returnAddress, out MethodGcInfoLookup.MethodCFIInfo cfi))
-        {
-            return false;
-        }
-
-        if (!ParseCIE(cfi.pCIE, out int codeAlignFactor, out int dataAlignFactor,
-                      out byte returnAddressReg, out byte* initialInstructions, out byte* initialInstructionsEnd))
-        {
-            return false;
-        }
-
-        // Default CFA for ARM64 is SP + 0 at function entry.
-        state.CfaRegister = (byte)DwarfRegARM64.SP;
-        state.CfaOffset = 0;
-
-        // Replay the CIE initial instructions, then the FDE instructions up to returnAddress.
-        if (initialInstructions != null && initialInstructionsEnd != null)
-        {
-            ParseCFIInstructions(initialInstructions, initialInstructionsEnd,
-                                 cfi.MethodStart, returnAddress,
-                                 codeAlignFactor, dataAlignFactor, ref state);
-        }
-        ParseCFIInstructions(cfi.pFDEInstrs, cfi.pFDEInstrsEnd,
-                             cfi.MethodStart, returnAddress,
-                             codeAlignFactor, dataAlignFactor, ref state);
-
-        // Resolve the accumulated rules into the caller's register values.
-        ApplyUnwindRules(ref state);
-        return true;
-    }
-
-    /// <summary>
-    /// Initialize unwind state from throw-site context for ARM64
+    /// Seed an <see cref="UnwindState"/> from the throw-site <see cref="PAL_LIMITED_CONTEXT"/>
+    /// captured by <c>RhpThrowEx</c>: copy the callee-saved registers (plus SP and IP) into the
+    /// register table, then set every per-register rule to <c>SameValue</c>.
     /// </summary>
     private static void InitUnwindStateFromContext(ref UnwindState state, PAL_LIMITED_CONTEXT* pContext)
     {
-        // Copy register values from context
-        state.SP = pContext->SP;
-        state.FP = pContext->FP;
-        state.LR = pContext->LR;
+        state.SetRegValue((int)DwarfRegARM64.SP, pContext->SP);
+        state.SetRegValue((int)DwarfRegARM64.FP, pContext->FP);
+        state.SetRegValue((int)DwarfRegARM64.LR, pContext->LR);
+        state.SetRegValue((int)DwarfRegARM64.X19, pContext->X19);
+        state.SetRegValue((int)DwarfRegARM64.X20, pContext->X20);
+        state.SetRegValue((int)DwarfRegARM64.X21, pContext->X21);
+        state.SetRegValue((int)DwarfRegARM64.X22, pContext->X22);
+        state.SetRegValue((int)DwarfRegARM64.X23, pContext->X23);
+        state.SetRegValue((int)DwarfRegARM64.X24, pContext->X24);
+        state.SetRegValue((int)DwarfRegARM64.X25, pContext->X25);
+        state.SetRegValue((int)DwarfRegARM64.X26, pContext->X26);
+        state.SetRegValue((int)DwarfRegARM64.X27, pContext->X27);
+        state.SetRegValue((int)DwarfRegARM64.X28, pContext->X28);
         state.ReturnAddress = pContext->IP;
-        state.X19 = pContext->X19;
-        state.X20 = pContext->X20;
-        state.X21 = pContext->X21;
-        state.X22 = pContext->X22;
-        state.X23 = pContext->X23;
-        state.X24 = pContext->X24;
-        state.X25 = pContext->X25;
-        state.X26 = pContext->X26;
-        state.X27 = pContext->X27;
-        state.X28 = pContext->X28;
-
-        // Initialize all registers to SameValue (callee-saved by default)
-        for (int i = 0; i < (int)DwarfRegARM64.MAX; i++)
-        {
-            state.SetRegLocation((DwarfRegARM64)i, RegSaveKind.SameValue);
-        }
+        InitRegRulesSameValue(ref state);
     }
 
     /// <summary>
-    /// Fill a <see cref="REGDISPLAY"/> from the current callee-saved register values in
-    /// <paramref name="s"/>. ARM64's REGDISPLAY stores values directly (no save-location pointers).
-    /// Used by the precise GC stack scan; mirrors the projection the exception pass-1 loop does.
+    /// Fill a <see cref="REGDISPLAY"/> from the current register values in <paramref name="s"/>.
+    /// ARM64's REGDISPLAY stores values directly — no save-location pointer wiring. Used by the
+    /// precise GC stack scan and by the exception dispatcher when it hands a REGDISPLAY to a filter
+    /// or catch funclet.
     /// </summary>
     internal static void ProjectRegDisplay(ref UnwindState s, REGDISPLAY* rd)
     {
-        rd->SP = s.SP;
-        rd->FP = s.FP;
-        rd->X19 = s.X19;
-        rd->X20 = s.X20;
-        rd->X21 = s.X21;
-        rd->X22 = s.X22;
-        rd->X23 = s.X23;
-        rd->X24 = s.X24;
-        rd->X25 = s.X25;
-        rd->X26 = s.X26;
-        rd->X27 = s.X27;
-        rd->X28 = s.X28;
-        rd->LR = s.LR;
+        rd->SP = s.StackPointer;
+        rd->FP = s.GetRegValue((int)DwarfRegARM64.FP);
+        rd->X19 = s.GetRegValue((int)DwarfRegARM64.X19);
+        rd->X20 = s.GetRegValue((int)DwarfRegARM64.X20);
+        rd->X21 = s.GetRegValue((int)DwarfRegARM64.X21);
+        rd->X22 = s.GetRegValue((int)DwarfRegARM64.X22);
+        rd->X23 = s.GetRegValue((int)DwarfRegARM64.X23);
+        rd->X24 = s.GetRegValue((int)DwarfRegARM64.X24);
+        rd->X25 = s.GetRegValue((int)DwarfRegARM64.X25);
+        rd->X26 = s.GetRegValue((int)DwarfRegARM64.X26);
+        rd->X27 = s.GetRegValue((int)DwarfRegARM64.X27);
+        rd->X28 = s.GetRegValue((int)DwarfRegARM64.X28);
+        rd->LR = s.GetRegValue((int)DwarfRegARM64.LR);
     }
 
     /// <summary>
@@ -1565,25 +1074,21 @@ public static unsafe partial class ExceptionHelper
     /// </summary>
     internal static void SeedUnwindStateFromRegDisplay(ref UnwindState s, REGDISPLAY* rd, nuint ip)
     {
-        s.SP = rd->SP;
-        s.FP = rd->FP;
-        s.LR = rd->LR;
+        s.StackPointer = rd->SP;
+        s.SetRegValue((int)DwarfRegARM64.FP, rd->FP);
+        s.SetRegValue((int)DwarfRegARM64.LR, rd->LR);
+        s.SetRegValue((int)DwarfRegARM64.X19, rd->X19);
+        s.SetRegValue((int)DwarfRegARM64.X20, rd->X20);
+        s.SetRegValue((int)DwarfRegARM64.X21, rd->X21);
+        s.SetRegValue((int)DwarfRegARM64.X22, rd->X22);
+        s.SetRegValue((int)DwarfRegARM64.X23, rd->X23);
+        s.SetRegValue((int)DwarfRegARM64.X24, rd->X24);
+        s.SetRegValue((int)DwarfRegARM64.X25, rd->X25);
+        s.SetRegValue((int)DwarfRegARM64.X26, rd->X26);
+        s.SetRegValue((int)DwarfRegARM64.X27, rd->X27);
+        s.SetRegValue((int)DwarfRegARM64.X28, rd->X28);
         s.ReturnAddress = ip;
-        s.X19 = rd->X19;
-        s.X20 = rd->X20;
-        s.X21 = rd->X21;
-        s.X22 = rd->X22;
-        s.X23 = rd->X23;
-        s.X24 = rd->X24;
-        s.X25 = rd->X25;
-        s.X26 = rd->X26;
-        s.X27 = rd->X27;
-        s.X28 = rd->X28;
-
-        for (int i = 0; i < (int)DwarfRegARM64.MAX; i++)
-        {
-            s.SetRegLocation((DwarfRegARM64)i, RegSaveKind.SameValue);
-        }
+        InitRegRulesSameValue(ref s);
     }
 #endif
 

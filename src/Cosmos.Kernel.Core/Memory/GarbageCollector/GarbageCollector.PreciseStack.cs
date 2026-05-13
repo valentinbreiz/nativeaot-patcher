@@ -75,11 +75,7 @@ public static unsafe partial class GarbageCollector
                 return;
             }
 
-#if ARCH_ARM64
-            nuint sp = st.SP;
-#else
-            nuint sp = st.RSP;
-#endif
+            nuint sp = st.StackPointer;
             ip = st.ReturnAddress;
 
             // Stack grows down: each older frame has a strictly higher SP. Anything else is a sign
