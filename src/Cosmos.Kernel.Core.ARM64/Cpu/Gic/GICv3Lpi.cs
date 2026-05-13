@@ -45,6 +45,8 @@ public static unsafe class GICv3Lpi
     //   [9:7]   InnerCache (5 = Normal Inner WB RaWa)
     //   [11:10] Shareability (1 = Inner Shareable)
     //   [51:12] Physical address (4 KiB aligned)
+    private const ulong PROPBASER_IDBITS_MASK = 0x1FUL;
+    private const ulong PROPBASER_ADDR_MASK = 0x000FFFFFFFFFF000UL;
     private const ulong PROPBASER_INNER_WB = 5UL << 7;
     private const ulong PROPBASER_INNER_SHAREABLE = 1UL << 10;
 
@@ -53,9 +55,14 @@ public static unsafe class GICv3Lpi
     //   [11:10] Shareability
     //   [51:16] Physical address (64 KiB aligned!)
     //   [62]    PTZ (Pending table is zeroed — set so the GIC skips re-init)
+    private const ulong PENDBASER_ADDR_MASK = 0x000FFFFFFFFF0000UL;
     private const ulong PENDBASER_INNER_WB = 5UL << 7;
     private const ulong PENDBASER_INNER_SHAREABLE = 1UL << 10;
     private const ulong PENDBASER_PTZ = 1UL << 62;
+
+    // Pending table must sit on a 64 KiB physical boundary — see PENDBASER [51:16].
+    private const ulong PendTableAlignment = 64UL * 1024UL;
+    private const ulong PendTableAlignmentMask = PendTableAlignment - 1;
 
     // Per-LPI configuration byte: bit 0 = Enable, bits [7:2] = priority.
     private const byte LPI_PRIO_DEFAULT = 0xA0;
@@ -112,7 +119,7 @@ public static unsafe class GICv3Lpi
         }
         ulong pendBlockPhys = PageAllocator.VirtualToPhysical(pendBlockVirt);
         // Round up to next 64KB-aligned phys; preserve same offset on virt.
-        ulong pendAlignedPhys = (pendBlockPhys + 0xFFFFUL) & ~0xFFFFUL;
+        ulong pendAlignedPhys = (pendBlockPhys + PendTableAlignmentMask) & ~PendTableAlignmentMask;
         ulong delta = pendAlignedPhys - pendBlockPhys;
         _pendTablePhys = pendAlignedPhys;
         _pendTableVirt = pendBlockVirt + delta;
@@ -128,16 +135,16 @@ public static unsafe class GICv3Lpi
             return;
         }
 
-        ulong propbaser = (ulong)(LpiIdBits & 0x1F)
+        ulong propbaser = ((ulong)LpiIdBits & PROPBASER_IDBITS_MASK)
                         | PROPBASER_INNER_WB
                         | PROPBASER_INNER_SHAREABLE
-                        | (_propTablePhys & 0x000FFFFFFFFFF000UL);
+                        | (_propTablePhys & PROPBASER_ADDR_MASK);
         Native.MMIO.Write64(_rdBase + GICR_PROPBASER, propbaser);
 
         ulong pendbaser = PENDBASER_INNER_WB
                         | PENDBASER_INNER_SHAREABLE
                         | PENDBASER_PTZ
-                        | (_pendTablePhys & 0x000FFFFFFFFF0000UL);
+                        | (_pendTablePhys & PENDBASER_ADDR_MASK);
         Native.MMIO.Write64(_rdBase + GICR_PENDBASER, pendbaser);
 
         // Enable LPIs (32-bit write).
