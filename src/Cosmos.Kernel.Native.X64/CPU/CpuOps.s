@@ -23,21 +23,17 @@ _native_cpu_enable_interrupts:
     sti
     ret
 
-// Save current RFLAGS (including the IF bit) and disable interrupts.
-// Returns the saved RFLAGS in RAX so a later _native_cpu_restore_irq
-// call can restore the exact prior interrupt-enable state. Used by
-// InterruptScope to make nested cli/sti safe.
+// Save RFLAGS and disable interrupts.
+// Returns: previous RFLAGS in RAX (System V ABI).
 _native_cpu_save_irq_and_disable:
     pushfq
-    pop rax
+    pop     rax
     cli
     ret
 
-// Restore RFLAGS (from RDI under the System V x86-64 ABI) — flips IF
-// back to whatever state it was in when _native_cpu_save_irq_and_disable
-// was called.
+// Restore RFLAGS from first argument (RDI on System V ABI).
 _native_cpu_restore_irq:
-    push rdi
+    push    rdi
     popfq
     ret
 

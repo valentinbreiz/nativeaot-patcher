@@ -3,7 +3,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Bridge;
-using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Internal.Runtime;
@@ -25,7 +24,8 @@ public static unsafe partial class GarbageCollector
         s_markStackCount = 0;
         ScanStackRoots();
         ScanGCHandles();
-        //ScanStaticRoots();
+        // TODO: scan static roots — objects reachable only through static fields aren't rooted
+        //       yet (see the s_maxSegmentSize note in GarbageCollector.cs).
     }
 
     /// <summary>
@@ -77,21 +77,42 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Scans stack roots. When the scheduler is active, scans all registered thread stacks
-    /// (Running, Ready, Blocked, Sleeping) via the global thread registry.
-    /// This ensures local variables on suspended threads are not collected by GC.
+    /// Scans stack roots. The GC-triggering (current) thread is scanned precisely from NativeAOT
+    /// GCInfo — it is parked at a call-site safepoint, so the scan is sound — while every other
+    /// registered thread (preempted at an arbitrary IP, where its GCInfo lookup may be meaningless)
+    /// still gets a conservative word-by-word scan of its saved registers and stack until
+    /// return-address hijacking lands. See issue #346.
+    /// <para>
+    /// <see cref="GarbageCollector.Collect"/> runs this inside <c>InternalCpu.DisableInterruptsScope()</c>,
+    /// so the other registered threads are quiescent for the duration.
+    /// </para>
     /// </summary>
     private static void ScanStackRoots()
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            var Threads = SchedulerManager.Threads;
-            if (Threads != null)
+            Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+
+            nuint stackEnd;
+            if (current != null && current.StackBase != 0 && current.StackSize != 0)
             {
-                for (int i = 0; i < Threads.Length; i++)
+                stackEnd = current.StackBase + current.StackSize;
+            }
+            else
+            {
+                // Boot/idle thread on the bootloader stack — no StackBase/StackSize.
+                stackEnd = GetCurrentStackEndForBootStack();
+            }
+
+            PreciseScanCurrentThread(stackEnd);
+
+            var threads = SchedulerManager.Threads;
+            if (threads != null)
+            {
+                for (int i = 0; i < threads.Length; i++)
                 {
-                    var thread = Threads[i];
-                    if (thread != null && thread.State != Scheduler.ThreadState.Dead)
+                    var thread = threads[i];
+                    if (thread != null && !object.ReferenceEquals(thread, current) && thread.State != Scheduler.ThreadState.Dead)
                     {
                         ScanThreadStack(thread);
                     }
@@ -100,10 +121,20 @@ public static unsafe partial class GarbageCollector
         }
         else
         {
-            nuint rsp = ContextSwitchNative.GetSp();
-            nuint stackEnd = rsp + Scheduler.Thread.DefaultStackSize;
-            ScanMemoryRange((nint*)rsp, (nint*)stackEnd);
+            // No scheduler — only one stack, and it is the GC-triggering thread's.
+            PreciseScanCurrentThread(GetCurrentStackEndForBootStack());
         }
+    }
+
+    /// <summary>
+    /// Stack-end bound for the current thread when its <see cref="Scheduler.Thread"/> has no
+    /// allocated <c>StackBase</c>/<c>StackSize</c> — the boot/idle thread runs on the bootloader's
+    /// stack. Returns the current SP plus the default stack size: a deliberately generous bound, so
+    /// a word or two of slop from this helper's own frame is immaterial.
+    /// </summary>
+    private static nuint GetCurrentStackEndForBootStack()
+    {
+        return ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize;
     }
 
     /// <summary>
@@ -196,8 +227,7 @@ public static unsafe partial class GarbageCollector
             else
             {
                 // Boot/idle thread uses the bootloader's stack — no StackBase/StackSize.
-                // Scan upward from RSP for a conservative fixed range.
-                stackEnd = stackStart + Scheduler.Thread.DefaultStackSize;
+                stackEnd = GetCurrentStackEndForBootStack();
             }
         }
         else

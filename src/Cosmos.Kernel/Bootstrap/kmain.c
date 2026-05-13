@@ -69,8 +69,12 @@ void kmain()
     // === Phase 4: User Kernel ===
     __cosmos_serial_write("\n");
     __cosmos_serial_write("[KMAIN] Phase 4: User kernel\n");
-    char *argv[] = {"COSMOS", NULL};
-    __managed__Main(1, argv);
+    
+    int argc;
+    char **argv;
+
+    argv = __build_argv(__get_limine_cmd_line(), &argc);
+    __managed__Main(argc, argv);
 
     // Should never reach here
     __cosmos_serial_write("[KMAIN] ERROR: Main() returned unexpectedly!\n");

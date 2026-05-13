@@ -51,8 +51,16 @@ __cosmos_exinfo_stack_head: .quad 0
 //
 // This is called by the ILC-generated code when a 'throw' statement executes.
 // System V AMD64 ABI: RDI = first argument (exception object)
+//
+// CFI: the prologue (the PAL_LIMITED_CONTEXT this builds on the stack, then the ExInfo space) is
+// described so the precise GC stack scan / exception unwinder (issue #346) can step from inside the
+// dispatcher up through this stub into the throwing method. The post-`call RhThrowEx` IP is the
+// only CFI target here — RhThrowEx transfers to a handler or halts, it never returns — so describing
+// just the prologue is sufficient. RBX/RBP/R12-R15 are written into the context, so their throw-site
+// values live at known stack slots; RAX/RDX/RSI/RDI are scratch.
 //=============================================================================
 .global RhpThrowEx
+.cfi_startproc
 RhpThrowEx:
     // Save the RSP of the throw site (before call pushed return address)
     lea     rax, [rsp + 8]          // rax = original RSP at throw site
@@ -61,23 +69,41 @@ RhpThrowEx:
     // Align stack to 16 bytes
     xor     rdx, rdx
     push    rdx                     // padding for alignment
+    .cfi_adjust_cfa_offset 8
 
     // Build PAL_LIMITED_CONTEXT structure on stack
     // Push in reverse order so they end up at correct offsets
     push    r15                     // +0x48: R15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
     push    r14                     // +0x40: R14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r13                     // +0x38: R13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r12                     // +0x30: R12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    rdx                     // +0x28: Rdx (0)
+    .cfi_adjust_cfa_offset 8
     push    rbx                     // +0x20: Rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    rdx                     // +0x18: Rax (0)
+    .cfi_adjust_cfa_offset 8
     push    rbp                     // +0x10: Rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rax                     // +0x08: Rsp (original)
+    .cfi_adjust_cfa_offset 8
     push    rsi                     // +0x00: IP (return address)
+    .cfi_adjust_cfa_offset 8
 
     // Now RSP points to PAL_LIMITED_CONTEXT
     // Allocate space for ExInfo
     sub     rsp, STACKSIZEOF_ExInfo
+    .cfi_adjust_cfa_offset STACKSIZEOF_ExInfo
 
     // Save exception object temporarily
     mov     rbx, rdi                // rbx = exception object
@@ -114,35 +140,69 @@ RhpThrowEx:
 .Lthrow_unreachable:
     int     3
     jmp     .Lthrow_unreachable
+.cfi_endproc
 
 //=============================================================================
 // RhpCallCatchFunclet - Call a catch handler funclet
 //
 // INPUT:  RDI = exception object
 //         RSI = handler funclet address
-//         RDX = REGDISPLAY*
-//         RCX = ExInfo*
+//         RDX = REGDISPLAY*  (REGDISPLAY.SP = the catching method's body RSP at the protected
+//                              region; pRbx/pRbp/pR12..pR15 -> the establisher's body register
+//                              values; the dispatcher fills these from the CFI unwind)
+//         RCX = ExInfo*       (unused — the ExInfo pop loop below walks __cosmos_exinfo_stack_head
+//                              directly, so RCX is not saved)
 //
-// OUTPUT: RAX = resume address (where to continue after catch)
+// The catch funclet runs with the establisher frame's RBP/RBX/R12-R15 (restored below) and the
+// exception object in RDI; it returns, in RAX, the IP in the catching method right after the
+// protected region. We then set RSP to the catching method's body RSP (REGDISPLAY.SP) and jump
+// there — the method's own frame is intact, so its ordinary epilogue restores our caller's
+// callee-saved registers. (This used to instead force-return from the catching method, which only
+// worked for one hard-coded call shape; #346.)
 //
-// The catch funclet expects the exception object in RDI.
-// After the funclet returns, we resume at the address it returns.
+// Stack alignment: the prologue pushes 6 callee-saved regs + 3 arg slots = 9 eight-byte slots
+// (odd), so RSP is 16-byte aligned at the `call qword ptr [rsp + 8]` below — the System V x86-64
+// ABI requires it, and the funclet (plus everything it calls — allocators, ctors, ...) faults on
+// 16-byte-aligned SSE accesses if RSP is off by 8. (A 10th push here is what broke
+// GC_FuncletNoFalseRoot; #346.)
+//
+// CFI: the prologue is described so the precise GC stack scan / exception unwinder (issue #346)
+// can step from inside the funclet up through this trampoline into the dispatcher's managed frame.
+// Only the post-`call qword ptr [rsp + 8]` IP is ever a CFI target here (GC cannot fire elsewhere
+// in this stub — interrupts off, no allocations), and the `mov rsp, r9 / jmp r8` resume tail runs
+// strictly after that point, so describing just the prologue is sufficient and correct.
 //=============================================================================
 .global RhpCallCatchFunclet
+.cfi_startproc
 RhpCallCatchFunclet:
     // Save callee-saved registers
     push    rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    r12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    r13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
 
-    // Save arguments
-    push    rdi                     // exception object
-    push    rsi                     // handler address
-    push    rdx                     // REGDISPLAY*
-    push    rcx                     // ExInfo*
+    // Save arguments (caller-saved — only the CFA offset advances). Three slots: see the alignment
+    // note above. ExInfo* (RCX) is intentionally not saved.
+    push    rdi                     // [rsp+16] exception object
+    .cfi_adjust_cfa_offset 8
+    push    rsi                     // [rsp+8]  handler address
+    .cfi_adjust_cfa_offset 8
+    push    rdx                     // [rsp+0]  REGDISPLAY*
+    .cfi_adjust_cfa_offset 8
 
     // Restore callee-saved registers from REGDISPLAY
     // These are the registers the funclet expects to have the values from the throwing method
@@ -169,26 +229,23 @@ RhpCallCatchFunclet:
     mov     rax, [rdx + OFFSETOF__REGDISPLAY__pR15]
     mov     r15, [rax]
 
-    // Load exception object and call handler
-    mov     rdi, [rsp + 24]         // exception object
-    call    qword ptr [rsp + 16]    // call handler funclet
+    // Load exception object and call handler funclet.
+    mov     rdi, [rsp + 16]         // exception object
+    call    qword ptr [rsp + 8]     // call handler funclet
 
-    // RAX now contains the resume address
-    // Save resume address to r8 (callee-saved r12-r15 are still valid from REGDISPLAY restore)
-    mov     r8, rax
+    // RAX = the IP in the catching method right after the protected region. Stash it; reload
+    // REGDISPLAY* (the funclet may have clobbered RDX).
+    // Stack layout from the prologue pushes: [rsp+0]=REGDISPLAY* [rsp+8]=handler [rsp+16]=exObj
+    mov     r8, rax                 // r8 = resume IP
+    mov     rdx, [rsp]              // rdx = REGDISPLAY*
 
-    // Reload REGDISPLAY* from stack (rdx may have been clobbered by funclet)
-    // Stack layout: [ExInfo*][REGDISPLAY*][handler addr][exception obj]
-    mov     rdx, [rsp + 8]          // REGDISPLAY*
+    // r9 = the catching method's body RSP at the protected region (REGDISPLAY.SP). The dispatcher
+    // set this from the CFI unwind; resuming there leaves the method's frame intact.
+    mov     r9, [rdx + OFFSETOF__REGDISPLAY__SP]
 
-    // Get resume SP from REGDISPLAY
-    mov     r9, [rdx + OFFSETOF__REGDISPLAY__SP]   // r9 = resume SP
-
-    // Pop ExInfo entries that are below the resume SP
-    // Use r10/r11 as scratch registers to avoid clobbering rdi/rsi which may be
-    // expected by the resume code
+    // Pop ExInfo entries that belong to the frames we unwound past (those below the resume SP).
+    // r10/r11 are scratch — avoid rdi/rsi/rax which the resume point may rely on.
     lea     r11, [rip + __cosmos_exinfo_stack_head]
-
 .Lpop_exinfo_loop:
     mov     r10, [r11]              // current ExInfo
     test    r10, r10
@@ -200,40 +257,12 @@ RhpCallCatchFunclet:
     jmp     .Lpop_exinfo_loop
 
 .Lpop_exinfo_done:
-    // Resume execution after the catch block
-    // The funclet has executed the catch block body, and r8 contains the resume address
-    // r9 contains the handler frame's RBP (REGDISPLAY.SP)
-
-    // Instead of jumping to the resume address (which has complex stack expectations),
-    // we'll directly return from the catching function (Run) to its caller (Start).
-
-    // From stack dump analysis:
-    //   [RBP + 16] = 'this' pointer (0xFFFF80000010D004)
-    //   [RBP + 8]  = return address to caller
-    //   [RBP + 0]  = caller's saved RBP
-    //   [RBP - 8]  = stack pointer value (not saved RBX)
-    //   [RBP - 16] = some data address
-    //   [RBP - 40] = 'this' pointer again
-    //   [RBP - 64] = 'this' pointer again
-
-    // Start() likely keeps 'this' in RBX across the call to Run()
-    // Restore RBX from [RBP+16] which appears to be 'this'
-    mov     rbx, [r9 + 16]          // Restore 'this' pointer to RBX
-
-    // Zero other callee-saved registers (safer than reading garbage)
-    xor     r12, r12
-    xor     r13, r13
-    xor     r14, r14
-    xor     r15, r15
-
-    // Set up stack to return from Run to Start
-    // r9 = Run's RBP
-    // [r9 + 0] = Start's saved RBP
-    // [r9 + 8] = return address in Start
-    mov     rbp, [r9]               // Restore Start's RBP
+    // Resume in the catching method, after the protected region. RBP/RBX/R12-R15 are already the
+    // establisher's body values (restored from REGDISPLAY before the call; the funclet preserved
+    // them, except for any establisher local it deliberately updated). RSP <- body RSP.
     mov     rsp, r9
-    add     rsp, 8                  // Point RSP to return address
-    ret                             // Return to Start (pops [r9+8] as return addr)
+    jmp     r8
+.cfi_endproc
 
 
 //=============================================================================
@@ -247,21 +276,40 @@ RhpCallCatchFunclet:
 //
 // The filter funclet expects the exception object in RDI.
 // It returns non-zero if the exception should be caught by this handler.
+//
+// CFI: see the note on RhpCallCatchFunclet. The epilogue here is the ordinary
+// `add rsp, 24` + 6 pops + `ret`; GC cannot fire in it, so prologue CFI is sufficient.
 //=============================================================================
 .global RhpCallFilterFunclet
+.cfi_startproc
 RhpCallFilterFunclet:
     // Save callee-saved registers
     push    rbp
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbp, 0
     push    rbx
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset rbx, 0
     push    r12
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r12, 0
     push    r13
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r13, 0
     push    r14
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r14, 0
     push    r15
+    .cfi_adjust_cfa_offset 8
+    .cfi_rel_offset r15, 0
 
-    // Save arguments
+    // Save arguments (caller-saved — only the CFA offset advances)
     push    rdi                     // exception object
+    .cfi_adjust_cfa_offset 8
     push    rsi                     // filter address
+    .cfi_adjust_cfa_offset 8
     push    rdx                     // REGDISPLAY*
+    .cfi_adjust_cfa_offset 8
 
     // Restore callee-saved registers from REGDISPLAY
     // These are the registers the funclet expects to have the values from the method
@@ -315,6 +363,7 @@ RhpCallFilterFunclet:
     // Return filter result
     mov     rax, r8
     ret
+.cfi_endproc
 
 
 //=============================================================================

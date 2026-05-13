@@ -31,26 +31,22 @@ public static class InternalCpu
     }
 
     /// <summary>
-    /// Disables interrupts on creation, re-enables them on dispose.
-    /// Deliberately does NOT save the prior state: storing a saved-flags
-    /// field on this ref struct changes the stack layout of every method
-    /// that uses it (Heap, GC, Scheduler, ...), and the conservative GC
-    /// scanner in <c>GarbageCollector.Mark.cs</c> then false-roots
-    /// weak-handle targets from stale spills in dead callee frames.
-    /// If you really need to preserve the caller's interrupt state, the
-    /// only current case is the ISR/mainline lock in
-    /// <see cref="Scheduler.SpinLock.AcquireIrqSave"/>, use that
-    /// directly instead of this scope.
+    /// A disposable scope that disables interrupts on creation and restores
+    /// the prior interrupt-enable state on dispose. Critically, this saves
+    /// the full RFLAGS / DAIF on entry and restores it on exit, so nested
+    /// scopes are correct: an inner scope disposing inside an outer
+    /// disabled region does NOT prematurely re-enable interrupts.
     /// </summary>
     public ref struct InterruptScope
     {
         private bool _disposed;
+        private ulong _savedFlags;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InterruptScope()
         {
             _disposed = false;
-            InternalCpu.DisableInterrupts();
+            _savedFlags = CpuNative.SaveIrqAndDisable();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -59,7 +55,7 @@ public static class InternalCpu
             if (!_disposed)
             {
                 _disposed = true;
-                InternalCpu.EnableInterrupts();
+                CpuNative.RestoreIrq(_savedFlags);
             }
         }
     }
