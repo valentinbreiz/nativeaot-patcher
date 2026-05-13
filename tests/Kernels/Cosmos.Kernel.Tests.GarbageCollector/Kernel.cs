@@ -21,7 +21,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 40);
+        TR.Start("GarbageCollector Tests", expectedTests: 41);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -51,6 +51,7 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_PreciseStackScan", TestGCPreciseStackScan);
         TR.Run("GC_FuncletNoFalseRoot", TestGCFuncletNoFalseRoot);
         TR.Run("GC_FuncletNoCrashOnAllocInCatch", TestGCFuncletNoCrashOnAllocInCatch);
+        TR.Run("GC_ThrowThroughDeepChain", TestGCThrowThroughDeepChain);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -808,6 +809,79 @@ public class Kernel : Sys.Kernel
             Assert.Equal(32640, sum,
                 "GC: a catch funclet's allocations must survive a collection forced from inside the catch (shape " + shape + ", issue #227)");
         }
+    }
+
+    // ==================== EH dispatch through FP-omitted intermediate frames ===================
+    //
+    // ILC's RyuJIT-based codegen omits the frame pointer on managed methods that don't need it
+    // (no EH clauses, no stackalloc, no large frame, no address-taken locals) — the same effect
+    // C's `-fomit-frame-pointer` has on a function. The five DeepThrowLevel* helpers below are
+    // deliberately starved of every characteristic that forces RBP/X29 to be kept; on at least
+    // some of them RyuJIT is free to use the frame register as a general-purpose scratch.
+    //
+    // If the EH dispatcher's frame-pointer-chain walker (`ExceptionHelper.UnwindOneFrame`) is
+    // the only thing stepping between the throw site and the catching method, an FP-omitted
+    // intermediate breaks the chain — `[RBP]` no longer points at the caller's saved RBP, the
+    // walker reads scratch, and either `TryFindHandler` runs against a garbage return address or
+    // the loop bottoms out without finding the handler. Either way the kernel halts and this
+    // test never returns.
+    //
+    // The catching method (`CatchAtopDeepChain`) has a try/catch, so RyuJIT must keep its own
+    // RBP — that part of the unwind is sound. The fragility, if any, is entirely in the chain
+    // of intermediates between the throw and the catch.
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeepThrowLevel0()
+    {
+        throw new Exception("deep-throw");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeepThrowLevel1()
+    {
+        DeepThrowLevel0();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeepThrowLevel2()
+    {
+        DeepThrowLevel1();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeepThrowLevel3()
+    {
+        DeepThrowLevel2();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeepThrowLevel4()
+    {
+        DeepThrowLevel3();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static string CatchAtopDeepChain()
+    {
+        try
+        {
+            DeepThrowLevel4();
+            return "unreached";
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+    }
+
+    private static void TestGCThrowThroughDeepChain()
+    {
+        // The throw happens five managed frames below the catch. If the EH dispatch survives any
+        // of those frames omitting RBP/X29, this round-trips the exception message; otherwise the
+        // kernel halts and the test runner reports the test as failed (or never completes).
+        string caught = CatchAtopDeepChain();
+        Assert.True(caught == "deep-throw",
+            "EH: a throw must propagate through 5 intermediate frames that may omit RBP/X29 — got '" + caught + "'");
     }
 
     // ==================== GC Info & Configuration Tests ====================
