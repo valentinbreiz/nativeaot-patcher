@@ -108,9 +108,12 @@ internal unsafe struct UnwindState
     // Per-register save-location rules. `fixed` sizes need a compile-time constant; CfiArch.RegCount is one.
     public fixed byte RegLocations[CfiArch.RegCount * 8];   // RegLocation[CfiArch.RegCount]
 
-    // Unwound register values, indexed by DWARF register number. Scratch slots the unwind never
-    // touches stay at the zero-init default — fine, the CFI rules wouldn't reference them anyway.
-    public fixed nuint Regs[CfiArch.RegCount];
+    // Unwound register values, indexed by DWARF register number. Stored as ulong because C# `fixed`
+    // buffers only accept primitive types — nuint isn't on the list (CS1663). On the kernel's two
+    // targets (x64 and ARM64) nuint and ulong are byte-identical, so the casts at the accessor
+    // boundaries below are runtime no-ops. Scratch slots the unwind never touches stay zero — fine,
+    // the CFI rules wouldn't reference them anyway.
+    public fixed ulong Regs[CfiArch.RegCount];
 
     /// <summary>
     /// IP to unwind from; after a successful unwind, the caller's return address.
@@ -145,14 +148,14 @@ internal unsafe struct UnwindState
 
     public nuint GetRegValue(int reg)
     {
-        return (uint)reg < CfiArch.RegCount ? Regs[reg] : 0;
+        return (uint)reg < CfiArch.RegCount ? (nuint)Regs[reg] : 0;
     }
 
     public void SetRegValue(int reg, nuint value)
     {
         if ((uint)reg < CfiArch.RegCount)
         {
-            Regs[reg] = value;
+            Regs[reg] = (ulong)value;
         }
     }
 
@@ -162,8 +165,8 @@ internal unsafe struct UnwindState
     /// </summary>
     public nuint StackPointer
     {
-        get => Regs[CfiArch.StackPointerReg];
-        set => Regs[CfiArch.StackPointerReg] = value;
+        get => (nuint)Regs[CfiArch.StackPointerReg];
+        set => Regs[CfiArch.StackPointerReg] = (ulong)value;
     }
 }
 
