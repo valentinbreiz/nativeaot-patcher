@@ -87,8 +87,8 @@
         <article data-uid="">
 
 <h2 id="overview">Overview</h2>
-<p>The garbage collector is a <strong>mark-and-sweep</strong> collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through conservative stack scanning and GC handles, and runs with interrupts disabled as a stop-the-world collection.</p>
-<p>All GC code lives in the <code>GarbageCollector</code> partial class split across seven files:</p>
+<p>The garbage collector is a <strong>mark-and-sweep</strong> collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through stack scanning (precise from NativeAOT GCInfo for the GC-triggering thread, conservative for threads parked in the scheduler — see <a href="garbage-collector-gcinfo.html">Precise Stack Scanning (GCInfo)</a>) and GC handles, and runs with interrupts disabled as a stop-the-world collection.</p>
+<p>All GC code lives in the <code>GarbageCollector</code> partial class split across eight files:</p>
 <table>
 <thead>
 <tr>
@@ -108,6 +108,10 @@
 <tr>
 <td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
 <td>Mark phase (root scanning, reference enumeration, mark stack)</td>
+</tr>
+<tr>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
+<td>Precise GCInfo-driven stack scan of the GC-triggering thread (incl. exception-funclet frames)</td>
 </tr>
 <tr>
 <td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>GarbageCollector.Sweep.cs</code></a></td>
@@ -430,7 +434,8 @@
     MARK --&gt; STATIC[&quot;ScanStaticRoots (disabled)&quot;]
 </code></pre>
 <p><strong>Static root scanning</strong> walks GCStaticRegion sections from all loaded modules. This is currently disabled.</p>
-<p><strong>Stack scanning</strong> is <strong>conservative</strong>: every pointer-sized value on the stack is treated as a potential object reference. If the scheduler is active, the GC iterates all thread contexts and scans both saved registers and stack memory. Without a scheduler, it scans the current stack from RSP to the stack base.</p>
+<p><strong>Stack scanning</strong> is a hybrid. The <strong>GC-triggering thread</strong> is scanned <strong>precisely</strong> from NativeAOT GCInfo (<code>GarbageCollector.PreciseStack.cs</code>): it is stopped at a call-site safepoint, so the per-frame GCInfo names exactly which slots hold live references; this includes exception-funclet frames. Every other registered thread (preempted by the timer IRQ at an arbitrary instruction, where GCInfo is meaningless) still gets a <strong>conservative</strong> scan — every pointer-sized value of its saved registers and stack treated as a potential object reference.</p>
+<p>Conservative scanning over-roots (stale heap pointers in dead spill slots keep objects alive) and is layout-fragile (a codegen shift can resurrect a dead object — see <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/346">issue #346</a>); the precise scan replaced it where it is provably sound, and return-address hijacking (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/348">#348</a> phase 4) will let it cover parked threads too. See <a href="garbage-collector-gcinfo.html">Precise Stack Scanning (GCInfo)</a> for the design, the why, and the rollout.</p>
 <p><strong>GC handle scanning</strong> walks the handle table and marks objects referenced by <code>Normal</code> and <code>Pinned</code> handles. <code>Weak</code> handles do not keep objects alive.</p>
 <table>
 <thead>

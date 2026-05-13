@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Enum RegSaveKind | Cosmos Gen 3 </title>
+      <title>Class EhFrameNative | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Enum RegSaveKind | Cosmos Gen 3 ">
+      <meta name="title" content="Class EhFrameNative | Cosmos Gen 3 ">
       
-      <meta name="description" content="Register save location during unwind">
+      <meta name="description" content="Native imports for the linker-provided .eh_frame section bounds. get_eh_frame_start / get_eh_frame_end are exported by the C runtime (kmain.c) and resolve to the linker symbols on both architectures, so no arch gating is needed here.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,52 +84,138 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Runtime.RegSaveKind">
+        <article data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative">
 
 
 
-
-  <h1 id="Cosmos_Kernel_Core_Runtime_RegSaveKind" data-uid="Cosmos.Kernel.Core.Runtime.RegSaveKind" class="text-break">
-Enum RegSaveKind  
+  <h1 id="Cosmos_Kernel_Core_Bridge_EhFrameNative" data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative" class="text-break">
+Class EhFrameNative  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Runtime.html">Runtime</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Register save location during unwind</p>
+  <div class="markdown summary"><p>Native imports for the linker-provided <code>.eh_frame</code> section bounds.
+<code>get_eh_frame_start</code> / <code>get_eh_frame_end</code> are exported by the C
+runtime (kmain.c) and resolve to the linker symbols on both architectures,
+so no arch gating is needed here.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public enum RegSaveKind : byte</code></pre>
+    <pre><code class="lang-csharp hljs">public static class EhFrameNative</code></pre>
   </div>
 
 
 
 
-
-
-
-
-
-  <h2 id="fields">Fields
-</h2>
-  <dl class="parameters">
-    <dt id="Cosmos_Kernel_Core_Runtime_RegSaveKind_AtCfaOffset"><code>AtCfaOffset = 2</code></dt>
-  
-  <dd></dd>
-    <dt id="Cosmos_Kernel_Core_Runtime_RegSaveKind_InRegister"><code>InRegister = 3</code></dt>
-  
-  <dd></dd>
-    <dt id="Cosmos_Kernel_Core_Runtime_RegSaveKind_SameValue"><code>SameValue = 1</code></dt>
-  
-  <dd></dd>
-    <dt id="Cosmos_Kernel_Core_Runtime_RegSaveKind_Undefined"><code>Undefined = 0</code></dt>
-  
-  <dd></dd>
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">EhFrameNative</span></div>
+    </dd>
   </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_EhFrameNative_GetEnd_" data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative.GetEnd*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_EhFrameNative_GetEnd" data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative.GetEnd">
+  GetEnd()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static extern byte* GetEnd()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Bridge_EhFrameNative_GetStart_" data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative.GetStart*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Bridge_EhFrameNative_GetStart" data-uid="Cosmos.Kernel.Core.Bridge.EhFrameNative.GetStart">
+  GetStart()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static extern byte* GetStart()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
 
 
 

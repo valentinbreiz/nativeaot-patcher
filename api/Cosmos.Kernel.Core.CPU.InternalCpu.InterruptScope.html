@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Struct InternalCpu.InterruptScope | Cosmos Gen 3 ">
       
-      <meta name="description" content="A disposable scope that disables interrupts on creation and re-enables them on dispose.">
+      <meta name="description" content="A disposable scope that disables interrupts on creation and restores the prior interrupt-enable state on dispose. Critically, this saves the full RFLAGS / DAIF on entry and restores it on exit, so nested scopes are correct: an inner scope disposing inside an outer disabled region does NOT prematurely re-enable interrupts.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,11 @@ Struct InternalCpu.InterruptScope
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>A disposable scope that disables interrupts on creation and re-enables them on dispose.</p>
+  <div class="markdown summary"><p>A disposable scope that disables interrupts on creation and restores
+the prior interrupt-enable state on dispose. Critically, this saves
+the full RFLAGS / DAIF on entry and restores it on exit, so nested
+scopes are correct: an inner scope disposing inside an outer
+disabled region does NOT prematurely re-enable interrupts.</p>
 </div>
   <div class="markdown conceptual"></div>
 

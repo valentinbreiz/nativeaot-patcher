@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class ExceptionHelper | Cosmos Gen 3 ">
       
-      <meta name="description" content="Core exception handling implementation">
+      <meta name="description" content="Core exception handling implementation.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,7 @@ Class ExceptionHelper
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Core exception handling implementation</p>
+  <div class="markdown summary"><p>Core exception handling implementation.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -160,7 +160,7 @@ Class ExceptionHelper
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Fail fast - terminate the system</p>
+  <div class="markdown level1 summary"><p>Fail fast - terminate the system.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -194,7 +194,7 @@ Class ExceptionHelper
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Create a runtime exception from exception ID</p>
+  <div class="markdown level1 summary"><p>Create a runtime exception from exception ID.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -231,8 +231,9 @@ Class ExceptionHelper
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Main exception dispatcher called from RhThrowEx (managed entry from assembly)
-This version receives context from the assembly stub.</p>
+  <div class="markdown level1 summary"><p>Managed entry point for a thrown exception, called from <code>RhThrowEx</code> (the assembly stub)
+with the throw-site register context. Walks the stack, runs filters, and transfers to the
+catch handler; if nothing catches it, halts.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 

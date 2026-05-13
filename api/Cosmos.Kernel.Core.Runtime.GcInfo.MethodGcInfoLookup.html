@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class ContextSwitchNative | Cosmos Gen 3 </title>
+      <title>Class MethodGcInfoLookup | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class ContextSwitchNative | Cosmos Gen 3 ">
+      <meta name="title" content="Class MethodGcInfoLookup | Cosmos Gen 3 ">
       
-      <meta name="description" content="Native imports for the low-level context switch primitives. Symbols are unified across architectures: Cosmos.Kernel.Native.X64 (Interrupts.s) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both export the same names, so no arch gating is needed here.">
+      <meta name="description" content="Maps an instruction pointer to its method&#39;s GCInfo blob, LSDA, and CFI data.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,28 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative">
+        <article data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup">
 
 
 
-  <h1 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative" class="text-break">
-Class ContextSwitchNative  
+  <h1 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup" class="text-break">
+Class MethodGcInfoLookup  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Bridge.html">Bridge</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Runtime.html">Runtime</a>.<a class="xref" href="Cosmos.Kernel.Core.Runtime.GcInfo.html">GcInfo</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Native imports for the low-level context switch primitives.
-Symbols are unified across architectures: Cosmos.Kernel.Native.X64
-(Interrupts.s) and Cosmos.Kernel.Native.ARM64 (ContextSwitch.s) both
-export the same names, so no arch gating is needed here.</p>
+  <div class="markdown summary"><p>Maps an instruction pointer to its method's GCInfo blob, LSDA, and CFI data.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class ContextSwitchNative</code></pre>
+    <pre><code class="lang-csharp hljs">public static class MethodGcInfoLookup</code></pre>
   </div>
 
 
@@ -115,7 +112,7 @@ export the same names, so no arch gating is needed here.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">ContextSwitchNative</span></div>
+      <div><span class="xref">MethodGcInfoLookup</span></div>
     </dd>
   </dl>
 
@@ -152,36 +149,190 @@ export the same names, so no arch gating is needed here.</p>
 
 
 
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_UBF_FUNC_HAS_ASSOCIATED_DATA" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.UBF_FUNC_HAS_ASSOCIATED_DATA">
+  UBF_FUNC_HAS_ASSOCIATED_DATA
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte UBF_FUNC_HAS_ASSOCIATED_DATA = 16</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_UBF_FUNC_HAS_EHINFO" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.UBF_FUNC_HAS_EHINFO">
+  UBF_FUNC_HAS_EHINFO
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte UBF_FUNC_HAS_EHINFO = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_UBF_FUNC_KIND_FILTER" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.UBF_FUNC_KIND_FILTER">
+  UBF_FUNC_KIND_FILTER
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte UBF_FUNC_KIND_FILTER = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_UBF_FUNC_KIND_MASK" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.UBF_FUNC_KIND_MASK">
+  UBF_FUNC_KIND_MASK
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte UBF_FUNC_KIND_MASK = 3</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_UBF_FUNC_KIND_ROOT" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.UBF_FUNC_KIND_ROOT">
+  UBF_FUNC_KIND_ROOT
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte UBF_FUNC_KIND_ROOT = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_CaptureRegDisplay_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.CaptureRegDisplay*"></a>
+  <a id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_TryGetMethodGcInfo_" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.TryGetMethodGcInfo*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_CaptureRegDisplay_System_Void__" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.CaptureRegDisplay(System.Void*)">
-  CaptureRegDisplay(void*)
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_TryGetMethodGcInfo_System_UIntPtr_Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_MethodGcInfo__" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.TryGetMethodGcInfo(System.UIntPtr,Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo@)">
+  TryGetMethodGcInfo(nuint, out MethodGcInfo)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Captures the calling frame's callee-saved registers + stack pointer into the supplied
-<code>REGDISPLAY</code> and returns the caller's return address (IP). Used by the precise GC
-stack scan to bootstrap a per-frame walk of the GC-triggering thread (issue #346).</p>
+  <div class="markdown level1 summary"><p>Resolve <code class="paramref">ip</code> to its method's GCInfo. Returns false if no managed FDE/LSDA covers it.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern nuint CaptureRegDisplay(void* regDisplay)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool TryGetMethodGcInfo(nuint ip, out MethodGcInfoLookup.MethodGcInfo info)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>regDisplay</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dt><code>ip</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+    <dt><code>info</code> <a class="xref" href="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.html">MethodGcInfoLookup</a>.<a class="xref" href="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo.html">MethodGcInfo</a></dt>
     <dd></dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
 
@@ -195,119 +346,37 @@ stack scan to bootstrap a per-frame walk of the GC-triggering thread (issue #346
 
 
 
-  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetContextSwitchSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetContextSwitchSp*"></a>
+  <a id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_TryGetMethodLSDA_" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.TryGetMethodLSDA*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetContextSwitchSp" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetContextSwitchSp">
-  GetContextSwitchSp()
+  <h3 id="Cosmos_Kernel_Core_Runtime_GcInfo_MethodGcInfoLookup_TryGetMethodLSDA_System_UIntPtr_System_UIntPtr__System_Byte___" data-uid="Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.TryGetMethodLSDA(System.UIntPtr,System.UIntPtr@,System.Byte*@)">
+  TryGetMethodLSDA(nuint, out nuint, out byte*)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Resolve <code class="paramref">ip</code> to its method's FDE PC-begin and LSDA pointer. Mirrors the
+behaviour the exception handler relies on (<code>ExceptionHelper.TryGetMethodLSDA</code> delegates here).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern nuint GetContextSwitchSp()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetSp*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_GetSp" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.GetSp">
-  GetSp()
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern nuint GetSp()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchNewThread_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchNewThread*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchNewThread_System_Int32_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchNewThread(System.Int32)">
-  SetContextSwitchNewThread(int)
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchNewThread(int isNew)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool TryGetMethodLSDA(nuint ip, out nuint methodStart, out byte* pLSDA)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>isNew</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><code>ip</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+    <dt><code>methodStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd></dd>
+    <dt><code>pLSDA</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
     <dd></dd>
   </dl>
 
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchSp_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchSp*"></a>
-
-  <h3 id="Cosmos_Kernel_Core_Bridge_ContextSwitchNative_SetContextSwitchSp_System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Bridge.ContextSwitchNative.SetContextSwitchSp(System.UIntPtr)">
-  SetContextSwitchSp(nuint)
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static extern void SetContextSwitchSp(nuint newSp)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
+  <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><code>newSp</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
-
 
 
 

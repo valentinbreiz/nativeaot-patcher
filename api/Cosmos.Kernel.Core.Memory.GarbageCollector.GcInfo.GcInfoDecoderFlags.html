@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.Core.Memory.GarbageCollector | Cosmos Gen 3 </title>
+      <title>Enum GcInfoDecoderFlags | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.Core.Memory.GarbageCollector | Cosmos Gen 3 ">
+      <meta name="title" content="Enum GcInfoDecoderFlags | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Flags controlling which parts of a GCInfo blob the decoder pre-decodes.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,47 +84,84 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector">
+        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags">
 
-  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector" class="text-break">Namespace Cosmos.Kernel.Core.Memory.GarbageCollector</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.html">Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html">GarbageCollector</a></dt>
-      <dd><p>Allocation methods: segment management, bump allocation, and free list operations.</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html">AllocContext</a></dt>
-      <dd><p>Per-thread allocation context (Thread-Local Allocation Buffer).
-Stored inline on each <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a> to provide contention-free allocation.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.html">GarbageCollector.GCDescSeries</a></dt>
-      <dd><p>Describes a reference series within a GCDesc stored before the MethodTable.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.html">GarbageCollector.SimpleMemoryInfo</a></dt>
-      <dd><p>Simple snapshot of GC memory statistics used by runtime memory queries.</p>
-</dd>
-    </dl>
+
+
+  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags" class="text-break">
+Enum GcInfoDecoderFlags  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.html">GarbageCollector</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.html">GcInfo</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Flags controlling which parts of a GCInfo blob the decoder pre-decodes.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Flags]
+public enum GcInfoDecoderFlags : uint</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_CODE_LENGTH"><code>DECODE_CODE_LENGTH = 2</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_EDIT_AND_CONTINUE"><code>DECODE_EDIT_AND_CONTINUE = 2048</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_EVERYTHING"><code>DECODE_EVERYTHING = 0</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_GC_LIFETIMES"><code>DECODE_GC_LIFETIMES = 16</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_GENERICS_INST_CONTEXT"><code>DECODE_GENERICS_INST_CONTEXT = 128</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_GS_COOKIE"><code>DECODE_GS_COOKIE = 256</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_HAS_TAILCALLS"><code>DECODE_HAS_TAILCALLS = 16384</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_NO_VALIDATION"><code>DECODE_NO_VALIDATION = 32</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_PROLOG_LENGTH"><code>DECODE_PROLOG_LENGTH = 1024</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_PSP_SYM"><code>DECODE_PSP_SYM = 64</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_RETURN_KIND"><code>DECODE_RETURN_KIND = 8192</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_REVERSE_PINVOKE_VAR"><code>DECODE_REVERSE_PINVOKE_VAR = 4096</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_SECURITY_OBJECT"><code>DECODE_SECURITY_OBJECT = 1</code></dt>
+  
+  <dd></dd>
+    <dt id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcInfoDecoderFlags_DECODE_VARARG"><code>DECODE_VARARG = 4</code></dt>
+  
+  <dd></dd>
+  </dl>
+
 
 
 </article>

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.Core.Memory.GarbageCollector | Cosmos Gen 3 </title>
+      <title>Class GcRefFlags | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.Core.Memory.GarbageCollector | Cosmos Gen 3 ">
+      <meta name="title" content="Class GcRefFlags | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="GC reference flags reported to the enum callback (matches GC_CALL_INTERIOR / GC_CALL_PINNED).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,47 +84,134 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector">
+        <article data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags">
 
-  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector" class="text-break">Namespace Cosmos.Kernel.Core.Memory.GarbageCollector</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.html">Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.html">GarbageCollector</a></dt>
-      <dd><p>Allocation methods: segment management, bump allocation, and free list operations.</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.html">AllocContext</a></dt>
-      <dd><p>Per-thread allocation context (Thread-Local Allocation Buffer).
-Stored inline on each <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a> to provide contention-free allocation.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GCDescSeries.html">GarbageCollector.GCDescSeries</a></dt>
-      <dd><p>Describes a reference series within a GCDesc stored before the MethodTable.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.SimpleMemoryInfo.html">GarbageCollector.SimpleMemoryInfo</a></dt>
-      <dd><p>Simple snapshot of GC memory statistics used by runtime memory queries.</p>
-</dd>
-    </dl>
+
+  <h1 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcRefFlags" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags" class="text-break">
+Class GcRefFlags  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.html">GarbageCollector</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.html">GcInfo</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>GC reference flags reported to the enum callback (matches GC_CALL_INTERIOR / GC_CALL_PINNED).</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class GcRefFlags</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">GcRefFlags</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcRefFlags_GC_CALL_INTERIOR" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags.GC_CALL_INTERIOR">
+  GC_CALL_INTERIOR
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint GC_CALL_INTERIOR = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Memory_GarbageCollector_GcInfo_GcRefFlags_GC_CALL_PINNED" data-uid="Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags.GC_CALL_PINNED">
+  GC_CALL_PINNED
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint GC_CALL_PINNED = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
 
 
 </article>

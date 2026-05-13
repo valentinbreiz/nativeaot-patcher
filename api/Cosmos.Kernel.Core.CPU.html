@@ -117,7 +117,11 @@ Structs
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.html">InternalCpu.InterruptScope</a></dt>
-      <dd><p>A disposable scope that disables interrupts on creation and re-enables them on dispose.</p>
+      <dd><p>A disposable scope that disables interrupts on creation and restores
+the prior interrupt-enable state on dispose. Critically, this saves
+the full RFLAGS / DAIF on entry and restores it on exit, so nested
+scopes are correct: an inner scope disposing inside an outer
+disabled region does NOT prematurely re-enable interrupts.</p>
 </dd>
     </dl>
     <h3 id="interfaces">

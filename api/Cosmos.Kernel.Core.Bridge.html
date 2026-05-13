@@ -118,6 +118,14 @@ export the same names, so no arch gating is needed here.</p>
       <dd></dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.EhFrameNative.html">EhFrameNative</a></dt>
+      <dd><p>Native imports for the linker-provided <code>.eh_frame</code> section bounds.
+<code>get_eh_frame_start</code> / <code>get_eh_frame_end</code> are exported by the C
+runtime (kmain.c) and resolve to the linker symbols on both architectures,
+so no arch gating is needed here.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Bridge.HeapNative.html">HeapNative</a></dt>
       <dd><p>Bridge functions that let C library code allocate from the Cosmos heap.</p>
 </dd>

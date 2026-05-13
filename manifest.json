@@ -446,6 +446,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.EhFrameNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.EhFrameNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.EhFrameNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.EhFrameNative.yml\" sourcestartlinenumber=\"1\">Native imports for the linker-provided <code>.eh_frame</code> section bounds.\n<code>get_eh_frame_start</code> / <code>get_eh_frame_end</code> are exported by the C\nruntime (kmain.c) and resolve to the linker symbols on both architectures,\nso no arch gating is needed here.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.HeapNative.yml",
       "output": {
         ".html": {
@@ -624,7 +638,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.yml\" sourcestartlinenumber=\"1\">A disposable scope that disables interrupts on creation and re-enables them on dispose.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InternalCpu.InterruptScope.yml\" sourcestartlinenumber=\"1\">A disposable scope that disables interrupts on creation and restores\nthe prior interrupt-enable state on dispose. Critically, this saves\nthe full RFLAGS / DAIF on entry and restores it on exit, so nested\nscopes are correct: an inner scope disposing inside an outer\ndisabled region does NOT prematurely re-enable interrupts.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -835,6 +849,174 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.yml\" sourcestartlinenumber=\"1\">Allocation methods: segment management, bump allocation, and free list operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags.yml\" sourcestartlinenumber=\"1\">Per-frame flags passed to <xref href=\"Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder.EnumerateLiveSlots(Cosmos.Kernel.Core.Runtime.REGDISPLAY*%2cSystem.Boolean%2cCosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags%2c%2cSystem.Void*)\" data-throw-if-not-resolved=\"false\"></xref> (subset of ICodeManagerFlags).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoBitStreamReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoBitStreamReader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoBitStreamReader",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoBitStreamReader.yml\" sourcestartlinenumber=\"1\">Reads a GCInfo bit stream. Mutable struct — pass by <code>ref</code> for sequential reads;\ncopy by value to fork an independent cursor (matches <code>BitStreamReader</code>'s copy semantics).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder.yml\" sourcestartlinenumber=\"1\">Decodes one method's GCInfo blob. Construct, then query / <xref href=\"Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoder.EnumerateLiveSlots(Cosmos.Kernel.Core.Runtime.REGDISPLAY*%2cSystem.Boolean%2cCosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.CodeManagerFlags%2c%2cSystem.Void*)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoDecoderFlags.yml\" sourcestartlinenumber=\"1\">Flags controlling which parts of a GCInfo blob the decoder pre-decodes.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoEncoding.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoEncoding.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoEncoding",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoEncoding.yml\" sourcestartlinenumber=\"1\">Architecture-specific GCInfo encoding parameters (the AMD64GcInfoEncoding / ARM64GcInfoEncoding\nconstants from gcinfotypes.h). Format version is fixed at <xref href=\"Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoEncoding.GCINFO_VERSION\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoHeaderFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoHeaderFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoHeaderFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcInfoHeaderFlags.yml\" sourcestartlinenumber=\"1\">Flags stored at the start of a (fat) GCInfo header.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcRefFlags.yml\" sourcestartlinenumber=\"1\">GC reference flags reported to the enum callback (matches GC_CALL_INTERIOR / GC_CALL_PINNED).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotDesc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotDesc.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotDesc",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotDesc.yml\" sourcestartlinenumber=\"1\">One decoded slot-table entry: a register, or a (base,offset) stack location.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotFlags.yml\" sourcestartlinenumber=\"1\">Per-slot flags decoded from the 2-bit field in the slot table (matches GcSlotFlags / GC_CALL_*).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotTable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotTable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcSlotTable.yml\" sourcestartlinenumber=\"1\">Decoded GCInfo slot table for a single method. Backs onto caller-supplied storage.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcStackSlotBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcStackSlotBase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcStackSlotBase",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.GcStackSlotBase.yml\" sourcestartlinenumber=\"1\">Stack-slot base register kind (matches GcStackSlotBase).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo",
+      "Summary": null
     },
     {
       "type": "ManagedReference",
@@ -1286,20 +1468,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.Core.Runtime.DwarfRegX64",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.DwarfRegX64.yml\" sourcestartlinenumber=\"1\">DWARF register numbers for x86-64</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.EHClause.yml",
       "output": {
         ".html": {
@@ -1310,7 +1478,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.EHClause",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClause.yml\" sourcestartlinenumber=\"1\">Exception handling clause structure matching NativeAOT format</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClause.yml\" sourcestartlinenumber=\"1\">Exception handling clause structure matching NativeAOT format.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1324,7 +1492,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.EHClauseKind",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClauseKind.yml\" sourcestartlinenumber=\"1\">Exception handling clauses as defined in ICodeManager.h</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.EHClauseKind.yml\" sourcestartlinenumber=\"1\">Exception handling clauses as defined in ICodeManager.h.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1338,7 +1506,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.ExceptionHelper",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionHelper.yml\" sourcestartlinenumber=\"1\">Core exception handling implementation</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionHelper.yml\" sourcestartlinenumber=\"1\">Core exception handling implementation.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1352,7 +1520,49 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.ExceptionIDs",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionIDs.yml\" sourcestartlinenumber=\"1\">Runtime exception IDs</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.ExceptionIDs.yml\" sourcestartlinenumber=\"1\">Runtime exception IDs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.MethodGcInfo.yml\" sourcestartlinenumber=\"1\">Resolved GCInfo location for an instruction pointer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.GcInfo.MethodGcInfoLookup.yml\" sourcestartlinenumber=\"1\">Maps an instruction pointer to its method's GCInfo blob, LSDA, and CFI data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.GcInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.GcInfo",
+      "Summary": null
     },
     {
       "type": "ManagedReference",
@@ -1408,7 +1618,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT.yml\" sourcestartlinenumber=\"1\">PAL_LIMITED_CONTEXT structure matching x64 assembly offsets</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.PAL_LIMITED_CONTEXT.yml\" sourcestartlinenumber=\"1\">PAL_LIMITED_CONTEXT structure matching x64 assembly offsets.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1422,35 +1632,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.REGDISPLAY",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.REGDISPLAY.yml\" sourcestartlinenumber=\"1\">REGDISPLAY structure for x64 funclet calls - matches assembly offsets exactly</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.RegLocation.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.Core.Runtime.RegLocation.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.Core.Runtime.RegLocation",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.RegLocation.yml\" sourcestartlinenumber=\"1\">Tracks where a register is saved during unwind</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.RegSaveKind.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.Core.Runtime.RegSaveKind.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.Core.Runtime.RegSaveKind",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.RegSaveKind.yml\" sourcestartlinenumber=\"1\">Register save location during unwind</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.REGDISPLAY.yml\" sourcestartlinenumber=\"1\">REGDISPLAY structure for x64 funclet calls - matches assembly offsets exactly.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1478,7 +1660,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.StackFrame",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.StackFrame.yml\" sourcestartlinenumber=\"1\">Stack frame information for unwinding</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.StackFrame.yml\" sourcestartlinenumber=\"1\">Stack frame information for the frame-pointer chain walker.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1507,20 +1689,6 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Runtime.Thread",
       "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.UnwindState.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.Core.Runtime.UnwindState.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.Core.Runtime.UnwindState",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.UnwindState.yml\" sourcestartlinenumber=\"1\">State of all registers during stack unwinding</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1787,6 +1955,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Scheduler",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Utilities.ArgvParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Utilities.ArgvParser.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Utilities.ArgvParser",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Utilities.ArgvParser.yml\" sourcestartlinenumber=\"1\">Utility class that expose helpers to parse cmdlines.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -4775,6 +4957,16 @@
       "output": {
         ".html": {
           "relative_path": "articles/debugging.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/garbage-collector-gcinfo.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/garbage-collector-gcinfo.html"
         }
       },
       "version": ""

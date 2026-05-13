@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector-gcinfo.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="overview">Overview</h2>
+<p>This article describes the <strong>target</strong> design for how the garbage collector finds roots on thread
+stacks: a <strong>precise</strong> per-frame scan driven by the <strong>GCInfo</strong> metadata the NativeAOT compiler (ILC)
+emits for every method. It replaces the <strong>conservative</strong> scan documented in
+<a href="garbage-collector.html#mark-phase">Garbage Collector → Mark phase</a>.</p>
+<blockquote>
+<p><strong>Status.</strong> The precise scan is live for the <strong>GC-triggering thread</strong> and for <strong>exception-funclet
+frames</strong> (epic <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/348">#348</a>, phases 1–3,
+and the phase-5 cleanup that removed the old opt-out feature flag). The conservative scan from
+<a href="garbage-collector.html#mark-phase">Garbage Collector → Mark phase</a> now covers only threads preempted
+in the scheduler — replacing that needs <a href="#the-safepoint-constraint">return-address hijacking</a>
+(#348 phase 4, not yet done). Problem tracked in
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/346">issue #346</a>.</p>
+</blockquote>
+<hr>
+<h2 id="why-conservative-scanning-has-to-go">Why conservative scanning has to go</h2>
+<h3 id="what-the-conservative-scan-does">What the conservative scan does</h3>
+<p>During the mark phase the GC has to discover every object still reachable from a thread's stack —
+local variables, spilled registers, method arguments. It does <strong>not</strong> know which stack words are
+object references and which are integers, so it treats <em>every</em> pointer-sized word as a candidate:
+<code>ScanStackRoots</code> → <code>ScanThreadStack</code> → <code>ScanMemoryRange</code> → <code>TryMarkRoot</code> in
+<a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a>.
+<code>TryMarkRoot</code> keeps a candidate only if it lands inside the GC heap (<code>IsInGCHeap</code>) and the
+<code>MethodTable*</code> it would point at lives in the kernel's higher half — but those are plausibility
+filters, not proof.</p>
+<pre><code>   conservative scan — &quot;anything that LOOKS like a heap pointer is a root&quot;
+   ─────────────────────────────────────────────────────────────────────────────
+   a thread's stack, walked 8 bytes at a time:
+
+   ┌────────────────────┐
+   │ 0x0000000000000007 │  int 7              → not in heap range, ignored
+   │ 0xFFFF8001A2B3C4D0 │  live List&lt;int&gt; ref → in heap range      → MARKED  ✅ correct
+   │ 0xFFFF8001DEADBEEF │  dead spill slot    → still in range     → MARKED  ❌ false root
+   │ 0x00007FFE12340000 │  a return address   → not in range       → ignored
+   │ 0xFFFF8001CAFE0000 │  stale callee ptr   → still in range     → MARKED  ❌ false root
+   └────────────────────┘
+</code></pre>
+<h3 id="problem-1--over-rooting">Problem 1 — over-rooting</h3>
+<p>Any stale heap pointer left in a dead spill slot, a scratch slot, or a not-yet-overwritten callee
+frame is treated as a root, so the object it points at — and everything that object transitively
+references — survives the collection. A false root through a strong reference <strong>leaks silently</strong>. A
+false root that keeps a <em>weak</em> reference's target alive is at least noticed: a weak handle that
+should have been cleared after collection still resolves, which is what CI catches.</p>
+<h3 id="problem-2--layout-fragility-the-interruptscope-regression">Problem 2 — layout-fragility (the <code>InterruptScope</code> regression)</h3>
+<p>Because the scan reads &quot;whatever word is at this stack offset&quot;, its correctness depends on the exact
+stack layout the compiler chose — which slot the compiler reused, which value it left there, whether
+the GC's scan range happens to cover it. That layout shifts whenever codegen shifts.</p>
+<p>The concrete instance (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/346">issue #346</a>):
+commit <code>6c497186</code> added one field — <code>private ulong _savedFlags;</code> — to the
+<a href="../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> <code>ref struct</code>. <code>InterruptScope</code>
+is a <code>ref struct</code>, so it always lives on the stack, and <code>DisableInterruptsScope()</code> plus the
+constructor are <code>AggressiveInlining</code>'d, so the struct's fields become locals in the caller's frame —
+and <code>using (InternalCpu.DisableInterruptsScope())</code> wraps GC, heap and scheduler hot paths (<code>GC.Collect</code>,
+<code>Heap.Alloc</code>/<code>Free</code>, scheduler context switch). The extra 8 bytes shifted the slots below it. A
+stale <code>byte[128]</code> pointer left in a returned frame landed in a slot the conservative scan reads, the
+array was kept alive, its weak handle was not cleared, and the GarbageCollector suite's tests 14
+(<code>GC_WeakReference</code>) and 20 (<code>GC_DependentHandleCleanup</code>) failed <strong>on ARM64</strong>. The field was
+reverted in <code>2f1b6d17</code>, and has since been re-added (as the <code>SaveIrqAndDisable</code> / <code>RestoreIrq</code> pair)
+— safe now that the precise scan covers the GC-triggering thread: <code>GC.Collect</code>'s own frame, where
+that stale <code>byte[128]</code> pointer lived, is no longer scanned conservatively, so the layout shift can't
+false-root it.</p>
+<h3 id="why-arm64-broke-and-x64-didnt">Why ARM64 broke and x64 didn't</h3>
+<p>Same source change, different outcome per architecture, because &quot;is there a stale heap pointer in a
+slot the scan reads&quot; is a codegen artifact, and ILC makes independent decisions per arch:</p>
+<ul>
+<li><strong>Register file.</strong> x64 has 16 general-purpose registers; ARM64 has 31. The register allocator
+spills different values to different stack slots — so the stale <code>byte[128]</code> pointer lived in a
+spilled slot on one arch and in a register (reused before the GC ran) on the other.</li>
+<li><strong>Frame setup and alignment.</strong> x64 (<code>push rbp</code> / <code>sub rsp, N</code>) and ARM64
+(<code>stp x29, x30, [sp, #-N]!</code>, SP kept 16-byte aligned at all times) absorb 8 extra bytes
+differently — on one arch it fell into existing alignment padding, on the other it pushed every
+slot below it down and re-ran register allocation.</li>
+<li><strong>Inlining.</strong> ILC's inliner uses a per-arch cost model, so the set of live frames at GC time
+differs.</li>
+</ul>
+<p>The arch asymmetry <em>is</em> the problem statement: the GC is not consistently broken, it is broken
+whenever the compiler happens to put a stale pointer in a slot the scan reads — adding a field, an
+ILC upgrade, or a refactor that introduces a local are all the same class of failure. ARM64 GC CI
+is the canary because, empirically, ARM64 codegen surfaces this first.</p>
+<h3 id="the-shortcut-that-doesnt-work">The shortcut that doesn't work</h3>
+<p>A tempting half-measure is to keep the conservative scan but only read live frame ranges, found by
+walking the RBP / X29 frame-pointer chain. That is <strong>not safe here</strong>: ILC compiles many functions
+without a frame pointer (<code>-fomit-frame-pointer</code>-style codegen), so the frame chain silently <em>skips</em>
+those frames. The kernel's own exception unwinder documents this — see the comment in
+<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a> (around the x64
+<code>REGDISPLAY</code> construction): <em>&quot;CFI says RBP is 'SameValue' because function may use
+-fomit-frame-pointer …&quot;</em>. For exception dispatch a skipped frame is tolerable (worst case: a missed
+catch handler). For the GC a skipped frame means <strong>missed roots</strong>, which collects a live object →
+use-after-free during sweep — strictly worse than the false-rooting it was meant to remove. Precise
+GCInfo is the only correct path.</p>
+<hr>
+<h2 id="what-gcinfo-is">What GCInfo is</h2>
+<p>When ILC compiles a method it emits, alongside the machine code, a small <strong>GCInfo blob</strong> that
+answers exactly one question:</p>
+<blockquote>
+<p><em>If a GC fires while execution is at code offset N inside this method, which CPU registers and
+which stack slots hold live object references — and which of those are interior pointers, and
+which are pinned?</em></p>
+</blockquote>
+<p>One blob per method. It is what makes a <em>precise</em> scan possible: instead of guessing which stack
+words look like pointers, the GC asks the compiler.</p>
+<h3 id="where-it-lives-in-the-binary">Where it lives in the binary</h3>
+<p>ILC writes, per method, a record into the <code>.dotnet_eh_table</code> section, laid out
+<code>[LSDA header][GCInfo blob][EH clauses]</code>. The linker keeps that section and its bounds — see
+<code>*(.dotnet_eh_table)</code> and <code>__dotnet_eh_table_start</code> / <code>__dotnet_eh_table_end</code> in
+<a href="../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a> and
+<a href="../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a>. The DWARF <code>.eh_frame</code>
+FDE for a method carries a pointer to that record's LSDA header — and the GC's per-frame walk already
+extracts it (<code>TryGetMethodLSDA</code> in
+<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>). So an
+instruction pointer is only an LSDA-header walk away from the GCInfo blob — <strong>no build-pipeline, no
+post-link tool, no patcher change is needed</strong>.</p>
+<pre><code> .dotnet_eh_table  (kept by the linker; bounded by __dotnet_eh_table_start/end)
+ ═══════════════════════════════════════════════════════════════════════════════
+       ... record for method Foo() ...                 ... record for Bar() ...
+ ┌──────────────────────────────────────────────┐    ┌──────────────────────────┐
+ │ LSDA header                                  │    │ LSDA header              │
+ │   byte 0 = unwindBlockFlags                  │    │ ...                      │
+ │     UBF_FUNC_KIND_MASK 0x03   ROOT/HANDLER/  │    │                          │
+ │                               FILTER         │    │                          │
+ │     UBF_FUNC_HAS_EHINFO 0x04                 │    │                          │
+ │     UBF_FUNC_HAS_ASSOCIATED_DATA 0x10        │    │                          │
+ │   (funclet only) int32 → rel offset to the   │    │                          │
+ │     main method's LSDA, int32 → start delta  │    │                          │
+ │     — a funclet reuses its main method's     │    │                          │
+ │     GCInfo                                   │    │                          │
+ │   (if HAS_ASSOCIATED_DATA) int32 ptr         │    │                          │
+ │   (if HAS_EHINFO)          int32 ptr         │    │                          │
+ │ &gt;&gt;&gt; GCInfo blob &lt;&lt;&lt;  ◄───────────────────────┼────┼── what the precise scan   │
+ │   (bit-packed, see below)                    │    │   decodes                 │
+ │ EH clauses (try/catch/finally table)         │    │                          │
+ └──────────────────────────────────────────────┘    └──────────────────────────┘
+        ▲
+        │ a .eh_frame FDE points its LSDA pointer here.  TryGetMethodLSDA already returns it.
+        │ codeOffset = ip - methodStart
+</code></pre>
+<p>The LSDA header layout above is the format the NativeAOT runtime parses — see <code>FindMethodInfo</code> /
+<code>GetCodeOffset</code> in <code>dotnet/runtime/src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp</code>.</p>
+<h3 id="whats-inside-the-blob">What's inside the blob</h3>
+<p>GCInfo is a tightly bit-packed stream (every field is the minimum number of bits — it is not
+byte-aligned). Logically it has three parts:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Header</strong></td>
+<td>Version and flags, code length (must equal the FDE's PC range — a useful sanity check), prolog size / epilog locations (GCInfo is invalid mid-prolog), the stack-base register the slot offsets are relative to (one of <code>CALLER_SP</code>/CFA, <code>SP</code>, <code>FP</code>), whether a security object / GS cookie / PSPSym / generics-instantiation context is present, number of safepoints, number of interruptible ranges.</td>
+</tr>
+<tr>
+<td><strong>Slot table</strong></td>
+<td>The universe of slots this method ever uses for object refs. Each slot is either a <strong>register</strong> (by number) or a <strong>stack slot</strong> (base register + signed offset). Flags per slot: <code>GC_SLOT_UNTRACKED</code> (live for the whole method body — the cheap case, no per-offset bookkeeping), <code>GC_SLOT_INTERIOR</code> (the value is a pointer into the <em>middle</em> of an object, not its header), <code>GC_SLOT_PINNED</code> (must not be relocated).</td>
+</tr>
+<tr>
+<td><strong>Liveness</strong></td>
+<td>Which slots from the table are live at which code offsets. A <em>fully-interruptible</em> method encodes a bitmap valid at any IP in a range; a <em>partially-interruptible</em> method encodes liveness as deltas at each <strong>safepoint</strong> (= call site) only.</td>
+</tr>
+</tbody>
+</table>
+<pre><code> GCInfo for a fully/partially-interruptible method, conceptually:
+
+   slot table:  slot0 = REG  RSI                    (holds 's')
+                slot1 = STACK base=CFA  off=-0x18   (holds 'a')          flags: (none)
+                slot2 = STACK base=CFA  off=-0x20                        flags: INTERIOR  (&amp;arr[3])
+                slot3 = STACK base=SP   off=+0x08                        flags: PINNED
+
+   liveness over the method body [0x00 .. codeLength]:
+        offset:  0x00 ──── 0x4A ──────── 0x6C ──────── 0x9F ──── (codeLength)
+        slot1:   .........██████████████.............................
+        slot0:   ......................████████████████████████████
+                          ▲ at 0x4A only slot1 (the array) is live
+                                       ▲ at 0x6C only slot0 (the string) is live
+</code></pre>
+<h3 id="a-tiny-worked-example">A tiny worked example</h3>
+<pre><code class="lang-csharp">static void Foo()
+{
+    byte[] a = new byte[128];     // 'a' is an object reference
+    Bar();                        // ←(I) call site = safepoint; 'a' is still needed below ⇒ live here
+    GC.KeepAlive(a);
+    string s = Compute();         // 's' is an object reference; 'a' is now dead
+    Console.WriteLine(s);         // ←(II) call site = safepoint; 's' live, 'a' dead here
+}
+</code></pre>
+<ul>
+<li>GC fires while <code>Foo</code>'s frame is on the stack with the IP at the return address after <code>Bar()</code>
+→ <code>codeOffset</code> resolves to safepoint (I) → GCInfo reports <strong>only the slot holding <code>a</code></strong> → the
+<code>byte[128]</code> is kept, nothing else.</li>
+<li>GC fires with the IP at the return address after <code>WriteLine</code> → safepoint (II) → GCInfo reports
+<strong>only the register holding <code>s</code></strong> → the <code>byte[128]</code> is <strong>not</strong> reported and is collected, <em>even
+though its stale pointer is still sitting in <code>a</code>'s stack slot</em>. That last case is exactly what the
+conservative scan gets wrong.</li>
+</ul>
+<p>The authoritative format and decoder semantics are <code>dotnet/runtime/src/coreclr/vm/gcinfodecoder.cpp</code>
+(<code>GcInfoDecoder::EnumerateLiveSlots</code>, built with <code>GCINFODECODER_NO_EE</code> for NativeAOT) and
+<code>dotnet/runtime/src/coreclr/inc/{gcinfotypes.h,gcinfodecoder.h}</code> (encoding constants, slot flags,
+<code>GCINFO_VERSION</code>). A readable managed implementation of the same bit-stream — written for dumping,
+the obvious thing to port from — is
+<code>dotnet/runtime/src/coreclr/tools/aot/ILCompiler.Reflection.ReadyToRun/Amd64/{GcInfo,GcSlotTable,GcTransition}.cs</code>.</p>
+<hr>
+<h2 id="how-a-precise-scan-walks-a-thread">How a precise scan walks a thread</h2>
+<p>A precise scan walks a thread one frame at a time. For each frame it has two inputs: the <strong>IP</strong>
+(the return address pointing into that method's code) and a <strong><code>REGDISPLAY</code></strong> — a struct holding
+pointers to where this frame's register values currently live. Both come from machinery the kernel
+already has, built for exception handling (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/227">issue #227</a>):
+the <code>REGDISPLAY</code> struct (laid out to match NativeAOT's), <code>TryGetMethodLSDA</code>, the DWARF <code>.eh_frame</code>
+FDE/CIE parsing, and <code>UnwindOneFrameWithCFI</code> (executes DWARF call-frame instructions to reconstruct
+the caller's register state) — all in
+<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>. The GC scanner
+drives the same per-frame loop the exception dispatcher does.</p>
+<pre><code class="lang-mermaid">flowchart TD
+    START[&quot;frame: REGDISPLAY + IP&quot;] --&gt; LOOKUP{&quot;IP in managed code?&lt;br/&gt;(TryGetMethodLSDA)&quot;}
+    LOOKUP --&gt;|no — asm / native import / IRQ entry| FALLBACK[&quot;conservative-scan the rest&lt;br/&gt;of this stack, then stop&quot;]
+    LOOKUP --&gt;|yes| HDR[&quot;walk LSDA header&lt;br/&gt;(funclet → main redirect)&lt;br/&gt;→ GCInfo blob + codeOffset&quot;]
+    HDR --&gt; DECODE[&quot;GcInfoDecoder.EnumerateLiveSlots(&amp;REGDISPLAY, codeOffset)&quot;]
+    DECODE --&gt; RESOLVE[&quot;for each live slot, resolve to an address:&lt;br/&gt;register slot → REGDISPLAY-&amp;gt;pRxx&lt;br/&gt;stack slot → baseReg + offset&quot;]
+    RESOLVE --&gt; MARK[&quot;TryMarkRoot(*addr) for each&lt;br/&gt;(interior → find object start; pinned → don't relocate)&quot;]
+    MARK --&gt; UNWIND[&quot;UnwindOneFrameWithCFI(&amp;REGDISPLAY)&lt;br/&gt;→ caller's REGDISPLAY + IP&quot;]
+    UNWIND --&gt; START
+</code></pre>
+<p><code>TryMarkRoot</code> stays the callback — its heap-range and <code>MethodTable</code> checks are harmless
+belt-and-braces on a precisely-reported root, and it is also what the conservative-tail fallback
+uses. Two non-GCInfo cases come up. A hand-written asm trampoline that still carries <code>.cfi</code>
+directives (<code>RhpCallCatchFunclet</code> / <code>RhpCallFilterFunclet</code>, and the throw stub <code>RhpThrowEx</code>) is
+<em>stepped through</em> reporting nothing — the managed frames on either side cover its register save
+locations, and the in-flight exception object is in the funclet's / <code>RhThrowEx</code>'s <code>ex</code> slot deeper
+on the stack — so the precise walk continues. A frame with no CFI at all (interrupt entry stubs, the
+context switch, native imports) ends the walk: the scanner conservative-scans the remaining stack
+range for that thread and stops, rather than crashing.</p>
+<hr>
+<h2 id="the-safepoint-constraint">The safepoint constraint</h2>
+<p>GCInfo is only valid at <strong>safepoints</strong>: call sites for a partially-interruptible method, or any IP
+inside a fully-interruptible range. So whether a precise scan of a given thread is <em>sound</em> depends on
+where that thread's instruction pointer is when the GC runs:</p>
+<ol>
+<li><p><strong>The thread that triggered the GC.</strong> It reached the collector through a managed call chain into
+the allocator, so every return address up its stack is a call-site safepoint. A precise scan of
+this thread is sound. Exception <strong>funclet</strong> frames (catch / filter / finally bodies) are entered
+via the dispatcher's <code>call</code> too, so they are also safepoints — a funclet frame is scanned with
+its <em>main</em> method's GCInfo at the funclet's code offset (the LSDA-header redirect points there).</p>
+</li>
+<li><p><strong>Threads parked in the scheduler.</strong> A thread sitting in the run queue, blocked, or sleeping was
+preempted by the timer IRQ at an <strong>arbitrary</strong> instruction — not necessarily a safepoint, so its
+GCInfo lookup may be meaningless there. Stock NativeAOT solves this with <strong>return-address
+hijacking</strong>: before scanning such a thread, the runtime overwrites the on-stack return address
+with the address of a stub, lets the thread run to that return, parks it at the stub (a safepoint
+by construction), scans it precisely, then restores the real return address. Cosmos has no such
+subsystem yet.</p>
+</li>
+</ol>
+<p>Consequence — the rollout was staged: precise scanning landed where it is provably sound first (the
+GC-triggering thread, then funclet frames), and the conservative scan now covers only the threads
+the precise scan does not yet handle — those preempted in the scheduler, until return-address
+hijacking lands. The threads the GC iterates and their saved register state come from the scheduler's
+thread registry — see <a href="scheduler.html">Scheduler</a>, <code>SchedulerManager</code>, and
+<a href="../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>ThreadContext.X64.cs</code></a> /
+<a href="../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs"><code>ThreadContext.ARM64.cs</code></a>.</p>
+<hr>
+<h2 id="what-its-built-from">What it's built from</h2>
+<p>The precise scan reuses the exception-handling machinery and adds the GCInfo decoder plus the
+per-frame walk on top. No build-pipeline, post-link, ILC, or <code>Cosmos.Patcher</code> change is part of this
+work — GCInfo is already emitted into <code>.dotnet_eh_table</code> and reachable via the FDE LSDA.</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Where</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CFI unwinder, <code>REGDISPLAY</code>, <code>UnwindOneFrameWithCFI</code></td>
+<td><a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a></td>
+<td>the per-frame walk machinery, built for <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/227">#227</a>; its <code>.eh_frame</code> / LSDA parsing was factored out to <code>MethodGcInfoLookup</code></td>
+</tr>
+<tr>
+<td><code>.eh_frame</code> / LSDA / GCInfo lookup</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs"><code>MethodGcInfoLookup.cs</code></a>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs"><code>EhFrameNative.cs</code></a></td>
+<td>the kernel's single <code>.eh_frame</code> walker — IP → FDE/CIE/LSDA → GCInfo blob (incl. funclet → main redirect)</td>
+</tr>
+<tr>
+<td>GCInfo v4 decoder</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs"><code>GcInfoDecoder.cs</code></a> (+ <code>GcInfoBitStreamReader</code>, <code>GcSlotTable</code>, <code>GcInfoTypes</code>)</td>
+<td>header, slot table, <code>EnumerateLiveSlots</code> — port of <code>gcinfodecoder.cpp</code></td>
+</tr>
+<tr>
+<td>Precise per-frame walk</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
+<td>the walk loop; <code>ScanStackRoots</code> in <code>GarbageCollector.Mark.cs</code> dispatches to it for the GC-triggering thread</td>
+</tr>
+<tr>
+<td><code>_native_capture_regdisplay</code> asm stub</td>
+<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s</code>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>ContextSwitchNative.cs</code></a></td>
+<td>seeds the initial <code>REGDISPLAY</code> for the GC-triggering thread</td>
+</tr>
+<tr>
+<td><code>.dotnet_eh_table</code> kept, with <code>__dotnet_eh_table_start/end</code></td>
+<td><a href="../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a>, <a href="../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a></td>
+<td>GCInfo is reachable at runtime via the FDE LSDA</td>
+</tr>
+<tr>
+<td>IRQ save/restore natives</td>
+<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s</code>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs"><code>CpuNative.cs</code></a></td>
+<td>used by <a href="../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> (the re-added <code>_savedFlags</code> / save-restore-IRQ form)</td>
+</tr>
+<tr>
+<td>Mark phase (conservative scan, for parked threads)</td>
+<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
+<td><code>ScanThreadStack</code> / <code>ScanMemoryRange</code> / <code>TryMarkRoot</code> — what the precise scan replaces, frame by frame</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td><code>tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector</code></td>
+<td><code>GC_GcInfoDecoder</code>, <code>GC_PreciseStackScan</code>, <code>GC_FuncletNoFalseRoot</code>, <code>GC_FuncletNoCrashOnAllocInCatch</code>, <code>GC_StackScanPaddingStress</code></td>
+</tr>
+<tr>
+<td>Hijack stub</td>
+<td><code>Cosmos.Kernel.Native.X64/.../Hijack.s</code> (+ ARM64 sibling)</td>
+<td><strong>not yet written</strong> — phase 4</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="rollout-status">Rollout status</h2>
+<p>The staged plan; <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/348">issue #348</a> is the
+source of truth (roughly one PR per phase, x64 first, ARM64 follow-up).</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>What</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Scaffolding: a (now-removed) opt-out feature flag, IRQ save/restore natives, padding-stress test</td>
+<td>done — <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/347">PR #347</a></td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>GcInfoDecoder</code> v4 port — header, slot table, <code>EnumerateLiveSlots</code> (+ bit-stream reader, slot table); ARM64 behind <code>#if ARCH_ARM64</code></td>
+<td>done — <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/349">PR #349</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td>IP→GCInfo plumbing (<code>MethodGcInfoLookup</code>, LSDA-header walk incl. funclet→main redirect) + precise scan of the GC-triggering thread; other threads stay conservative</td>
+<td>done — <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/350">PR #350</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Exception-funclet frames scanned precisely, plus the x64 catch-funclet trampoline fixes — targets <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/227">#227</a></td>
+<td>done — <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/351">PR #351</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Return-address hijacking for preempted threads (the subsystem stock NativeAOT has, Cosmos lacks); lets the residual conservative <code>ScanThreadStack</code> path go too</td>
+<td><strong>not yet done</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Remove the <code>CosmosEnableConservativeGCStackScan</code> opt-out and the conservative-everything path; re-add <code>InterruptScope._savedFlags</code></td>
+<td>done — <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/352">PR #352</a></td>
+</tr>
+</tbody>
+</table>
+<p>Today the GC-triggering thread and exception-funclet frames are scanned precisely; the conservative
+scan in <a href="garbage-collector.html#mark-phase">Garbage Collector → Mark phase</a> covers only threads
+preempted in the scheduler. Phase 4 removes that last conservative path.</p>
+<hr>
+<h2 id="references">References</h2>
+<ul>
+<li>Issues: <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/346">#346 — replace conservative stack scanning</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/348">#348 — EPIC: precise GCInfo stack scan</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/227">#227 — catch-handler crash printing <code>ex.Message</code></a></li>
+<li>PRs: <a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/347">#347 scaffolding</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/349">#349 phase 1 (GCInfo decoder)</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/350">#350 phase 2 (precise scan)</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/351">#351 phase 3 (funclet frames)</a>,
+<a href="https://github.com/valentinbreiz/nativeaot-patcher/pull/352">#352 phase 5 (drop the opt-out flag)</a></li>
+<li>Commits: <code>6c497186</code> (added <code>InterruptScope._savedFlags</code>, triggered the regression), <code>2f1b6d17</code> (the revert)</li>
+<li>Upstream <code>dotnet/runtime</code>: <code>src/coreclr/vm/gcinfodecoder.cpp</code>, <code>src/coreclr/inc/{gcinfotypes.h,gcinfodecoder.h}</code>,
+<code>src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp</code> (<code>FindMethodInfo</code> / <code>GetCodeOffset</code>),
+<code>src/coreclr/tools/aot/ILCompiler.Reflection.ReadyToRun/Amd64/{GcInfo,GcSlotTable,GcTransition}.cs</code></li>
+<li>Related articles: <a href="garbage-collector.html">Garbage Collector</a>, <a href="scheduler.html">Scheduler</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector-gcinfo.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
