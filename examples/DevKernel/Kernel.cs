@@ -316,13 +316,7 @@ public class Kernel : Sys.Kernel
         }
         catch (Exception ex)
         {
-            // Use Serial instead of Console to avoid OOM from threading initialization
-            Serial.WriteString("[CATCH] Exception caught: ");
-            Serial.WriteString(ex.Message);
-            Serial.WriteString("\n");
-
-            // Call Stop() to signal the main loop to exit
-            Serial.WriteString("[CATCH] Calling Stop()...\n");
+            PrintError($"Exception: {ex.Message}");
             Stop();
         }
     }
