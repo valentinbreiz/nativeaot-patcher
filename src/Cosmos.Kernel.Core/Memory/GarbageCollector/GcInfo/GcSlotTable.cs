@@ -7,7 +7,7 @@
 
 using Cosmos.Kernel.Core.IO;
 
-namespace Cosmos.Kernel.Core.Runtime.GcInfo;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 
 /// <summary>Decoded GCInfo slot table for a single method. Backs onto caller-supplied storage.</summary>
 public unsafe struct GcSlotTable

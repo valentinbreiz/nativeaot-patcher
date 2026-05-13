@@ -11,9 +11,9 @@
 // scratch registers and they are skipped — sound for the GC-triggering thread, which is always
 // stopped at a call site, where GC refs are never live in caller-saved registers.
 
-namespace Cosmos.Kernel.Core.Runtime.GcInfo;
+using Cosmos.Kernel.Core.Runtime;
 
-// REGDISPLAY lives in the parent namespace Cosmos.Kernel.Core.Runtime (ExceptionHandling.cs).
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 
 /// <summary>Decodes one method's GCInfo blob. Construct, then query / <see cref="EnumerateLiveSlots"/>.</summary>
 public unsafe struct GcInfoDecoder

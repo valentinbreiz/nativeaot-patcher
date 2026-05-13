@@ -10,7 +10,7 @@
 
 using System;
 
-namespace Cosmos.Kernel.Core.Runtime.GcInfo;
+namespace Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 
 /// <summary>Flags controlling which parts of a GCInfo blob the decoder pre-decodes.</summary>
 [Flags]
