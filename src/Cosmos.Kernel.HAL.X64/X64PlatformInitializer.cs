@@ -9,6 +9,7 @@ using Cosmos.Kernel.Core.X64;
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.Core.X64.IO;
 using Cosmos.Kernel.Core.X64.Power;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;

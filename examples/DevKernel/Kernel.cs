@@ -1,10 +1,13 @@
 using System;
 using System.Drawing;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.HAL.Vfs;
+using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.Kernel.System.Network;
@@ -15,6 +18,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
+using Cosmos.Kernel.System.Vfs;
 using Sys = Cosmos.Kernel.System;
 
 namespace DevKernel;
@@ -25,10 +29,13 @@ namespace DevKernel;
 public class Kernel : Sys.Kernel
 {
     private string _prompt = "cosmos";
+    private string _cwd = "/";
 
     protected override void BeforeRun()
     {
         Serial.WriteString("[DevKernel] BeforeRun() called\n");
+
+        TryRegisterFat();
 
         Console.Clear();
         Console.WriteLine("========================================");
@@ -63,7 +70,7 @@ public class Kernel : Sys.Kernel
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write(":");
         Console.ForegroundColor = ConsoleColor.Blue;
-        Console.Write("~");
+        Console.Write(_cwd);
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write("$ ");
         Console.ResetColor();
@@ -184,36 +191,169 @@ public class Kernel : Sys.Kernel
                     ShowMemoryInfo();
                     break;
 
-                case "diskinfo":
+                case "lsdisk":
                     ShowDiskInfo();
                     break;
 
-                case "diskread":
-                    if (parts.Length > 1 && ulong.TryParse(parts[1], out ulong readLba))
+                case "lspart":
+                    ListPartitions();
+                    break;
+
+                case "mkmbr":
+                    if (parts.Length > 1 && int.TryParse(parts[1], out int mbrDiskNum))
                     {
-                        DiskRead(readLba);
+                        CreateMbrTable(mbrDiskNum);
                     }
                     else
                     {
-                        PrintError("Usage: diskread <lba>");
+                        PrintError("Usage: mkmbr <disk_number>");
                     }
                     break;
 
-                case "diskwrite":
-                    if (parts.Length > 2
-                        && ulong.TryParse(parts[1], out ulong writeLba)
-                        && byte.TryParse(parts[2], System.Globalization.NumberStyles.HexNumber, null, out byte writeByte))
+                case "mkgpt":
+                    if (parts.Length > 1 && int.TryParse(parts[1], out int gptDiskNum))
                     {
-                        DiskWrite(writeLba, writeByte);
+                        CreateGptTable(gptDiskNum);
                     }
                     else
                     {
-                        PrintError("Usage: diskwrite <lba> <hex-byte>   (e.g. diskwrite 100 A5)");
+                        PrintError("Usage: mkgpt <disk_number>");
                     }
                     break;
 
-                case "disktest":
-                    DiskTest();
+                case "mkpart":
+                    if (parts.Length == 3
+                        && int.TryParse(parts[1], out int cpDiskAuto)
+                        && int.TryParse(parts[2], out int cpSizeMbAuto))
+                    {
+                        CreatePartitionEntry(cpDiskAuto, startSectorOrAuto: null, sizeMB: cpSizeMbAuto);
+                    }
+                    else if (parts.Length >= 4
+                        && int.TryParse(parts[1], out int cpDisk)
+                        && ulong.TryParse(parts[2], out ulong cpStart)
+                        && int.TryParse(parts[3], out int cpSizeMb))
+                    {
+                        CreatePartitionEntry(cpDisk, cpStart, cpSizeMb);
+                    }
+                    else
+                    {
+                        PrintError("Usage: mkpart <disk> [start_lba] <size_mb>");
+                    }
+                    break;
+
+                case "rmpart":
+                    if (parts.Length >= 3
+                        && int.TryParse(parts[1], out int rmDisk)
+                        && int.TryParse(parts[2], out int rmPart))
+                    {
+                        DeletePartitionEntry(rmDisk, rmPart);
+                    }
+                    else
+                    {
+                        PrintError("Usage: rmpart <disk> <part>");
+                    }
+                    break;
+
+                case "format":
+                    if (parts.Length >= 3
+                        && int.TryParse(parts[1], out int fmtDisk)
+                        && int.TryParse(parts[2], out int fmtPart))
+                    {
+                        string fmtType = parts.Length >= 4 ? parts[3].ToLower() : "fat";
+                        FormatPartition(fmtDisk, fmtPart, fmtType);
+                    }
+                    else
+                    {
+                        PrintError("Usage: format <disk> <part> [fs_type]   (default: fat)");
+                    }
+                    break;
+
+                case "mount":
+                    if (parts.Length >= 4
+                        && int.TryParse(parts[1], out int mntDisk)
+                        && int.TryParse(parts[2], out int mntPart))
+                    {
+                        MountPartition(mntDisk, mntPart, parts[3]);
+                    }
+                    else
+                    {
+                        PrintError("Usage: mount <disk> <part> <mountpoint>   (e.g. mount 0 0 /mnt)");
+                    }
+                    break;
+
+                case "mounts":
+                    ShowMountPoints();
+                    break;
+
+                case "cd":
+                    ChangeDirectory(parts.Length >= 2 ? parts[1] : "/");
+                    break;
+
+                case "pwd":
+                    Console.WriteLine(_cwd);
+                    break;
+
+                case "ls":
+                case "dir":
+                    ListDirectory(parts.Length >= 2 ? parts[1] : _cwd);
+                    break;
+
+                case "cat":
+                case "type":
+                    if (parts.Length >= 2)
+                    {
+                        DisplayFileContents(parts[1]);
+                    }
+                    else
+                    {
+                        PrintError("Usage: cat <path>");
+                    }
+                    break;
+
+                case "mkdir":
+                    if (parts.Length >= 2)
+                    {
+                        CreateDirectory(parts[1]);
+                    }
+                    else
+                    {
+                        PrintError("Usage: mkdir <path>");
+                    }
+                    break;
+
+                case "touch":
+                    if (parts.Length >= 2)
+                    {
+                        CreateEmptyFile(parts[1]);
+                    }
+                    else
+                    {
+                        PrintError("Usage: touch <path>");
+                    }
+                    break;
+
+                case "rm":
+                case "del":
+                    if (parts.Length >= 2)
+                    {
+                        DeleteEntry(parts[1]);
+                    }
+                    else
+                    {
+                        PrintError("Usage: rm <path>");
+                    }
+                    break;
+
+                case "write":
+                    if (parts.Length >= 3)
+                    {
+                        string text = JoinFrom(parts, 2);
+                        WriteToFile(parts[1], text);
+                    }
+                    else
+                    {
+                        PrintError("Usage: write <path> <text>");
+                    }
                     break;
 
 
@@ -473,10 +613,23 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
-        PrintCommand("diskinfo", "Show storage devices and geometry");
-        PrintCommand("diskread <lba>", "Read 1 block, hex-dump first 64 bytes");
-        PrintCommand("diskwrite <lba> <hex>", "Fill 1 block with byte value (e.g. A5) and write");
-        PrintCommand("disktest", "Run a quick write/read roundtrip on the primary disk");
+        PrintCommand("lsdisk", "Show storage devices and geometry");
+        PrintCommand("lspart", "List partitions, grouped under each disk");
+        PrintCommand("mkmbr <n>", "Write a fresh empty MBR to disk n");
+        PrintCommand("mkgpt <n>", "Write a fresh empty GPT to disk n");
+        PrintCommand("mkpart <n> [start] <mb>", "Create a partition on disk n (start LBA optional)");
+        PrintCommand("rmpart <d> <p>", "Delete partition p on disk d");
+        PrintCommand("format <d> <p> [fs]", "Format disk d partition p (fs: fat | fat12 | fat16 | fat32, default fat)");
+        PrintCommand("mount <d> <p> <path>", "Mount disk d partition p at <path> (e.g. mount 0 0 /mnt)");
+        PrintCommand("mounts", "Show mounted filesystems");
+        PrintCommand("cd <path>", "Change current directory");
+        PrintCommand("pwd", "Print current directory");
+        PrintCommand("ls [path]", "List directory contents (defaults to cwd)");
+        PrintCommand("cat <path>", "Display file contents");
+        PrintCommand("mkdir <path>", "Create directory");
+        PrintCommand("touch <path>", "Create empty file");
+        PrintCommand("rm <path>", "Delete file or empty directory");
+        PrintCommand("write <path> <txt>", "Write text to file (overwrite)");
     }
 
     private void PrintCommand(string cmd, string description)
@@ -1111,6 +1264,36 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
     }
 
+    private static void TryRegisterFat()
+    {
+        if (!CosmosFeatures.FatEnabled)
+        {
+            return;
+        }
+
+        if (!VfsManager.RegisterFilesystem("fat", new FatFilesystemType()))
+        {
+            Serial.WriteString("[DevKernel] FAT driver already registered or invalid\n");
+            return;
+        }
+
+        Serial.WriteString("[DevKernel] FAT driver registered\n");
+
+        if (!CosmosFeatures.StorageEnabled || StorageManager.Partitions.Count == 0)
+        {
+            return;
+        }
+
+        if (VfsManager.TryMount("fat", "0", MountFlags.None, "/mnt", out _))
+        {
+            Serial.WriteString("[DevKernel] FAT mounted on /mnt from partition 0\n");
+        }
+        else
+        {
+            Serial.WriteString("[DevKernel] FAT mount on partition 0 skipped (not FAT or unreadable)\n");
+        }
+    }
+
     private void ShowDiskInfo()
     {
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -1138,109 +1321,834 @@ public class Kernel : Sys.Kernel
                 continue;
             }
 
-            ulong totalBytes = dev.BlockCount * dev.BlockSize;
             Console.WriteLine();
-            PrintInfoLine($"[{i}] Name".PadRight(17), dev.Name);
-            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
-            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
-            PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
-            if (i == 0)
+            PrintDiskBlock(i, dev, detailed: true);
+        }
+    }
+
+    private void ListPartitions()
+    {
+        if (!StorageManager.IsEnabled)
+        {
+            PrintError("Storage support is disabled.");
+            return;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Partitions:");
+        Console.ResetColor();
+
+        if (StorageManager.DeviceCount == 0)
+        {
+            PrintWarning("No storage devices discovered.");
+            return;
+        }
+
+        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
+        {
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev == null)
+            {
+                continue;
+            }
+
+            Console.WriteLine();
+            PrintDiskBlock(i, dev, detailed: false);
+            if (ReferenceEquals(dev, StorageManager.PrimaryDevice))
             {
                 PrintInfoLine("    Primary".PadRight(17), "yes");
             }
-        }
-    }
 
-    private void DiskRead(ulong lba)
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> buf = new byte[dev.BlockSize];
-        dev.ReadBlock(lba, 1, buf);
-
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine($"Block {lba} (first 64 bytes):");
-        Console.ResetColor();
-
-        int show = (int)Math.Min((ulong)64, dev.BlockSize);
-        for (int i = 0; i < show; i++)
-        {
-            if (i > 0 && i % 16 == 0)
+            int diskPartCount = 0;
+            for (int p = 0; p < partitions.Count; p++)
             {
+                Partition part = partitions[p];
+                if (!ReferenceEquals(part.Host, dev))
+                {
+                    continue;
+                }
+
+                int localIndex = diskPartCount;
+                diskPartCount++;
+                ulong sizeBytes = part.BlockCount * part.BlockSize;
+                Console.Write("        ");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("[" + localIndex + "] ");
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(part.Name);
+                Console.ResetColor();
+                Console.Write("  Start=" + part.StartingSector);
+                Console.Write("  Sectors=" + part.BlockCount);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("  " + (sizeBytes / 1024 / 1024) + " MiB");
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("  " + DetectFilesystem(part));
+                Console.ResetColor();
                 Console.WriteLine();
             }
-            Console.Write(buf[i].ToString("X2"));
-            Console.Write(' ');
-        }
-        Console.WriteLine();
-    }
 
-    private void DiskWrite(ulong lba, byte value)
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> buf = new byte[dev.BlockSize];
-        buf.Fill(value);
-        dev.WriteBlock(lba, 1, buf);
-
-        PrintSuccess($"Wrote {dev.BlockSize} bytes of 0x{value:X2} to LBA {lba}.");
-    }
-
-    private void DiskTest()
-    {
-        IBlockDevice? dev = StorageManager.PrimaryDevice;
-        if (dev == null)
-        {
-            PrintError("No primary storage device.");
-            return;
-        }
-
-        const ulong lba = 0xCAFE;
-        if (lba >= dev.BlockCount)
-        {
-            PrintError($"Test LBA {lba} out of range (max {dev.BlockCount - 1}).");
-            return;
-        }
-
-        Span<byte> writeBuf = new byte[dev.BlockSize];
-        for (int i = 0; i < (int)dev.BlockSize; i++)
-        {
-            writeBuf[i] = (byte)(i ^ 0x5A);
-        }
-        dev.WriteBlock(lba, 1, writeBuf);
-
-        Span<byte> readBuf = new byte[dev.BlockSize];
-        dev.ReadBlock(lba, 1, readBuf);
-
-        for (int i = 0; i < (int)dev.BlockSize; i++)
-        {
-            if (writeBuf[i] != readBuf[i])
+            if (diskPartCount == 0)
             {
-                PrintError($"Mismatch at byte {i}: wrote 0x{writeBuf[i]:X2}, read 0x{readBuf[i]:X2}.");
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine("        (no partitions)");
+                Console.ResetColor();
+            }
+        }
+    }
+
+    private void PrintDiskBlock(int index, IBlockDevice dev, bool detailed)
+    {
+        ulong totalBytes = dev.BlockCount * dev.BlockSize;
+        PrintInfoLine($"[{index}] Name".PadRight(17), dev.Name);
+        if (detailed)
+        {
+            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
+        }
+        PrintInfoLine("    Sectors".PadRight(17), dev.BlockCount.ToString());
+        PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
+
+        string table;
+        if (GPT.IsGPT(dev))
+        {
+            table = "GPT";
+        }
+        else if (MBR.IsMBR(dev))
+        {
+            table = "MBR";
+        }
+        else
+        {
+            table = "None";
+        }
+        PrintInfoLine("    Table".PadRight(17), table);
+    }
+
+    private static string DetectFilesystem(Partition part)
+    {
+        Span<byte> boot = new byte[part.BlockSize];
+        try
+        {
+            part.ReadBlock(0, 1, boot);
+        }
+        catch
+        {
+            return "unreadable";
+        }
+
+        if (FatBootSector.TryParse(boot, out FatBootSector? bs) && bs != null)
+        {
+            return bs.Type switch
+            {
+                FatType.Fat12 => "FAT12",
+                FatType.Fat16 => "FAT16",
+                FatType.Fat32 => "FAT32",
+                _ => "FAT"
+            };
+        }
+
+        return "unknown";
+    }
+
+    private void CreateMbrTable(int diskNum)
+    {
+        IBlockDevice? dev = StorageManager.GetDevice(diskNum);
+        if (dev == null)
+        {
+            PrintError("Invalid disk number.");
+            return;
+        }
+
+        MBR.Create(dev);
+        StorageManager.RescanPartitions(dev);
+        PrintSuccess("MBR table written to disk " + diskNum + ".");
+    }
+
+    private void CreateGptTable(int diskNum)
+    {
+        IBlockDevice? dev = StorageManager.GetDevice(diskNum);
+        if (dev == null)
+        {
+            PrintError("Invalid disk number.");
+            return;
+        }
+
+        GPT.Create(dev);
+        StorageManager.RescanPartitions(dev);
+        PrintSuccess("GPT table written to disk " + diskNum + ".");
+    }
+
+    private void CreatePartitionEntry(int diskNum, ulong? startSectorOrAuto, int sizeMB)
+    {
+        if (sizeMB <= 0)
+        {
+            PrintError("Partition size must be greater than 0 MB.");
+            return;
+        }
+
+        IBlockDevice? dev = StorageManager.GetDevice(diskNum);
+        if (dev == null)
+        {
+            PrintError("Invalid disk number.");
+            return;
+        }
+
+        bool isGpt = GPT.IsGPT(dev);
+        bool isMbr = !isGpt && MBR.IsMBR(dev);
+        if (!isGpt && !isMbr)
+        {
+            PrintError("Disk has no partition table. Run 'mkmbr " + diskNum + "' or 'mkgpt " + diskNum + "' first.");
+            return;
+        }
+
+        ulong firstUsable = isGpt ? 34UL : 2048UL;
+        ulong sectorsPerMB = (1024UL * 1024UL) / dev.BlockSize;
+        ulong sectorCount = (ulong)sizeMB * sectorsPerMB;
+
+        ulong startSector;
+        if (startSectorOrAuto.HasValue)
+        {
+            startSector = startSectorOrAuto.Value;
+            if (startSector < firstUsable)
+            {
+                PrintError("start_lba must be >= " + firstUsable + " on " + (isGpt ? "GPT" : "MBR") + " disks.");
+                return;
+            }
+            // Reject overlap with any existing partition on the same disk.
+            for (int i = 0; i < StorageManager.Partitions.Count; i++)
+            {
+                Partition p = StorageManager.Partitions[i];
+                if (!ReferenceEquals(p.Host, dev))
+                {
+                    continue;
+                }
+                ulong pEnd = p.StartingSector + p.BlockCount;
+                if (startSector < pEnd && startSector + sectorCount > p.StartingSector)
+                {
+                    PrintError("Range overlaps partition [" + p.StartingSector + ".." + pEnd + ").");
+                    return;
+                }
+            }
+        }
+        else
+        {
+            startSector = firstUsable;
+            for (int i = 0; i < StorageManager.Partitions.Count; i++)
+            {
+                Partition p = StorageManager.Partitions[i];
+                if (!ReferenceEquals(p.Host, dev))
+                {
+                    continue;
+                }
+                ulong end = p.StartingSector + p.BlockCount;
+                if (end > startSector)
+                {
+                    startSector = end;
+                }
+            }
+        }
+
+        if (startSector + sectorCount > dev.BlockCount)
+        {
+            PrintError("Partition does not fit on disk.");
+            return;
+        }
+
+        if (!PartitionManager.Create(dev, startSector, sectorCount, mbrSystemId: 0x0B, gptType: GPT.BasicDataPartitionType))
+        {
+            PrintError("Failed to create partition (no free slot or bad geometry).");
+            return;
+        }
+
+        StorageManager.RescanPartitions(dev);
+        PrintSuccess("Partition created at LBA " + startSector + " (" + sectorCount + " sectors).");
+    }
+
+    /// <summary>
+    /// Resolve a (disk, per-disk part) pair to (global index, Partition).
+    /// The global index is what VfsManager / PartitionManager expect under
+    /// the hood; per-disk numbering is what the user sees.
+    /// </summary>
+    private static bool TryResolvePartition(int diskNum, int partNum, out int globalIndex, out Partition? partition)
+    {
+        globalIndex = -1;
+        partition = null;
+
+        IBlockDevice? dev = StorageManager.GetDevice(diskNum);
+        if (dev == null)
+        {
+            return false;
+        }
+
+        int local = 0;
+        IReadOnlyList<Partition> all = StorageManager.Partitions;
+        for (int i = 0; i < all.Count; i++)
+        {
+            Partition p = all[i];
+            if (!ReferenceEquals(p.Host, dev))
+            {
+                continue;
+            }
+            if (local == partNum)
+            {
+                globalIndex = i;
+                partition = p;
+                return true;
+            }
+            local++;
+        }
+        return false;
+    }
+
+    private void DeletePartitionEntry(int diskNum, int partNum)
+    {
+        if (!TryResolvePartition(diskNum, partNum, out _, out Partition? part) || part == null)
+        {
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
+            return;
+        }
+
+        IBlockDevice host = part.Host;
+        ulong start = part.StartingSector;
+        ulong count = part.BlockCount;
+
+        if (!PartitionManager.Delete(host, new PartitionManager.PartitionLocation(start, count)))
+        {
+            PrintError("Failed to delete partition.");
+            return;
+        }
+
+        StorageManager.RescanPartitions(host);
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " deleted (LBA " + start + ", " + count + " sectors).");
+    }
+
+    private void FormatPartition(int diskNum, int partNum, string fsType)
+    {
+        if (!TryResolvePartition(diskNum, partNum, out int globalIndex, out Partition? target) || target == null)
+        {
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
+            return;
+        }
+
+        // FAT family: accept fat / fat12 / fat16 / fat32 — all dispatched to
+        // the "fat" driver with a FatFormatOptions hint.
+        string driverName;
+        IVfsFormatOptions? options = null;
+        switch (fsType)
+        {
+            case "fat":
+                driverName = "fat";
+                break;
+            case "fat12":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat12 };
+                break;
+            case "fat16":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat16 };
+                break;
+            case "fat32":
+                driverName = "fat";
+                options = new FatFormatOptions { Type = FatType.Fat32 };
+                break;
+            default:
+                PrintError("Unknown filesystem: " + fsType + ". Supported: fat, fat12, fat16, fat32.");
+                return;
+        }
+
+        if (!VfsManager.TryFormat(driverName, globalIndex.ToString(), options))
+        {
+            ulong sizeMiB = target.BlockCount * target.BlockSize / 1024 / 1024;
+            PrintError("Format failed: partition is likely too small for " + fsType.ToUpper() +
+                " (" + sizeMiB + " MiB). Try 'format " + diskNum + " " + partNum + " fat' to auto-pick a variant.");
+            return;
+        }
+
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
+
+        // Warn if any mount likely targets this partition. We can't (yet)
+        // ask VfsManager which superblock backs which IBlockDevice, so this
+        // fires whenever there's any mount — better a stray warning than a
+        // confused user staring at the pre-format files in /mnt.
+        if (VfsManager.Mounts.Count > 0)
+        {
+            PrintWarning("If this partition is currently mounted, its cached state is now stale. Reboot to pick up the fresh layout.");
+        }
+    }
+
+    private void MountPartition(int diskNum, int partNum, string mountPoint)
+    {
+        if (!TryResolvePartition(diskNum, partNum, out int globalIndex, out Partition? _))
+        {
+            PrintError("Invalid disk/partition. Use 'lspart' to list.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(mountPoint) || mountPoint[0] != '/')
+        {
+            PrintError("Mount point must be an absolute path (e.g. /mnt).");
+            return;
+        }
+
+        if (!VfsManager.TryMount("fat", globalIndex.ToString(), MountFlags.None, mountPoint, out _))
+        {
+            PrintError("Mount failed (not FAT or unreadable).");
+            return;
+        }
+
+        PrintSuccess("Disk " + diskNum + " partition " + partNum + " mounted at " + mountPoint);
+    }
+
+
+    private void ShowMountPoints()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Mounted Filesystems:");
+        Console.ResetColor();
+
+        IReadOnlyList<VfsManager.VfsMount> mounts = VfsManager.Mounts;
+        if (mounts.Count == 0)
+        {
+            PrintWarning("No filesystems mounted.");
+            return;
+        }
+
+        for (int i = 0; i < mounts.Count; i++)
+        {
+            VfsManager.VfsMount m = mounts[i];
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(m.MountPoint);
+            Console.ResetColor();
+            Console.Write(" -> ");
+
+            // For the FAT driver, m.Source is the global partition index in
+            // StorageManager.Partitions. Turn that into the per-disk view
+            // ('disk D part P  PartitionName  FAT32') the user reasons about.
+            if (int.TryParse(m.Source, out int globalIdx)
+                && globalIdx >= 0
+                && globalIdx < StorageManager.Partitions.Count)
+            {
+                Partition p = StorageManager.Partitions[globalIdx];
+                int diskIdx = -1;
+                int localIdx = 0;
+                int seen = 0;
+                for (int d = 0; d < StorageManager.DeviceCount; d++)
+                {
+                    IBlockDevice? dev = StorageManager.GetDevice(d);
+                    if (dev == null) { continue; }
+                    int local = 0;
+                    for (int g = 0; g < StorageManager.Partitions.Count; g++)
+                    {
+                        if (!ReferenceEquals(StorageManager.Partitions[g].Host, dev)) { continue; }
+                        if (g == globalIdx)
+                        {
+                            diskIdx = d;
+                            localIdx = local;
+                            seen = 1;
+                            break;
+                        }
+                        local++;
+                    }
+                    if (seen != 0) { break; }
+                }
+
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("disk " + diskIdx + " part " + localIdx);
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write("  " + p.Name);
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("  " + DetectFilesystem(p));
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(m.Name);
+                Console.ResetColor();
+            }
+
+            if (m.Superblock.SuperOperations.StatFs(m.Superblock, out VfsStatFs sf))
+            {
+                ulong totalBytes = sf.Blocks * sf.BlockSize;
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(" (" + (totalBytes / 1024 / 1024) + " MiB)");
+                Console.ResetColor();
+            }
+            Console.WriteLine();
+        }
+    }
+
+    private void PrintNoMountHelp()
+    {
+        PrintWarning("No filesystem mounted.");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("To mount a filesystem and use 'ls':");
+        Console.ResetColor();
+        Console.WriteLine("  1. lsdisk                 - show attached disks");
+        Console.WriteLine("  2. lspart                 - list partitions on each disk");
+        Console.WriteLine("  3. mkgpt <d>              - if disk has no partition table");
+        Console.WriteLine("  4. mkpart <d> <mb>        - create a partition of <mb> MiB (or 'mkpart <d> <start> <mb>')");
+        Console.WriteLine("  5. format <d> <p> [fs]    - format disk <d> partition <p> (fs: fat | fat12 | fat16 | fat32)");
+        Console.WriteLine("  6. mount <d> <p> <path>   - mount disk <d> partition <p> at any path (e.g. /mnt)");
+        Console.WriteLine("  7. cd <mountpoint>        - change into it, then 'ls'");
+    }
+
+    private void PrintAvailableMounts()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Available mount points (cd into one):");
+        Console.ResetColor();
+
+        IReadOnlyList<VfsManager.VfsMount> mounts = VfsManager.Mounts;
+        for (int i = 0; i < mounts.Count; i++)
+        {
+            VfsManager.VfsMount m = mounts[i];
+            Console.Write("  ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(m.MountPoint);
+            Console.ResetColor();
+            Console.Write(" (");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(m.Name);
+            Console.ResetColor();
+            Console.WriteLine(")");
+        }
+    }
+
+    private void ChangeDirectory(string path)
+    {
+        string target = NormalizePath(ResolvePath(path));
+
+        if (target != "/" && (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null))
+        {
+            PrintError("No such directory: " + target);
+            return;
+        }
+
+        _cwd = target;
+    }
+
+    private string ResolvePath(string path)
+    {
+        if (path.Length > 0 && path[0] == '/')
+        {
+            return path;
+        }
+        if (_cwd == "/")
+        {
+            return "/" + path;
+        }
+        return _cwd + "/" + path;
+    }
+
+    private static string NormalizePath(string path)
+    {
+        string[] parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        List<string> stack = new();
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string p = parts[i];
+            if (p == ".")
+            {
+                continue;
+            }
+            if (p == "..")
+            {
+                if (stack.Count > 0)
+                {
+                    stack.RemoveAt(stack.Count - 1);
+                }
+                continue;
+            }
+            stack.Add(p);
+        }
+        if (stack.Count == 0)
+        {
+            return "/";
+        }
+        return "/" + string.Join("/", stack);
+    }
+
+    private static (string parent, string leaf) SplitPath(string fullPath)
+    {
+        int slash = fullPath.LastIndexOf('/');
+        if (slash <= 0)
+        {
+            return ("/", fullPath.TrimStart('/'));
+        }
+        return (fullPath.Substring(0, slash), fullPath.Substring(slash + 1));
+    }
+
+    private void ListDirectory(string path)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+
+        string fullPath = NormalizePath(ResolvePath(path));
+
+        // No mount lives at "/" itself, so plain `ls` would fail even when
+        // filesystems are mounted at sub-paths. List the available mount
+        // points so the user can `cd` into one rather than see a cryptic
+        // "Cannot open directory: /".
+        if (fullPath == "/" && !VfsManager.TryGetMount("/", out _))
+        {
+            PrintAvailableMounts();
+            return;
+        }
+
+        if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? dir) || dir == null)
+        {
+            PrintError("Cannot open directory: " + fullPath);
+            return;
+        }
+
+        if (!dir.TryReadDir(out IList<IVfsInode> entries))
+        {
+            PrintError("ReadDir failed.");
+            return;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Contents of " + fullPath + ":");
+        Console.ResetColor();
+
+        if (entries.Count == 0)
+        {
+            PrintWarning("  (empty)");
+            return;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            IVfsInode e = entries[i];
+            VfsStat stat = default;
+            bool haveStat = e.InodeOperations != null && e.InodeOperations.GetAttr(e, out stat);
+            bool isDirectory = haveStat && (stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+
+            Console.Write("  ");
+            if (isDirectory)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("[DIR] ");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("[FILE]");
+            }
+            Console.ResetColor();
+            Console.Write(" ");
+            Console.Write(e.Name.PadRight(24));
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(stat.Size.ToString().PadLeft(10));
+            Console.Write(" bytes");
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+    }
+
+    private void DisplayFileContents(string path)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+        string fullPath = ResolvePath(path);
+        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
+        {
+            PrintError("File not found: " + fullPath);
+            return;
+        }
+
+        try
+        {
+            Span<byte> buffer = stackalloc byte[512];
+            while (true)
+            {
+                long n = file.Read(buffer);
+                if (n <= 0)
+                {
+                    break;
+                }
+                for (int i = 0; i < n; i++)
+                {
+                    char c = (char)buffer[i];
+                    if (c == '\n' || c == '\r' || (c >= 32 && c < 127))
+                    {
+                        Console.Write(c.ToString());
+                    }
+                    else
+                    {
+                        Console.Write('.');
+                    }
+                }
+            }
+            Console.WriteLine();
+        }
+        finally
+        {
+            file.Dispose();
+        }
+    }
+
+    private void CreateDirectory(string path)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+        string fullPath = ResolvePath(path);
+        (string parent, string leaf) = SplitPath(fullPath);
+        if (string.IsNullOrEmpty(leaf))
+        {
+            PrintError("Invalid path.");
+            return;
+        }
+
+        if (!VfsManager.TryOpenDirectory(parent, out IVfsDirectoryHandle? parentDir) || parentDir == null)
+        {
+            PrintError("Parent directory not found: " + parent);
+            return;
+        }
+
+        if (!parentDir.TryCreateDirectory(leaf, ModeEnum.Directory | ModeEnum.OwnerRead | ModeEnum.OwnerWrite | ModeEnum.OwnerExecute, out _))
+        {
+            PrintError("Mkdir failed.");
+            return;
+        }
+
+        PrintSuccess("Directory created: " + fullPath);
+    }
+
+    private void CreateEmptyFile(string path)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+        string fullPath = ResolvePath(path);
+        (string parent, string leaf) = SplitPath(fullPath);
+        if (string.IsNullOrEmpty(leaf))
+        {
+            PrintError("Invalid path.");
+            return;
+        }
+
+        if (!VfsManager.TryOpenDirectory(parent, out IVfsDirectoryHandle? parentDir) || parentDir == null)
+        {
+            PrintError("Parent directory not found: " + parent);
+            return;
+        }
+
+        if (!parentDir.TryCreateFile(leaf, ModeEnum.RegularFile | ModeEnum.OwnerRead | ModeEnum.OwnerWrite, out _))
+        {
+            PrintError("Create file failed.");
+            return;
+        }
+
+        PrintSuccess("File created: " + fullPath);
+    }
+
+    private void DeleteEntry(string path)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+        string fullPath = ResolvePath(path);
+        (string parent, string leaf) = SplitPath(fullPath);
+        if (string.IsNullOrEmpty(leaf))
+        {
+            PrintError("Invalid path.");
+            return;
+        }
+
+        if (!VfsManager.TryOpenDirectory(parent, out IVfsDirectoryHandle? parentDir) || parentDir == null)
+        {
+            PrintError("Parent directory not found: " + parent);
+            return;
+        }
+
+        if (parentDir.TryUnlink(leaf))
+        {
+            PrintSuccess("File deleted: " + fullPath);
+            return;
+        }
+
+        if (parentDir.TryRemoveDirectory(leaf))
+        {
+            PrintSuccess("Directory deleted: " + fullPath);
+            return;
+        }
+
+        PrintError("Path not found or not empty: " + fullPath);
+    }
+
+    private void WriteToFile(string path, string text)
+    {
+        if (VfsManager.Mounts.Count == 0)
+        {
+            PrintNoMountHelp();
+            return;
+        }
+        string fullPath = ResolvePath(path);
+
+        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
+        {
+            (string parent, string leaf) = SplitPath(fullPath);
+            if (string.IsNullOrEmpty(leaf)
+                || !VfsManager.TryOpenDirectory(parent, out IVfsDirectoryHandle? parentDir)
+                || parentDir == null
+                || !parentDir.TryCreateFile(leaf, ModeEnum.RegularFile | ModeEnum.OwnerRead | ModeEnum.OwnerWrite, out _)
+                || !VfsManager.TryOpenFile(fullPath, out file)
+                || file == null)
+            {
+                PrintError("Cannot open or create: " + fullPath);
                 return;
             }
         }
-        PrintSuccess($"Disk W/R roundtrip OK at LBA {lba} ({dev.BlockSize} bytes).");
+
+        try
+        {
+            byte[] bytes = new byte[text.Length];
+            for (int i = 0; i < text.Length; i++)
+            {
+                bytes[i] = (byte)text[i];
+            }
+            long written = file.Write(bytes);
+            file.Flush();
+            PrintSuccess("Wrote " + written + " bytes to " + fullPath);
+        }
+        finally
+        {
+            file.Dispose();
+        }
+    }
+
+    private static string JoinFrom(string[] parts, int start)
+    {
+        if (start >= parts.Length)
+        {
+            return string.Empty;
+        }
+        string result = parts[start];
+        for (int i = start + 1; i < parts.Length; i++)
+        {
+            result = result + " " + parts[i];
+        }
+        return result;
     }
 
     private void PrintInfo(string message)
