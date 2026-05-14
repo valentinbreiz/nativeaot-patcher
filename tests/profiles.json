@@ -51,6 +51,16 @@
       "name": "gicv3",
       "architectures": ["arm64"],
       "machineOptions": { "gic-version": "3" }
+    },
+    {
+      // Disable ACPI on the machine. Default is acpi=on for both q35 and
+      // virt; flipping it forces the kernel onto its non-ACPI discovery
+      // paths (no MADT/IORT/MCFG, fall back to FDT or hard-coded layout).
+      // Useful smoke for "ACPI tables absent" code; on x64 it typically
+      // disables PCIe enumeration and surfaces as missing devices in the
+      // dependent tests via the existing TR.RunIf gating.
+      "name": "acpi-off",
+      "machineOptions": { "acpi": "off" }
     }
   ]
 }
