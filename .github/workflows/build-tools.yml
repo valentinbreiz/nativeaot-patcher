@@ -464,11 +464,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential texinfo \
-            libgmp-dev libmpfr-dev libexpat1-dev libxml2-dev
+            libgmp-dev libmpfr-dev libexpat1-dev libxml2-dev \
+            python3-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install gmp mpfr expat libxml2 texinfo
+        # python@3 is preinstalled on macos-latest runners but pinning it makes
+        # `brew --prefix python@3` resolvable and ensures the headers are present.
+        run: brew install gmp mpfr expat libxml2 texinfo python@3
 
       - name: Setup MSYS2 (Windows)
         if: runner.os == 'Windows'
@@ -482,6 +485,7 @@ jobs:
             mingw-w64-x86_64-expat
             mingw-w64-x86_64-libxml2
             mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-python
             make texinfo bison flex
 
       - name: Download GDB source (Unix)
@@ -506,7 +510,8 @@ jobs:
       #   --disable-source-highlight drops libsource-highlight runtime dep
       #   --disable-tui              skips ncurses TUI (we drive gdb via cppdbg/MI, not interactive)
       #   --disable-nls              no translations
-      #   --with-python=yes           don't embed CPython (huge runtime + libpython dep)
+      #   --with-python=<path>       embed CPython so we can ship gdb pretty-printers
+      #                              for NativeAOT managed types (String, __Array<T>, etc.)
       #   --without-guile            no Guile scripting
       # libxml2 is left enabled — QEMU's gdbstub sends XML target descriptions.
       - name: Build GDB (Linux/macOS)
@@ -522,6 +527,13 @@ jobs:
             BREW_PREFIX=$(brew --prefix)
             export CPPFLAGS="-I${BREW_PREFIX}/include ${CPPFLAGS:-}"
             export LDFLAGS="-L${BREW_PREFIX}/lib ${LDFLAGS:-}"
+            # Pin Python to brew's arm64 build. With --with-python=yes,
+            # configure first probes /Library/Frameworks/Python.framework
+            # (Apple's framework Python), which is x86_64 on aarch64 runners
+            # and fails gdb's usability check.
+            PYTHON_BIN="$(brew --prefix python@3)/bin/python3"
+          else
+            PYTHON_BIN="$(command -v python3)"
           fi
           cd gdb-${GDB_VERSION}
           # --target=x86_64-pc-linux-gnu builds gdb as a cross-debugger.
@@ -548,7 +560,7 @@ jobs:
             --disable-gprofng \
             --disable-sim \
             --disable-gdbserver \
-            --with-python=yes \
+            --with-python="$PYTHON_BIN" \
             --without-guile
           make -j$NPROC
           strip gdb/gdb gdb/gdb-unsigned 2>/dev/null || true
@@ -576,7 +588,7 @@ jobs:
             --disable-gprofng \
             --disable-sim \
             --disable-gdbserver \
-            --with-python=yes \
+            --with-python=/mingw64/bin/python3 \
             --without-guile
           make -j$(nproc)
           strip gdb/gdb.exe
