@@ -7,6 +7,21 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
+  <!--
+    QEMU profiles + modifiers this suite opts into. Definitions live in
+    tests/profiles.json; the test runner fails fast if any name here isn't
+    in that catalog. Each profile runs once on its own, then once per
+    applicable modifier (combos that don't touch any device in the profile
+    are skipped).
+  -->
+  <ItemGroup>
+    <CosmosTestProfile Include="ahci" />
+    <CosmosTestProfile Include="nvme" />
+    <CosmosTestModifier Include="msix-min" />
+    <CosmosTestModifier Include="gicv2" />
+    <CosmosTestModifier Include="gicv3" />
+  </ItemGroup>
+
   <!-- Core kernel packages (using project references for development) -->
   <ItemGroup>
     <ProjectReference Include="../../../src/Cosmos.Kernel/Cosmos.Kernel.csproj" />

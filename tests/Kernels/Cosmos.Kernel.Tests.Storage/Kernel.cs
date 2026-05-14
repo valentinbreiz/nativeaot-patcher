@@ -15,12 +15,12 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
         Serial.WriteString("[Storage] Starting tests...\n");
 
-        // Test count is dynamic: 2 meta tests + 12 per registered block device.
-        // The test runner attaches multiple AHCI ports + multiple NVMe
-        // controllers, so the suite walks StorageManager and runs the full
-        // round-trip suite against every device individually — catches
-        // cross-device aliasing, bounce-buffer reuse, and per-controller
-        // state that a single-device test would miss.
+        // Test count is dynamic: 2 meta tests + the generic per-device suite +
+        // the partition-table suite. The engine attaches exactly one disk per
+        // profile (test-profiles.json) — AHCI for the 'ahci' profile, NVMe for
+        // the 'nvme' profile — and runs the suite once per profile. The label
+        // we emit ("AHCI" / "NVMe") reflects the device the kernel actually
+        // bound, so a misconfigured profile is visible in the report.
         TR.Start("Storage Block Device Tests", expectedTests: 0);
 
         TR.Run("Test_StorageManager_Initialized", () =>
@@ -29,46 +29,30 @@ public class Kernel : Sys.Kernel
             Assert.True(StorageManager.IsInitialized);
         });
 
-        TR.Run("Test_AtLeastOneDevice_Present", () =>
+        TR.Run("Test_ExactlyOneDevice_Present", () =>
         {
-            Assert.True(StorageManager.DeviceCount > 0);
+            Assert.Equal(1, StorageManager.DeviceCount);
         });
 
-        int sataIdx = 0;
-        int nvmeIdx = 0;
-        for (int i = 0; i < StorageManager.DeviceCount; i++)
+        IBlockDevice? dev = StorageManager.GetDevice(0);
+        if (dev == null)
         {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev == null)
-            {
-                continue;
-            }
-            string label = dev.Name == "SATA"
-                ? $"SATA{sataIdx++}"
-                : dev.Name == "NVMe"
-                    ? $"NVMe{nvmeIdx++}"
-                    : $"{dev.Name}{i}";
-            RunDeviceSuite(label, dev);
+            TR.Finish();
+            Serial.WriteString("\n[Tests Complete - System Halting]\n");
+            return;
         }
 
-        // Partition table round-trip tests run AFTER the per-device suites
-        // because they overwrite LBA 0..33, which the per-device tests
-        // also touch. Pick the last registered device so earlier devices'
-        // results aren't affected.
-        IBlockDevice? partitionTarget = null;
-        for (int i = StorageManager.DeviceCount - 1; i >= 0; i--)
+        string label = dev.Name switch
         {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev != null)
-            {
-                partitionTarget = dev;
-                break;
-            }
-        }
-        if (partitionTarget != null)
-        {
-            RunPartitionTableSuite(partitionTarget);
-        }
+            "SATA" => "AHCI",
+            "NVMe" => "NVMe",
+            _ => dev.Name
+        };
+
+        RunDeviceSuite(label, dev);
+
+        // Partition table tests run last because they overwrite LBA 0..33.
+        RunPartitionTableSuite(dev);
 
         TR.Finish();
 

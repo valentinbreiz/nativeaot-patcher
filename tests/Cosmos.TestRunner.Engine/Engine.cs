@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
 using Cosmos.TestRunner.Engine.Protocol;
+using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestRunner.Engine;
 
@@ -58,7 +60,7 @@ public partial class Engine
     }
 
     /// <summary>
-    /// Main execution flow: Build → Launch → Monitor → Results
+    /// Main execution flow: Build → (per profile) Launch → Monitor → Results → Aggregate
     /// </summary>
     public async Task<TestResults> ExecuteAsync()
     {
@@ -83,15 +85,39 @@ public partial class Engine
             string isoPath = await BuildKernelAsync();
             Console.WriteLine($"[Engine] Build complete: {isoPath}");
 
-            // Step 2: Launch QEMU and monitor execution
-            Console.WriteLine("[Engine] Launching QEMU...");
-            var qemuResult = await LaunchAndMonitorAsync(isoPath);
-            Console.WriteLine($"[Engine] QEMU execution complete (Exit: {qemuResult.ExitCode}, TimedOut: {qemuResult.TimedOut})");
+            // Step 2: Run the kernel once per QEMU profile the suite opts into
+            // (CosmosTestProfile + CosmosTestModifier items in the csproj,
+            // resolved against tests/profiles.json). A suite that opts into
+            // nothing gets a single anonymous profile.
+            IReadOnlyList<TestProfile> profiles = TestProfileLoader.LoadFor(_config.KernelProjectPath, _config.Architecture);
+            if (profiles.Count > 1)
+            {
+                Console.WriteLine($"[Engine] {profiles.Count} QEMU profiles declared: {string.Join(", ", profiles.Select(p => p.Name))}");
+            }
 
-            // Step 3: Parse results from UART log
-            Console.WriteLine("[Engine] Parsing test results...");
-            var results = ParseResults(qemuResult);
-            results.SuiteName = suiteName;
+            TestResults results = new()
+            {
+                SuiteName = suiteName,
+                Architecture = _config.Architecture
+            };
+
+            for (int p = 0; p < profiles.Count; p++)
+            {
+                TestProfile profile = profiles[p];
+                if (!profile.IsDefault)
+                {
+                    Console.WriteLine($"[Engine] === Profile {p + 1}/{profiles.Count}: {profile.Name} ===");
+                }
+
+                Console.WriteLine("[Engine] Launching QEMU...");
+                QemuRunResult qemuResult = await LaunchAndMonitorAsync(isoPath, profile);
+                Console.WriteLine($"[Engine] QEMU execution complete (Exit: {qemuResult.ExitCode}, TimedOut: {qemuResult.TimedOut})");
+
+                Console.WriteLine("[Engine] Parsing test results...");
+                TestResults profileResults = ParseResults(qemuResult);
+                MergeProfileResults(results, profileResults, profile);
+            }
+
             results.TotalDuration = stopwatch.Elapsed;
 
             Console.WriteLine($"[Engine] Results: {results.PassedTests}/{results.TotalTests} passed");
@@ -160,54 +186,34 @@ public partial class Engine
     // the kernel knows which destructive test already fired.
     private const int MaxBoots = 4;
 
-    private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath)
+    private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath, TestProfile profile)
     {
-        // Setup UART log path
+        // Setup UART log path. When several profiles run back-to-back, each
+        // gets its own log file so a failure in one doesn't lose the other's
+        // output and the per-profile boot-N derivatives stay disjoint.
         string baseUartLogPath = _config.UartLogPath;
         if (string.IsNullOrEmpty(baseUartLogPath))
         {
+            string baseName = profile.IsDefault ? "uart.log" : $"uart-{profile.Name}.log";
             baseUartLogPath = Path.Combine(
                 Path.GetDirectoryName(isoPath) ?? ".",
-                "uart.log"
+                baseName
             );
+        }
+        else if (!profile.IsDefault)
+        {
+            string dir = Path.GetDirectoryName(baseUartLogPath) ?? ".";
+            string stem = Path.GetFileNameWithoutExtension(baseUartLogPath);
+            string ext = Path.GetExtension(baseUartLogPath);
+            baseUartLogPath = Path.Combine(dir, $"{stem}-{profile.Name}{ext}");
         }
 
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
-        // Detect if this is a storage test kernel — attach two AHCI/SATA
-        // disks (sharing one ich9-ahci controller across two SATA ports) +
-        // two NVMe controllers so the suite exercises multi-port AHCI
-        // enumeration AND multi-controller NVMe binding. Each disk is a
-        // fresh 256 MiB sparse raw image. Both arches honour the disk paths
-        // via QemuLauncher; the storage suite skips per-device tests if a
-        // device fails to bind.
-        const int StorageDiskCountPerType = 2;
-        string[] ahciDiskPaths = Array.Empty<string>();
-        string[] nvmeDiskPaths = Array.Empty<string>();
-        if (_config.KernelProjectPath.Contains("Storage", StringComparison.OrdinalIgnoreCase))
-        {
-            string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
-            ahciDiskPaths = new string[StorageDiskCountPerType];
-            nvmeDiskPaths = new string[StorageDiskCountPerType];
-            for (int i = 0; i < StorageDiskCountPerType; i++)
-            {
-                ahciDiskPaths[i] = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-ahci{i}.img");
-                nvmeDiskPaths[i] = Path.Combine(Path.GetTempPath(), $"cosmos-test-disk-{suite}-{_config.Architecture}-nvme{i}.img");
-            }
-            foreach (string path in ahciDiskPaths.Concat(nvmeDiskPaths))
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
-                {
-                    fs.SetLength(256L * 1024 * 1024);
-                }
-                Console.WriteLine($"[Engine] Created test disk: {path} (256 MiB sparse)");
-            }
-        }
+        // Allocate fresh 256 MiB sparse raw images per profile so back-to-back
+        // profile runs don't see each other's writes.
+        IReadOnlyList<DiskAttachment> disks = CreateProfileDisks(profile);
 
         var combinedLog = new StringBuilder();
         QemuRunResult? lastResult = null;
@@ -223,7 +229,7 @@ public partial class Engine
             }
 
             QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, ahciDiskPaths, nvmeDiskPaths);
+                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, disks, profile.MachineOptions);
 
             combinedLog.Append(result.UartLog);
             lastResult = result;
@@ -258,6 +264,88 @@ public partial class Engine
             ErrorMessage = lastResult?.ErrorMessage ?? string.Empty,
             SuiteMarkerSeen = lastResult?.SuiteMarkerSeen ?? false
         };
+    }
+
+    private IReadOnlyList<DiskAttachment> CreateProfileDisks(TestProfile profile)
+    {
+        if (profile.Disks.Count == 0)
+        {
+            return Array.Empty<DiskAttachment>();
+        }
+
+        string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
+        string profileTag = profile.IsDefault ? "default" : profile.Name;
+        var attachments = new List<DiskAttachment>(profile.Disks.Count);
+
+        for (int i = 0; i < profile.Disks.Count; i++)
+        {
+            TestProfileDisk disk = profile.Disks[i];
+            string kindTag = disk.Kind == DiskKind.Ahci ? "ahci" : "nvme";
+            string path = Path.Combine(
+                Path.GetTempPath(),
+                $"cosmos-test-disk-{suite}-{_config.Architecture}-{profileTag}-{kindTag}{i}.img");
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+            {
+                fs.SetLength(256L * 1024 * 1024);
+            }
+            Console.WriteLine($"[Engine] Created test disk: {path} (256 MiB sparse)");
+
+            attachments.Add(new DiskAttachment
+            {
+                Path = path,
+                Kind = disk.Kind,
+                ExtraDeviceOptions = disk.FormatOptions()
+            });
+        }
+        return attachments;
+    }
+
+    /// <summary>
+    /// Fold one profile's parsed results into the suite-wide aggregate. Test
+    /// names get a `[profile]` prefix so the same logical test from different
+    /// profiles stays distinguishable, and TestNumber is renumbered across the
+    /// combined list so output handlers see a contiguous sequence.
+    /// </summary>
+    private void MergeProfileResults(TestResults aggregate, TestResults profileResults, TestProfile profile)
+    {
+        string prefix = profile.IsDefault ? string.Empty : $"[{profile.Name}] ";
+        bool isFirstProfile = aggregate.Tests.Count == 0 && aggregate.ExpectedTestCount == 0;
+
+        foreach (TestResult t in profileResults.Tests)
+        {
+            t.TestNumber = aggregate.Tests.Count + 1;
+            if (prefix.Length > 0)
+            {
+                t.TestName = prefix + t.TestName;
+            }
+            aggregate.Tests.Add(t);
+        }
+
+        aggregate.ExpectedTestCount += profileResults.ExpectedTestCount;
+        aggregate.UartLog += profileResults.UartLog;
+        aggregate.CoverageHitMethodIds.AddRange(profileResults.CoverageHitMethodIds);
+
+        if (profileResults.TimedOut)
+        {
+            aggregate.TimedOut = true;
+        }
+        if (!string.IsNullOrEmpty(profileResults.ErrorMessage))
+        {
+            aggregate.ErrorMessage = string.IsNullOrEmpty(aggregate.ErrorMessage)
+                ? profileResults.ErrorMessage
+                : $"{aggregate.ErrorMessage}; {profileResults.ErrorMessage}";
+        }
+
+        // The aggregate is "completed" only when every profile in the suite
+        // emitted its end-marker. Seed with the first profile, then AND.
+        aggregate.SuiteCompleted = isFirstProfile
+            ? profileResults.SuiteCompleted
+            : aggregate.SuiteCompleted && profileResults.SuiteCompleted;
     }
 
     /// <summary>
