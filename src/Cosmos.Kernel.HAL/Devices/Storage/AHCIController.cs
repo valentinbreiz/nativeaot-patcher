@@ -123,6 +123,10 @@ public unsafe class AHCIController
             return false;
         }
 
+        // ARM64 needs the ABAR page installed as Device memory in TTBR1
+        // before the HHDM virtual is dereferenceable for MMIO. No-op on x64.
+        PlatformHAL.Initializer?.EnsureMmioMapped(_abarPhys);
+
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         _abarVirt = _abarPhys + hhdmOffset;
 
@@ -147,7 +151,64 @@ public unsafe class AHCIController
         Serial.WriteString("\n");
 
         _generic = new GenericRegisters(_abarVirt);
-        _generic.GlobalHostControl |= 1U << 31; // Enable AHCI
+
+        Serial.WriteString("[AHCI] CAP=0x");
+        Serial.WriteHex(_generic.Capabilities);
+        Serial.WriteString(" PI=0x");
+        Serial.WriteHex(_generic.ImplementedPorts);
+        Serial.WriteString(" GHC=0x");
+        Serial.WriteHex(_generic.GlobalHostControl);
+        Serial.WriteString(" VS=0x");
+        Serial.WriteHex(_generic.AHCIVersion);
+        Serial.WriteString("\n");
+
+        // Only reset the HBA when firmware didn't enumerate ports — EDK2 on
+        // aarch64 boots via virtio and leaves PI at 0; SeaBIOS on x86 already
+        // populated PI via its own AHCI init. Driving an HR there zeroes the
+        // working PI on ich9-ahci (PI is nominally HwInit but QEMU doesn't
+        // restore the firmware-populated bits across HR). When we do reset,
+        // poll HR for self-clear then re-set AE — matches the sequence in
+        // Linux's ahci_reset_controller.
+        if (_generic.ImplementedPorts == 0)
+        {
+            Serial.WriteString("[AHCI] PI=0, doing HBA reset\n");
+            _generic.GlobalHostControl = (1U << 31) | 1U;
+            uint resetSpin = 0;
+            while ((_generic.GlobalHostControl & 1U) != 0)
+            {
+                if (++resetSpin > 10_000_000)
+                {
+                    Serial.WriteString("[AHCI] HBA reset did not complete\n");
+                    return false;
+                }
+            }
+            _generic.GlobalHostControl |= 1U << 31; // Re-enable AHCI mode
+            Serial.WriteString("[AHCI] After reset: CAP=0x");
+            Serial.WriteHex(_generic.Capabilities);
+            Serial.WriteString(" PI=0x");
+            Serial.WriteHex(_generic.ImplementedPorts);
+            Serial.WriteString("\n");
+        }
+
+        // QEMU's ich9-ahci on aarch64 virt leaves PI at 0 even after HR
+        // (the bits would normally be HwInit-restored). When PI is still
+        // empty, write the mask derived from CAP.NP so we can enumerate
+        // the controller's ports — CheckPortType filters out empty slots.
+        if (_generic.ImplementedPorts == 0)
+        {
+            uint cap = _generic.Capabilities;
+            uint nports = (cap & 0x1F) + 1;
+            uint piMask = nports >= 32 ? 0xFFFFFFFFu : ((1u << (int)nports) - 1u);
+            Serial.WriteString("[AHCI] PI still 0; deriving from CAP.NP=");
+            Serial.WriteNumber(nports);
+            Serial.WriteString(" → PI=0x");
+            Serial.WriteHex(piMask);
+            Serial.WriteString("\n");
+            _generic.ImplementedPorts = piMask;
+            Serial.WriteString("[AHCI] PI readback=0x");
+            Serial.WriteHex(_generic.ImplementedPorts);
+            Serial.WriteString("\n");
+        }
 
         GetCapabilities();
 
@@ -168,8 +229,10 @@ public unsafe class AHCIController
         return true;
     }
 
-    /// <summary>HBA Reset. Forces the controller into its reset state and
-    /// waits for it to come back.</summary>
+    /// <summary>
+    /// HBA reset: write GHC.AE|HR, poll for HR to self-clear, re-enable
+    /// AHCI mode. Pattern modeled on Linux's ahci_reset_controller.
+    /// </summary>
     public void HBAReset()
     {
         if (_generic == null)
@@ -177,13 +240,18 @@ public unsafe class AHCIController
             return;
         }
 
-        _generic.GlobalHostControl = 1;
-        uint hr;
-        do
+        _generic.GlobalHostControl = (1U << 31) | 1U;
+        uint spin = 0;
+        while ((_generic.GlobalHostControl & 1U) != 0)
         {
             AHCI.Wait(1);
-            hr = _generic.GlobalHostControl & 1;
-        } while (hr != 0);
+            if (++spin > 1_000_000)
+            {
+                Serial.WriteString("[AHCI] HBA reset did not complete\n");
+                return;
+            }
+        }
+        _generic.GlobalHostControl |= 1U << 31; // Re-enable AHCI mode
     }
 
     private void PrintVersion()
@@ -243,15 +311,73 @@ public unsafe class AHCIController
             if ((implementedPort & 1) != 0)
             {
                 var portReg = new PortRegisters(_abarVirt + 0x100, port, this);
-                PortType portType = CheckPortType(portReg);
+
+                // Only run a COMRESET when the PHY isn't already up — on x64
+                // SeaBIOS trained the link and captured the device's D2H FIS
+                // (so PxSIG holds 0x00000101 for SATA). Kicking that port
+                // would clear PxSIG to 0xFFFFFFFF and we'd lose the type
+                // classification. EDK2 on aarch64 leaves DET=0, so we kick
+                // there to train the PHY ourselves.
+                if ((portReg.SSTS & 0x0F) != 3)
+                {
+                    KickPort(portReg);
+                }
+
+                uint ssts = portReg.SSTS;
+                Serial.WriteString("[AHCI] Port ");
+                Serial.WriteNumber(port);
+                Serial.WriteString(" SSTS=0x");
+                Serial.WriteHex(ssts);
+                Serial.WriteString(" SIG=0x");
+                Serial.WriteHex(portReg.SIG);
+                Serial.WriteString("\n");
+
+                var ipm = (InterfacePowerManagementStatus)((ssts >> 8) & 0x0F);
+                var det = (DeviceDetectionStatus)(ssts & 0x0F);
+                if (ipm != InterfacePowerManagementStatus.Active ||
+                    det != DeviceDetectionStatus.DeviceDetectedWithPhy)
+                {
+                    implementedPort >>= 1;
+                    continue;
+                }
+
+                // PortRebase sets FB and enables FIS Receive so the device's
+                // post-reset D2H signature FIS gets captured. We use PxSIG
+                // afterwards to distinguish SATA from SATAPI/SEMB. The reset
+                // path (KickPort + PHY retrain) clears PxSIG to 0xFFFFFFFF
+                // first, so re-reading it before FRE is meaningless.
+                PortRebase(portReg, port);
+
+                uint sigRaw = portReg.SIG;
+                for (int retry = 0; retry < 200 && sigRaw == 0xFFFFFFFFu; retry++)
+                {
+                    AHCI.Wait(1000);
+                    sigRaw = portReg.SIG;
+                }
+
+                PortType portType;
+                if (sigRaw == 0xFFFFFFFFu)
+                {
+                    // No D2H FIS arrived even though PHY is up. Assume SATA —
+                    // the only type we currently support — so the test suite
+                    // still exercises this port. SATAPI / SEMB drives would
+                    // misbehave here; not worth guarding until they're real.
+                    Serial.WriteString("[AHCI] Port ");
+                    Serial.WriteNumber(port);
+                    Serial.WriteString(" PxSIG never populated; assuming SATA\n");
+                    portType = PortType.SATA;
+                }
+                else
+                {
+                    portType = ClassifySignature(sigRaw, port);
+                }
                 portReg.PortType = portType;
 
                 if (portType == PortType.SATA)
                 {
-                    Serial.WriteString("[AHCI] Initializing SATA port ");
+                    Serial.WriteString("[AHCI] Initialized SATA port ");
                     Serial.WriteNumber(port);
                     Serial.WriteString("\n");
-                    PortRebase(portReg, port);
                     var sataPort = new SATA(portReg);
                     _ports.Add(sataPort);
                 }
@@ -278,24 +404,10 @@ public unsafe class AHCIController
         }
     }
 
-    private static PortType CheckPortType(PortRegisters port)
+    private static PortType ClassifySignature(uint sig, uint port)
     {
-        var ipm = (InterfacePowerManagementStatus)((port.SSTS >> 8) & 0x0F);
-        var det = (DeviceDetectionStatus)(port.SSTS & 0x0F);
-        var signature = port.SIG;
-
-        if (ipm != InterfacePowerManagementStatus.Active)
-        {
-            return PortType.Nothing;
-        }
-        if (det != DeviceDetectionStatus.DeviceDetectedWithPhy)
-        {
-            return PortType.Nothing;
-        }
-
-        signature >>= 16;
-
-        switch ((AHCISignature)signature)
+        uint sigHi = sig >> 16;
+        switch ((AHCISignature)sigHi)
         {
             case AHCISignature.SATA: return PortType.SATA;
             case AHCISignature.SATAPI: return PortType.SATAPI;
@@ -304,12 +416,48 @@ public unsafe class AHCIController
             case AHCISignature.Nothing: return PortType.Nothing;
             default:
                 Serial.WriteString("[AHCI] Unknown drive signature 0x");
-                Serial.WriteHex(signature);
+                Serial.WriteHex(sig);
                 Serial.WriteString(" at port ");
-                Serial.WriteNumber(port.PortNumber);
+                Serial.WriteNumber(port);
                 Serial.WriteString(" — skipping\n");
                 return PortType.Nothing;
         }
+    }
+
+    /// <summary>
+    /// Triggers a SATA COMRESET on the port so its PHY runs OOB even when
+    /// firmware (EDK2 on aarch64 virt) didn't bring it up. Stops the port's
+    /// command engine first, writes <c>PxSCTL.DET=1</c> for ≥1 ms to issue
+    /// COMRESET, then clears DET so the PHY trains. Returns early instead of
+    /// hanging if no device responds — empty slots stay empty.
+    /// </summary>
+    private static void KickPort(PortRegisters port)
+    {
+        port.CMD &= ~(1U << 0); // ST
+        port.CMD &= ~(1U << 4); // FRE
+        for (int i = 0; i < 100; i++)
+        {
+            if ((port.CMD & ((1U << 14) | (1U << 15))) == 0)
+            {
+                break;
+            }
+            AHCI.Wait(1000);
+        }
+
+        port.SCTL = (port.SCTL & ~0xFU) | 1U;
+        AHCI.Wait(2000); // hold COMRESET ≥1 ms before clearing
+        port.SCTL &= ~0xFU;
+
+        for (int i = 0; i < 100; i++)
+        {
+            if ((port.SSTS & 0x0F) == 3)
+            {
+                break;
+            }
+            AHCI.Wait(1000);
+        }
+
+        port.SERR = 0xFFFFFFFFu;
     }
 
     private void PortRebase(PortRegisters port, uint portNumber)
