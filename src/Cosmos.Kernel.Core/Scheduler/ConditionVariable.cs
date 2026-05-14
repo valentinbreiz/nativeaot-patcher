@@ -50,6 +50,10 @@ public class ConditionVariable : IDisposable
         }
         while (currentThread == null);
 
+        Serial.WriteString("[CV] Wait BEGIN thread=");
+        Serial.WriteNumber(currentThread.Id);
+        Serial.WriteString("\n");
+
         _lockGuard.Acquire();
         if (!_waitingThreads.Contains(currentThread!))
         {
@@ -63,8 +67,16 @@ public class ConditionVariable : IDisposable
         SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
         InternalCpu.Halt();
 
+        Serial.WriteString("[CV] Wait WOKE thread=");
+        Serial.WriteNumber(currentThread.Id);
+        Serial.WriteString("\n");
+
         // Reacquire the mutex before returning
         mutex.Acquire();
+
+        Serial.WriteString("[CV] Wait END thread=");
+        Serial.WriteNumber(currentThread.Id);
+        Serial.WriteString("\n");
     }
 
     /// <summary>
@@ -81,6 +93,12 @@ public class ConditionVariable : IDisposable
             return false;
         }
 
+        Serial.WriteString("[CV] WaitTimeout BEGIN thread=");
+        Serial.WriteNumber(currentThread.Id);
+        Serial.WriteString(" timeoutMs=");
+        Serial.WriteNumber(timeoutMs);
+        Serial.WriteString("\n");
+
         // Release the mutex while waiting
         mutex.Release();
 
@@ -93,6 +111,10 @@ public class ConditionVariable : IDisposable
 
         // Put thread to sleep with timeout
         SchedulerManager.Sleep(currentThread.CpuId, currentThread, timeoutMs);
+
+        Serial.WriteString("[CV] WaitTimeout WOKE thread=");
+        Serial.WriteNumber(currentThread.Id);
+        Serial.WriteString("\n");
 
         // Reacquire the mutex before returning
         mutex.Acquire();
@@ -120,8 +142,16 @@ public class ConditionVariable : IDisposable
             SchedThread waitingThread = _waitingThreads[0];
             _waitingThreads.RemoveAt(0);
 
+            Serial.WriteString("[CV] Signal -> ReadyThread id=");
+            Serial.WriteNumber(waitingThread.Id);
+            Serial.WriteString("\n");
+
             // Wake the thread by marking it ready
             SchedulerManager.ReadyThread(waitingThread.CpuId, waitingThread);
+        }
+        else
+        {
+            Serial.WriteString("[CV] Signal (no waiters)\n");
         }
 
         _lockGuard.Release();

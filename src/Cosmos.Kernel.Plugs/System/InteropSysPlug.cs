@@ -112,13 +112,16 @@ public static class InteropSysPlug
     [PlugMember]
     internal static void LowLevelMonitor_Acquire(IntPtr monitor)
     {
+        Serial.Write("[LowLevelMonitor] Acquire BEGIN\n");
         var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
         gchandle.Target.Acquire();
+        Serial.Write("[LowLevelMonitor] Acquire END\n");
     }
 
     [PlugMember]
     internal static void LowLevelMonitor_Release(IntPtr monitor)
     {
+        Serial.Write("[LowLevelMonitor] Release\n");
         var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
         gchandle.Target.Release();
     }
@@ -126,8 +129,10 @@ public static class InteropSysPlug
     [PlugMember]
     internal static void LowLevelMonitor_Wait(IntPtr monitor)
     {
+        Serial.Write("[LowLevelMonitor] Wait BEGIN\n");
         var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
         gchandle.Target.Wait();
+        Serial.Write("[LowLevelMonitor] Wait END\n");
     }
 
     [PlugMember]
@@ -152,6 +157,7 @@ public static class InteropSysPlug
     [PlugMember]
     internal static void LowLevelMonitor_Signal_Release(IntPtr monitor)
     {
+        Serial.Write("[LowLevelMonitor] Signal_Release\n");
         var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
         gchandle.Target.Signal();
     }
