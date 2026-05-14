@@ -196,6 +196,19 @@ public class UartMessageParser
         int testNumber = BitConverter.ToUInt16(payload, 0);
         uint durationMs = BitConverter.ToUInt32(payload, 2);
 
+        // Mirror the kernel-side clamp (TestRunner.Run): if a non-protocol
+        // byte sequence in UART interleaves with a real TestPass frame, the
+        // 4 raw duration bytes can be anything — that's where the
+        // "1,129,536-second test" rows came from. Anything beyond 5 minutes
+        // is a misaligned-frame artifact, not a measurement; pin it to the
+        // cap so the report stays interpretable. Real tests finish in
+        // seconds; this gives ~300x headroom.
+        const uint MaxSaneDurationMs = 5u * 60u * 1000u;
+        if (durationMs > MaxSaneDurationMs)
+        {
+            durationMs = MaxSaneDurationMs;
+        }
+
         TestResult test = GetOrCreateTestResult(results, testNumber);
         test.Status = TestStatus.Passed;
         test.DurationMs = durationMs;
