@@ -118,21 +118,6 @@
       "presentation": {
         "reveal": "never"
       }
-    },
-    {
-      "label": "Build Test Runner",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "build",
-        "${workspaceFolder}/tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj"
-      ],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": "$msCompile"
     }
   ]
 }
