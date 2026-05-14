@@ -402,6 +402,10 @@ public static class SchedulerManager
 
             thread.State = ThreadState.Blocked;
             _currentScheduler.OnThreadBlocked(state, thread);
+
+            Serial.WriteString("[SCHED] BlockThread id=");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString("\n");
         }
     }
 
@@ -420,8 +424,14 @@ public static class SchedulerManager
                 var callback = (delegate* unmanaged<void>)managedCallback;
                 callback();
             }
-
+            Serial.WriteString("[SCHED] ExitThread: callback returned for thread ");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString("\n");
         }
+
+        Serial.WriteString("[SCHED] ExitThread: entering DisableInterruptsScope for thread ");
+        Serial.WriteNumber(thread.Id);
+        Serial.WriteString("\n");
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
