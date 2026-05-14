@@ -6,7 +6,10 @@ using Cosmos.Kernel.Core.Memory;
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
-/// SATA drive port driver.
+/// SATA drive port driver. The bounce buffer is a single page allocated
+/// from <see cref="PageAllocator"/>; the HBA DMAs to its physical address
+/// while <see cref="ReadDataBlock16"/> / <see cref="WriteDataBlock8"/>
+/// touch the kernel-virtual address.
 /// </summary>
 public class SATA : BlockDevice
 {
@@ -15,7 +18,8 @@ public class SATA : BlockDevice
     public uint PortNumber => _portReg.PortNumber;
 
     private readonly PortRegisters _portReg;
-    private readonly uint _dataBlockBase;
+    private readonly ulong _dataBufferVirt;
+    private readonly ulong _dataBufferPhys;
     private const uint DataBlockSize = 512;
 
     /// <summary>
@@ -38,8 +42,21 @@ public class SATA : BlockDevice
 
         _portReg = portReg;
 
-        // Allocate data block for DMA transfers
-        _dataBlockBase = (uint)MemoryOp.Alloc(DataBlockSize);
+        // One page (4 KiB) of contiguous DMA-able memory, well above the 2-byte
+        // alignment AHCI's PRDT.DBA requires. PageAllocator hands out the
+        // kernel-virtual; VirtualToPhysical gets the address the HBA will see.
+        // OOM at boot would have killed everything earlier, so we trust the
+        // alloc; logging on the 32-bit-controller / high-physical edge case
+        // (the HBA will then see a truncated DMA address) is enough.
+        _dataBufferVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+        _dataBufferPhys = PageAllocator.VirtualToPhysical(_dataBufferVirt);
+
+        if (!_portReg.Controller.Supports64BitAddressing && _dataBufferPhys > 0xFFFFFFFF)
+        {
+            Serial.WriteString("[SATA] WARNING: 32-bit-only controller with bounce buffer above 4 GiB at phys=0x");
+            Serial.WriteHex(_dataBufferPhys);
+            Serial.WriteString(" — DMA addressing will be truncated\n");
+        }
 
         // Setting block size
         BlockSize = RegularSectorSize;
@@ -102,16 +119,22 @@ public class SATA : BlockDevice
             return;
         }
 
-        HBACommandHeader cmdHeader = new(_portReg.CLB, (uint)slot)
+        ulong clbVirt = _portReg.Controller.PortCommandListVirt(PortNumber);
+        ulong ctbaPhys = _portReg.Controller.PortCommandTablePhys(PortNumber, (uint)slot);
+        ulong ctbaVirt = _portReg.Controller.PortCommandTableVirt(PortNumber, (uint)slot);
+
+        HBACommandHeader cmdHeader = new(clbVirt, (uint)slot)
         {
             CFL = 5,
             PRDTL = 1,
             Write = (byte)(isWrite ? 1 : 0),
-            CTBA = (uint)((uint)(AHCIBase.AHCI + 0xA000) + 0x2000 * PortNumber + 0x100 * slot)
+            CTBA = (uint)(ctbaPhys & 0xFFFFFFFF),
+            CTBAU = (uint)(ctbaPhys >> 32)
         };
 
-        HBACommandTable cmdTable = new(cmdHeader.CTBA, cmdHeader.PRDTL);
-        cmdTable.PRDTEntry[0].DBA = _dataBlockBase;
+        HBACommandTable cmdTable = new(ctbaVirt, cmdHeader.PRDTL);
+        cmdTable.PRDTEntry[0].DBA = (uint)(_dataBufferPhys & 0xFFFFFFFF);
+        cmdTable.PRDTEntry[0].DBAU = (uint)(_dataBufferPhys >> 32);
         cmdTable.PRDTEntry[0].DBC = useLba48 ? count * 512 - 1 : 511;
         cmdTable.PRDTEntry[0].InterruptOnCompletion = 1;
 
@@ -178,7 +201,7 @@ public class SATA : BlockDevice
         }
         if (i == 101)
         {
-            AHCI.HBAReset();
+            port.Controller.HBAReset();
         }
 
         port.SCTL = 1;
@@ -223,7 +246,7 @@ public class SATA : BlockDevice
 
     private unsafe void ReadDataBlock16(ushort[] buffer)
     {
-        ushort* ptr = (ushort*)_dataBlockBase;
+        ushort* ptr = (ushort*)_dataBufferVirt;
         for (int i = 0; i < buffer.Length; i++)
         {
             buffer[i] = ptr[i];
@@ -232,7 +255,7 @@ public class SATA : BlockDevice
 
     private unsafe void ReadDataBlock8(Span<byte> data)
     {
-        byte* ptr = (byte*)_dataBlockBase;
+        byte* ptr = (byte*)_dataBufferVirt;
         for (int i = 0; i < data.Length; i++)
         {
             data[i] = ptr[i];
@@ -241,14 +264,14 @@ public class SATA : BlockDevice
 
     private unsafe void WriteDataBlock8(Span<byte> data)
     {
-        byte* ptr = (byte*)_dataBlockBase;
+        byte* ptr = (byte*)_dataBufferVirt;
         for (int i = 0; i < data.Length; i++)
         {
             ptr[i] = data[i];
         }
     }
 
-    // BlockDevice implementation. The bounce buffer (_dataBlockBase) is sized
+    // BlockDevice implementation. The bounce buffer (_dataBufferVirt) is sized
     // for one sector, so we issue one DMA command per block rather than
     // overrunning the buffer on multi-block transfers.
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
