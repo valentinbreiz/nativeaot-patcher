@@ -1,6 +1,6 @@
 using System.Runtime;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using Cosmos.Kernel.Core.Scheduler;
+using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.Core.Runtime;
 

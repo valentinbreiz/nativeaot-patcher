@@ -1,8 +1,8 @@
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Memory;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using Cosmos.Kernel.Core.Scheduler;
+using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.Core.Runtime;
 
