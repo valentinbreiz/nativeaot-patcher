@@ -4,6 +4,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.Kernel.System.Network;
@@ -12,6 +13,7 @@ using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
+using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
 using Sys = Cosmos.Kernel.System;
 
@@ -180,6 +182,38 @@ public class Kernel : Sys.Kernel
 
                 case "meminfo":
                     ShowMemoryInfo();
+                    break;
+
+                case "diskinfo":
+                    ShowDiskInfo();
+                    break;
+
+                case "diskread":
+                    if (parts.Length > 1 && ulong.TryParse(parts[1], out ulong readLba))
+                    {
+                        DiskRead(readLba);
+                    }
+                    else
+                    {
+                        PrintError("Usage: diskread <lba>");
+                    }
+                    break;
+
+                case "diskwrite":
+                    if (parts.Length > 2
+                        && ulong.TryParse(parts[1], out ulong writeLba)
+                        && byte.TryParse(parts[2], System.Globalization.NumberStyles.HexNumber, null, out byte writeByte))
+                    {
+                        DiskWrite(writeLba, writeByte);
+                    }
+                    else
+                    {
+                        PrintError("Usage: diskwrite <lba> <hex-byte>   (e.g. diskwrite 100 A5)");
+                    }
+                    break;
+
+                case "disktest":
+                    DiskTest();
                     break;
 
 
@@ -439,6 +473,10 @@ public class Kernel : Sys.Kernel
         PrintCommand("dns <domain>", "Resolve domain name to IP");
         PrintCommand("gc", "Give live information on the GC");
         PrintCommand("cpustat", "Live CPU% + thread monitor with stress wave");
+        PrintCommand("diskinfo", "Show storage devices and geometry");
+        PrintCommand("diskread <lba>", "Read 1 block, hex-dump first 64 bytes");
+        PrintCommand("diskwrite <lba> <hex>", "Fill 1 block with byte value (e.g. A5) and write");
+        PrintCommand("disktest", "Run a quick write/read roundtrip on the primary disk");
     }
 
     private void PrintCommand(string cmd, string description)
@@ -1071,6 +1109,138 @@ public class Kernel : Sys.Kernel
 
         dnsClient.Close();
         Console.WriteLine();
+    }
+
+    private void ShowDiskInfo()
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Storage Information:");
+        Console.ResetColor();
+
+        if (!StorageManager.IsEnabled)
+        {
+            PrintError("Storage support is disabled (CosmosEnableStorage=false).");
+            return;
+        }
+        if (StorageManager.DeviceCount == 0)
+        {
+            PrintWarning("No storage devices discovered. Attach a SATA disk to QEMU and reboot.");
+            return;
+        }
+
+        PrintInfoLine("Device Count", StorageManager.DeviceCount.ToString());
+
+        for (int i = 0; i < StorageManager.DeviceCount; i++)
+        {
+            IBlockDevice? dev = StorageManager.GetDevice(i);
+            if (dev == null)
+            {
+                continue;
+            }
+
+            ulong totalBytes = dev.BlockCount * dev.BlockSize;
+            Console.WriteLine();
+            PrintInfoLine($"[{i}] Name".PadRight(17), dev.Name);
+            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
+            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
+            PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
+            if (i == 0)
+            {
+                PrintInfoLine("    Primary".PadRight(17), "yes");
+            }
+        }
+    }
+
+    private void DiskRead(ulong lba)
+    {
+        IBlockDevice? dev = StorageManager.PrimaryDevice;
+        if (dev == null)
+        {
+            PrintError("No primary storage device.");
+            return;
+        }
+        if (lba >= dev.BlockCount)
+        {
+            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
+            return;
+        }
+
+        Span<byte> buf = new byte[dev.BlockSize];
+        dev.ReadBlock(lba, 1, buf);
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine($"Block {lba} (first 64 bytes):");
+        Console.ResetColor();
+
+        int show = (int)Math.Min((ulong)64, dev.BlockSize);
+        for (int i = 0; i < show; i++)
+        {
+            if (i > 0 && i % 16 == 0)
+            {
+                Console.WriteLine();
+            }
+            Console.Write(buf[i].ToString("X2"));
+            Console.Write(' ');
+        }
+        Console.WriteLine();
+    }
+
+    private void DiskWrite(ulong lba, byte value)
+    {
+        IBlockDevice? dev = StorageManager.PrimaryDevice;
+        if (dev == null)
+        {
+            PrintError("No primary storage device.");
+            return;
+        }
+        if (lba >= dev.BlockCount)
+        {
+            PrintError($"LBA {lba} out of range (max {dev.BlockCount - 1}).");
+            return;
+        }
+
+        Span<byte> buf = new byte[dev.BlockSize];
+        buf.Fill(value);
+        dev.WriteBlock(lba, 1, buf);
+
+        PrintSuccess($"Wrote {dev.BlockSize} bytes of 0x{value:X2} to LBA {lba}.");
+    }
+
+    private void DiskTest()
+    {
+        IBlockDevice? dev = StorageManager.PrimaryDevice;
+        if (dev == null)
+        {
+            PrintError("No primary storage device.");
+            return;
+        }
+
+        const ulong lba = 0xCAFE;
+        if (lba >= dev.BlockCount)
+        {
+            PrintError($"Test LBA {lba} out of range (max {dev.BlockCount - 1}).");
+            return;
+        }
+
+        Span<byte> writeBuf = new byte[dev.BlockSize];
+        for (int i = 0; i < (int)dev.BlockSize; i++)
+        {
+            writeBuf[i] = (byte)(i ^ 0x5A);
+        }
+        dev.WriteBlock(lba, 1, writeBuf);
+
+        Span<byte> readBuf = new byte[dev.BlockSize];
+        dev.ReadBlock(lba, 1, readBuf);
+
+        for (int i = 0; i < (int)dev.BlockSize; i++)
+        {
+            if (writeBuf[i] != readBuf[i])
+            {
+                PrintError($"Mismatch at byte {i}: wrote 0x{writeBuf[i]:X2}, read 0x{readBuf[i]:X2}.");
+                return;
+            }
+        }
+        PrintSuccess($"Disk W/R roundtrip OK at LBA {lba} ({dev.BlockSize} bytes).");
     }
 
     private void PrintInfo(string message)

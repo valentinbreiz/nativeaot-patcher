@@ -26,6 +26,7 @@ internal static class CfiArch
     public const byte CfaRegAtEntry = (byte)DwarfReg.SP;       // CFA = SP at function entry (AAPCS64)
     public const int CfaOffsetAtEntry = 0;
     public const int StackPointerReg = (int)DwarfReg.SP;       // Regs[31] = unwound caller SP
+    public const int FramePointerReg = (int)DwarfReg.FP;       // Regs[29] = unwound caller frame pointer (X29)
     public const int RaColumn = (int)DwarfReg.LR;              // 30 — LR is the RA reg (no pseudo-reg)
     public const int DefaultCodeAlignFactor = 4;               // every ARM64 instruction is 4 bytes
     public const RegSaveKind RaInitRule = RegSaveKind.SameValue;  // LR is a normal reg; SameValue = the seeded default

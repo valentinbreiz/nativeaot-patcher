@@ -6,7 +6,8 @@ using Cosmos.Kernel.Core.IO;
 namespace Cosmos.Kernel.Core.X64.Cpu;
 
 /// <summary>
-/// X64 interrupt controller - manages IDT and APIC.
+/// X64 interrupt controller - manages IDT and APIC, owns the x64 dispatch
+/// path (vector lookup, EOI for hardware IRQs, fatal CPU-exception halt).
 /// </summary>
 public class X64InterruptController : IInterruptController
 {
@@ -19,14 +20,6 @@ public class X64InterruptController : IInterruptController
         Serial.Write("[X64InterruptController] IDT initialization complete\n");
     }
 
-    public void SendEOI()
-    {
-        if (ApicManager.IsInitialized)
-        {
-            ApicManager.SendEOI();
-        }
-    }
-
     public void RouteIrq(byte irqNo, byte vector, bool startMasked)
     {
         if (ApicManager.IsInitialized)
@@ -35,32 +28,62 @@ public class X64InterruptController : IInterruptController
         }
     }
 
-    public bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
+    public void Dispatch(ref IRQContext ctx)
     {
-        // x64: Fatal CPU exceptions (0-31) - halt immediately
-        if (interrupt <= 31)
+        InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
+        if (handlers != null && ctx.interrupt < (ulong)handlers.Length)
         {
-            Serial.Write("[INT] FATAL: Exception ", interrupt, "\n");
-            Serial.Write("[INT] Error code: 0x");
-            Serial.WriteHex(cpuFlags);
-            Serial.Write("\n");
-
-            // For page faults (#PF = 14), show the faulting address
-            if (interrupt == 14)
+            InterruptManager.IrqDelegate handler = handlers[(int)ctx.interrupt];
+            if (handler != null)
             {
-                Serial.Write("[INT] Fault address (CR2): 0x");
-                Serial.WriteHex(faultAddress);
-                Serial.Write("\n");
-            }
+                handler(ref ctx);
 
-            while (true) { }
+                // Send EOI for hardware IRQs (vector >= 32)
+                if (ctx.interrupt >= 32 && IsInitialized)
+                {
+                    SendEOI();
+                }
+                return;
+            }
         }
-        return false;
+
+        // No managed handler - for CPU exceptions (0-31), fall through to fatal halt
+        if (ctx.interrupt <= 31)
+        {
+            HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
+            return;
+        }
+
+        // Send EOI even for unhandled hardware interrupts to prevent lockup
+        if (ctx.interrupt >= 32 && IsInitialized)
+        {
+            SendEOI();
+        }
     }
 
-    public uint AcknowledgeInterrupt()
+    private static void SendEOI()
     {
-        // x64 doesn't use this - interrupt vector comes from IDT directly
-        throw new System.NotSupportedException("AcknowledgeInterrupt is not supported on x64. Use IDT vector directly.");
+        if (ApicManager.IsInitialized)
+        {
+            ApicManager.SendEOI();
+        }
+    }
+
+    private static void HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
+    {
+        Serial.Write("[INT] FATAL: Exception ", interrupt, "\n");
+        Serial.Write("[INT] Error code: 0x");
+        Serial.WriteHex(cpuFlags);
+        Serial.Write("\n");
+
+        // For page faults (#PF = 14), show the faulting address
+        if (interrupt == 14)
+        {
+            Serial.Write("[INT] Fault address (CR2): 0x");
+            Serial.WriteHex(faultAddress);
+            Serial.Write("\n");
+        }
+
+        while (true) { }
     }
 }

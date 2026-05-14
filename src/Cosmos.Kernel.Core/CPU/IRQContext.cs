@@ -46,9 +46,9 @@ public struct IRQContext
     public ulong elr;  // Exception link register (return address)
     public ulong spsr; // Saved program status register
 
-    public ulong interrupt;  // Exception type (0=sync, 1=irq, 2=fiq, 3=serror)
-    public ulong cpu_flags;  // ESR_EL1 (exception syndrome)
-    public ulong far;        // FAR_EL1 (fault address for data/instruction aborts)
+    public ulong interrupt;       // Exception type (0=sync, 1=irq, 2=fiq, 3=serror)
+    public ulong cpu_flags;       // ESR_EL1 (exception syndrome)
+    public ulong fault_address;   // FAR_EL1 (fault address for data/instruction aborts)
 }
 
 #else
@@ -73,7 +73,7 @@ public struct IRQContext
     public ulong rax;
     public ulong interrupt;
     public ulong cpu_flags;
-    public ulong cr2;  // Page fault linear address (valid for #PF, int 14)
+    public ulong fault_address;  // CR2: page-fault linear address (valid for #PF, int 14)
 }
 
 #endif

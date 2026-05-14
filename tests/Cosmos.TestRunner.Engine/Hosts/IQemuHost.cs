@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cosmos.TestRunner.Engine;
@@ -21,8 +22,10 @@ public interface IQemuHost
     /// <param name="timeoutSeconds">Maximum time to run (default 30s)</param>
     /// <param name="showDisplay">Show QEMU display window (default false = headless)</param>
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
+    /// <param name="ahciDiskPaths">Raw disk images to attach as AHCI/SATA drives (default null = no AHCI disks). One <c>ich9-ahci</c> controller carries them on successive ports.</param>
+    /// <param name="nvmeDiskPaths">Raw disk images to attach as NVMe drives (default null = no NVMe disks). Each path gets its own <c>nvme</c> controller, exercising multi-controller binding.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<string>? ahciDiskPaths = null, IReadOnlyList<string>? nvmeDiskPaths = null);
 }
 
 /// <summary>

@@ -60,20 +60,22 @@ public static unsafe class PageAllocator
     public static ulong RamSize;
 
     /// <summary>
-    /// Convert virtual address to physical address for Higher Half Kernel mapping
+    /// Convert virtual address to physical address for Higher Half Kernel mapping.
+    /// Subtracts the Limine HHDM offset when the address is in higher-half
+    /// space; passes through values that look already-physical.
     /// </summary>
     /// <param name="virtualAddress">Virtual address to convert</param>
     /// <returns>Physical address</returns>
-    private static ulong VirtualToPhysical(ulong virtualAddress)
+    public static ulong VirtualToPhysical(ulong virtualAddress)
     {
-        // Higher Half Kernel mapping: virtual addresses start with 0xFFFF8000
-        // Remove the higher half offset to get physical address
-        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
-        if (virtualAddress >= HigherHalfOffset)
+        ulong hhdmOffset = Limine.HHDM.Response != null
+            ? Limine.HHDM.Response->Offset
+            : 0xFFFF800000000000UL;
+
+        if (virtualAddress >= hhdmOffset)
         {
-            return virtualAddress - HigherHalfOffset;
+            return virtualAddress - hhdmOffset;
         }
-        // If not in higher half mapping, assume it's already physical
         return virtualAddress;
     }
 

@@ -33,6 +33,16 @@ public interface IPlatformInitializer
     void PreparePciMapping(ulong ecamBase);
 
     /// <summary>
+    /// Maps a physical MMIO region so the HHDM-virtual alias is accessible
+    /// with Device-memory attributes. Called by HAL device drivers (AHCI,
+    /// NVMe, etc.) before touching their BARs. ARM64 installs a Device
+    /// mapping in TTBR1 via <c>DeviceMapper.EnsureMapped</c>; x64's existing
+    /// page tables already cover MMIO so it's a no-op.
+    /// </summary>
+    /// <param name="physBase">Physical base address of the MMIO region.</param>
+    void EnsureMmioMapped(ulong physBase);
+
+    /// <summary>
     /// Initializes platform-specific hardware (PCI, ACPI, APIC, GIC, etc.).
     /// Called after HAL and interrupt manager are initialized.
     /// </summary>

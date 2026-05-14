@@ -41,6 +41,19 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         }
     }
 
+    public void EnsureMmioMapped(ulong physBase)
+    {
+        // Limine's HHDM on aarch64 only covers RAM with Normal-cacheable
+        // attributes; device MMIO has to be mapped explicitly as Device
+        // memory so register reads/writes aren't reordered or cached.
+        // Safe to call repeatedly — DeviceMapper.EnsureMapped no-ops if the
+        // mapping already exists.
+        if (physBase != 0)
+        {
+            DeviceMapper.EnsureMapped(physBase);
+        }
+    }
+
     public void InitializeHardware()
     {
         // Initialize Generic Timer
@@ -63,6 +76,7 @@ public class ARM64PlatformInitializer : IPlatformInitializer
             Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
             VirtioDevice.InitializeDevices();
         }
+
     }
 
     public ITimerDevice CreateTimer()

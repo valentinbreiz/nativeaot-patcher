@@ -42,6 +42,13 @@ public class X64PlatformInitializer : IPlatformInitializer
         // which bypasses the MMU — no memory mapping needed.
     }
 
+    public void EnsureMmioMapped(ulong physBase)
+    {
+        // x64 page tables already cover MMIO regions through the identity
+        // map / HHDM that Limine installs, so no per-region mapping is
+        // needed. ARM64 has to install a Device-memory mapping itself.
+    }
+
     public void InitializeHardware()
     {
         // Display ACPI MADT information
