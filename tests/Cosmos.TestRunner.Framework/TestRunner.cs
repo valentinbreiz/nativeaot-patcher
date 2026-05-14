@@ -76,6 +76,27 @@ namespace Cosmos.TestRunner.Framework
         }
 
         /// <summary>
+        /// Run <paramref name="testAction"/> only when <paramref name="condition"/> is
+        /// true; otherwise emit a <see cref="Skip(string, string)"/> with
+        /// <paramref name="skipReason"/>. Use to gate a test on a feature that may or
+        /// may not be present in the current QEMU profile (specific device kind, MSI-X
+        /// capability, GIC version) — keeps the test in the report as Skipped instead
+        /// of either silently disappearing or failing for a reason that's not a code
+        /// regression.
+        /// </summary>
+        public static void RunIf(bool condition, string testName, Action testAction, string skipReason)
+        {
+            if (condition)
+            {
+                Run(testName, testAction);
+            }
+            else
+            {
+                Skip(testName, skipReason);
+            }
+        }
+
+        /// <summary>
         /// Run a destructive test whose action is expected to never return
         /// (e.g. a successful Power.Reboot / Power.Shutdown). The test is
         /// pre-emptively reported as passed before invoking the action; if
