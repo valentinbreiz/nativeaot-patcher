@@ -45,6 +45,11 @@ public static unsafe class PageAllocator
     private static byte* mRAT;
 
     /// <summary>
+    /// Virtual address of the RAT base (one byte per page).
+    /// </summary>
+    public static ulong RatAddress => (ulong)mRAT;
+
+    /// <summary>
     /// Pointer to end of the heap
     /// </summary>
     private static byte* HeapEnd;
@@ -648,9 +653,32 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
-    internal static void DumpPageCounts()
+    /// <summary>
+    /// Fills out per-PageType counts by scanning the RAT. Returns zeros when
+    /// the heap is not yet initialized. Used by the live-debug snapshot so
+    /// the host VS Code extension can show RAT composition without pausing.
+    /// </summary>
+    public static void GetPageCountsByType(
+        out ulong empty,
+        out ulong gcHeap,
+        out ulong heapSmall,
+        out ulong heapMedium,
+        out ulong heapLarge,
+        out ulong unmanaged,
+        out ulong pageDirectory,
+        out ulong pageAllocator,
+        out ulong smt,
+        out ulong extension,
+        out ulong unknown)
     {
-        ulong empty = 0, heapSmall = 0, heapMedium = 0, heapLarge = 0, unmanaged = 0, pageDirectory = 0, pageAllocator = 0, smt = 0, extension = 0, unknown = 0, gcHeap = 0;
+        empty = gcHeap = heapSmall = heapMedium = heapLarge = unmanaged =
+            pageDirectory = pageAllocator = smt = extension = unknown = 0;
+
+        if (mRAT == null || TotalPageCount == 0)
+        {
+            return;
+        }
+
         for (ulong i = 0; i < TotalPageCount; i++)
         {
             byte b = mRAT[i];
@@ -669,6 +697,22 @@ public static unsafe class PageAllocator
                 default: unknown++; break;
             }
         }
+    }
+
+    internal static void DumpPageCounts()
+    {
+        GetPageCountsByType(
+            out ulong empty,
+            out ulong gcHeap,
+            out ulong heapSmall,
+            out ulong heapMedium,
+            out ulong heapLarge,
+            out ulong unmanaged,
+            out ulong pageDirectory,
+            out ulong pageAllocator,
+            out ulong smt,
+            out ulong extension,
+            out ulong unknown);
 
         Serial.WriteString("[PageAllocator] Page counts by type:\n");
         Serial.WriteString("  Empty: "); Serial.WriteNumber(empty); Serial.WriteString("\n");
