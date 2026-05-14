@@ -57,10 +57,40 @@ namespace Cosmos.TestRunner.Framework
             // Execute test
             testAction();
 
-            // Calculate duration
+            // Calculate duration. The raw CNTPCT_EL0 delta has produced
+            // multi-million-second readings on github-CI arm64 (QEMU TCG)
+            // for a sub-second test, propagating into the JUnit XML as
+            // bogus times. When that happens, clamp to a sane max and
+            // emit a UART warning with the raw inputs so the cause can be
+            // debugged from the log.
             var endTicks = Stopwatch.GetTimestamp();
             var elapsedTicks = endTicks - _testStartTicks;
-            var durationMs = (uint)((elapsedTicks * 1000) / Stopwatch.Frequency);
+            long freq = Stopwatch.Frequency;
+            long rawMs = (freq > 0 && elapsedTicks > 0)
+                ? (elapsedTicks * 1000) / freq
+                : 0;
+
+            const long MaxSaneDurationMs = 5L * 60L * 1000L; // 5 minutes
+            uint durationMs;
+            if (rawMs < 0 || rawMs > MaxSaneDurationMs)
+            {
+                Serial.WriteString("[TestRunner] WARN clamped durationMs=");
+                Serial.WriteNumber(rawMs);
+                Serial.WriteString(" startTicks=");
+                Serial.WriteNumber(_testStartTicks);
+                Serial.WriteString(" endTicks=");
+                Serial.WriteNumber(endTicks);
+                Serial.WriteString(" elapsedTicks=");
+                Serial.WriteNumber(elapsedTicks);
+                Serial.WriteString(" freq=");
+                Serial.WriteNumber(freq);
+                Serial.WriteString("\n");
+                durationMs = (uint)MaxSaneDurationMs;
+            }
+            else
+            {
+                durationMs = (uint)rawMs;
+            }
 
             // Check if test failed via Assert
             if (Assert.Failed)
