@@ -68,6 +68,10 @@ public static class SchedulerManager
         // Pre-allocate thread registry
         _allThreads = new Thread?[Thread.MaxThreadCount];
         _allThreadCount = 0;
+
+        Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Initialize();
+        Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Initialize();
+        Cosmos.Kernel.Core.Runtime.DebugLiveMemorySnapshot.Initialize();
     }
 
     public static void SetScheduler(IScheduler scheduler)
@@ -298,6 +302,16 @@ public static class SchedulerManager
             return;
         }
 
+        // Idempotent: idle-thread setup goes through both CreateThread and
+        // SetupIdleThread, both of which call here. Avoid duplicate slots.
+        for (int i = 0; i < _allThreads.Length; i++)
+        {
+            if (_allThreads[i] == thread)
+            {
+                return;
+            }
+        }
+
         for (int i = 0; i < _allThreads.Length; i++)
         {
             if (_allThreads[i] == null)
@@ -388,6 +402,10 @@ public static class SchedulerManager
 
             thread.State = ThreadState.Blocked;
             _currentScheduler.OnThreadBlocked(state, thread);
+
+            Serial.WriteString("[SCHED] BlockThread id=");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString("\n");
         }
     }
 
@@ -406,8 +424,14 @@ public static class SchedulerManager
                 var callback = (delegate* unmanaged<void>)managedCallback;
                 callback();
             }
-
+            Serial.WriteString("[SCHED] ExitThread: callback returned for thread ");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString("\n");
         }
+
+        Serial.WriteString("[SCHED] ExitThread: entering DisableInterruptsScope for thread ");
+        Serial.WriteNumber(thread.Id);
+        Serial.WriteString("\n");
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
@@ -562,6 +586,16 @@ public static class SchedulerManager
     public static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
         _tickCount++;
+
+        // Refresh the debug-live snapshot every 10 ticks (~100ms at 100Hz)
+        // so the host-side QMP poller sees fresh thread state without
+        // pausing the kernel.
+        if ((_tickCount % 10) == 0)
+        {
+            Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Update();
+            Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Update();
+            Cosmos.Kernel.Core.Runtime.DebugLiveMemorySnapshot.Update();
+        }
 
         // Log first 10 ticks and then every 50 ticks
         if (_tickCount <= 10 || _tickCount % 50 == 0)
