@@ -29,8 +29,8 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 12 device + 5 partition + 1 CI-validation = 20 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 20);
+        // 2 manager + 12 device + 5 partition = 19 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 19);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -63,16 +63,6 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "Partition_RescanPartitions",       TestPartition_RescanPartitions,      SkipNoHost);
         TR.RunIf(dev, "Partition_ReadWrite_TranslatesLba", TestPartition_ReadWriteTranslatesLba, SkipNoHost);
         TR.RunIf(dev, "Partition_OutOfBounds_Throws",      TestPartition_OutOfBoundsThrows,     SkipNoHost);
-
-        // ==================== CIValidation (temporary, edge-case smoke) ====================
-        // Deliberate edge-case to validate the CI per-profile failure path
-        // end-to-end. Asserts the device kind is "SATA", which is true under
-        // every [ahci*] profile and false under every [nvme*] profile — so the
-        // PR comment should mark the four nvme matrix rows ❌ and leave the
-        // four ahci rows ✅, while ahci-on-arm64 (no device bound) shows as
-        // Skipped via the gate. Remove this in the follow-up revert once the
-        // ❌-attribution flow is confirmed against the PR table.
-        TR.RunIf(dev, "CIValidation_DeviceMustBeSATA", TestCIValidation_DeviceMustBeSATA, SkipNoDevice);
 
         TR.Finish();
 
@@ -468,16 +458,5 @@ public class Kernel : Sys.Kernel
         {
             // Expected.
         }
-    }
-
-    // ==================== CIValidation (temporary, edge-case smoke) ====================
-
-    // Edge-case test designed to fail under every [nvme*] profile and pass
-    // under every [ahci*] profile, so the PR-comment per-profile breakdown
-    // is exercised end-to-end. Pure validation hook — remove once the
-    // failure-attribution flow is confirmed against the green-path baseline.
-    private static void TestCIValidation_DeviceMustBeSATA()
-    {
-        Assert.Equal("SATA", s_dev!.Name);
     }
 }
