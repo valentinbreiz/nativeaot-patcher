@@ -3,14 +3,6 @@
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>
-/// AHCI base memory address constant.
-/// </summary>
-public static class AHCIBase
-{
-    public const uint AHCI = 0x00400000;
-}
-
-/// <summary>
 /// Port type enumeration.
 /// </summary>
 public enum PortType

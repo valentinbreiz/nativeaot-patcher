@@ -107,12 +107,17 @@ public unsafe class NVMeController
             throw new Exception("[NVMe] Invalid BAR configuration");
         }
 
-        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         ulong bar0Phys = pci.GetBar64Address(0);
         if (bar0Phys == 0)
         {
             throw new Exception("[NVMe] BAR0 is not a memory BAR");
         }
+
+        // ARM64 needs the BAR page installed as Device memory in TTBR1
+        // before the HHDM virtual is dereferenceable for MMIO. No-op on x64.
+        PlatformHAL.Initializer?.EnsureMmioMapped(bar0Phys);
+
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         ulong bar0Virt = bar0Phys + hhdmOffset;
         _regs = new NVMeRegisters(bar0Virt);
 

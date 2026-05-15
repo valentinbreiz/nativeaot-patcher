@@ -84,7 +84,10 @@ public class GenericRegisters
 }
 
 /// <summary>
-/// AHCI Port Registers.
+/// AHCI Port Registers. Carries a back-reference to the
+/// <see cref="AHCIController"/> that owns the port so per-port code (SATA
+/// command issue, port reset) can reach controller state without going
+/// through globals.
 /// </summary>
 public class PortRegisters
 {
@@ -92,12 +95,14 @@ public class PortRegisters
     public uint PortNumber { get; }
     public PortType PortType { get; set; } = PortType.Nothing;
     public bool Active { get; set; }
+    public AHCIController Controller { get; }
 
-    public PortRegisters(ulong baseAddress, uint portNumber)
+    public PortRegisters(ulong baseAddress, uint portNumber, AHCIController controller)
     {
         PortNumber = portNumber;
         _address = baseAddress + 0x80 * portNumber;
         Active = false;
+        Controller = controller;
     }
 
     /// <summary>Command List Base Address</summary>
@@ -227,7 +232,7 @@ public class HBACommandHeader
 {
     private readonly ulong _address;
 
-    public HBACommandHeader(uint baseAddress, uint slot)
+    public HBACommandHeader(ulong baseAddress, uint slot)
     {
         _address = baseAddress + 32 * slot;
         // Clear the header
@@ -289,14 +294,16 @@ public class HBACommandHeader
 }
 
 /// <summary>
-/// HBA Command Table.
+/// HBA Command Table. <see cref="CFIS"/> is the kernel-virtual base; the
+/// HBA itself addresses this table via the physical CTBA written into the
+/// owning <see cref="HBACommandHeader"/>.
 /// </summary>
 public class HBACommandTable
 {
-    public uint CFIS { get; }
+    public ulong CFIS { get; }
     public HBAPRDTEntry[] PRDTEntry { get; }
 
-    public HBACommandTable(uint address, uint prdtCount)
+    public HBACommandTable(ulong address, uint prdtCount)
     {
         CFIS = address;
 
@@ -313,7 +320,7 @@ public class HBACommandTable
         }
     }
 
-    public uint ACMD => CFIS + 0x40;
+    public ulong ACMD => CFIS + 0x40;
 }
 
 /// <summary>
@@ -323,7 +330,7 @@ public class HBAPRDTEntry
 {
     private readonly ulong _address;
 
-    public HBAPRDTEntry(uint baseAddress, uint entry)
+    public HBAPRDTEntry(ulong baseAddress, uint entry)
     {
         _address = baseAddress + 0x10 * entry;
         // Clear the entry
@@ -365,7 +372,7 @@ public class FISRegisterH2D
 {
     private readonly ulong _address;
 
-    public FISRegisterH2D(uint address)
+    public FISRegisterH2D(ulong address)
     {
         _address = address;
         // Clear the FIS (20 bytes)
