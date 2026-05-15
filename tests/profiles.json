@@ -1,0 +1,66 @@
+{
+  // Global QEMU profile catalog. Two orthogonal axes:
+  //   * profiles  — a hardware "shape" (which disks/NICs are attached, etc.).
+  //   * modifiers — generic knobs that compose with a profile. Two flavors:
+  //       - deviceOptions: per-disk-kind overrides (msix tuning, cache mode)
+  //       - machineOptions: -M property overrides (gic-version, ...)
+  //     plus an optional architectures filter so arch-specific knobs (GIC) are
+  //     silently skipped on the wrong arch.
+  //
+  // A modifier with only deviceOptions is gated on at least one matching disk
+  // kind in the profile; a modifier with machineOptions applies regardless of
+  // what's attached. A suite opts in via <CosmosTestProfile/> and
+  // <CosmosTestModifier/> items; test names are prefixed [profile] or
+  // [profile+modifier].
+  "profiles": [
+    {
+      "name": "ahci",
+      "disks": [
+        { "type": "ahci" }
+      ]
+    },
+    {
+      "name": "nvme",
+      "disks": [
+        { "type": "nvme" }
+      ]
+    }
+  ],
+  "modifiers": [
+    {
+      // Constrain MSI-X to 1 vector. QEMU's `nvme` device rejects
+      // msix_qsize=0, so 1 is the smallest legal table — exercises the
+      // kernel's single-vector/vector-pressure path.
+      // Targets nvme only because ich9-ahci does not expose msix_qsize.
+      "name": "msix-min",
+      "deviceOptions": {
+        "nvme": { "msix_qsize": "1" }
+      }
+    },
+    {
+      // Force GICv2 (legacy distributor). cortex-a72 supports both v2 and v3,
+      // so flipping this exercises the kernel's GICv2 IRQ-ack/EOI path
+      // separate from GICv3 ICC_* system registers.
+      "name": "gicv2",
+      "architectures": ["arm64"],
+      "machineOptions": { "gic-version": "2" }
+    },
+    {
+      // Force GICv3. Default on most newer QEMU virt machines, but pinning
+      // it makes the test matrix explicit and disambiguates from `auto`.
+      "name": "gicv3",
+      "architectures": ["arm64"],
+      "machineOptions": { "gic-version": "3" }
+    },
+    {
+      // Disable ACPI on the machine. Default is acpi=on for both q35 and
+      // virt; flipping it forces the kernel onto its non-ACPI discovery
+      // paths (no MADT/IORT/MCFG, fall back to FDT or hard-coded layout).
+      // Useful smoke for "ACPI tables absent" code; on x64 it typically
+      // disables PCIe enumeration and surfaces as missing devices in the
+      // dependent tests via the existing TR.RunIf gating.
+      "name": "acpi-off",
+      "machineOptions": { "acpi": "off" }
+    }
+  ]
+}

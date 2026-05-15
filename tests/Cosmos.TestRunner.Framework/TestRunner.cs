@@ -57,10 +57,40 @@ namespace Cosmos.TestRunner.Framework
             // Execute test
             testAction();
 
-            // Calculate duration
+            // Calculate duration. The raw CNTPCT_EL0 delta has produced
+            // multi-million-second readings on github-CI arm64 (QEMU TCG)
+            // for a sub-second test, propagating into the JUnit XML as
+            // bogus times. When that happens, clamp to a sane max and
+            // emit a UART warning with the raw inputs so the cause can be
+            // debugged from the log.
             var endTicks = Stopwatch.GetTimestamp();
             var elapsedTicks = endTicks - _testStartTicks;
-            var durationMs = (uint)((elapsedTicks * 1000) / Stopwatch.Frequency);
+            long freq = Stopwatch.Frequency;
+            long rawMs = (freq > 0 && elapsedTicks > 0)
+                ? (elapsedTicks * 1000) / freq
+                : 0;
+
+            const long MaxSaneDurationMs = 5L * 60L * 1000L; // 5 minutes
+            uint durationMs;
+            if (rawMs < 0 || rawMs > MaxSaneDurationMs)
+            {
+                Serial.WriteString("[TestRunner] WARN clamped durationMs=");
+                Serial.WriteNumber(rawMs);
+                Serial.WriteString(" startTicks=");
+                Serial.WriteNumber(_testStartTicks);
+                Serial.WriteString(" endTicks=");
+                Serial.WriteNumber(endTicks);
+                Serial.WriteString(" elapsedTicks=");
+                Serial.WriteNumber(elapsedTicks);
+                Serial.WriteString(" freq=");
+                Serial.WriteNumber(freq);
+                Serial.WriteString("\n");
+                durationMs = (uint)MaxSaneDurationMs;
+            }
+            else
+            {
+                durationMs = (uint)rawMs;
+            }
 
             // Check if test failed via Assert
             if (Assert.Failed)
@@ -72,6 +102,27 @@ namespace Cosmos.TestRunner.Framework
             {
                 _passedCount++;
                 SendTestPass(_currentTestNumber, durationMs);
+            }
+        }
+
+        /// <summary>
+        /// Run <paramref name="testAction"/> only when <paramref name="condition"/> is
+        /// true; otherwise emit a <see cref="Skip(string, string)"/> with
+        /// <paramref name="skipReason"/>. Use to gate a test on a feature that may or
+        /// may not be present in the current QEMU profile (specific device kind, MSI-X
+        /// capability, GIC version) — keeps the test in the report as Skipped instead
+        /// of either silently disappearing or failing for a reason that's not a code
+        /// regression.
+        /// </summary>
+        public static void RunIf(bool condition, string testName, Action testAction, string skipReason)
+        {
+            if (condition)
+            {
+                Run(testName, testAction);
+            }
+            else
+            {
+                Skip(testName, skipReason);
             }
         }
 

@@ -105,26 +105,32 @@ public class OutputHandlerXml : OutputHandlerBase
 
         writer.WriteEndElement(); // properties
 
-        // Individual test cases
+        // Individual test cases. Filter every string attribute through
+        // FilterInvalidXmlChars before emission — even though ParseTestStart
+        // now drops messages with control chars in the name, defending the
+        // writer keeps a malformed UART corruption from ever truncating the
+        // XML mid-suite (which loses ALL profiles' results, not just the
+        // corrupted one).
         foreach (var test in results.Tests)
         {
             writer.WriteStartElement("testcase");
-            writer.WriteAttributeString("name", test.TestName);
+            writer.WriteAttributeString("name", FilterInvalidXmlChars(test.TestName));
             writer.WriteAttributeString("classname", _suiteName);
             writer.WriteAttributeString("time", (test.DurationMs / 1000.0).ToString("F3"));
 
             if (test.Status == TestStatus.Failed)
             {
+                string msg = FilterInvalidXmlChars(test.ErrorMessage);
                 writer.WriteStartElement("failure");
-                writer.WriteAttributeString("message", test.ErrorMessage);
+                writer.WriteAttributeString("message", msg);
                 writer.WriteAttributeString("type", "TestFailure");
-                writer.WriteString(test.ErrorMessage);
+                writer.WriteString(msg);
                 writer.WriteEndElement(); // failure
             }
             else if (test.Status == TestStatus.Skipped)
             {
                 writer.WriteStartElement("skipped");
-                writer.WriteAttributeString("message", test.ErrorMessage);
+                writer.WriteAttributeString("message", FilterInvalidXmlChars(test.ErrorMessage));
                 writer.WriteEndElement(); // skipped
             }
 
