@@ -19,6 +19,7 @@
     <PackageVersion Include="Cosmos.Kernel.Native.MultiArch" Version="$(VersionPrefix)" />
     <PackageVersion Include="Cosmos.Kernel.Core.X64" Version="$(VersionPrefix)" />
     <PackageVersion Include="Cosmos.Kernel.Core.ARM64" Version="$(VersionPrefix)" />
+    <PackageVersion Include="Cosmos.Kernel.Core" Version="$(VersionPrefix)" />
     <PackageVersion Include="Cosmos.Kernel.HAL.X64" Version="$(VersionPrefix)" />
     <PackageVersion Include="Cosmos.Kernel.HAL.ARM64" Version="$(VersionPrefix)" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
@@ -38,6 +39,10 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.Testing.Platform" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.2.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
     <PackageVersion Include="System.Reflection.Metadata" Version="9.0.0" />

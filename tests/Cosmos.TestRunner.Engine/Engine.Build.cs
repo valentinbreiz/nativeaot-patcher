@@ -82,6 +82,8 @@ public partial class Engine
                        $"-r {runtime} " +
                        $"-p:DefineConstants=\"{defineConstants}\" " +
                        $"-p:CosmosArch=\"{cosmosArch}\" " +
+                       $"-p:COSUnit_BuildKernel=\"true\" " +
+                       $"-p:CosmosKernelClass=\"TestKernel.TestKernel_TestGeneratedKernel\" " +
                        $"{coverageArg}" +
                        $"\"{projectFile}\" " +
                        $"-o \"{outputDir}\"",

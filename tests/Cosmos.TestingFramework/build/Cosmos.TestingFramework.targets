@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="Sdk.targets" Sdk="Cosmos.Sdk" Condition="$(COSUnit_BuildKernel) == 'true'" />
+</Project>

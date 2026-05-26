@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <COSUnit_BuildKernel Condition="$(COSUnit_BuildKernel) == ''">false</COSUnit_BuildKernel>
+    <StartupObject Condition="$(COSUnit_BuildKernel) == 'false'"/>
+    <IsTestingPlatformApplication Condition="$(COSUnit_BuildKernel) == 'false'">true</IsTestingPlatformApplication>
+    <TestingPlatformDotnetTestSupport Condition="$(COSUnit_BuildKernel) == 'false'">true</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner Condition="$(COSUnit_BuildKernel) == 'false'">true</UseMicrosoftTestingPlatformRunner>
+    <CosmosKernelClass Condition="$(COSUnit_BuildKernel) == 'false'"></CosmosKernelClass>
+
+    <TestingPlatformCommandLineArguments>--projectfile "$(MSBuildProjectFullPath)"</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TestingPlatformBuilderHook Include="d0cb8d76-ffe8-42f7-af34-64bf39c3d197" >
+      <DisplayName>Cosmos.TestingFramework Testing Platform Builder Hook</DisplayName>
+      <TypeFullName>Cosmos.TestingFramework.TestingPlatformBuilderHook</TypeFullName>
+    </TestingPlatformBuilderHook>
+  </ItemGroup>
+  
+  <Import Project="Sdk.props" Sdk="Cosmos.Sdk" Condition="$(COSUnit_BuildKernel) == 'true'" />
+</Project>

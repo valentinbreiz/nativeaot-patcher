@@ -49,8 +49,8 @@ public partial class Engine
         // If XML output requested, multiplex console + XML
         if (!string.IsNullOrEmpty(_config.XmlOutputPath))
         {
-            var xmlHandler = new OutputHandlerXml(_config.XmlOutputPath);
-            return new MultiplexingOutputHandler(consoleHandler, xmlHandler);
+            //var xmlHandler = new OutputHandlerXml(_config.XmlOutputPath);
+            //return new MultiplexingOutputHandler(consoleHandler, xmlHandler);
         }
 
         return consoleHandler;

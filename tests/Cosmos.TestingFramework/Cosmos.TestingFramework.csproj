@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeMultiTargetRoslynComponentTargets>true</IncludeMultiTargetRoslynComponentTargets>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="TestingPlatformServer" />
+    <AnalyzerReference Include="..\Cosmos.TestingFramework.SourceGenerators\Cosmos.TestingFramework.SourceGenerators.csproj" Pack="true" ReferenceAnalyzer="false" />
+    <AnalyzerReference Include="..\Cosmos.TestingFramework.SourceGenerators\Cosmos.TestingFramework.SourceGenerators.csproj" PackAsAnalyzer="true" ReferenceAnalyzer="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
+    <ProjectReference Include="../Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj" Pack="true" />
+  </ItemGroup>
+</Project>

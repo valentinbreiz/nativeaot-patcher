@@ -1,0 +1,7 @@
+{
+    "CosmosTestingFramework": {
+        "KeepBuildArtifacts": false,
+        "Mode": "Dev",
+        "CoverageEnabled": false
+    }
+}
