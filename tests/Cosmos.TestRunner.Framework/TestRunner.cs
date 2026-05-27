@@ -213,7 +213,7 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>
         /// Reads the <c>profile=&lt;name&gt;</c> token from the Limine kernel
         /// cmdline. The test engine sets this to the active QEMU profile-matrix
-        /// cell name (e.g. <c>nvme-irq</c> or <c>nvme-irq+acpi-off</c>) so a
+        /// cell name (e.g. <c>nvme+gicv3</c> or <c>nvme+gicv2+acpi-off</c>) so a
         /// suite can assert the hardware path that cell was meant to exercise.
         /// Returns an empty string when no profile token is present (a suite
         /// that opts into no profiles, or a non-test boot).

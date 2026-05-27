@@ -144,7 +144,7 @@ public class Kernel : Sys.Kernel
 
     // Minimal prefix match. The kernel runtime does not plug string.StartsWith /
     // string.Contains, and a cell name always leads with its base profile (e.g.
-    // "nvme-irq+acpi-off"), so a prefix check identifies the profile.
+    // "nvme+gicv2+acpi-off"), so a prefix check identifies the profile.
     private static bool ProfileHasPrefix(string prefix)
     {
         if (s_profile.Length < prefix.Length)
@@ -162,8 +162,8 @@ public class Kernel : Sys.Kernel
     }
 
     // Substring match over the cell name (the kernel runtime has no
-    // string.Contains). Detects a composed modifier such as the "acpi-off" in
-    // "nvme-irq+acpi-off".
+    // string.Contains). Detects a composed modifier such as the "gicv2" in
+    // "nvme+gicv2+acpi-off".
     private static bool ProfileContains(string needle)
     {
         int limit = s_profile.Length - needle.Length;
@@ -182,9 +182,9 @@ public class Kernel : Sys.Kernel
         return false;
     }
 
-    // nvme-irq must come up MSI-X (x64 APIC, arm64 GICv3 ITS); nvme-polled
-    // must fall back to polled (arm64 GICv2, no ITS). The bool is the cell's
-    // expected mode, supplied by the adaptive RunIf overload.
+    // A gicv3 cell must come up MSI-X (arm64 GICv3 ITS routes it); a gicv2 cell
+    // must fall back to polled (no ITS). The bool is the cell's expected mode
+    // (true = MSI-X), supplied by the adaptive RunIf overload.
     private static void TestProfile_NvmeInterruptMode(bool expectMsix)
     {
         bool actual = NVMe.Controllers[0].IsMsiXEnabled;
