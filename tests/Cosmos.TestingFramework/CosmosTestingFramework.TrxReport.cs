@@ -15,7 +15,7 @@ namespace Cosmos.TestingFramework
         {
             testNode.Properties.Add(new TrxTestDefinitionName(testNode.Uid));
             testNode.Properties.Add(new TrxFullyQualifiedTypeNameProperty(test.DeclaringType!.FullName!));
-
+            
             if (ex is not null)
             {
                 testNode.Properties.Add(new TrxExceptionProperty(ex.Message, ex.StackTrace));

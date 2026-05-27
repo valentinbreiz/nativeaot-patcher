@@ -1,26 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Reflection;
-using System.Text;
-using System.Linq;
-using System.IO;
 using Cosmos.TestingFramework.Engine;
 using Cosmos.TestingFramework.Attributes;
-using Cosmos.TestingFramework.Capabilities;
-using Cosmos.TestingFramework.Extensions;
-using Microsoft.Testing.Extensions.TrxReport.Abstractions;
-using Microsoft.Testing.Platform.Capabilities;
-using Microsoft.Testing.Platform.Capabilities.TestFramework;
-using Microsoft.Testing.Platform.CommandLine;
-using Microsoft.Testing.Platform.Configurations;
 using Microsoft.Testing.Platform.Extensions.Messages;
 using Microsoft.Testing.Platform.Extensions.OutputDevice;
 using Microsoft.Testing.Platform.Extensions.TestFramework;
 using Microsoft.Testing.Platform.Logging;
 using Microsoft.Testing.Platform.OutputDevice;
 using Microsoft.Testing.Platform.Requests;
-using EngineClass = Cosmos.TestingFramework.Engine.Engine;
+using Microsoft.Testing.Platform.Configurations;
 
 namespace Cosmos.TestingFramework
 {
@@ -52,19 +39,12 @@ namespace Cosmos.TestingFramework
                     {
                         var skippedTestNode = new TestNode()
                         {
-                            Uid = $"{test.DeclaringType!.FullName}.{test.Name}",
-                            DisplayName = test.Name,
+                            Uid = test.GetUid(),
+                            DisplayName = test.GetUid(),
                             Properties = new PropertyBag(new SkippedTestNodeStateProperty(skipAttribute.Reason)),
                         };
-                        var testMethodIdentifierProperty = new TestMethodIdentifierProperty(test.DeclaringType!.Assembly!.FullName!,
-                        test.DeclaringType!.Namespace!,
-                        test.DeclaringType.Name!,
-                        test.Name,
-                        test.GetGenericArguments().Length,
-                        test.GetParameters().Select(x => x.ParameterType.FullName).ToArray()!,
-                        test.ReturnType.FullName!);
-
-                        skippedTestNode.Properties.Add(testMethodIdentifierProperty);
+                        
+                        skippedTestNode.Properties.Add(test.GetTestMethodIdentifierProperty());
 
                         if (_capabilities.TrxCapability.IsTrxEnabled)
                         {
@@ -87,11 +67,14 @@ namespace Cosmos.TestingFramework
                         TimeoutSeconds = 120,
                         KeepBuildArtifacts = false, // Keep artifacts for debugging
                         Mode = TestRunnerMode.Dev,
-                        CoverageEnabled = false
+                        CoverageEnabled = false,
+                        XmlOutputPath = Path.Combine(_configuration.GetTestResultDirectory(), "results.xml"),
+                        UartLogPath = Path.Combine(_configuration.GetTestResultDirectory(), "uart.log"),
                     };
+
                     try
                     {
-                        var runner = new EngineClass(config);
+                        var runner = new Engine.Engine(config);
                         var results = await runner.ExecuteAsync();
                         results.Tests.ForEach(async ktest =>
                         {
@@ -105,7 +88,6 @@ namespace Cosmos.TestingFramework
                             // If we know the MethodInfo for this test, enrich the TestNode with identifier, timing and TRX info
                             if (uidToMethod.TryGetValue(ktest.TestName, out var methodInfo))
                             {
-
                                 test.Properties.Add(methodInfo.GetTestMethodIdentifierProperty());
 
                                 if (_capabilities.TrxCapability.IsTrxEnabled)
