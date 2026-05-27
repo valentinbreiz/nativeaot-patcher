@@ -147,9 +147,11 @@ internal sealed record TestModifier
 ///    <c>profiles.json</c> walking upward from the suite directory.
 /// 2. Reading <c>CosmosTestProfile</c> + <c>CosmosTestModifier</c> items from
 ///    the suite's csproj.
-/// 3. Cross-producting them: for each requested profile, emit the baseline
-///    plus one variant per applicable modifier (gated on architecture and
-///    on at least one device-kind match for device-targeting modifiers).
+/// 3. Mixing them: for each requested profile, emit every conflict-free
+///    COMBINATION of its applicable modifiers (gated on architecture and on a
+///    device-kind match for device-targeting modifiers), so configs compose
+///    (e.g. nvme+gicv2+acpi-off). Combinations whose modifiers write the same
+///    option key (e.g. gicv2 + gicv3) are dropped as contradictory.
 /// A suite that opts into nothing falls back to a single anonymous profile.
 /// </summary>
 public static class TestProfileLoader
@@ -201,19 +203,88 @@ public static class TestProfileLoader
             resolvedModifiers.Add(mod);
         }
 
+        // Build the cell list: for each profile, every conflict-free COMBINATION
+        // of its applicable modifiers (the matrix mix), so configs compose —
+        // e.g. nvme+gicv2+acpi-off, not just nvme+gicv2 and nvme+acpi-off as
+        // separate cells. A combination is dropped when two of its modifiers
+        // write the same -M / device-option key (e.g. gicv2 + gicv3 both set
+        // gic-version), which would be a contradictory machine.
+        //
+        // Cell count is 2^(applicable modifiers) per profile minus conflicting
+        // subsets, so each added modifier roughly doubles a profile's cells —
+        // keep the catalog lean.
         var matrix = new List<TestProfile>();
         foreach (TestProfile profile in resolvedProfiles)
         {
-            matrix.Add(profile);
+            var applicable = new List<TestModifier>();
             foreach (TestModifier mod in resolvedModifiers)
             {
                 if (mod.AppliesTo(profile, architecture))
                 {
-                    matrix.Add(mod.ApplyTo(profile));
+                    applicable.Add(mod);
                 }
+            }
+
+            // Enumerate every subset via a bitmask; bit i selects applicable[i].
+            // mask 0 is the bare profile (no modifiers).
+            for (int mask = 0; mask < (1 << applicable.Count); mask++)
+            {
+                var combo = new List<TestModifier>();
+                for (int i = 0; i < applicable.Count; i++)
+                {
+                    if ((mask & (1 << i)) != 0)
+                    {
+                        combo.Add(applicable[i]);
+                    }
+                }
+
+                if (HasOptionConflict(combo))
+                {
+                    continue;
+                }
+
+                TestProfile cell = profile;
+                foreach (TestModifier mod in combo)
+                {
+                    cell = mod.ApplyTo(cell);
+                }
+                matrix.Add(cell);
             }
         }
         return matrix;
+    }
+
+    /// <summary>
+    /// True when two modifiers in <paramref name="combo"/> write the same
+    /// machine (<c>-M</c>) property or the same per-disk device option — a
+    /// contradictory cell (e.g. gicv2 and gicv3 both set gic-version). Such
+    /// combinations are dropped from the matrix.
+    /// </summary>
+    private static bool HasOptionConflict(List<TestModifier> combo)
+    {
+        var machineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var deviceKeys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (TestModifier mod in combo)
+        {
+            foreach (string key in mod.MachineOptions.Keys)
+            {
+                if (!machineKeys.Add(key))
+                {
+                    return true;
+                }
+            }
+            foreach (KeyValuePair<DiskKind, IReadOnlyDictionary<string, string>> perKind in mod.DeviceOptions)
+            {
+                foreach (string key in perKind.Value.Keys)
+                {
+                    if (!deviceKeys.Add($"{perKind.Key}:{key}"))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private readonly record struct SuiteOptIn(IReadOnlyList<string> Profiles, IReadOnlyList<string> Modifiers);
