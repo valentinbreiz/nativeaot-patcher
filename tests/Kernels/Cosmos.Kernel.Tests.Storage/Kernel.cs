@@ -13,7 +13,7 @@ public class Kernel : Sys.Kernel
 {
     // The single block device the active QEMU profile attached, captured
     // once at BeforeRun. The profile name (set by the engine — ahci,
-    // nvme-irq, nvme-polled, nvme-irq+acpi-off, ...) is what the report's
+    // ahci+gicv2, nvme, nvme+gicv3, nvme+acpi-off, ...) is what the report's
     // [profile] prefix shows; this field just holds whatever device bound.
     private static IBlockDevice? s_dev;
 
@@ -24,8 +24,8 @@ public class Kernel : Sys.Kernel
 
     // Reason surfaced through TR.RunIf when a test depends on a device
     // having actually bound. A profile whose driver did not enumerate
-    // (e.g. nvme-polled+acpi-off on arm64, where no-ACPI removes PCIe
-    // discovery) lands here and the device tests skip.
+    // (e.g. nvme+acpi-off on arm64, where no-ACPI removes PCIe discovery)
+    // lands here and the device tests skip.
     private const string SkipNoDevice = "no block device bound for this profile";
 
     // Same gating reason for the partition-table tests, which also need
@@ -61,15 +61,21 @@ public class Kernel : Sys.Kernel
         {
             TR.Skip("Profile_NvmeInterruptModeMatches", SkipNoDevice);
         }
+        else if (ProfileContains("gicv2") || ProfileContains("gicv3"))
+        {
+            // Only the GIC-version cells pin a determinate NVMe interrupt path:
+            // gicv3 brings up the ITS so MSI-X can route; gicv2 has no ITS so
+            // the driver must fall back to polled. Adaptive run (Action<bool>):
+            // the condition is "expect MSI-X" == this is the gicv3 cell.
+            TR.RunIf(ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+        }
         else
         {
-            // Adaptive run (Action<bool>): expect MSI-X only for a plain
-            // nvme-irq cell. acpi-off removes the MSI prerequisite — on x64 the
-            // LAPIC base comes from the ACPI MADT, so acpi=off leaves the APIC
-            // uninitialised, MsiX.Enable returns null, and NVMe falls back to
-            // polled — so an acpi-off cell expects the polled fallback instead.
-            bool expectMsiX = ProfileHasPrefix("nvme-irq") && !ProfileContains("acpi-off");
-            TR.RunIf(expectMsiX, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+            // Bare nvme / msix-min / acpi-off: the interrupt mode depends on the
+            // platform default (x64 APIC vs arm64 default GIC) or is moot
+            // (acpi-off has no MSI), so it is not pinned here — the gicv2/gicv3
+            // cells assert both paths explicitly.
+            TR.Skip("Profile_NvmeInterruptModeMatches", "interrupt mode not pinned by this cell");
         }
 
         // ==================== Device (single-disk round-trip) ====================

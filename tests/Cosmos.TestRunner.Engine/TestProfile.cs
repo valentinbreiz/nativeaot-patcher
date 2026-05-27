@@ -28,13 +28,6 @@ public sealed record TestProfile
     /// <summary>Extra <c>-M</c> machine properties (e.g. <c>{"gic-version", "2"}</c>). Merged from base profile + applied modifier.</summary>
     public IReadOnlyDictionary<string, string> MachineOptions { get; init; } = new Dictionary<string, string>();
 
-    /// <summary>Architectures this profile applies to (e.g. <c>["arm64"]</c>); null means any. A profile filtered out for the active arch is dropped before the matrix is built.</summary>
-    public IReadOnlyList<string>? Architectures { get; init; }
-
-    /// <summary>Per-architecture overrides folded into <see cref="Disks"/>/<see cref="MachineOptions"/> at resolve time so one named profile means the arch-appropriate hardware (e.g. force GICv3 on arm64). Empty after folding.</summary>
-    internal IReadOnlyDictionary<string, ArchOverride> ArchOverrides { get; init; }
-        = new Dictionary<string, ArchOverride>(StringComparer.OrdinalIgnoreCase);
-
     /// <summary>True when this is the synthetic single-profile fallback used by suites that opt into nothing.</summary>
     public bool IsDefault { get; init; }
 
@@ -71,19 +64,6 @@ public sealed record TestProfileDisk
         }
         return sb.ToString();
     }
-}
-
-/// <summary>
-/// One architecture's overrides for a profile: device options merged per disk
-/// kind plus machine (<c>-M</c>) properties. Resolved into the profile for the
-/// active arch by <see cref="TestProfileLoader"/>, so a single profile name can
-/// pin arch-specific knobs (e.g. <c>gic-version=3</c> on arm64 only).
-/// </summary>
-internal sealed record ArchOverride
-{
-    public IReadOnlyDictionary<DiskKind, IReadOnlyDictionary<string, string>> DeviceOptions { get; init; }
-        = new Dictionary<DiskKind, IReadOnlyDictionary<string, string>>();
-    public IReadOnlyDictionary<string, string> MachineOptions { get; init; } = new Dictionary<string, string>();
 }
 
 /// <summary>
@@ -206,15 +186,7 @@ public static class TestProfileLoader
                     $"Suite at '{kernelProjectPath}' requested profile '{name}' which is not defined in '{catalogPath}'. " +
                     $"Known profiles: {string.Join(", ", catalog.Profiles.Keys)}.");
             }
-            if (profile.Architectures != null &&
-                !profile.Architectures.Contains(architecture, StringComparer.OrdinalIgnoreCase))
-            {
-                // Profile is pinned to other architecture(s) — e.g. nvme-polled
-                // only exists on arm64 (QEMU's x64 nvme always advertises MSI-X,
-                // so the polled path can't be forced there). Drop it for this arch.
-                continue;
-            }
-            resolvedProfiles.Add(FoldArchOverride(profile, architecture));
+            resolvedProfiles.Add(profile);
         }
 
         var resolvedModifiers = new List<TestModifier>(optIn.Modifiers.Count);
@@ -242,52 +214,6 @@ public static class TestProfileLoader
             }
         }
         return matrix;
-    }
-
-    /// <summary>
-    /// Folds the active architecture's overrides (if any) into a profile:
-    /// device options merge onto matching disks, machine options merge onto the
-    /// profile's <see cref="TestProfile.MachineOptions"/>. Returns the profile
-    /// unchanged when it carries no override for this arch.
-    /// </summary>
-    private static TestProfile FoldArchOverride(TestProfile profile, string architecture)
-    {
-        if (profile.ArchOverrides.Count == 0 ||
-            !profile.ArchOverrides.TryGetValue(architecture, out ArchOverride? ov))
-        {
-            return profile;
-        }
-
-        var newDisks = new List<TestProfileDisk>(profile.Disks.Count);
-        foreach (TestProfileDisk disk in profile.Disks)
-        {
-            if (ov.DeviceOptions.TryGetValue(disk.Kind, out IReadOnlyDictionary<string, string>? extras))
-            {
-                var merged = new Dictionary<string, string>(disk.Options);
-                foreach (KeyValuePair<string, string> kv in extras)
-                {
-                    merged[kv.Key] = kv.Value;
-                }
-                newDisks.Add(disk with { Options = merged });
-            }
-            else
-            {
-                newDisks.Add(disk);
-            }
-        }
-
-        var mergedMachine = new Dictionary<string, string>(profile.MachineOptions);
-        foreach (KeyValuePair<string, string> kv in ov.MachineOptions)
-        {
-            mergedMachine[kv.Key] = kv.Value;
-        }
-
-        return profile with
-        {
-            Disks = newDisks,
-            MachineOptions = mergedMachine,
-            ArchOverrides = new Dictionary<string, ArchOverride>(StringComparer.OrdinalIgnoreCase)
-        };
     }
 
     private readonly record struct SuiteOptIn(IReadOnlyList<string> Profiles, IReadOnlyList<string> Modifiers);
@@ -385,36 +311,7 @@ public static class TestProfileLoader
                 }
             }
 
-            var archOverrides = new Dictionary<string, ArchOverride>(StringComparer.OrdinalIgnoreCase);
-            if (entry.ArchOptions != null)
-            {
-                foreach (KeyValuePair<string, ArchOptionsEntry> ao in entry.ArchOptions)
-                {
-                    var perKind = new Dictionary<DiskKind, IReadOnlyDictionary<string, string>>();
-                    if (ao.Value.DeviceOptions != null)
-                    {
-                        foreach (KeyValuePair<string, Dictionary<string, string>> kv in ao.Value.DeviceOptions)
-                        {
-                            DiskKind kind = ParseDiskKind(path, $"profile '{entry.Name}' archOptions['{ao.Key}']", kv.Key);
-                            perKind[kind] = kv.Value;
-                        }
-                    }
-                    archOverrides[ao.Key] = new ArchOverride
-                    {
-                        DeviceOptions = perKind,
-                        MachineOptions = ao.Value.MachineOptions ?? new Dictionary<string, string>()
-                    };
-                }
-            }
-
-            profiles[entry.Name] = new TestProfile
-            {
-                Name = entry.Name,
-                Disks = disks,
-                Architectures = entry.Architectures,
-                MachineOptions = entry.MachineOptions ?? new Dictionary<string, string>(),
-                ArchOverrides = archOverrides
-            };
+            profiles[entry.Name] = new TestProfile { Name = entry.Name, Disks = disks };
         }
 
         var modifiers = new Dictionary<string, TestModifier>(StringComparer.Ordinal);
@@ -481,15 +378,7 @@ public static class TestProfileLoader
     };
 
     private sealed record ProfilesFile(List<ProfileEntry>? Profiles, List<ModifierEntry>? Modifiers);
-    private sealed record ProfileEntry(
-        string? Name,
-        List<DiskEntry>? Disks,
-        List<string>? Architectures,
-        Dictionary<string, string>? MachineOptions,
-        Dictionary<string, ArchOptionsEntry>? ArchOptions);
-    private sealed record ArchOptionsEntry(
-        Dictionary<string, Dictionary<string, string>>? DeviceOptions,
-        Dictionary<string, string>? MachineOptions);
+    private sealed record ProfileEntry(string? Name, List<DiskEntry>? Disks);
     private sealed record DiskEntry(string? Type, Dictionary<string, string>? Options);
     private sealed record ModifierEntry(
         string? Name,
