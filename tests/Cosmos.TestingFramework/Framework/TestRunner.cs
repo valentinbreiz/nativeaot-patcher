@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 
-namespace Cosmos.TestRunner.Framework
+namespace Cosmos.TestingFramework.Framework
 {
     /// <summary>
     /// Test runner for kernel-side test execution.

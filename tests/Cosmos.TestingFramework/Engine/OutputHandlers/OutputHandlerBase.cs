@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.TestRunner.Engine.OutputHandlers;
+namespace Cosmos.TestingFramework.Engine.OutputHandlers;
 
 /// <summary>
 /// Base class for all output handlers - provides abstract interface for structured test result output

@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cosmos.Tools.Launcher;
 
-namespace Cosmos.TestRunner.Engine.Hosts;
+namespace Cosmos.TestingFramework.Engine.Hosts;
 
 /// <summary>
 /// QEMU host for ARM64/AArch64 architecture. Argument construction lives in

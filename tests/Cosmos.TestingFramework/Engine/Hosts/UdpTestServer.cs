@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cosmos.TestRunner.Engine.Hosts;
+namespace Cosmos.TestingFramework.Engine.Hosts;
 
 /// <summary>
 /// UDP test server for network testing with QEMU guests.

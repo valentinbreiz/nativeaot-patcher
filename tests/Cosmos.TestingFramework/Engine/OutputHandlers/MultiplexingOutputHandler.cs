@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Cosmos.TestRunner.Engine.OutputHandlers;
+namespace Cosmos.TestingFramework.Engine.OutputHandlers;
 
 /// <summary>
 /// Output handler that multiplexes output to multiple handlers simultaneously

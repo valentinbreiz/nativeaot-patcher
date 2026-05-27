@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Cosmos.TestRunner.Engine;
+namespace Cosmos.TestingFramework.Engine;
 
 /// <summary>
 /// Interface for QEMU virtual machine hosts that can run test kernels

@@ -7,6 +7,11 @@
     <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeMultiTargetRoslynComponentTargets>true</IncludeMultiTargetRoslynComponentTargets>
+    <IsPackable>true</IsPackable>
+    <PackageId>Cosmos.TestingFramework</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>NativeAOT-Patcher Contributors</Authors>
+    <Description>Test framework for NativeAOT kernel tests</Description>
   </PropertyGroup>
   
   <ItemGroup>
@@ -23,6 +28,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
-    <ProjectReference Include="../Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj" Pack="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Compile sources from Cosmos.Tools for QEMU launcher and tool resolver -->
+    <Compile Include="../../src/Cosmos.Tools/Launcher/*.cs" />
+    <Compile Include="../../src/Cosmos.Tools/Platform/*.cs" />
   </ItemGroup>
 </Project>

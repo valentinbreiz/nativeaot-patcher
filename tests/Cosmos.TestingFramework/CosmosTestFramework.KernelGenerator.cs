@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using System.IO;
-using Cosmos.TestRunner.Engine;
+using Cosmos.TestingFramework.Engine;
 using Cosmos.TestingFramework.Attributes;
 using Cosmos.TestingFramework.Capabilities;
 using Cosmos.TestingFramework.Extensions;
@@ -20,6 +20,7 @@ using Microsoft.Testing.Platform.Extensions.TestFramework;
 using Microsoft.Testing.Platform.Logging;
 using Microsoft.Testing.Platform.OutputDevice;
 using Microsoft.Testing.Platform.Requests;
+using EngineClass = Cosmos.TestingFramework.Engine.Engine;
 
 namespace Cosmos.TestingFramework
 {
@@ -90,7 +91,7 @@ namespace Cosmos.TestingFramework
                     };
                     try
                     {
-                        var runner = new Engine(config);
+                        var runner = new EngineClass(config);
                         var results = await runner.ExecuteAsync();
                         results.Tests.ForEach(async ktest =>
                         {

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Cosmos.TestRunner.Engine;
+namespace Cosmos.TestingFramework.Engine;
 
 /// <summary>
 /// Engine build functionality - compiles test kernels to bootable ISOs

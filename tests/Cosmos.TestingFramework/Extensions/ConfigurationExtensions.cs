@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using Cosmos.TestRunner.Engine;
+using Cosmos.TestingFramework.Engine;
 using Microsoft.Testing.Platform.Configurations;
 
 namespace Cosmos.TestingFramework.Extensions

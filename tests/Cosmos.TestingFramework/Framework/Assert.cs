@@ -1,4 +1,4 @@
-namespace Cosmos.TestRunner.Framework
+namespace Cosmos.TestingFramework.Framework
 {
     /// <summary>
     /// Assertion methods for kernel tests.

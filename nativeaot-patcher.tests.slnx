@@ -9,9 +9,6 @@
         <Project Path="tests/Cosmos.TestingFramework/Cosmos.TestingFramework.csproj" />
         <Project Path="tests/Cosmos.TestingFramework.SourceGenerators/Cosmos.TestingFramework.SourceGenerators.csproj" />
         <Project Path="tests/TestKernel/TestKernel.csproj" />
-        <Project Path="tests\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj" />
-        <Project Path="tests\Cosmos.TestRunner.Framework\Cosmos.TestRunner.Framework.csproj" />
-        <Project Path="tests\Cosmos.TestRunner.Protocol\Cosmos.TestRunner.Protocol.csproj" />
     </Folder>
     <Folder Name="/tests/Kernels/">
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Graphic/Cosmos.Kernel.Tests.Graphic.csproj" />

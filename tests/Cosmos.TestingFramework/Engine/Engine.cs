@@ -4,11 +4,11 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Cosmos.TestRunner.Engine.Hosts;
-using Cosmos.TestRunner.Engine.OutputHandlers;
-using Cosmos.TestRunner.Engine.Protocol;
+using Cosmos.TestingFramework.Engine.Hosts;
+using Cosmos.TestingFramework.Engine.OutputHandlers;
+using Cosmos.TestingFramework.Engine.Protocol;
 
-namespace Cosmos.TestRunner.Engine;
+namespace Cosmos.TestingFramework.Engine;
 
 /// <summary>
 /// Main test runner engine - orchestrates build, launch, monitor, and result collection

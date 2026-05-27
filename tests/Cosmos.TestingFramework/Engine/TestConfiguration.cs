@@ -1,7 +1,7 @@
 using System;
-using Cosmos.TestRunner.Engine.OutputHandlers;
+using Cosmos.TestingFramework.Engine.OutputHandlers;
 
-namespace Cosmos.TestRunner.Engine;
+namespace Cosmos.TestingFramework.Engine;
 
 /// <summary>
 /// Test runner execution mode

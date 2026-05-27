@@ -91,29 +91,29 @@ public class KernelGenerator : IIncrementalGenerator
             sourceBuilder.AppendLine($"        var instance = new {model.TypeReference}();");
         }
 
-        sourceBuilder.AppendLine($"        global::Cosmos.TestRunner.Framework.TestRunner.Start(\"{model.FullyQualifiedName} Tests\", expectedTests: {model.Methods.Count});");
+        sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Start(\"{model.FullyQualifiedName} Tests\", expectedTests: {model.Methods.Count});");
 
         foreach (var method in model.Methods)
         {
             var testId = $"{model.ReflectionTypeName}.{method.Name}";
             if (method.IsStatic)
             {
-                sourceBuilder.AppendLine($"        global::Cosmos.TestRunner.Framework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
+                sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
             }
             else
             {
-                sourceBuilder.AppendLine($"        global::Cosmos.TestRunner.Framework.TestRunner.Run(\"{testId}\", () => instance.{method.Name}());");
+                sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => instance.{method.Name}());");
             }
         }
 
-        sourceBuilder.AppendLine("        global::Cosmos.TestRunner.Framework.TestRunner.Finish();");
+        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.Framework.TestRunner.Finish();");
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine();
         sourceBuilder.AppendLine("    protected override void Run() => Stop();");
         sourceBuilder.AppendLine();
         sourceBuilder.AppendLine("    protected override void AfterRun()");
         sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine("        global::Cosmos.TestRunner.Framework.TestRunner.Complete();");
+        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.Framework.TestRunner.Complete();");
         sourceBuilder.AppendLine("        global::Cosmos.Kernel.System.Power.Halt();");
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine("}");

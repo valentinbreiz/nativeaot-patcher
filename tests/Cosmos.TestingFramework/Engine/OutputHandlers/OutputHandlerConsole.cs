@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.TestRunner.Engine.OutputHandlers;
+namespace Cosmos.TestingFramework.Engine.OutputHandlers;
 
 /// <summary>
 /// Console output handler with colored, real-time test progress display

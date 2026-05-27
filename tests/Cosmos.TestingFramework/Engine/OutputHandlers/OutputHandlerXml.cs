@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 
-namespace Cosmos.TestRunner.Engine.OutputHandlers;
+namespace Cosmos.TestingFramework.Engine.OutputHandlers;
 
 /// <summary>
 /// XML output handler producing JUnit-compatible XML for CI integration

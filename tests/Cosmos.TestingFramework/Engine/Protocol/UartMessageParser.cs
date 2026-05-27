@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Cosmos.TestRunner.Protocol;
+using Cosmos.TestingFramework.Protocol;
 
-namespace Cosmos.TestRunner.Engine.Protocol;
+namespace Cosmos.TestingFramework.Engine.Protocol;
 
 /// <summary>
 /// Parses binary protocol messages from UART log output

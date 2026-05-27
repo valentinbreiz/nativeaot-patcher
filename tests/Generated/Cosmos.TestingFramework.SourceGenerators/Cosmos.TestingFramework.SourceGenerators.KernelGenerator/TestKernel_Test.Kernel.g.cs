@@ -7,19 +7,19 @@ public sealed class TestKernel_TestGeneratedKernel : global::Cosmos.Kernel.Syste
     protected override void BeforeRun()
     {
         var instance = new global::TestKernel.Test();
-        global::Cosmos.TestRunner.Framework.TestRunner.Start("TestKernel.Test Tests", expectedTests: 4);
-        global::Cosmos.TestRunner.Framework.TestRunner.Run("TestKernel.Test.TestTer", () => instance.TestTer());
-        global::Cosmos.TestRunner.Framework.TestRunner.Run("TestKernel.Test.TestTer2", () => instance.TestTer2());
-        global::Cosmos.TestRunner.Framework.TestRunner.Run("TestKernel.Test.TestTer3", () => instance.TestTer3());
-        global::Cosmos.TestRunner.Framework.TestRunner.Run("TestKernel.Test.TestTer5", () => global::TestKernel.Test.TestTer5());
-        global::Cosmos.TestRunner.Framework.TestRunner.Finish();
+        global::Cosmos.TestingFramework.Framework.TestRunner.Start("TestKernel.Test Tests", expectedTests: 4);
+        global::Cosmos.TestingFramework.Framework.TestRunner.Run("TestKernel.Test.TestTer", () => instance.TestTer());
+        global::Cosmos.TestingFramework.Framework.TestRunner.Run("TestKernel.Test.TestTer2", () => instance.TestTer2());
+        global::Cosmos.TestingFramework.Framework.TestRunner.Run("TestKernel.Test.TestTer3", () => instance.TestTer3());
+        global::Cosmos.TestingFramework.Framework.TestRunner.Run("TestKernel.Test.TestTer5", () => global::TestKernel.Test.TestTer5());
+        global::Cosmos.TestingFramework.Framework.TestRunner.Finish();
     }
 
     protected override void Run() => Stop();
 
     protected override void AfterRun()
     {
-        global::Cosmos.TestRunner.Framework.TestRunner.Complete();
+        global::Cosmos.TestingFramework.Framework.TestRunner.Complete();
         global::Cosmos.Kernel.System.Power.Halt();
     }
 }

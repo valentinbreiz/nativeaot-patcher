@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Cosmos.TestRunner.Framework/Cosmos.TestRunner.Framework.csproj" />
+    <ProjectReference Include="../Cosmos.TestingFramework/Cosmos.TestingFramework.csproj" />
     <ProjectReference Include="../Cosmos.TestingFramework/Cosmos.TestingFramework.csproj" />
     <ProjectReference Include="../Cosmos.TestingFramework.SourceGenerators/Cosmos.TestingFramework.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

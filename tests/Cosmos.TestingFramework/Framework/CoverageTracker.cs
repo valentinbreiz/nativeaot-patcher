@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
 
-namespace Cosmos.TestRunner.Framework;
+namespace Cosmos.TestingFramework.Framework;
 
 /// <summary>
 /// Lightweight code coverage tracker for bare-metal kernel tests.

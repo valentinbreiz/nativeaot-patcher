@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace Cosmos.TestRunner.Protocol
+namespace Cosmos.TestingFramework.Protocol
 {
     /// <summary>
     /// Base class for all protocol messages

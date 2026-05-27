@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Cosmos.TestRunner.Engine;
+namespace Cosmos.TestingFramework.Engine;
 
 /// <summary>
 /// Results from running a test kernel

@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.TestRunner.Protocol
+namespace Cosmos.TestingFramework.Protocol
 {
     /// <summary>
     /// Protocol constants for test runner communication.
