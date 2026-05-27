@@ -1,64 +1,66 @@
 {
-  // Global QEMU profile catalog. Two orthogonal axes:
-  //   * profiles  — a hardware "shape" (which disks/NICs are attached, etc.).
-  //   * modifiers — generic knobs that compose with a profile. Two flavors:
-  //       - deviceOptions: per-disk-kind overrides (msix tuning, cache mode)
-  //       - machineOptions: -M property overrides (gic-version, ...)
-  //     plus an optional architectures filter so arch-specific knobs (GIC) are
-  //     silently skipped on the wrong arch.
+  // Global QEMU profile catalog. A "profile" is a hardware shape plus the
+  // driver path it is meant to exercise; a "modifier" is a generic overlay
+  // that composes with a profile. A suite opts in via <CosmosTestProfile/> and
+  // <CosmosTestModifier/> items; the engine cross-products them and prefixes
+  // each test name with [profile] or [profile+modifier]. The active cell name
+  // is also passed to the kernel (cmdline profile=<name>) so a suite can
+  // ASSERT the path the cell exercised, not just that I/O happened to work.
   //
-  // A modifier with only deviceOptions is gated on at least one matching disk
-  // kind in the profile; a modifier with machineOptions applies regardless of
-  // what's attached. A suite opts in via <CosmosTestProfile/> and
-  // <CosmosTestModifier/> items; test names are prefixed [profile] or
-  // [profile+modifier].
+  // Mirror design: a profile/modifier can carry per-arch knobs via
+  // "archOptions" (deviceOptions per disk kind, machineOptions as -M props) and
+  // pin itself to arches via "architectures". This lets one named cell mean the
+  // arch-appropriate hardware, so x64 and arm64 run the same logical matrix
+  // wherever the hardware allows it.
   "profiles": [
     {
+      // SATA disk on an ich9-ahci controller. The AHCI driver is polled, so
+      // there is a single point here (no interrupt-mode variants).
       "name": "ahci",
       "disks": [
         { "type": "ahci" }
       ]
     },
     {
-      "name": "nvme",
+      // NVMe exercising the MSI-X interrupt path. On x64 the device's MSI-X is
+      // delivered straight to the local APIC, which is the default — no knob
+      // needed. On arm64 MSI-X needs the GICv3 ITS to route, so force
+      // gic-version=3 to bring the ITS online. The suite asserts the bound
+      // NVMe controller reports IsMsiXEnabled == true on both arches.
+      "name": "nvme-irq",
       "disks": [
         { "type": "nvme" }
-      ]
+      ],
+      "archOptions": {
+        "arm64": { "machineOptions": { "gic-version": "3" } }
+      }
+    },
+    {
+      // NVMe exercising the polled fallback. arm64-only on purpose: QEMU's nvme
+      // device always advertises MSI-X (it rejects msix_qsize=0 and has no
+      // msix=off), so the polled path cannot be forced on x64. On arm64,
+      // gic-version=2 means there is no ITS, MSI-X cannot route, and the driver
+      // falls back to polled I/O. The suite asserts IsMsiXEnabled == false.
+      "name": "nvme-polled",
+      "architectures": ["arm64"],
+      "disks": [
+        { "type": "nvme" }
+      ],
+      "archOptions": {
+        "arm64": { "machineOptions": { "gic-version": "2" } }
+      }
     }
   ],
   "modifiers": [
     {
-      // Constrain MSI-X to 1 vector. QEMU's `nvme` device rejects
-      // msix_qsize=0, so 1 is the smallest legal table — exercises the
-      // kernel's single-vector/vector-pressure path.
-      // Targets nvme only because ich9-ahci does not expose msix_qsize.
-      "name": "msix-min",
-      "deviceOptions": {
-        "nvme": { "msix_qsize": "1" }
-      }
-    },
-    {
-      // Force GICv2 (legacy distributor). cortex-a72 supports both v2 and v3,
-      // so flipping this exercises the kernel's GICv2 IRQ-ack/EOI path
-      // separate from GICv3 ICC_* system registers.
-      "name": "gicv2",
-      "architectures": ["arm64"],
-      "machineOptions": { "gic-version": "2" }
-    },
-    {
-      // Force GICv3. Default on most newer QEMU virt machines, but pinning
-      // it makes the test matrix explicit and disambiguates from `auto`.
-      "name": "gicv3",
-      "architectures": ["arm64"],
-      "machineOptions": { "gic-version": "3" }
-    },
-    {
-      // Disable ACPI on the machine. Default is acpi=on for both q35 and
-      // virt; flipping it forces the kernel onto its non-ACPI discovery
-      // paths (no MADT/IORT/MCFG, fall back to FDT or hard-coded layout).
-      // Useful smoke for "ACPI tables absent" code; on x64 it typically
-      // disables PCIe enumeration and surfaces as missing devices in the
-      // dependent tests via the existing TR.RunIf gating.
+      // Disable ACPI on the machine (default is acpi=on for both q35 and virt).
+      // Kept on both arches because the VALUE is the divergence it surfaces:
+      //   * x64 PCI uses port I/O (0xCF8/0xCFC), which is ACPI-independent, so
+      //     devices still enumerate and the suite still passes — a guard that
+      //     x64 storage never starts depending on ACPI.
+      //   * arm64 gets its PCIe ECAM base from ACPI MCFG and has no FDT
+      //     fallback, so discovery goes away and the device tests skip. That
+      //     documents (and regression-guards) the current no-ACPI arm64 state.
       "name": "acpi-off",
       "machineOptions": { "acpi": "off" }
     }

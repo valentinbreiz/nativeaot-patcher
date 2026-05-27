@@ -127,6 +127,21 @@ namespace Cosmos.TestRunner.Framework
         }
 
         /// <summary>
+        /// Run a test that adapts to a capability instead of skipping. The
+        /// <paramref name="condition"/> is passed into <paramref name="test"/>
+        /// so the body can assert the capable path when true and the fallback
+        /// path when false — both branches stay in the report as a real run.
+        /// Use this when the cell always has something to assert but the
+        /// expected outcome differs by profile (e.g. NVMe MSI-X vs polled),
+        /// as opposed to <see cref="RunIf(bool, string, Action, string)"/>
+        /// which reports a Skip when the feature is simply absent.
+        /// </summary>
+        public static void RunIf(bool condition, string testName, Action<bool> test)
+        {
+            Run(testName, () => test(condition));
+        }
+
+        /// <summary>
         /// Run a destructive test whose action is expected to never return
         /// (e.g. a successful Power.Reboot / Power.Shutdown). The test is
         /// pre-emptively reported as passed before invoking the action; if
@@ -193,6 +208,50 @@ namespace Cosmos.TestRunner.Framework
                 p++;
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Reads the <c>profile=&lt;name&gt;</c> token from the Limine kernel
+        /// cmdline. The test engine sets this to the active QEMU profile-matrix
+        /// cell name (e.g. <c>nvme-irq</c> or <c>nvme-irq+acpi-off</c>) so a
+        /// suite can assert the hardware path that cell was meant to exercise.
+        /// Returns an empty string when no profile token is present (a suite
+        /// that opts into no profiles, or a non-test boot).
+        /// </summary>
+        public static unsafe string GetProfileName()
+        {
+            byte* cmdline = Limine.Cmdline;
+            if (cmdline == null)
+            {
+                return string.Empty;
+            }
+
+            // Walk the null-terminated cmdline looking for "profile=" then read
+            // the value up to the next space or the terminating null. The value
+            // may contain '+' (composed cell names), which is preserved.
+            byte* p = cmdline;
+            while (*p != 0)
+            {
+                if (p[0] == (byte)'p' && p[1] == (byte)'r' && p[2] == (byte)'o' &&
+                    p[3] == (byte)'f' && p[4] == (byte)'i' && p[5] == (byte)'l' &&
+                    p[6] == (byte)'e' && p[7] == (byte)'=')
+                {
+                    p += 8;
+                    int len = 0;
+                    while (p[len] != 0 && p[len] != (byte)' ')
+                    {
+                        len++;
+                    }
+                    char[] chars = new char[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        chars[i] = (char)p[i];
+                    }
+                    return new string(chars);
+                }
+                p++;
+            }
+            return string.Empty;
         }
 
         /// <summary>

@@ -220,7 +220,7 @@ public partial class Engine
 
         for (int boot = 0; boot < MaxBoots; boot++)
         {
-            string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot);
+            string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot, profile);
             string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
 
             if (boot > 0)
@@ -382,34 +382,64 @@ public partial class Engine
     }
 
     /// <summary>
-    /// Returns the ISO path to use for boot <paramref name="bootIndex"/>. Boot 0
-    /// uses the as-built ISO unchanged (its limine.conf template already has
-    /// <c>skip=0</c> or no skip token). Subsequent boots clone the ISO and
-    /// rewrite /boot/limine/limine.conf so <c>cmdline: skip=N</c> matches the boot
-    /// index.
+    /// Returns the ISO path to use for boot <paramref name="bootIndex"/> of
+    /// <paramref name="profile"/>. Boot 0 of a suite with no profiles uses the
+    /// as-built ISO unchanged. Otherwise the ISO is cloned and
+    /// /boot/limine/limine.conf rewritten with a <c>cmdline:</c> carrying
+    /// <c>profile=&lt;name&gt;</c> (so the kernel can assert the cell's hardware
+    /// path) and <c>skip=N</c> (so a re-launched boot knows which destructive
+    /// test already fired). The profile token is set on every boot of a profiled
+    /// cell, including boot 0.
     /// </summary>
-    private async Task<string> PrepareBootIsoAsync(string baseIsoPath, int bootIndex)
+    private async Task<string> PrepareBootIsoAsync(string baseIsoPath, int bootIndex, TestProfile profile)
     {
-        if (bootIndex == 0)
+        bool patchProfile = !profile.IsDefault;
+
+        // Fast path: boot 0 of a non-profiled suite needs no cmdline at all.
+        if (bootIndex == 0 && !patchProfile)
         {
             return baseIsoPath;
         }
 
-        string bootIsoPath = $"{baseIsoPath}.boot{bootIndex}.iso";
+        string tag = profile.IsDefault ? "default" : profile.Name;
+        string bootIsoPath = bootIndex == 0
+            ? $"{baseIsoPath}.{tag}.iso"
+            : $"{baseIsoPath}.{tag}.boot{bootIndex}.iso";
         File.Copy(baseIsoPath, bootIsoPath, overwrite: true);
 
-        // Read the original limine.conf from the kernel project's Bootloader
-        // directory and rewrite the skip= value. We avoid extracting from the
-        // ISO (no need to run xorriso twice) since the source is right there.
+        // Build this boot's cmdline tokens: the active profile name (for path
+        // assertions) and skip=N (for the destructive-test re-launch loop).
+        var tokens = new List<string>();
+        if (patchProfile)
+        {
+            tokens.Add($"profile={profile.Name}");
+        }
+        tokens.Add($"skip={bootIndex}");
+        string cmdline = string.Join(' ', tokens);
+
+        // Rewrite /boot/limine/limine.conf from the kernel project's Bootloader
+        // template (no need to extract from the ISO). Test templates carry no
+        // cmdline line, so append one; if a template does declare cmdline, merge
+        // our tokens in after dropping any stale profile=/skip= for idempotency.
         string sourceLimineConf = Path.Combine(_config.KernelProjectPath, "Bootloader", "limine.conf");
         string template = await File.ReadAllTextAsync(sourceLimineConf);
-        string patched = Regex.IsMatch(template, @"skip=\d+")
-            ? Regex.Replace(template, @"skip=\d+", $"skip={bootIndex}")
-            : template + $"\n    cmdline: skip={bootIndex}\n";
+        Match existing = Regex.Match(template, @"^(?<indent>[ \t]*)cmdline:(?<args>.*)$", RegexOptions.Multiline);
+        string patched;
+        if (existing.Success)
+        {
+            string priorArgs = Regex.Replace(existing.Groups["args"].Value, @"\s*\b(?:profile|skip)=\S+", string.Empty).Trim();
+            string merged = priorArgs.Length > 0 ? $"{priorArgs} {cmdline}" : cmdline;
+            string newLine = $"{existing.Groups["indent"].Value}cmdline: {merged}";
+            patched = template.Remove(existing.Index, existing.Length).Insert(existing.Index, newLine);
+        }
+        else
+        {
+            patched = template + $"\n    cmdline: {cmdline}\n";
+        }
 
         string patchedConfPath = Path.Combine(
             Path.GetDirectoryName(bootIsoPath) ?? ".",
-            $"limine.boot{bootIndex}.conf");
+            bootIndex == 0 ? $"limine.{tag}.conf" : $"limine.{tag}.boot{bootIndex}.conf");
         await File.WriteAllTextAsync(patchedConfPath, patched);
 
         // Splice the patched limine.conf into the cloned ISO. `-boot_image any

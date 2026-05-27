@@ -1,5 +1,6 @@
 using System;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.TestRunner.Framework;
@@ -12,13 +13,19 @@ public class Kernel : Sys.Kernel
 {
     // The single block device the active QEMU profile attached, captured
     // once at BeforeRun. The profile name (set by the engine — ahci,
-    // nvme, nvme+msix-min, ...) is what the report's [profile] prefix
-    // shows; this field just holds whatever device that profile bound.
+    // nvme-irq, nvme-polled, nvme-irq+acpi-off, ...) is what the report's
+    // [profile] prefix shows; this field just holds whatever device bound.
     private static IBlockDevice? s_dev;
+
+    // The active profile-matrix cell name, read from the Limine cmdline
+    // (profile=<name>) the engine injects. Drives the path-assertion tests
+    // so a cell proves it exercised the hardware it claims to.
+    private static string s_profile = string.Empty;
 
     // Reason surfaced through TR.RunIf when a test depends on a device
     // having actually bound. A profile whose driver did not enumerate
-    // (e.g. ahci on arm64 today) lands here and the device tests skip.
+    // (e.g. nvme-polled+acpi-off on arm64, where no-ACPI removes PCIe
+    // discovery) lands here and the device tests skip.
     private const string SkipNoDevice = "no block device bound for this profile";
 
     // Same gating reason for the partition-table tests, which also need
@@ -29,15 +36,37 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 12 device + 5 partition = 19 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 19);
+        // 2 manager + 2 profile + 12 device + 5 partition = 21 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 21);
 
+        s_profile = TR.GetProfileName();
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
 
         // ==================== Manager ====================
         TR.Run("Manager_StorageInitialized", TestManager_StorageInitialized);
         TR.RunIf(hasDevice, "Manager_ExactlyOneDevice", TestManager_ExactlyOneDevice, SkipNoDevice);
+
+        // ==================== Profile (assert the cell's hardware path) ====================
+        // Prove the cell exercised the hardware it names, not just that block
+        // I/O happened to work — the gap that let a silent MSI-X->polled
+        // regression pass before.
+        TR.RunIf(hasDevice, "Profile_DeviceKindMatches", TestProfile_DeviceKindMatches, SkipNoDevice);
+
+        if (!ProfileHasPrefix("nvme"))
+        {
+            TR.Skip("Profile_NvmeInterruptModeMatches", "not an NVMe profile");
+        }
+        else if (NVMe.Controllers.Count == 0)
+        {
+            TR.Skip("Profile_NvmeInterruptModeMatches", SkipNoDevice);
+        }
+        else
+        {
+            // Adaptive run (Action<bool>): asserts the MSI-X path for nvme-irq
+            // and the polled path for nvme-polled, both as a real run.
+            TR.RunIf(ProfileHasPrefix("nvme-irq"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+        }
 
         // ==================== Device (single-disk round-trip) ====================
         bool dev = s_dev != null;
@@ -91,6 +120,51 @@ public class Kernel : Sys.Kernel
     private static void TestManager_ExactlyOneDevice()
     {
         Assert.Equal(1, StorageManager.DeviceCount);
+    }
+
+    // ==================== Profile ====================
+
+    // The cell name encodes the controller it attached: ahci => SATA,
+    // nvme-* => NVMe. Proves the driver that bound matches the cell's intent.
+    private static void TestProfile_DeviceKindMatches()
+    {
+        string expected = ProfileHasPrefix("ahci") ? "SATA" : "NVMe";
+        Assert.Equal(expected, s_dev!.Name);
+    }
+
+    // Minimal prefix match. The kernel runtime does not plug string.StartsWith /
+    // string.Contains, and a cell name always leads with its base profile (e.g.
+    // "nvme-irq+acpi-off"), so a prefix check identifies the profile.
+    private static bool ProfileHasPrefix(string prefix)
+    {
+        if (s_profile.Length < prefix.Length)
+        {
+            return false;
+        }
+        for (int i = 0; i < prefix.Length; i++)
+        {
+            if (s_profile[i] != prefix[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // nvme-irq must come up MSI-X (x64 APIC, arm64 GICv3 ITS); nvme-polled
+    // must fall back to polled (arm64 GICv2, no ITS). The bool is the cell's
+    // expected mode, supplied by the adaptive RunIf overload.
+    private static void TestProfile_NvmeInterruptMode(bool expectMsix)
+    {
+        bool actual = NVMe.Controllers[0].IsMsiXEnabled;
+        if (expectMsix)
+        {
+            Assert.True(actual, "expected NVMe MSI-X interrupts but the controller is polled");
+        }
+        else
+        {
+            Assert.False(actual, "expected NVMe polled fallback but the controller enabled MSI-X");
+        }
     }
 
     // ==================== Device ====================
