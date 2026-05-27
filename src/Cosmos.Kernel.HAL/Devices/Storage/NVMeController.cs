@@ -429,7 +429,13 @@ public unsafe class NVMeController
             NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
             sqe.SetOpcode(opcode, cid);
             sqe.SetNsid(nsid);
-            sqe.SetPrp1(slot.DmaBufferPhys);
+            // TEMP VALIDATION BUG (revert): offset the PRP by one block on the
+            // polled path ONLY, so every polled NVMe transfer DMAs to/from the
+            // wrong place and the round-trip data mismatches. The MSI-X branch
+            // above is untouched. Proves the matrix catches a config-specific
+            // bug: x64 nvme (MSI-X) stays green, arm64 nvme+gicv2 (polled) goes
+            // red, for the same driver and the same test.
+            sqe.SetPrp1(slot.DmaBufferPhys + 512);
             sqe.SetPrp2(0);
             sqe.SetCdw10((uint)(lba & 0xFFFFFFFF));
             sqe.SetCdw11((uint)(lba >> 32));
