@@ -46,7 +46,7 @@ namespace Cosmos.TestingFramework
 
         public string Uid => nameof(CosmosTestingFramework);
 
-        public string Version => "1.0.0";
+        public string Version => typeof(CosmosTestingFramework).Assembly.GetName().Version?.ToString() ?? "Unknown";
 
         public string DisplayName => "Cosmos Test Framework";
 
@@ -60,12 +60,7 @@ namespace Cosmos.TestingFramework
         public async Task<CreateTestSessionResult> CreateTestSessionAsync(CreateTestSessionContext context) => await Task.FromResult(new CreateTestSessionResult() { IsSuccess = true });
 
         public async Task ExecuteRequestAsync(ExecuteRequestContext context)
-        {
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                await _logger.LogDebugAsync($"Executing request of type '{context.Request}'");
-            }
-            
+        {   
             switch (context.Request)
             {
 
