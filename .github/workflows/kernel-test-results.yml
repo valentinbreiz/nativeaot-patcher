@@ -46,67 +46,109 @@ jobs:
       - name: 📊 Parse Test Results
         id: parse
         run: |
-          # Bucket testcases by their leading [profile] prefix so suites that
-          # opt into multiple QEMU profiles (tests/profiles.json) get a per-
-          # matrix-cell breakdown alongside the per-arch totals. Suites that
-          # don't use profiles render a single row per arch unchanged.
+          # Render a mirrored x64-vs-arm64 view. Testcase names carry a leading
+          # [profile] prefix (the QEMU profile-matrix cell); bucket by it so each
+          # cell becomes one row with x64 and arm64 side by side. Suites with no
+          # profiles collapse to a single _all_ row. Also collect skip reasons
+          # and failures so the comment says what ran, what was skipped and why,
+          # and what failed. NOTE: the output is embedded in a JS template
+          # literal downstream, so it must contain no backticks or ${ sequences.
           python3 << 'PY' > results-table.md
           import os, re, xml.etree.ElementTree as ET
+          from collections import Counter
 
           PROF_RE = re.compile(r'^\[([^\]]+)\]\s+')
+          ARCHES = ('x64', 'arm64')
 
           def parse(path):
               if not os.path.exists(path):
                   return None
               root = ET.parse(path).getroot()
-              buckets = {}
+              cells = {}
+              skips = Counter()
+              fails = []
               for c in root.findall('.//testcase'):
-                  m = PROF_RE.match(c.get('name', ''))
-                  prof = m.group(1) if m else '_default_'
-                  b = buckets.setdefault(prof, {'tests':0,'failed':0,'skipped':0,'time':0.0})
+                  name = c.get('name', '')
+                  m = PROF_RE.match(name)
+                  cell = m.group(1) if m else '_all_'
+                  bare = name[m.end():] if m else name
+                  b = cells.setdefault(cell, {'tests':0,'passed':0,'failed':0,'skipped':0,'time':0.0})
                   b['tests'] += 1
-                  if c.find('failure') is not None: b['failed'] += 1
-                  if c.find('skipped') is not None: b['skipped'] += 1
+                  fail = c.find('failure')
+                  skip = c.find('skipped')
+                  if fail is not None:
+                      b['failed'] += 1
+                      fails.append((cell, bare, (fail.get('message') or '').strip()))
+                  elif skip is not None:
+                      b['skipped'] += 1
+                      skips[(skip.get('message') or 'no reason given').strip()] += 1
+                  else:
+                      b['passed'] += 1
                   try:
                       b['time'] += float(c.get('time') or 0)
                   except ValueError:
                       pass
-              overall = {
-                  'tests':   sum(b['tests']   for b in buckets.values()),
-                  'failed':  sum(b['failed']  for b in buckets.values()),
-                  'skipped': sum(b['skipped'] for b in buckets.values()),
-                  'time':    sum(b['time']    for b in buckets.values()),
-              }
-              return overall, buckets
+              # Synthesize an _all_ totals row for profiled suites (their tests
+              # are all prefixed, so no natural _all_ bucket exists).
+              if cells and '_all_' not in cells:
+                  tot = {'tests':0,'passed':0,'failed':0,'skipped':0,'time':0.0}
+                  for b in cells.values():
+                      for k in tot:
+                          tot[k] += b[k]
+                  cells['_all_'] = tot
+              return {'cells': cells, 'skips': skips, 'fails': fails}
 
-          def status(d):
-              return '❌ Failed' if d['failed'] > 0 else '✅ Passed'
-
-          def row(arch, prof, d):
-              passed = d['tests'] - d['failed'] - d['skipped']
-              return f"| {arch} | {prof} | {d['tests']} | {passed} | {d['failed']} | {d['skipped']} | {d['time']:.2f}s | {status(d)} |"
+          def cell_text(b):
+              if b is None:
+                  return 'n/a'
+              if b['failed'] > 0:
+                  emoji = '❌'
+              elif b['skipped'] > b['passed']:
+                  emoji = '⚠️'
+              else:
+                  emoji = '✅'
+              extra = ''
+              if b['failed']:
+                  extra += f", {b['failed']} fail"
+              if b['skipped']:
+                  extra += f", {b['skipped']} skip"
+              return f"{emoji} {b['passed']}/{b['tests']}{extra}"
 
           suite_id = "${{ inputs.suite_id }}"
-          rows = []
-          any_profiles = False
-          for arch in ('x64', 'arm64'):
-              result = parse(f'results-{arch}/test-results-{suite_id}-{arch}.xml')
-              if result is None:
-                  rows.append(f"| {arch} | _all_ | 0 | 0 | 0 | 0 | N/A | ⚠️ No results |")
-                  continue
-              overall, buckets = result
-              # Single un-prefixed bucket → suite doesn't use profiles, just one row.
-              if list(buckets.keys()) == ['_default_']:
-                  rows.append(row(arch, '_all_', overall))
-              else:
-                  any_profiles = True
-                  rows.append(row(arch, '_all_', overall))
-                  for name in sorted(buckets):
-                      rows.append(row(arch, name, buckets[name]))
+          data = {arch: parse(f'results-{arch}/test-results-{suite_id}-{arch}.xml') for arch in ARCHES}
 
-          profile_col = 'Profile' if any_profiles else 'Scope'
-          header = f"| Architecture | {profile_col} | Tests | Passed | Failed | Skipped | Time | Status |\n|---|---|---|---|---|---|---|---|"
-          print('\n'.join([header] + rows))
+          names = set()
+          for d in data.values():
+              if d:
+                  names.update(d['cells'].keys())
+          ordered = (['_all_'] if '_all_' in names else []) + sorted(n for n in names if n != '_all_')
+
+          lines = ['| Cell | x64 | arm64 |', '|---|---|---|']
+          if not ordered:
+              lines.append('| _all_ | ⚠️ No results | ⚠️ No results |')
+          for name in ordered:
+              cols = [cell_text(data[a]['cells'].get(name)) if data[a] else '⚠️ No results' for a in ARCHES]
+              lines.append(f"| {name} | {cols[0]} | {cols[1]} |")
+
+          skip_lines = []
+          for arch in ARCHES:
+              d = data[arch]
+              if d and d['skips']:
+                  parts = ', '.join(f"{reason} ({n})" for reason, n in d['skips'].most_common())
+                  skip_lines.append(f"- **{arch}**: {sum(d['skips'].values())} skipped: {parts}")
+          if skip_lines:
+              lines += ['', '**Skipped**'] + skip_lines
+
+          fail_lines = []
+          for arch in ARCHES:
+              d = data[arch]
+              if d:
+                  for cell, test, msg in d['fails']:
+                      fail_lines.append(f"- **{arch}** {cell} / {test}: {msg}")
+          if fail_lines:
+              lines += ['', '**Failures**'] + fail_lines
+
+          print('\n'.join(lines))
           PY
 
           # Stash the rendered table for the comment step. Use a delimiter form
