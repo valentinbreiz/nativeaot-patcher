@@ -56,8 +56,10 @@
       // Disable ACPI on the machine (default is acpi=on for both q35 and virt).
       // Kept on both arches because the VALUE is the divergence it surfaces:
       //   * x64 PCI uses port I/O (0xCF8/0xCFC), which is ACPI-independent, so
-      //     devices still enumerate and the suite still passes — a guard that
-      //     x64 storage never starts depending on ACPI.
+      //     devices still enumerate and block I/O still passes. MSI-X does not
+      //     come up though: the LAPIC base is read from the ACPI MADT, so with
+      //     acpi=off the APIC never initialises and NVMe falls back to polled.
+      //     The suite expects the polled path for acpi-off cells accordingly.
       //   * arm64 gets its PCIe ECAM base from ACPI MCFG and has no FDT
       //     fallback, so discovery goes away and the device tests skip. That
       //     documents (and regression-guards) the current no-ACPI arm64 state.

@@ -63,9 +63,13 @@ public class Kernel : Sys.Kernel
         }
         else
         {
-            // Adaptive run (Action<bool>): asserts the MSI-X path for nvme-irq
-            // and the polled path for nvme-polled, both as a real run.
-            TR.RunIf(ProfileHasPrefix("nvme-irq"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+            // Adaptive run (Action<bool>): expect MSI-X only for a plain
+            // nvme-irq cell. acpi-off removes the MSI prerequisite — on x64 the
+            // LAPIC base comes from the ACPI MADT, so acpi=off leaves the APIC
+            // uninitialised, MsiX.Enable returns null, and NVMe falls back to
+            // polled — so an acpi-off cell expects the polled fallback instead.
+            bool expectMsiX = ProfileHasPrefix("nvme-irq") && !ProfileContains("acpi-off");
+            TR.RunIf(expectMsiX, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
         }
 
         // ==================== Device (single-disk round-trip) ====================
@@ -149,6 +153,27 @@ public class Kernel : Sys.Kernel
             }
         }
         return true;
+    }
+
+    // Substring match over the cell name (the kernel runtime has no
+    // string.Contains). Detects a composed modifier such as the "acpi-off" in
+    // "nvme-irq+acpi-off".
+    private static bool ProfileContains(string needle)
+    {
+        int limit = s_profile.Length - needle.Length;
+        for (int i = 0; i <= limit; i++)
+        {
+            int j = 0;
+            while (j < needle.Length && s_profile[i + j] == needle[j])
+            {
+                j++;
+            }
+            if (j == needle.Length)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     // nvme-irq must come up MSI-X (x64 APIC, arm64 GICv3 ITS); nvme-polled
