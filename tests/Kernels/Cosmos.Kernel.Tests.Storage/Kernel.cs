@@ -510,7 +510,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestPartition_OutOfBoundsThrows()
     {
-        Partition partition = new(s_dev!, startingSector: 5000, sectorCount: 8, name: "tiny-part");
+        Partition partition = new(s_dev!, startSector: 5000, sectorCount: 8, name: "tiny-part");
         Span<byte> buf = new byte[s_dev!.BlockSize];
         try
         {
@@ -531,7 +531,7 @@ public class Kernel : Sys.Kernel
     private static void TestPartition_BoundsOverflowThrows()
     {
         BoundsProbeDevice probe = new();
-        Partition partition = new(probe, startingSector: 0, sectorCount: 4, name: "overflow-probe");
+        Partition partition = new(probe, startSector: 0, sectorCount: 4, name: "overflow-probe");
         Span<byte> buf = new byte[probe.BlockSize];
         try
         {
