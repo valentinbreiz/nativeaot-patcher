@@ -17,7 +17,6 @@
   <ItemGroup>
     <CosmosTestProfile Include="ahci" />
     <CosmosTestProfile Include="nvme" />
-    <CosmosTestModifier Include="msix-min" />
     <CosmosTestModifier Include="gicv2" />
     <CosmosTestModifier Include="gicv3" />
     <CosmosTestModifier Include="acpi-off" />

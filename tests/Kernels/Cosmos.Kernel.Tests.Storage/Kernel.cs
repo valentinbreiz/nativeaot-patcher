@@ -71,7 +71,7 @@ public class Kernel : Sys.Kernel
         }
         else
         {
-            // Bare nvme / msix-min / acpi-off: the interrupt mode depends on the
+            // Bare nvme / acpi-off: the interrupt mode depends on the
             // platform default (x64 APIC vs arm64 default GIC) or is moot
             // (acpi-off has no MSI), so it is not pinned here — the gicv2/gicv3
             // cells assert both paths explicitly.

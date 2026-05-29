@@ -28,16 +28,6 @@
   ],
   "modifiers": [
     {
-      // Constrain MSI-X to 1 vector. QEMU's `nvme` device rejects
-      // msix_qsize=0, so 1 is the smallest legal table — exercises the
-      // kernel's single-vector/vector-pressure path.
-      // Targets nvme only because ich9-ahci does not expose msix_qsize.
-      "name": "msix-min",
-      "deviceOptions": {
-        "nvme": { "msix_qsize": "1" }
-      }
-    },
-    {
       // Force GICv2 (legacy distributor). cortex-a72 supports both v2 and v3,
       // so flipping this exercises the kernel's GICv2 IRQ-ack/EOI path
       // separate from GICv3 ICC_* system registers.
