@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Storage;
 /// MBR (Master Boot Record) partition table parser / writer. Operates on
 /// any <see cref="IBlockDevice"/> with 512-byte sectors.
 /// </summary>
-public static class MBR
+public static class Mbr
 {
     private const ushort MbrSignature = 0xAA55;
     private const int PartitionTableOffset = 446;
@@ -30,7 +30,7 @@ public static class MBR
     }
 
     /// <summary>True if LBA 0 ends with the 0xAA55 MBR signature.</summary>
-    public static bool IsMBR(IBlockDevice device)
+    public static bool IsMbr(IBlockDevice device)
     {
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(0, 1, mbr);

@@ -8,36 +8,36 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 public enum PortType
 {
     Nothing = 0x00,
-    SATA = 0x01,
-    SATAPI = 0x02,
-    SEMB = 0x03,
+    Sata = 0x01,
+    Satapi = 0x02,
+    Semb = 0x03,
     PM = 0x04
 }
 
 /// <summary>
 /// FIS (Frame Information Structure) type enumeration.
 /// </summary>
-public enum FISType : byte
+public enum FisType : byte
 {
-    FIS_Type_RegisterH2D = 0x27,  // Register FIS: Host to Device
-    FIS_Type_RegisterD2H = 0x34,  // Register FIS: Device to Host
-    FIS_Type_DMA_Activate = 0x39, // DMA Activate
-    FIS_Type_DMA_Setup = 0x41,    // DMA Setup: Device to Host
-    FIS_Type_Data = 0x46,         // Data FIS: Bidirectional
-    FIS_Type_BIST = 0x58,         // BIST
-    FIS_Type_PIO_Setup = 0x5F,    // PIO Setup: Device to Host
-    FIS_Type_DeviceBits = 0xA1    // Device bits
+    RegisterH2D = 0x27,  // Register FIS: Host to Device
+    RegisterD2H = 0x34,  // Register FIS: Device to Host
+    DmaActivate = 0x39, // DMA Activate
+    DmaSetup = 0x41,    // DMA Setup: Device to Host
+    Data = 0x46,         // Data FIS: Bidirectional
+    Bist = 0x58,         // BIST
+    PioSetup = 0x5F,    // PIO Setup: Device to Host
+    DeviceBits = 0xA1    // Device bits
 }
 
 /// <summary>
 /// AHCI drive signature to identify what drive is plugged to Port.
 /// </summary>
-public enum AHCISignature : uint
+public enum AhciSignature : uint
 {
-    SATA = 0x0000,
+    Sata = 0x0000,
     PortMultiplier = 0x9669,
-    SATAPI = 0xEB14,
-    SEMB = 0xC33C,
+    Satapi = 0xEB14,
+    Semb = 0xC33C,
     Nothing = 0xFFFF
 }
 
@@ -78,7 +78,7 @@ public enum DeviceDetectionStatus : uint
 /// <summary>
 /// ATA Device Status bits.
 /// </summary>
-public enum ATADeviceStatus : uint
+public enum AtaDeviceStatus : uint
 {
     Busy = 0x80,
     DRQ = 0x08
@@ -108,15 +108,15 @@ public enum CommandAndStatus : uint
     PortMultAttach = 01 << 17,
     ColdPresenceState = 01 << 16,
     CMDListRunning = 01 << 15,
-    FISRecieveRunning = 01 << 14,
+    FISReceiveRunning = 01 << 14,
     MPSS = 01 << 13,
     CurrentCMDSlot = 01 << 12,
     Reserved0 = 01 << 07,
-    FISRecieveEnable = 01 << 04,
+    FISReceiveEnable = 01 << 04,
     CMDListOverride = 01 << 03,
     PowerOnDevice = 01 << 02,
     SpinUpDevice = 01 << 01,
-    StartProccess = 01 << 00,
+    StartProcess = 01 << 00,
     Null = 0xFFFF
 }
 
@@ -148,7 +148,7 @@ public enum InterruptStatus : int
 /// <summary>
 /// ATA Commands.
 /// </summary>
-public enum ATACommands : byte
+public enum AtaCommands : byte
 {
     ReadDma = 0xC8,
     ReadDmaExt = 0x25,
@@ -158,7 +158,7 @@ public enum ATACommands : byte
     CacheFlushExt = 0xEA,
     Packet = 0xA0,
     IdentifyPacket = 0xA1,
-    IdentifyDMA = 0xEE,
+    IdentifyDma = 0xEE,
     Identify = 0xEC,
     Read = 0xA8,
     Eject = 0x1B

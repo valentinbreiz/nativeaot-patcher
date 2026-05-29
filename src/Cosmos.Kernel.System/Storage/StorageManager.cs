@@ -77,20 +77,20 @@ public static class StorageManager
     /// (AHCI ports, NVMe namespaces). Called once during boot after the HAL
     /// has initialized the controllers.
     /// </summary>
-    public static void RegisterHALDevices()
+    public static void RegisterHalDevices()
     {
         if (!IsEnabled)
         {
             return;
         }
 
-        List<BlockDevice> ports = AHCI.Ports;
+        List<BlockDevice> ports = Ahci.Ports;
         for (int i = 0; i < ports.Count; i++)
         {
             RegisterDevice(ports[i]);
         }
 
-        List<NVMeNamespace> nvmeNamespaces = NVMe.Namespaces;
+        List<NvmeNamespace> nvmeNamespaces = Nvme.Namespaces;
         for (int i = 0; i < nvmeNamespaces.Count; i++)
         {
             RegisterDevice(nvmeNamespaces[i]);
@@ -154,29 +154,29 @@ public static class StorageManager
 
         try
         {
-            if (GPT.IsGPT(device))
+            if (Gpt.IsGpt(device))
             {
                 Serial.WriteString("[StorageManager] GPT detected on ");
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
-                List<GPT.PartitionEntry> entries = GPT.Parse(device);
+                List<Gpt.PartitionEntry> entries = Gpt.Parse(device);
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    GPT.PartitionEntry e = entries[i];
+                    Gpt.PartitionEntry e = entries[i];
                     _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
                 }
                 return;
             }
 
-            if (MBR.IsMBR(device))
+            if (Mbr.IsMbr(device))
             {
                 Serial.WriteString("[StorageManager] MBR detected on ");
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
-                List<MBR.PartitionEntry> entries = MBR.Parse(device);
+                List<Mbr.PartitionEntry> entries = Mbr.Parse(device);
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    MBR.PartitionEntry e = entries[i];
+                    Mbr.PartitionEntry e = entries[i];
                     _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
                 }
             }

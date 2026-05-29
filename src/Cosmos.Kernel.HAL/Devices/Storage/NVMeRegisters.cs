@@ -11,11 +11,11 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 ///
 /// Layout follows NVM Express 1.4 §3.1.
 /// </summary>
-public class NVMeRegisters
+public class NvmeRegisters
 {
     private readonly ulong _base;
 
-    public NVMeRegisters(ulong baseVirtAddress)
+    public NvmeRegisters(ulong baseVirtAddress)
     {
         _base = baseVirtAddress;
     }

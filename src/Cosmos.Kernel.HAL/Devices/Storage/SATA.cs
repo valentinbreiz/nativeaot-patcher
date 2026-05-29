@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// while <see cref="ReadDataBlock16"/> / <see cref="WriteDataBlock8"/>
 /// touch the kernel-virtual address.
 /// </summary>
-public class SATA : BlockDevice
+public class Sata : BlockDevice
 {
     public override string Name => "SATA";
 
@@ -32,10 +32,10 @@ public class SATA : BlockDevice
     public string FirmwareRev { get; }
     public string ModelNo { get; }
 
-    public unsafe SATA(PortRegisters portReg)
+    public unsafe Sata(PortRegisters portReg)
     {
         // Check if it is really a SATA Port!
-        if (portReg.PortType != PortType.SATA || (portReg.CMD & (1U << 24)) != 0)
+        if (portReg.PortType != PortType.Sata || (portReg.CMD & (1U << 24)) != 0)
         {
             throw new Exception($" 0:{portReg.PortNumber} is not a SATA port!\n");
         }
@@ -62,7 +62,7 @@ public class SATA : BlockDevice
         BlockSize = RegularSectorSize;
 
         // Send Identify command to get drive info
-        SendSATACommand(ATACommands.Identify);
+        SendSataCommand(AtaCommands.Identify);
 
         // Read identify data
         ushort[] xBuffer = new ushort[256];
@@ -85,16 +85,16 @@ public class SATA : BlockDevice
     /// Issue a non-LBA command (Identify, CacheFlush, …). Reads up to one
     /// sector into the bounce buffer.
     /// </summary>
-    public void SendSATACommand(ATACommands command) =>
+    public void SendSataCommand(AtaCommands command) =>
         IssueCommand((byte)command, lba: 0, count: 0, isWrite: false, useLba48: false);
 
     /// <summary>
     /// Issue an LBA48 read or write spanning <paramref name="count"/>
     /// sectors starting at <paramref name="start"/>.
     /// </summary>
-    public void SendSATA48Command(ATACommands command, ulong start, uint count)
+    public void SendSata48Command(AtaCommands command, ulong start, uint count)
     {
-        bool isWrite = command == ATACommands.WriteDmaExt || command == ATACommands.WriteDma;
+        bool isWrite = command == AtaCommands.WriteDmaExt || command == AtaCommands.WriteDma;
         IssueCommand((byte)command, start, count, isWrite, useLba48: true);
     }
 
@@ -123,7 +123,7 @@ public class SATA : BlockDevice
         ulong ctbaPhys = _portReg.Controller.PortCommandTablePhys(PortNumber, (uint)slot);
         ulong ctbaVirt = _portReg.Controller.PortCommandTableVirt(PortNumber, (uint)slot);
 
-        HBACommandHeader cmdHeader = new(clbVirt, (uint)slot)
+        HbaCommandHeader cmdHeader = new(clbVirt, (uint)slot)
         {
             CFL = 5,
             PRDTL = 1,
@@ -132,15 +132,15 @@ public class SATA : BlockDevice
             CTBAU = (uint)(ctbaPhys >> 32)
         };
 
-        HBACommandTable cmdTable = new(ctbaVirt, cmdHeader.PRDTL);
+        HbaCommandTable cmdTable = new(ctbaVirt, cmdHeader.PRDTL);
         cmdTable.PRDTEntry[0].DBA = (uint)(_dataBufferPhys & 0xFFFFFFFF);
         cmdTable.PRDTEntry[0].DBAU = (uint)(_dataBufferPhys >> 32);
         cmdTable.PRDTEntry[0].DBC = useLba48 ? count * 512 - 1 : 511;
         cmdTable.PRDTEntry[0].InterruptOnCompletion = 1;
 
-        FISRegisterH2D cmdFIS = new(cmdTable.CFIS)
+        FisRegisterH2D cmdFIS = new(cmdTable.CFIS)
         {
-            FISType = (byte)FISType.FIS_Type_RegisterH2D,
+            FisType = (byte)FisType.RegisterH2D,
             IsCommand = 1,
             Command = command,
             Device = useLba48 ? (byte)(1 << 6) : (byte)0
@@ -196,18 +196,18 @@ public class SATA : BlockDevice
             {
                 break;
             }
-            AHCI.Wait(10000);
+            Ahci.Wait(10000);
         }
         // If the engine never stopped, fall back to a full HBA reset. The old
         // `i == 101` could never be true (the loop caps i at 51), so this
         // recovery never fired; key it off the actual CMD.ST bit instead.
         if ((port.CMD & (1U << 0)) != 0)
         {
-            port.Controller.HBAReset();
+            port.Controller.HbaReset();
         }
 
         port.SCTL = 1;
-        AHCI.Wait(1000);
+        Ahci.Wait(1000);
         port.SCTL &= ~(1U << 0);
 
         // Wait (bounded) for the PHY to report an established link (DET == 3); a
@@ -292,7 +292,7 @@ public class SATA : BlockDevice
         int sector = (int)BlockSize;
         for (ulong i = 0; i < blockCount; i++)
         {
-            SendSATA48Command(ATACommands.ReadDmaExt, blockNo + i, 1);
+            SendSata48Command(AtaCommands.ReadDmaExt, blockNo + i, 1);
             ReadDataBlock8(data.Slice((int)i * sector, sector));
         }
     }
@@ -309,10 +309,10 @@ public class SATA : BlockDevice
         for (ulong i = 0; i < blockCount; i++)
         {
             WriteDataBlock8(data.Slice((int)i * sector, sector));
-            SendSATA48Command(ATACommands.WriteDmaExt, blockNo + i, 1);
+            SendSata48Command(AtaCommands.WriteDmaExt, blockNo + i, 1);
         }
 
-        SendSATACommand(ATACommands.CacheFlush);
+        SendSataCommand(AtaCommands.CacheFlush);
         Serial.WriteString("[SATA] WriteBlock done\n");
     }
 }

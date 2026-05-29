@@ -40,7 +40,7 @@ public class GenericRegisters
         set => Native.MMIO.Write32(_address + 0x0C, value);
     }
 
-    public uint AHCIVersion
+    public uint AhciVersion
     {
         get => Native.MMIO.Read32(_address + 0x10);
         set => Native.MMIO.Write32(_address + 0x10, value);
@@ -85,7 +85,7 @@ public class GenericRegisters
 
 /// <summary>
 /// AHCI Port Registers. Carries a back-reference to the
-/// <see cref="AHCIController"/> that owns the port so per-port code (SATA
+/// <see cref="AhciController"/> that owns the port so per-port code (SATA
 /// command issue, port reset) can reach controller state without going
 /// through globals.
 /// </summary>
@@ -95,9 +95,9 @@ public class PortRegisters
     public uint PortNumber { get; }
     public PortType PortType { get; set; } = PortType.Nothing;
     public bool Active { get; set; }
-    public AHCIController Controller { get; }
+    public AhciController Controller { get; }
 
-    public PortRegisters(ulong baseAddress, uint portNumber, AHCIController controller)
+    public PortRegisters(ulong baseAddress, uint portNumber, AhciController controller)
     {
         PortNumber = portNumber;
         _address = baseAddress + 0x80 * portNumber;
@@ -228,11 +228,11 @@ public class PortRegisters
 /// <summary>
 /// HBA Command Header structure.
 /// </summary>
-public class HBACommandHeader
+public class HbaCommandHeader
 {
     private readonly ulong _address;
 
-    public HBACommandHeader(ulong baseAddress, uint slot)
+    public HbaCommandHeader(ulong baseAddress, uint slot)
     {
         _address = baseAddress + 32 * slot;
         // Clear the header
@@ -248,7 +248,7 @@ public class HBACommandHeader
         set => Native.MMIO.Write8(_address, value);
     }
 
-    public byte ATAPI
+    public byte Atapi
     {
         get => (byte)((Native.MMIO.Read8(_address) >> 5) & 1);
         set
@@ -296,14 +296,14 @@ public class HBACommandHeader
 /// <summary>
 /// HBA Command Table. <see cref="CFIS"/> is the kernel-virtual base; the
 /// HBA itself addresses this table via the physical CTBA written into the
-/// owning <see cref="HBACommandHeader"/>.
+/// owning <see cref="HbaCommandHeader"/>.
 /// </summary>
-public class HBACommandTable
+public class HbaCommandTable
 {
     public ulong CFIS { get; }
-    public HBAPRDTEntry[] PRDTEntry { get; }
+    public HbaPrdtEntry[] PRDTEntry { get; }
 
-    public HBACommandTable(ulong address, uint prdtCount)
+    public HbaCommandTable(ulong address, uint prdtCount)
     {
         CFIS = address;
 
@@ -313,10 +313,10 @@ public class HBACommandTable
             Native.MMIO.Write32(address + (ulong)(i * 4), 0);
         }
 
-        PRDTEntry = new HBAPRDTEntry[prdtCount];
+        PRDTEntry = new HbaPrdtEntry[prdtCount];
         for (uint i = 0; i < prdtCount; i++)
         {
-            PRDTEntry[i] = new HBAPRDTEntry(address + 0x80, i);
+            PRDTEntry[i] = new HbaPrdtEntry(address + 0x80, i);
         }
     }
 
@@ -326,11 +326,11 @@ public class HBACommandTable
 /// <summary>
 /// HBA PRDT Entry.
 /// </summary>
-public class HBAPRDTEntry
+public class HbaPrdtEntry
 {
     private readonly ulong _address;
 
-    public HBAPRDTEntry(ulong baseAddress, uint entry)
+    public HbaPrdtEntry(ulong baseAddress, uint entry)
     {
         _address = baseAddress + 0x10 * entry;
         // Clear the entry
@@ -368,11 +368,11 @@ public class HBAPRDTEntry
 /// <summary>
 /// FIS Register Host to Device.
 /// </summary>
-public class FISRegisterH2D
+public class FisRegisterH2D
 {
     private readonly ulong _address;
 
-    public FISRegisterH2D(ulong address)
+    public FisRegisterH2D(ulong address)
     {
         _address = address;
         // Clear the FIS (20 bytes)
@@ -382,7 +382,7 @@ public class FISRegisterH2D
         }
     }
 
-    public byte FISType
+    public byte FisType
     {
         get => Native.MMIO.Read8(_address + 0x00);
         set => Native.MMIO.Write8(_address + 0x00, value);

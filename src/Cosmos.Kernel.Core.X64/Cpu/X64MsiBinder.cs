@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.Core.X64.Cpu;
 /// </summary>
 internal sealed class X64MsiBinder : IMsiBinder
 {
-    public bool Available => LocalApic.IsInitialized;
+    public bool IsAvailable => LocalApic.IsInitialized;
 
     /// <summary>
     /// x64 MSI delivery is per-vector, not per-device — the LAPIC has no

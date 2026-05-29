@@ -51,7 +51,7 @@ public class Kernel : Sys.Kernel
         {
             TR.Skip("Profile_NvmeInterruptModeMatches", "not an NVMe profile");
         }
-        else if (NVMe.Controllers.Count == 0)
+        else if (Nvme.Controllers.Count == 0)
         {
             TR.Skip("Profile_NvmeInterruptModeMatches", SkipNoDevice);
         }
@@ -133,7 +133,7 @@ public class Kernel : Sys.Kernel
     // ==================== Profile ====================
 
     // The cell name encodes the controller it attached: ahci => SATA,
-    // nvme-* => NVMe. Proves the driver that bound matches the cell's intent.
+    // nvme-* => Nvme. Proves the driver that bound matches the cell's intent.
     private static void TestProfile_DeviceKindMatches()
     {
         string expected = TR.ProfileHasPrefix("ahci") ? "SATA" : "NVMe";
@@ -145,7 +145,7 @@ public class Kernel : Sys.Kernel
     // (true = MSI-X), supplied by the adaptive RunIf overload.
     private static void TestProfile_NvmeInterruptMode(bool expectMsix)
     {
-        bool actual = NVMe.Controllers[0].IsMsiXEnabled;
+        bool actual = Nvme.Controllers[0].IsMsiXEnabled;
         if (expectMsix)
         {
             Assert.True(actual, "expected NVMe MSI-X interrupts but the controller is polled");
@@ -423,18 +423,18 @@ public class Kernel : Sys.Kernel
     private static void TestPartition_MBRRoundTrip()
     {
         // Wipe LBA 0 first so a leftover GPT signature from a prior
-        // sub-test doesn't taint the IsMBR check.
+        // sub-test doesn't taint the IsMbr check.
         Span<byte> wipe = new byte[s_dev!.BlockSize];
         s_dev.WriteBlock(0, 1, wipe);
 
-        MBR.Create(s_dev);
-        Assert.True(MBR.IsMBR(s_dev));
+        Mbr.Create(s_dev);
+        Assert.True(Mbr.IsMbr(s_dev));
 
         // Two primary entries at distinct LBA windows.
-        MBR.WritePartition(s_dev, 0, systemId: 0x83, startSector: 100, sectorCount: 200);
-        MBR.WritePartition(s_dev, 1, systemId: 0x0B, startSector: 1000, sectorCount: 500);
+        Mbr.WritePartition(s_dev, 0, systemId: 0x83, startSector: 100, sectorCount: 200);
+        Mbr.WritePartition(s_dev, 1, systemId: 0x0B, startSector: 1000, sectorCount: 500);
 
-        List<MBR.PartitionEntry> parts = MBR.Parse(s_dev);
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev);
         Assert.Equal(2, parts.Count);
         Assert.Equal<byte>(0x83, parts[0].SystemId);
         Assert.Equal<ulong>(100, parts[0].StartSector);
@@ -446,20 +446,20 @@ public class Kernel : Sys.Kernel
 
     private static void TestPartition_GPTRoundTrip()
     {
-        GPT.Create(s_dev!);
-        Assert.True(GPT.IsGPT(s_dev));
+        Gpt.Create(s_dev!);
+        Assert.True(Gpt.IsGpt(s_dev));
 
         const ulong startA = 2048;
         const ulong countA = 4096;
         const ulong startB = startA + countA;
         const ulong countB = 8192;
 
-        Assert.True(GPT.AddPartition(s_dev, startA, countA, GPT.BasicDataPartitionType));
-        Assert.True(GPT.AddPartition(s_dev, startB, countB, GPT.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(s_dev, startA, countA, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(s_dev, startB, countB, Gpt.BasicDataPartitionType));
 
-        List<GPT.PartitionEntry> parts = GPT.Parse(s_dev);
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(s_dev);
         Assert.Equal(2, parts.Count);
-        Assert.Equal(GPT.BasicDataPartitionType, parts[0].PartitionType);
+        Assert.Equal(Gpt.BasicDataPartitionType, parts[0].PartitionType);
         Assert.Equal<ulong>(startA, parts[0].StartSector);
         Assert.Equal<ulong>(countA, parts[0].SectorCount);
         Assert.Equal<ulong>(startB, parts[1].StartSector);
@@ -485,7 +485,7 @@ public class Kernel : Sys.Kernel
     }
 
     // Attach a partition starting at an arbitrary LBA, write to its LBA 0,
-    // and verify the bytes show up at the host's StartingSector — proves
+    // and verify the bytes show up at the host's StartSector — proves
     // the translation isn't off by one.
     private static void TestPartition_ReadWriteTranslatesLba()
     {

@@ -23,7 +23,7 @@ internal sealed class Arm64MsiBinder : IMsiBinder
         public int EntryCount;
     }
 
-    public bool Available => GICv3Its.IsInitialized && GICv3Lpi.IsInitialized;
+    public bool IsAvailable => GICv3Its.IsInitialized && GICv3Lpi.IsInitialized;
 
     public object? PrepareDevice(uint bus, uint slot, uint function, int entryCount)
     {

@@ -15,10 +15,10 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// physical (via <see cref="PageAllocator.VirtualToPhysical"/>) for the
 /// HBA's CLB / FB / CTBA registers. The driver scans PCI for every
 /// matching SATA/AHCI controller and instantiates one
-/// <see cref="AHCIController"/> per match, so a system with two HBAs gets
-/// two instances and all of their ports show up in <see cref="AHCI.Ports"/>.
+/// <see cref="AhciController"/> per match, so a system with two HBAs gets
+/// two instances and all of their ports show up in <see cref="Ahci.Ports"/>.
 /// </summary>
-public unsafe class AHCIController
+public unsafe class AhciController
 {
     // Per-port memory layout inside the controller's command region. 0x4A000
     // (296 KiB, 74 pages) covers all 32 possible port indices' CLB + FB +
@@ -51,7 +51,7 @@ public unsafe class AHCIController
     private bool _supportsActivityLED;
     private bool _supportsCommandListOverride;
     private uint _interfaceSpeedSupport;
-    private bool _supportsAHCIModeOnly;
+    private bool _supportsAhciModeOnly;
     private bool _supportsPortMultiplier;
     private bool _fisBasedSwitchingSupported;
     private bool _pioMultipleDRQBlock;
@@ -65,12 +65,12 @@ public unsafe class AHCIController
 
     public PciDevice Device => _pci;
     public IReadOnlyList<BlockDevice> Ports => _ports;
-    public uint AHCIVersion => _generic?.AHCIVersion ?? 0;
+    public uint AhciVersion => _generic?.AhciVersion ?? 0;
     public uint NumberOfCommandSlots => _numOfCommandSlots;
     public bool SupportsCommandListOverride => _supportsCommandListOverride;
     public bool Supports64BitAddressing => _supports64bitAddressing;
 
-    public AHCIController(PciDevice device)
+    public AhciController(PciDevice device)
     {
         _pci = device;
     }
@@ -104,9 +104,9 @@ public unsafe class AHCIController
     /// ABAR via HHDM, allocate a command region via
     /// <see cref="PageAllocator"/>, enable AHCI mode, snapshot CAP, and
     /// probe every implemented port. After a successful call,
-    /// <see cref="Ports"/> contains one <see cref="SATA"/> per attached
+    /// <see cref="Ports"/> contains one <see cref="Sata"/> per attached
     /// SATA drive. Returns <c>false</c> if any precondition fails — the
-    /// caller (<see cref="AHCI.InitDriver"/>) then drops this controller
+    /// caller (<see cref="Ahci.InitDriver"/>) then drops this controller
     /// and moves on. Init-time failures are reported via return value
     /// rather than thrown so a misconfigured device can't take the boot
     /// down.
@@ -159,7 +159,7 @@ public unsafe class AHCIController
         Serial.WriteString(" GHC=0x");
         Serial.WriteHex(_generic.GlobalHostControl);
         Serial.WriteString(" VS=0x");
-        Serial.WriteHex(_generic.AHCIVersion);
+        Serial.WriteHex(_generic.AhciVersion);
         Serial.WriteString("\n");
 
         // Only reset the HBA when firmware didn't enumerate ports — EDK2 on
@@ -233,7 +233,7 @@ public unsafe class AHCIController
     /// HBA reset: write GHC.AE|HR, poll for HR to self-clear, re-enable
     /// AHCI mode. Pattern modeled on Linux's ahci_reset_controller.
     /// </summary>
-    public void HBAReset()
+    public void HbaReset()
     {
         if (_generic == null)
         {
@@ -244,7 +244,7 @@ public unsafe class AHCIController
         uint spin = 0;
         while ((_generic.GlobalHostControl & 1U) != 0)
         {
-            AHCI.Wait(1);
+            Ahci.Wait(1);
             if (++spin > 1_000_000)
             {
                 Serial.WriteString("[AHCI] HBA reset did not complete\n");
@@ -261,11 +261,11 @@ public unsafe class AHCIController
             Serial.WriteString("Unknown");
             return;
         }
-        Serial.WriteNumber((byte)(_generic.AHCIVersion >> 24));
+        Serial.WriteNumber((byte)(_generic.AhciVersion >> 24));
         Serial.WriteString(".");
-        Serial.WriteNumber((byte)(_generic.AHCIVersion >> 16));
+        Serial.WriteNumber((byte)(_generic.AhciVersion >> 16));
         Serial.WriteString(".");
-        Serial.WriteNumber((byte)(_generic.AHCIVersion >> 8));
+        Serial.WriteNumber((byte)(_generic.AhciVersion >> 8));
     }
 
     private void GetCapabilities()
@@ -285,7 +285,7 @@ public unsafe class AHCIController
         _pioMultipleDRQBlock = ((_generic.Capabilities >> 15) & 1) == 1;
         _fisBasedSwitchingSupported = ((_generic.Capabilities >> 16) & 1) == 1;
         _supportsPortMultiplier = ((_generic.Capabilities >> 17) & 1) == 1;
-        _supportsAHCIModeOnly = ((_generic.Capabilities >> 18) & 1) == 1;
+        _supportsAhciModeOnly = ((_generic.Capabilities >> 18) & 1) == 1;
         _interfaceSpeedSupport = (_generic.Capabilities >> 20) & 0x0F;
         _supportsCommandListOverride = ((_generic.Capabilities >> 24) & 1) == 1;
         _supportsActivityLED = ((_generic.Capabilities >> 25) & 1) == 1;
@@ -351,7 +351,7 @@ public unsafe class AHCIController
                 uint sigRaw = portReg.SIG;
                 for (int retry = 0; retry < 200 && sigRaw == 0xFFFFFFFFu; retry++)
                 {
-                    AHCI.Wait(1000);
+                    Ahci.Wait(1000);
                     sigRaw = portReg.SIG;
                 }
 
@@ -365,7 +365,7 @@ public unsafe class AHCIController
                     Serial.WriteString("[AHCI] Port ");
                     Serial.WriteNumber(port);
                     Serial.WriteString(" PxSIG never populated; assuming SATA\n");
-                    portType = PortType.SATA;
+                    portType = PortType.Sata;
                 }
                 else
                 {
@@ -373,21 +373,21 @@ public unsafe class AHCIController
                 }
                 portReg.PortType = portType;
 
-                if (portType == PortType.SATA)
+                if (portType == PortType.Sata)
                 {
                     Serial.WriteString("[AHCI] Initialized SATA port ");
                     Serial.WriteNumber(port);
                     Serial.WriteString("\n");
-                    var sataPort = new SATA(portReg);
+                    var sataPort = new Sata(portReg);
                     _ports.Add(sataPort);
                 }
-                else if (portType == PortType.SATAPI)
+                else if (portType == PortType.Satapi)
                 {
                     Serial.WriteString("[AHCI] Found SATAPI port ");
                     Serial.WriteNumber(port);
                     Serial.WriteString(" (not supported yet)\n");
                 }
-                else if (portType == PortType.SEMB)
+                else if (portType == PortType.Semb)
                 {
                     Serial.WriteString("[AHCI] Found SEMB port ");
                     Serial.WriteNumber(port);
@@ -407,13 +407,13 @@ public unsafe class AHCIController
     private static PortType ClassifySignature(uint sig, uint port)
     {
         uint sigHi = sig >> 16;
-        switch ((AHCISignature)sigHi)
+        switch ((AhciSignature)sigHi)
         {
-            case AHCISignature.SATA: return PortType.SATA;
-            case AHCISignature.SATAPI: return PortType.SATAPI;
-            case AHCISignature.SEMB: return PortType.SEMB;
-            case AHCISignature.PortMultiplier: return PortType.PM;
-            case AHCISignature.Nothing: return PortType.Nothing;
+            case AhciSignature.Sata: return PortType.Sata;
+            case AhciSignature.Satapi: return PortType.Satapi;
+            case AhciSignature.Semb: return PortType.Semb;
+            case AhciSignature.PortMultiplier: return PortType.PM;
+            case AhciSignature.Nothing: return PortType.Nothing;
             default:
                 Serial.WriteString("[AHCI] Unknown drive signature 0x");
                 Serial.WriteHex(sig);
@@ -441,11 +441,11 @@ public unsafe class AHCIController
             {
                 break;
             }
-            AHCI.Wait(1000);
+            Ahci.Wait(1000);
         }
 
         port.SCTL = (port.SCTL & ~0xFU) | 1U;
-        AHCI.Wait(2000); // hold COMRESET ≥1 ms before clearing
+        Ahci.Wait(2000); // hold COMRESET ≥1 ms before clearing
         port.SCTL &= ~0xFU;
 
         for (int i = 0; i < 100; i++)
@@ -454,7 +454,7 @@ public unsafe class AHCIController
             {
                 break;
             }
-            AHCI.Wait(1000);
+            Ahci.Wait(1000);
         }
 
         port.SERR = 0xFFFFFFFFu;
@@ -465,7 +465,7 @@ public unsafe class AHCIController
         Serial.WriteString("[AHCI] Rebasing port...\n");
         if (!StopCMD(port))
         {
-            SATA.PortReset(port);
+            Sata.PortReset(port);
         }
 
         ulong clbPhys = PortCommandListPhys(portNumber);
@@ -489,7 +489,7 @@ public unsafe class AHCIController
 
         if (!StartCMD(port))
         {
-            SATA.PortReset(port);
+            Sata.PortReset(port);
         }
 
         port.IS = 0;
@@ -505,7 +505,7 @@ public unsafe class AHCIController
         {
             ulong ctbaPhys = PortCommandTablePhys(portNumber, i);
             ulong ctbaVirt = PortCommandTableVirt(portNumber, i);
-            var cmdHeader = new HBACommandHeader(clbVirt, i)
+            var cmdHeader = new HbaCommandHeader(clbVirt, i)
             {
                 PRDTL = 8,
                 CTBA = (uint)(ctbaPhys & 0xFFFFFFFF),
@@ -524,7 +524,7 @@ public unsafe class AHCIController
             {
                 break;
             }
-            AHCI.Wait(5000);
+            Ahci.Wait(5000);
         }
         if (spin == 101)
         {
@@ -548,7 +548,7 @@ public unsafe class AHCIController
             {
                 break;
             }
-            AHCI.Wait(5000);
+            Ahci.Wait(5000);
         }
         if (spin == 101)
         {
@@ -561,7 +561,7 @@ public unsafe class AHCIController
             {
                 break;
             }
-            AHCI.Wait(50);
+            Ahci.Wait(50);
         }
         if (spin == 101)
         {
@@ -572,7 +572,7 @@ public unsafe class AHCIController
 
         if (_supportsCommandListOverride)
         {
-            if ((port.TFD & (uint)ATADeviceStatus.Busy) != 0)
+            if ((port.TFD & (uint)AtaDeviceStatus.Busy) != 0)
             {
                 port.CMD |= 1U << 3;
             }
@@ -581,13 +581,13 @@ public unsafe class AHCIController
         for (spin = 0; spin < 101; spin++)
         {
             if ((port.CMD & (uint)CommandAndStatus.CMDListRunning) == 0 &&
-                (port.CMD & (uint)CommandAndStatus.FISRecieveRunning) == 0 &&
-                (port.CMD & (uint)CommandAndStatus.StartProccess) == 0 &&
-                (port.CMD & (uint)CommandAndStatus.FISRecieveEnable) == 0)
+                (port.CMD & (uint)CommandAndStatus.FISReceiveRunning) == 0 &&
+                (port.CMD & (uint)CommandAndStatus.StartProcess) == 0 &&
+                (port.CMD & (uint)CommandAndStatus.FISReceiveEnable) == 0)
             {
                 break;
             }
-            AHCI.Wait(5000);
+            Ahci.Wait(5000);
         }
         if (spin == 101)
         {

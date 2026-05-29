@@ -97,7 +97,7 @@ namespace Internal.Runtime.CompilerHelpers
                     {
                         InternalCpu.EnableInterrupts();
                     }
-                    StorageManager.RegisterHALDevices();
+                    StorageManager.RegisterHalDevices();
                 }
             }
         }

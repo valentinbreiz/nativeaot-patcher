@@ -34,7 +34,7 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// per command, so PRP2 is always 0.</item>
 /// </list>
 /// </summary>
-public unsafe class NVMeController
+public unsafe class NvmeController
 {
     private const uint AdminQueueDepth = 8;
     private const uint IoQueueDepth = 8;
@@ -56,7 +56,7 @@ public unsafe class NVMeController
     }
 
     private readonly PciDevice _pci;
-    private readonly NVMeRegisters _regs;
+    private readonly NvmeRegisters _regs;
 
     // Admin queue
     private ulong _adminSqVirt;
@@ -94,7 +94,7 @@ public unsafe class NVMeController
     // Unused once MSI-X is enabled.
     private readonly SchedMutex _polledIoMutex = new();
 
-    public List<NVMeNamespace> Namespaces { get; } = new();
+    public List<NvmeNamespace> Namespaces { get; } = new();
 
     /// <summary>
     /// True once I/O completions are delivered via MSI-X; false when the
@@ -105,7 +105,7 @@ public unsafe class NVMeController
     /// </summary>
     public bool IsMsiXEnabled => _msiXEnabled;
 
-    public NVMeController(PciDevice pci)
+    public NvmeController(PciDevice pci)
     {
         _pci = pci;
         pci.EnableBusMaster(true);
@@ -128,7 +128,7 @@ public unsafe class NVMeController
 
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         ulong bar0Virt = bar0Phys + hhdmOffset;
-        _regs = new NVMeRegisters(bar0Virt);
+        _regs = new NvmeRegisters(bar0Virt);
 
         Serial.WriteString("[NVMe] BAR0 phys=0x");
         Serial.WriteHex(bar0Phys);
@@ -245,7 +245,7 @@ public unsafe class NVMeController
     {
         ushort cid = _adminCmdId++;
 
-        NVMeSqe sqe = new(_adminSqVirt + (ulong)_adminSqTail * 64);
+        NvmeSqe sqe = new(_adminSqVirt + (ulong)_adminSqTail * 64);
         sqe.SetOpcode(opcode, cid);
         sqe.SetNsid(nsid);
         sqe.SetPrp1(prp1);
@@ -276,7 +276,7 @@ public unsafe class NVMeController
         try
         {
             IoSlot slot = _ioSlots![slotIndex];
-            uint sc = SubmitOnSlot(NVMeIoOp.Read, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
+            uint sc = SubmitOnSlot(NvmeIoOp.Read, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
             if (sc == 0)
             {
                 CopyOut(slot.DmaBufferVirt, dst);
@@ -304,7 +304,7 @@ public unsafe class NVMeController
         {
             IoSlot slot = _ioSlots![slotIndex];
             CopyIn(src, slot.DmaBufferVirt);
-            return SubmitOnSlot(NVMeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
+            return SubmitOnSlot(NvmeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
         }
         finally
         {
@@ -322,7 +322,7 @@ public unsafe class NVMeController
         }
         try
         {
-            return SubmitOnSlot(NVMeIoOp.Flush, nsid, slotIndex, 0, 0);
+            return SubmitOnSlot(NvmeIoOp.Flush, nsid, slotIndex, 0, 0);
         }
         finally
         {
@@ -400,7 +400,7 @@ public unsafe class NVMeController
             _submitSqLock.Acquire();
             try
             {
-                NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+                NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
                 sqe.SetOpcode(opcode, cid);
                 sqe.SetNsid(nsid);
                 sqe.SetPrp1(slot.DmaBufferPhys);
@@ -426,7 +426,7 @@ public unsafe class NVMeController
         _polledIoMutex.Acquire();
         try
         {
-            NVMeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+            NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
             sqe.SetOpcode(opcode, cid);
             sqe.SetNsid(nsid);
             sqe.SetPrp1(slot.DmaBufferPhys);
@@ -464,7 +464,7 @@ public unsafe class NVMeController
         bool drained = false;
         while (true)
         {
-            NVMeCqe cqe = new(_ioCqVirt + (ulong)_ioCqHead * 16);
+            NvmeCqe cqe = new(_ioCqVirt + (ulong)_ioCqHead * 16);
             if (cqe.Phase != _ioCqPhase)
             {
                 break;
@@ -499,7 +499,7 @@ public unsafe class NVMeController
         uint spin = 0;
         while (true)
         {
-            NVMeCqe cqe = new(cqBase + (ulong)head * 16);
+            NvmeCqe cqe = new(cqBase + (ulong)head * 16);
             if (cqe.Phase == expectedPhase)
             {
                 uint sc = cqe.StatusCode;
@@ -536,7 +536,7 @@ public unsafe class NVMeController
         try
         {
             // Identify Controller (CNS=0x01) — only used to confirm the controller is responsive.
-            uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.Controller, cdw11: 0, cdw12: 0);
+            uint sc = SubmitAdmin(NvmeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NvmeCns.Controller, cdw11: 0, cdw12: 0);
             if (sc != 0)
             {
                 Serial.WriteString("[NVMe] Identify Controller failed, status=0x");
@@ -547,7 +547,7 @@ public unsafe class NVMeController
 
             // Identify Active Namespace List (CNS=0x02) — returns up to 1024 NSIDs.
             ZeroPage(identifyVirt);
-            sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NVMeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
+            sc = SubmitAdmin(NvmeAdminOp.Identify, nsid: 0, prp1: identifyPhys, cdw10: NvmeCns.ActiveNamespaceList, cdw11: 0, cdw12: 0);
             if (sc != 0)
             {
                 Serial.WriteString("[NVMe] Identify Active NS List failed, status=0x");
@@ -586,7 +586,7 @@ public unsafe class NVMeController
     private void RegisterNamespace(uint nsid, ulong identifyVirt, ulong identifyPhys)
     {
         ZeroPage(identifyVirt);
-        uint sc = SubmitAdmin(NVMeAdminOp.Identify, nsid: nsid, prp1: identifyPhys, cdw10: NVMeCns.Namespace, cdw11: 0, cdw12: 0);
+        uint sc = SubmitAdmin(NvmeAdminOp.Identify, nsid: nsid, prp1: identifyPhys, cdw10: NvmeCns.Namespace, cdw11: 0, cdw12: 0);
         if (sc != 0)
         {
             Serial.WriteString("[NVMe] Identify Namespace nsid=");
@@ -618,7 +618,7 @@ public unsafe class NVMeController
         Serial.WriteNumber(blockSize);
         Serial.WriteString("\n");
 
-        Namespaces.Add(new NVMeNamespace(this, nsid, nsze, blockSize));
+        Namespaces.Add(new NvmeNamespace(this, nsid, nsze, blockSize));
     }
 
     private void CreateIoQueues()
@@ -636,7 +636,7 @@ public unsafe class NVMeController
         // CDW11: bits [31:16] = IV (interrupt vector), bit 1 = IEN, bit 0 = PC
         uint cqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
         uint cqCdw11 = _msiXEnabled ? ((0u << 16) | (1u << 1) | 1u) : 1u;
-        uint sc = SubmitAdmin(NVMeAdminOp.CreateIoCq, nsid: 0, prp1: _ioCqPhys, cdw10: cqCdw10, cdw11: cqCdw11, cdw12: 0);
+        uint sc = SubmitAdmin(NvmeAdminOp.CreateIoCq, nsid: 0, prp1: _ioCqPhys, cdw10: cqCdw10, cdw11: cqCdw11, cdw12: 0);
         if (sc != 0)
         {
             throw new Exception("[NVMe] Create IO CQ failed");
@@ -646,7 +646,7 @@ public unsafe class NVMeController
         // bits [31:16] = CQID.
         uint sqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
         uint sqCdw11 = (IoQueueId << 16) | 1; // CQID=1, PC=1
-        sc = SubmitAdmin(NVMeAdminOp.CreateIoSq, nsid: 0, prp1: _ioSqPhys, cdw10: sqCdw10, cdw11: sqCdw11, cdw12: 0);
+        sc = SubmitAdmin(NvmeAdminOp.CreateIoSq, nsid: 0, prp1: _ioSqPhys, cdw10: sqCdw10, cdw11: sqCdw11, cdw12: 0);
         if (sc != 0)
         {
             throw new Exception("[NVMe] Create IO SQ failed");

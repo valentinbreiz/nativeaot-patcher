@@ -11,14 +11,14 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// concurrent callers on the same namespace) execute in parallel up to
 /// the controller's I/O queue depth.
 /// </summary>
-public unsafe class NVMeNamespace : BlockDevice
+public unsafe class NvmeNamespace : BlockDevice
 {
-    private readonly NVMeController _controller;
+    private readonly NvmeController _controller;
     private readonly uint _nsid;
 
     public override string Name => "NVMe";
 
-    public NVMeNamespace(NVMeController controller, uint nsid, ulong blockCount, ulong blockSize)
+    public NvmeNamespace(NvmeController controller, uint nsid, ulong blockCount, ulong blockSize)
     {
         _controller = controller;
         _nsid = nsid;

@@ -161,7 +161,7 @@ public static class QemuLauncher
         // Explicit CD drive with bootindex=0 so SeaBIOS picks the ISO over
         // any attached HDDs whose 0xAA55 MBR signature would otherwise
         // satisfy the BIOS and hang when their boot code is empty (the case
-        // for our MBR.Create / GPT protective-MBR writes).
+        // for our Mbr.Create / Gpt protective-MBR writes).
         args.Append($" -drive file=\"{options.IsoPath}\",if=none,id=cosmoscd,format=raw,readonly=on");
         args.Append(" -device ide-cd,drive=cosmoscd,bootindex=0");
         args.Append(" -boot d -no-reboot");

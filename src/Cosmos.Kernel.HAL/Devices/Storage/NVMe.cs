@@ -11,27 +11,27 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// <see cref="ClassId.MassStorageController"/> /
 /// <see cref="SubclassId.NvmController"/> device and brings each one up
 /// independently — a machine with two M.2 SSDs gets two
-/// <see cref="NVMeController"/> instances and all their namespaces show up
+/// <see cref="NvmeController"/> instances and all their namespaces show up
 /// in <see cref="Namespaces"/>.
 /// </summary>
-public static class NVMe
+public static class Nvme
 {
-    private static List<NVMeController>? _controllers;
-    private static List<NVMeNamespace>? _namespaces;
+    private static List<NvmeController>? _controllers;
+    private static List<NvmeNamespace>? _namespaces;
 
     /// <summary>Discovered NVMe controllers (empty if none were found).</summary>
-    public static List<NVMeController> Controllers => _controllers ?? new List<NVMeController>();
+    public static List<NvmeController> Controllers => _controllers ?? new List<NvmeController>();
 
     /// <summary>All namespaces across every controller this driver bound to.</summary>
-    public static List<NVMeNamespace> Namespaces => _namespaces ?? new List<NVMeNamespace>();
+    public static List<NvmeNamespace> Namespaces => _namespaces ?? new List<NvmeNamespace>();
 
     /// <summary>Initialize the NVMe driver: PCI scan, controller bring-up, namespace discovery.</summary>
     public static void InitDriver()
     {
         Serial.WriteString("[NVMe] Looking for NVMe controllers...\n");
 
-        _controllers = new List<NVMeController>();
-        _namespaces = new List<NVMeNamespace>();
+        _controllers = new List<NvmeController>();
+        _namespaces = new List<NvmeNamespace>();
 
         List<PciDevice> devices = PciManager.GetAllDevicesClass(ClassId.MassStorageController, SubclassId.NvmController);
         if (devices.Count == 0)
@@ -49,7 +49,7 @@ public static class NVMe
             PciDevice device = devices[i];
             try
             {
-                NVMeController controller = new(device);
+                NvmeController controller = new(device);
                 controller.Initialize();
                 _controllers.Add(controller);
 

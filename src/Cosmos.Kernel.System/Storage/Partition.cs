@@ -7,7 +7,7 @@ namespace Cosmos.Kernel.System.Storage;
 
 /// <summary>
 /// Block-device view of a single partition on a host disk. Read/Write are
-/// translated to the host LBA space by adding <see cref="StartingSector"/>.
+/// translated to the host LBA space by adding <see cref="StartSector"/>.
 /// </summary>
 public sealed class Partition : BlockDevice
 {
@@ -18,15 +18,15 @@ public sealed class Partition : BlockDevice
     public IBlockDevice Host => _host;
 
     /// <summary>Absolute LBA on the host where the partition begins.</summary>
-    public ulong StartingSector { get; }
+    public ulong StartSector { get; }
 
     public override string Name => _name;
 
-    public Partition(IBlockDevice host, ulong startingSector, ulong sectorCount, string name)
+    public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)
     {
         _host = host;
         _name = name;
-        StartingSector = startingSector;
+        StartSector = startSector;
         BlockCount = sectorCount;
         BlockSize = host.BlockSize;
     }
@@ -34,13 +34,13 @@ public sealed class Partition : BlockDevice
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         CheckBounds(blockNo, blockCount);
-        _host.ReadBlock(StartingSector + blockNo, blockCount, data);
+        _host.ReadBlock(StartSector + blockNo, blockCount, data);
     }
 
     public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         CheckBounds(blockNo, blockCount);
-        _host.WriteBlock(StartingSector + blockNo, blockCount, data);
+        _host.WriteBlock(StartSector + blockNo, blockCount, data);
     }
 
     private void CheckBounds(ulong blockNo, ulong blockCount)

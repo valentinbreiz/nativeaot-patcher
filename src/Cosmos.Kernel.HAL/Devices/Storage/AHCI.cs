@@ -11,12 +11,12 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// <see cref="ClassId.MassStorageController"/> /
 /// <see cref="SubclassId.SataController"/> device and brings each one up
 /// independently — a machine with two SATA HBAs gets two
-/// <see cref="AHCIController"/> instances and all of their attached SATA
+/// <see cref="AhciController"/> instances and all of their attached SATA
 /// drives show up in <see cref="Ports"/>.
 /// </summary>
-public static class AHCI
+public static class Ahci
 {
-    private static List<AHCIController>? _controllers;
+    private static List<AhciController>? _controllers;
     private static List<BlockDevice>? _ports;
     private static bool _initialized;
 
@@ -24,8 +24,8 @@ public static class AHCI
     public const ulong RegularSectorSize = 512UL;
 
     /// <summary>Discovered AHCI controllers (empty if none were found).</summary>
-    public static IReadOnlyList<AHCIController> Controllers =>
-        (IReadOnlyList<AHCIController>?)_controllers ?? Array.Empty<AHCIController>();
+    public static IReadOnlyList<AhciController> Controllers =>
+        (IReadOnlyList<AhciController>?)_controllers ?? Array.Empty<AhciController>();
 
     /// <summary>All SATA drive ports across every controller this driver bound to.</summary>
     public static List<BlockDevice> Ports => _ports ?? new List<BlockDevice>();
@@ -44,7 +44,7 @@ public static class AHCI
 
         Serial.WriteString("[AHCI] Looking for AHCI controllers...\n");
 
-        _controllers = new List<AHCIController>();
+        _controllers = new List<AhciController>();
         _ports = new List<BlockDevice>();
 
         List<PciDevice> devices = PciManager.GetAllDevicesClass(
@@ -78,7 +78,7 @@ public static class AHCI
                 continue;
             }
 
-            AHCIController controller = new(device);
+            AhciController controller = new(device);
             if (!controller.Initialize())
             {
                 Serial.WriteString("[AHCI] Controller #");
@@ -101,9 +101,9 @@ public static class AHCI
     /// post/0x80 port. Stateless — safe to call before any controller is
     /// initialized.
     /// </summary>
-    public static void Wait(int microsecondsTimeout)
+    public static void Wait(int ticks)
     {
-        for (int i = 0; i < microsecondsTimeout; i++)
+        for (int i = 0; i < ticks; i++)
         {
             PlatformHAL.PortIO.ReadByte(0x80);
             PlatformHAL.PortIO.ReadByte(0x80);

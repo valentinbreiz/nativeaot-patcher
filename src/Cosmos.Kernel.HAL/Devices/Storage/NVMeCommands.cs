@@ -5,7 +5,7 @@ using Cosmos.Kernel.Core;
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
 /// <summary>NVMe admin opcodes (NVM Express 1.4 §5.x).</summary>
-public static class NVMeAdminOp
+public static class NvmeAdminOp
 {
     public const byte DeleteIoSq = 0x00;
     public const byte CreateIoSq = 0x01;
@@ -17,7 +17,7 @@ public static class NVMeAdminOp
 }
 
 /// <summary>NVMe NVM-command-set IO opcodes (NVM Express 1.4 §6.x).</summary>
-public static class NVMeIoOp
+public static class NvmeIoOp
 {
     public const byte Flush = 0x00;
     public const byte Write = 0x01;
@@ -25,7 +25,7 @@ public static class NVMeIoOp
 }
 
 /// <summary>Identify CNS values (NVM Express 1.4 §5.15).</summary>
-public static class NVMeCns
+public static class NvmeCns
 {
     public const byte Namespace = 0x00;
     public const byte Controller = 0x01;
@@ -38,11 +38,11 @@ public static class NVMeCns
 /// the layout stays exactly as the controller expects regardless of
 /// runtime padding).
 /// </summary>
-public unsafe struct NVMeSqe
+public unsafe struct NvmeSqe
 {
     public ulong Address;
 
-    public NVMeSqe(ulong address)
+    public NvmeSqe(ulong address)
     {
         Address = address;
         Clear();
@@ -99,11 +99,11 @@ public unsafe struct NVMeSqe
 /// NVMe Completion Queue Entry (16 bytes). Reads only — the controller
 /// writes these.
 /// </summary>
-public unsafe struct NVMeCqe
+public unsafe struct NvmeCqe
 {
     public ulong Address;
 
-    public NVMeCqe(ulong address)
+    public NvmeCqe(ulong address)
     {
         Address = address;
     }

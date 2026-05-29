@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.System.Storage;
 /// 512-byte sectors assumed (matches every block device this kernel
 /// currently exposes).
 /// </summary>
-public static class GPT
+public static class Gpt
 {
     /// <summary>"EFI PART" little-endian.</summary>
     private const ulong EfiPartSignature = 0x5452415020494645UL;
@@ -37,7 +37,7 @@ public static class GPT
     }
 
     /// <summary>True if the GPT header at LBA 1 starts with the EFI PART signature.</summary>
-    public static bool IsGPT(IBlockDevice device)
+    public static bool IsGpt(IBlockDevice device)
     {
         Span<byte> header = new byte[device.BlockSize];
         device.ReadBlock(1, 1, header);
