@@ -17,11 +17,6 @@ public class Kernel : Sys.Kernel
     // [profile] prefix shows; this field just holds whatever device bound.
     private static IBlockDevice? s_dev;
 
-    // The active profile-matrix cell name, read from the Limine cmdline
-    // (profile=<name>) the engine injects. Drives the path-assertion tests
-    // so a cell proves it exercised the hardware it claims to.
-    private static string s_profile = string.Empty;
-
     // Reason surfaced through TR.RunIf when a test depends on a device
     // having actually bound. A profile whose driver did not enumerate
     // (e.g. nvme+acpi-off on arm64, where no-ACPI removes PCIe discovery)
@@ -39,7 +34,6 @@ public class Kernel : Sys.Kernel
         // 2 manager + 2 profile + 12 device + 6 partition = 22 tests per profile.
         TR.Start("Storage Block Device Tests", expectedTests: 22);
 
-        s_profile = TR.GetProfileName();
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
 
@@ -53,7 +47,7 @@ public class Kernel : Sys.Kernel
         // regression pass before.
         TR.RunIf(hasDevice, "Profile_DeviceKindMatches", TestProfile_DeviceKindMatches, SkipNoDevice);
 
-        if (!ProfileHasPrefix("nvme"))
+        if (!TR.ProfileHasPrefix("nvme"))
         {
             TR.Skip("Profile_NvmeInterruptModeMatches", "not an NVMe profile");
         }
@@ -61,13 +55,13 @@ public class Kernel : Sys.Kernel
         {
             TR.Skip("Profile_NvmeInterruptModeMatches", SkipNoDevice);
         }
-        else if (ProfileContains("gicv2") || ProfileContains("gicv3"))
+        else if (TR.ProfileContains("gicv2") || TR.ProfileContains("gicv3"))
         {
             // Only the GIC-version cells pin a determinate NVMe interrupt path:
             // gicv3 brings up the ITS so MSI-X can route; gicv2 has no ITS so
             // the driver must fall back to polled. Adaptive run (Action<bool>):
             // the condition is "expect MSI-X" == this is the gicv3 cell.
-            TR.RunIf(ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+            TR.RunIf(TR.ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
         }
         else
         {
@@ -142,48 +136,8 @@ public class Kernel : Sys.Kernel
     // nvme-* => NVMe. Proves the driver that bound matches the cell's intent.
     private static void TestProfile_DeviceKindMatches()
     {
-        string expected = ProfileHasPrefix("ahci") ? "SATA" : "NVMe";
+        string expected = TR.ProfileHasPrefix("ahci") ? "SATA" : "NVMe";
         Assert.Equal(expected, s_dev!.Name);
-    }
-
-    // Minimal prefix match. The kernel runtime does not plug string.StartsWith /
-    // string.Contains, and a cell name always leads with its base profile (e.g.
-    // "nvme+gicv2+acpi-off"), so a prefix check identifies the profile.
-    private static bool ProfileHasPrefix(string prefix)
-    {
-        if (s_profile.Length < prefix.Length)
-        {
-            return false;
-        }
-        for (int i = 0; i < prefix.Length; i++)
-        {
-            if (s_profile[i] != prefix[i])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Substring match over the cell name (the kernel runtime has no
-    // string.Contains). Detects a composed modifier such as the "gicv2" in
-    // "nvme+gicv2+acpi-off".
-    private static bool ProfileContains(string needle)
-    {
-        int limit = s_profile.Length - needle.Length;
-        for (int i = 0; i <= limit; i++)
-        {
-            int j = 0;
-            while (j < needle.Length && s_profile[i + j] == needle[j])
-            {
-                j++;
-            }
-            if (j == needle.Length)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     // A gicv3 cell must come up MSI-X (arm64 GICv3 ITS routes it); a gicv2 cell

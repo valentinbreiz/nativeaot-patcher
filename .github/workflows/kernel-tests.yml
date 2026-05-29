@@ -345,11 +345,34 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
+  # ── Interrupts ────────────────────────────────────────────────────────────────
+  interrupts-tests:
+    needs: setup
+    uses: ./.github/workflows/kernel-test-run.yml
+    with:
+      suite_name: Interrupts
+      suite_id: interrupts
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Interrupts
+      timeout_x64: 60
+      timeout_arm64: 90
+      step_timeout_minutes: 5
+
+  interrupts-results:
+    needs: interrupts-tests
+    if: always()
+    uses: ./.github/workflows/kernel-test-results.yml
+    with:
+      suite_name: Interrupts
+      suite_id: interrupts
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Interrupts
+      event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
+
   # ── Summary ───────────────────────────────────────────────────────────────────
   test-summary:
     name: Test Summary
     runs-on: ubuntu-24.04
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, pci-results, storage-results ]
+    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, interrupts-results, pci-results, storage-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -380,6 +403,7 @@ jobs:
           add_row "Graphic"          "${{ needs.graphic-tests.result }}"
           add_row "Power"            "${{ needs.power-tests.result }}"
           add_row "GarbageCollector" "${{ needs.garbagecollector-tests.result }}"
+          add_row "Interrupts"       "${{ needs.interrupts-tests.result }}"
           add_row "Pci"              "${{ needs.pci-tests.result }}"
           add_row "Storage"          "${{ needs.storage-tests.result }}"
 

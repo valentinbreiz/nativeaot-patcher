@@ -254,6 +254,75 @@ namespace Cosmos.TestRunner.Framework
             return string.Empty;
         }
 
+        // Cached profile cell name backing the prefix/contains helpers; reading
+        // the Limine cmdline is cheap but they are called repeatedly. Each
+        // matrix cell is a fresh boot, so the static starts empty per cell.
+        private static string? s_profileName;
+
+        /// <summary>
+        /// The active profile-matrix cell name (cached <see cref="GetProfileName"/>),
+        /// e.g. <c>nvme+gicv3</c>. Empty for a suite that opts into no profiles.
+        /// </summary>
+        public static string ProfileName
+        {
+            get
+            {
+                if (s_profileName == null)
+                {
+                    s_profileName = GetProfileName();
+                }
+                return s_profileName;
+            }
+        }
+
+        /// <summary>
+        /// True when the active profile cell name starts with <paramref name="prefix"/>.
+        /// A cell name always leads with its base profile (e.g. the "nvme" in
+        /// "nvme+gicv2"), so a prefix check identifies the profile. Lives here
+        /// because the kernel runtime does not plug <c>string.StartsWith</c>.
+        /// </summary>
+        public static bool ProfileHasPrefix(string prefix)
+        {
+            string profile = ProfileName;
+            if (profile.Length < prefix.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < prefix.Length; i++)
+            {
+                if (profile[i] != prefix[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// True when <paramref name="needle"/> occurs anywhere in the active
+        /// profile cell name. Detects a composed modifier such as the "gicv2" in
+        /// "nvme+gicv2+acpi-off". Lives here because the kernel runtime does not
+        /// plug <c>string.Contains</c>.
+        /// </summary>
+        public static bool ProfileContains(string needle)
+        {
+            string profile = ProfileName;
+            int limit = profile.Length - needle.Length;
+            for (int i = 0; i <= limit; i++)
+            {
+                int j = 0;
+                while (j < needle.Length && profile[i + j] == needle[j])
+                {
+                    j++;
+                }
+                if (j == needle.Length)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Skip a test
         /// </summary>
