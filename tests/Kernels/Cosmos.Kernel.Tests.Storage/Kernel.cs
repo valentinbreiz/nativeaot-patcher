@@ -36,8 +36,8 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 2 profile + 12 device + 5 partition = 21 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 21);
+        // 2 manager + 2 profile + 12 device + 6 partition = 22 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 22);
 
         s_profile = TR.GetProfileName();
         bool hasDevice = StorageManager.DeviceCount > 0;
@@ -102,6 +102,10 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "Partition_RescanPartitions",       TestPartition_RescanPartitions,      SkipNoHost);
         TR.RunIf(dev, "Partition_ReadWrite_TranslatesLba", TestPartition_ReadWriteTranslatesLba, SkipNoHost);
         TR.RunIf(dev, "Partition_OutOfBounds_Throws",      TestPartition_OutOfBoundsThrows,     SkipNoHost);
+
+        // Overflow-safety of the bounds check is hardware-independent (in-memory
+        // probe host), so it runs unconditionally, even on cells where no disk bound.
+        TR.Run("Partition_BoundsOverflow_Throws", TestPartition_BoundsOverflowThrows);
 
         TR.Finish();
 
@@ -562,6 +566,51 @@ public class Kernel : Sys.Kernel
         catch (ArgumentOutOfRangeException)
         {
             // Expected.
+        }
+    }
+
+    // Regression (proves a real bug; expected to FAIL until Partition.CheckBounds
+    // is overflow-safe): CheckBounds uses `blockNo + blockCount > BlockCount`. For a
+    // blockNo near ulong.MaxValue the sum wraps below BlockCount, the check passes,
+    // and an out-of-bounds request is dispatched to the host instead of throwing.
+    // The fix is `blockNo > BlockCount || blockCount > BlockCount - blockNo`.
+    private static void TestPartition_BoundsOverflowThrows()
+    {
+        BoundsProbeDevice probe = new();
+        Partition partition = new(probe, startingSector: 0, sectorCount: 4, name: "overflow-probe");
+        Span<byte> buf = new byte[probe.BlockSize];
+        try
+        {
+            // ulong.MaxValue + 1 wraps to 0, which is <= BlockCount (4): the current
+            // check passes and the read reaches the host. It must throw instead.
+            partition.ReadBlock(blockNo: ulong.MaxValue, blockCount: 1, buf);
+            Assert.Fail("CheckBounds let an overflowing out-of-bounds read through (expected ArgumentOutOfRangeException).");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // Correct behavior once the overflow-safe check lands.
+        }
+    }
+
+    // In-memory host for the bounds-overflow test: performs no I/O. If Partition's
+    // bounds check wrongly lets a request through, the call lands here as a no-op
+    // rather than issuing a wild DMA against a real disk.
+    private sealed class BoundsProbeDevice : BlockDevice
+    {
+        public BoundsProbeDevice()
+        {
+            BlockSize = 512;
+            BlockCount = 1024;
+        }
+
+        public override string Name => "bounds-probe";
+
+        public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        {
+        }
+
+        public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        {
         }
     }
 }
