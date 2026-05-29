@@ -188,10 +188,9 @@ public class SATA : BlockDevice
     /// </summary>
     public static void PortReset(PortRegisters port)
     {
-        // Semi-StopCMD()
+        // Stop the port command engine, then wait for CMD.ST to actually clear.
         port.CMD &= ~(1U << 0);
-        int i;
-        for (i = 0; i <= 50; i++)
+        for (int i = 0; i <= 50; i++)
         {
             if ((port.CMD & (1 << 0)) == 0)
             {
@@ -199,7 +198,10 @@ public class SATA : BlockDevice
             }
             AHCI.Wait(10000);
         }
-        if (i == 101)
+        // If the engine never stopped, fall back to a full HBA reset. The old
+        // `i == 101` could never be true (the loop caps i at 51), so this
+        // recovery never fired; key it off the actual CMD.ST bit instead.
+        if ((port.CMD & (1U << 0)) != 0)
         {
             port.Controller.HBAReset();
         }
@@ -208,11 +210,22 @@ public class SATA : BlockDevice
         AHCI.Wait(1000);
         port.SCTL &= ~(1U << 0);
 
-        while ((port.SSTS & 0x0F) != 3) { }
+        // Wait (bounded) for the PHY to report an established link (DET == 3); a
+        // missing or wedged device must not spin the boot CPU forever.
+        int spin = 0;
+        while ((port.SSTS & 0x0F) != 3 && spin < 1000000)
+        {
+            spin++;
+        }
 
         port.SERR = 1;
 
-        while ((port.SCTL & 0x0F) != 0) { }
+        // Wait (bounded) for the COMRESET request bit to clear.
+        spin = 0;
+        while ((port.SCTL & 0x0F) != 0 && spin < 1000000)
+        {
+            spin++;
+        }
     }
 
     private int FindCMDSlot()
