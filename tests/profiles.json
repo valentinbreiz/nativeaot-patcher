@@ -14,6 +14,11 @@
   // [profile+modifier].
   "profiles": [
     {
+      // No devices attached. A base for non-storage suites (e.g. Interrupts)
+      // that only want machine modifiers like gic-version composed onto them.
+      "name": "bare"
+    },
+    {
       "name": "ahci",
       "disks": [
         { "type": "ahci" }

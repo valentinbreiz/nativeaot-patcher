@@ -15,18 +15,27 @@ using Cosmos.Kernel.Core.ARM64.Cpu;
 
 namespace Cosmos.Kernel.Tests.Interrupts;
 
-// Exercises the interrupt subsystem itself (no devices): the controller is up,
-// the dynamic-vector allocator behaves, and an interrupt actually fires and is
-// dispatched end-to-end. Per-arch tests cover the backend that delivers MSIs
-// (x64 LAPIC, arm64 GICv3 ITS/LPI). The NVMe MSI-X delivery path is covered
-// separately by the Storage suite.
+// Exercises the interrupt subsystem itself (no device drivers): the controller
+// is up, the dynamic MSI vector allocator behaves, and an interrupt actually
+// fires and is dispatched end-to-end. On arm64 the suite opts into the gicv2
+// and gicv3 QEMU profiles (tests/profiles.json) so BOTH interrupt-controller
+// paths are covered deterministically rather than depending on the machine
+// default. End-to-end MSI *delivery* (a device raising an MSI through the ITS)
+// stays covered by the Storage suite's NVMe assertions.
 public class Kernel : Sys.Kernel
 {
+#if !ARCH_X64
+    // The active profile-matrix cell name (bare, bare+gicv2, bare+gicv3),
+    // injected by the engine on the Limine cmdline. Drives the per-GIC-version
+    // assertions below.
+    private static string s_profile = string.Empty;
+#endif
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 4 cross-arch + 3 arch-specific = 7 tests per architecture.
+        // 4 cross-arch + 3 arch-specific = 7 tests per cell.
         TR.Start("Interrupt System Tests", expectedTests: 7);
 
         // ==================== Cross-arch ====================
@@ -41,12 +50,30 @@ public class Kernel : Sys.Kernel
         TR.Run("Lapic_TimerCalibrated", TestLapicTimerCalibrated);
         TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableX64);
 #else
-        // ==================== arm64 (GIC + ITS/LPI) ====================
+        // ==================== arm64 (GIC, per cell's gic-version) ====================
+        s_profile = TR.GetProfileName();
         TR.Run("Gic_Initialized", TestGicInitialized);
-        // The ITS/LPI path only exists when the machine instantiates a GICv3
-        // ITS; on an ITS-less machine these report Skipped instead of Failed.
-        TR.RunIf(GICv3Its.IsInitialized, "Its_Lpi_BroughtUp", TestItsLpiBroughtUp, NoItsReason);
-        TR.RunIf(GICv3Its.IsInitialized, "Msi_RoutingAvailable", TestMsiRoutingAvailableArm64, NoItsReason);
+
+        if (ProfileContains("gicv3"))
+        {
+            // GICv3 + ITS: the MSI delivery path must be fully up.
+            TR.Run("Its_Lpi_BroughtUp", TestItsLpiUp);
+            TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableArm64);
+        }
+        else if (ProfileContains("gicv2"))
+        {
+            // GICv2 has no ITS, so there is no LPI/MSI path: the kernel must
+            // report it absent and fall back to polled rather than claim MSI.
+            TR.Run("Its_Lpi_BroughtUp", TestItsAbsentOnGicv2);
+            TR.Run("Msi_RoutingAvailable", TestMsiRoutingUnavailableOnGicv2);
+        }
+        else
+        {
+            // Bare cell: gic-version is whatever the machine defaults to, so the
+            // ITS/MSI state is not determinate. The gicv2/gicv3 cells assert it.
+            TR.Skip("Its_Lpi_BroughtUp", "gic-version not pinned by this cell");
+            TR.Skip("Msi_RoutingAvailable", "gic-version not pinned by this cell");
+        }
 #endif
 
         TR.Finish();
@@ -140,25 +167,55 @@ public class Kernel : Sys.Kernel
 
 #else
 
-    private const string NoItsReason = "no GIC ITS on this machine (MSI routing needs ITS + LPI)";
-
     private static void TestGicInitialized()
     {
         Assert.True(GIC.IsInitialized, "GIC should be initialized");
     }
 
-    // Runs only when the machine exposes a GICv3 ITS (gated by the caller).
-    // With the ITS up, the LPI configuration/pending tables must also be
-    // initialized; together they are the ARM64 MSI delivery path.
-    private static void TestItsLpiBroughtUp()
+    // gicv3 cell: the ITS and its LPI configuration/pending tables are the
+    // ARM64 MSI delivery path and must both be up.
+    private static void TestItsLpiUp()
     {
-        Assert.True(GICv3Its.IsInitialized, "GICv3 ITS should be initialized");
-        Assert.True(GICv3Lpi.IsInitialized, "GICv3 LPI tables should be initialized");
+        Assert.True(GICv3Its.IsInitialized, "GICv3 ITS should be initialized on a gicv3 machine");
+        Assert.True(GICv3Lpi.IsInitialized, "GICv3 LPI tables should be initialized on a gicv3 machine");
     }
 
     private static void TestMsiRoutingAvailableArm64()
     {
-        Assert.True(MsiRouting.IsAvailable, "arm64 MSI routing (ITS binder) should be available");
+        Assert.True(MsiRouting.IsAvailable, "arm64 MSI routing (ITS binder) should be available on a gicv3 machine");
+    }
+
+    // gicv2 cell: no ITS exists, so the LPI/MSI path must report absent. This
+    // is the path that forces drivers to the polled fallback.
+    private static void TestItsAbsentOnGicv2()
+    {
+        Assert.False(GICv3Its.IsInitialized, "GICv2 exposes no ITS");
+    }
+
+    private static void TestMsiRoutingUnavailableOnGicv2()
+    {
+        Assert.False(MsiRouting.IsAvailable, "GICv2 has no ITS, so MSI routing must be unavailable");
+    }
+
+    // Substring match over the cell name (the kernel runtime does not plug
+    // string.Contains). Detects the composed modifier, e.g. the "gicv2" in
+    // "bare+gicv2".
+    private static bool ProfileContains(string needle)
+    {
+        int limit = s_profile.Length - needle.Length;
+        for (int i = 0; i <= limit; i++)
+        {
+            int j = 0;
+            while (j < needle.Length && s_profile[i + j] == needle[j])
+            {
+                j++;
+            }
+            if (j == needle.Length)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 #endif
