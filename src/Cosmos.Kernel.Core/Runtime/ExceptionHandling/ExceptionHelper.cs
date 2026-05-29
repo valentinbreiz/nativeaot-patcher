@@ -180,20 +180,29 @@ public static unsafe partial class ExceptionHelper
                 break;
             }
 
-            // Capture this frame's IP before stepping up — CFI unwinds it below.
+            // Capture this frame's IP before stepping up.
             nuint currentFrameIP = frame.ReturnAddress;
 
-            // Step to the caller via the frame-pointer chain; stop if it runs out.
-            if (!UnwindOneFrame(ref frame))
-            {
-                break;
-            }
-
-            // Unwind the register state with CFI for the frame we just left, so it reflects the
-            // caller's values on the next iteration (needed for filter evaluation).
+            // Step to the caller. CFI (the .eh_frame unwinder) is the source of truth: it works
+            // regardless of whether the current method keeps RBP/X29 (RyuJIT omits the frame
+            // pointer on methods with no EH, small frames, no localloc, no address-taken locals —
+            // the managed equivalent of `-fomit-frame-pointer`; tail-called methods don't even
+            // get their own frame). The frame-pointer chain breaks across any such intermediate,
+            // so we drive the walk from CFI and reserve `UnwindOneFrame` for the (defensive)
+            // case where there is no throw context to seed the unwind state with.
             if (pThrowContext != null)
             {
-                UnwindOneFrameWithCFI(ref unwindState, currentFrameIP);
+                if (!UnwindOneFrameWithCFI(ref unwindState, currentFrameIP))
+                {
+                    break;   // No CFI for this IP — can't unwind further precisely.
+                }
+                frame.ReturnAddress = unwindState.ReturnAddress;
+                frame.FramePointer = unwindState.GetRegValue(CfiArch.FramePointerReg);
+                frame.StackPointer = unwindState.StackPointer;
+            }
+            else if (!UnwindOneFrame(ref frame))
+            {
+                break;
             }
 
             frameCount++;
@@ -209,9 +218,10 @@ public static unsafe partial class ExceptionHelper
         // catching frame already reconstructed its body register state at the call that threw, so
         // `unwindState` carries the callee-saved registers and the resume SP directly — that's what
         // `ProjectRegDisplay` copies in (and, on x64, what it wires the pRxx pointers to point at).
-        // The frame pointer is the one exception: it comes from the frame-pointer chain (`[RBP]` on
-        // x64, `[FP]` on ARM64), because CFI can legitimately report it "SameValue" for a
-        // -fomit-frame-pointer caller — so we override it here after the projection.
+        // The frame pointer is overridden separately: `catchFrame.FramePointer` was derived from
+        // the same CFI walk, so the two should agree, but we pin it explicitly to match what the
+        // funclet expects to find at function entry (`push rbp; mov rbp, rsp` semantics on x64;
+        // the establisher's X29 on ARM64).
         if (pThrowContext != null)
         {
             pRegDisplay = &regDisplay;
