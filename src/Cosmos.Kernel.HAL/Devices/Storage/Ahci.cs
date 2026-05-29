@@ -34,7 +34,7 @@ public static class Ahci
     /// Initialize the AHCI driver: PCI scan, controller bring-up, port
     /// discovery. Idempotent — subsequent calls are no-ops.
     /// </summary>
-    public static void InitDriver()
+    public static void Initialize()
     {
         if (_initialized)
         {

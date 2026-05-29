@@ -26,7 +26,7 @@ public static class Nvme
     public static List<NvmeNamespace> Namespaces => _namespaces ?? new List<NvmeNamespace>();
 
     /// <summary>Initialize the NVMe driver: PCI scan, controller bring-up, namespace discovery.</summary>
-    public static void InitDriver()
+    public static void Initialize()
     {
         Serial.WriteString("[NVMe] Looking for NVMe controllers...\n");
 

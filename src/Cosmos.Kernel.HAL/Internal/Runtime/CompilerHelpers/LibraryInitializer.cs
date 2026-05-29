@@ -66,10 +66,10 @@ namespace Internal.Runtime.CompilerHelpers
                 if (CosmosFeatures.StorageEnabled)
                 {
                     Serial.WriteString("[KERNEL]   - Initializing AHCI...\n");
-                    Ahci.InitDriver();
+                    Ahci.Initialize();
 
                     Serial.WriteString("[KERNEL]   - Initializing NVMe...\n");
-                    Nvme.InitDriver();
+                    Nvme.Initialize();
                 }
             }
         }

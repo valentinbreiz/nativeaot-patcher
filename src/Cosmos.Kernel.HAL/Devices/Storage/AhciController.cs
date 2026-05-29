@@ -106,7 +106,7 @@ public unsafe class AhciController
     /// probe every implemented port. After a successful call,
     /// <see cref="Ports"/> contains one <see cref="Sata"/> per attached
     /// SATA drive. Returns <c>false</c> if any precondition fails — the
-    /// caller (<see cref="Ahci.InitDriver"/>) then drops this controller
+    /// caller (<see cref="Ahci.Initialize"/>) then drops this controller
     /// and moves on. Init-time failures are reported via return value
     /// rather than thrown so a misconfigured device can't take the boot
     /// down.
