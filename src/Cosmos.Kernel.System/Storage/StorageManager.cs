@@ -84,7 +84,7 @@ public static class StorageManager
             return;
         }
 
-        List<BlockDevice> ports = Ahci.Ports;
+        IReadOnlyList<BlockDevice> ports = Ahci.Ports;
         for (int i = 0; i < ports.Count; i++)
         {
             RegisterDevice(ports[i]);

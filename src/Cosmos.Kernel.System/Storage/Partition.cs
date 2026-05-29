@@ -20,8 +20,14 @@ public sealed class Partition : BlockDevice
     /// <summary>Absolute LBA on the host where the partition begins.</summary>
     public ulong StartSector { get; }
 
+    /// <inheritdoc />
     public override string Name => _name;
 
+    /// <summary>Creates a block-device view of a partition on a host disk.</summary>
+    /// <param name="host">The disk this partition lives on.</param>
+    /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
+    /// <param name="sectorCount">Length of the partition in sectors.</param>
+    /// <param name="name">Display name for the partition.</param>
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)
     {
         _host = host;
@@ -31,12 +37,14 @@ public sealed class Partition : BlockDevice
         BlockSize = host.BlockSize;
     }
 
+    /// <inheritdoc />
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         CheckBounds(blockNo, blockCount);
         _host.ReadBlock(StartSector + blockNo, blockCount, data);
     }
 
+    /// <inheritdoc />
     public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         CheckBounds(blockNo, blockCount);

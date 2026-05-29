@@ -76,27 +76,27 @@ public unsafe class AhciController
     }
 
     /// <summary>Kernel-virtual base of port <paramref name="portNumber"/>'s command list.</summary>
-    public ulong PortCommandListVirt(uint portNumber) =>
+    internal ulong PortCommandListVirt(uint portNumber) =>
         _cmdRegionVirt + PortStrideCLB * portNumber;
 
     /// <summary>Physical (DMA) base of port <paramref name="portNumber"/>'s command list.</summary>
-    public ulong PortCommandListPhys(uint portNumber) =>
+    internal ulong PortCommandListPhys(uint portNumber) =>
         _cmdRegionPhys + PortStrideCLB * portNumber;
 
     /// <summary>Kernel-virtual base of port <paramref name="portNumber"/>'s FIS-receive area.</summary>
-    public ulong PortFisReceiveVirt(uint portNumber) =>
+    internal ulong PortFisReceiveVirt(uint portNumber) =>
         _cmdRegionVirt + FBBaseOffset + PortStrideFB * portNumber;
 
     /// <summary>Physical (DMA) base of port <paramref name="portNumber"/>'s FIS-receive area.</summary>
-    public ulong PortFisReceivePhys(uint portNumber) =>
+    internal ulong PortFisReceivePhys(uint portNumber) =>
         _cmdRegionPhys + FBBaseOffset + PortStrideFB * portNumber;
 
     /// <summary>Kernel-virtual base of port/slot's command table.</summary>
-    public ulong PortCommandTableVirt(uint portNumber, uint slot) =>
+    internal ulong PortCommandTableVirt(uint portNumber, uint slot) =>
         _cmdRegionVirt + CTBABaseOffset + PortStrideCTBA * portNumber + SlotStrideCTBA * slot;
 
     /// <summary>Physical (DMA) base of port/slot's command table.</summary>
-    public ulong PortCommandTablePhys(uint portNumber, uint slot) =>
+    internal ulong PortCommandTablePhys(uint portNumber, uint slot) =>
         _cmdRegionPhys + CTBABaseOffset + PortStrideCTBA * portNumber + SlotStrideCTBA * slot;
 
     /// <summary>

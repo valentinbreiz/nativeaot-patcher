@@ -28,7 +28,7 @@ public static class Ahci
         (IReadOnlyList<AhciController>?)_controllers ?? Array.Empty<AhciController>();
 
     /// <summary>All SATA drive ports across every controller this driver bound to.</summary>
-    public static List<BlockDevice> Ports => _ports ?? new List<BlockDevice>();
+    public static IReadOnlyList<BlockDevice> Ports => _ports ?? new List<BlockDevice>();
 
     /// <summary>
     /// Initialize the AHCI driver: PCI scan, controller bring-up, port

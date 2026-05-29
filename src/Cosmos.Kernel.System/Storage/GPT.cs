@@ -22,11 +22,19 @@ public static class Gpt
     /// <summary>Single parsed partition. Sector positions are absolute on the host disk.</summary>
     public sealed class PartitionEntry
     {
+        /// <summary>Partition type GUID (see <see cref="Gpt.BasicDataPartitionType"/>).</summary>
         public Guid PartitionType { get; }
+
+        /// <summary>Unique partition GUID.</summary>
         public Guid PartitionGuid { get; }
+
+        /// <summary>First absolute LBA of the partition on the host disk.</summary>
         public ulong StartSector { get; }
+
+        /// <summary>Length of the partition in sectors.</summary>
         public ulong SectorCount { get; }
 
+        /// <summary>Creates a GPT partition entry.</summary>
         public PartitionEntry(Guid partitionType, Guid partitionGuid, ulong startSector, ulong sectorCount)
         {
             PartitionType = partitionType;

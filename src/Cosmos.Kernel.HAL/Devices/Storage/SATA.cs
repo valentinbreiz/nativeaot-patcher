@@ -13,6 +13,7 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public class Sata : BlockDevice
 {
+    /// <inheritdoc />
     public override string Name => "SATA";
 
     public uint PortNumber => _portReg.PortNumber;
@@ -287,6 +288,7 @@ public class Sata : BlockDevice
     // BlockDevice implementation. The bounce buffer (_dataBufferVirt) is sized
     // for one sector, so we issue one DMA command per block rather than
     // overrunning the buffer on multi-block transfers.
+    /// <inheritdoc />
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         int sector = (int)BlockSize;
@@ -297,6 +299,7 @@ public class Sata : BlockDevice
         }
     }
 
+    /// <inheritdoc />
     public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         Serial.WriteString("[SATA] WriteBlock LBA=");

@@ -17,10 +17,16 @@ public static class Mbr
     /// <summary>Single MBR partition entry. Sector positions are absolute on the host disk.</summary>
     public sealed class PartitionEntry
     {
+        /// <summary>MBR partition type byte (e.g. 0x83 Linux, 0x0B FAT32).</summary>
         public byte SystemId { get; }
+
+        /// <summary>First absolute LBA of the partition on the host disk.</summary>
         public ulong StartSector { get; }
+
+        /// <summary>Length of the partition in sectors.</summary>
         public ulong SectorCount { get; }
 
+        /// <summary>Creates an MBR partition entry.</summary>
         public PartitionEntry(byte systemId, ulong startSector, ulong sectorCount)
         {
             SystemId = systemId;

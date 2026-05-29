@@ -16,6 +16,7 @@ public unsafe class NvmeNamespace : BlockDevice
     private readonly NvmeController _controller;
     private readonly uint _nsid;
 
+    /// <inheritdoc />
     public override string Name => "NVMe";
 
     public NvmeNamespace(NvmeController controller, uint nsid, ulong blockCount, ulong blockSize)
@@ -26,6 +27,7 @@ public unsafe class NvmeNamespace : BlockDevice
         BlockSize = blockSize;
     }
 
+    /// <inheritdoc />
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         int sector = (int)BlockSize;
@@ -45,6 +47,7 @@ public unsafe class NvmeNamespace : BlockDevice
         }
     }
 
+    /// <inheritdoc />
     public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         int sector = (int)BlockSize;
