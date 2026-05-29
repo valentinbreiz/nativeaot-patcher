@@ -24,13 +24,6 @@ namespace Cosmos.Kernel.Tests.Interrupts;
 // stays covered by the Storage suite's NVMe assertions.
 public class Kernel : Sys.Kernel
 {
-#if !ARCH_X64
-    // The active profile-matrix cell name (bare, bare+gicv2, bare+gicv3),
-    // injected by the engine on the Limine cmdline. Drives the per-GIC-version
-    // assertions below.
-    private static string s_profile = string.Empty;
-#endif
-
     protected override void BeforeRun()
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
@@ -51,16 +44,15 @@ public class Kernel : Sys.Kernel
         TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableX64);
 #else
         // ==================== arm64 (GIC, per cell's gic-version) ====================
-        s_profile = TR.GetProfileName();
         TR.Run("Gic_Initialized", TestGicInitialized);
 
-        if (ProfileContains("gicv3"))
+        if (TR.ProfileContains("gicv3"))
         {
             // GICv3 + ITS: the MSI delivery path must be fully up.
             TR.Run("Its_Lpi_BroughtUp", TestItsLpiUp);
             TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableArm64);
         }
-        else if (ProfileContains("gicv2"))
+        else if (TR.ProfileContains("gicv2"))
         {
             // GICv2 has no ITS, so there is no LPI/MSI path: the kernel must
             // report it absent and fall back to polled rather than claim MSI.
@@ -195,27 +187,6 @@ public class Kernel : Sys.Kernel
     private static void TestMsiRoutingUnavailableOnGicv2()
     {
         Assert.False(MsiRouting.IsAvailable, "GICv2 has no ITS, so MSI routing must be unavailable");
-    }
-
-    // Substring match over the cell name (the kernel runtime does not plug
-    // string.Contains). Detects the composed modifier, e.g. the "gicv2" in
-    // "bare+gicv2".
-    private static bool ProfileContains(string needle)
-    {
-        int limit = s_profile.Length - needle.Length;
-        for (int i = 0; i <= limit; i++)
-        {
-            int j = 0;
-            while (j < needle.Length && s_profile[i + j] == needle[j])
-            {
-                j++;
-            }
-            if (j == needle.Length)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
 #endif
