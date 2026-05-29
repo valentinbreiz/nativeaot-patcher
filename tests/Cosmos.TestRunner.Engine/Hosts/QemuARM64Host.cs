@@ -30,7 +30,7 @@ public class QemuARM64Host : IQemuHost
         // uefiFirmwarePath ignored — QemuLauncher.ResolveArm64Firmware() handles it.
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<string>? ahciDiskPaths = null, IReadOnlyList<string>? nvmeDiskPaths = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -65,8 +65,8 @@ public class QemuARM64Host : IQemuHost
                 Headless = !showDisplay,
                 SerialOutputFile = uartLogPath,
                 EnableNetworkTesting = enableNetworkTesting,
-                AhciDiskPaths = ahciDiskPaths ?? Array.Empty<string>(),
-                NvmeDiskPaths = nvmeDiskPaths ?? Array.Empty<string>(),
+                Disks = disks ?? Array.Empty<DiskAttachment>(),
+                MachineOptions = machineOptions ?? new Dictionary<string, string>(),
                 AllowGuestShutdown = true
             });
         }

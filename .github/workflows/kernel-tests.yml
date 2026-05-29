@@ -299,6 +299,29 @@ jobs:
       event_name: ${{ github.event_name }}
       head_ref: ${{ github.head_ref || github.ref_name }}
 
+  # ── Pci ───────────────────────────────────────────────────────────────────────
+  pci-tests:
+    needs: setup
+    uses: ./.github/workflows/kernel-test-run.yml
+    with:
+      suite_name: Pci
+      suite_id: pci
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Pci
+      timeout_x64: 60
+      timeout_arm64: 90
+      step_timeout_minutes: 5
+
+  pci-results:
+    needs: pci-tests
+    if: always()
+    uses: ./.github/workflows/kernel-test-results.yml
+    with:
+      suite_name: Pci
+      suite_id: pci
+      kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Pci
+      event_name: ${{ github.event_name }}
+      head_ref: ${{ github.head_ref || github.ref_name }}
+
   # ── Storage ───────────────────────────────────────────────────────────────────
   storage-tests:
     needs: setup
@@ -326,7 +349,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-24.04
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, storage-results ]
+    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, pci-results, storage-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary
@@ -357,6 +380,7 @@ jobs:
           add_row "Graphic"          "${{ needs.graphic-tests.result }}"
           add_row "Power"            "${{ needs.power-tests.result }}"
           add_row "GarbageCollector" "${{ needs.garbagecollector-tests.result }}"
+          add_row "Pci"              "${{ needs.pci-tests.result }}"
           add_row "Storage"          "${{ needs.storage-tests.result }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY

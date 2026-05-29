@@ -169,6 +169,20 @@ public class UartMessageParser
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string testName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
 
+        // Defensive: a non-protocol byte sequence in UART (e.g. an IRQ handler
+        // calling Serial.WriteString mid-frame) can interleave with a real
+        // TestStart in a way that produces a false-positive magic match here,
+        // and the resulting "name" carries control characters (0x00..0x1F)
+        // that downstream XML emission rejects. Drop messages whose name
+        // contains anything below 0x20 — real test names are ASCII identifiers.
+        for (int i = 0; i < testName.Length; i++)
+        {
+            if (testName[i] < 0x20)
+            {
+                return;
+            }
+        }
+
         TestResult? existingTest = results.Tests.Find(t => t.TestNumber == testNumber);
         if (existingTest != null)
         {

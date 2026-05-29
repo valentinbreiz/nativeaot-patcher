@@ -96,6 +96,15 @@ public unsafe class NVMeController
 
     public List<NVMeNamespace> Namespaces { get; } = new();
 
+    /// <summary>
+    /// True once I/O completions are delivered via MSI-X; false when the
+    /// controller fell back to polled I/O (no MSI-X capability, or no platform
+    /// MSI routing backend — e.g. an ARM64 GIC with no ITS). Lets a test assert
+    /// which interrupt path a given QEMU profile actually exercised rather than
+    /// just that I/O works.
+    /// </summary>
+    public bool IsMsiXEnabled => _msiXEnabled;
+
     public NVMeController(PciDevice pci)
     {
         _pci = pci;

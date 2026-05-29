@@ -57,10 +57,40 @@ namespace Cosmos.TestRunner.Framework
             // Execute test
             testAction();
 
-            // Calculate duration
+            // Calculate duration. The raw CNTPCT_EL0 delta has produced
+            // multi-million-second readings on github-CI arm64 (QEMU TCG)
+            // for a sub-second test, propagating into the JUnit XML as
+            // bogus times. When that happens, clamp to a sane max and
+            // emit a UART warning with the raw inputs so the cause can be
+            // debugged from the log.
             var endTicks = Stopwatch.GetTimestamp();
             var elapsedTicks = endTicks - _testStartTicks;
-            var durationMs = (uint)((elapsedTicks * 1000) / Stopwatch.Frequency);
+            long freq = Stopwatch.Frequency;
+            long rawMs = (freq > 0 && elapsedTicks > 0)
+                ? (elapsedTicks * 1000) / freq
+                : 0;
+
+            const long MaxSaneDurationMs = 5L * 60L * 1000L; // 5 minutes
+            uint durationMs;
+            if (rawMs < 0 || rawMs > MaxSaneDurationMs)
+            {
+                Serial.WriteString("[TestRunner] WARN clamped durationMs=");
+                Serial.WriteNumber(rawMs);
+                Serial.WriteString(" startTicks=");
+                Serial.WriteNumber(_testStartTicks);
+                Serial.WriteString(" endTicks=");
+                Serial.WriteNumber(endTicks);
+                Serial.WriteString(" elapsedTicks=");
+                Serial.WriteNumber(elapsedTicks);
+                Serial.WriteString(" freq=");
+                Serial.WriteNumber(freq);
+                Serial.WriteString("\n");
+                durationMs = (uint)MaxSaneDurationMs;
+            }
+            else
+            {
+                durationMs = (uint)rawMs;
+            }
 
             // Check if test failed via Assert
             if (Assert.Failed)
@@ -73,6 +103,42 @@ namespace Cosmos.TestRunner.Framework
                 _passedCount++;
                 SendTestPass(_currentTestNumber, durationMs);
             }
+        }
+
+        /// <summary>
+        /// Run <paramref name="testAction"/> only when <paramref name="condition"/> is
+        /// true; otherwise emit a <see cref="Skip(string, string)"/> with
+        /// <paramref name="skipReason"/>. Use to gate a test on a feature that may or
+        /// may not be present in the current QEMU profile (specific device kind, MSI-X
+        /// capability, GIC version) — keeps the test in the report as Skipped instead
+        /// of either silently disappearing or failing for a reason that's not a code
+        /// regression.
+        /// </summary>
+        public static void RunIf(bool condition, string testName, Action testAction, string skipReason)
+        {
+            if (condition)
+            {
+                Run(testName, testAction);
+            }
+            else
+            {
+                Skip(testName, skipReason);
+            }
+        }
+
+        /// <summary>
+        /// Run a test that adapts to a capability instead of skipping. The
+        /// <paramref name="condition"/> is passed into <paramref name="test"/>
+        /// so the body can assert the capable path when true and the fallback
+        /// path when false — both branches stay in the report as a real run.
+        /// Use this when the cell always has something to assert but the
+        /// expected outcome differs by profile (e.g. NVMe MSI-X vs polled),
+        /// as opposed to <see cref="RunIf(bool, string, Action, string)"/>
+        /// which reports a Skip when the feature is simply absent.
+        /// </summary>
+        public static void RunIf(bool condition, string testName, Action<bool> test)
+        {
+            Run(testName, () => test(condition));
         }
 
         /// <summary>
@@ -142,6 +208,50 @@ namespace Cosmos.TestRunner.Framework
                 p++;
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Reads the <c>profile=&lt;name&gt;</c> token from the Limine kernel
+        /// cmdline. The test engine sets this to the active QEMU profile-matrix
+        /// cell name (e.g. <c>nvme+gicv3</c> or <c>nvme+gicv2+acpi-off</c>) so a
+        /// suite can assert the hardware path that cell was meant to exercise.
+        /// Returns an empty string when no profile token is present (a suite
+        /// that opts into no profiles, or a non-test boot).
+        /// </summary>
+        public static unsafe string GetProfileName()
+        {
+            byte* cmdline = Limine.Cmdline;
+            if (cmdline == null)
+            {
+                return string.Empty;
+            }
+
+            // Walk the null-terminated cmdline looking for "profile=" then read
+            // the value up to the next space or the terminating null. The value
+            // may contain '+' (composed cell names), which is preserved.
+            byte* p = cmdline;
+            while (*p != 0)
+            {
+                if (p[0] == (byte)'p' && p[1] == (byte)'r' && p[2] == (byte)'o' &&
+                    p[3] == (byte)'f' && p[4] == (byte)'i' && p[5] == (byte)'l' &&
+                    p[6] == (byte)'e' && p[7] == (byte)'=')
+                {
+                    p += 8;
+                    int len = 0;
+                    while (p[len] != 0 && p[len] != (byte)' ')
+                    {
+                        len++;
+                    }
+                    char[] chars = new char[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        chars[i] = (char)p[i];
+                    }
+                    return new string(chars);
+                }
+                p++;
+            }
+            return string.Empty;
         }
 
         /// <summary>
