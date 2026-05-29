@@ -45,7 +45,9 @@ public sealed class Partition : BlockDevice
 
     private void CheckBounds(ulong blockNo, ulong blockCount)
     {
-        if (blockNo + blockCount > BlockCount)
+        // Overflow-safe: `blockNo + blockCount` would wrap for a blockNo near
+        // ulong.MaxValue and slip past a naive `sum > BlockCount` check.
+        if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
         {
             throw new ArgumentOutOfRangeException(nameof(blockNo), "Partition I/O extends beyond partition end.");
         }
