@@ -60,16 +60,9 @@ namespace Cosmos.TestingFramework
 
                 results.Add(Task.Run(async () =>
                 {
-                    var config = new TestConfiguration
+                    var config = _testingConfiguration with
                     {
                         KernelProjectPath = Path.GetDirectoryName(_projectFile)!,
-                        Architecture = "x64",
-                        TimeoutSeconds = 120,
-                        KeepBuildArtifacts = false, // Keep artifacts for debugging
-                        Mode = TestRunnerMode.Dev,
-                        CoverageEnabled = false,
-                        XmlOutputPath = Path.Combine(_configuration.GetTestResultDirectory(), "results.xml"),
-                        UartLogPath = Path.Combine(_configuration.GetTestResultDirectory(), "uart.log"),
                     };
 
                     try
@@ -127,6 +120,16 @@ namespace Cosmos.TestingFramework
                     {
                         _logger.LogError(ex);
                     }
+
+                    if(!string.IsNullOrEmpty(config.XmlOutputPath))
+                    {
+                        await context.MessageBus.PublishAsync(this, new SessionFileArtifact(runTestExecutionRequest.Session.SessionUid, new FileInfo(config.XmlOutputPath), "Testing framework results"));
+                    }
+
+                    if(!string.IsNullOrEmpty(config.UartLogPath))
+                    {
+                        await context.MessageBus.PublishAsync(this, new SessionFileArtifact(runTestExecutionRequest.Session.SessionUid, new FileInfo(config.UartLogPath), "UART log output"));
+                    }   
                 }));
 
 

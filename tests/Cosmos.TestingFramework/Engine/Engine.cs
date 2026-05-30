@@ -43,17 +43,16 @@ public partial class Engine
             return _config.OutputHandler;
         }
 
-        // Default: console output
-        var consoleHandler = new OutputHandlerConsole(useColors: true, verbose: false);
+        var defaultHandler = _config.OutputHandler ?? new OutputHandlerConsole(useColors: true, verbose: false);
 
         // If XML output requested, multiplex console + XML
         if (!string.IsNullOrEmpty(_config.XmlOutputPath))
         {
             var xmlHandler = new OutputHandlerXml(_config.XmlOutputPath);
-            return new MultiplexingOutputHandler(consoleHandler, xmlHandler);
+            return new MultiplexingOutputHandler(defaultHandler, xmlHandler);
         }
 
-        return consoleHandler;
+        return defaultHandler;
     }
 
     /// <summary>

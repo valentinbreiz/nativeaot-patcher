@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Reflection;
-using System.Text;
-using Cosmos.TestingFramework.Attributes;
 using Cosmos.TestingFramework.Capabilities;
+using Cosmos.TestingFramework.Engine;
 using Cosmos.TestingFramework.Extensions;
-using Microsoft.Testing.Extensions.TrxReport.Abstractions;
-using Microsoft.Testing.Platform.Capabilities;
 using Microsoft.Testing.Platform.Capabilities.TestFramework;
 using Microsoft.Testing.Platform.CommandLine;
 using Microsoft.Testing.Platform.Configurations;
@@ -27,8 +21,19 @@ namespace Cosmos.TestingFramework
         private readonly IConfiguration _configuration;
         private readonly ILogger<CosmosTestingFramework> _logger;
         private readonly IOutputDevice _outputDevice;
+        private readonly TestConfiguration _testingConfiguration;
         private readonly string _projectFile = string.Empty;
         private readonly Assembly[] _assemblies;
+
+        public string Uid => nameof(CosmosTestingFramework);
+
+        public string Version => typeof(CosmosTestingFramework).Assembly.GetName().Version?.ToString() ?? "Unknown";
+
+        public string DisplayName => "Cosmos Test Framework";
+
+        public string Description => "Integration of Cosmos Test Framework";
+
+        public Type[] DataTypesProduced => [typeof(TestNodeUpdateMessage), typeof(SessionFileArtifact)];
 
         public CosmosTestingFramework(ITestFrameworkCapabilities capabilities, ICommandLineOptions commandLineOptions, IConfiguration configuration, ILogger<CosmosTestingFramework> logger, IOutputDevice outputDevice, Assembly[] assemblies)
         {
@@ -42,17 +47,32 @@ namespace Cosmos.TestingFramework
             {
                 _projectFile = projectFile[0];
             }
+
+            _testingConfiguration = _configuration.GetCosmosTestingFrameworkConfiguration();
+
+            if(_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.ReportXmlOption))
+            {
+                string filename = "results.xml";
+                if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.ReportXmlFilenameOption, out string[]? reportXmlFilename))
+                {
+                    filename = reportXmlFilename[0];
+                }
+
+                _testingConfiguration.XmlOutputPath = Path.Combine(_configuration.GetTestResultDirectory(), filename);
+            }
+
+            if (_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.UartLogOption))
+            {
+                string filename = "uart.log";
+                if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.UartLogFilenameOption, out string[]? uartLogFilename))
+                {
+                    filename = uartLogFilename[0];
+                }
+
+                _testingConfiguration.UartLogPath = Path.Combine(_configuration.GetTestResultDirectory(), filename);
+            }
         }
 
-        public string Uid => nameof(CosmosTestingFramework);
-
-        public string Version => typeof(CosmosTestingFramework).Assembly.GetName().Version?.ToString() ?? "Unknown";
-
-        public string DisplayName => "Cosmos Test Framework";
-
-        public string Description => "Integration of Cosmos Test Framework";
-
-        public Type[] DataTypesProduced => [typeof(TestNodeUpdateMessage), typeof(SessionFileArtifact)];
         public Task<bool> IsEnabledAsync() => Task.FromResult(true);
 
         public Task<CloseTestSessionResult> CloseTestSessionAsync(CloseTestSessionContext context) => Task.FromResult(new CloseTestSessionResult() { IsSuccess = true });

@@ -14,7 +14,6 @@ namespace Cosmos.TestingFramework.Extensions
             ArgumentNullException.ThrowIfNull(configuration);
 
             var config = new TestConfiguration();
-            config.KernelProjectPath = configuration[$"{SectionName}:KernelProjectPath"] ?? config.KernelProjectPath;
             config.Architecture = configuration[$"{SectionName}:Architecture"] ?? config.Architecture;
             config.BuildConfiguration = configuration[$"{SectionName}:BuildConfiguration"] ?? config.BuildConfiguration;
 
@@ -23,15 +22,23 @@ namespace Cosmos.TestingFramework.Extensions
                 config.TimeoutSeconds = timeoutSeconds;
             }
 
-            config.OutputDirectory = configuration[$"{SectionName}:OutputDirectory"] ?? config.OutputDirectory;
+            // config.OutputDirectory = configuration[$"{SectionName}:OutputDirectory"] ?? config.OutputDirectory;
             config.UartLogPath = configuration[$"{SectionName}:UartLogPath"] ?? config.UartLogPath;
+
+            if (bool.TryParse(configuration[$"{SectionName}:UartLog"], out bool uartLogEnabled) && uartLogEnabled)
+            {
+                config.UartLogPath = Path.Combine(configuration.GetTestResultDirectory(), "uart.log");
+            }
+
+            if (bool.TryParse(configuration[$"{SectionName}:XmlOutput"], out bool xmlOutputEnabled) && xmlOutputEnabled)
+            {
+                config.XmlOutputPath = Path.Combine(configuration.GetTestResultDirectory(), "result.xml");
+            }
 
             if (bool.TryParse(configuration[$"{SectionName}:KeepBuildArtifacts"], out bool keepBuildArtifacts))
             {
                 config.KeepBuildArtifacts = keepBuildArtifacts;
             }
-
-            config.XmlOutputPath = configuration[$"{SectionName}:XmlOutputPath"] ?? config.XmlOutputPath;
 
             var modeValue = configuration[$"{SectionName}:Mode"];
             if (!string.IsNullOrWhiteSpace(modeValue) && Enum.TryParse<TestRunnerMode>(modeValue, ignoreCase: true, out var mode))

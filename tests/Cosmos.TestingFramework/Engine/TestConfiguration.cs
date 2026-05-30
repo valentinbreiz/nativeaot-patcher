@@ -22,7 +22,7 @@ public enum TestRunnerMode
 /// <summary>
 /// Configuration for a test kernel execution
 /// </summary>
-public class TestConfiguration
+public record TestConfiguration
 {
     /// <summary>
     /// Path to the test kernel project directory
