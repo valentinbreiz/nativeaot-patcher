@@ -12,6 +12,7 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
     public const string UartLogOption = "uartlog";
     public const string UartLogFilenameOption = "uartlog-filename";
     public const string KernelArchitectureOption = "kernel-arch";
+    public const string KeepOutputOption = "keep-output";
 
     public string Uid => nameof(TestingFrameworkCommandLineOptions);
 
@@ -28,7 +29,8 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
         new CommandLineOption(ReportXmlFilenameOption, "The name of the Cosmos XML Report", ArgumentArity.ExactlyOne, false),
         new CommandLineOption(UartLogOption, "Enable UART log", ArgumentArity.Zero, false),
         new CommandLineOption(UartLogFilenameOption, "The name of the uart log file", ArgumentArity.ExactlyOne, false),
-        new CommandLineOption(KernelArchitectureOption, "The architecture to build the test kernel for (x64 or arm64)", ArgumentArity.ExactlyOne, false)
+        new CommandLineOption(KernelArchitectureOption, "The architecture to build the test kernel for (x64 or arm64)", ArgumentArity.ExactlyOne, false),
+        new CommandLineOption(KeepOutputOption, "Keep build artifacts after test execution", ArgumentArity.Zero, false)
     ];
 
     public Task<bool> IsEnabledAsync() => Task.FromResult(true);

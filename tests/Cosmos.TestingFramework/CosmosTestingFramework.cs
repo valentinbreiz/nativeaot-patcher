@@ -76,6 +76,11 @@ namespace Cosmos.TestingFramework
             {
                 _testingConfiguration.Architecture = kernelArch[0];
             }
+
+            if (_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.KeepOutputOption))
+            {
+                _testingConfiguration.KeepBuildArtifacts = true;
+            }
         }
 
         public Task<bool> IsEnabledAsync() => Task.FromResult(true);

@@ -139,7 +139,7 @@ jobs:
             --report-xml --report-xml-filename test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
             --uartlog --uartlog-filename uart-output.log
             --timeout $(TIMEOUT)s --kernel-arch ${{ matrix.arch }} \
-            --results-directory "./tests/Kernels/TestResults \
+            --results-directory ./TestResults \
             $COVERAGE_ARG 
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
