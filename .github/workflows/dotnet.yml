@@ -42,13 +42,13 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Patcher.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Patcher/Cosmos.Tests.Patcher.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Patcher.trx
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Tests.Patcher-Results
-          path: ./tests/Cosmos.Tests.Patcher/TestResults/Cosmos.Tests.Patcher.trx
+          path: ./TestResults/Cosmos.Tests.Patcher.trx
 
   scanner-tests:
     name: Run Cosmos.Tests.Scanner
@@ -79,13 +79,13 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Scanner.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Scanner/Cosmos.Tests.Scanner.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Scanner.trx
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Tests.Scanner-Results
-          path: ./tests/Cosmos.Tests.Scanner/TestResults/Cosmos.Tests.Scanner.trx
+          path: ./TestResults/Cosmos.Tests.Scanner.trx
 
   analyzer-tests:
     name: Run Cosmos.Tests.Build.Analyzer.Patcher
@@ -110,13 +110,13 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj --no-build --configuration Debug --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Build.Analyzer.Patcher.trx
+        run: dotnet test ./tests/Cosmos.Tests.Build.Analyzer.Patcher/Cosmos.Tests.Build.Analyzer.Patcher.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Build.Analyzer.Patcher.trx
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Tests.Build.Analyzer.Patcher-Results
-          path: ./tests/Cosmos.Tests.Build.Analyzer.Patcher/TestResults/Cosmos.Tests.Build.Analyzer.Patcher.trx
+          path: ./TestResults/Cosmos.Tests.Build.Analyzer.Patcher.trx
 
   asm-tests:
     name: Run Cosmos.Build.Asm.Test
@@ -174,13 +174,13 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Build.Asm.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Build.Asm.trx
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Build.Asm.Test-Results
-          path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
+          path: ./TestResults/Cosmos.Tests.Build.Asm.trx
 
   build-cache-tests:
     name: Run Build Cache Tests
@@ -242,6 +242,7 @@ jobs:
 
       - name: Run Build Cache Tests
         run: dotnet test ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.BuildCache.trx" -v normal
+        run: dotnet test ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.BuildCache.trx        
         env:
           PATH: ${{ github.workspace }}/.dotnet/tools:$HOME/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -250,7 +251,7 @@ jobs:
         if: always()
         with:
           name: Cosmos.Tests.BuildCache-Results
-          path: ./tests/Cosmos.Tests.BuildCache/TestResults/Cosmos.Tests.BuildCache.trx
+          path: ./TestResults/Cosmos.Tests.BuildCache.trx
 
   windows-iso-tests:
     name: Run ISO Build Tests - Windows (${{ matrix.arch }})
