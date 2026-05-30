@@ -241,7 +241,6 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --configuration Debug
 
       - name: Run Build Cache Tests
-        run: dotnet test ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.BuildCache.trx" -v normal
         run: dotnet test ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.BuildCache.trx        
         env:
           PATH: ${{ github.workspace }}/.dotnet/tools:$HOME/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
