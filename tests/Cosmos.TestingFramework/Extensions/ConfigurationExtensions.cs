@@ -22,9 +22,6 @@ namespace Cosmos.TestingFramework.Extensions
                 config.TimeoutSeconds = timeoutSeconds;
             }
 
-            // config.OutputDirectory = configuration[$"{SectionName}:OutputDirectory"] ?? config.OutputDirectory;
-            config.UartLogPath = configuration[$"{SectionName}:UartLogPath"] ?? config.UartLogPath;
-
             if (bool.TryParse(configuration[$"{SectionName}:UartLog"], out bool uartLogEnabled) && uartLogEnabled)
             {
                 config.UartLogPath = Path.Combine(configuration.GetTestResultDirectory(), "uart.log");

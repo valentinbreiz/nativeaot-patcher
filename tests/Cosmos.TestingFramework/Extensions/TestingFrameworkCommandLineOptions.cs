@@ -11,6 +11,7 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
     public const string ReportXmlFilenameOption = "report-xml-filename";
     public const string UartLogOption = "uartlog";
     public const string UartLogFilenameOption = "uartlog-filename";
+    public const string KernelArchitectureOption = "kernel-arch";
 
     public string Uid => nameof(TestingFrameworkCommandLineOptions);
 
@@ -26,7 +27,8 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
         new CommandLineOption(ReportXmlOption, "Enable Cosmos XML Report", ArgumentArity.Zero, false),
         new CommandLineOption(ReportXmlFilenameOption, "The name of the Cosmos XML Report", ArgumentArity.ExactlyOne, false),
         new CommandLineOption(UartLogOption, "Enable UART log", ArgumentArity.Zero, false),
-        new CommandLineOption(UartLogFilenameOption, "The name of the uart log file", ArgumentArity.ExactlyOne, false)
+        new CommandLineOption(UartLogFilenameOption, "The name of the uart log file", ArgumentArity.ExactlyOne, false),
+        new CommandLineOption(KernelArchitectureOption, "The architecture to build the test kernel for (x64 or arm64)", ArgumentArity.ExactlyOne, false)
     ];
 
     public Task<bool> IsEnabledAsync() => Task.FromResult(true);
@@ -56,6 +58,15 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
             && !commandLineOptions.IsOptionSet(ReportXmlOption))
         {
             return ValidationResult.InvalidTask("--report-xml must be set to use --report-xml-filename");
+        }
+
+        if (commandLineOptions.TryGetOptionArgumentList(KernelArchitectureOption, out string[]? archs))
+        {
+            string arch = archs[0].ToLowerInvariant();
+            if (arch is not "x64" and not "arm64")
+            {
+                return ValidationResult.InvalidTask("Invalid architecture specified. Supported values are 'x64' and 'arm64'.");
+            }
         }
 
         return ValidationResult.ValidTask;

@@ -87,8 +87,6 @@ namespace Cosmos.TestingFramework
                                 {
                                     FillTrxProperties(test, methodInfo);
                                 }
-
-                                test.Properties.Add(new StandardOutputProperty(_projectFile));
                             }
 
                             switch (ktest.Status)
@@ -112,8 +110,8 @@ namespace Cosmos.TestingFramework
                             }
 
                             await context.MessageBus.PublishAsync(this, new TestNodeUpdateMessage(runTestExecutionRequest.Session.SessionUid, test));
-
                         });
+
                         await _outputDevice.DisplayAsync(this, new FormattedTextOutputDeviceData(results.ErrorMessage) { ForegroundColor = new SystemConsoleColor() { ConsoleColor = ConsoleColor.Green } }, context.CancellationToken);
                     }
                     catch (Exception ex)

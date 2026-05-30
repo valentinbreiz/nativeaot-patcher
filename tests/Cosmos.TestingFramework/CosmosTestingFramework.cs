@@ -71,6 +71,11 @@ namespace Cosmos.TestingFramework
 
                 _testingConfiguration.UartLogPath = Path.Combine(_configuration.GetTestResultDirectory(), filename);
             }
+
+            if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.KernelArchitectureOption, out string[]? kernelArch))
+            {
+                _testingConfiguration.Architecture = kernelArch[0];
+            }
         }
 
         public Task<bool> IsEnabledAsync() => Task.FromResult(true);

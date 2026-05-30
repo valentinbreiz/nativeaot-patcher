@@ -30,6 +30,11 @@ public record TestConfiguration
     public string KernelProjectPath { get; set; } = string.Empty;
 
     /// <summary>
+    /// Fully qualified name of the test kernel class (e.g. "MyNamespace.MyTestKernel")
+    /// </summary>
+    public string KernelClassName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Target architecture (x64, arm64)
     /// </summary>
     public string Architecture { get; set; } = "x64";

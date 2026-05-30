@@ -73,6 +73,7 @@ public partial class Engine
         string cosmosArch = _config.Architecture.ToLowerInvariant();
 
         string coverageArg = _config.CoverageEnabled ? "-p:CosmosCoverage=true " : "";
+        string kernelClassArg = !string.IsNullOrEmpty(_config.KernelClassName) ? $"-p:CosmosKernelClass=\"{_config.KernelClassName}\" " : "";
 
         var startInfo = new ProcessStartInfo
         {
@@ -83,7 +84,7 @@ public partial class Engine
                        $"-p:DefineConstants=\"{defineConstants}\" " +
                        $"-p:CosmosArch=\"{cosmosArch}\" " +
                        $"-p:COSUnit_BuildKernel=\"true\" " +
-                       $"-p:CosmosKernelClass=\"TestKernel.TestKernel_TestGeneratedKernel\" " +
+                       kernelClassArg +
                        $"{coverageArg}" +
                        $"\"{projectFile}\" " +
                        $"-o \"{outputDir}\"",

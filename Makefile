@@ -55,10 +55,10 @@ run: build
 	kill $$QEMU_PID 2>/dev/null || true
 
 test:
-	dotnet build $(TEST_ENGINE) -c Debug
-	dotnet run --project $(TEST_ENGINE) --no-build \
-		-- tests/Kernels/Cosmos.Kernel.Tests.$(KERNEL) $(ARCH) $(TIMEOUT) \
-		test-results-$(KERNEL)-$(ARCH).xml ci
+	dotnet test --project tests/Kernels/Cosmos.Kernel.Tests.$(KERNEL) \
+		--report-xml --report-xml-filename test-results-$(KERNEL)-$(ARCH).xml \
+		--timeout $(TIMEOUT)s --kernel-arch $(ARCH) \
+		--results-directory "./tests/Kernels/TestResults"
 
 test-cache:
 	dotnet test tests/Cosmos.Tests.BuildCache/ -c Debug
