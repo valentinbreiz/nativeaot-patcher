@@ -28,7 +28,7 @@ public static unsafe partial class GarbageCollector
         /// Additional info associated with this handle (e.g., weak track resurrection flag).
         /// </summary>
         public nuint extraInfo;
-        
+
         /// <summary>
         /// The type of this handle (Weak, Normal, Pinned, etc.).
         /// </summary>
