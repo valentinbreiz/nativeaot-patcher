@@ -126,9 +126,9 @@ jobs:
         id: run-tests
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
-            TIMEOUT=${{ inputs.timeout_arm64 }}
+            TIMEOUT=${{ inputs.timeout_arm64 }}s
           else
-            TIMEOUT=${{ inputs.timeout_x64 }}
+            TIMEOUT=${{ inputs.timeout_x64 }}s
           fi
           COVERAGE_ARG=""
           if [ "${{ inputs.coverage }}" = "true" ]; then
@@ -138,7 +138,7 @@ jobs:
           dotnet test --project ${{ inputs.kernel_path }} \
             --report-xml --report-xml-filename test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
             --uartlog --uartlog-filename uart-output.log \
-            --timeout $(TIMEOUT)s --kernel-arch ${{ matrix.arch }} \
+            --timeout $TIMEOUT --kernel-arch ${{ matrix.arch }} \
             --results-directory ./TestResults --keep-output \
             $COVERAGE_ARG 
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
