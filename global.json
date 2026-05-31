@@ -4,7 +4,7 @@
         "rollForward": "latestFeature"
     },
     "msbuild-sdks": {
-        "Cosmos.Sdk": "3.0.58.20260522"
+        "Cosmos.Sdk": "3.0.58"
     },
     "test": {
         "runner": "Microsoft.Testing.Platform"

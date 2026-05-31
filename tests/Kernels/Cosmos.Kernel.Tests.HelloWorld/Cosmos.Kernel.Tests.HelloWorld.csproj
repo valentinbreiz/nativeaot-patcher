@@ -6,7 +6,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-  <!-- Core kernel packages (using project references for development) -->
+  <!-- Core kernel packages (From Local Feed) -->
   <ItemGroup>
     <PackageReference Include="Cosmos.Kernel" />
     <PackageReference Include="Cosmos.Kernel.System" />
