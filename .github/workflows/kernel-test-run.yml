@@ -137,9 +137,9 @@ jobs:
           echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
           dotnet test --project ${{ inputs.kernel_path }} \
             --report-xml --report-xml-filename test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
-            --uartlog --uartlog-filename uart-output.log
+            --uartlog --uartlog-filename uart-output.log \
             --timeout $(TIMEOUT)s --kernel-arch ${{ matrix.arch }} \
-            --results-directory ./TestResults \
+            --results-directory ./TestResults --keep-output \
             $COVERAGE_ARG 
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
