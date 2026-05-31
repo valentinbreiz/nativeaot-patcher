@@ -25,7 +25,11 @@ namespace Cosmos.TestingFramework
                 // Build the TestKernel List
                 var testKernels = GetTestsMethodFromAssemblies()
                     .GroupBy(m => m.DeclaringType!)
-                    .Select(g => new TestKernel(g.Key, g.ToList()))
+                    .Select(g => new TestKernel(g.Key, g.Key.Assembly.GetTypes().First(t => {
+                        // We need to find the generated Kernel class for this test class, which is decorated with the GeneratedTestKernel attribute referencing the test class
+                        var generatedKernelAttribute = t.GetCustomAttribute<GeneratedTestKernelAttribute>();
+                        return generatedKernelAttribute != null && generatedKernelAttribute.TestClassType == g.Key;
+                    }), g.ToList()))
                     .ToList();
 
                 var uidToMethod = testKernels
@@ -64,6 +68,11 @@ namespace Cosmos.TestingFramework
                     {
                         KernelProjectPath = Path.GetDirectoryName(_projectFile)!,
                     };
+
+                    if(testKernels.Count > 0)
+                    {
+                        config.KernelClassName = testKernels.First().TestKernelClass.FullName!;
+                    }
 
                     try
                     {

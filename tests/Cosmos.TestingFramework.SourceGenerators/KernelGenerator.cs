@@ -81,6 +81,7 @@ public class KernelGenerator : IIncrementalGenerator
 
         sourceBuilder.AppendLine("// Auto-generated");
         sourceBuilder.AppendLine($"[global::System.CodeDom.Compiler.GeneratedCode(\"{typeof(KernelGenerator).FullName}\", \"{typeof(KernelGenerator).Assembly.GetName().Version}\")]");
+        sourceBuilder.AppendLine($"[global::Cosmos.TestingFramework.Attributes.GeneratedTestKernel(typeof({model.FullyQualifiedName}))]");
         sourceBuilder.AppendLine($"public sealed class {model.GeneratedKernelClassName} : global::Cosmos.Kernel.System.Kernel");
         sourceBuilder.AppendLine("{");
         sourceBuilder.AppendLine("    protected override void BeforeRun()");

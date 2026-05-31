@@ -7,12 +7,14 @@ namespace Cosmos.TestingFramework
 {
     internal sealed class TestKernel
     {
-        public Type DeclaringType { get; }
+        public Type TestClass { get; }
+        public Type TestKernelClass { get; }
         public IReadOnlyList<MethodInfo> Methods { get; }
 
-        public TestKernel(Type declaringType, IEnumerable<MethodInfo> methods)
+        public TestKernel(Type TestClass, Type TestKernelClass, IEnumerable<MethodInfo> methods)
         {
-            DeclaringType = declaringType ?? throw new ArgumentNullException(nameof(declaringType));
+            this.TestClass = TestClass ?? throw new ArgumentNullException(nameof(TestClass));
+            this.TestKernelClass = TestKernelClass;
             Methods = methods?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(methods));
         }
 
