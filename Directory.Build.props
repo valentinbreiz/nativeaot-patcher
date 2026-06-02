@@ -65,6 +65,19 @@
     <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
   </PropertyGroup>
 
+  <!--
+    Cosmos kernel debug-logging opt-in. When CosmosEnableDebug=true, the
+    COSMOSDEBUG symbol is defined for every framework project so [Conditional]
+    Debug/Trace call sites in the generated Log proxies stay in the build.
+    When false, those calls are stripped entirely. [Conditional] is a
+    call-site attribute, so the symbol must be defined wherever Log.Debug is
+    *invoked*, not just where it's declared.
+  -->
+  <PropertyGroup>
+    <CosmosEnableDebug Condition="'$(CosmosEnableDebug)' == ''">false</CosmosEnableDebug>
+    <DefineConstants Condition="'$(CosmosEnableDebug)' == 'true'">$(DefineConstants);COSMOSDEBUG</DefineConstants>
+  </PropertyGroup>
+
   <!-- Clang defaults to 'clang' on PATH — set by Cosmos.Build.CC.props -->
 
   <!-- Native ASM files come from the NuGet packages (Cosmos.Kernel.Native.X64/ARM64).

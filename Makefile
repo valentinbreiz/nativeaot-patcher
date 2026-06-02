@@ -27,6 +27,7 @@ setup:
 build:
 	dotnet publish -c Debug -r $(RID) \
 		-p:DefineConstants="$(DEFINE)" -p:CosmosArch=$(COSMOS_ARCH) \
+		$(if $(filter 1,$(DEBUG)),-p:CosmosEnableDebug=true) \
 		$(DEVKERNEL) -o $(OUTPUT)
 
 clean:

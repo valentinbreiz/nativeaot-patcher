@@ -2,13 +2,14 @@
 
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 using Cosmos.Kernel.HAL.Devices;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
-public class PciDevice : Device
+[Logger(Category = "PciDevice")]
+public partial class PciDevice : Device
 {
     public readonly uint Bus;
     public readonly uint Slot;
@@ -56,13 +57,7 @@ public class PciDevice : Device
 
     public PciDevice(uint bus, uint slot, uint function)
     {
-        Serial.WriteString("[PciDevice] Init");
-        Serial.WriteNumber(bus);
-        Serial.WriteString(",");
-        Serial.WriteNumber(slot);
-        Serial.WriteString(",");
-        Serial.WriteNumber(function);
-        Serial.WriteString("\n");
+        Log.Debug($"Init {bus},{slot},{function}");
         Bus = bus;
         Slot = slot;
         Function = function;
@@ -106,7 +101,7 @@ public class PciDevice : Device
             BaseAddressBar[5] = new PciBaseAddressBar(ReadRegister32(0x24));
         }
 
-        Serial.WriteString("[PciDevice] Init Done \n");
+        Log.Debug("Init done");
     }
 
     public void EnableDevice() => Command |= PciCommand.Master | PciCommand.Io | PciCommand.Memory;
@@ -203,17 +198,7 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         if (!_firstAccessLogged)
         {
-            Serial.WriteString("[PciDevice] First ECAM Read: Bus ");
-            Serial.WriteNumber(bus);
-            Serial.WriteString(" Slot ");
-            Serial.WriteNumber(slot);
-            Serial.WriteString(" Func ");
-            Serial.WriteNumber(func);
-            Serial.WriteString(" Offset ");
-            Serial.WriteNumber(offset);
-            Serial.WriteString(" -> Addr 0x");
-            Serial.WriteHex(addr);
-            Serial.WriteString("\n");
+            Log.Debug($"First ECAM read: Bus {bus} Slot {slot} Func {func} Offset {offset} -> Addr 0x{addr:X}");
             _firstAccessLogged = true;
         }
         return Native.MMIO.Read16(addr);
@@ -277,9 +262,7 @@ public class PciDevice : Device
         s_pciEcamBase = physBase;
         if (physBase != 0)
         {
-            Serial.WriteString("[PciDevice] ECAM base from ACPI MCFG: 0x");
-            Serial.WriteHex(physBase);
-            Serial.WriteString("\n");
+            Log.Debug($"ECAM base from ACPI MCFG: 0x{physBase:X}");
         }
     }
 

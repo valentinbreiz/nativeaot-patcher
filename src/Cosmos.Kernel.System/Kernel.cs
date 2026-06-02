@@ -1,5 +1,6 @@
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 using Cosmos.Kernel.HAL.Cpu;
 
 namespace Cosmos.Kernel.System;
@@ -8,6 +9,7 @@ namespace Cosmos.Kernel.System;
 /// Base class for all Cosmos user kernels.
 /// Provides the BeforeRun/Run/AfterRun lifecycle pattern.
 /// </summary>
+[Logger]
 public abstract partial class Kernel
 {
     protected bool mStarted;
@@ -18,7 +20,7 @@ public abstract partial class Kernel
     /// </summary>
     public Kernel()
     {
-        Serial.WriteString("[Kernel] Constructing Cosmos.Kernel.System.Kernel instance\n");
+        Log.Debug("Constructing Cosmos.Kernel.System.Kernel instance");
     }
 
     /// <summary>
@@ -27,38 +29,38 @@ public abstract partial class Kernel
     /// </summary>
     public virtual void Start()
     {
-        Serial.WriteString("[Kernel] Starting kernel...\n");
+        Log.Info("Starting kernel...");
 
-        Serial.WriteString("[Kernel] Calling OnBoot()...\n");
+        Log.Debug("Calling OnBoot()");
         OnBoot();
 
         if (InterruptManager.IsEnabled)
         {
-            Serial.WriteString("[Kernel] Enabling interrupts...\n");
+            Log.Debug("Enabling interrupts");
             InternalCpu.EnableInterrupts();
         }
 
         EarlyGop.Enabled = false;
 
-        Serial.WriteString("[Kernel] Calling BeforeRun()...\n");
+        Log.Debug("Calling BeforeRun()");
         BeforeRun();
 
         mStarted = true;
 
-        Serial.WriteString("[Kernel] Entering main loop...\n");
+        Log.Info("Entering main loop");
         while (!mStopped)
         {
-            Serial.WriteString("[Kernel] Calling Run()...\n");
+            Log.Trace("Calling Run()");
             Run();
-            Serial.WriteString("[Kernel] Run() returned\n");
+            Log.Trace("Run() returned");
         }
 
-        Serial.WriteString("[Kernel] Main loop exited, calling AfterRun()...\n");
+        Log.Info("Main loop exited, calling AfterRun()");
         AfterRun();
 
         // Halt the CPU to prevent returning to NativeAOT shutdown sequence
         // The shutdown code tries to allocate memory which fails in kernel environment
-        Serial.WriteString("[Kernel] Halting CPU...\n");
+        Log.Info("Halting CPU");
         while (true)
         {
             InternalCpu.Halt();

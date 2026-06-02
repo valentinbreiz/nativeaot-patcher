@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Logging;
 using Cosmos.Kernel.Core.X64.Bridge;
 using Cosmos.Kernel.Core.X64.Cpu.Data;
 
@@ -10,7 +10,8 @@ namespace Cosmos.Kernel.Core.X64.Cpu;
 /// Handles Interrupt Descriptor Table initialization for x86_64.
 /// Native imports live in Cosmos.Kernel.Core.X64/Bridge/Import/IdtNative.cs.
 /// </summary>
-public static unsafe class Idt
+[Logger(Category = "IDT")]
+public static unsafe partial class Idt
 {
     public static ulong GetCurrentCodeSelector() => IdtNative.GetCurrentCodeSelector();
 
@@ -23,26 +24,22 @@ public static unsafe class Idt
     {
         // Get the current code selector from the bootloader (Limine)
         ulong cs = GetCurrentCodeSelector();
-        Serial.Write("[IDT] Initializing with CS=0x", cs.ToString("X"), "\n");
+        Log.Debug($"Initializing with CS=0x{cs:X}");
 
         // Allocate IDT entries array if not already done
         if (IdtEntries == null)
         {
-            Serial.WriteString("[IDT] Allocating IdtEntries array...\n");
+            Log.Debug("Allocating IdtEntries array");
             IdtEntries = new IdtEntry[256];
         }
-        Serial.WriteString("[IDT] IdtEntries length: ");
-        Serial.WriteNumber((ulong)IdtEntries.Length);
-        Serial.WriteString("\n");
+        Log.Debug($"IdtEntries length: {IdtEntries.Length}");
 
         // Initialize all 256 IDT entries
         for (int i = 0; i < 256; i++)
         {
             if (i == 0 || i == 255)
             {
-                Serial.WriteString("[IDT] Setting entry ");
-                Serial.WriteNumber((ulong)i);
-                Serial.WriteString("\n");
+                Log.Debug($"Setting entry {i}");
             }
             IdtEntries[i].Selector = (ushort)cs;
             IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate
@@ -58,15 +55,14 @@ public static unsafe class Idt
                 Base = (ulong)ptr
             };
 
-            Serial.Write("[IDT] IDT base: 0x", idtPtr.Base.ToString("X"), "\n");
-            Serial.Write("[IDT] IDT Limit: 0x", ((ulong)idtPtr.Limit).ToString("X"), "\n");
+            Log.Debug($"IDT base: 0x{idtPtr.Base:X}");
+            Log.Debug($"IDT limit: 0x{idtPtr.Limit:X}");
 
-            // Load the IDT
             IdtNative.LoadIdt((void*)&idtPtr);
-            Serial.Write("[IDT] Loaded 256 interrupt vectors at 0x", idtPtr.Base.ToString("X"), "\n");
+            Log.Debug($"Loaded 256 vectors at 0x{idtPtr.Base:X}");
         }
 
-        Serial.Write("[IDT] IDT loaded.\n");
+        Log.Info("IDT loaded");
     }
 
     public static delegate* unmanaged<void> GetStub(int index)

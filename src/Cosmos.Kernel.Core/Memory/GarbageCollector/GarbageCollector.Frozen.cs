@@ -127,11 +127,11 @@ public static unsafe partial class GarbageCollector
 
         s_frozenSegments = info;
 
-        Serial.WriteString("[GC] Registered frozen segment at 0x");
-        Serial.WriteHex((ulong)pSegmentStart);
-        Serial.WriteString(", size: ");
-        Serial.WriteNumber((uint)allocSize);
-        Serial.WriteString("\n");
+        SerialDebug.WriteString("[GC] Registered frozen segment at 0x");
+        SerialDebug.WriteHex((ulong)pSegmentStart);
+        SerialDebug.WriteString(", size: ");
+        SerialDebug.WriteNumber((uint)allocSize);
+        SerialDebug.WriteString("\n");
 
         return pSegmentStart;
     }
