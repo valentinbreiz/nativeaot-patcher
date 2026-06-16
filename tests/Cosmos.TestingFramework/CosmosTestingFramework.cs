@@ -2,6 +2,7 @@ using System.Reflection;
 using Cosmos.TestingFramework.Capabilities;
 using Cosmos.TestingFramework.Engine;
 using Cosmos.TestingFramework.Extensions;
+using Cosmos.Tools.Platform;
 using Microsoft.Testing.Platform.Capabilities.TestFramework;
 using Microsoft.Testing.Platform.CommandLine;
 using Microsoft.Testing.Platform.Configurations;
@@ -33,7 +34,7 @@ namespace Cosmos.TestingFramework
 
         public string Description => "Integration of Cosmos Test Framework";
 
-        public Type[] DataTypesProduced => [typeof(TestNodeUpdateMessage), typeof(SessionFileArtifact)];
+        public Type[] DataTypesProduced => [typeof(TestNodeUpdateMessage), typeof(SessionFileArtifact), typeof(FormattedTextOutputDeviceData)];
 
         public CosmosTestingFramework(ITestFrameworkCapabilities capabilities, ICommandLineOptions commandLineOptions, IConfiguration configuration, ILogger<CosmosTestingFramework> logger, IOutputDevice outputDevice, Assembly[] assemblies)
         {
@@ -43,14 +44,14 @@ namespace Cosmos.TestingFramework
             _logger = logger;
             _outputDevice = outputDevice;
             _assemblies = assemblies;
-            if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.TestProjectFileOption, out string[]? projectFile)) 
+            if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.TestProjectFileOption, out string[]? projectFile))
             {
                 _projectFile = projectFile[0];
             }
 
             _testingConfiguration = _configuration.GetCosmosTestingFrameworkConfiguration();
 
-            if(_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.ReportXmlOption))
+            if (_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.ReportXmlOption))
             {
                 string filename = "results.xml";
                 if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.ReportXmlFilenameOption, out string[]? reportXmlFilename))
@@ -87,23 +88,56 @@ namespace Cosmos.TestingFramework
 
         public Task<CloseTestSessionResult> CloseTestSessionAsync(CloseTestSessionContext context) => Task.FromResult(new CloseTestSessionResult() { IsSuccess = true });
 
-        public async Task<CreateTestSessionResult> CreateTestSessionAsync(CreateTestSessionContext context) => await Task.FromResult(new CreateTestSessionResult() { IsSuccess = true });
+        public async Task<CreateTestSessionResult> CreateTestSessionAsync(CreateTestSessionContext context)
+        {
+            List<ToolStatus> tools = await ToolChecker.CheckAllToolsAsync();
+            CommandToolDefinition vmToolDef = _testingConfiguration.Architecture switch
+            {
+                "x64" => ToolDefinitions.QemuX64,
+                "arm64" => ToolDefinitions.QemuArm64,
+                _ => throw new NotSupportedException($"Architecture {_testingConfiguration.Architecture} not supported")
+            };
+
+            var missingTools = tools
+                .Where(t => !t.Found && (t.Tool.Required || t.Tool == vmToolDef))
+                .ToList();
+
+            if (missingTools.Count > 0)
+            {
+                _logger.LogError("One or more required tools not found. Cannot create test session.");
+
+                foreach (var tool in missingTools)
+                {
+                    await _outputDevice.DisplayAsync(this,
+                        new FormattedTextOutputDeviceData($"Tool '{tool.Tool.Name}' not found") { ForegroundColor = new SystemConsoleColor() { ConsoleColor = ConsoleColor.Red } },
+                        context.CancellationToken
+                    );
+                }
+
+                return new CreateTestSessionResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "One or more required tools are missing. See logs for details."
+                };
+            }
+
+            return new CreateTestSessionResult() { IsSuccess = true };
+        }
 
         public async Task ExecuteRequestAsync(ExecuteRequestContext context)
-        {   
+        {
             switch (context.Request)
             {
-
                 case DiscoverTestExecutionRequest discoverTestExecutionRequest:
-                    {
-                        await DiscoverTestExecution(context, discoverTestExecutionRequest);
-                        break;
-                    }
+                {
+                    await DiscoverTestExecution(context, discoverTestExecutionRequest);
+                    break;
+                }
                 case RunTestExecutionRequest runTestExecutionRequest:
-                    {
-                        await RunTestExecution(context, runTestExecutionRequest);
-                        break;
-                    }
+                {
+                    await RunTestExecution(context, runTestExecutionRequest);
+                    break;
+                }
                 default:
                     throw new NotSupportedException($"Request {context.GetType()} not supported");
             }

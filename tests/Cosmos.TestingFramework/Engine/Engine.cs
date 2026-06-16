@@ -37,12 +37,6 @@ public partial class Engine
 
     private OutputHandlerBase SetupOutputHandler()
     {
-        // If user provided a custom handler, use it
-        if (_config.OutputHandler != null)
-        {
-            return _config.OutputHandler;
-        }
-
         var defaultHandler = _config.OutputHandler ?? new OutputHandlerConsole(useColors: true, verbose: false);
 
         // If XML output requested, multiplex console + XML

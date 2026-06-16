@@ -31,7 +31,7 @@ namespace Cosmos.TestingFramework
                     var testNode = new TestNode()
                     {
                         Uid = test.GetUid(),
-                        DisplayName = test.Name,
+                        DisplayName = test.GetUid(),
                         Properties = new PropertyBag(DiscoveredTestNodeStateProperty.CachedInstance),
                     };
 
