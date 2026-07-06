@@ -54,6 +54,15 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         }
     }
 
+    public void DmaBarrier()
+    {
+        // dsb sy + isb: orders Normal-memory descriptor/queue writes against
+        // the Device-memory doorbell store that follows (and device-written
+        // flags against the payload reads that follow them). ARM64 does not
+        // order Normal vs Device accesses on its own.
+        Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+    }
+
     public void InitializeHardware()
     {
         // Initialize Generic Timer

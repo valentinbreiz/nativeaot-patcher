@@ -43,6 +43,16 @@ public interface IPlatformInitializer
     void EnsureMmioMapped(ulong physBase);
 
     /// <summary>
+    /// Full data-synchronization barrier ordering prior normal-memory
+    /// accesses against subsequent device MMIO accesses. DMA drivers call
+    /// this between filling a descriptor/queue entry in RAM and ringing
+    /// the device doorbell (and after observing a device-written flag
+    /// before consuming the data it guards). ARM64 issues <c>dsb sy</c>;
+    /// x64's total store order already provides this, so it's a no-op.
+    /// </summary>
+    void DmaBarrier();
+
+    /// <summary>
     /// Initializes platform-specific hardware (PCI, ACPI, APIC, GIC, etc.).
     /// Called after HAL and interrupt manager are initialized.
     /// </summary>

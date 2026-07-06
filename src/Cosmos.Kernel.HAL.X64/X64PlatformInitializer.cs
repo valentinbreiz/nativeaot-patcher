@@ -49,6 +49,13 @@ public class X64PlatformInitializer : IPlatformInitializer
         // needed. ARM64 has to install a Device-memory mapping itself.
     }
 
+    public void DmaBarrier()
+    {
+        // x86-64's total store order already makes normal-memory stores
+        // visible before a subsequent MMIO (UC) store, and keeps loads in
+        // program order — no fence instruction is required here.
+    }
+
     public void InitializeHardware()
     {
         // Display ACPI MADT information
