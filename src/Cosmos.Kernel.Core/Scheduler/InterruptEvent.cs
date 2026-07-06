@@ -36,13 +36,35 @@ public class InterruptEvent
     /// <summary>
     /// Blocks the calling thread until <see cref="Signal"/> is called.
     /// Consumes the latched signal on return (auto-reset).
+    /// Without a scheduler thread context (scheduler feature off, or
+    /// pre-scheduler boot code) this degrades to halt-and-poll on the
+    /// latch instead of blocking, so single-context kernels still get
+    /// correct completion semantics.
     /// </summary>
     public void Wait()
     {
-        SchedThread? currentThread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        SchedThread? currentThread = SchedulerManager.IsReady
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            : null;
         if (currentThread == null)
         {
-            return;
+            // Single execution context: nothing to block, so spin on the
+            // latch with interrupts enabled between checks. Deliberately no
+            // Halt here — if the signaling ISR fires between the check and
+            // a hypothetical Halt, no further interrupt may ever arrive
+            // (e.g. a build without a timer) and the CPU would sleep past
+            // a latched signal forever.
+            while (true)
+            {
+                using (_lockGuard.AcquireIrqSafe())
+                {
+                    if (_signaled)
+                    {
+                        _signaled = false;
+                        return;
+                    }
+                }
+            }
         }
 
         while (true)
@@ -62,9 +84,17 @@ public class InterruptEvent
                 {
                     _waiters.Add(currentThread);
                 }
+
+                // Block while interrupts are still masked by the scope:
+                // if the ISR-side Signal fired between the waiter-list
+                // insertion and BlockThread, ReadyThread would hit a
+                // still-Running thread and the subsequent BlockThread
+                // would bury the wakeup forever (lost-wakeup race). With
+                // the transition done under the scope, Signal can only
+                // observe a genuinely Blocked thread.
+                SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
             }
 
-            SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
             InternalCpu.Halt();
             // On wake, retry: either a Signal targeted us (we were removed
             // from _waiters) or we got readied for another reason; in

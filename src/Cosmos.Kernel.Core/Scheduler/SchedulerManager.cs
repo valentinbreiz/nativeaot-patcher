@@ -43,6 +43,16 @@ public static class SchedulerManager
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
 
+    /// <summary>
+    /// Whether <see cref="Initialize"/> has run and per-CPU state exists.
+    /// Blocking primitives (and drivers built on them) must check this
+    /// before touching <see cref="GetCpuState"/>: with the scheduler
+    /// feature disabled — or before its library initializer runs — there
+    /// is exactly one execution context, so callers fall back to
+    /// spin/polled paths instead of blocking.
+    /// </summary>
+    public static bool IsReady => IsEnabled && _cpuStates != null;
+
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
