@@ -375,11 +375,26 @@ public unsafe class AhciController
 
                 if (portType == PortType.Sata)
                 {
-                    Serial.WriteString("[AHCI] Initialized SATA port ");
-                    Serial.WriteNumber(port);
-                    Serial.WriteString("\n");
-                    var sataPort = new Sata(portReg);
-                    _ports.Add(sataPort);
+                    // Per-port containment: a port that misidentifies (the
+                    // assume-SATA fallback can hit ATAPI) or whose Identify
+                    // times out must be skipped, not unwind the whole boot —
+                    // Initialize()'s contract is report-don't-throw.
+                    try
+                    {
+                        Sata sataPort = new(portReg);
+                        _ports.Add(sataPort);
+                        Serial.WriteString("[AHCI] Initialized SATA port ");
+                        Serial.WriteNumber(port);
+                        Serial.WriteString("\n");
+                    }
+                    catch (Exception ex)
+                    {
+                        Serial.WriteString("[AHCI] Port ");
+                        Serial.WriteNumber(port);
+                        Serial.WriteString(" bring-up failed: ");
+                        Serial.WriteString(ex.Message);
+                        Serial.WriteString("\n");
+                    }
                 }
                 else if (portType == PortType.Satapi)
                 {
@@ -463,9 +478,15 @@ public unsafe class AhciController
     private void PortRebase(PortRegisters port, uint portNumber)
     {
         Serial.WriteString("[AHCI] Rebasing port...\n");
-        if (!StopCMD(port))
+        if (!StopCMD(port) && !Sata.PortReset(port))
         {
-            Sata.PortReset(port);
+            // The command engine never stopped: reprogramming CLB/FB with a
+            // live engine violates AHCI 10.1.2 (the HBA could fetch garbage
+            // command headers and DMA anywhere). Leave the port untouched —
+            // the later Sata bring-up will fail its Identify and GetPorts
+            // skips the port.
+            Serial.WriteString("[AHCI] Skipping rebase; port engine still running\n");
+            return;
         }
 
         ulong clbPhys = PortCommandListPhys(portNumber);
@@ -478,8 +499,11 @@ public unsafe class AhciController
         port.FB = (uint)(fbPhys & 0xFFFFFFFF);
         port.FBU = (uint)(fbPhys >> 32);
 
-        port.SERR = 1;
-        port.IS = 0;
+        // PxSERR / PxIS are RW1C: writing all ones clears every latched
+        // bit (AHCI 10.1.2 requires SERR fully cleared before ST=1);
+        // writing 0 or a partial mask clears nothing.
+        port.SERR = 0xFFFFFFFFu;
+        port.IS = 0xFFFFFFFFu;
         port.IE = 0;
 
         MemoryOp.MemSet((byte*)clbVirt, 0, 1024);
@@ -489,10 +513,16 @@ public unsafe class AhciController
 
         if (!StartCMD(port))
         {
-            Sata.PortReset(port);
+            // PortReset stops the engine; without a StartCMD retry the port
+            // would be left with ST=0 and every future doorbell write would
+            // hang the command wait.
+            if (!Sata.PortReset(port) || !StartCMD(port))
+            {
+                Serial.WriteString("[AHCI] Port failed to start after reset; leaving it offline\n");
+            }
         }
 
-        port.IS = 0;
+        port.IS = 0xFFFFFFFFu;
         port.IE = 0xFFFFFFFF;
 
         Serial.WriteString("[AHCI] Port rebased\n");
