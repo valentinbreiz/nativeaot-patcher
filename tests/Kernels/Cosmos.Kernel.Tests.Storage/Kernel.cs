@@ -132,12 +132,35 @@ public class Kernel : Sys.Kernel
 
     // ==================== Profile ====================
 
-    // The cell name encodes the controller it attached: ahci => SATA,
-    // nvme-* => Nvme. Proves the driver that bound matches the cell's intent.
+    // The cell name encodes the controller it attached: ahci => sata*,
+    // nvme-* => nvme*. Proves the driver that bound matches the cell's
+    // intent. Device names are unique per instance ("sata0", "nvme0n1"),
+    // so only the driver prefix is pinned here.
     private static void TestProfile_DeviceKindMatches()
     {
-        string expected = TR.ProfileHasPrefix("ahci") ? "SATA" : "NVMe";
-        Assert.Equal(expected, s_dev!.Name);
+        string expected = TR.ProfileHasPrefix("ahci") ? "sata" : "nvme";
+        Assert.True(HasOrdinalPrefix(s_dev!.Name, expected),
+            "device name does not match the cell's controller kind");
+    }
+
+    // Hand-rolled ordinal prefix check, mirroring TR.ProfileHasPrefix: the
+    // kernel runtime does not plug the culture-sensitive string.StartsWith.
+    private static bool HasOrdinalPrefix(string value, string prefix)
+    {
+        if (value.Length < prefix.Length)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < prefix.Length; i++)
+        {
+            if (value[i] != prefix[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // A gicv3 cell must come up MSI-X (arm64 GICv3 ITS routes it); a gicv2 cell
@@ -523,11 +546,10 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    // Regression (proves a real bug; expected to FAIL until Partition.CheckBounds
-    // is overflow-safe): CheckBounds uses `blockNo + blockCount > BlockCount`. For a
-    // blockNo near ulong.MaxValue the sum wraps below BlockCount, the check passes,
-    // and an out-of-bounds request is dispatched to the host instead of throwing.
-    // The fix is `blockNo > BlockCount || blockCount > BlockCount - blockNo`.
+    // Regression guard: a naive `blockNo + blockCount > BlockCount` check wraps for
+    // a blockNo near ulong.MaxValue and lets an out-of-bounds request through to the
+    // host. Partition.CheckBounds ships the overflow-safe form
+    // (`blockNo > BlockCount || blockCount > BlockCount - blockNo`); this test pins it.
     private static void TestPartition_BoundsOverflowThrows()
     {
         BoundsProbeDevice probe = new();
@@ -563,7 +585,7 @@ public class Kernel : Sys.Kernel
         {
         }
 
-        public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
         {
         }
     }
