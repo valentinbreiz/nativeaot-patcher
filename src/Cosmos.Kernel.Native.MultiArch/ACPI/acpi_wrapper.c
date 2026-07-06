@@ -519,7 +519,28 @@ int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_de
             if (m_off + 20 > g_iort_length) return 1;
             uint32_t in_base = iort_rd32(m, 0);
             uint32_t id_cnt  = iort_rd32(m, 4);
-            if (cur_id >= in_base && cur_id < in_base + id_cnt) {
+            uint32_t flags   = iort_rd32(m, 16);
+            // Single-mapping entries (flags bit 0) ignore the input range:
+            // the output base itself is the mapped ID. Honor them only on
+            // the Root Complex hop — on SMMU nodes a single-mapping entry
+            // describes the SMMU's OWN MSI DeviceID (the node's "DeviceID
+            // mapping index" entry) and must never match a device walk
+            // (Linux skips these too), nor be range-matched (id_count is 0,
+            // so the inclusive check below could fire on in_base).
+            if (flags & 1u) {
+                if (ntype == IORT_NODE_ROOT_COMPLEX) {
+                    hit = m;
+                    break;
+                }
+                continue;
+            }
+            // "Number of IDs" holds the range size MINUS ONE (ARM DEN 0049),
+            // so the match is inclusive. An exclusive `< in_base + id_cnt`
+            // check drops the last ID of every range and never matches
+            // single-ID ranges (id_count == 0) — firmware with a
+            // non-identity mapping would then silently fall back to
+            // DeviceID = BDF and the ITS would discard every MSI.
+            if (cur_id >= in_base && cur_id - in_base <= id_cnt) {
                 hit = m;
                 break;
             }
@@ -529,7 +550,8 @@ int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_de
         uint32_t in_base    = iort_rd32(hit, 0);
         uint32_t out_base   = iort_rd32(hit, 8);
         uint32_t out_ref    = iort_rd32(hit, 12);
-        cur_id = out_base + (cur_id - in_base);
+        uint32_t hit_flags  = iort_rd32(hit, 16);
+        cur_id = (hit_flags & 1u) ? out_base : out_base + (cur_id - in_base);
 
         const uint8_t* next = iort_node_at(out_ref);
         if (next == NULL_PTR) return 1;
