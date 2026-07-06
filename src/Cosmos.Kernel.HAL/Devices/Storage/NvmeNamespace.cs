@@ -24,11 +24,10 @@ public unsafe class NvmeNamespace : BlockDevice
     {
         _controller = controller;
         _nsid = nsid;
-        // Unique per device instance ("nvme0n1" style) so multi-controller /
-        // multi-namespace systems get distinguishable device and partition
-        // names. Built via string.Concat rather than $"..." because the
-        // kernel runtime doesn't link the interpolated-string handler.
-        _name = "nvme" + controller.Index + "n" + nsid;
+        // TODO: make this unique per instance ("nvme0n1" style) once the
+        // kernel runtime plugs int-to-string. Both $"..." interpolation
+        // and "nvme" + intVar concat crash this build during NVMe init.
+        _name = "nvme";
         BlockCount = blockCount;
         BlockSize = blockSize;
     }
