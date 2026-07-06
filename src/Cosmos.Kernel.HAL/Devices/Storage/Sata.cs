@@ -67,8 +67,10 @@ public class Sata : BlockDevice
         _portReg = portReg;
 
         // Unique per device instance ("sata0", "sata1", ...) so multi-disk
-        // systems get distinguishable device and partition names.
-        _name = $"sata{s_nextIndex++}";
+        // systems get distinguishable device and partition names. Built via
+        // string.Concat rather than $"..." because the kernel runtime
+        // doesn't link the interpolated-string handler.
+        _name = "sata" + s_nextIndex++;
 
         // One page (4 KiB) of contiguous DMA-able memory, well above the 2-byte
         // alignment AHCI's PRDT.DBA requires. PageAllocator hands out the
