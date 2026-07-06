@@ -57,8 +57,20 @@ public static class Mbr
         for (int i = 0; i < 4; i++)
         {
             int offset = PartitionTableOffset + i * PartitionEntrySize;
+            byte status = mbr[offset];
             byte systemId = mbr[offset + 4];
-            if (systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85)
+            // Skip empty and extended (EBR) entries, and 0xEE protective/
+            // hybrid GPT entries — the real table is the GPT; registering
+            // the protective entry as a data partition (e.g. when the
+            // primary GPT header is damaged) would let a write destroy the
+            // remaining GPT structures.
+            if (systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85 || systemId == 0xEE)
+            {
+                continue;
+            }
+            // The status byte must be 0x00 (inactive) or 0x80 (bootable);
+            // anything else marks a corrupt entry.
+            if (status != 0x00 && status != 0x80)
             {
                 continue;
             }
@@ -74,13 +86,19 @@ public static class Mbr
     /// <summary>
     /// Write a fresh, empty-but-signed MBR to LBA 0. No boot code, all
     /// four partition slots zeroed; callers add entries via
-    /// <see cref="WritePartition"/>.
+    /// <see cref="WritePartition"/>. Also wipes LBA 1 (wipefs-style):
+    /// Create claims the whole disk label, and a stale "EFI PART" header
+    /// left there from a previous GPT layout would keep winning over this
+    /// MBR in the partition scanner, which checks GPT first.
     /// </summary>
     public static void Create(IBlockDevice device)
     {
         Span<byte> mbr = new byte[device.BlockSize];
         BitConverter.TryWriteBytes(mbr.Slice(510, 2), MbrSignature);
         device.WriteBlock(0, 1, mbr);
+
+        Span<byte> lba1 = new byte[device.BlockSize];
+        device.WriteBlock(1, 1, lba1);
     }
 
     /// <summary>

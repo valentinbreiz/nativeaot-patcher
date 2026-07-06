@@ -15,6 +15,15 @@ public static class Gpt
     /// <summary>"EFI PART" little-endian.</summary>
     private const ulong EfiPartSignature = 0x5452415020494645UL;
 
+    /// <summary>
+    /// Upper bound on the on-disk NumberOfPartitionEntries field this
+    /// parser will honor (8x the standard 128). This format writes CRC32s
+    /// as 0, so header corruption is undetectable — an unclamped count
+    /// (up to 2^32) would drive the boot-time partition scan through
+    /// millions of sector reads.
+    /// </summary>
+    private const uint MaxEntryCount = 1024;
+
     /// <summary>Microsoft Basic Data Partition GUID — used by FAT/NTFS/exFAT volumes.</summary>
     public static readonly Guid BasicDataPartitionType = new(
         0xEBD0A0A2, 0xB9E5, 0x4433, 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7);
@@ -68,16 +77,30 @@ public static class Gpt
             return partitions;
         }
 
+        // Trust nothing in the header beyond the signature: CRC32s are
+        // written as 0 by this format, so corruption is undetectable and
+        // every field must be range-checked before it drives I/O.
         ulong entryStartLba = BitConverter.ToUInt64(header.Slice(72, 8));
         uint entryCount = BitConverter.ToUInt32(header.Slice(80, 4));
         uint entrySize = BitConverter.ToUInt32(header.Slice(84, 4));
-        if (entrySize == 0)
+        if (entrySize < 128 || entrySize > blockSize
+            || entryCount > MaxEntryCount
+            || entryStartLba < 2 || entryStartLba >= device.BlockCount)
         {
             return partitions;
         }
 
         uint entriesPerSector = (uint)(blockSize / entrySize);
         if (entriesPerSector == 0)
+        {
+            return partitions;
+        }
+
+        // Bound the END of the entry array too: a start LBA near the disk
+        // end with a large count would otherwise still drive out-of-range
+        // sector reads.
+        ulong arraySectors = ((ulong)entryCount + entriesPerSector - 1) / entriesPerSector;
+        if (entryStartLba + arraySectors > device.BlockCount)
         {
             return partitions;
         }
@@ -99,7 +122,14 @@ public static class Gpt
                 Guid partGuid = ReadGuid(sector.Slice(offset + 16, 16));
                 ulong startLba = BitConverter.ToUInt64(sector.Slice(offset + 32, 8));
                 ulong endLba = BitConverter.ToUInt64(sector.Slice(offset + 40, 8));
-                // endLba is inclusive.
+                // endLba is inclusive. Reject corrupt entries outright:
+                // endLba < startLba would underflow the count to ~2^64,
+                // and a range past the disk would authorize wild host I/O
+                // through the resulting Partition.
+                if (endLba < startLba || startLba < 2 || endLba >= device.BlockCount)
+                {
+                    continue;
+                }
                 ulong count = endLba + 1 - startLba;
 
                 partitions.Add(new PartitionEntry(partType, partGuid, startLba, count));
@@ -119,6 +149,14 @@ public static class Gpt
     public static void Create(IBlockDevice device)
     {
         ulong blockSize = device.BlockSize;
+
+        // The layout needs LBAs 0..33 plus a usable area and a backup slot
+        // at BlockCount-1; smaller devices would underflow the
+        // FirstUsable/LastUsable math below.
+        if (device.BlockCount < 64)
+        {
+            throw new ArgumentException("Device too small for a GPT layout.", nameof(device));
+        }
 
         // Protective MBR at LBA 0.
         Span<byte> protectiveMbr = new byte[blockSize];
@@ -183,11 +221,30 @@ public static class Gpt
             return false;
         }
 
+        // Same distrust of on-disk header fields as Parse: no CRCs, so a
+        // zeroed/corrupt SizeOfPartitionEntry would otherwise divide by
+        // zero, and a wild entryCount/entryStartLba would drive unbounded
+        // or out-of-range I/O.
         ulong entryStartLba = BitConverter.ToUInt64(header.Slice(72, 8));
         uint entryCount = BitConverter.ToUInt32(header.Slice(80, 4));
         uint entrySize = BitConverter.ToUInt32(header.Slice(84, 4));
+        if (entrySize < 128 || entrySize > blockSize
+            || entryCount > MaxEntryCount
+            || entryStartLba < 2 || entryStartLba >= device.BlockCount)
+        {
+            return false;
+        }
+
         uint entriesPerSector = (uint)(blockSize / entrySize);
         if (entriesPerSector == 0)
+        {
+            return false;
+        }
+
+        // Same end-of-array bound as Parse: never read (or claim a slot
+        // in) sectors past the end of the device.
+        ulong arraySectors = ((ulong)entryCount + entriesPerSector - 1) / entriesPerSector;
+        if (entryStartLba + arraySectors > device.BlockCount)
         {
             return false;
         }
