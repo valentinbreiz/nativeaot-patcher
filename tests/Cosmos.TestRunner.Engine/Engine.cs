@@ -316,6 +316,24 @@ public partial class Engine
         string prefix = profile.IsDefault ? string.Empty : $"[{profile.Name}] ";
         bool isFirstProfile = aggregate.Tests.Count == 0 && aggregate.ExpectedTestCount == 0;
 
+        // A cell whose kernel died before emitting TestSuiteStart (driver
+        // bring-up crash, triple fault, QEMU launch failure) contributes
+        // zero tests and zero expected count. Without a sentinel it is
+        // invisible to AllTestsPassed once other cells contribute passing
+        // tests — the exact cells this matrix exists to pin (gicv2/gicv3/
+        // acpi-off hardware paths) would vanish from CI without failing it.
+        if (profileResults.Tests.Count == 0 && profileResults.ExpectedTestCount == 0)
+        {
+            profileResults.Tests.Add(new TestResult
+            {
+                TestName = "boot",
+                Status = TestStatus.Failed,
+                ErrorMessage = string.IsNullOrEmpty(profileResults.ErrorMessage)
+                    ? "kernel produced no test protocol output (crashed or hung before TestSuiteStart)"
+                    : profileResults.ErrorMessage,
+            });
+        }
+
         foreach (TestResult t in profileResults.Tests)
         {
             t.TestNumber = aggregate.Tests.Count + 1;
