@@ -27,6 +27,11 @@ on:
         description: 'GitHub step timeout in minutes'
         required: true
         type: number
+      job_timeout_minutes:
+        description: 'GitHub job timeout in minutes; must exceed step_timeout_minutes plus setup/build time, or the job is cancelled before the step budget is spent'
+        required: false
+        type: number
+        default: 30
       coverage:
         description: 'Enable code coverage instrumentation'
         required: false
@@ -37,7 +42,7 @@ jobs:
   run-tests:
     name: ${{ inputs.suite_name }} Tests - ${{ matrix.arch }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.job_timeout_minutes }}
     strategy:
       fail-fast: false
       matrix:

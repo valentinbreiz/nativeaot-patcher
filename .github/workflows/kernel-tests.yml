@@ -332,7 +332,12 @@ jobs:
       kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Storage
       timeout_x64: 90
       timeout_arm64: 180
-      step_timeout_minutes: 5
+      # arm64 expands to 12 matrix cells ({ahci,nvme} x gic/acpi modifier
+      # subsets) at up to 180s each; a 5-minute budget would kill the step
+      # before OutputHandlerXml writes results whenever one cell hangs. The
+      # job budget must stay above the step budget plus setup/build time.
+      step_timeout_minutes: 45
+      job_timeout_minutes: 60
 
   storage-results:
     needs: storage-tests
@@ -372,7 +377,11 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-24.04
-    needs: [ helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, interrupts-results, pci-results, storage-results ]
+    # Both the *-tests and *-results jobs are dependencies: the summary rows
+    # read `needs.<suite>-tests.result`, and the `needs` context only exposes
+    # direct dependencies — without the *-tests entries every row evaluates
+    # to an empty string and renders "Failed" regardless of the real outcome.
+    needs: [ helloworld-tests, memory-tests, typecasting-tests, timer-tests, network-tests, runtime-tests, threading-tests, math-tests, graphic-tests, power-tests, garbagecollector-tests, interrupts-tests, pci-tests, storage-tests, helloworld-results, memory-results, typecasting-results, timer-results, network-results, runtime-results, threading-results, math-results, graphic-results, power-results, garbagecollector-results, interrupts-results, pci-results, storage-results ]
     if: always()
     steps:
       - name: 📊 Generate Summary

@@ -471,3 +471,5 @@ setup/output/
 src/Cosmos.Kernel/Bootstrap/kmain_version.h
 
 global.json
+
+.claude
