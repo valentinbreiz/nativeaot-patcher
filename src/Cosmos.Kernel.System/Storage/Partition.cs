@@ -45,10 +45,16 @@ public sealed class Partition : BlockDevice
     }
 
     /// <inheritdoc />
-    public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+    public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         CheckBounds(blockNo, blockCount);
         _host.WriteBlock(StartSector + blockNo, blockCount, data);
+    }
+
+    /// <inheritdoc />
+    public override void Flush()
+    {
+        _host.Flush();
     }
 
     private void CheckBounds(ulong blockNo, ulong blockCount)

@@ -22,5 +22,11 @@ public abstract class BlockDevice : Device, IBlockDevice
     public abstract void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data);
 
     /// <inheritdoc />
-    public abstract void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data);
+    public abstract void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data);
+
+    /// <inheritdoc />
+    /// <remarks>Default is a no-op for devices without a volatile write cache.</remarks>
+    public virtual void Flush()
+    {
+    }
 }

@@ -90,7 +90,7 @@ public static class StorageManager
             RegisterDevice(ports[i]);
         }
 
-        List<NvmeNamespace> nvmeNamespaces = Nvme.Namespaces;
+        IReadOnlyList<NvmeNamespace> nvmeNamespaces = Nvme.Namespaces;
         for (int i = 0; i < nvmeNamespaces.Count; i++)
         {
             RegisterDevice(nvmeNamespaces[i]);
