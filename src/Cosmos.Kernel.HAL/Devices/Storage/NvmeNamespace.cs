@@ -9,20 +9,24 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// Reads and writes are issued one LBA at a time through the parent
 /// controller's per-slot bounce buffers — multiple namespaces (or
 /// concurrent callers on the same namespace) execute in parallel up to
-/// the controller's I/O queue depth.
+/// the controller's I/O queue depth minus one (the NVMe queue-full rule).
 /// </summary>
 public unsafe class NvmeNamespace : BlockDevice
 {
     private readonly NvmeController _controller;
     private readonly uint _nsid;
+    private readonly string _name;
 
     /// <inheritdoc />
-    public override string Name => "NVMe";
+    public override string Name => _name;
 
     public NvmeNamespace(NvmeController controller, uint nsid, ulong blockCount, ulong blockSize)
     {
         _controller = controller;
         _nsid = nsid;
+        // Unique per device instance ("nvme0n1" style) so multi-controller /
+        // multi-namespace systems get distinguishable device and partition names.
+        _name = $"nvme{controller.Index}n{nsid}";
         BlockCount = blockCount;
         BlockSize = blockSize;
     }
@@ -48,7 +52,7 @@ public unsafe class NvmeNamespace : BlockDevice
     }
 
     /// <inheritdoc />
-    public override void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+    public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         int sector = (int)BlockSize;
         for (ulong i = 0; i < blockCount; i++)
@@ -64,6 +68,19 @@ public unsafe class NvmeNamespace : BlockDevice
                 Serial.WriteString("\n");
                 throw new Exception("NVMe Write error");
             }
+        }
+    }
+
+    /// <inheritdoc />
+    public override void Flush()
+    {
+        uint sc = _controller.Flush(_nsid);
+        if (sc != 0)
+        {
+            Serial.WriteString("[NVMe] Flush failed status=0x");
+            Serial.WriteHex(sc);
+            Serial.WriteString("\n");
+            throw new Exception("NVMe Flush error");
         }
     }
 }

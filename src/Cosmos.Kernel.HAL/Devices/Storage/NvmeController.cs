@@ -19,7 +19,7 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// polled (it only runs once at init); the I/O queue is interrupt-driven
 /// via MSI-X so callers of <see cref="Read"/> / <see cref="Write"/> can
 /// yield instead of burning a CPU on a spinloop, and up to
-/// <see cref="IoQueueDepth"/> commands can be in flight concurrently
+/// <see cref="IoQueueDepth"/>-1 commands can be in flight concurrently
 /// because every slot owns its own 4 KiB DMA bounce buffer.
 ///
 /// <para>If MSI-X is unavailable (e.g. ARM64 today, or a pathological
@@ -29,9 +29,14 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 ///
 /// Limitations:
 /// <list type="bullet">
-/// <item>One IO submission and one IO completion queue (qid=1), depth 8.</item>
-/// <item>Single-PRP transfers — caller never asks for more than one LBA
-/// per command, so PRP2 is always 0.</item>
+/// <item>One IO submission and one IO completion queue (qid=1), depth 8.
+/// At most depth-1 commands are in flight (NVMe queue-full rule: a
+/// depth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable
+/// from an empty queue).</item>
+/// <item>Single-PRP transfers — every command moves at most one 4 KiB
+/// page through the slot's bounce buffer, so PRP2 is always 0. Namespaces
+/// whose LBA format exceeds one page (or carries metadata) are skipped at
+/// discovery.</item>
 /// </list>
 /// </summary>
 public unsafe class NvmeController
@@ -105,8 +110,15 @@ public unsafe class NvmeController
     /// </summary>
     public bool IsMsiXEnabled => _msiXEnabled;
 
-    public NvmeController(PciDevice pci)
+    /// <summary>
+    /// Zero-based index of this controller in PCI discovery order. Used to
+    /// build unique namespace device names ("nvme0n1" style).
+    /// </summary>
+    public int Index { get; }
+
+    public NvmeController(PciDevice pci, int index)
     {
+        Index = index;
         _pci = pci;
         pci.EnableBusMaster(true);
         pci.EnableMemory(true);
@@ -162,8 +174,12 @@ public unsafe class NvmeController
     /// </summary>
     private void SetupIoCompletionPlumbing()
     {
-        _ioSlots = new IoSlot[IoQueueDepth];
-        for (int i = 0; i < IoQueueDepth; i++)
+        // Depth-1 slots: a depth-N submission queue holds at most N-1
+        // outstanding entries (NVMe 1.4 §4.1) — with N in flight the
+        // wrapped tail equals the head and the controller reads the queue
+        // as empty, silently losing a command.
+        _ioSlots = new IoSlot[IoQueueDepth - 1];
+        for (int i = 0; i < _ioSlots.Length; i++)
         {
             IoSlot slot = new();
             slot.DmaBufferVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
@@ -255,6 +271,10 @@ public unsafe class NvmeController
         sqe.SetCdw12(cdw12);
 
         _adminSqTail = (_adminSqTail + 1) % AdminQueueDepth;
+        // Order the SQE stores (Normal memory) before the doorbell store
+        // (Device memory): ARM64 does not order the two on its own, so the
+        // controller could otherwise fetch a half-written command.
+        PlatformHAL.Initializer?.DmaBarrier();
         Native.MMIO.Write32(_regs.SubmissionDoorbell(0), _adminSqTail);
 
         return WaitCompletion(_adminCqVirt, ref _adminCqHead, ref _adminCqPhase, AdminQueueDepth, qid: 0, expectCid: cid);
@@ -264,15 +284,12 @@ public unsafe class NvmeController
     /// Read <paramref name="dst"/>.Length bytes (must equal block size *
     /// (numLogicalBlocksMinusOne+1)) starting at LBA <paramref name="lba"/>
     /// from namespace <paramref name="nsid"/>. Thread-safe — multiple
-    /// callers run on independent slots up to <see cref="IoQueueDepth"/>.
+    /// callers run on independent slots up to <see cref="IoQueueDepth"/>-1.
     /// </summary>
     public uint Read(uint nsid, ulong lba, Span<byte> dst, ushort numLogicalBlocksMinusOne)
     {
+        ValidateTransfer(dst.Length, numLogicalBlocksMinusOne);
         int slotIndex = AcquireSlot();
-        if (slotIndex < 0)
-        {
-            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
-        }
         try
         {
             IoSlot slot = _ioSlots![slotIndex];
@@ -281,11 +298,14 @@ public unsafe class NvmeController
             {
                 CopyOut(slot.DmaBufferVirt, dst);
             }
+
+            ReleaseSlot(slotIndex);
             return sc;
         }
-        finally
+        catch
         {
-            ReleaseSlot(slotIndex);
+            QuarantineSlot(slotIndex);
+            throw;
         }
     }
 
@@ -295,20 +315,21 @@ public unsafe class NvmeController
     /// </summary>
     public uint Write(uint nsid, ulong lba, ReadOnlySpan<byte> src, ushort numLogicalBlocksMinusOne)
     {
+        ValidateTransfer(src.Length, numLogicalBlocksMinusOne);
         int slotIndex = AcquireSlot();
-        if (slotIndex < 0)
-        {
-            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
-        }
         try
         {
             IoSlot slot = _ioSlots![slotIndex];
             CopyIn(src, slot.DmaBufferVirt);
-            return SubmitOnSlot(NvmeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
-        }
-        finally
-        {
+            uint sc = SubmitOnSlot(NvmeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
+
             ReleaseSlot(slotIndex);
+            return sc;
+        }
+        catch
+        {
+            QuarantineSlot(slotIndex);
+            throw;
         }
     }
 
@@ -316,70 +337,132 @@ public unsafe class NvmeController
     public uint Flush(uint nsid)
     {
         int slotIndex = AcquireSlot();
-        if (slotIndex < 0)
-        {
-            throw new InvalidOperationException("[NVMe] no scheduler context for I/O");
-        }
         try
         {
-            return SubmitOnSlot(NvmeIoOp.Flush, nsid, slotIndex, 0, 0);
-        }
-        finally
-        {
+            uint sc = SubmitOnSlot(NvmeIoOp.Flush, nsid, slotIndex, 0, 0);
+
             ReleaseSlot(slotIndex);
+            return sc;
         }
+        catch
+        {
+            QuarantineSlot(slotIndex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The single-PRP data path moves at most one 4 KiB page per command;
+    /// larger transfers would make the device chase PRP2 (always 0 here),
+    /// i.e. DMA through physical address 0. The device-side length is
+    /// (numLogicalBlocksMinusOne+1) * blockSize regardless of the span the
+    /// caller hands over, so multi-block commands are rejected outright —
+    /// the span alone can't prove the device transfer fits the page.
+    /// </summary>
+    private static void ValidateTransfer(int byteLength, ushort numLogicalBlocksMinusOne)
+    {
+        if (numLogicalBlocksMinusOne != 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(numLogicalBlocksMinusOne),
+                "The single-PRP data path issues one logical block per command.");
+        }
+
+        if (byteLength <= 0 || (ulong)byteLength > PageSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(byteLength),
+                "NVMe transfers are limited to one 4 KiB page (single-PRP data path).");
+        }
+    }
+
+    /// <summary>
+    /// Called when a command failed in a way that may leave it outstanding
+    /// in the controller (e.g. polled timeout). Deliberately leaves the
+    /// slot's InUse flag set so it is never handed out again: a straggling
+    /// completion would otherwise be misattributed to a new command and
+    /// DMA into a recycled buffer. The (rare) slot leak is the price of
+    /// containment.
+    /// </summary>
+    private void QuarantineSlot(int index)
+    {
+        Serial.WriteString("[NVMe] Quarantined I/O slot ");
+        Serial.WriteNumber((uint)index);
+        Serial.WriteString(" (command may still be outstanding)\n");
     }
 
     /// <summary>
     /// Find a free slot, mark it in-use, and return its index. If every
     /// slot is in flight, blocks the caller on the slot waiter queue
-    /// until <see cref="ReleaseSlot"/> wakes one.
+    /// until <see cref="ReleaseSlot"/> wakes one. Without a scheduler
+    /// thread context (scheduler feature off, or pre-scheduler boot code)
+    /// there is a single execution context, so a free slot always exists
+    /// and no waiting is ever needed.
     /// </summary>
     private int AcquireSlot()
     {
-        SchedThread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        SchedThread? current = SchedulerManager.IsReady
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            : null;
         if (current == null)
         {
-            return -1;
-        }
-
-        while (true)
-        {
-            _slotLock.Acquire();
             for (int i = 0; i < _ioSlots!.Length; i++)
             {
                 if (!_ioSlots[i].InUse)
                 {
                     _ioSlots[i].InUse = true;
-                    _slotLock.Release();
                     return i;
                 }
             }
 
-            if (!_slotWaiters.Contains(current))
-            {
-                _slotWaiters.Add(current);
-            }
-            _slotLock.Release();
+            throw new InvalidOperationException("NVMe I/O slots exhausted without a scheduler context.");
+        }
 
-            SchedulerManager.BlockThread(current.CpuId, current);
+        while (true)
+        {
+            // IRQ-safe scope for the whole check-register-block sequence:
+            // releasing the lock before BlockThread opens the classic
+            // lost-wakeup window — a ReleaseSlot racing in between would
+            // ready a still-Running thread and the subsequent BlockThread
+            // would bury the wakeup forever.
+            using (_slotLock.AcquireIrqSafe())
+            {
+                for (int i = 0; i < _ioSlots!.Length; i++)
+                {
+                    if (!_ioSlots[i].InUse)
+                    {
+                        _ioSlots[i].InUse = true;
+                        return i;
+                    }
+                }
+
+                if (!_slotWaiters.Contains(current))
+                {
+                    _slotWaiters.Add(current);
+                }
+
+                SchedulerManager.BlockThread(current.CpuId, current);
+            }
+
             InternalCpu.Halt();
         }
     }
 
     private void ReleaseSlot(int index)
     {
-        _slotLock.Acquire();
-        _ioSlots![index].InUse = false;
-        if (_slotWaiters.Count > 0)
+        SchedThread? waiter = null;
+        using (_slotLock.AcquireIrqSafe())
         {
-            SchedThread waiter = _slotWaiters[0];
-            _slotWaiters.RemoveAt(0);
-            _slotLock.Release();
-            SchedulerManager.ReadyThread(waiter.CpuId, waiter);
-            return;
+            _ioSlots![index].InUse = false;
+            if (_slotWaiters.Count > 0)
+            {
+                waiter = _slotWaiters[0];
+                _slotWaiters.RemoveAt(0);
+            }
         }
-        _slotLock.Release();
+
+        if (waiter != null)
+        {
+            SchedulerManager.ReadyThread(waiter.CpuId, waiter);
+        }
     }
 
     /// <summary>
@@ -410,6 +493,9 @@ public unsafe class NvmeController
                 sqe.SetCdw12(numLogicalBlocksMinusOne);
 
                 _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
+                // SQE stores must be visible to the device before the
+                // doorbell store (see SubmitAdmin).
+                PlatformHAL.Initializer?.DmaBarrier();
                 Native.MMIO.Write32(_regs.SubmissionDoorbell(IoQueueId), _ioSqTail);
             }
             finally
@@ -436,6 +522,9 @@ public unsafe class NvmeController
             sqe.SetCdw12(numLogicalBlocksMinusOne);
 
             _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
+            // SQE stores must be visible to the device before the
+            // doorbell store (see SubmitAdmin).
+            PlatformHAL.Initializer?.DmaBarrier();
             Native.MMIO.Write32(_regs.SubmissionDoorbell(IoQueueId), _ioSqTail);
 
             slot.Status = WaitCompletion(_ioCqVirt, ref _ioCqHead, ref _ioCqPhase, IoQueueDepth, qid: IoQueueId, expectCid: cid);
@@ -470,6 +559,10 @@ public unsafe class NvmeController
                 break;
             }
 
+            // Read barrier: don't consume CID/status (or the DMA'd payload
+            // they guard) ahead of the device-written phase bit.
+            PlatformHAL.Initializer?.DmaBarrier();
+
             ushort cid = cqe.CommandIdentifier;
             uint sc = cqe.StatusCode;
 
@@ -502,15 +595,13 @@ public unsafe class NvmeController
             NvmeCqe cqe = new(cqBase + (ulong)head * 16);
             if (cqe.Phase == expectedPhase)
             {
+                // Read barrier: the phase bit is device-written; the rest of
+                // the CQE (and the DMA'd payload it guards) must not be read
+                // ahead of it on weakly-ordered ARM64.
+                PlatformHAL.Initializer?.DmaBarrier();
+
                 uint sc = cqe.StatusCode;
-                if (cqe.CommandIdentifier != expectCid)
-                {
-                    Serial.WriteString("[NVMe] Warning: CQE CID mismatch (got ");
-                    Serial.WriteNumber(cqe.CommandIdentifier);
-                    Serial.WriteString(", expected ");
-                    Serial.WriteNumber(expectCid);
-                    Serial.WriteString(")\n");
-                }
+                ushort cid = cqe.CommandIdentifier;
 
                 head = (head + 1) % depth;
                 if (head == 0)
@@ -518,6 +609,20 @@ public unsafe class NvmeController
                     expectedPhase = !expectedPhase;
                 }
                 Native.MMIO.Write32(_regs.CompletionDoorbell(qid), head);
+
+                if (cid != expectCid)
+                {
+                    // Stale CQE from an abandoned command (e.g. an earlier
+                    // polled timeout): consume it and keep waiting for the
+                    // expected CID instead of misattributing its status.
+                    Serial.WriteString("[NVMe] Consumed stale CQE (cid ");
+                    Serial.WriteNumber(cid);
+                    Serial.WriteString(", expected ");
+                    Serial.WriteNumber(expectCid);
+                    Serial.WriteString(")\n");
+                    continue;
+                }
+
                 return sc;
             }
 
@@ -606,9 +711,28 @@ public unsafe class NvmeController
         // FLBAS (1 byte, offset 26): bits [3:0] are the active LBA Format index.
         byte flbas = *(byte*)(identifyVirt + 26);
         int lbafIndex = flbas & 0x0F;
-        // LBAF entries start at offset 128, each 4 bytes; LBADS is byte 2 of each.
-        byte lbads = *(byte*)(identifyVirt + 128 + (ulong)(lbafIndex * 4) + 2);
+        // LBAF entries start at offset 128, each 4 bytes: MS in bytes 0-1, LBADS in byte 2.
+        ulong lbafEntry = identifyVirt + 128 + (ulong)(lbafIndex * 4);
+        ushort metadataSize = *(ushort*)lbafEntry;
+        byte lbads = *(byte*)(lbafEntry + 2);
         ulong blockSize = 1UL << lbads;
+
+        // The single-PRP data path moves at most one 4 KiB page per command
+        // and has no metadata handling: a larger LBA (or extended-LBA
+        // metadata) would make the device DMA past the slot's bounce page
+        // via PRP2=0, i.e. through physical address 0. Skip such
+        // namespaces instead of corrupting memory.
+        if (metadataSize != 0 || blockSize > PageSize)
+        {
+            Serial.WriteString("[NVMe] Skipping namespace nsid=");
+            Serial.WriteNumber(nsid);
+            Serial.WriteString(" (unsupported LBA format: blockSize=");
+            Serial.WriteNumber(blockSize);
+            Serial.WriteString(", metadata=");
+            Serial.WriteNumber(metadataSize);
+            Serial.WriteString(")\n");
+            return;
+        }
 
         Serial.WriteString("[NVMe] Namespace nsid=");
         Serial.WriteNumber(nsid);

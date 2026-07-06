@@ -18,16 +18,29 @@ public static class Nvme
 {
     private static List<NvmeController>? _controllers;
     private static List<NvmeNamespace>? _namespaces;
+    private static bool s_initialized;
 
     /// <summary>Discovered NVMe controllers (empty if none were found).</summary>
-    public static List<NvmeController> Controllers => _controllers ?? new List<NvmeController>();
+    public static IReadOnlyList<NvmeController> Controllers =>
+        (IReadOnlyList<NvmeController>?)_controllers ?? Array.Empty<NvmeController>();
 
     /// <summary>All namespaces across every controller this driver bound to.</summary>
-    public static List<NvmeNamespace> Namespaces => _namespaces ?? new List<NvmeNamespace>();
+    public static IReadOnlyList<NvmeNamespace> Namespaces =>
+        (IReadOnlyList<NvmeNamespace>?)_namespaces ?? Array.Empty<NvmeNamespace>();
 
-    /// <summary>Initialize the NVMe driver: PCI scan, controller bring-up, namespace discovery.</summary>
+    /// <summary>
+    /// Initialize the NVMe driver: PCI scan, controller bring-up, namespace
+    /// discovery. Idempotent — later calls return immediately so live
+    /// controllers are never reset twice.
+    /// </summary>
     public static void Initialize()
     {
+        if (s_initialized)
+        {
+            return;
+        }
+        s_initialized = true;
+
         Serial.WriteString("[NVMe] Looking for NVMe controllers...\n");
 
         _controllers = new List<NvmeController>();
@@ -49,7 +62,7 @@ public static class Nvme
             PciDevice device = devices[i];
             try
             {
-                NvmeController controller = new(device);
+                NvmeController controller = new(device, index: i);
                 controller.Initialize();
                 _controllers.Add(controller);
 
