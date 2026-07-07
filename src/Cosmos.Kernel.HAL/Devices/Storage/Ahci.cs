@@ -21,15 +21,13 @@ public static class Ahci
     private static List<BlockDevice>? _ports;
     private static bool _initialized;
 
-    /// <summary>Regular sector size (512 bytes).</summary>
-    public const ulong RegularSectorSize = 512UL;
-
     /// <summary>Discovered AHCI controllers (empty if none were found).</summary>
     public static IReadOnlyList<AhciController> Controllers =>
         (IReadOnlyList<AhciController>?)_controllers ?? Array.Empty<AhciController>();
 
     /// <summary>All SATA drive ports across every controller this driver bound to.</summary>
-    public static IReadOnlyList<BlockDevice> Ports => _ports ?? new List<BlockDevice>();
+    public static IReadOnlyList<BlockDevice> Ports =>
+        (IReadOnlyList<BlockDevice>?)_ports ?? Array.Empty<BlockDevice>();
 
     /// <summary>
     /// Initialize the AHCI driver: PCI scan, controller bring-up, port
