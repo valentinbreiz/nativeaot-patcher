@@ -34,7 +34,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 49);
+        TR.Start("Threading Tests", expectedTests: 50);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -58,6 +58,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
+        TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
 
         // ThreadPool / Task / async-await tests (validate fix for #245, #246)
         TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
@@ -314,6 +315,72 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Thread] Delegate executing!\n");
         _threadExecuted = true;
         Serial.WriteString("[Thread] Delegate completed!\n");
+    }
+
+    // ===== Mutex idle-thread contention (scheduler Mutex, not System.Threading) =====
+    // The main kernel thread is the scheduler's idle thread. Blocking it
+    // (BlockThread) only gets it resurrected by the PickNext ?? IdleThread
+    // fallback on the next tick, which re-runs Mutex.Acquire's retry loop:
+    // every pass calls OnThreadBlocked again and subtracts tickets that
+    // OnThreadReady never added, so TotalTickets drifts (and underflows).
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _idleMutex;
+    private static volatile bool _mutexWorkerHolding;
+    private static volatile bool _mutexMainContending;
+    private static volatile bool _mutexTestDone;
+
+    private static void TestMutexIdleThreadContention()
+    {
+        uint cpuId = SchedulerManager.GetCurrentCpuId();
+        Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData? cpuData =
+            SchedulerManager.GetCpuState(cpuId)
+                .GetSchedulerData<Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData>();
+        Assert.True(cpuData != null, "stride per-CPU data should exist");
+
+        _idleMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _mutexWorkerHolding = false;
+        _mutexMainContending = false;
+        _mutexTestDone = false;
+
+        var worker = new global::System.Threading.Thread(MutexIdleWorker);
+        worker.Start();
+
+        for (int i = 0; i < 100 && !_mutexWorkerHolding; i++)
+        {
+            TimerManager.Wait(50);
+        }
+        Assert.True(_mutexWorkerHolding, "worker should hold the mutex");
+
+        // Both reads happen with the worker runnable (it spins on the flags,
+        // never blocking), so any delta comes from the idle thread's own
+        // block/ready churn inside Acquire.
+        ulong before = cpuData!.TotalTickets;
+
+        _mutexMainContending = true;
+        _idleMutex.Acquire();
+        _idleMutex.Release();
+
+        ulong after = cpuData.TotalTickets;
+        _mutexTestDone = true;
+
+        Assert.True(before == after, "idle-thread contention must not drift TotalTickets");
+    }
+
+    private static void MutexIdleWorker()
+    {
+        _idleMutex!.Acquire();
+        _mutexWorkerHolding = true;
+        while (!_mutexMainContending)
+        {
+            // spin until the main (idle) thread is about to contend
+        }
+        // Hold across several scheduler ticks so the contending idle thread
+        // goes through its block/resurrect cycle more than once.
+        TimerManager.Wait(300);
+        _idleMutex.Release();
+        while (!_mutexTestDone)
+        {
+            // stay runnable until the main thread has sampled TotalTickets
+        }
     }
 
     private static void TestMultipleThreads()

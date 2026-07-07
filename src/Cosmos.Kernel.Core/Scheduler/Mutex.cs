@@ -58,6 +58,38 @@ public class Mutex : IDisposable
             return;
         }
 
+        // The idle thread is the scheduler's fallback (PickNext ?? IdleThread):
+        // blocking it only gets it resurrected on the next tick, which re-runs
+        // this loop — every pass calls OnThreadBlocked again and drifts
+        // TotalTickets (and Release's ReadyThread would insert the idle
+        // thread into the run queue it is supposed to back-stop). Unlike
+        // InterruptEvent the context can't be nulled — Release checks
+        // ownership — so an idle-thread caller spin-acquires instead:
+        // ownership stays real, it just never parks in _waitingThreads.
+        // Interrupts stay enabled between attempts, so the timer keeps
+        // preempting to the (runnable) holder until it releases.
+        if ((currentThread.Flags & ThreadFlags.IdleThread) != 0)
+        {
+            while (true)
+            {
+                using (_lockGuard.AcquireIrqSafe())
+                {
+                    if (_ownerThread == null)
+                    {
+                        _ownerThread = currentThread;
+                        _recursionDepth = 1;
+                        return;
+                    }
+
+                    if (_ownerThread == currentThread)
+                    {
+                        _recursionDepth++;
+                        return;
+                    }
+                }
+            }
+        }
+
         while (true)
         {
             // IRQ-safe for two reasons: a holder preempted mid-section
