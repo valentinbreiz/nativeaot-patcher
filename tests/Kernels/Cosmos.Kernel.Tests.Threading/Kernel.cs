@@ -34,7 +34,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 50);
+        TR.Start("Threading Tests", expectedTests: 52);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -59,6 +59,8 @@ public class Kernel : Sys.Kernel
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
         TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
+        TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
+        TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
 
         // ThreadPool / Task / async-await tests (validate fix for #245, #246)
         TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
@@ -381,6 +383,93 @@ public class Kernel : Sys.Kernel
         {
             // stay runnable until the main thread has sampled TotalTickets
         }
+    }
+
+    // ===== Multi-waiter paths (List<Thread> scans on non-empty lists) =====
+    // The single-waiter driver flow keeps _waiters/_waitingThreads empty at
+    // the Contains call, so the list-scan path (EqualityComparer<Thread>)
+    // is otherwise never exercised: the second parked waiter/contender here
+    // is what actually walks a non-empty list.
+    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _twoWaiterEvent;
+    private static volatile bool _waiterAParked, _waiterBParked;
+    private static volatile bool _waiterAWoke, _waiterBWoke;
+
+    private static void TestInterruptEventTwoWaiters()
+    {
+        _twoWaiterEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
+        _waiterAParked = _waiterBParked = false;
+        _waiterAWoke = _waiterBWoke = false;
+
+        var w1 = new global::System.Threading.Thread(TwoWaiterWorkerA);
+        var w2 = new global::System.Threading.Thread(TwoWaiterWorkerB);
+        w1.Start();
+        w2.Start();
+
+        // Let both workers reach Wait() and park; the second one walks the
+        // one-element waiter list on its way in.
+        for (int i = 0; i < 100 && !(_waiterAParked && _waiterBParked); i++)
+        {
+            TimerManager.Wait(50);
+        }
+        TimerManager.Wait(50);
+
+        _twoWaiterEvent.Signal();
+        _twoWaiterEvent.Signal();
+
+        for (int i = 0; i < 100 && !(_waiterAWoke && _waiterBWoke); i++)
+        {
+            TimerManager.Wait(50);
+        }
+        Assert.True(_waiterAWoke && _waiterBWoke, "both parked waiters must be woken by two signals");
+    }
+
+    private static void TwoWaiterWorkerA()
+    {
+        _waiterAParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterAWoke = true;
+    }
+
+    private static void TwoWaiterWorkerB()
+    {
+        _waiterBParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterBWoke = true;
+    }
+
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _contendedMutex;
+    private static volatile int _contenderAcquisitions;
+
+    private static void TestMutexThreeContenders()
+    {
+        _contendedMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _contenderAcquisitions = 0;
+
+        var c1 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c2 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c3 = new global::System.Threading.Thread(MutexContenderWorker);
+        c1.Start();
+        c2.Start();
+        c3.Start();
+
+        // The holder keeps the mutex across several ticks, so the two other
+        // contenders both queue up — the last one scans a non-empty
+        // _waitingThreads list.
+        for (int i = 0; i < 200 && _contenderAcquisitions < 3; i++)
+        {
+            TimerManager.Wait(50);
+        }
+        Assert.Equal(3, _contenderAcquisitions, "all three contenders must acquire the mutex in turn");
+    }
+
+    private static void MutexContenderWorker()
+    {
+        _contendedMutex!.Acquire();
+        // Hold across a few ticks so the other contenders pile up in
+        // _waitingThreads; the increment is protected by the mutex itself.
+        TimerManager.Wait(100);
+        _contenderAcquisitions++;
+        _contendedMutex.Release();
     }
 
     private static void TestMultipleThreads()

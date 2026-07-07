@@ -114,7 +114,10 @@ public class Mutex : IDisposable
                     return;
                 }
 
-                if (!_waitingThreads.Contains(currentThread))
+                // ReferenceEquals scan (not List.Contains) to match the
+                // scheduler's convention of avoiding EqualityComparer<T>
+                // .Default in kernel paths (see InterruptEvent).
+                if (!ContainsWaiterLocked(currentThread))
                 {
                     _waitingThreads.Add(currentThread);
                 }
@@ -124,6 +127,19 @@ public class Mutex : IDisposable
 
             InternalCpu.Halt();
         }
+    }
+
+    private bool ContainsWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
+        {
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -17,19 +17,20 @@ namespace Cosmos.Kernel.Core.Scheduler;
 ///
 /// <para>Modeled after <see cref="Mutex"/> but reduced to the surface
 /// drivers actually need (a producer ISR and a consumer thread). Multiple
-/// consumers can wait; <see cref="Signal"/> wakes one. If signaled while
-/// no consumer is waiting, the signal latches until the next
-/// <see cref="Wait"/> consumes it.</para>
+/// consumers can wait; <see cref="Signal"/> wakes one. Signals are
+/// counted, not latched as a single bit: two <see cref="Signal"/>s with
+/// two parked waiters wake both, and signals arriving while no consumer
+/// waits are consumed one per subsequent <see cref="Wait"/>.</para>
 /// </summary>
 public class InterruptEvent
 {
     private SpinLock _lockGuard;
-    private bool _signaled;
+    private uint _pendingSignals;
     private readonly List<SchedThread> _waiters;
 
     public InterruptEvent()
     {
-        _signaled = false;
+        _pendingSignals = 0;
         _waiters = [];
     }
 
@@ -80,9 +81,9 @@ public class InterruptEvent
             {
                 using (_lockGuard.AcquireIrqSafe())
                 {
-                    if (_signaled)
+                    if (_pendingSignals > 0)
                     {
-                        _signaled = false;
+                        _pendingSignals--;
                         return true;
                     }
                 }
@@ -101,13 +102,16 @@ public class InterruptEvent
             // (single-CPU spinlock against itself).
             using (_lockGuard.AcquireIrqSafe())
             {
-                if (_signaled)
+                if (_pendingSignals > 0)
                 {
-                    _signaled = false;
+                    _pendingSignals--;
                     return true;
                 }
 
-                if (!_waiters.Contains(currentThread))
+                // ReferenceEquals scan (not List.Contains) to match
+                // RemoveWaiterLocked and the scheduler's own convention of
+                // avoiding EqualityComparer<T>.Default in kernel paths.
+                if (!ContainsWaiterLocked(currentThread))
                 {
                     _waiters.Add(currentThread);
                 }
@@ -144,9 +148,9 @@ public class InterruptEvent
                     // Consume a signal that raced in just before giving up,
                     // and otherwise leave the waiter list clean so a later
                     // Signal can't dequeue a thread that is no longer waiting.
-                    if (_signaled)
+                    if (_pendingSignals > 0)
                     {
-                        _signaled = false;
+                        _pendingSignals--;
                         return true;
                     }
 
@@ -156,6 +160,19 @@ public class InterruptEvent
                 return false;
             }
         }
+    }
+
+    private bool ContainsWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waiters.Count; i++)
+        {
+            if (ReferenceEquals(_waiters[i], thread))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ReferenceEquals scan on purpose: List<T>.Remove routes through
@@ -189,7 +206,7 @@ public class InterruptEvent
         SchedThread? toReady = null;
         using (_lockGuard.AcquireIrqSafe())
         {
-            _signaled = true;
+            _pendingSignals++;
 
             if (_waiters.Count > 0)
             {
@@ -205,8 +222,8 @@ public class InterruptEvent
     }
 
     /// <summary>
-    /// Whether the event currently has a latched signal (no waiter has
-    /// consumed yet). Read without locking; for diagnostics only.
+    /// Whether the event currently has pending signals no waiter has
+    /// consumed yet. Read without locking; for diagnostics only.
     /// </summary>
-    public bool IsSignaled => _signaled;
+    public bool IsSignaled => _pendingSignals > 0;
 }
