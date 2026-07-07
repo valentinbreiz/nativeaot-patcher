@@ -17,17 +17,17 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public static class Ahci
 {
-    private static List<AhciController>? _controllers;
-    private static List<BlockDevice>? _ports;
-    private static bool _initialized;
+    private static List<AhciController>? s_controllers;
+    private static List<BlockDevice>? s_ports;
+    private static bool s_initialized;
 
     /// <summary>Discovered AHCI controllers (empty if none were found).</summary>
     public static IReadOnlyList<AhciController> Controllers =>
-        (IReadOnlyList<AhciController>?)_controllers ?? Array.Empty<AhciController>();
+        (IReadOnlyList<AhciController>?)s_controllers ?? Array.Empty<AhciController>();
 
     /// <summary>All SATA drive ports across every controller this driver bound to.</summary>
     public static IReadOnlyList<BlockDevice> Ports =>
-        (IReadOnlyList<BlockDevice>?)_ports ?? Array.Empty<BlockDevice>();
+        (IReadOnlyList<BlockDevice>?)s_ports ?? Array.Empty<BlockDevice>();
 
     /// <summary>
     /// Initialize the AHCI driver: PCI scan, controller bring-up, port
@@ -35,16 +35,16 @@ public static class Ahci
     /// </summary>
     public static void Initialize()
     {
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
-        _initialized = true;
+        s_initialized = true;
 
         Serial.WriteString("[AHCI] Looking for AHCI controllers...\n");
 
-        _controllers = new List<AhciController>();
-        _ports = new List<BlockDevice>();
+        s_controllers = new List<AhciController>();
+        s_ports = new List<BlockDevice>();
 
         List<PciDevice> devices = PciManager.GetAllDevicesClass(
             ClassId.MassStorageController, SubclassId.SataController);
@@ -86,10 +86,10 @@ public static class Ahci
                 continue;
             }
 
-            _controllers.Add(controller);
+            s_controllers.Add(controller);
             for (int p = 0; p < controller.Ports.Count; p++)
             {
-                _ports.Add(controller.Ports[p]);
+                s_ports.Add(controller.Ports[p]);
             }
         }
     }

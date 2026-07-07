@@ -16,17 +16,17 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public static class Nvme
 {
-    private static List<NvmeController>? _controllers;
-    private static List<NvmeNamespace>? _namespaces;
+    private static List<NvmeController>? s_controllers;
+    private static List<NvmeNamespace>? s_namespaces;
     private static bool s_initialized;
 
     /// <summary>Discovered NVMe controllers (empty if none were found).</summary>
     public static IReadOnlyList<NvmeController> Controllers =>
-        (IReadOnlyList<NvmeController>?)_controllers ?? Array.Empty<NvmeController>();
+        (IReadOnlyList<NvmeController>?)s_controllers ?? Array.Empty<NvmeController>();
 
     /// <summary>All namespaces across every controller this driver bound to.</summary>
     public static IReadOnlyList<NvmeNamespace> Namespaces =>
-        (IReadOnlyList<NvmeNamespace>?)_namespaces ?? Array.Empty<NvmeNamespace>();
+        (IReadOnlyList<NvmeNamespace>?)s_namespaces ?? Array.Empty<NvmeNamespace>();
 
     /// <summary>
     /// Initialize the NVMe driver: PCI scan, controller bring-up, namespace
@@ -43,8 +43,8 @@ public static class Nvme
 
         Serial.WriteString("[NVMe] Looking for NVMe controllers...\n");
 
-        _controllers = new List<NvmeController>();
-        _namespaces = new List<NvmeNamespace>();
+        s_controllers = new List<NvmeController>();
+        s_namespaces = new List<NvmeNamespace>();
 
         List<PciDevice> devices = PciManager.GetAllDevicesClass(ClassId.MassStorageController, SubclassId.NvmController);
         if (devices.Count == 0)
@@ -64,11 +64,11 @@ public static class Nvme
             {
                 NvmeController controller = new(device, index: i);
                 controller.Initialize();
-                _controllers.Add(controller);
+                s_controllers.Add(controller);
 
                 for (int n = 0; n < controller.Namespaces.Count; n++)
                 {
-                    _namespaces.Add(controller.Namespaces[n]);
+                    s_namespaces.Add(controller.Namespaces[n]);
                 }
             }
             catch (Exception ex)
