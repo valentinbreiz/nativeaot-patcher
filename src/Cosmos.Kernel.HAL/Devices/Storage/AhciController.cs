@@ -245,31 +245,6 @@ public unsafe class AhciController
         return true;
     }
 
-    /// <summary>
-    /// HBA reset: write GHC.AE|HR, poll for HR to self-clear, re-enable
-    /// AHCI mode. Pattern modeled on Linux's ahci_reset_controller.
-    /// </summary>
-    public void HbaReset()
-    {
-        if (_generic == null)
-        {
-            return;
-        }
-
-        _generic.GlobalHostControl = (1U << 31) | 1U;
-        uint spin = 0;
-        while ((_generic.GlobalHostControl & 1U) != 0)
-        {
-            Ahci.Wait(1);
-            if (++spin > 1_000_000)
-            {
-                Serial.WriteString("[AHCI] HBA reset did not complete\n");
-                return;
-            }
-        }
-        _generic.GlobalHostControl |= 1U << 31; // Re-enable AHCI mode
-    }
-
     private void PrintVersion()
     {
         if (_generic == null)
