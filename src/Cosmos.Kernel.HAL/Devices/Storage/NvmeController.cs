@@ -159,6 +159,15 @@ public unsafe class NvmeController
         DisableController();
         SetupAdminQueues();
         EnableController();
+
+        // Mask every pin-based interrupt vector: admin completions (and all
+        // I/O in the polled fallback) would otherwise assert the
+        // level-triggered INTx line until the CQ head doorbell write — a
+        // spurious-interrupt source on any platform where that GSI is
+        // unmasked or shared. MSI-X, when it comes up later, is unaffected
+        // by INTMS, and MsiX.Enable also sets PCI Command.InterruptDisable.
+        _regs.INTMS = 0xFFFFFFFF;
+
         Serial.WriteString("[NVMe] Controller ready\n");
 
         DiscoverNamespaces();
