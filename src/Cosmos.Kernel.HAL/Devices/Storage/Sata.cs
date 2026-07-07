@@ -395,19 +395,31 @@ public class Sata : BlockDevice
     }
 
     // BlockDevice implementation. The bounce buffer (_dataBufferVirt) is a
-    // single page, so I/O is issued one sector per command; the port lock
-    // keeps each command + bounce-buffer copy atomic against other threads.
+    // single page, so I/O is chunked at MaxSectorsPerCommand sectors per
+    // command; the port lock keeps each command + bounce-buffer copy atomic
+    // against other threads. The up-front span check plus long offset math
+    // replaces the old `(int)i * sector`, which wrapped for >= 4M-block
+    // spans and silently sliced at wrong offsets.
     /// <inheritdoc />
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         int sector = (int)BlockSize;
+        if (blockCount > (ulong)data.Length / (uint)sector)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockCount), "Span shorter than the requested transfer.");
+        }
+
         _ioLock.Acquire();
         try
         {
-            for (ulong i = 0; i < blockCount; i++)
+            ulong done = 0;
+            while (done < blockCount)
             {
-                IssueCommandCore((byte)AtaCommands.ReadDmaExt, blockNo + i, 1, isWrite: false, useLba48: true, hasData: true);
-                ReadDataBlock8(data.Slice((int)i * sector, sector));
+                ulong remaining = blockCount - done;
+                uint chunk = remaining >= MaxSectorsPerCommand ? MaxSectorsPerCommand : (uint)remaining;
+                IssueCommandCore((byte)AtaCommands.ReadDmaExt, blockNo + done, chunk, isWrite: false, useLba48: true, hasData: true);
+                ReadDataBlock8(data.Slice((int)((long)done * sector), sector * (int)chunk));
+                done += chunk;
             }
         }
         finally
@@ -420,13 +432,22 @@ public class Sata : BlockDevice
     public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         int sector = (int)BlockSize;
+        if (blockCount > (ulong)data.Length / (uint)sector)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockCount), "Span shorter than the requested transfer.");
+        }
+
         _ioLock.Acquire();
         try
         {
-            for (ulong i = 0; i < blockCount; i++)
+            ulong done = 0;
+            while (done < blockCount)
             {
-                WriteDataBlock8(data.Slice((int)i * sector, sector));
-                IssueCommandCore((byte)AtaCommands.WriteDmaExt, blockNo + i, 1, isWrite: true, useLba48: true, hasData: true);
+                ulong remaining = blockCount - done;
+                uint chunk = remaining >= MaxSectorsPerCommand ? MaxSectorsPerCommand : (uint)remaining;
+                WriteDataBlock8(data.Slice((int)((long)done * sector), sector * (int)chunk));
+                IssueCommandCore((byte)AtaCommands.WriteDmaExt, blockNo + done, chunk, isWrite: true, useLba48: true, hasData: true);
+                done += chunk;
             }
         }
         finally
