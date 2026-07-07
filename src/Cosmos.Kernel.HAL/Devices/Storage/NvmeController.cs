@@ -211,14 +211,7 @@ public unsafe class NvmeController
             _regs.CC = cc & ~1u;
         }
 
-        uint spin = 0;
-        while ((_regs.CSTS & 1) != 0)
-        {
-            if (++spin > 1_000_000)
-            {
-                throw new Exception("[NVMe] Timeout waiting for CSTS.RDY=0");
-            }
-        }
+        WaitForReady(expected: false, "[NVMe] Timeout waiting for CSTS.RDY=0");
     }
 
     private void EnableController()
@@ -227,13 +220,30 @@ public unsafe class NvmeController
         uint cc = (6u << 16) | (4u << 20) | 1u;
         _regs.CC = cc;
 
-        uint spin = 0;
-        while ((_regs.CSTS & 1) == 0)
+        WaitForReady(expected: true, "[NVMe] Timeout waiting for CSTS.RDY=1");
+    }
+
+    // NVMe 1.4 s3.1.1: software must wait up to CAP.TO (500 ms units, up
+    // to 63.5 s) for CSTS.RDY to track CC.EN. The old fixed 1M-iteration
+    // MMIO spin was ~0.3-2 s depending on read latency — healthy drives
+    // with slow bring-up would spuriously fail init and be skipped.
+    private void WaitForReady(bool expected, string timeoutMessage)
+    {
+        // At least one 500 ms unit even if a controller reports TO=0.
+        uint budgetMs = (_regs.TO == 0 ? 1 : _regs.TO) * 500;
+        for (uint elapsedMs = 0; ; elapsedMs++)
         {
-            if (++spin > 1_000_000)
+            if (((_regs.CSTS & 1) != 0) == expected)
             {
-                throw new Exception("[NVMe] Timeout waiting for CSTS.RDY=1");
+                return;
             }
+
+            if (elapsedMs >= budgetMs)
+            {
+                throw new Exception(timeoutMessage);
+            }
+
+            PlatformHAL.Initializer?.DelayMicroseconds(1000);
         }
     }
 

@@ -80,6 +80,9 @@ public class NvmeRegisters
     /// <summary>CAP.DSTRD — Doorbell Stride (in dwords, log2). Stride bytes = 4 &lt;&lt; DSTRD.</summary>
     public uint DSTRD => (uint)((CAP >> 32) & 0xF);
 
+    /// <summary>CAP.TO — worst-case CSTS.RDY transition time, in 500 ms units.</summary>
+    public uint TO => (uint)((CAP >> 24) & 0xFF);
+
     /// <summary>
     /// Compute the byte address of submission-queue tail doorbell for
     /// queue id <paramref name="qid"/>. Doorbells live at BAR0 + 0x1000 +
