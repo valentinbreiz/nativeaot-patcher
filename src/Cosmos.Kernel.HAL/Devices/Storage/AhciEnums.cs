@@ -90,10 +90,13 @@ public enum AtaDeviceStatus : uint
 public enum CommandAndStatus : uint
 {
     ICC_Reserved0 = 0x0000000F,
-    ICC_DevSleep = 0x00000008,
-    ICC_Slumber = 0x00000006,
-    ICC_Partial = 0x00000002,
-    ICC_Active = 0x00000001,
+    // PxCMD.ICC lives in bits 31:28 (AHCI 1.3.1 s3.3.7) — the values are
+    // shifted into place so writing them programs the actual ICC field
+    // instead of colliding with ST/SUD/POD in the low bits.
+    ICC_DevSleep = 0x8U << 28,
+    ICC_Slumber = 0x6U << 28,
+    ICC_Partial = 0x2U << 28,
+    ICC_Active = 0x1U << 28,
     ICC_Idle = 0x00000000,
     ASP = 01 << 27,
     ALPE = 01 << 26,
@@ -110,7 +113,9 @@ public enum CommandAndStatus : uint
     CMDListRunning = 01 << 15,
     FISReceiveRunning = 01 << 14,
     MPSS = 01 << 13,
-    CurrentCMDSlot = 01 << 12,
+    // PxCMD.CCS is a 5-bit field (bits 12:08), not a single flag: mask and
+    // shift to extract the slot index of the command currently being issued.
+    CurrentCMDSlotMask = 0x1F << 08,
     Reserved0 = 01 << 07,
     FISReceiveEnable = 01 << 04,
     CMDListOverride = 01 << 03,
