@@ -232,6 +232,19 @@ public class Kernel : Sys.Kernel
         Assert.False(Gpt.AddPartition(s_dev!, 2048, 0, Gpt.BasicDataPartitionType), "zero-length entry must be rejected");
         Assert.False(Gpt.AddPartition(s_dev!, s_dev!.BlockCount, 16, Gpt.BasicDataPartitionType), "past-end entry must be rejected");
         Assert.Equal(0, Gpt.Parse(s_dev!).Count, "rejected entries must not appear on disk");
+
+        // Raw-craft an entry starting INSIDE the GPT entry array (LBA 10):
+        // a write through such a partition would corrupt the table itself,
+        // so Parse must drop it (CRCs are 0 — corruption is undetectable).
+        int sector = (int)s_dev!.BlockSize;
+        byte[] entries = new byte[sector];
+        Span<byte> e = entries;
+        Gpt.BasicDataPartitionType.TryWriteBytes(e.Slice(0, 16));
+        e[16] = 0x42; // non-zero unique GUID
+        BitConverter.TryWriteBytes(e.Slice(32, 8), 10UL);  // startLba inside the array
+        BitConverter.TryWriteBytes(e.Slice(40, 8), 100UL); // endLba
+        s_dev!.WriteBlock(2, 1, entries);
+        Assert.Equal(0, Gpt.Parse(s_dev!).Count, "entry overlapping the GPT structures must be rejected");
     }
 
     // The NvmeController.Read/Write public API accepts spans shorter than

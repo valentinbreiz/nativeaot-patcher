@@ -136,10 +136,12 @@ public static class Gpt
                 ulong startLba = BitConverter.ToUInt64(sector.Slice(offset + 32, 8));
                 ulong endLba = BitConverter.ToUInt64(sector.Slice(offset + 40, 8));
                 // endLba is inclusive. Reject corrupt entries outright:
-                // endLba < startLba would underflow the count to ~2^64,
-                // and a range past the disk would authorize wild host I/O
-                // through the resulting Partition.
-                if (endLba < startLba || startLba < 2 || endLba >= device.BlockCount)
+                // endLba < startLba would underflow the count to ~2^64, a
+                // range past the disk would authorize wild host I/O, and a
+                // start inside the GPT structures (protective MBR, header,
+                // entry array) would let a partition write corrupt the
+                // table itself — CRCs are 0, so nothing else would notice.
+                if (endLba < startLba || startLba < entryStartLba + arraySectors || endLba >= device.BlockCount)
                 {
                     continue;
                 }
