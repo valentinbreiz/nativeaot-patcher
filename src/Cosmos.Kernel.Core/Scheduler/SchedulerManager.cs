@@ -396,6 +396,11 @@ public static class SchedulerManager
 
             _currentScheduler.OnThreadReady(state, thread);
 
+            // Ask the next hardware-IRQ exit to reschedule: when this wake
+            // comes from an ISR (InterruptEvent.Signal), the woken thread
+            // would otherwise sit in the run queue until the next timer tick.
+            state.NeedReschedule = true;
+
             Serial.WriteString("[SCHED] Thread ");
             Serial.WriteNumber(thread.Id);
             Serial.WriteString(" is now ready, RSP=");
@@ -679,6 +684,41 @@ public static class SchedulerManager
                 ReadyThread(thread.CpuId, thread);
             }
         }
+    }
+
+    /// <summary>
+    /// Runs a pending reschedule request on hardware-IRQ exit. ReadyThread
+    /// sets the request when it wakes a thread (typically an ISR-side
+    /// <see cref="InterruptEvent.Signal"/>); device-IRQ exit doesn't
+    /// otherwise reschedule — only the timer tick does — so a woken waiter
+    /// would sit in the run queue for up to a full quantum. No-op when the
+    /// timer path already staged a context switch for this interrupt: a
+    /// second ScheduleFromInterrupt would save this frame's stack pointer
+    /// into a thread whose real context lives elsewhere.
+    /// </summary>
+    /// <param name="cpuId">Current CPU ID.</param>
+    /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
+    public static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)
+    {
+        if (!_enabled || _currentScheduler == null || _cpuStates == null || cpuId >= _cpuCount)
+        {
+            return;
+        }
+
+        PerCpuState state = _cpuStates[cpuId];
+        if (state == null || !state.NeedReschedule)
+        {
+            return;
+        }
+
+        state.NeedReschedule = false;
+
+        if (ContextSwitchNative.GetContextSwitchSp() != 0)
+        {
+            return;
+        }
+
+        ScheduleFromInterrupt(cpuId, currentRsp);
     }
 
     /// <summary>

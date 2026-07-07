@@ -28,8 +28,8 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 4 cross-arch + 3 arch-specific = 7 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 7);
+        // 4 cross-arch + 4 arch-specific = 8 tests per cell.
+        TR.Start("Interrupt System Tests", expectedTests: 8);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
@@ -42,6 +42,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Lapic_Initialized", TestLapicInitialized);
         TR.Run("Lapic_TimerCalibrated", TestLapicTimerCalibrated);
         TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableX64);
+        TR.Run("IrqExit_ReschedulesSignaledWaiter", TestIrqExitReschedulesSignaledWaiter);
 #else
         // ==================== arm64 (GIC, per cell's gic-version) ====================
         TR.Run("Gic_Initialized", TestGicInitialized);
@@ -66,6 +67,10 @@ public class Kernel : Sys.Kernel
             TR.Skip("Its_Lpi_BroughtUp", "gic-version not pinned by this cell");
             TR.Skip("Msi_RoutingAvailable", "gic-version not pinned by this cell");
         }
+
+        // The IRQ-exit reschedule path is cross-arch, but the on-demand
+        // ISR-context trigger it needs (LAPIC self-IPI) only exists on x64.
+        TR.Skip("IrqExit_ReschedulesSignaledWaiter", "self-IPI harness is x64-only");
 #endif
 
         TR.Finish();
@@ -155,6 +160,88 @@ public class Kernel : Sys.Kernel
     private static void TestMsiRoutingAvailableX64()
     {
         Assert.True(MsiRouting.IsAvailable, "x64 MSI routing (LAPIC binder) should be available");
+    }
+
+    // ==================== IRQ-exit reschedule latency ====================
+    // An ISR-side InterruptEvent.Signal only readies the waiter; if nothing
+    // reschedules at device-IRQ exit, the woken thread sits in the run queue
+    // until the next timer tick — up to a full 10ms quantum of added latency
+    // per I/O. This measures signal-to-wake latency with a LAPIC self-IPI as
+    // the "device" interrupt: the waiter parks on the event, the main thread
+    // fires the IPI whose handler Signals from ISR context, and the waiter
+    // timestamps its wake-up.
+    private const int IrqLatencyRounds = 6;
+    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _wakeEvent;
+    private static volatile bool _waiterReady;
+    private static volatile bool _waiterDone;
+    private static long _wakeTimestamp;
+
+    private static void IpiSignalHandler(ref IRQContext context)
+    {
+        _wakeEvent?.Signal();
+    }
+
+    private static void TestIrqExitReschedulesSignaledWaiter()
+    {
+        _wakeEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
+        _waiterReady = false;
+        _waiterDone = false;
+        byte vector = InterruptManager.AllocateVector(IpiSignalHandler);
+
+        var waiter = new SysThread(IrqLatencyWaiter);
+        waiter.Start();
+
+        long worstTicks = 0;
+        for (int round = 0; round < IrqLatencyRounds; round++)
+        {
+            while (!_waiterReady)
+            {
+                // waiter not yet at Wait()
+            }
+            _waiterReady = false;
+            _waiterDone = false;
+
+            // Give the waiter a few full quanta to actually park (Blocked):
+            // a signal latched before it blocks would measure ~0 and mask
+            // the very latency this cell pins down.
+            TimerManager.Wait(30);
+
+            long signalTicks = Stopwatch.GetTimestamp();
+            LocalApic.SendSelfIpi(vector);
+
+            while (!_waiterDone)
+            {
+                // the parked waiter records its wake timestamp
+            }
+
+            long latency = _wakeTimestamp - signalTicks;
+            if (latency > worstTicks)
+            {
+                worstTicks = latency;
+            }
+        }
+
+        long worstUs = worstTicks * 1_000_000 / Stopwatch.Frequency;
+        Serial.WriteString("[Interrupts] worst signal-to-wake latency us: ");
+        Serial.WriteNumber((ulong)worstUs);
+        Serial.WriteString("\n");
+
+        // Rescheduled at IRQ exit the wake costs microseconds; parked until
+        // the next timer tick it costs up to 10_000us. 2_000us splits the
+        // two regimes with wide margin on a loaded CI host.
+        Assert.True(worstUs < 2_000,
+            "an ISR-side Signal must wake the parked waiter at IRQ exit, not at the next timer tick");
+    }
+
+    private static void IrqLatencyWaiter()
+    {
+        for (int round = 0; round < IrqLatencyRounds; round++)
+        {
+            _waiterReady = true;
+            _wakeEvent!.Wait();
+            _wakeTimestamp = Stopwatch.GetTimestamp();
+            _waiterDone = true;
+        }
     }
 
 #else

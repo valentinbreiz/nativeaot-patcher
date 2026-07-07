@@ -1,8 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.ARM64.Bridge;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
 
@@ -155,6 +157,17 @@ public class ARM64InterruptController : IInterruptController
             }
 
             SendEOI();
+
+            if (handler != null)
+            {
+                // Mirror of the x64 IRQ-exit reschedule (see
+                // X64InterruptController.Dispatch): the ARM64 vector stub also
+                // applies the staged context switch on every exit. Single-CPU
+                // ARM64 for now (cpuId 0); the saved context sits 512 bytes
+                // (NEON save area) below the IRQContext, same derivation as
+                // the GenericTimer handler.
+                RunPendingReschedule(ref ctx);
+            }
             return;
         }
 
@@ -178,6 +191,11 @@ public class ARM64InterruptController : IInterruptController
         // FIQ or SError - log and halt
         Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, "\n");
         HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
+    }
+
+    private static unsafe void RunPendingReschedule(ref IRQContext ctx)
+    {
+        SchedulerManager.ReschedulePendingFromIrq(0, (nuint)Unsafe.AsPointer(ref ctx) - 512);
     }
 
     private void SendEOI()

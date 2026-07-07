@@ -1,7 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
 
@@ -28,7 +30,7 @@ public class X64InterruptController : IInterruptController
         }
     }
 
-    public void Dispatch(ref IRQContext ctx)
+    public unsafe void Dispatch(ref IRQContext ctx)
     {
         InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
         if (handlers != null && ctx.interrupt < (ulong)handlers.Length)
@@ -42,6 +44,19 @@ public class X64InterruptController : IInterruptController
                 if (ctx.interrupt >= 32 && IsInitialized)
                 {
                     SendEOI();
+
+                    // A handler-side ReadyThread (e.g. InterruptEvent.Signal
+                    // from a device ISR) requests a reschedule; honor it now —
+                    // the common asm stub applies the staged context switch on
+                    // every interrupt exit, not just timer ticks. Same RSP
+                    // derivation (and kernel-space sanity check) as the LAPIC
+                    // timer handler: the saved context sits 256 bytes (XMM
+                    // save area) below the IRQContext.
+                    nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - 256;
+                    if ((currentRsp & 0xFFFF000000000000) == 0xFFFF000000000000)
+                    {
+                        SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
+                    }
                 }
                 return;
             }

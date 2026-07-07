@@ -122,7 +122,17 @@ public class InterruptEvent
                 SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
             }
 
-            InternalCpu.Halt();
+            // Only park the CPU while still Blocked: if a Signal (or an
+            // unrelated ReadyThread) raced in between the scope-dispose and
+            // this point, the thread is already Ready/Running and halting
+            // would sleep it until the next unrelated interrupt instead of
+            // retrying the latch immediately. A wake racing in after this
+            // check costs at most one timer tick — no worse than the
+            // unconditional halt it replaces.
+            if (currentThread.State == ThreadState.Blocked)
+            {
+                InternalCpu.Halt();
+            }
             // On wake, retry: either a Signal targeted us (we were removed
             // from _waiters) or we got readied for another reason; in
             // either case re-check state under the lock.

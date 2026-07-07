@@ -130,6 +130,21 @@ public static class LocalApic
     }
 
     /// <summary>
+    /// Sends a fixed-delivery IPI to this CPU itself on the given vector
+    /// (ICR destination shorthand "self", so ICR high is untouched). Runs
+    /// the full hardware interrupt path — IDT stub, dispatch, EOI —
+    /// without any external device; tests use it to exercise ISR-side
+    /// code on demand.
+    /// </summary>
+    public static void SendSelfIpi(byte vector)
+    {
+        if (_initialized)
+        {
+            Write(LAPIC_ICR_LOW, vector | (0b01u << 18));
+        }
+    }
+
+    /// <summary>
     /// Reads the In-Service Register to check which interrupts are being serviced.
     /// Returns the ISR value for vectors 32-63 (ISR1).
     /// </summary>
