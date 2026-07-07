@@ -217,7 +217,14 @@ public static class StorageManager
         }
         catch (Exception)
         {
-            // Best-effort scan: a flaky device shouldn't block storage init.
+            // Best-effort scan: a flaky device shouldn't block storage init —
+            // but say so, or a real device fault (NVMe timeout throw per the
+            // IBlockDevice error contract) is indistinguishable from "no
+            // partition table". String-only output: this can run in the
+            // phase-3 window where int formatting is off-limits.
+            Serial.WriteString("[StorageManager] Partition scan failed on ");
+            Serial.WriteString(device.Name);
+            Serial.WriteString("\n");
         }
     }
 
