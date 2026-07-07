@@ -29,4 +29,66 @@ public abstract class BlockDevice : Device, IBlockDevice
     public virtual void Flush()
     {
     }
+
+    // Device ctors run during early kernel init (before exception handlers
+    // and the late module initializers), where CoreLib int formatting
+    // (ToString / "" + int / $"") reproducibly triple-faults even though it
+    // works fine once the kernel is up. Names are therefore built digit by
+    // digit, like Serial.WriteNumber.
+
+    /// <summary>Builds a device name like "sata0" without CoreLib int formatting.</summary>
+    protected static string BuildDeviceName(string prefix, uint number)
+    {
+        Span<char> buffer = stackalloc char[MaxNameLength];
+        int pos = Append(buffer, 0, prefix);
+        pos = AppendDigits(buffer, pos, number);
+        return new string(buffer[..pos]);
+    }
+
+    /// <summary>Builds a device name like "nvme0n1" without CoreLib int formatting.</summary>
+    protected static string BuildDeviceName(string prefix, uint number, string infix, uint secondNumber)
+    {
+        Span<char> buffer = stackalloc char[MaxNameLength];
+        int pos = Append(buffer, 0, prefix);
+        pos = AppendDigits(buffer, pos, number);
+        pos = Append(buffer, pos, infix);
+        pos = AppendDigits(buffer, pos, secondNumber);
+        return new string(buffer[..pos]);
+    }
+
+    // Longest possible name: 4-char prefix + 10 digits + 1-char infix + 10 digits.
+    private const int MaxNameLength = 32;
+
+    private static int Append(Span<char> buffer, int pos, string text)
+    {
+        for (int i = 0; i < text.Length; i++)
+        {
+            buffer[pos++] = text[i];
+        }
+
+        return pos;
+    }
+
+    private static int AppendDigits(Span<char> buffer, int pos, uint value)
+    {
+        if (value == 0)
+        {
+            buffer[pos++] = '0';
+            return pos;
+        }
+
+        int start = pos;
+        while (value != 0)
+        {
+            buffer[pos++] = (char)('0' + value % 10);
+            value /= 10;
+        }
+
+        for (int i = start, j = pos - 1; i < j; i++, j--)
+        {
+            (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+        }
+
+        return pos;
+    }
 }

@@ -20,6 +20,8 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public class Sata : BlockDevice
 {
+    private static uint s_nextIndex;
+
     private readonly string _name;
 
     /// <inheritdoc />
@@ -64,10 +66,10 @@ public class Sata : BlockDevice
 
         _portReg = portReg;
 
-        // TODO: make this unique per instance ("sata0", "sata1", ...) once
-        // the kernel runtime plugs int-to-string. Both $"..." interpolation
-        // and "sata" + intVar concat crash this build during AHCI init.
-        _name = "sata";
+        // Unique per device instance ("sata0", "sata1", ...) so multi-disk
+        // systems get distinguishable device and partition names. Built via
+        // BuildDeviceName: CoreLib int formatting crashes this early in boot.
+        _name = BuildDeviceName("sata", s_nextIndex++);
 
         // One page (4 KiB) of contiguous DMA-able memory, well above the 2-byte
         // alignment AHCI's PRDT.DBA requires. PageAllocator hands out the
