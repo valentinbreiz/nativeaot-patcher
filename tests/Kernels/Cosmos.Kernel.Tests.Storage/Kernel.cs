@@ -31,9 +31,9 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 1 boot-scan + 2 profile + 12 device + 8 partition
-        // + 1 boot-reboot = 26 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 26);
+        // 2 manager + 1 boot-scan + 2 profile + 13 device + 8 partition
+        // + 1 boot-reboot = 27 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 27);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -104,6 +104,7 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "Device_LBA_Stride_Sweep",           TestDevice_LBAStrideSweep,           SkipNoDevice);
         TR.RunIf(dev, "Device_RandomOrder_ReadAfterWrite", TestDevice_RandomOrderReadAfterWrite, SkipNoDevice);
         TR.RunIf(dev, "Device_Multiblock_TailBoundary",    TestDevice_MultiblockTailBoundary,   SkipNoDevice);
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Nvme_ShortSpanWritesDeterministicTail", TestNvme_ShortSpanTail, "NVMe controller API is nvme-profile only");
 
         // ==================== Partition (MBR/GPT, partition translation) ====================
         // These run last because they overwrite LBA 0..33, which the device
@@ -216,6 +217,42 @@ public class Kernel : Sys.Kernel
         Assert.False(Gpt.AddPartition(s_dev!, 2048, 0, Gpt.BasicDataPartitionType), "zero-length entry must be rejected");
         Assert.False(Gpt.AddPartition(s_dev!, s_dev!.BlockCount, 16, Gpt.BasicDataPartitionType), "past-end entry must be rejected");
         Assert.Equal(0, Gpt.Parse(s_dev!).Count, "rejected entries must not appear on disk");
+    }
+
+    // The NvmeController.Read/Write public API accepts spans shorter than
+    // the device transfer; the bounce tail must then be deterministic
+    // (zeroed), not the previous command's residue leaking to disk.
+    private static void TestNvme_ShortSpanTail()
+    {
+        NvmeController controller = Nvme.Controllers[0];
+        uint nsid = 1;
+        ulong lba = 4242;
+        int sector = (int)s_dev!.BlockSize;
+
+        byte[] full = new byte[sector];
+        for (int i = 0; i < sector; i++)
+        {
+            full[i] = 0xA5;
+        }
+        controller.Write(nsid, lba, full, 0);
+
+        byte[] shortSpan = new byte[100];
+        for (int i = 0; i < shortSpan.Length; i++)
+        {
+            shortSpan[i] = 0x5B;
+        }
+        controller.Write(nsid, lba, shortSpan, 0);
+
+        byte[] readBack = new byte[sector];
+        controller.Read(nsid, lba, readBack, 0);
+        for (int i = 0; i < shortSpan.Length; i++)
+        {
+            Assert.Equal((byte)0x5B, readBack[i], "short-span payload");
+        }
+        for (int i = shortSpan.Length; i < sector; i++)
+        {
+            Assert.Equal((byte)0, readBack[i], "tail must be zeroed, not stale bounce residue");
+        }
     }
 
     // ==================== Manager ====================

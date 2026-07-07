@@ -350,6 +350,14 @@ public unsafe class NvmeController
         {
             IoSlot slot = _ioSlots![slotIndex];
             CopyIn(src, slot.DmaBufferVirt);
+            if ((ulong)src.Length < PageSize)
+            {
+                // The controller can't know the namespace block size at this
+                // layer, so a span shorter than the device transfer would
+                // otherwise write the previous command's bounce residue to
+                // disk — zero the tail so short writes are deterministic.
+                MemoryOp.MemSet((byte*)(slot.DmaBufferVirt + (ulong)src.Length), 0, (int)(PageSize - (ulong)src.Length));
+            }
             uint sc = SubmitOnSlot(NvmeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
 
             ReleaseSlot(slotIndex);
