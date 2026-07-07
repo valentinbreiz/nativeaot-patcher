@@ -37,9 +37,17 @@ public unsafe class NvmeNamespace : BlockDevice
     public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         int sector = (int)BlockSize;
+        // Overflow-free guard (divide form): `(int)i * sector` wrapped for
+        // >= 4M-block counts and could land back in range, silently copying
+        // at wrong offsets instead of failing fast.
+        if (blockCount > (ulong)data.Length / (uint)sector)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockCount), "Span shorter than the requested transfer.");
+        }
+
         for (ulong i = 0; i < blockCount; i++)
         {
-            Span<byte> dst = data.Slice((int)i * sector, sector);
+            Span<byte> dst = data.Slice((int)((long)i * sector), sector);
             uint sc = _controller.Read(_nsid, blockNo + i, dst, numLogicalBlocksMinusOne: 0);
             if (sc != 0)
             {
@@ -57,9 +65,14 @@ public unsafe class NvmeNamespace : BlockDevice
     public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         int sector = (int)BlockSize;
+        if (blockCount > (ulong)data.Length / (uint)sector)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockCount), "Span shorter than the requested transfer.");
+        }
+
         for (ulong i = 0; i < blockCount; i++)
         {
-            ReadOnlySpan<byte> src = data.Slice((int)i * sector, sector);
+            ReadOnlySpan<byte> src = data.Slice((int)((long)i * sector), sector);
             uint sc = _controller.Write(_nsid, blockNo + i, src, numLogicalBlocksMinusOne: 0);
             if (sc != 0)
             {
