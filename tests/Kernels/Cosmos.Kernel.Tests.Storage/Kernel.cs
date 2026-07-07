@@ -31,9 +31,9 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 1 boot-scan + 2 profile + 13 device + 8 partition
-        // + 1 boot-reboot = 27 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 27);
+        // 3 manager + 1 boot-scan + 2 profile + 13 device + 8 partition
+        // + 1 boot-reboot = 28 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 28);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -50,6 +50,7 @@ public class Kernel : Sys.Kernel
         bool deviceExpected = !TR.ProfileContains("acpi-off");
 #endif
         TR.RunIf(deviceExpected, "Manager_ExactlyOneDevice", TestManager_ExactlyOneDevice, SkipNoDevice);
+        TR.RunIf(hasDevice, "Manager_DuplicateRegistrationIgnored", TestManager_DuplicateRegistrationIgnored, SkipNoDevice);
 
         // ==================== Boot persistence (works with Boot_RebootAfterGptWrite) ====================
         // Runs before anything mutates partition state: on boot 0 the engine's
@@ -162,6 +163,19 @@ public class Kernel : Sys.Kernel
     {
         TR.Complete();
         Cosmos.Kernel.System.Power.Halt();
+    }
+
+    // Re-registering an already-known device must be a no-op: RegisterDevice
+    // is public and unguarded (unlike Initialize), so a second
+    // RegisterHalDevices call would otherwise double-count the device and
+    // duplicate every partition under identical names.
+    private static void TestManager_DuplicateRegistrationIgnored()
+    {
+        int before = StorageManager.DeviceCount;
+        int partitionsBefore = StorageManager.Partitions.Count;
+        StorageManager.RegisterDevice(s_dev!);
+        Assert.Equal(before, StorageManager.DeviceCount, "duplicate registration must not add a device");
+        Assert.Equal(partitionsBefore, StorageManager.Partitions.Count, "duplicate registration must not duplicate partitions");
     }
 
     // ==================== Boot persistence ====================

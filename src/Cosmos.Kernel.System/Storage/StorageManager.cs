@@ -2,6 +2,7 @@
 
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
@@ -103,6 +104,8 @@ public static class StorageManager
     /// <see cref="Partitions"/>.
     /// </summary>
     /// <param name="device">The block device to register.</param>
+    private static SchedSpinLock s_mutationLock;
+
     public static void RegisterDevice(IBlockDevice device)
     {
         if (device == null || _devices == null || _deviceCount >= _devices.Length)
@@ -110,15 +113,38 @@ public static class StorageManager
             return;
         }
 
-        _devices[_deviceCount++] = device;
-
-        // First device becomes primary
-        if (_primaryDevice == null)
+        // Serializes _devices/_partitions mutation for post-boot callers
+        // (device hotplug paths, tests); reads are still unsynchronized —
+        // enumerating Partitions while another thread rescans remains the
+        // caller's problem. Re-registering a known device is a no-op:
+        // RegisterDevice is public and unguarded (unlike Initialize), so a
+        // second RegisterHalDevices call would otherwise double-count the
+        // device and duplicate every partition under identical names.
+        s_mutationLock.Acquire();
+        try
         {
-            _primaryDevice = device;
-        }
+            for (int i = 0; i < _deviceCount; i++)
+            {
+                if (ReferenceEquals(_devices[i], device))
+                {
+                    return;
+                }
+            }
 
-        ScanPartitions(device);
+            _devices[_deviceCount++] = device;
+
+            // First device becomes primary
+            if (_primaryDevice == null)
+            {
+                _primaryDevice = device;
+            }
+
+            ScanPartitions(device);
+        }
+        finally
+        {
+            s_mutationLock.Release();
+        }
     }
 
     /// <summary>
@@ -134,15 +160,23 @@ public static class StorageManager
             return;
         }
 
-        for (int i = _partitions.Count - 1; i >= 0; i--)
+        s_mutationLock.Acquire();
+        try
         {
-            if (ReferenceEquals(_partitions[i].Host, device))
+            for (int i = _partitions.Count - 1; i >= 0; i--)
             {
-                _partitions.RemoveAt(i);
+                if (ReferenceEquals(_partitions[i].Host, device))
+                {
+                    _partitions.RemoveAt(i);
+                }
             }
-        }
 
-        ScanPartitions(device);
+            ScanPartitions(device);
+        }
+        finally
+        {
+            s_mutationLock.Release();
+        }
     }
 
     private static void ScanPartitions(IBlockDevice device)
