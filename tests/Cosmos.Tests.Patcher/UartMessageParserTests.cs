@@ -17,7 +17,7 @@ public class UartMessageParserTests
         stream.AddRange(CreateFrame(Ds2Vs.ArchitectureInfo, [2, 1]));
         stream.AddRange(CreateFrame(Ds2Vs.TestStart, [1, 0, (byte)'A']));
         stream.AddRange(CreateFrame(Ds2Vs.TestPass, [1, 0, 5, 0, 0, 0]));
-        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0]));
+        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0, 0, 0]));
 
         string uartLog = Encoding.Latin1.GetString(stream.ToArray());
 
@@ -36,7 +36,7 @@ public class UartMessageParserTests
         List<byte> stream = new();
         stream.AddRange(CreateFrame(Ds2Vs.TestSuiteStart, [1, 0, (byte)'S', (byte)'u', (byte)'i', (byte)'t', (byte)'e']));
         stream.AddRange(CreateFrame(Ds2Vs.TestPass, [1, 0, 5, 0, 0, 0]));
-        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0]));
+        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0, 0, 0]));
 
         string uartLog = Encoding.Latin1.GetString(stream.ToArray());
         TestResults results = UartMessageParser.ParseUartLog(uartLog, "x64");
@@ -54,7 +54,7 @@ public class UartMessageParserTests
         stream.AddRange(CreateFrame(Ds2Vs.TestSuiteStart, [1, 0, (byte)'S', (byte)'u', (byte)'i', (byte)'t', (byte)'e']));
         stream.AddRange(CreateFrame(Ds2Vs.TestPass, [1, 0, 5, 0, 0, 0]));
         stream.AddRange(CreateFrame(Ds2Vs.TestStart, [1, 0, (byte)'A']));
-        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0]));
+        stream.AddRange(CreateFrame(Ds2Vs.TestSuiteEnd, [1, 0, 1, 0, 0, 0, 0, 0]));
 
         string uartLog = Encoding.Latin1.GetString(stream.ToArray());
         TestResults results = UartMessageParser.ParseUartLog(uartLog, "x64");
