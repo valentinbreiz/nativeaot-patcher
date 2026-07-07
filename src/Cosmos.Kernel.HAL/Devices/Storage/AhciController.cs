@@ -190,6 +190,7 @@ public unsafe class AhciController
                 if (++resetSpin > 10_000_000)
                 {
                     Serial.WriteString("[AHCI] HBA reset did not complete\n");
+                    ReleaseCommandRegion();
                     return false;
                 }
             }
@@ -223,9 +224,13 @@ public unsafe class AhciController
 
         GetCapabilities();
 
-        if (!_supports64bitAddressing && _cmdRegionPhys > 0xFFFFFFFF)
+        // Check the region's END, not just its base: a region based just
+        // under 4 GiB spans the boundary and high ports' CLB/FB/CTBA would
+        // silently truncate in the 32-bit registers.
+        if (!_supports64bitAddressing && _cmdRegionPhys + CommandRegionBytes - 1 > 0xFFFFFFFF)
         {
-            Serial.WriteString("[AHCI] Controller is 32-bit only but command region is above 4 GiB\n");
+            Serial.WriteString("[AHCI] Controller is 32-bit only but command region crosses 4 GiB\n");
+            ReleaseCommandRegion();
             return false;
         }
 
@@ -554,6 +559,18 @@ public unsafe class AhciController
 
         Serial.WriteString("[AHCI] Port rebased\n");
         return true;
+    }
+
+    // Frees the per-controller command region on init-failure paths so a
+    // dropped controller doesn't leak its 74 pages.
+    private unsafe void ReleaseCommandRegion()
+    {
+        if (_cmdRegionVirt != 0)
+        {
+            PageAllocator.Free((void*)_cmdRegionVirt);
+            _cmdRegionVirt = 0;
+            _cmdRegionPhys = 0;
+        }
     }
 
     private void GetCommandHeader(PortRegisters port, uint portNumber)
