@@ -41,8 +41,20 @@ public class InterruptEvent
     /// latch instead of blocking, so single-context kernels still get
     /// correct completion semantics.
     /// </summary>
-    public void Wait()
+    public void Wait() => WaitCore(0);
+
+    /// <summary>
+    /// Bounded variant of <see cref="Wait()"/>: returns false when the wait
+    /// loop exhausts <paramref name="maxIterations"/> without consuming a
+    /// signal. Iterations are loop passes — IF-enabled latch polls on the
+    /// no-context/idle path, interrupt wake-ups on the blocked path — so
+    /// this is a hang-breaker for lost device interrupts, not a clock.
+    /// </summary>
+    public bool Wait(ulong maxIterations) => WaitCore(maxIterations);
+
+    private bool WaitCore(ulong maxIterations)
     {
+        ulong iterations = 0;
         SchedThread? currentThread = SchedulerManager.IsReady
             ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
             : null;
@@ -71,8 +83,13 @@ public class InterruptEvent
                     if (_signaled)
                     {
                         _signaled = false;
-                        return;
+                        return true;
                     }
+                }
+
+                if (maxIterations != 0 && ++iterations >= maxIterations)
+                {
+                    return false;
                 }
             }
         }
@@ -87,7 +104,7 @@ public class InterruptEvent
                 if (_signaled)
                 {
                     _signaled = false;
-                    return;
+                    return true;
                 }
 
                 if (!_waiters.Contains(currentThread))
@@ -109,6 +126,40 @@ public class InterruptEvent
             // On wake, retry: either a Signal targeted us (we were removed
             // from _waiters) or we got readied for another reason; in
             // either case re-check state under the lock.
+
+            if (maxIterations != 0 && ++iterations >= maxIterations)
+            {
+                using (_lockGuard.AcquireIrqSafe())
+                {
+                    // Consume a signal that raced in just before giving up,
+                    // and otherwise leave the waiter list clean so a later
+                    // Signal can't dequeue a thread that is no longer waiting.
+                    if (_signaled)
+                    {
+                        _signaled = false;
+                        return true;
+                    }
+
+                    RemoveWaiterLocked(currentThread);
+                }
+
+                return false;
+            }
+        }
+    }
+
+    // ReferenceEquals scan on purpose: List<T>.Remove routes through
+    // EqualityComparer<T>.Default, which this runtime's scheduler avoids
+    // (see StrideScheduler.RemoveThreadFromQueue). Caller holds the lock.
+    private void RemoveWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waiters.Count; i++)
+        {
+            if (ReferenceEquals(_waiters[i], thread))
+            {
+                _waiters.RemoveAt(i);
+                return;
+            }
         }
     }
 

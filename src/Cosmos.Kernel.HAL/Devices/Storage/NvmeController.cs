@@ -503,7 +503,15 @@ public unsafe class NvmeController
                 _submitSqLock.Release();
             }
 
-            slot.Done.Wait();
+            // Hang-breaker mirroring the polled fallback's 50M-spin budget:
+            // a lost or misrouted MSI-X message must surface as the same
+            // timeout exception (the caller's catch quarantines the slot)
+            // instead of parking the thread forever with no diagnostic.
+            if (!slot.Done.Wait(50_000_000))
+            {
+                throw new Exception("[NVMe] Timeout waiting for command completion");
+            }
+
             return slot.Status;
         }
 
