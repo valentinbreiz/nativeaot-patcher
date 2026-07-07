@@ -156,6 +156,16 @@ public unsafe class NvmeController
     /// </summary>
     public void Initialize()
     {
+        // NVMe 1.4: a queue may not exceed CAP.MQES+1 entries. Our fixed
+        // depth is tiny (8), but a controller reporting less would silently
+        // get an out-of-spec queue size (Invalid Queue Size on create, or
+        // worse) — fail init cleanly instead; Nvme.Initialize's per-
+        // controller catch skips the device.
+        if (_regs.MQES < IoQueueDepth)
+        {
+            throw new Exception("[NVMe] Controller MQES below the driver's queue depth");
+        }
+
         DisableController();
         SetupAdminQueues();
         EnableController();
