@@ -776,7 +776,11 @@ public unsafe class NvmeController
         // metadata) would make the device DMA past the slot's bounce page
         // via PRP2=0, i.e. through physical address 0. Skip such
         // namespaces instead of corrupting memory.
-        if (metadataSize != 0 || blockSize > PageSize)
+        // NVMe 1.4 requires LBADS >= 9 (512-byte minimum): a corrupt or
+        // zeroed LBAF entry would otherwise register a blockSize=1
+        // namespace and partition scanning would issue nonsense
+        // sub-sector I/O against it.
+        if (lbads < 9 || metadataSize != 0 || blockSize > PageSize)
         {
             Serial.WriteString("[NVMe] Skipping namespace nsid=");
             Serial.WriteNumber(nsid);
