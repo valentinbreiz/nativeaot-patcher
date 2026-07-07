@@ -2,9 +2,9 @@
 
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
-using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 
 namespace Cosmos.Kernel.System.Storage;
 
