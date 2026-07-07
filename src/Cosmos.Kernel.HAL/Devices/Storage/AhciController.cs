@@ -533,8 +533,13 @@ public unsafe class AhciController
             }
         }
 
+        // Clear latched events (RW1C) but keep every interrupt source
+        // masked: this driver is strictly polled (IssueCommandCore clears
+        // PxIS itself) and no AHCI ISR exists. Enabling PxIE here was only
+        // benign while GHC.IE stayed 0 — any future GHC.IE=1 would turn the
+        // latched events into an interrupt storm with no handler.
         port.IS = 0xFFFFFFFFu;
-        port.IE = 0xFFFFFFFF;
+        port.IE = 0;
 
         Serial.WriteString("[AHCI] Port rebased\n");
         return true;
