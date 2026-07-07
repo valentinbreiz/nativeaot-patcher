@@ -63,6 +63,29 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
     }
 
+    /// <inheritdoc />
+    public void DelayMicroseconds(uint microseconds)
+    {
+        // Generic-timer busy wait: CNTVCT/CNTFRQ are readable from EL1
+        // without any driver init, so this works during phase-3 device
+        // bring-up. Falls back to a crude spin if firmware left CNTFRQ
+        // unprogrammed (should not happen on QEMU virt or real EL2 boots).
+        ulong freq = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetFrequency();
+        if (freq == 0)
+        {
+            for (uint i = 0; i < microseconds * 100; i++)
+            {
+                Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+            }
+            return;
+        }
+
+        ulong target = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() + (freq * microseconds + 999_999UL) / 1_000_000UL;
+        while (Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() < target)
+        {
+        }
+    }
+
     public void InitializeHardware()
     {
         // Initialize Generic Timer

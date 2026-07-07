@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
@@ -103,6 +104,17 @@ public static class Ahci
     /// </summary>
     public static void Wait(int ticks)
     {
+        // Platform-provided delay: x64 paces on port-0x80 reads, ARM64 on
+        // the generic timer. The old direct port-0x80 loop was only a real
+        // delay on x64 — ARM64MemoryIO turned it into reads of an arbitrary
+        // physical address, so COMRESET hold times were accidental there.
+        IPlatformInitializer? init = PlatformHAL.Initializer;
+        if (init != null)
+        {
+            init.DelayMicroseconds((uint)ticks);
+            return;
+        }
+
         for (int i = 0; i < ticks; i++)
         {
             PlatformHAL.PortIO.ReadByte(0x80);

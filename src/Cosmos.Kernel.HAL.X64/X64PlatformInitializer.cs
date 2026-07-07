@@ -56,6 +56,19 @@ public class X64PlatformInitializer : IPlatformInitializer
         // program order — no fence instruction is required here.
     }
 
+    /// <inheritdoc />
+    public void DelayMicroseconds(uint microseconds)
+    {
+        // Legacy POST-port read: ~1 µs per access on PC chipsets, no
+        // interrupts or calibration needed, safe from phase-3 init.
+        for (uint i = 0; i < microseconds; i++)
+        {
+            s_delayPort.ReadByte(0x80);
+        }
+    }
+
+    private static readonly X64PortIO s_delayPort = new();
+
     public void InitializeHardware()
     {
         // Display ACPI MADT information

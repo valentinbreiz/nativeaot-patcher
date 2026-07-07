@@ -53,6 +53,14 @@ public interface IPlatformInitializer
     void DmaBarrier();
 
     /// <summary>
+    /// Busy-waits for at least <paramref name="microseconds"/> µs without
+    /// depending on interrupts or the scheduler — usable from phase-3
+    /// device init. x64 paces on legacy port-0x80 reads (~1 µs each);
+    /// ARM64 polls the generic timer (CNTVCT/CNTFRQ).
+    /// </summary>
+    void DelayMicroseconds(uint microseconds);
+
+    /// <summary>
     /// Initializes platform-specific hardware (PCI, ACPI, APIC, GIC, etc.).
     /// Called after HAL and interrupt manager are initialized.
     /// </summary>
