@@ -320,13 +320,13 @@ public unsafe class AhciController
             return;
         }
 
-        var implementedPort = _generic.ImplementedPorts;
+        uint implementedPort = _generic.ImplementedPorts;
 
         for (uint port = 0; port < 32; port++)
         {
             if ((implementedPort & 1) != 0)
             {
-                var portReg = new PortRegisters(_abarVirt + 0x100, port, this);
+                PortRegisters portReg = new(_abarVirt + 0x100, port, this);
 
                 // Only run a COMRESET when the PHY isn't already up — on x64
                 // SeaBIOS trained the link and captured the device's D2H FIS
@@ -348,8 +348,8 @@ public unsafe class AhciController
                 Serial.WriteHex(portReg.SIG);
                 Serial.WriteString("\n");
 
-                var ipm = (InterfacePowerManagementStatus)((ssts >> 8) & 0x0F);
-                var det = (DeviceDetectionStatus)(ssts & 0x0F);
+                InterfacePowerManagementStatus ipm = (InterfacePowerManagementStatus)((ssts >> 8) & 0x0F);
+                DeviceDetectionStatus det = (DeviceDetectionStatus)(ssts & 0x0F);
                 if (ipm != InterfacePowerManagementStatus.Active ||
                     det != DeviceDetectionStatus.DeviceDetectedWithPhy)
                 {
@@ -580,7 +580,7 @@ public unsafe class AhciController
         {
             ulong ctbaPhys = PortCommandTablePhys(portNumber, i);
             ulong ctbaVirt = PortCommandTableVirt(portNumber, i);
-            var cmdHeader = new HbaCommandHeader(clbVirt, i)
+            HbaCommandHeader cmdHeader = new(clbVirt, i)
             {
                 PRDTL = 8,
                 CTBA = (uint)(ctbaPhys & 0xFFFFFFFF),
