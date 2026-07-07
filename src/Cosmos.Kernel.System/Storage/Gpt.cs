@@ -56,6 +56,14 @@ public static class Gpt
     /// <summary>True if the GPT header at LBA 1 starts with the EFI PART signature.</summary>
     public static bool IsGpt(IBlockDevice device)
     {
+        // A GPT needs at least LBA 0 + LBA 1; per the IBlockDevice contract
+        // reading past the end throws, and that throw would otherwise leak
+        // out of a "is this a GPT?" probe (and kill a boot-time scan).
+        if (device.BlockCount < 2)
+        {
+            return false;
+        }
+
         Span<byte> header = new byte[device.BlockSize];
         device.ReadBlock(1, 1, header);
         return BitConverter.ToUInt64(header.Slice(0, 8)) == EfiPartSignature;
@@ -68,6 +76,11 @@ public static class Gpt
     public static List<PartitionEntry> Parse(IBlockDevice device)
     {
         List<PartitionEntry> partitions = new();
+        if (device.BlockCount < 2)
+        {
+            return partitions;
+        }
+
         ulong blockSize = device.BlockSize;
 
         Span<byte> header = new byte[blockSize];
@@ -213,6 +226,11 @@ public static class Gpt
     /// </summary>
     public static bool AddPartition(IBlockDevice device, ulong startSector, ulong sectorCount, Guid partitionType)
     {
+        if (device.BlockCount < 2)
+        {
+            return false;
+        }
+
         ulong blockSize = device.BlockSize;
         Span<byte> header = new byte[blockSize];
         device.ReadBlock(1, 1, header);

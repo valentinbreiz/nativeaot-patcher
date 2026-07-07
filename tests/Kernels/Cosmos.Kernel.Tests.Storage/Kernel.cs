@@ -31,9 +31,9 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 3 manager + 1 boot-scan + 2 profile + 13 device + 8 partition
-        // + 1 boot-reboot = 28 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 28);
+        // 3 manager + 1 boot-scan + 2 profile + 13 device + 9 partition
+        // + 1 boot-reboot = 29 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 29);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -122,6 +122,7 @@ public class Kernel : Sys.Kernel
         // Overflow-safety of the bounds check is hardware-independent (in-memory
         // probe host), so it runs unconditionally, even on cells where no disk bound.
         TR.Run("Partition_BoundsOverflow_Throws", TestPartition_BoundsOverflowThrows);
+        TR.Run("Partition_GptTinyDeviceSafe", TestPartition_GptTinyDeviceSafe);
 
         // ==================== Boot persistence (destructive: reboots QEMU) ====================
         // Boot 0 stamps a fresh GPT with one partition and reboots; boot 1's
@@ -726,6 +727,47 @@ public class Kernel : Sys.Kernel
     // In-memory host for the bounds-overflow test: performs no I/O. If Partition's
     // bounds check wrongly lets a request through, the call lands here as a no-op
     // rather than issuing a wild DMA against a real disk.
+    // Gpt.IsGpt/Parse/AddPartition read LBA 1; per the IBlockDevice contract
+    // an out-of-range read throws, so on a degenerate 1-block device these
+    // public APIs must return false/empty instead of leaking the throw.
+    private static void TestPartition_GptTinyDeviceSafe()
+    {
+        TinyDevice tiny = new();
+        Assert.False(Gpt.IsGpt(tiny), "1-block device cannot carry a GPT");
+        Assert.Equal(0, Gpt.Parse(tiny).Count, "1-block device must parse empty");
+        Assert.False(Gpt.AddPartition(tiny, 34, 1, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
+    }
+
+    // Contract-faithful degenerate device: one 512-byte block, throws on any
+    // out-of-range access like real drivers do.
+    private sealed class TinyDevice : BlockDevice
+    {
+        public TinyDevice()
+        {
+            BlockSize = 512;
+            BlockCount = 1;
+        }
+
+        public override string Name => "tiny-probe";
+
+        public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        {
+            if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blockNo));
+            }
+            data.Clear();
+        }
+
+        public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
+        {
+            if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blockNo));
+            }
+        }
+    }
+
     private sealed class BoundsProbeDevice : BlockDevice
     {
         public BoundsProbeDevice()
