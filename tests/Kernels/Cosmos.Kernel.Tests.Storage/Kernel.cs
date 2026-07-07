@@ -217,8 +217,45 @@ public class Kernel : Sys.Kernel
     private static void TestPartition_MbrParseRejectsBogus()
     {
         Mbr.Create(s_dev!);
-        Mbr.WritePartition(s_dev!, 0, systemId: 0x83, startSector: 0, sectorCount: 200);
-        Mbr.WritePartition(s_dev!, 1, systemId: 0x83, startSector: (uint)(s_dev!.BlockCount - 10), sectorCount: 100);
+
+        // The writer must reject bogus ranges up front (same rules as the
+        // parser): start 0 aliases the MBR, past-end authorizes wild I/O.
+        bool threw = false;
+        try
+        {
+            Mbr.WritePartition(s_dev!, 0, systemId: 0x83, startSector: 0, sectorCount: 200);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            threw = true;
+        }
+        Assert.True(threw, "WritePartition must reject startSector 0");
+
+        threw = false;
+        try
+        {
+            Mbr.WritePartition(s_dev!, 1, systemId: 0x83, startSector: (uint)(s_dev!.BlockCount - 10), sectorCount: 100);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            threw = true;
+        }
+        Assert.True(threw, "WritePartition must reject past-end ranges");
+
+        // The parser is the trust boundary for on-disk corruption, so craft
+        // the same bogus entries raw (bypassing the writer's validation).
+        int sector = (int)s_dev!.BlockSize;
+        byte[] mbr = new byte[sector];
+        s_dev!.ReadBlock(0, 1, mbr);
+        Span<byte> m = mbr;
+        m[446 + 4] = 0x83;
+        BitConverter.TryWriteBytes(m.Slice(446 + 8, 4), 0u);
+        BitConverter.TryWriteBytes(m.Slice(446 + 12, 4), 200u);
+        m[462 + 4] = 0x83;
+        BitConverter.TryWriteBytes(m.Slice(462 + 8, 4), (uint)(s_dev!.BlockCount - 10));
+        BitConverter.TryWriteBytes(m.Slice(462 + 12, 4), 100u);
+        s_dev!.WriteBlock(0, 1, mbr);
+
         List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
         Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
     }

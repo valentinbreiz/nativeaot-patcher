@@ -120,6 +120,18 @@ public static class Mbr
         {
             throw new ArgumentOutOfRangeException(nameof(index), "MBR primary partition index must be 0..3.");
         }
+        // Same rules Parse enforces on read: start 0 aliases the MBR sector
+        // itself, and a range past the disk end would authorize wild host
+        // I/O through the resulting Partition. Reject at write time rather
+        // than stamping an entry our own parser will drop.
+        if (startSector == 0 || sectorCount == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startSector), "MBR partition must start past LBA 0 and be non-empty.");
+        }
+        if (startSector + (ulong)sectorCount > device.BlockCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sectorCount), "MBR partition extends past the end of the device.");
+        }
 
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(0, 1, mbr);
