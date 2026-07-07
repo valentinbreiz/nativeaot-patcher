@@ -220,27 +220,10 @@ public class Kernel : Sys.Kernel
 
         // The writer must reject bogus ranges up front (same rules as the
         // parser): start 0 aliases the MBR, past-end authorizes wild I/O.
-        bool threw = false;
-        try
-        {
-            Mbr.WritePartition(s_dev!, 0, systemId: 0x83, startSector: 0, sectorCount: 200);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            threw = true;
-        }
-        Assert.True(threw, "WritePartition must reject startSector 0");
-
-        threw = false;
-        try
-        {
-            Mbr.WritePartition(s_dev!, 1, systemId: 0x83, startSector: (uint)(s_dev!.BlockCount - 10), sectorCount: 100);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            threw = true;
-        }
-        Assert.True(threw, "WritePartition must reject past-end ranges");
+        Assert.True(MbrWritePartitionRejects(0, startSector: 0, sectorCount: 200),
+            "WritePartition must reject startSector 0");
+        Assert.True(MbrWritePartitionRejects(1, startSector: (uint)(s_dev!.BlockCount - 10), sectorCount: 100),
+            "WritePartition must reject past-end ranges");
 
         // The parser is the trust boundary for on-disk corruption, so craft
         // the same bogus entries raw (bypassing the writer's validation).
@@ -258,6 +241,23 @@ public class Kernel : Sys.Kernel
 
         List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
         Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
+    }
+
+    // One try/catch per method on purpose: mirrors the shape of the other
+    // expected-throw cells (e.g. Partition_OutOfBounds_Throws). The arm64 EH
+    // dispatch failed to match the catch clause when this cell inlined two
+    // try/catch blocks alongside span locals, taking the whole boot down.
+    private static bool MbrWritePartitionRejects(int index, uint startSector, uint sectorCount)
+    {
+        try
+        {
+            Mbr.WritePartition(s_dev!, index, systemId: 0x83, startSector: startSector, sectorCount: sectorCount);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 
     // Same distrust for the GPT writer: AddPartition must reject entries its
