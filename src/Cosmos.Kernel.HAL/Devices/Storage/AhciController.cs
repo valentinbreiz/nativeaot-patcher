@@ -622,6 +622,17 @@ public unsafe class AhciController
             if ((port.TFD & (uint)AtaDeviceStatus.Busy) != 0)
             {
                 port.CMD |= 1U << 3;
+                // AHCI 1.3.1 s3.3.7: software must wait for CLO to read
+                // back 0 before setting ST again; proceeding early would
+                // reprogram the port mid-override.
+                for (spin = 0; spin < 101; spin++)
+                {
+                    if ((port.CMD & (1U << 3)) == 0)
+                    {
+                        break;
+                    }
+                    Ahci.Wait(50);
+                }
             }
         }
 
@@ -638,13 +649,12 @@ public unsafe class AhciController
         }
         if (spin == 101)
         {
+            // Last-ditch CLO on the way out for HBAs that support it; the
+            // old else-arm "clear CLO" write was a no-op (CLO is cleared by
+            // hardware, not by software writing 0).
             if (_supportsCommandListOverride)
             {
                 port.CMD |= 1U << 3;
-            }
-            else
-            {
-                port.CMD &= ~(1U << 3);
             }
             return false;
         }
