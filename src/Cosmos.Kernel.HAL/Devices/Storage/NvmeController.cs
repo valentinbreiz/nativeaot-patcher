@@ -85,6 +85,7 @@ public unsafe class NvmeController
     // I/O completion plumbing (MSI-X driven when possible).
     private MsiXContext _msiX;
     private bool _msiXEnabled;
+    private int _ioMsiXEntry;
     private IoSlot[]? _ioSlots;
 
     // Slot allocation. SpinLock guards both the slot in-use bits and the
@@ -215,11 +216,19 @@ public unsafe class NvmeController
 
         _msiX = ctx.Value;
         // The binder allocates the underlying vector / LPI itself (x64 IDT
-        // vector or ARM64 LPI INTID) and wires it to OnIoCompletion.
-        MsiX.SetEntry(_msiX, 0, OnIoCompletion);
+        // vector or ARM64 LPI INTID) and wires it to OnIoCompletion. Use
+        // entry 1 when the table has one: the admin CQ is hardwired to
+        // IV 0, so parking the IO CQ there means every admin completion
+        // after MSI-X enable fires OnIoCompletion spuriously. Entry 0
+        // stays masked (admin commands are polled), so admin completions
+        // interrupt nobody.
+        _ioMsiXEntry = _msiX.EntryCount >= 2 ? 1 : 0;
+        MsiX.SetEntry(_msiX, _ioMsiXEntry, OnIoCompletion);
         _msiXEnabled = true;
 
-        Serial.WriteString("[NVMe] I/O CQ -> MSI-X entry 0\n");
+        Serial.WriteString("[NVMe] I/O CQ -> MSI-X entry ");
+        Serial.WriteNumber((uint)_ioMsiXEntry);
+        Serial.WriteString("\n");
     }
 
     private void DisableController()
@@ -804,7 +813,7 @@ public unsafe class NvmeController
         // CDW10: bits [31:16] = qsize-1, bits [15:0] = qid
         // CDW11: bits [31:16] = IV (interrupt vector), bit 1 = IEN, bit 0 = PC
         uint cqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
-        uint cqCdw11 = _msiXEnabled ? ((0u << 16) | (1u << 1) | 1u) : 1u;
+        uint cqCdw11 = _msiXEnabled ? (((uint)_ioMsiXEntry << 16) | (1u << 1) | 1u) : 1u;
         uint sc = SubmitAdmin(NvmeAdminOp.CreateIoCq, nsid: 0, prp1: _ioCqPhys, cdw10: cqCdw10, cdw11: cqCdw11, cdw12: 0);
         if (sc != 0)
         {
