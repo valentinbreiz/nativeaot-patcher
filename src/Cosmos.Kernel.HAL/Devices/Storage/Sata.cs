@@ -340,10 +340,14 @@ public class Sata : BlockDevice
 
     private int FindCMDSlot()
     {
-        // If not set in SACT and CI, the slot is free
+        // If not set in SACT and CI, the slot is free. Only CAP.NCS slots
+        // are implemented — selecting a slot past that is undefined per
+        // AHCI 1.3.1 (unreachable today with fully serialized I/O, but the
+        // bound keeps a future concurrent path honest).
         uint slots = _portReg.SACT | _portReg.CI;
+        uint slotCount = _portReg.Controller.NumberOfCommandSlots;
 
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < slotCount; i++)
         {
             if ((slots & 1) == 0)
             {
