@@ -34,7 +34,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 52);
+        TR.Start("Threading Tests", expectedTests: 53);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -61,6 +61,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
         TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
         TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
+        TR.Run("Mutex_ReleaseHandsOffToParkedWaiter", TestMutexReleaseHandsOff);
 
         // ThreadPool / Task / async-await tests (validate fix for #245, #246)
         TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
@@ -470,6 +471,79 @@ public class Kernel : Sys.Kernel
         TimerManager.Wait(100);
         _contenderAcquisitions++;
         _contendedMutex.Release();
+    }
+
+    // ===== Release hand-off (anti-barging) =====
+    // Release used to clear ownership and merely ready the parked waiter;
+    // until that waiter's retry ran, ANY thread could re-take the mutex and
+    // send the waiter to the back of the queue again — repeatable, so a
+    // waiter on a contended mutex could starve. The releaser's immediate
+    // TryAcquire is the deterministic probe: with ownership handed off in
+    // Release it must fail.
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _handoffMutex;
+    private static volatile bool _handoffWorkerHolding;
+    private static volatile bool _handoffReleaseRequested;
+    private static volatile bool _handoffContenderAcquired;
+    private static volatile int _handoffBargeResult; // -1 pending, 0 no barge, 1 barged
+
+    private static void TestMutexReleaseHandsOff()
+    {
+        _handoffMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _handoffWorkerHolding = false;
+        _handoffReleaseRequested = false;
+        _handoffContenderAcquired = false;
+        _handoffBargeResult = -1;
+
+        var holder = new global::System.Threading.Thread(HandoffHolderWorker);
+        holder.Start();
+        for (int i = 0; i < 100 && !_handoffWorkerHolding; i++)
+        {
+            TimerManager.Wait(50);
+        }
+        Assert.True(_handoffWorkerHolding, "holder should own the mutex");
+
+        var contender = new global::System.Threading.Thread(HandoffContenderWorker);
+        contender.Start();
+        // Give the contender a few quanta to park in _waitingThreads.
+        TimerManager.Wait(150);
+
+        _handoffReleaseRequested = true;
+        for (int i = 0; i < 100 && _handoffBargeResult == -1; i++)
+        {
+            TimerManager.Wait(50);
+        }
+        for (int i = 0; i < 100 && !_handoffContenderAcquired; i++)
+        {
+            TimerManager.Wait(50);
+        }
+
+        Assert.Equal(0, _handoffBargeResult,
+            "Release must hand the mutex to the parked waiter; the releaser's immediate TryAcquire barged in");
+        Assert.True(_handoffContenderAcquired, "the parked waiter must end up owning the mutex");
+    }
+
+    private static void HandoffHolderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffWorkerHolding = true;
+        while (!_handoffReleaseRequested)
+        {
+            // spin: stay runnable so the contender has to park behind us
+        }
+        _handoffMutex.Release();
+        bool barged = _handoffMutex.TryAcquire();
+        _handoffBargeResult = barged ? 1 : 0;
+        if (barged)
+        {
+            _handoffMutex.Release();
+        }
+    }
+
+    private static void HandoffContenderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffContenderAcquired = true;
+        _handoffMutex.Release();
     }
 
     private static void TestMultipleThreads()

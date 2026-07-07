@@ -90,6 +90,7 @@ public class Mutex : IDisposable
             }
         }
 
+        bool queued = false;
         while (true)
         {
             // IRQ-safe for two reasons: a holder preempted mid-section
@@ -101,16 +102,32 @@ public class Mutex : IDisposable
             // forever (lost-wakeup race, same shape as InterruptEvent).
             using (_lockGuard.AcquireIrqSafe())
             {
-                if (_ownerThread == null)
+                if (_ownerThread == currentThread)
                 {
-                    _ownerThread = currentThread;
-                    _recursionDepth = 1;
+                    if (queued)
+                    {
+                        // Release handed the mutex directly to this thread
+                        // while it was parked (depth already set to 1): this
+                        // re-entry is the wake-up, not a recursive acquire.
+                        return;
+                    }
+
+                    _recursionDepth++;
                     return;
                 }
 
-                if (_ownerThread == currentThread)
+                if (_ownerThread == null)
                 {
-                    _recursionDepth++;
+                    if (queued)
+                    {
+                        // Spurious wake while still queued: claim the free
+                        // mutex, but leave the queue clean so a later
+                        // Release can't hand ownership to us a second time.
+                        RemoveWaiterLocked(currentThread);
+                    }
+
+                    _ownerThread = currentThread;
+                    _recursionDepth = 1;
                     return;
                 }
 
@@ -122,10 +139,18 @@ public class Mutex : IDisposable
                     _waitingThreads.Add(currentThread);
                 }
 
+                queued = true;
                 SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
             }
 
-            InternalCpu.Halt();
+            // Only park the CPU while still Blocked (same rationale as
+            // InterruptEvent.WaitCore): if the hand-off already readied us
+            // between scope-dispose and this point, halting would sleep past
+            // the wake-up until an unrelated interrupt.
+            if (currentThread.State == ThreadState.Blocked)
+            {
+                InternalCpu.Halt();
+            }
         }
     }
 
@@ -140,6 +165,20 @@ public class Mutex : IDisposable
         }
 
         return false;
+    }
+
+    // ReferenceEquals scan for the same reason as ContainsWaiterLocked.
+    // Caller holds the lock.
+    private void RemoveWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
+        {
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                _waitingThreads.RemoveAt(i);
+                return;
+            }
+        }
     }
 
     /// <summary>
@@ -205,13 +244,21 @@ public class Mutex : IDisposable
 
             if (_recursionDepth == 0)
             {
-                _ownerThread = null;
-
-                // Wake up one waiting thread if any
                 if (_waitingThreads.Count > 0)
                 {
+                    // Direct hand-off: the dequeued waiter owns the mutex
+                    // from this instant, so a running thread can't barge in
+                    // during the wake-up latency and send the waiter to the
+                    // back of the queue again (repeatable starvation).
+                    // Acquire detects the hand-off via its `queued` flag.
                     toReady = _waitingThreads[0];
                     _waitingThreads.RemoveAt(0);
+                    _ownerThread = toReady;
+                    _recursionDepth = 1;
+                }
+                else
+                {
+                    _ownerThread = null;
                 }
             }
         }
