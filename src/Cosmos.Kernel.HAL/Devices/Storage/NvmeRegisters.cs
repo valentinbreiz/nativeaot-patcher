@@ -15,9 +15,15 @@ public class NvmeRegisters
 {
     private readonly ulong _base;
 
+    // CAP.DSTRD is immutable hardware capability state: snapshot the
+    // doorbell stride once instead of a 64-bit MMIO read of CAP on every
+    // doorbell ring (two extra device register reads per I/O otherwise).
+    private readonly ulong _doorbellStride;
+
     public NvmeRegisters(ulong baseVirtAddress)
     {
         _base = baseVirtAddress;
+        _doorbellStride = 4UL << (int)DSTRD;
     }
 
     /// <summary>BAR0 virtual address (used by the doorbell helper).</summary>
@@ -90,8 +96,7 @@ public class NvmeRegisters
     /// </summary>
     public ulong SubmissionDoorbell(uint qid)
     {
-        ulong stride = 4UL << (int)DSTRD;
-        return _base + 0x1000UL + (ulong)(2 * qid) * stride;
+        return _base + 0x1000UL + (ulong)(2 * qid) * _doorbellStride;
     }
 
     /// <summary>
@@ -100,7 +105,6 @@ public class NvmeRegisters
     /// </summary>
     public ulong CompletionDoorbell(uint qid)
     {
-        ulong stride = 4UL << (int)DSTRD;
-        return _base + 0x1000UL + (ulong)(2 * qid + 1) * stride;
+        return _base + 0x1000UL + (ulong)(2 * qid + 1) * _doorbellStride;
     }
 }
