@@ -346,7 +346,13 @@ public unsafe class AhciController
                 // afterwards to distinguish SATA from SATAPI/SEMB. The reset
                 // path (KickPort + PHY retrain) clears PxSIG to 0xFFFFFFFF
                 // first, so re-reading it before FRE is meaningless.
-                PortRebase(portReg, port);
+                if (!PortRebase(portReg, port))
+                {
+                    // Un-rebased port: CLB/FB still hold firmware values, so
+                    // doorbells would run the firmware's stale command list.
+                    implementedPort >>= 1;
+                    continue;
+                }
 
                 uint sigRaw = portReg.SIG;
                 for (int retry = 0; retry < 200 && sigRaw == 0xFFFFFFFFu; retry++)
@@ -475,18 +481,20 @@ public unsafe class AhciController
         port.SERR = 0xFFFFFFFFu;
     }
 
-    private void PortRebase(PortRegisters port, uint portNumber)
+    private bool PortRebase(PortRegisters port, uint portNumber)
     {
         Serial.WriteString("[AHCI] Rebasing port...\n");
         if (!StopCMD(port) && !Sata.PortReset(port))
         {
             // The command engine never stopped: reprogramming CLB/FB with a
             // live engine violates AHCI 10.1.2 (the HBA could fetch garbage
-            // command headers and DMA anywhere). Leave the port untouched —
-            // the later Sata bring-up will fail its Identify and GetPorts
-            // skips the port.
+            // command headers and DMA anywhere). Leave the port untouched
+            // and report failure — the caller must skip the port, because
+            // issuing commands against the firmware's stale command list
+            // could "succeed" reading a zeroed bounce buffer and register
+            // a bogus zero-capacity device.
             Serial.WriteString("[AHCI] Skipping rebase; port engine still running\n");
-            return;
+            return false;
         }
 
         ulong clbPhys = PortCommandListPhys(portNumber);
@@ -518,7 +526,10 @@ public unsafe class AhciController
             // hang the command wait.
             if (!Sata.PortReset(port) || !StartCMD(port))
             {
+                // Same containment as the engine-still-running case: an
+                // offline port must be skipped, not handed to Sata.
                 Serial.WriteString("[AHCI] Port failed to start after reset; leaving it offline\n");
+                return false;
             }
         }
 
@@ -526,6 +537,7 @@ public unsafe class AhciController
         port.IE = 0xFFFFFFFF;
 
         Serial.WriteString("[AHCI] Port rebased\n");
+        return true;
     }
 
     private void GetCommandHeader(PortRegisters port, uint portNumber)
