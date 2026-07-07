@@ -61,7 +61,14 @@ public class Sata : BlockDevice
         // Check if it is really a SATA Port!
         if (portReg.PortType != PortType.Sata || (portReg.CMD & (1U << 24)) != 0)
         {
-            throw new Exception($" 0:{portReg.PortNumber} is not a SATA port!\n");
+            // Constant message on purpose: this ctor runs in the phase-3 init
+            // window where CoreLib int formatting triple-faults, and this guard
+            // is exactly the path GetPorts' try/catch is meant to contain — an
+            // interpolated port number would crash instead of throwing.
+            Serial.WriteString("[SATA] Port ");
+            Serial.WriteNumber(portReg.PortNumber);
+            Serial.WriteString(" is not a SATA device\n");
+            throw new Exception("AHCI port is not a SATA device");
         }
 
         _portReg = portReg;

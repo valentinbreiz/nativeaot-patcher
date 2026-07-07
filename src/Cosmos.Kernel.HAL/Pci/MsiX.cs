@@ -72,6 +72,13 @@ public static class MsiX
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         ulong tableVirt = barPhys + hhdmOffset + tableOffset;
 
+        // The table BAR is not necessarily the register BAR the driver
+        // already mapped (QEMU's NVMe puts the table in its own BAR): make
+        // sure both ends of the table's HHDM alias are device-mapped before
+        // the masking loop below dereferences it. No-op on x64.
+        PlatformHAL.Initializer?.EnsureMmioMapped(barPhys + tableOffset);
+        PlatformHAL.Initializer?.EnsureMmioMapped(barPhys + tableOffset + (ulong)tableSize * EntryStride - 1);
+
         // Mask every entry before turning the function on so no stale
         // garbage in the table can fire as soon as we set MSI-X Enable.
         for (int i = 0; i < tableSize; i++)

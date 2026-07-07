@@ -221,6 +221,16 @@ public static class Gpt
             return false;
         }
 
+        // Reject entries this file's own Parse would silently drop (zero
+        // length, inside the GPT structures) or that point past the disk:
+        // returning true for a partition that never materializes — or
+        // stamping a wild range other tooling will trust — helps nobody.
+        if (sectorCount == 0 || startSector < 34 || startSector >= device.BlockCount
+            || sectorCount > device.BlockCount - startSector)
+        {
+            return false;
+        }
+
         // Same distrust of on-disk header fields as Parse: no CRCs, so a
         // zeroed/corrupt SizeOfPartitionEntry would otherwise divide by
         // zero, and a wild entryCount/entryStartLba would drive unbounded

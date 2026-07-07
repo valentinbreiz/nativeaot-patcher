@@ -77,6 +77,14 @@ public static class Mbr
 
             ulong startSector = BitConverter.ToUInt32(mbr.Slice(offset + 8, 4));
             ulong sectorCount = BitConverter.ToUInt32(mbr.Slice(offset + 12, 4));
+            // Distrust on-disk metadata, mirroring the GPT hardening: start 0
+            // aliases the MBR sector itself (a write through that "partition"
+            // destroys the table), and a range past the disk end would
+            // authorize wild host I/O through the resulting Partition.
+            if (startSector == 0 || sectorCount == 0 || startSector + sectorCount > device.BlockCount)
+            {
+                continue;
+            }
             partitions.Add(new PartitionEntry(systemId, startSector, sectorCount));
         }
 

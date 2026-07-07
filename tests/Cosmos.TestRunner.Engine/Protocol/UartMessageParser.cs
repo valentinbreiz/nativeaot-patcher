@@ -262,8 +262,8 @@ public class UartMessageParser
 
     private static void ParseTestSuiteEnd(byte[] payload, TestResults results)
     {
-        // Payload: [Total:2][Passed:2][Failed:2]
-        if (payload.Length < 6)
+        // Payload: [Total:2][Passed:2][Failed:2][Skipped:2]
+        if (payload.Length < 8)
         {
             return;
         }
@@ -271,9 +271,12 @@ public class UartMessageParser
         ushort total = BitConverter.ToUInt16(payload, 0);
         ushort passed = BitConverter.ToUInt16(payload, 2);
         ushort failed = BitConverter.ToUInt16(payload, 4);
+        ushort skipped = BitConverter.ToUInt16(payload, 6);
 
-        // Validate: total must equal passed + failed (catches corruption from timer interrupt interleaving)
-        if (total == (ushort)(passed + failed))
+        // Validate: total must equal passed + failed + skipped (catches corruption
+        // from timer interrupt interleaving). Skips count: TR.Finish reports the
+        // expected total, and a suite with skip cells is still a completed suite.
+        if (total == (ushort)(passed + failed + skipped))
         {
             // Use the validated total from the end message as the authoritative expected count.
             // This overrides the potentially corrupted value from TestSuiteStart.

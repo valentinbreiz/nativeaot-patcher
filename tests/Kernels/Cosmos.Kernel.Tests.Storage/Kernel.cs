@@ -31,15 +31,33 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 2 manager + 2 profile + 12 device + 6 partition = 22 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 22);
+        // 2 manager + 1 boot-scan + 2 profile + 12 device + 8 partition
+        // + 1 boot-reboot = 26 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 26);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
 
         // ==================== Manager ====================
         TR.Run("Manager_StorageInitialized", TestManager_StorageInitialized);
-        TR.RunIf(hasDevice, "Manager_ExactlyOneDevice", TestManager_ExactlyOneDevice, SkipNoDevice);
+        // A cell that attached a disk must SEE a disk: on x64 PCI enumerates
+        // with or without ACPI, so zero devices is always a bind regression
+        // and must fail, not skip; on arm64, acpi-off removes PCIe discovery,
+        // so only those cells may legitimately come up empty.
+#if ARCH_X64
+        bool deviceExpected = true;
+#else
+        bool deviceExpected = !TR.ProfileContains("acpi-off");
+#endif
+        TR.RunIf(deviceExpected, "Manager_ExactlyOneDevice", TestManager_ExactlyOneDevice, SkipNoDevice);
+
+        // ==================== Boot persistence (works with Boot_RebootAfterGptWrite) ====================
+        // Runs before anything mutates partition state: on boot 0 the engine's
+        // fresh image must scan clean; on boot 1 the boot-time (phase-3) scan
+        // must have found the GPT written before the reboot. Pins the init-window
+        // partition scan, which regressed once without CI noticing (interpolated
+        // partition names triple-faulted phase 3 on any populated disk).
+        TR.RunIf(hasDevice, "Boot_PartitionScanMatchesBootState", TestBoot_PartitionScanMatchesBootState, SkipNoDevice);
 
         // ==================== Profile (assert the cell's hardware path) ====================
         // Prove the cell exercised the hardware it names, not just that block
@@ -96,10 +114,41 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "Partition_RescanPartitions",       TestPartition_RescanPartitions,      SkipNoHost);
         TR.RunIf(dev, "Partition_ReadWrite_TranslatesLba", TestPartition_ReadWriteTranslatesLba, SkipNoHost);
         TR.RunIf(dev, "Partition_OutOfBounds_Throws",      TestPartition_OutOfBoundsThrows,     SkipNoHost);
+        TR.RunIf(dev, "Partition_MbrParseRejectsBogus",    TestPartition_MbrParseRejectsBogus,  SkipNoHost);
+        TR.RunIf(dev, "Partition_GptAddRejectsBogus",      TestPartition_GptAddRejectsBogus,    SkipNoHost);
 
         // Overflow-safety of the bounds check is hardware-independent (in-memory
         // probe host), so it runs unconditionally, even on cells where no disk bound.
         TR.Run("Partition_BoundsOverflow_Throws", TestPartition_BoundsOverflowThrows);
+
+        // ==================== Boot persistence (destructive: reboots QEMU) ====================
+        // Boot 0 stamps a fresh GPT with one partition and reboots; boot 1's
+        // Boot_PartitionScanMatchesBootState (above) then proves the phase-3
+        // boot-time scan survives a populated disk and names the partition.
+        // Last on purpose: everything before it must have reported already.
+        int skip = TR.GetSkipCount();
+        if (!dev)
+        {
+            TR.Skip("Boot_RebootAfterGptWrite", SkipNoDevice);
+        }
+        else if (skip == 0)
+        {
+            TR.RunDestructive(
+                "Boot_RebootAfterGptWrite",
+                () =>
+                {
+                    Gpt.Create(s_dev!);
+                    Assert.True(Gpt.AddPartition(s_dev!, 2048, 4096, Gpt.BasicDataPartitionType));
+                    s_dev!.Flush();
+                    Sys.Power.Reboot();
+                },
+                "Power.Reboot() returned without rebooting");
+        }
+        else
+        {
+            // Already fired in boot 0; replay as passed like the Power suite.
+            TR.Run("Boot_RebootAfterGptWrite", () => { });
+        }
 
         TR.Finish();
 
@@ -112,6 +161,61 @@ public class Kernel : Sys.Kernel
     {
         TR.Complete();
         Cosmos.Kernel.System.Power.Halt();
+    }
+
+    // ==================== Boot persistence ====================
+
+    // Boot 0 boots the engine's fresh blank image; boot 1 boots the GPT
+    // written by Boot_RebootAfterGptWrite. Asserting against the boot-time
+    // scan result (before any test mutates partition state) pins the
+    // phase-3 partition scan path end to end, including partition naming.
+    private static void TestBoot_PartitionScanMatchesBootState()
+    {
+        int partitionsOnDevice = 0;
+        Partition? first = null;
+        for (int i = 0; i < StorageManager.Partitions.Count; i++)
+        {
+            Partition p = StorageManager.Partitions[i];
+            if (HasOrdinalPrefix(p.Name, s_dev!.Name))
+            {
+                first ??= p;
+                partitionsOnDevice++;
+            }
+        }
+
+        if (TR.GetSkipCount() == 0)
+        {
+            Assert.Equal(0, partitionsOnDevice, "blank disk must yield no boot-time partitions");
+        }
+        else
+        {
+            Assert.Equal(1, partitionsOnDevice, "boot-time scan must find the GPT partition written before reboot");
+            Assert.Equal(s_dev!.Name + "p0", first!.Name, "boot-time partition name");
+        }
+    }
+
+    // Regression guard: Mbr.Parse must not turn corrupt on-disk entries into
+    // live partitions — start 0 aliases the MBR sector itself (formatting
+    // that "partition" destroys the table) and past-end ranges authorize
+    // wild host I/O. The GPT parser got this hardening; MBR must match.
+    private static void TestPartition_MbrParseRejectsBogus()
+    {
+        Mbr.Create(s_dev!);
+        Mbr.WritePartition(s_dev!, 0, systemId: 0x83, startSector: 0, sectorCount: 200);
+        Mbr.WritePartition(s_dev!, 1, systemId: 0x83, startSector: (uint)(s_dev!.BlockCount - 10), sectorCount: 100);
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
+        Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
+    }
+
+    // Same distrust for the GPT writer: AddPartition must reject entries its
+    // own Parse would silently drop (zero-length) or that point past the disk,
+    // instead of returning true for a partition that never materializes.
+    private static void TestPartition_GptAddRejectsBogus()
+    {
+        Gpt.Create(s_dev!);
+        Assert.False(Gpt.AddPartition(s_dev!, 2048, 0, Gpt.BasicDataPartitionType), "zero-length entry must be rejected");
+        Assert.False(Gpt.AddPartition(s_dev!, s_dev!.BlockCount, 16, Gpt.BasicDataPartitionType), "past-end entry must be rejected");
+        Assert.Equal(0, Gpt.Parse(s_dev!).Count, "rejected entries must not appear on disk");
     }
 
     // ==================== Manager ====================

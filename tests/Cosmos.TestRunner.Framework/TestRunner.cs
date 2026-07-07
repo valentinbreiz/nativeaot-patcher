@@ -16,6 +16,7 @@ namespace Cosmos.TestRunner.Framework
         private static ushort _expectedTestCount;
         private static ushort _passedCount;
         private static ushort _failedCount;
+        private static ushort _skippedCount;
         private static ushort _currentTestNumber;
         private static long _testStartTicks;
 
@@ -31,6 +32,7 @@ namespace Cosmos.TestRunner.Framework
             _expectedTestCount = expectedTests;
             _passedCount = 0;
             _failedCount = 0;
+            _skippedCount = 0;
             _currentTestNumber = 0;
 
             // Send TestSuiteStart message with expected test count
@@ -331,6 +333,7 @@ namespace Cosmos.TestRunner.Framework
             _currentTestNumber++;
             _testCount++;
 
+            _skippedCount++;
             SendTestStart(_currentTestNumber, testName);
             SendTestSkip(_currentTestNumber, reason);
         }
@@ -345,7 +348,7 @@ namespace Cosmos.TestRunner.Framework
             // Use expected count if provided, otherwise actual count
             ushort totalToReport = _expectedTestCount > 0 ? _expectedTestCount : _testCount;
 
-            SendTestSuiteEnd(totalToReport, _passedCount, _failedCount);
+            SendTestSuiteEnd(totalToReport, _passedCount, _failedCount, _skippedCount);
 
             // Also send a text message for fallback/debugging
             Serial.WriteString("\nTest Suite: ");
@@ -500,15 +503,17 @@ namespace Cosmos.TestRunner.Framework
             SendMessage(TestDestructiveReached, payload);
         }
 
-        private static void SendTestSuiteEnd(ushort total, ushort passed, ushort failed)
+        private static void SendTestSuiteEnd(ushort total, ushort passed, ushort failed, ushort skipped)
         {
-            var payload = new byte[6];
+            var payload = new byte[8];
             payload[0] = (byte)(total & 0xFF);
             payload[1] = (byte)((total >> 8) & 0xFF);
             payload[2] = (byte)(passed & 0xFF);
             payload[3] = (byte)((passed >> 8) & 0xFF);
             payload[4] = (byte)(failed & 0xFF);
             payload[5] = (byte)((failed >> 8) & 0xFF);
+            payload[6] = (byte)(skipped & 0xFF);
+            payload[7] = (byte)((skipped >> 8) & 0xFF);
             SendMessage(TestSuiteEnd, payload);
         }
 

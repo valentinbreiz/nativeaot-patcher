@@ -46,6 +46,16 @@ public class InterruptEvent
         SchedThread? currentThread = SchedulerManager.IsReady
             ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
             : null;
+        // The idle thread is the scheduler's fallback (PickNext ?? IdleThread):
+        // blocking it only gets it resurrected on the next tick, which re-runs
+        // the retry loop and drifts the stride accounting (OnThreadBlocked
+        // subtracts tickets that OnThreadReady never added for it). Treat an
+        // idle-thread caller — the main kernel thread — like the no-context
+        // case and poll the latch instead.
+        if (currentThread != null && (currentThread.Flags & ThreadFlags.IdleThread) != 0)
+        {
+            currentThread = null;
+        }
         if (currentThread == null)
         {
             // Single execution context: nothing to block, so spin on the
