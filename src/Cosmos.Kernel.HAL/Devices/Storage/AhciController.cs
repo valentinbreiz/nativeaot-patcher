@@ -152,6 +152,17 @@ public unsafe class AhciController
 
         _generic = new GenericRegisters(_abarVirt);
 
+        // AHCI 1.3.1 s10.1.2: with CAP.SAM=0, software must set GHC.AE=1
+        // before accessing any other AHCI register. SeaBIOS/EDK2 normally
+        // leave AE set, but firmware that bound the device in AHCI ProgIf
+        // with AE=0 would make all port MMIO below undefined. With SAM=1
+        // the bit is read-only 1, so the OR is harmless either way —
+        // matches Linux's ahci_enable_ahci.
+        if ((_generic.GlobalHostControl & (1U << 31)) == 0)
+        {
+            _generic.GlobalHostControl |= 1U << 31;
+        }
+
         Serial.WriteString("[AHCI] CAP=0x");
         Serial.WriteHex(_generic.Capabilities);
         Serial.WriteString(" PI=0x");
