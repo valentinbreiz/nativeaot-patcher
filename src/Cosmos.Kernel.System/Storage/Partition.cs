@@ -28,6 +28,16 @@ public sealed class Partition : BlockDevice
     /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
     /// <param name="sectorCount">Length of the partition in sectors.</param>
     /// <param name="name">Display name for the partition.</param>
+    /// <summary>
+    /// Index-based naming ctor: builds "&lt;host&gt;p&lt;index&gt;" digit by
+    /// digit so partition naming matches the device-naming convention and
+    /// stays safe if registration ever moves earlier in boot.
+    /// </summary>
+    public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)
+        : this(host, startSector, sectorCount, BuildDeviceName(host.Name, "p", index))
+    {
+    }
+
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)
     {
         _host = host;

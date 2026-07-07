@@ -45,6 +45,16 @@ public abstract class BlockDevice : Device, IBlockDevice
         return new string(buffer[..pos]);
     }
 
+    /// <summary>Builds a partition name like "sata0p1" without CoreLib int formatting.</summary>
+    protected internal static string BuildDeviceName(string prefix, string infix, uint number)
+    {
+        Span<char> buffer = stackalloc char[MaxNameLength];
+        int pos = Append(buffer, 0, prefix);
+        pos = Append(buffer, pos, infix);
+        pos = AppendDigits(buffer, pos, number);
+        return new string(buffer[..pos]);
+    }
+
     /// <summary>Builds a device name like "nvme0n1" without CoreLib int formatting.</summary>
     protected static string BuildDeviceName(string prefix, uint number, string infix, uint secondNumber)
     {
@@ -56,8 +66,9 @@ public abstract class BlockDevice : Device, IBlockDevice
         return new string(buffer[..pos]);
     }
 
-    // Longest possible name: 4-char prefix + 10 digits + 1-char infix + 10 digits.
-    private const int MaxNameLength = 32;
+    // Longest possible name: a worst-case host name ("nvme" + 10 digits +
+    // "n" + 10 digits) plus a partition suffix ("p" + 10 digits).
+    private const int MaxNameLength = 48;
 
     private static int Append(Span<char> buffer, int pos, string text)
     {

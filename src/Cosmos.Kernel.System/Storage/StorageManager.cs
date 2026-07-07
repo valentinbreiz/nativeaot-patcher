@@ -197,7 +197,7 @@ public static class StorageManager
                 for (int i = 0; i < entries.Count; i++)
                 {
                     Gpt.PartitionEntry e = entries[i];
-                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
+                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
                 }
                 return;
             }
@@ -211,7 +211,7 @@ public static class StorageManager
                 for (int i = 0; i < entries.Count; i++)
                 {
                     Mbr.PartitionEntry e = entries[i];
-                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, $"{device.Name}p{i}"));
+                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
                 }
             }
         }
