@@ -130,8 +130,14 @@ public static unsafe class GICv3Its
     // MAPD ITT_address in cmd[2], bits [51:8] (256-byte aligned).
     private const ulong MAPD_ITT_ADDR_MASK = 0x000FFFFFFFFFFF00UL;
 
-    // Number of 4 KiB pages backing each shared ITS table.
-    private const uint DeviceTablePages = 8;       // 32 KiB — covers thousands of devices
+    // Number of 4 KiB pages backing each shared ITS table. NOTE: a flat
+    // device table is indexed by DeviceID VALUE, not device count — 32 KiB
+    // at the typical 8-byte entry covers DeviceIDs 0..4095 only (BDF up to
+    // bus 15). MapDevice enforces the real bound (computed from the entry
+    // size the hardware reports) and rejects wider IDs loudly; supporting
+    // sparse/wide DeviceID spaces properly means BASER.Indirect two-level
+    // tables.
+    private const uint DeviceTablePages = 8;
     private const uint CollectionTablePages = 1;   // 4 KiB — far more collections than we need
 
     // GITS_CREADR: bits[4:0] are status flags (Stalled in bit 0); the queue
@@ -151,6 +157,7 @@ public static unsafe class GICv3Its
     private static ulong _cmdQueuePhys;
     private static uint _cmdQueueSize;      // bytes
     private static ulong _cmdWriteOff;      // mirror of GITS_CWRITER
+    private static ulong _maxDeviceId;      // highest DeviceID the flat device table can index
     private static int _ittEntrySize;
     private static bool _physicalTargetAddress;
     private static ulong _bootRedistTarget; // target value for collection 0 (phys addr or proc number<<16)
@@ -288,6 +295,21 @@ public static unsafe class GICv3Its
             return;
         }
 
+        // The flat device table is indexed by DeviceID value: a MAPD past
+        // its end is either rejected (command error -> STALLED) or walks
+        // memory beyond the table, and the device's MSIs silently vanish.
+        // Reject loudly instead; MsiX.Enable turns this into a clean
+        // polled-mode downgrade for the device.
+        if (deviceId > _maxDeviceId)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: DeviceID 0x");
+            Serial.WriteHex(deviceId);
+            Serial.WriteString(" exceeds flat device table max 0x");
+            Serial.WriteHex(_maxDeviceId);
+            Serial.WriteString(" (grow DeviceTablePages or add BASER.Indirect support)\n");
+            throw new System.InvalidOperationException("GICv3-ITS: DeviceID exceeds the flat device table range");
+        }
+
         uint nrEvents = maxEvents < ITT_MIN_EVENTS ? ITT_MIN_EVENTS : RoundUpPow2(maxEvents);
         int sizeField = Log2(nrEvents) - 1; // ARM IHI 0069G: size = log2(nr_ites) - 1
         if (sizeField < 0)
@@ -339,6 +361,13 @@ public static unsafe class GICv3Its
     private static void ConfigureBaser(ulong off, ulong oldBaser, byte type, uint pages)
     {
         int entrySize = (int)(((oldBaser >> BASER_ENTRY_SIZE_SHIFT) & BASER_ENTRY_SIZE_MASK) + 1);
+
+        if (type == BASER_TYPE_DEVICE)
+        {
+            // A flat table indexes by DeviceID value: this is the highest
+            // ID MAPD can accept without the ITS walking past the table.
+            _maxDeviceId = (ulong)pages * ITS_PAGE_SIZE / (ulong)entrySize - 1;
+        }
 
         ulong tableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pages, zero: true);
         ulong tablePhys = PageAllocator.VirtualToPhysical(tableVirt);

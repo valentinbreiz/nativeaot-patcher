@@ -88,8 +88,20 @@ public static class MsiX
         }
 
         // Per-arch device prep (ARM64 ITS allocates an ITT + MAPDs the
-        // device here; x64 returns null).
-        object? deviceCtx = MsiRouting.PrepareDevice(pci.Bus, pci.Slot, pci.Function, tableSize);
+        // device here; x64 returns null). A binder that cannot route this
+        // device (e.g. its ITS DeviceID exceeds the device table) throws —
+        // turn that into "no MSI-X" so the driver takes its polled
+        // fallback instead of enabling MSI-X that can never deliver.
+        object? deviceCtx;
+        try
+        {
+            deviceCtx = MsiRouting.PrepareDevice(pci.Bus, pci.Slot, pci.Function, tableSize);
+        }
+        catch (System.InvalidOperationException)
+        {
+            Serial.WriteString("[MSI-X] platform binder rejected the device, leaving MSI-X disabled\n");
+            return null;
+        }
 
         // Enable MSI-X, clear function mask.
         msgCtrl = (ushort)((msgCtrl & ~MsgCtrlFunctionMask) | MsgCtrlEnable);
