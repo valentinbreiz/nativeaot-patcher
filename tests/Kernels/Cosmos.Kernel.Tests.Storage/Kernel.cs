@@ -83,9 +83,9 @@ public class Kernel : Sys.Kernel
         {
             // Only the GIC-version cells pin a determinate NVMe interrupt path:
             // gicv3 brings up the ITS so MSI-X can route; gicv2 has no ITS so
-            // the driver must fall back to polled. Adaptive run (Action<bool>):
-            // the condition is "expect MSI-X" == this is the gicv3 cell.
-            TR.RunIf(TR.ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+            // the driver must fall back to polled. The expectation flag is
+            // "expect MSI-X" == this is the gicv3 cell.
+            TR.RunWithExpectation(TR.ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
         }
         else
         {
@@ -98,7 +98,7 @@ public class Kernel : Sys.Kernel
                 // driver landing in MSI-X mode IS determinate — a silent
                 // MSI-X→polled regression here is exactly the failure this
                 // cell exists to catch. expect-MSI-X = true.
-                TR.RunIf(true, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+                TR.RunWithExpectation(true, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
             }
             else
             {

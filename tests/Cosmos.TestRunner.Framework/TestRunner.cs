@@ -136,11 +136,14 @@ namespace Cosmos.TestRunner.Framework
         /// Use this when the cell always has something to assert but the
         /// expected outcome differs by profile (e.g. NVMe MSI-X vs polled),
         /// as opposed to <see cref="RunIf(bool, string, Action, string)"/>
-        /// which reports a Skip when the feature is simply absent.
+        /// which reports a Skip when the feature is simply absent. Named
+        /// distinctly from RunIf on purpose: an overload on delegate arity
+        /// would silently flip between gate-execution and pass-the-flag
+        /// semantics when a test method's signature changes.
         /// </summary>
-        public static void RunIf(bool condition, string testName, Action<bool> test)
+        public static void RunWithExpectation(bool expectation, string testName, Action<bool> test)
         {
-            Run(testName, () => test(condition));
+            Run(testName, () => test(expectation));
         }
 
         /// <summary>
