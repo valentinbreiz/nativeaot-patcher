@@ -106,9 +106,13 @@ public static class GICv3
     /// <summary>
     /// Configures the GICv3 base addresses. Must be called before Initialize()
     /// if running on hardware with non-QEMU addresses (e.g., from DTB).
+    /// Both bases are pure MMIO dereference bases (never programmed into
+    /// the hardware as values), so callers must pass DEREFERENCEABLE
+    /// addresses — the HHDM alias of a DeviceMapper-mapped region, not raw
+    /// physical (the TTBR0 identity alias is Normal WB cacheable).
     /// </summary>
-    /// <param name="distBase">GICD base address.</param>
-    /// <param name="redistBase">GICR base address.</param>
+    /// <param name="distBase">GICD base address (virtual).</param>
+    /// <param name="redistBase">GICR base address (virtual).</param>
     public static void Configure(ulong distBase, ulong redistBase)
     {
         _gicDistBase = distBase;

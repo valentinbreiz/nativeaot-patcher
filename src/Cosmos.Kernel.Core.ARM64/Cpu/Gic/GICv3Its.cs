@@ -145,7 +145,7 @@ public static unsafe class GICv3Its
     // ITT buffer sizing.
     private const uint ITT_MIN_EVENTS = 2;
 
-    private static ulong _itsBase;          // virt = phys (TTBR0 identity)
+    private static ulong _itsBase;          // HHDM virtual base — every GITS_* MMIO access goes through this
     private static ulong _translaterPhys;   // GITS_TRANSLATER physical address; written by devices via MSI
     private static ulong _cmdQueueVirt;
     private static ulong _cmdQueuePhys;
@@ -166,18 +166,28 @@ public static unsafe class GICv3Its
     public static ulong TranslaterPhysAddr => _translaterPhys;
 
     /// <summary>
-    /// Initialize the ITS at the given physical base. Must be called after
+    /// Initialize the ITS. Must be called after
     /// <see cref="GICv3Lpi.Initialize"/> on the boot CPU's redistributor.
+    /// Virt/phys are passed separately because both roles are needed: all
+    /// GITS_* MMIO goes through the Device-memory HHDM mapping (the TTBR0
+    /// identity map is Normal WB cacheable — only QEMU TCG's disregard for
+    /// memory attributes made dereferencing raw physical appear to work),
+    /// while GITS_TRANSLATER (handed to devices as the MSI doorbell) and
+    /// the MAPC RDbase target are bus addresses and must stay physical.
     /// </summary>
-    public static void Initialize(ulong itsBase, ulong bootRedistRdBase)
+    /// <param name="itsVirtBase">ITS register block, HHDM virtual (dereferenced).</param>
+    /// <param name="itsPhysBase">ITS register block, physical (doorbell address source).</param>
+    /// <param name="rdVirtBase">Boot CPU redistributor RD_base, HHDM virtual (dereferenced for GICR_TYPER).</param>
+    /// <param name="rdPhysBase">Boot CPU redistributor RD_base, physical (MAPC RDbase when GITS_TYPER.PTA=1).</param>
+    public static void Initialize(ulong itsVirtBase, ulong itsPhysBase, ulong rdVirtBase, ulong rdPhysBase)
     {
         if (_initialized)
         {
             return;
         }
 
-        _itsBase = itsBase;
-        _translaterPhys = itsBase + GITS_TRANSLATER_OFF;
+        _itsBase = itsVirtBase;
+        _translaterPhys = itsPhysBase + GITS_TRANSLATER_OFF;
 
         // Make sure the ITS is disabled while we configure tables.
         uint ctlr = Native.MMIO.Read32(_itsBase + GITS_CTLR);
@@ -203,16 +213,18 @@ public static unsafe class GICv3Its
         _ittEntrySize = (int)(((typer >> TYPER_ITT_ENTRY_SIZE_SHIFT) & TYPER_ITT_ENTRY_SIZE_MASK) + 1);
         _physicalTargetAddress = ((typer >> TYPER_PTA_SHIFT) & TYPER_PTA_MASK) != 0;
 
-        // Compute target address for MAPC / SYNC.
+        // Compute target address for MAPC / SYNC. With PTA=1 the RDbase
+        // field carries the redistributor's PHYSICAL address (it is a bus
+        // address the ITS emits, not something the CPU dereferences).
         if (_physicalTargetAddress)
         {
-            _bootRedistTarget = bootRedistRdBase;
+            _bootRedistTarget = rdPhysBase;
         }
         else
         {
             // Processor_Number is GICR_TYPER bits [23:8]. We're sole CPU so 0
             // is almost always right, but read it for correctness.
-            ulong rdTyper = Native.MMIO.Read64(bootRedistRdBase + GICR_TYPER);
+            ulong rdTyper = Native.MMIO.Read64(rdVirtBase + GICR_TYPER);
             ulong procNum = (rdTyper >> GICR_TYPER_PROCNUM_SHIFT) & GICR_TYPER_PROCNUM_MASK;
             _bootRedistTarget = procNum << CMD_TARGET_PROCNUM_SHIFT;
         }
@@ -257,9 +269,11 @@ public static unsafe class GICv3Its
         EnqueueSync();
         FlushCommandQueue();
 
-        Serial.WriteString("[GICv3-ITS] enabled at 0x");
-        Serial.WriteHex(itsBase);
-        Serial.WriteString("\n");
+        Serial.WriteString("[GICv3-ITS] enabled at phys 0x");
+        Serial.WriteHex(itsPhysBase);
+        Serial.WriteString(" (virt 0x");
+        Serial.WriteHex(itsVirtBase);
+        Serial.WriteString(")\n");
     }
 
     /// <summary>

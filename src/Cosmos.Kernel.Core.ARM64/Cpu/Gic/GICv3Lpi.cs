@@ -85,7 +85,9 @@ public static unsafe class GICv3Lpi
     /// Initialize LPI delivery on the boot CPU's redistributor. <paramref name="rdBase"/>
     /// is the per-CPU RD_base frame address (the same value GICv3 already
     /// uses for the active redistributor — see <c>GICv3.cs</c> field
-    /// <c>_currentCpuRdBase</c>).
+    /// <c>_currentCpuRdBase</c>). It is only ever dereferenced, so it must
+    /// be a virtual (HHDM) address; the physical addresses programmed into
+    /// PROPBASER/PENDBASER come from the tables this type allocates itself.
     /// </summary>
     public static void Initialize(ulong rdBase)
     {

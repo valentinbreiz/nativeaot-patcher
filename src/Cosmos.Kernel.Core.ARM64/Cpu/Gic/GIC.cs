@@ -3,6 +3,7 @@
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
 
@@ -99,14 +100,27 @@ public static class GIC
         DeviceMapper.EnsureMapped(itsBase);
         DeviceMapper.EnsureMapped(itsBase + 0x10000);
 
-        GICv3Lpi.Initialize(GICv3.CurrentCpuRdBase);
+        // MMIO dereferences must go through the Device-memory HHDM mapping
+        // EnsureMapped installed above — the TTBR0 identity map is Normal
+        // WB cacheable, and dereferencing raw physical only appears to work
+        // because QEMU TCG ignores memory attributes. Addresses programmed
+        // INTO the hardware (GITS_TRANSLATER MSI doorbell, MAPC RDbase)
+        // remain physical, so both spaces are passed explicitly. On the
+        // ACPI path CurrentCpuRdBase is already the HHDM alias (Configure
+        // received PhysToVirt bases) and VirtualToPhysical recovers the
+        // physical; on the legacy no-ACPI fallback it is a raw identity
+        // address, which VirtualToPhysical passes through unchanged.
+        ulong rdVirt = GICv3.CurrentCpuRdBase;
+        ulong rdPhys = PageAllocator.VirtualToPhysical(rdVirt);
+
+        GICv3Lpi.Initialize(rdVirt);
         if (!GICv3Lpi.IsInitialized)
         {
             Serial.Write("[GIC] LPI init failed, MSI-X path disabled\n");
             return;
         }
 
-        GICv3Its.Initialize(itsBase, GICv3.CurrentCpuRdBase);
+        GICv3Its.Initialize(PhysToVirt(itsBase), itsBase, rdVirt, rdPhys);
         if (!GICv3Its.IsInitialized)
         {
             Serial.Write("[GIC] ITS init failed, MSI-X path disabled\n");
@@ -160,7 +174,10 @@ public static class GIC
                 {
                     DeviceMapper.EnsureMapped(acpiGic->DistBase);
                     DeviceMapper.EnsureMapped(acpiGic->RedistBase);
-                    GICv3.Configure(acpiGic->DistBase, acpiGic->RedistBase);
+                    // Same PhysToVirt as the sysreg-only path: GICD/GICR
+                    // accesses must use the Device mapping just installed,
+                    // not the WB-cacheable TTBR0 identity alias.
+                    GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
                     GICv3.Initialize(sysregOnly: false);
                 }
             }
