@@ -163,12 +163,19 @@ jobs:
         uses: actions/github-script@v7
         if: inputs.event_name == 'pull_request'
         continue-on-error: true
+        env:
+          # The table embeds raw kernel failure messages from UART output.
+          # It must reach the script as data (process.env), never spliced
+          # into the JS source: a backtick or ${ in a failure message would
+          # break the comment step exactly on the failing-test path — or
+          # execute as injected JS with the workflow token.
+          RESULTS_TABLE: ${{ steps.parse.outputs.results_table }}
         with:
           script: |
             const suiteName = '${{ inputs.suite_name }}';
             const suiteId = '${{ inputs.suite_id }}';
             const kernelSrcUrl = 'https://github.com/${{ github.repository }}/blob/${{ inputs.head_ref }}/${{ inputs.kernel_path }}/Kernel.cs';
-            const resultsTable = `${{ steps.parse.outputs.results_table }}`;
+            const resultsTable = process.env.RESULTS_TABLE;
             const runId = '${{ github.run_id }}';
             const repo = '${{ github.repository }}';
             const owner = context.repo.owner;
