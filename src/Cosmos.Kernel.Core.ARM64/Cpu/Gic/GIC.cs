@@ -248,13 +248,15 @@ public static class GIC
 
         _initialized = true;
 
-        // Default QEMU virt with gic-version=3 puts the ITS at 0x08080000.
-        // This is only used when ACPI didn't supply an MADT — typically a
-        // bare-metal early-boot smoke-test path.
+        // No MADT means no authoritative ITS address. Probing QEMU's
+        // default 0x08080000 blindly reads GITS_CTLR on whatever sits
+        // there — on `-M virt,its=off` (or any non-QEMU board reaching
+        // this fallback) that's unbacked address space and the read
+        // faults or hangs the bus at boot. Without a safe probe, leave
+        // MSI off and let the drivers take their polled fallback.
         if (_isV3)
         {
-            const ulong DefaultQemuItsBase = 0x08080000;
-            InitializeMsi(DefaultQemuItsBase);
+            Serial.Write("[GIC] No ACPI: ITS discovery unavailable, MSI path disabled\n");
         }
     }
 
