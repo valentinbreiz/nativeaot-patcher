@@ -31,7 +31,14 @@ public class Kernel : Sys.Kernel
 
         // ==================== Manager ====================
         TR.Run("Manager_Initialized", TestManager_Initialized);
-        TR.RunIf(anyDevice, "Manager_HasDevices", TestManager_HasDevices, SkipNoDevice);
+        // Unconditional on purpose: this suite's only cell is the default
+        // q35/virt machine, where zero enumerated devices is an enumeration
+        // regression — the one thing this suite exists to catch — not an
+        // environment condition. Gating it on anyDevice (= Count > 0) made
+        // it a tautology that converted such a regression into 5 skips and
+        // a green CI. anyDevice keeps gating only the per-device
+        // ConfigSpace spot-checks below.
+        TR.Run("Manager_HasDevices", TestManager_HasDevices);
 
         // ==================== ConfigSpace ====================
         TR.RunIf(anyDevice, "ConfigSpace_VendorId_NotAllOnes",     TestConfigSpace_VendorIdNotAllOnes,     SkipNoDevice);
