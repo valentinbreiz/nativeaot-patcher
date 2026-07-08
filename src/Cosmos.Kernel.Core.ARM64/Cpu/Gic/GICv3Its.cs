@@ -87,7 +87,9 @@ public static unsafe class GICv3Its
     // (cacheable) writes — MAPD/MAPTI appear to complete but the device
     // entry the ITS actually fetches is whatever's still in DRAM.
     private const ulong BASER_INNER_CACHE_RaWaWb = 5UL << 59;
-    private const ulong BASER_PAGE_SIZE_4K = 0UL << 8;
+    private const int BASER_PAGE_SIZE_SHIFT = 8;
+    private const ulong BASER_PAGE_SIZE_MASK = 0x3UL;
+    private const ulong BASER_PAGE_SIZE_4K = 0UL << BASER_PAGE_SIZE_SHIFT;
 
     // BASER Type field values (§11.10.2 Table 11-22).
     private const byte BASER_TYPE_DEVICE = 1;
@@ -242,13 +244,15 @@ public static unsafe class GICv3Its
             ulong off = GITS_BASER0 + (ulong)i * BaserStride;
             ulong baser = Native.MMIO.Read64(_itsBase + (uint)off);
             byte type = (byte)((baser >> BASER_TYPE_SHIFT) & BASER_TYPE_MASK);
-            if (type == BASER_TYPE_DEVICE)
+            if (type == BASER_TYPE_DEVICE || type == BASER_TYPE_COLLECTION)
             {
-                ConfigureBaser(off, baser, type, DeviceTablePages);
-            }
-            else if (type == BASER_TYPE_COLLECTION)
-            {
-                ConfigureBaser(off, baser, type, CollectionTablePages);
+                uint pages = type == BASER_TYPE_DEVICE ? DeviceTablePages : CollectionTablePages;
+                if (!ConfigureBaser(off, baser, type, pages))
+                {
+                    // Leave _initialized false: InitializeMsi reports the
+                    // failure and the MSI path downgrades to polled.
+                    return;
+                }
             }
             // Other types (vCPU, reserved) left untouched.
         }
@@ -264,6 +268,17 @@ public static unsafe class GICv3Its
                      | (_cmdQueuePhys & CBASER_ADDR_MASK)
                      | 0; // size = (4KB / 4KB) - 1 = 0
         Native.MMIO.Write64(_itsBase + GITS_CBASER, cbaser);
+        // Same policy as the BASER tables: a command queue whose
+        // shareability reads back 0 is fetched without snooping CPU
+        // caches, and command writes would sit in cache while the ITS
+        // executes stale DRAM. Refuse rather than corrupt.
+        ulong cbRb = Native.MMIO.Read64(_itsBase + GITS_CBASER);
+        if ((cbRb & (BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT)) == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: CBASER shareability forced to 0 (non-coherent ITS), no dcache maintenance available\n");
+            return;
+        }
+
         Native.MMIO.Write64(_itsBase + GITS_CWRITER, 0);
         _cmdWriteOff = 0;
 
@@ -358,19 +373,13 @@ public static unsafe class GICv3Its
 
     // ── BASER configuration ───────────────────────────────────────────
 
-    private static void ConfigureBaser(ulong off, ulong oldBaser, byte type, uint pages)
+    private static bool ConfigureBaser(ulong off, ulong oldBaser, byte type, uint pages)
     {
         int entrySize = (int)(((oldBaser >> BASER_ENTRY_SIZE_SHIFT) & BASER_ENTRY_SIZE_MASK) + 1);
 
-        if (type == BASER_TYPE_DEVICE)
-        {
-            // A flat table indexes by DeviceID value: this is the highest
-            // ID MAPD can accept without the ITS walking past the table.
-            _maxDeviceId = (ulong)pages * ITS_PAGE_SIZE / (ulong)entrySize - 1;
-        }
-
         ulong tableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pages, zero: true);
         ulong tablePhys = PageAllocator.VirtualToPhysical(tableVirt);
+        ulong sizeBytes = (ulong)pages * ITS_PAGE_SIZE;
 
         ulong baser = ((ulong)type << BASER_TYPE_SHIFT)
                     | ((ulong)(entrySize - 1) << BASER_ENTRY_SIZE_SHIFT)
@@ -381,16 +390,61 @@ public static unsafe class GICv3Its
                     | (ulong)((pages - 1) & BASER_PAGES_MASK)
                     | BASER_VALID;
         Native.MMIO.Write64(_itsBase + (uint)off, baser);
-
-        // Read back; if shareability bits got cleared the GIC silently
-        // refuses Inner Shareable, drop them.
-        ulong shareabilityField = BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT;
         ulong rb = Native.MMIO.Read64(_itsBase + (uint)off);
-        if ((rb & shareabilityField) == 0 && (baser & shareabilityField) != 0)
+
+        // Page_Size is not guaranteed writable: a 16K/64K-only ITS holds a
+        // larger granule in the read-back, and Size counts pages of THAT
+        // granule — keeping Size = pages-1 would multiply the window
+        // (8 x 64 KiB = 512 KiB over a 32 KiB allocation) and let the ITS
+        // read and write far past the table. Re-allocate one properly
+        // aligned granule and re-program with Size = 0 instead.
+        ulong rbGranule = (rb >> BASER_PAGE_SIZE_SHIFT) & BASER_PAGE_SIZE_MASK;
+        if (rbGranule != 0)
         {
-            baser &= ~shareabilityField;
+            ulong granuleBytes = rbGranule == 1 ? 16UL * 1024 : 64UL * 1024;
+            // Over-allocate 2x so a granule-aligned block exists inside,
+            // same trick as the LPI pending table's 64 KiB alignment.
+            uint blockPages = (uint)(granuleBytes * 2 / ITS_PAGE_SIZE);
+            ulong blockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, blockPages, zero: true);
+            ulong blockPhys = PageAllocator.VirtualToPhysical(blockVirt);
+            tablePhys = (blockPhys + granuleBytes - 1) & ~(granuleBytes - 1);
+            sizeBytes = granuleBytes;
+
+            Serial.WriteString("[GICv3-ITS] BASER granule forced to 0x");
+            Serial.WriteHex(granuleBytes);
+            Serial.WriteString(" bytes, re-allocated table\n");
+
+            baser = ((ulong)type << BASER_TYPE_SHIFT)
+                  | ((ulong)(entrySize - 1) << BASER_ENTRY_SIZE_SHIFT)
+                  | (tablePhys & BASER_ADDR_MASK)
+                  | BASER_INNER_CACHE_RaWaWb
+                  | BASER_INNERSHAREABLE
+                  | (rbGranule << BASER_PAGE_SIZE_SHIFT)
+                  | BASER_VALID; // Size = 0: one granule
             Native.MMIO.Write64(_itsBase + (uint)off, baser);
+            rb = Native.MMIO.Read64(_itsBase + (uint)off);
         }
+
+        // Shareability forced to 0 means the ITS will not snoop CPU caches
+        // for its table walks, and this driver has no dcache-maintenance
+        // plumbing — keeping cacheable attributes would desync silently
+        // (MAPD/MAPTI appear to complete, the ITS fetches stale DRAM).
+        // Refuse and let Initialize downgrade the MSI path instead.
+        ulong shareabilityField = BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT;
+        if ((rb & shareabilityField) == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: BASER shareability forced to 0 (non-coherent ITS), no dcache maintenance available\n");
+            return false;
+        }
+
+        if (type == BASER_TYPE_DEVICE)
+        {
+            // A flat table indexes by DeviceID value: this is the highest
+            // ID MAPD can accept without the ITS walking past the table.
+            _maxDeviceId = sizeBytes / (ulong)entrySize - 1;
+        }
+
+        return true;
     }
 
     // ── Command queue posting ─────────────────────────────────────────
