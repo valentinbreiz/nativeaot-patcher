@@ -30,10 +30,15 @@ internal sealed class MemoryBlockDevice : IBlockDevice
         _storage.AsSpan(byteOffset, byteLen).CopyTo(data);
     }
 
-    public void WriteBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+    public void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         int byteOffset = (int)(blockNo * BlockSize);
         int byteLen = (int)(blockCount * BlockSize);
         data.Slice(0, byteLen).CopyTo(_storage.AsSpan(byteOffset, byteLen));
+    }
+
+    public void Flush()
+    {
+        // RAM-backed store: nothing volatile to make durable.
     }
 }
