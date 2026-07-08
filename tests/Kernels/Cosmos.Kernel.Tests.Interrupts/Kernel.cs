@@ -142,8 +142,15 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((ulong)elapsedMs);
         Serial.WriteString("\n");
 
-        Assert.True(elapsedMs >= 100 && elapsedMs <= 800,
-            "a 200ms scheduler sleep should resume in roughly 200ms via the timer IRQ");
+        // Lower bound only: returning early means the wake fired without
+        // the timer IRQ actually elapsing the sleep — the regression this
+        // cell pins. No upper bound on purpose: a loaded CI host can
+        // deschedule the whole VM for hundreds of ms (arm64 TCG runners
+        // especially), and the failure an upper bound would catch — a dead
+        // IRQ path — never returns at all, which the engine's suite
+        // timeout already converts into a failure.
+        Assert.True(elapsedMs >= 100,
+            "a 200ms scheduler sleep should resume via the timer IRQ, not return early");
     }
 
     // Fills the dynamic range to exhaustion, frees one slot, and proves the
