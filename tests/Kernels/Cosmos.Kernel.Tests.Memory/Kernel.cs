@@ -1112,8 +1112,11 @@ public unsafe class Kernel : Sys.Kernel
             ? Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response->Offset
             : 0;
 
-    // A heap allocation is an HHDM alias (the allocator carves RamStart =
-    // HHDM + phys), so translation is exact hhdm subtraction.
+    // On x64 the allocator hands out HHDM aliases (RamStart = HHDM + phys)
+    // and translation is exact offset subtraction; on arm64 the heap lives
+    // in the identity-mapped low range and the same call must pass through
+    // unchanged. Pin the translation contract for whichever space the
+    // allocator actually uses on this arch.
     private static unsafe void TestV2PHhdmAliasTranslates()
     {
         ulong hhdm = HhdmOffset();
@@ -1123,9 +1126,15 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(page != null, "page allocation must succeed");
 
         ulong va = (ulong)page;
-        Assert.True(va >= hhdm, "allocator addresses must be HHDM aliases");
         ulong phys = PageAllocator.VirtualToPhysical(va);
-        Assert.True(phys == va - hhdm, "HHDM alias must translate by exact offset subtraction");
+        if (va >= hhdm)
+        {
+            Assert.True(phys == va - hhdm, "HHDM alias must translate by exact offset subtraction");
+        }
+        else
+        {
+            Assert.True(phys == va, "identity-space allocation must pass through unchanged");
+        }
 
         PageAllocator.Free(page);
     }
