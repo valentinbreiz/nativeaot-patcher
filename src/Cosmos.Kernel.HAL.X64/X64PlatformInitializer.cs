@@ -44,9 +44,12 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public void EnsureMmioMapped(ulong physBase)
     {
-        // x64 page tables already cover MMIO regions through the identity
-        // map / HHDM that Limine installs, so no per-region mapping is
-        // needed. ARM64 has to install a Device-memory mapping itself.
+        // Limine's blanket map (base revision 0) only covers the low 4 GiB
+        // plus memory-map regions; a 64-bit BAR relocated above 4 GiB is in
+        // neither, and touching its HHDM alias would page-fault. Install an
+        // on-demand UC mapping for it (no-op for already-mapped regions,
+        // i.e. everything below 4 GiB).
+        DeviceMapper.EnsureMapped(physBase);
     }
 
     public void DmaBarrier()

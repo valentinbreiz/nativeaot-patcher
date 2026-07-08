@@ -1,7 +1,12 @@
 using System;
+using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci.Enums;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -32,8 +37,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
         // 3 manager + 1 boot-scan + 2 profile + 13 device + 9 partition
-        // + 1 boot-reboot = 29 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 29);
+        // + 1 mmio + 1 boot-reboot = 30 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 30);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -123,6 +128,18 @@ public class Kernel : Sys.Kernel
         // probe host), so it runs unconditionally, even on cells where no disk bound.
         TR.Run("Partition_BoundsOverflow_Throws", TestPartition_BoundsOverflowThrows);
         TR.Run("Partition_GptTinyDeviceSafe", TestPartition_GptTinyDeviceSafe);
+
+        // ==================== MMIO mapping (64-bit BAR above 4 GiB) ====================
+        // Runs after every cell that does block I/O: it relocates the live
+        // NVMe controller's BAR while no transfer is in flight and restores
+        // it before returning, so ordering it here keeps a mapper regression
+        // (crash mid-cell) from also taking down the I/O results above.
+#if ARCH_X64
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Mmio_HighBar_RemappedOnDemand", TestMmio_HighBarRemapped,
+            "64-bit BAR relocation probe is nvme-profile only");
+#else
+        TR.Skip("Mmio_HighBar_RemappedOnDemand", "x64 mapper cell; arm64 installs Device mappings via DeviceMapper");
+#endif
 
         // ==================== Boot persistence (destructive: reboots QEMU) ====================
         // Boot 0 stamps a fresh GPT with one partition and reboots; boot 1's
@@ -787,6 +804,67 @@ public class Kernel : Sys.Kernel
         Assert.Equal(0, Gpt.Parse(tiny).Count, "1-block device must parse empty");
         Assert.False(Gpt.AddPartition(tiny, 34, 1, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
     }
+
+#if ARCH_X64
+    // Physical address for the relocation probe: above 4 GiB, where Limine's
+    // base-revision-0 blanket map (identity + HHDM of the low 4 GiB plus
+    // memory-map regions) no longer covers anything, and clear of RAM and of
+    // every fixed q35 window (ECAM, LAPIC, IO-APIC all sit below 4 GiB).
+    private const ulong HighBarPhys = 0x1_1000_0000;
+
+    private static unsafe ulong HhdmOffset()
+        => Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+
+    // Proves 64-bit BAR MMIO stays reachable when the BAR sits above 4 GiB,
+    // where firmware on real hardware may place it: the HHDM alias of such a
+    // BAR is unmapped until EnsureMmioMapped installs a page-table entry for
+    // it. The cell relocates the NVMe controller's own BAR0 up there, mirrors
+    // the driver-init access pattern (EnsureMmioMapped + phys-plus-HHDM
+    // arithmetic) against the new address, and asserts the VS register reads
+    // back identical — then restores the original BAR before returning. With
+    // a no-op x64 EnsureMmioMapped this cell dies on an unhandled page fault.
+    private static void TestMmio_HighBarRemapped()
+    {
+        PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
+        Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
+
+        uint barLow = nvmePci!.ReadRegister32(0x10);
+        uint barHigh = nvmePci.ReadRegister32(0x14);
+        Assert.True((barLow & 0x7) == 0x4, "NVMe BAR0 must be a 64-bit memory BAR");
+
+        ulong origPhys = ((ulong)barHigh << 32) | (barLow & 0xFFFF_FFF0);
+        ulong hhdm = HhdmOffset();
+        uint vsOrig = Native.MMIO.Read32(origPhys + hhdm + 0x08);
+        Assert.True(vsOrig != 0 && vsOrig != 0xFFFF_FFFF, "NVMe VS must read sane at the original BAR");
+
+        // Quiesce decode while the BAR moves, like firmware would. No block
+        // I/O is in flight (every I/O cell ran earlier), so nothing touches
+        // the controller through the stale driver mapping meanwhile.
+        ushort command = nvmePci.ReadRegister16(0x04);
+        nvmePci.WriteRegister16(0x04, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(0x10, (uint)(HighBarPhys & 0xFFFF_FFF0) | (barLow & 0xF));
+        nvmePci.WriteRegister32(0x14, (uint)(HighBarPhys >> 32));
+        nvmePci.WriteRegister16(0x04, command);
+
+        uint vsHigh;
+        try
+        {
+            PlatformHAL.Initializer?.EnsureMmioMapped(HighBarPhys);
+            vsHigh = Native.MMIO.Read32(HighBarPhys + hhdm + 0x08);
+        }
+        finally
+        {
+            // Put the BAR back exactly as found so the destructive reboot
+            // cell (and boot 1's scan) still see a working controller.
+            nvmePci.WriteRegister16(0x04, (ushort)(command & ~(ushort)PciCommand.Memory));
+            nvmePci.WriteRegister32(0x10, barLow);
+            nvmePci.WriteRegister32(0x14, barHigh);
+            nvmePci.WriteRegister16(0x04, command);
+        }
+
+        Assert.True(vsHigh == vsOrig, "VS read through the remapped high BAR must match the original");
+    }
+#endif
 
     // Contract-faithful degenerate device: one 512-byte block, throws on any
     // out-of-range access like real drivers do.
