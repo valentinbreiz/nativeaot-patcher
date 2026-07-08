@@ -173,7 +173,19 @@ public static class GIC
                 else
                 {
                     DeviceMapper.EnsureMapped(acpiGic->DistBase);
-                    DeviceMapper.EnsureMapped(acpiGic->RedistBase);
+                    // The redistributor walk strides 128 KiB frames until
+                    // GICR_TYPER.Last, spanning the whole MADT-advertised
+                    // region — one 2 MiB block only covers 16 frames, so
+                    // with more CPUs the walk would dereference past the
+                    // mapping and data-abort at boot. Map every 2 MiB block
+                    // the region touches (aligned loop so an unaligned
+                    // base+length still covers the tail block).
+                    ulong redistLength = acpiGic->RedistLength > 0 ? acpiGic->RedistLength : 1;
+                    ulong redistEnd = acpiGic->RedistBase + redistLength;
+                    for (ulong block = acpiGic->RedistBase & ~0x1FFFFFUL; block < redistEnd; block += 0x200000)
+                    {
+                        DeviceMapper.EnsureMapped(block);
+                    }
                     // Same PhysToVirt as the sysreg-only path: GICD/GICR
                     // accesses must use the Device mapping just installed,
                     // not the WB-cacheable TTBR0 identity alias.
