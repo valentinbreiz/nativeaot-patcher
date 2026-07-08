@@ -214,7 +214,10 @@ public static unsafe class GICv3Its
             }
             if (!quiesced)
             {
-                throw new System.InvalidOperationException("[GICv3-ITS] timed out waiting for QUIESCENT after disable");
+                // Not worth killing the boot over: leave the ITS
+                // uninitialized so InitializeMsi downgrades to polled.
+                Serial.WriteString("[GICv3-ITS] ERROR: timed out waiting for QUIESCENT after disable\n");
+                return;
             }
         }
 
@@ -260,6 +263,14 @@ public static unsafe class GICv3Its
         // Allocate command queue (one 4 KiB page, 128 commands of 32 bytes each).
         _cmdQueueSize = COMMAND_QUEUE_BYTES;
         _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        if (_cmdQueueVirt == 0)
+        {
+            // Without this check CBASER would point the ITS at physical
+            // page 0 — corruption instead of the clean MSI-off downgrade.
+            Serial.WriteString("[GICv3-ITS] ERROR: command queue alloc failed\n");
+            return;
+        }
+
         _cmdQueuePhys = PageAllocator.VirtualToPhysical(_cmdQueueVirt);
 
         ulong cbaser = CBASER_VALID
@@ -341,6 +352,14 @@ public static unsafe class GICv3Its
             pages = 1;
         }
         ulong ittVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, (uint)pages, zero: true);
+        if (ittVirt == 0)
+        {
+            // Same channel as the DeviceID bound: MsiX.Enable catches this
+            // and the device downgrades to polled.
+            Serial.WriteString("[GICv3-ITS] ERROR: ITT alloc failed\n");
+            throw new System.InvalidOperationException("GICv3-ITS: ITT allocation failed");
+        }
+
         ulong ittPhys = PageAllocator.VirtualToPhysical(ittVirt);
 
         EnqueueMapd(deviceId, ittPhys, sizeField, valid: true);
@@ -378,6 +397,12 @@ public static unsafe class GICv3Its
         int entrySize = (int)(((oldBaser >> BASER_ENTRY_SIZE_SHIFT) & BASER_ENTRY_SIZE_MASK) + 1);
 
         ulong tableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pages, zero: true);
+        if (tableVirt == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: BASER table alloc failed\n");
+            return false;
+        }
+
         ulong tablePhys = PageAllocator.VirtualToPhysical(tableVirt);
         ulong sizeBytes = (ulong)pages * ITS_PAGE_SIZE;
 
@@ -406,6 +431,12 @@ public static unsafe class GICv3Its
             // same trick as the LPI pending table's 64 KiB alignment.
             uint blockPages = (uint)(granuleBytes * 2 / ITS_PAGE_SIZE);
             ulong blockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, blockPages, zero: true);
+            if (blockVirt == 0)
+            {
+                Serial.WriteString("[GICv3-ITS] ERROR: BASER granule realloc failed\n");
+                return false;
+            }
+
             ulong blockPhys = PageAllocator.VirtualToPhysical(blockVirt);
             tablePhys = (blockPhys + granuleBytes - 1) & ~(granuleBytes - 1);
             sizeBytes = granuleBytes;
