@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -28,14 +30,15 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 5 cross-arch + 5 arch-specific = 10 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 10);
+        // 6 cross-arch + 5 arch-specific = 11 tests per cell.
+        TR.Start("Interrupt System Tests", expectedTests: 11);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
         TR.Run("TimerSource_Registered", TestTimerSourceRegistered);
         TR.Run("VectorAllocator_ReturnsDistinctDynamicVectors", TestVectorAllocatorDistinct);
         TR.Run("VectorAllocator_ReusesFreedSlots", TestVectorAllocatorReusesFreedSlots);
+        TR.Run("MsiX_TableAccessors_BoundsChecked", TestMsiXTableAccessorsBoundsChecked);
         TR.Run("TimerInterrupt_WakesSleepingThread", TestTimerInterruptWakesSleepingThread);
 
 #if ARCH_X64
@@ -194,6 +197,63 @@ public class Kernel : Sys.Kernel
 
     private static void NoopHandler(ref IRQContext context)
     {
+    }
+
+    // MSI-X table accessors must bounds-check like SetEntry does: an
+    // out-of-range Mask/UnmaskEntry index is a stray 32-bit MMIO write past
+    // the device's table. Probed hardware-free against a fake context whose
+    // "table" is a private heap page, so a missing guard writes into this
+    // cell's own buffer instead of a live device — and is caught as a
+    // missing exception, not as corruption.
+    private static unsafe void TestMsiXTableAccessorsBoundsChecked()
+    {
+        void* table = PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        Assert.True(table != null, "probe table allocation must succeed");
+
+        MsiXContext ctx = new MsiXContext((ulong)table, 2, null);
+
+        // In-range accessors keep programming VectorControl (offset 12).
+        MsiX.MaskEntry(ctx, 1);
+        Assert.True(*(uint*)((byte*)table + 16 + 12) == 1, "in-range MaskEntry must set the mask bit");
+        MsiX.UnmaskEntry(ctx, 1);
+        Assert.True(*(uint*)((byte*)table + 16 + 12) == 0, "in-range UnmaskEntry must clear the mask bit");
+
+        bool maskHigh = MsiXMaskRejects(ctx, 2);
+        bool maskNegative = MsiXMaskRejects(ctx, -1);
+        bool unmaskHigh = MsiXUnmaskRejects(ctx, 5);
+        PageAllocator.Free(table);
+
+        Assert.True(maskHigh, "MaskEntry must reject index == EntryCount");
+        Assert.True(maskNegative, "MaskEntry must reject negative indices");
+        Assert.True(unmaskHigh, "UnmaskEntry must reject an out-of-range index");
+    }
+
+    // Single try/catch per helper (arm64 EH inlining quirk, see
+    // TryAllocateVector).
+    private static bool MsiXMaskRejects(MsiXContext ctx, int index)
+    {
+        try
+        {
+            MsiX.MaskEntry(ctx, index);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
+    }
+
+    private static bool MsiXUnmaskRejects(MsiXContext ctx, int index)
+    {
+        try
+        {
+            MsiX.UnmaskEntry(ctx, index);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 
 #if ARCH_X64

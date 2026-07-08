@@ -125,12 +125,22 @@ public static class MsiX
 
     public static void MaskEntry(MsiXContext ctx, int index)
     {
+        if (index < 0 || index >= ctx.EntryCount)
+        {
+            throw new System.ArgumentOutOfRangeException(nameof(index));
+        }
+
         ulong entry = ctx.TableVirt + (ulong)index * EntryStride;
         Native.MMIO.Write32(entry + EntryVectorControl, VectorControlMask);
     }
 
     public static void UnmaskEntry(MsiXContext ctx, int index)
     {
+        if (index < 0 || index >= ctx.EntryCount)
+        {
+            throw new System.ArgumentOutOfRangeException(nameof(index));
+        }
+
         ulong entry = ctx.TableVirt + (ulong)index * EntryStride;
         Native.MMIO.Write32(entry + EntryVectorControl, 0);
     }
