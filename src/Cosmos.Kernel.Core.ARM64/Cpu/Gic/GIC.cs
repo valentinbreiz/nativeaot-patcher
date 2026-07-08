@@ -70,10 +70,6 @@ public static class GIC
     public static bool IsVersion3 => _isV3;
 
     /// <summary>
-    /// Initializes the GIC, auto-detecting v2 or v3.
-    /// Discovery priority: ACPI MADT → default QEMU addresses.
-    /// </summary>
-    /// <summary>
     /// Brings the LPI/ITS path online if the platform reports an ITS, then
     /// registers the ARM64 MSI binder. Safe to call when no ITS is present
     /// — it logs and returns, leaving MsiRouting unregistered so callers
@@ -131,6 +127,10 @@ public static class GIC
         Serial.Write("[GIC] MsiRouting registered (GICv3 ITS)\n");
     }
 
+    /// <summary>
+    /// Initializes the GIC, auto-detecting v2 or v3.
+    /// Discovery priority: ACPI MADT → default QEMU addresses.
+    /// </summary>
     public static unsafe void Initialize()
     {
         // Priority 1: Try ACPI MADT (parsed by C code in kmain via acpi_early_init)
