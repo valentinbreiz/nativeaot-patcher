@@ -38,6 +38,18 @@ public static class SchedulerManager
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 
+    /// <summary>Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.</summary>
+    private const ulong NanosecondsPerMillisecond = 1_000_000UL;
+
+    /// <summary>Timer ticks between debug-live snapshot refreshes (~100ms at 100Hz).</summary>
+    private const uint SnapshotRefreshTickInterval = 10;
+
+    /// <summary>Number of initial timer ticks that are always logged to serial.</summary>
+    private const uint InitialTickLogCount = 10;
+
+    /// <summary>After the initial ticks, log every Nth timer tick to avoid flooding serial output.</summary>
+    private const uint TickLogInterval = 50;
+
     /// <summary>
     /// Whether scheduler support is enabled. Uses centralized feature flag.
     /// </summary>
@@ -494,7 +506,7 @@ public static class SchedulerManager
             PerCpuState cpuState = _cpuStates[cpuId];
 
             ulong timestamp = GetTimestamp();
-            ulong num = timeoutMs * 1_000_000UL;
+            ulong num = timeoutMs * NanosecondsPerMillisecond;
             thread.WakeupTime = timestamp + num;
 
             _currentScheduler.OnThreadBlocked(cpuState, thread);
@@ -605,7 +617,7 @@ public static class SchedulerManager
         // Refresh the debug-live snapshot every 10 ticks (~100ms at 100Hz)
         // so the host-side QMP poller sees fresh thread state without
         // pausing the kernel.
-        if ((_tickCount % 10) == 0)
+        if ((_tickCount % SnapshotRefreshTickInterval) == 0)
         {
             Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Update();
             Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Update();
@@ -613,7 +625,7 @@ public static class SchedulerManager
         }
 
         // Log first 10 ticks and then every 50 ticks
-        if (_tickCount <= 10 || _tickCount % 50 == 0)
+        if (_tickCount <= InitialTickLogCount || _tickCount % TickLogInterval == 0)
         {
             Serial.WriteString("[SCHED] Tick ");
             Serial.WriteNumber(_tickCount);

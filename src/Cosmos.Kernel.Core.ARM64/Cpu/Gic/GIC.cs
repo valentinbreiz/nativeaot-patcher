@@ -28,6 +28,18 @@ public static class GIC
     // Default QEMU virt machine addresses (used if DTB not available)
     private const ulong DEFAULT_GICD_BASE = 0x08000000;
 
+    /// <summary>Offset of the second 64 KiB ITS register frame (GITS_TRANSLATER page) from the ITS base, per GICv3 ITS spec.</summary>
+    private const ulong ItsTranslationFrameOffset = 0x10000;
+
+    /// <summary>Minimum MADT GICC GIC version field value indicating GICv3 (ACPI MADT interrupt controller structure).</summary>
+    private const byte GicVersionV3 = 3;
+
+    /// <summary>Size in bytes of one 2 MiB block mapped by DeviceMapper (AArch64 level-2 block granule).</summary>
+    private const ulong DeviceBlockSizeBytes = 0x200000;
+
+    /// <summary>Mask of the offset bits within a 2 MiB device block, used to align addresses down to a block boundary.</summary>
+    private const ulong DeviceBlockOffsetMask = 0x1FFFFFUL;
+
     private static bool _isV3;
     private static bool _initialized;
     private static ulong _distBase;
@@ -94,7 +106,7 @@ public static class GIC
         }
 
         DeviceMapper.EnsureMapped(itsBase);
-        DeviceMapper.EnsureMapped(itsBase + 0x10000);
+        DeviceMapper.EnsureMapped(itsBase + ItsTranslationFrameOffset);
 
         // MMIO dereferences must go through the Device-memory HHDM mapping
         // EnsureMapped installed above — the TTBR0 identity map is Normal
@@ -138,7 +150,7 @@ public static class GIC
         if (acpiGic != null && acpiGic->Found != 0)
         {
             _distBase = acpiGic->DistBase;
-            _isV3 = acpiGic->Version >= 3;
+            _isV3 = acpiGic->Version >= GicVersionV3;
 
             if (_isV3 && acpiGic->RedistBase != 0)
             {
@@ -182,7 +194,7 @@ public static class GIC
                     // base+length still covers the tail block).
                     ulong redistLength = acpiGic->RedistLength > 0 ? acpiGic->RedistLength : 1;
                     ulong redistEnd = acpiGic->RedistBase + redistLength;
-                    for (ulong block = acpiGic->RedistBase & ~0x1FFFFFUL; block < redistEnd; block += 0x200000)
+                    for (ulong block = acpiGic->RedistBase & ~DeviceBlockOffsetMask; block < redistEnd; block += DeviceBlockSizeBytes)
                     {
                         DeviceMapper.EnsureMapped(block);
                     }

@@ -6,9 +6,12 @@ namespace Cosmos.Tools.Launcher;
 
 public sealed class QemuLaunchOptions
 {
+    /// <summary>Default guest RAM size passed to QEMU's <c>-m</c> flag, in megabytes.</summary>
+    private const int DefaultMemoryMb = 512;
+
     public required string Architecture { get; init; }
     public required string IsoPath { get; init; }
-    public int MemoryMb { get; init; } = 512;
+    public int MemoryMb { get; init; } = DefaultMemoryMb;
     public bool Headless { get; init; }
     public bool Debug { get; init; }
     /// <summary>If null, serial goes to stdio (interactive CLI). Otherwise, to this file path (test runner).</summary>
@@ -74,6 +77,12 @@ public sealed record QemuLaunchPlan(string BinaryPath, string Arguments, ToolSou
 /// </summary>
 public static class QemuLauncher
 {
+    /// <summary>UDP port forwarded host-to-guest for the network test runner's datagram traffic.</summary>
+    private const int NetworkTestUdpPort = 5556;
+
+    /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
+    private const int NetworkTestTcpPort = 5558;
+
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
         CommandToolDefinition tool = options.Architecture switch
@@ -142,7 +151,7 @@ public static class QemuLauncher
         if (options.EnableNetworkTesting)
         {
             string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
-            args.Append($" -netdev user,id=net0,hostfwd=udp::5556-:5556,hostfwd=tcp::5558-:5558 -device {nic},netdev=net0");
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
         }
 
         if (options.Debug)

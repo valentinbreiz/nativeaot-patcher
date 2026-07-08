@@ -7,6 +7,27 @@ namespace Cosmos.Kernel.HAL.Pci;
 
 public class PciManager
 {
+    /// <summary>Maximum number of PCI devices tracked in the device cache.</summary>
+    private const int MaxDevices = 64;
+
+    /// <summary>Number of device slots per PCI bus (PCI spec: 5-bit device field).</summary>
+    private const int MaxDevicesPerBus = 32;
+
+    /// <summary>Number of functions per PCI device (PCI spec: 3-bit function field).</summary>
+    private const int MaxFunctionsPerDevice = 8;
+
+    /// <summary>Bit 7 of the PCI header type register: set when the device is multi-function.</summary>
+    private const int MultifunctionBit = 0x80;
+
+    /// <summary>Vendor ID returned for a non-existent PCI function (all bits set).</summary>
+    private const ushort InvalidVendorId = 0xFFFF;
+
+    /// <summary>PCI class code 0x06 - Bridge device.</summary>
+    private const int BridgeClassCode = 0x6;
+
+    /// <summary>PCI subclass 0x04 - PCI-to-PCI bridge.</summary>
+    private const int PciToPciBridgeSubclass = 0x4;
+
     public static PciDevice[]? Devices;
 
     public static uint Count = 0;
@@ -15,20 +36,20 @@ public class PciManager
     {
         Serial.WriteString("[PciManager] Setup .\n");
         Serial.WriteString("[PciManager] Setup Clearing List.\n");
-        Devices = new PciDevice[64];
+        Devices = new PciDevice[MaxDevices];
         Serial.WriteString("[PciManager] Setup Cleared List.\n");
-        if ((PciDevice.GetHeaderType(0x0, 0x0, 0x0) & 0x80) == 0)
+        if ((PciDevice.GetHeaderType(0x0, 0x0, 0x0) & MultifunctionBit) == 0)
         {
             CheckBus(0x0);
         }
         else
         {
-            for (ushort fn = 0; fn < 8; fn++)
+            for (ushort fn = 0; fn < MaxFunctionsPerDevice; fn++)
             {
                 Serial.WriteString("[PciManager] Setup ");
                 Serial.WriteNumber(fn);
                 Serial.WriteString("\n");
-                if (PciDevice.GetVendorId(0x0, 0x0, fn) != 0xFFFF)
+                if (PciDevice.GetVendorId(0x0, 0x0, fn) != InvalidVendorId)
                 {
                     break;
                 }
@@ -61,7 +82,7 @@ public class PciManager
         Serial.WriteString("[PciManager] CheckBus(");
         Serial.WriteNumber(xBus);
         Serial.WriteString(")\n");
-        for (ushort device = 0; device < 32; device++)
+        for (ushort device = 0; device < MaxDevicesPerBus; device++)
         {
             Serial.WriteString("[PciManager] CheckBus - ");
             Serial.WriteNumber(device);
@@ -69,17 +90,17 @@ public class PciManager
             Serial.WriteString(" VID: 0x");
             Serial.WriteHex(vendorId);
             Serial.WriteString("\n");
-            if (vendorId == 0xFFFF)
+            if (vendorId == InvalidVendorId)
             {
                 continue;
             }
 
             CheckFunction(new PciDevice(xBus, device, 0x0));
-            if ((PciDevice.GetHeaderType(xBus, device, 0x0) & 0x80) != 0)
+            if ((PciDevice.GetHeaderType(xBus, device, 0x0) & MultifunctionBit) != 0)
             {
-                for (ushort fn = 1; fn < 8; fn++)
+                for (ushort fn = 1; fn < MaxFunctionsPerDevice; fn++)
                 {
-                    if (PciDevice.GetVendorId(xBus, device, fn) != 0xFFFF)
+                    if (PciDevice.GetVendorId(xBus, device, fn) != InvalidVendorId)
                     {
                         CheckFunction(new PciDevice(xBus, device, fn));
                     }
@@ -97,7 +118,7 @@ public class PciManager
         Serial.WriteString(" \n");
         Add(xPCIDevice);
         Serial.WriteString("[PciManager] Cached\n");
-        if (xPCIDevice.ClassCode == 0x6 && xPCIDevice.Subclass == 0x4)
+        if (xPCIDevice.ClassCode == BridgeClassCode && xPCIDevice.Subclass == PciToPciBridgeSubclass)
         {
             CheckBus(xPCIDevice.SecondaryBusNumber);
         }

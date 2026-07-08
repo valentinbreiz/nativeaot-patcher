@@ -77,6 +77,18 @@ public static unsafe class GICv3Lpi
     // table accepts INTIDs up to 24575 whose bytes the GIC never reads.
     private const uint LpiCount = (1U << (LpiIdBits + 1)) - 8192;
 
+    /// <summary>First LPI INTID — the LPI INTID space always starts at 8192 (ARM IHI 0069G §1.2.1).</summary>
+    private const uint LpiBaseIntId = 8192;
+
+    /// <summary>Property table allocation in 4 KiB pages: 4 pages = 16 KiB, one config byte per INTID for IDbits=13.</summary>
+    private const uint PropTablePages = 4;
+
+    /// <summary>Pending table over-allocation in 4 KiB pages: 32 pages = 128 KiB guarantees one 64 KiB-aligned 64 KiB chunk inside the run.</summary>
+    private const uint PendTableOverAllocPages = 32;
+
+    /// <summary>Maximum poll iterations while waiting for GICR_CTLR.RWP to clear or GICR_SYNCR to read 0.</summary>
+    private const int RegisterSyncSpinLimit = 1_000_000;
+
     private static ulong _propTablePhys;
     private static ulong _propTableVirt;
     private static ulong _pendTablePhys;
@@ -123,7 +135,7 @@ public static unsafe class GICv3Lpi
 
             Serial.WriteString("[GICv3-LPI] firmware left LPIs enabled; CES=1, disabling to reprogram\n");
             Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr & ~GICR_CTLR_ENABLE_LPIS);
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < RegisterSyncSpinLimit; i++)
             {
                 if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
                 {
@@ -136,8 +148,7 @@ public static unsafe class GICv3Lpi
 
         // Property table — 1 byte per INTID, 4KB-aligned. Allocate 4 pages
         // (16 KiB == 2^14) → covers IDbits=13.
-        const uint propPages = 4;
-        _propTableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, propPages, zero: true);
+        _propTableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, PropTablePages, zero: true);
         if (_propTableVirt == 0)
         {
             Serial.WriteString("[GICv3-LPI] ERROR: prop table alloc failed\n");
@@ -148,8 +159,7 @@ public static unsafe class GICv3Lpi
         // Pending table — bits, 64 KiB-aligned. Over-allocate so we can
         // pick a 64KB-aligned starting page from the contiguous run.
         // 32 pages = 128 KiB guarantees one 64KB-aligned 64KB chunk inside.
-        const uint pendOverPages = 32;
-        ulong pendBlockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pendOverPages, zero: true);
+        ulong pendBlockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, PendTableOverAllocPages, zero: true);
         if (pendBlockVirt == 0)
         {
             Serial.WriteString("[GICv3-LPI] ERROR: pend table alloc failed\n");
@@ -179,7 +189,7 @@ public static unsafe class GICv3Lpi
         Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr);
 
         // Wait for RWP to clear.
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
             {
@@ -200,11 +210,11 @@ public static unsafe class GICv3Lpi
     /// </summary>
     public static void EnableLpi(uint lpi)
     {
-        if (!_initialized || lpi < 8192)
+        if (!_initialized || lpi < LpiBaseIntId)
         {
             return;
         }
-        uint off = lpi - 8192;
+        uint off = lpi - LpiBaseIntId;
         if (off >= LpiCount)
         {
             return;
@@ -219,7 +229,7 @@ public static unsafe class GICv3Lpi
         // the cached LPI configuration.
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_rdBase + GICR_INVLPIR, lpi);
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if (Native.MMIO.Read32(_rdBase + GICR_SYNCR) == 0)
             {
@@ -231,11 +241,11 @@ public static unsafe class GICv3Lpi
     /// <summary>Disable an LPI in the config table.</summary>
     public static void DisableLpi(uint lpi)
     {
-        if (!_initialized || lpi < 8192)
+        if (!_initialized || lpi < LpiBaseIntId)
         {
             return;
         }
-        uint off = lpi - 8192;
+        uint off = lpi - LpiBaseIntId;
         if (off >= LpiCount)
         {
             return;
@@ -244,7 +254,7 @@ public static unsafe class GICv3Lpi
         cfg[off] = (byte)(LPI_PRIO_DEFAULT & ~LPI_CFG_ENABLE);
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_rdBase + GICR_INVLPIR, lpi);
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if (Native.MMIO.Read32(_rdBase + GICR_SYNCR) == 0)
             {

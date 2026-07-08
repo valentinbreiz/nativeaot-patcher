@@ -24,6 +24,9 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </summary>
 public class InterruptEvent
 {
+    /// <summary>Initial waiter-list capacity: pre-sized so Wait's first Add doesn't heap-allocate under the IRQ-off spinlock; driver flows park at most one or two waiters.</summary>
+    private const int InitialWaiterCapacity = 4;
+
     private SpinLock _lockGuard;
     private uint _pendingSignals;
     private readonly List<SchedThread> _waiters;
@@ -36,7 +39,7 @@ public class InterruptEvent
         // (an allocation there can trigger GC, making the IRQ-off window
         // unbounded). More than 4 simultaneous waiters would still grow
         // the list under the lock; driver flows park at most one or two.
-        _waiters = new List<SchedThread>(4);
+        _waiters = new List<SchedThread>(InitialWaiterCapacity);
     }
 
     /// <summary>

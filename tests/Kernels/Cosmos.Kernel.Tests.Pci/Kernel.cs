@@ -20,11 +20,26 @@ public class Kernel : Sys.Kernel
     // here and the device tests skip cleanly.
     private const string SkipNoDevice = "no PCI devices enumerated — host bridge / ECAM not discovered";
 
+    /// <summary>Number of tests announced to the runner in TR.Start.</summary>
+    private const int ExpectedTestCount = 6;
+
+    /// <summary>All-ones vendor/device id returned by an unmapped or empty config-space read (PCI spec: 0xFFFF = no device).</summary>
+    private const ushort AllOnesId = 0xFFFF;
+
+    /// <summary>All-zeros vendor id, the pattern seen when a config-space read hits stale/zeroed memory instead of the device.</summary>
+    private const ushort AllZerosVendorId = 0x0000;
+
+    /// <summary>Highest spec-defined PCI base class code (0x00..0x13 per PCI-SIG class code list; 0xFF is "unassigned").</summary>
+    private const byte MaxDefinedClassCode = 0x13;
+
+    /// <summary>Vendor ID register offset in PCI configuration space (16-bit, offset 0x00).</summary>
+    private const byte VendorIdRegisterOffset = 0x00;
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[Pci] BeforeRun() reached!\n");
 
-        TR.Start("PCI Subsystem Tests", expectedTests: 6);
+        TR.Start("PCI Subsystem Tests", expectedTests: ExpectedTestCount);
 
         s_firstDevice = PciManager.Count > 0 ? PciManager.Devices![0] : null;
         bool anyDevice = s_firstDevice != null;
@@ -84,12 +99,12 @@ public class Kernel : Sys.Kernel
 
     private static void TestConfigSpace_VendorIdNotAllOnes()
     {
-        Assert.True(s_firstDevice!.VendorId != 0xFFFF && s_firstDevice.VendorId != 0x0000);
+        Assert.True(s_firstDevice!.VendorId != AllOnesId && s_firstDevice.VendorId != AllZerosVendorId);
     }
 
     private static void TestConfigSpace_DeviceIdNotAllOnes()
     {
-        Assert.True(s_firstDevice!.DeviceId != 0xFFFF);
+        Assert.True(s_firstDevice!.DeviceId != AllOnesId);
     }
 
     private static void TestConfigSpace_ClassCodeInRange()
@@ -98,7 +113,7 @@ public class Kernel : Sys.Kernel
         // reserved for "unassigned". Anything outside means the byte we
         // read is not a real class code (typically a stale-cache or
         // unmapped read returning all-ones).
-        Assert.True(s_firstDevice!.ClassCode <= 0x13);
+        Assert.True(s_firstDevice!.ClassCode <= MaxDefinedClassCode);
     }
 
     private static void TestConfigSpace_VendorReadStable()
@@ -107,8 +122,8 @@ public class Kernel : Sys.Kernel
         // mappings (one read hits cached zeros, the next hits real config),
         // and catches register-side-effect bugs in ReadRegister16 (it must
         // be a pure read, not advance any internal pointer).
-        ushort first = s_firstDevice!.ReadRegister16(0x00);
-        ushort second = s_firstDevice.ReadRegister16(0x00);
+        ushort first = s_firstDevice!.ReadRegister16(VendorIdRegisterOffset);
+        ushort second = s_firstDevice.ReadRegister16(VendorIdRegisterOffset);
         Assert.Equal(first, second);
     }
 }

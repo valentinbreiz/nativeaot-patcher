@@ -26,12 +26,42 @@ namespace Cosmos.Kernel.Tests.Interrupts;
 // stays covered by the Storage suite's NVMe assertions.
 public class Kernel : Sys.Kernel
 {
+    /// <summary>Total tests per cell: 6 cross-arch + 6 arch-specific.</summary>
+    private const int ExpectedTestCount = 12;
+
+    /// <summary>First vector of the dynamic MSI/MSI-X allocation window [0x40, 0xFE].</summary>
+    private const byte DynamicVectorFirst = 0x40;
+    /// <summary>Last vector of the dynamic MSI/MSI-X allocation window [0x40, 0xFE].</summary>
+    private const byte DynamicVectorLast = 0xFE;
+    /// <summary>Capacity of the scratch array used to drain the dynamic vector window; covers every possible byte vector.</summary>
+    private const int VectorDrainCapacity = 256;
+
+    /// <summary>Scheduler sleep duration exercised by the timer-IRQ wake test (ms).</summary>
+    private const int SleepDurationMs = 200;
+    /// <summary>Lower bound the measured sleep must reach to prove the timer IRQ actually elapsed it (ms).</summary>
+    private const int MinMeasuredSleepMs = 100;
+    /// <summary>Milliseconds per second — converts Stopwatch ticks to milliseconds.</summary>
+    private const int MillisecondsPerSecond = 1000;
+
+    /// <summary>Entry count of the fake MSI-X table used for bounds probing (also the first out-of-range index).</summary>
+    private const int MsiXProbeEntryCount = 2;
+    /// <summary>In-range entry index the MSI-X mask/unmask accessors are exercised on.</summary>
+    private const int MsiXProbeEntryIndex = 1;
+    /// <summary>Byte offset of probe entry 1 in the MSI-X table (index × 16-byte entry stride, PCI 3.0 §6.8.2).</summary>
+    private const int MsiXProbeEntryOffset = 16;
+    /// <summary>Vector Control register offset within an MSI-X table entry (PCI 3.0 §6.8.2).</summary>
+    private const int MsiXVectorControlOffset = 12;
+    /// <summary>Mask bit (bit 0) of the MSI-X Vector Control register.</summary>
+    private const uint MsiXVectorControlMaskBit = 1;
+    /// <summary>Out-of-range entry index used to probe UnmaskEntry rejection.</summary>
+    private const int MsiXOutOfRangeIndex = 5;
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
         // 6 cross-arch + 6 arch-specific = 12 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 12);
+        TR.Start("Interrupt System Tests", expectedTests: ExpectedTestCount);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
@@ -118,9 +148,9 @@ public class Kernel : Sys.Kernel
         byte v2 = InterruptManager.AllocateVector(NoopHandler);
         byte v3 = InterruptManager.AllocateVector(NoopHandler);
 
-        Assert.True(v1 >= 0x40 && v1 <= 0xFE, "vector 1 should be in the dynamic range");
-        Assert.True(v2 >= 0x40 && v2 <= 0xFE, "vector 2 should be in the dynamic range");
-        Assert.True(v3 >= 0x40 && v3 <= 0xFE, "vector 3 should be in the dynamic range");
+        Assert.True(v1 >= DynamicVectorFirst && v1 <= DynamicVectorLast, "vector 1 should be in the dynamic range");
+        Assert.True(v2 >= DynamicVectorFirst && v2 <= DynamicVectorLast, "vector 2 should be in the dynamic range");
+        Assert.True(v3 >= DynamicVectorFirst && v3 <= DynamicVectorLast, "vector 3 should be in the dynamic range");
         Assert.True(v1 != v2 && v2 != v3 && v1 != v3, "allocated vectors must be distinct");
     }
 
@@ -134,10 +164,10 @@ public class Kernel : Sys.Kernel
     private static void TestTimerInterruptWakesSleepingThread()
     {
         long start = Stopwatch.GetTimestamp();
-        SysThread.Sleep(200);
+        SysThread.Sleep(SleepDurationMs);
         long end = Stopwatch.GetTimestamp();
 
-        long elapsedMs = (end - start) * 1000 / Stopwatch.Frequency;
+        long elapsedMs = (end - start) * MillisecondsPerSecond / Stopwatch.Frequency;
         Serial.WriteString("[Interrupts] Sleep(200ms) measured ms: ");
         Serial.WriteNumber((ulong)elapsedMs);
         Serial.WriteString("\n");
@@ -149,7 +179,7 @@ public class Kernel : Sys.Kernel
         // especially), and the failure an upper bound would catch — a dead
         // IRQ path — never returns at all, which the engine's suite
         // timeout already converts into a failure.
-        Assert.True(elapsedMs >= 100,
+        Assert.True(elapsedMs >= MinMeasuredSleepMs,
             "a 200ms scheduler sleep should resume via the timer IRQ, not return early");
     }
 
@@ -160,7 +190,7 @@ public class Kernel : Sys.Kernel
     // allocator.
     private static void TestVectorAllocatorReusesFreedSlots()
     {
-        byte[] allocated = new byte[256];
+        byte[] allocated = new byte[VectorDrainCapacity];
         int count = 0;
         while (count < allocated.Length)
         {
@@ -219,17 +249,17 @@ public class Kernel : Sys.Kernel
         void* table = PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
         Assert.True(table != null, "probe table allocation must succeed");
 
-        MsiXContext ctx = new MsiXContext((ulong)table, 2, null);
+        MsiXContext ctx = new MsiXContext((ulong)table, MsiXProbeEntryCount, null);
 
         // In-range accessors keep programming VectorControl (offset 12).
-        MsiX.MaskEntry(ctx, 1);
-        Assert.True(*(uint*)((byte*)table + 16 + 12) == 1, "in-range MaskEntry must set the mask bit");
-        MsiX.UnmaskEntry(ctx, 1);
-        Assert.True(*(uint*)((byte*)table + 16 + 12) == 0, "in-range UnmaskEntry must clear the mask bit");
+        MsiX.MaskEntry(ctx, MsiXProbeEntryIndex);
+        Assert.True(*(uint*)((byte*)table + MsiXProbeEntryOffset + MsiXVectorControlOffset) == MsiXVectorControlMaskBit, "in-range MaskEntry must set the mask bit");
+        MsiX.UnmaskEntry(ctx, MsiXProbeEntryIndex);
+        Assert.True(*(uint*)((byte*)table + MsiXProbeEntryOffset + MsiXVectorControlOffset) == 0, "in-range UnmaskEntry must clear the mask bit");
 
-        bool maskHigh = MsiXMaskRejects(ctx, 2);
+        bool maskHigh = MsiXMaskRejects(ctx, MsiXProbeEntryCount);
         bool maskNegative = MsiXMaskRejects(ctx, -1);
-        bool unmaskHigh = MsiXUnmaskRejects(ctx, 5);
+        bool unmaskHigh = MsiXUnmaskRejects(ctx, MsiXOutOfRangeIndex);
         PageAllocator.Free(table);
 
         Assert.True(maskHigh, "MaskEntry must reject index == EntryCount");
@@ -305,6 +335,20 @@ public class Kernel : Sys.Kernel
     // decisively: with P(round < 2ms) = 0.2 per round, 8 fast rounds is a
     // ~6e-4 fluke.
     private const int IrqLatencyFastRoundsRequired = 8;
+    /// <summary>Delay giving the waiter several full quanta to actually park in Blocked before the self-IPI fires (ms).</summary>
+    private const uint WaiterParkDelayMs = 30;
+    /// <summary>Drain delay letting the exited waiter's async thread-exit bookkeeping finish before the vector is freed (ms).</summary>
+    private const uint WaiterExitDrainMs = 200;
+    /// <summary>Microseconds per second — converts Stopwatch ticks to microseconds.</summary>
+    private const int MicrosecondsPerSecond = 1_000_000;
+    /// <summary>Mask isolating the fixed window of an x64 MSI doorbell address (Intel SDM message address, bits 31:20).</summary>
+    private const ulong MsiAddressWindowMask = 0xFFF00000UL;
+    /// <summary>LAPIC MSI doorbell base — the 0xFEE message address window (Intel SDM Vol. 3, 11.11.1).</summary>
+    private const ulong LapicMsiAddressBase = 0xFEE00000UL;
+    /// <summary>Bit position of the destination APIC ID field in the MSI message address (Intel SDM Vol. 3, 11.11.1).</summary>
+    private const int MsiDestinationIdShift = 12;
+    /// <summary>Width mask of the destination APIC ID field in the MSI message address (8 bits).</summary>
+    private const int MsiDestinationIdMask = 0xFF;
     private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _wakeEvent;
     private static volatile bool _waiterReady;
     private static volatile bool _waiterDone;
@@ -341,7 +385,7 @@ public class Kernel : Sys.Kernel
             // Give the waiter a few full quanta to actually park (Blocked):
             // a signal latched before it blocks would measure ~0 and mask
             // the very latency this cell pins down.
-            TimerManager.Wait(30);
+            TimerManager.Wait(WaiterParkDelayMs);
 
             long signalTicks = Stopwatch.GetTimestamp();
             LocalApic.SendSelfIpi(vector);
@@ -352,7 +396,7 @@ public class Kernel : Sys.Kernel
             }
 
             long latency = _wakeTimestamp - signalTicks;
-            if (latency * 1_000_000 / Stopwatch.Frequency < IrqLatencyFastUs)
+            if (latency * MicrosecondsPerSecond / Stopwatch.Frequency < IrqLatencyFastUs)
             {
                 fastRounds++;
             }
@@ -370,10 +414,10 @@ public class Kernel : Sys.Kernel
         {
             // waiter finishing its last round
         }
-        TimerManager.Wait(200);
+        TimerManager.Wait(WaiterExitDrainMs);
         InterruptManager.FreeVector(vector);
 
-        long worstUs = worstTicks * 1_000_000 / Stopwatch.Frequency;
+        long worstUs = worstTicks * MicrosecondsPerSecond / Stopwatch.Frequency;
         Serial.WriteString("[Interrupts] fast rounds: ");
         Serial.WriteNumber((ulong)fastRounds);
         Serial.WriteString("/");
@@ -396,8 +440,8 @@ public class Kernel : Sys.Kernel
     {
         MsiRouting.BindEntry(null, 0, NoopHandler, 0, out ulong address, out uint data);
 
-        Assert.True((address & 0xFFF00000UL) == 0xFEE00000UL, "MSI doorbell must sit in the LAPIC address window");
-        byte destination = (byte)((address >> 12) & 0xFF);
+        Assert.True((address & MsiAddressWindowMask) == LapicMsiAddressBase, "MSI doorbell must sit in the LAPIC address window");
+        byte destination = (byte)((address >> MsiDestinationIdShift) & MsiDestinationIdMask);
         Assert.True(destination == LocalApic.GetId(), "MSI destination must be the running CPU's actual APIC ID, not its index");
         Assert.True(data != 0, "MSI data must carry the allocated vector");
     }
@@ -427,7 +471,7 @@ public class Kernel : Sys.Kernel
     {
         InterruptManager.FreeVector(LocalApic.TIMER_VECTOR);
 
-        byte[] allocated = new byte[256];
+        byte[] allocated = new byte[VectorDrainCapacity];
         int count = 0;
         bool timerVectorHandedOut = false;
         while (count < allocated.Length)

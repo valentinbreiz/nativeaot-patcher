@@ -70,6 +70,9 @@ public abstract class BlockDevice : Device, IBlockDevice
     // "n" + 10 digits) plus a partition suffix ("p" + 10 digits).
     private const int MaxNameLength = 48;
 
+    /// <summary>Radix used when converting a number to its decimal digits.</summary>
+    private const uint DecimalBase = 10;
+
     private static int Append(Span<char> buffer, int pos, string text)
     {
         for (int i = 0; i < text.Length; i++)
@@ -91,8 +94,8 @@ public abstract class BlockDevice : Device, IBlockDevice
         int start = pos;
         while (value != 0)
         {
-            buffer[pos++] = (char)('0' + value % 10);
-            value /= 10;
+            buffer[pos++] = (char)('0' + value % DecimalBase);
+            value /= DecimalBase;
         }
 
         for (int i = start, j = pos - 1; i < j; i++, j--)

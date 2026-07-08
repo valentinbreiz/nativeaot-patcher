@@ -25,6 +25,103 @@ namespace DevKernel;
 /// </summary>
 public class Kernel : Sys.Kernel
 {
+    /// <summary>Length of the "echo " command prefix stripped before echoing the argument text.</summary>
+    private const int EchoPrefixLength = 5;
+    /// <summary>Column width (chars) used to pad command names and info labels in shell output.</summary>
+    private const int LabelColumnWidth = 14;
+    /// <summary>Column width (chars) used to pad the labels of the diskinfo listing.</summary>
+    private const int DiskLabelColumnWidth = 17;
+    /// <summary>Column width (chars) used to left-pad GC configuration variable names in the gcvar listing.</summary>
+    private const int GcVarNameColumnWidth = 15;
+    /// <summary>Field alignment (chars) for byte-count values in the live GC info overlay.</summary>
+    private const int GcInfoValueAlignment = 15;
+    /// <summary>Field alignment (chars) for the GC time percentage in the live GC info overlay.</summary>
+    private const int GcInfoPercentAlignment = 3;
+    /// <summary>Field alignment (chars) for collection/object counters in the live GC info overlay.</summary>
+    private const int GcInfoCountAlignment = 6;
+
+    /// <summary>Milliseconds in one second; delay of each countdown step of the timer test.</summary>
+    private const uint OneSecondMs = 1000;
+    /// <summary>Number of seconds counted down by the timer test.</summary>
+    private const int CountdownStartSeconds = 10;
+    /// <summary>Delay (ms) after starting the test thread so its output can appear.</summary>
+    private const uint ThreadTestWaitMs = 2000;
+    /// <summary>Timeout (ms) when waiting for a DNS response.</summary>
+    private const int DnsReceiveTimeoutMs = 5000;
+    /// <summary>Delay (ms) between refreshes of the live GC info overlay.</summary>
+    private const int GcInfoFrameDelayMs = 250;
+    /// <summary>Delay (ms) between frames drawn by the graphics worker thread.</summary>
+    private const int GraphicsFrameDelayMs = 100;
+
+    /// <summary>Bytes per kibibyte; applied twice for MiB conversions.</summary>
+    private const ulong BytesPerKiB = 1024;
+    /// <summary>Nanoseconds per millisecond, for converting scheduler times to ms.</summary>
+    private const ulong NsPerMs = 1_000_000;
+    /// <summary>Scale factor for expressing a ratio as a percentage.</summary>
+    private const ulong PercentScale = 100;
+    /// <summary>Memory usage percentage below which usage is shown in green.</summary>
+    private const ulong MemoryUsageWarnPercent = 50;
+    /// <summary>Memory usage percentage below which usage is shown in yellow (red at or above).</summary>
+    private const ulong MemoryUsageCriticalPercent = 80;
+
+    /// <summary>Left/top margin (pixels) of text drawn on graphics overlays.</summary>
+    private const int TextMarginPx = 10;
+    /// <summary>Vertical spacing (pixels) added below the font height for each text row.</summary>
+    private const int LineSpacingPx = 2;
+    /// <summary>Width (pixels) of the startx info panel.</summary>
+    private const int PanelWidthPx = 360;
+    /// <summary>Number of text rows in the startx info panel.</summary>
+    private const int PanelRowCount = 9;
+    /// <summary>Extra vertical padding (pixels) of the startx info panel.</summary>
+    private const int PanelPaddingPx = 8;
+    /// <summary>Frame interval at which the startx loop triggers a heap collection.</summary>
+    private const int GfxGcCollectFrameInterval = 100;
+    /// <summary>Frame interval at which the live GC info overlay collects and samples Gen0 stats.</summary>
+    private const int GcInfoCollectFrameInterval = 50;
+
+    /// <summary>Number of phases in the graphics worker color cycle (six 10-phase segments).</summary>
+    private const int ColorCyclePhaseCount = 60;
+    /// <summary>Number of phases per color-cycle segment (one channel ramp).</summary>
+    private const int PhaseSegmentLength = 10;
+    /// <summary>Color channel increment per phase (~255 / 10) within a segment.</summary>
+    private const int PhaseColorStep = 25;
+    /// <summary>Maximum value of an 8-bit color channel.</summary>
+    private const int ColorChannelMax = 255;
+    /// <summary>Bit position of the red channel in a 0x00RRGGBB pixel value.</summary>
+    private const int RedShiftBits = 16;
+    /// <summary>Bit position of the green channel in a 0x00RRGGBB pixel value.</summary>
+    private const int GreenShiftBits = 8;
+
+    /// <summary>First octet of the QEMU user-networking (SLIRP) 10.0.2.0/24 subnet.</summary>
+    private const byte QemuNetOctet1 = 10;
+    /// <summary>Second octet of the QEMU user-networking (SLIRP) 10.0.2.0/24 subnet.</summary>
+    private const byte QemuNetOctet2 = 0;
+    /// <summary>Third octet of the QEMU user-networking (SLIRP) 10.0.2.0/24 subnet.</summary>
+    private const byte QemuNetOctet3 = 2;
+    /// <summary>Host octet of the default QEMU guest IP (10.0.2.15).</summary>
+    private const byte QemuGuestHostOctet = 15;
+    /// <summary>Host octet of the QEMU user-networking gateway IP (10.0.2.2).</summary>
+    private const byte QemuGatewayHostOctet = 2;
+    /// <summary>Fully-masked octet of the /24 subnet mask (255.255.255.0).</summary>
+    private const byte SubnetMaskFullOctet = 255;
+    /// <summary>Unmasked host octet of the /24 subnet mask (255.255.255.0).</summary>
+    private const byte SubnetMaskHostOctet = 0;
+    /// <summary>Octet value of the Cloudflare public DNS resolver 1.1.1.1.</summary>
+    private const byte CloudflareDnsOctet = 1;
+    /// <summary>UDP port used for the netsend/netlisten test traffic.</summary>
+    private const ushort TestUdpPort = 5555;
+    /// <summary>First printable ASCII code (space); lower bound of the payload dump filter.</summary>
+    private const int AsciiPrintableMin = 32;
+    /// <summary>ASCII DEL code; exclusive upper bound of the payload dump filter.</summary>
+    private const int AsciiPrintableLimit = 127;
+    /// <summary>Maximum UDP payload bytes echoed to the console per packet.</summary>
+    private const int UdpPreviewMaxBytes = 64;
+
+    /// <summary>Number of bytes hex-dumped by the diskread command.</summary>
+    private const int HexDumpLengthBytes = 64;
+    /// <summary>Number of bytes shown per line of the diskread hex dump.</summary>
+    private const int HexDumpBytesPerLine = 16;
+
     private string _prompt = "cosmos";
 
     protected override void BeforeRun()
@@ -96,7 +193,7 @@ public class Kernel : Sys.Kernel
                 case "echo":
                     if (parts.Length > 1)
                     {
-                        Console.WriteLine(trimmed.Substring(5));
+                        Console.WriteLine(trimmed.Substring(EchoPrefixLength));
                     }
 
                     break;
@@ -233,7 +330,7 @@ public class Kernel : Sys.Kernel
                 case "gcvar":
                     foreach (KeyValuePair<string, object> varable in GC.GetConfigurationVariables())
                     {
-                        Console.WriteLine(varable.Key.PadLeft(15) + ":" + varable.Value.ToString());
+                        Console.WriteLine(varable.Key.PadLeft(GcVarNameColumnWidth) + ":" + varable.Value.ToString());
                     }
                     break;
 
@@ -258,11 +355,11 @@ public class Kernel : Sys.Kernel
                     // Set up mouse for cursor
                     Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
 
-                    int x = 10;
-                    int y = 10;
-                    int lineHeight = font.Height + 2;
-                    int panelWidth = 360;
-                    int panelHeight = lineHeight * 9 + 8;
+                    int x = TextMarginPx;
+                    int y = TextMarginPx;
+                    int lineHeight = font.Height + LineSpacingPx;
+                    int panelWidth = PanelWidthPx;
+                    int panelHeight = lineHeight * PanelRowCount + PanelPaddingPx;
 
                     while (true)
                     {
@@ -300,11 +397,11 @@ public class Kernel : Sys.Kernel
 
                         canvas.DrawString("Meminfo", font, Color.Cyan, x, rowY);
                         rowY += lineHeight;
-                        canvas.DrawString("Total: " + (totalBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        canvas.DrawString("Total: " + (totalBytes / BytesPerKiB / BytesPerKiB) + " MB", font, Color.White, x, rowY);
                         rowY += lineHeight;
-                        canvas.DrawString("Used : " + (usedBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        canvas.DrawString("Used : " + (usedBytes / BytesPerKiB / BytesPerKiB) + " MB", font, Color.White, x, rowY);
                         rowY += lineHeight;
-                        canvas.DrawString("Free : " + (freeBytes / 1024 / 1024) + " MB", font, Color.White, x, rowY);
+                        canvas.DrawString("Free : " + (freeBytes / BytesPerKiB / BytesPerKiB) + " MB", font, Color.White, x, rowY);
                         rowY += lineHeight;
                         canvas.DrawString("Pages: " + usedPages + "/" + totalPages, font, Color.White, x, rowY);
                         rowY += lineHeight * 2;
@@ -321,7 +418,7 @@ public class Kernel : Sys.Kernel
                         // Draw mouse cursor
                         DrawMouseCursor(canvas, Cosmos.Kernel.System.Mouse.MouseManager.X, Cosmos.Kernel.System.Mouse.MouseManager.Y);
 
-                        if (frames % 100 == 0)
+                        if (frames % GfxGcCollectFrameInterval == 0)
                         {
                             Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
                         }
@@ -365,8 +462,8 @@ public class Kernel : Sys.Kernel
         uint frames = 0;
         long sizeBefore = 0, sizeAfter = 0, sizeDelta = 0, maxDeltaSize = 0, fragBefore = 0, fragAfter = 0;
         long commitedMax = 0;
-        int x = 10;
-        int lineHeight = font.Height + 2;
+        int x = TextMarginPx;
+        int lineHeight = font.Height + LineSpacingPx;
 
         while (!Console.KeyAvailable || Console.ReadKey(true).Key != ConsoleKey.Escape)
         {
@@ -381,7 +478,7 @@ public class Kernel : Sys.Kernel
 
             GCMemoryInfo info = GC.GetGCMemoryInfo();
 
-            int rowY = 10;
+            int rowY = TextMarginPx;
             canvas.DrawString($"GC Info ({frames})", font, Color.Cyan, x, rowY);
             rowY += lineHeight;
             canvas.DrawString($"Size values are in bytes, ESC to exit;", font, Color.Cyan, x, rowY);
@@ -389,38 +486,38 @@ public class Kernel : Sys.Kernel
 
             commitedMax = Math.Max(commitedMax, info.TotalCommittedBytes);
 
-            canvas.DrawString($"RamSize         : {PageAllocator.RamSize,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"RamSize         : {PageAllocator.RamSize,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Fragmented      : {info.FragmentedBytes,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Fragmented      : {info.FragmentedBytes,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Committed       : {info.TotalCommittedBytes,15}; max size  : {commitedMax,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Committed       : {info.TotalCommittedBytes,GcInfoValueAlignment}; max size  : {commitedMax,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Promoted        : {info.PromotedBytes,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Promoted        : {info.PromotedBytes,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Pinned          : {info.PinnedObjectsCount,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Pinned          : {info.PinnedObjectsCount,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Collections     : {info.Index,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Collections     : {info.Index,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Condemned gen   : {info.Generation,15}", font, Color.White, x, rowY);
+            canvas.DrawString($"Condemned gen   : {info.Generation,GcInfoValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
 
             // last gen before/after
-            canvas.DrawString($"Gen0 size before: {sizeBefore,15}; size after: {sizeAfter,15}", font, Color.Yellow, x, rowY);
+            canvas.DrawString($"Gen0 size before: {sizeBefore,GcInfoValueAlignment}; size after: {sizeAfter,GcInfoValueAlignment}", font, Color.Yellow, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Gen0 size delta : {sizeDelta,15}; max size  : {maxDeltaSize,15}", font, Color.Yellow, x, rowY);
+            canvas.DrawString($"Gen0 size delta : {sizeDelta,GcInfoValueAlignment}; max size  : {maxDeltaSize,GcInfoValueAlignment}", font, Color.Yellow, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Frag size before: {fragBefore,15}; size after: {fragAfter,15}", font, Color.Yellow, x, rowY);
+            canvas.DrawString($"Frag size before: {fragBefore,GcInfoValueAlignment}; size after: {fragAfter,GcInfoValueAlignment}", font, Color.Yellow, x, rowY);
             rowY += lineHeight;
-            canvas.DrawString($"Frag size delta : {fragAfter - fragBefore,15}", font, Color.Yellow, x, rowY);
+            canvas.DrawString($"Frag size delta : {fragAfter - fragBefore,GcInfoValueAlignment}", font, Color.Yellow, x, rowY);
             rowY += lineHeight;
 
             int pct = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetLastGCPercentTimeInGC();
             Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
-            canvas.DrawString($"Last GC % time in GC: {pct,3}%, Collections: {totalCollections,6}, Objects Freed: {totalObjectsFreed,6}", font, Color.Green, x, rowY); rowY += lineHeight;
+            canvas.DrawString($"Last GC % time in GC: {pct,GcInfoPercentAlignment}%, Collections: {totalCollections,GcInfoCountAlignment}, Objects Freed: {totalObjectsFreed,GcInfoCountAlignment}", font, Color.Green, x, rowY); rowY += lineHeight;
 
-            if (frames % 50 == 0)
+            if (frames % GcInfoCollectFrameInterval == 0)
             {
                 Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
                 info = GC.GetGCMemoryInfo();
@@ -436,7 +533,7 @@ public class Kernel : Sys.Kernel
             canvas.Display();
 
             // simple frame pacing
-            System.Threading.Thread.Sleep(250);
+            System.Threading.Thread.Sleep(GcInfoFrameDelayMs);
         }
         Console.Clear();
     }
@@ -483,7 +580,7 @@ public class Kernel : Sys.Kernel
     private void PrintCommand(string cmd, string description)
     {
         Console.Write("  ");
-        Console.Write(cmd.PadRight(14));
+        Console.Write(cmd.PadRight(LabelColumnWidth));
         Console.WriteLine(description);
     }
 
@@ -516,7 +613,7 @@ public class Kernel : Sys.Kernel
     {
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write(label.PadRight(14));
+        Console.Write(label.PadRight(LabelColumnWidth));
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine(value);
         Console.ResetColor();
@@ -525,13 +622,13 @@ public class Kernel : Sys.Kernel
     private void RunTimerTest()
     {
         Console.WriteLine("Starting 10 second countdown...");
-        for (int i = 10; i > 0; i--)
+        for (int i = CountdownStartSeconds; i > 0; i--)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(i.ToString());
             Console.ResetColor();
             Console.WriteLine("...");
-            TimerManager.Wait(1000);
+            TimerManager.Wait(OneSecondMs);
         }
         PrintSuccess("Timer test complete!");
         Console.WriteLine();
@@ -553,7 +650,7 @@ public class Kernel : Sys.Kernel
         ulong freeBytes = freePages * pageSize;
         ulong usedBytes = usedPages * pageSize;
 
-        PrintInfoLine("Page Size", (pageSize / 1024).ToString() + " KB");
+        PrintInfoLine("Page Size", (pageSize / BytesPerKiB).ToString() + " KB");
         PrintInfoLine("Total Pages", totalPages.ToString());
         PrintInfoLine("Used Pages", usedPages.ToString());
         PrintInfoLine("Free Pages", freePages.ToString());
@@ -561,24 +658,24 @@ public class Kernel : Sys.Kernel
         Console.WriteLine();
 
         // Memory in MB
-        PrintInfoLine("Total Memory", (totalBytes / 1024 / 1024).ToString() + " MB");
-        PrintInfoLine("Used Memory", (usedBytes / 1024 / 1024).ToString() + " MB");
-        PrintInfoLine("Free Memory", (freeBytes / 1024 / 1024).ToString() + " MB");
+        PrintInfoLine("Total Memory", (totalBytes / BytesPerKiB / BytesPerKiB).ToString() + " MB");
+        PrintInfoLine("Used Memory", (usedBytes / BytesPerKiB / BytesPerKiB).ToString() + " MB");
+        PrintInfoLine("Free Memory", (freeBytes / BytesPerKiB / BytesPerKiB).ToString() + " MB");
 
         // Usage percentage
-        ulong usagePercent = totalPages > 0 ? (usedPages * 100) / totalPages : 0;
+        ulong usagePercent = totalPages > 0 ? (usedPages * PercentScale) / totalPages : 0;
 
         Console.WriteLine();
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write("Usage".PadRight(14));
+        Console.Write("Usage".PadRight(LabelColumnWidth));
 
         // Color based on usage
-        if (usagePercent < 50)
+        if (usagePercent < MemoryUsageWarnPercent)
         {
             Console.ForegroundColor = ConsoleColor.Green;
         }
-        else if (usagePercent < 80)
+        else if (usagePercent < MemoryUsageCriticalPercent)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
         }
@@ -606,14 +703,14 @@ public class Kernel : Sys.Kernel
 
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write("Status".PadRight(14));
+        Console.Write("Status".PadRight(LabelColumnWidth));
         Console.ForegroundColor = SchedulerManager.Enabled ? ConsoleColor.Green : ConsoleColor.Red;
         Console.WriteLine(SchedulerManager.Enabled ? "ENABLED" : "DISABLED");
         Console.ResetColor();
 
         PrintInfoLine("Scheduler", scheduler.Name);
         PrintInfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
-        PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / 1_000_000).ToString() + " ms");
+        PrintInfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / NsPerMs).ToString() + " ms");
         Console.WriteLine();
 
         for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
@@ -682,7 +779,7 @@ public class Kernel : Sys.Kernel
             Console.Write(" Pri=" + priority);
         }
 
-        ulong runtimeMs = thread.TotalRuntime / 1_000_000;
+        ulong runtimeMs = thread.TotalRuntime / NsPerMs;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write(" Run=" + runtimeMs + "ms");
 
@@ -705,7 +802,7 @@ public class Kernel : Sys.Kernel
         PrintSuccess("Thread started!");
         Console.WriteLine();
 
-        TimerManager.Wait(2000);
+        TimerManager.Wait(ThreadTestWaitMs);
     }
 
     private void StartGraphicsThread()
@@ -784,15 +881,15 @@ public class Kernel : Sys.Kernel
 
         while (true)
         {
-            int phase = frame % 60;
+            int phase = frame % ColorCyclePhaseCount;
             byte r, g, b;
 
-            if (phase < 10) { r = 255; g = (byte)(phase * 25); b = 0; }
-            else if (phase < 20) { r = (byte)(255 - (phase - 10) * 25); g = 255; b = 0; }
-            else if (phase < 30) { r = 0; g = 255; b = (byte)((phase - 20) * 25); }
-            else if (phase < 40) { r = 0; g = (byte)(255 - (phase - 30) * 25); b = 255; }
-            else if (phase < 50) { r = (byte)((phase - 40) * 25); g = 0; b = 255; }
-            else { r = 255; g = 0; b = (byte)(255 - (phase - 50) * 25); }
+            if (phase < PhaseSegmentLength) { r = ColorChannelMax; g = (byte)(phase * PhaseColorStep); b = 0; }
+            else if (phase < PhaseSegmentLength * 2) { r = (byte)(ColorChannelMax - (phase - PhaseSegmentLength) * PhaseColorStep); g = ColorChannelMax; b = 0; }
+            else if (phase < PhaseSegmentLength * 3) { r = 0; g = ColorChannelMax; b = (byte)((phase - PhaseSegmentLength * 2) * PhaseColorStep); }
+            else if (phase < PhaseSegmentLength * 4) { r = 0; g = (byte)(ColorChannelMax - (phase - PhaseSegmentLength * 3) * PhaseColorStep); b = ColorChannelMax; }
+            else if (phase < PhaseSegmentLength * 5) { r = (byte)((phase - PhaseSegmentLength * 4) * PhaseColorStep); g = 0; b = ColorChannelMax; }
+            else { r = ColorChannelMax; g = 0; b = (byte)(ColorChannelMax - (phase - PhaseSegmentLength * 5) * PhaseColorStep); }
 
             for (int dy = 0; dy < squareSize; dy++)
             {
@@ -800,17 +897,17 @@ public class Kernel : Sys.Kernel
                 {
                     int cx = dx - squareSize / 2;
                     int cy = dy - squareSize / 2;
-                    int dist = (cx * cx + cy * cy) * 255 / (squareSize * squareSize / 2);
-                    if (dist > 255)
+                    int dist = (cx * cx + cy * cy) * ColorChannelMax / (squareSize * squareSize / 2);
+                    if (dist > ColorChannelMax)
                     {
-                        dist = 255;
+                        dist = ColorChannelMax;
                     }
 
-                    int factor = 255 - dist / 2;
-                    byte pr = (byte)((r * factor) / 255);
-                    byte pg = (byte)((g * factor) / 255);
-                    byte pb = (byte)((b * factor) / 255);
-                    uint pixelColor = (uint)((pr << 16) | (pg << 8) | pb);
+                    int factor = ColorChannelMax - dist / 2;
+                    byte pr = (byte)((r * factor) / ColorChannelMax);
+                    byte pg = (byte)((g * factor) / ColorChannelMax);
+                    byte pb = (byte)((b * factor) / ColorChannelMax);
+                    uint pixelColor = (uint)((pr << RedShiftBits) | (pg << GreenShiftBits) | pb);
 
                     KernelConsole.Default.Canvas.DrawPoint(pixelColor, x + dx, y + dy);
                 }
@@ -818,7 +915,7 @@ public class Kernel : Sys.Kernel
 
             frame++;
             KernelConsole.Default.Canvas.Display();
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(GraphicsFrameDelayMs);
         }
     }
 
@@ -837,9 +934,9 @@ public class Kernel : Sys.Kernel
         }
 
         // Configure IP address (10.0.2.15 for QEMU user networking)
-        _localIP = new Address(10, 0, 2, 15);
-        _gatewayIP = new Address(10, 0, 2, 2);
-        var subnet = new Address(255, 255, 255, 0);
+        _localIP = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGuestHostOctet);
+        _gatewayIP = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGatewayHostOctet);
+        var subnet = new Address(SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskHostOctet);
 
         // Initialize network stack and configure IP with full config (subnet + gateway)
         // so that IPConfig.FindNetwork() can route outbound packets
@@ -874,19 +971,19 @@ public class Kernel : Sys.Kernel
 
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write("Link".PadRight(14));
+        Console.Write("Link".PadRight(LabelColumnWidth));
         Console.ForegroundColor = device.LinkUp ? ConsoleColor.Green : ConsoleColor.Red;
         Console.WriteLine(device.LinkUp ? "UP" : "DOWN");
 
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write("Ready".PadRight(14));
+        Console.Write("Ready".PadRight(LabelColumnWidth));
         Console.ForegroundColor = device.Ready ? ConsoleColor.Green : ConsoleColor.Red;
         Console.WriteLine(device.Ready ? "YES" : "NO");
 
         Console.Write("  ");
         Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write("Configured".PadRight(14));
+        Console.Write("Configured".PadRight(LabelColumnWidth));
         Console.ForegroundColor = _networkConfigured ? ConsoleColor.Green : ConsoleColor.Red;
         Console.WriteLine(_networkConfigured ? "YES" : "NO");
         Console.ResetColor();
@@ -930,8 +1027,8 @@ public class Kernel : Sys.Kernel
         var udpPacket = new UDPPacket(
             _localIP!,                           // Source IP
             _gatewayIP!,                         // Destination IP
-            5555,                                // Source port
-            5555,                                // Destination port
+            TestUdpPort,                         // Source port
+            TestUdpPort,                         // Destination port
             payload,                             // Data
             MACAddress.Broadcast                 // Destination MAC (broadcast)
         );
@@ -989,7 +1086,7 @@ public class Kernel : Sys.Kernel
         for (int i = 0; i < data.Length; i++)
         {
             char c = (char)data[i];
-            if (c >= 32 && c < 127)
+            if (c >= AsciiPrintableMin && c < AsciiPrintableLimit)
             {
                 Serial.Write(c.ToString());
             }
@@ -1005,10 +1102,10 @@ public class Kernel : Sys.Kernel
         Console.Write(" -> ");
         Console.ResetColor();
 
-        for (int i = 0; i < data.Length && i < 64; i++)
+        for (int i = 0; i < data.Length && i < UdpPreviewMaxBytes; i++)
         {
             char c = (char)data[i];
-            if (c >= 32 && c < 127)
+            if (c >= AsciiPrintableMin && c < AsciiPrintableLimit)
             {
                 Console.Write(c.ToString());
             }
@@ -1086,7 +1183,7 @@ public class Kernel : Sys.Kernel
         PrintInfo("Resolving " + domain + "...");
 
         // Configure DNS server (Cloudflare)
-        var dnsServer = new Address(1, 1, 1, 1);
+        var dnsServer = new Address(CloudflareDnsOctet, CloudflareDnsOctet, CloudflareDnsOctet, CloudflareDnsOctet);
         DNSConfig.Add(dnsServer);
 
         // Create DNS client and connect
@@ -1097,7 +1194,7 @@ public class Kernel : Sys.Kernel
         dnsClient.SendAsk(domain);
 
         // Wait for response (5 second timeout)
-        Address? resolvedIP = dnsClient.Receive(5000);
+        Address? resolvedIP = dnsClient.Receive(DnsReceiveTimeoutMs);
 
         if (resolvedIP != null && resolvedIP.Hash != 0)
         {
@@ -1141,13 +1238,13 @@ public class Kernel : Sys.Kernel
 
             ulong totalBytes = dev.BlockCount * dev.BlockSize;
             Console.WriteLine();
-            PrintInfoLine($"[{i}] Name".PadRight(17), dev.Name);
-            PrintInfoLine("    Block Size".PadRight(17), dev.BlockSize.ToString() + " B");
-            PrintInfoLine("    Block Count".PadRight(17), dev.BlockCount.ToString());
-            PrintInfoLine("    Capacity".PadRight(17), (totalBytes / 1024 / 1024).ToString() + " MiB");
+            PrintInfoLine($"[{i}] Name".PadRight(DiskLabelColumnWidth), dev.Name);
+            PrintInfoLine("    Block Size".PadRight(DiskLabelColumnWidth), dev.BlockSize.ToString() + " B");
+            PrintInfoLine("    Block Count".PadRight(DiskLabelColumnWidth), dev.BlockCount.ToString());
+            PrintInfoLine("    Capacity".PadRight(DiskLabelColumnWidth), (totalBytes / BytesPerKiB / BytesPerKiB).ToString() + " MiB");
             if (i == 0)
             {
-                PrintInfoLine("    Primary".PadRight(17), "yes");
+                PrintInfoLine("    Primary".PadRight(DiskLabelColumnWidth), "yes");
             }
         }
     }
@@ -1173,10 +1270,10 @@ public class Kernel : Sys.Kernel
         Console.WriteLine($"Block {lba} (first 64 bytes):");
         Console.ResetColor();
 
-        int show = (int)Math.Min((ulong)64, dev.BlockSize);
+        int show = (int)Math.Min((ulong)HexDumpLengthBytes, dev.BlockSize);
         for (int i = 0; i < show; i++)
         {
-            if (i > 0 && i % 16 == 0)
+            if (i > 0 && i % HexDumpBytesPerLine == 0)
             {
                 Console.WriteLine();
             }
@@ -1316,6 +1413,10 @@ public class Kernel : Sys.Kernel
 
     private const int CursorWidth = 10;
     private const int CursorHeight = 16;
+    /// <summary>Cursor pattern code for a border (black) pixel.</summary>
+    private const int CursorPatternBorder = 1;
+    /// <summary>Cursor pattern code for a fill (white) pixel.</summary>
+    private const int CursorPatternFill = 2;
 
     /// <summary>
     /// Draws a simple arrow mouse cursor.
@@ -1337,12 +1438,12 @@ public class Kernel : Sys.Kernel
                 }
 
                 int pixel = s_cursorPattern[cy * CursorWidth + cx];
-                if (pixel == 1)
+                if (pixel == CursorPatternBorder)
                 {
                     // Border (black)
                     canvas.DrawPoint(Color.Black, px, py);
                 }
-                else if (pixel == 2)
+                else if (pixel == CursorPatternFill)
                 {
                     // Fill (white)
                     canvas.DrawPoint(Color.White, px, py);

@@ -33,6 +33,15 @@ public static unsafe class DeviceMapper
     // 2 MiB alignment of a physical address (low 21 bits cleared).
     private const ulong Align2MiB = 0xFFFF_FFFF_FFE0_0000;
 
+    /// <summary>Right shift extracting the PML4 index from a virtual address (bits 47:39).</summary>
+    private const int Pml4Shift = 39;
+    /// <summary>Right shift extracting the PDPT index from a virtual address (bits 38:30).</summary>
+    private const int PdptShift = 30;
+    /// <summary>Right shift extracting the PD index from a virtual address (bits 29:21).</summary>
+    private const int PdShift = 21;
+    /// <summary>Mask isolating a 9-bit page-table index (512 entries per table).</summary>
+    private const ulong TableIndexMask = 0x1FF;
+
     /// <summary>
     /// Ensures the 2 MiB block containing <paramref name="physBase"/> is
     /// mapped at (phys + HHDM offset). No-op when the block is already
@@ -53,13 +62,13 @@ public static unsafe class DeviceMapper
         // The tables themselves live in low RAM, which the HHDM covers.
         ulong* pml4 = (ulong*)((X64CpuNative.ReadCr3() & AddrMask) + hhdm);
 
-        ulong* pdpt = GetOrCreateTable(pml4, (int)((virt >> 39) & 0x1FF), hhdm);
+        ulong* pdpt = GetOrCreateTable(pml4, (int)((virt >> Pml4Shift) & TableIndexMask), hhdm);
         if (pdpt == null)
         {
             return;
         }
 
-        int pdptIndex = (int)((virt >> 30) & 0x1FF);
+        int pdptIndex = (int)((virt >> PdptShift) & TableIndexMask);
         ulong pdptEntry = pdpt[pdptIndex];
         if ((pdptEntry & FlagPresent) != 0 && (pdptEntry & FlagPageSize) != 0)
         {
@@ -73,7 +82,7 @@ public static unsafe class DeviceMapper
             return;
         }
 
-        int pdIndex = (int)((virt >> 21) & 0x1FF);
+        int pdIndex = (int)((virt >> PdShift) & TableIndexMask);
         if ((pd[pdIndex] & FlagPresent) != 0)
         {
             // A 2 MiB page or a 4 KiB table already maps this block.

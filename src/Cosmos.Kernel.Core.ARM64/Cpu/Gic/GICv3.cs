@@ -15,9 +15,14 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// </summary>
 public static class GICv3
 {
+    /// <summary>Default GICD (distributor) base address on the QEMU virt machine.</summary>
+    private const ulong QemuVirtGicdBase = 0x08000000;
+    /// <summary>Default GICR (redistributor) base address on the QEMU virt machine.</summary>
+    private const ulong QemuVirtGicrBase = 0x080A0000;
+
     // Default QEMU virt machine GICv3 base addresses (overridable via Configure)
-    private static ulong _gicDistBase = 0x08000000;
-    private static ulong _gicReDistBase = 0x080A0000;
+    private static ulong _gicDistBase = QemuVirtGicdBase;
+    private static ulong _gicReDistBase = QemuVirtGicrBase;
 
     // Discovered redistributor base for the current CPU (found by TYPER walk)
     private static ulong _currentCpuRdBase;
@@ -70,6 +75,68 @@ public static class GICv3
 
     // Redistributor stride: each CPU gets RD_base (64KB) + SGI_base (64KB) = 128KB
     private const ulong GICR_STRIDE = 0x20000;
+
+    /// <summary>GICD_TYPER.ITLinesNumber field mask (bits [4:0]).</summary>
+    private const uint GicdTyperItLinesMask = 0x1F;
+    /// <summary>Interrupts covered per 32-bit enable/pending/group bitmap register, and per GICD_TYPER.ITLinesNumber unit.</summary>
+    private const uint IntsPerBitmapReg = 32;
+    /// <summary>Byte stride between consecutive 32-bit GIC registers.</summary>
+    private const uint RegStrideBytes = 4;
+    /// <summary>Interrupt priorities packed per 32-bit IPRIORITYR register (one byte each).</summary>
+    private const uint PrioritiesPerReg = 4;
+    /// <summary>Interrupts configured per 32-bit ICFGR register (2 bits each).</summary>
+    private const uint IntsPerCfgReg = 16;
+    /// <summary>Configuration bits per interrupt in ICFGR registers.</summary>
+    private const uint CfgBitsPerInt = 2;
+    /// <summary>ICFGR per-interrupt field value selecting edge-triggered (bit 1 of the 2-bit field).</summary>
+    private const uint IcfgrEdgeTriggered = 2u;
+    /// <summary>Byte stride of GICD_IROUTER entries (64-bit register per SPI).</summary>
+    private const uint IRouterEntryBytes = 8;
+    /// <summary>All-ones mask covering every interrupt in a 32-bit bitmap register.</summary>
+    private const uint AllIntsMask = 0xFFFFFFFF;
+    /// <summary>Default priority 0xA0 replicated for the four interrupts of one IPRIORITYR register.</summary>
+    private const uint DefaultPriorityPattern = 0xA0A0A0A0;
+
+    /// <summary>Mask keeping Aff3[39:32], Aff2[23:16], Aff1[15:8], Aff0[7:0] of MPIDR_EL1 (drops RES0, MT, U).</summary>
+    private const ulong MpidrAffinityMask = 0xFF00FFFFFFul;
+    /// <summary>Bit position of the Affinity_Value field in GICR_TYPER (bits [63:32]).</summary>
+    private const int GicrTyperAffShift = 32;
+    /// <summary>Safety limit on the number of redistributor frames walked during TYPER discovery.</summary>
+    private const int MaxRedistFrames = 256;
+
+    /// <summary>ICC_SRE_EL1.SRE bit - enables system register access to the CPU interface.</summary>
+    private const uint IccSreSreBit = 0x1;
+    /// <summary>ICC_PMR_EL1 value allowing all interrupt priorities (lowest possible mask).</summary>
+    private const uint PriorityMaskAllowAll = 0xFF;
+    /// <summary>ICC_IAR1_EL1 INTID field mask (24 bits wide, so LPIs up to 16777215 are not truncated).</summary>
+    private const uint Iar1IntIdMask = 0xFFFFFF;
+    /// <summary>ICC_HPPIR1_EL1 INTID mask (10 bits, SGI/PPI/SPI range).</summary>
+    private const uint Hppir1IntIdMask = 0x3FF;
+
+    /// <summary>Mask limiting an SGI number to its 4-bit range (0-15).</summary>
+    private const uint SgiIdMask = 0xF;
+    /// <summary>Bit position of the INTID field in ICC_SGI1R_EL1 (bits [27:24]).</summary>
+    private const int Sgi1rIntIdShift = 24;
+    /// <summary>ICC_SGI1R_EL1.IRM bit (bit 40): route to all PEs other than self.</summary>
+    private const ulong Sgi1rIrmBit = (1ul << 40);
+    /// <summary>ICC_SGI1R_EL1 TargetList bit for CPU 0 (self on the boot CPU).</summary>
+    private const ulong Sgi1rTargetListCpu0 = 1;
+
+    /// <summary>GICD_PIDR2 offset in the GICv2-compatible 4KB register frame.</summary>
+    private const uint Pidr2OffsetGicv2 = 0xFE8;
+    /// <summary>GICD_PIDR2 offset in the GICv3 64KB register frame.</summary>
+    private const uint Pidr2OffsetGicv3 = 0xFFE8;
+    /// <summary>Bit position of the ArchRev field in GICD_PIDR2 (bits [7:4]).</summary>
+    private const int Pidr2ArchRevShift = 4;
+    /// <summary>ArchRev field mask (4 bits) in GICD_PIDR2.</summary>
+    private const uint Pidr2ArchRevMask = 0xF;
+    /// <summary>Minimum GICD_PIDR2.ArchRev value indicating a GICv3 implementation.</summary>
+    private const uint Gicv3MinArchRev = 3;
+
+    /// <summary>Spin iterations allowed for GICR_WAKER.ChildrenAsleep to clear (generous for real hardware).</summary>
+    private const uint RedistWakeTimeoutIterations = 10000000;
+    /// <summary>Spin iterations allowed for GICD_CTLR.RWP to clear after a distributor write.</summary>
+    private const uint RwpTimeoutIterations = 1000000;
 
     // Interrupt type constants (same as GICv2)
     public const uint SGI_START = 0;              // Software Generated Interrupts (0-15)
@@ -157,8 +224,8 @@ public static class GICv3
         uint typer = ReadDistributor(GICD_TYPER);
         Serial.Write("[GIC] GICD_TYPER=0x");
         Serial.WriteHex(typer);
-        uint itLinesNumber = typer & 0x1F;
-        uint maxInterrupts = 32 * (itLinesNumber + 1);
+        uint itLinesNumber = typer & GicdTyperItLinesMask;
+        uint maxInterrupts = IntsPerBitmapReg * (itLinesNumber + 1);
         Serial.Write(" Max interrupts: ");
         Serial.WriteNumber(maxInterrupts);
         Serial.Write("\n");
@@ -180,20 +247,20 @@ public static class GICv3
 
         // Step 5: Configure all SPIs - disable, clear pending, set priority
         Serial.Write("[GIC] Configuring SPIs...\n");
-        for (uint i = SPI_START; i < maxInterrupts; i += 32)
+        for (uint i = SPI_START; i < maxInterrupts; i += IntsPerBitmapReg)
         {
-            WriteDistributor(GICD_ICENABLER + ((i / 32) * 4), 0xFFFFFFFF);
-            WriteDistributor(GICD_ICPENDR + ((i / 32) * 4), 0xFFFFFFFF);
+            WriteDistributor(GICD_ICENABLER + ((i / IntsPerBitmapReg) * RegStrideBytes), AllIntsMask);
+            WriteDistributor(GICD_ICPENDR + ((i / IntsPerBitmapReg) * RegStrideBytes), AllIntsMask);
         }
 
-        for (uint i = SPI_START; i < maxInterrupts; i += 4)
+        for (uint i = SPI_START; i < maxInterrupts; i += PrioritiesPerReg)
         {
-            WriteDistributor(GICD_IPRIORITYR + i, 0xA0A0A0A0);
+            WriteDistributor(GICD_IPRIORITYR + i, DefaultPriorityPattern);
         }
 
-        for (uint i = SPI_START; i < maxInterrupts; i += 16)
+        for (uint i = SPI_START; i < maxInterrupts; i += IntsPerCfgReg)
         {
-            WriteDistributor(GICD_ICFGR + ((i / 16) * 4), 0);
+            WriteDistributor(GICD_ICFGR + ((i / IntsPerCfgReg) * RegStrideBytes), 0);
         }
         Serial.Write("[GIC] SPIs configured\n");
 
@@ -210,7 +277,7 @@ public static class GICv3
         Serial.Write("[GIC] Routing SPIs...\n");
         for (uint i = SPI_START; i < maxInterrupts; i++)
         {
-            WriteDistributor64(GICD_IROUTER + ((i - SPI_START) * 8), affinity);
+            WriteDistributor64(GICD_IROUTER + ((i - SPI_START) * IRouterEntryBytes), affinity);
         }
         Serial.Write("[GIC] SPIs routed\n");
 
@@ -272,15 +339,15 @@ public static class GICv3
         Serial.WriteHex(sre);
         Serial.Write("\n");
 
-        if ((sre & 0x1) == 0)
+        if ((sre & IccSreSreBit) == 0)
         {
             // Enable SRE bit
-            sre |= 0x1;
+            sre |= IccSreSreBit;
             GICv3Native.WriteSre(sre);
 
             // Verify it took effect
             sre = GICv3Native.ReadSre();
-            if ((sre & 0x1) == 0)
+            if ((sre & IccSreSreBit) == 0)
             {
                 Serial.Write("[GIC] WARNING: Failed to enable ICC_SRE_EL1.SRE\n");
             }
@@ -305,7 +372,7 @@ public static class GICv3
         // MPIDR_EL1: Aff3[39:32], Aff2[23:16], Aff1[15:8], Aff0[7:0]
         // IROUTER:    Aff3[39:32], Aff2[23:16], Aff1[15:8], Aff0[7:0]
         // They share the same layout for the affinity fields
-        return mpidr & 0xFF00FFFFFFul; // mask out non-affinity bits (RES0, MT, U)
+        return mpidr & MpidrAffinityMask; // mask out non-affinity bits (RES0, MT, U)
     }
 
     /// <summary>
@@ -320,12 +387,12 @@ public static class GICv3
         ulong rdBase = _gicReDistBase;
 
         // Walk redistributor frames using GICR_TYPER.Last bit
-        for (int i = 0; i < 256; i++) // safety limit
+        for (int i = 0; i < MaxRedistFrames; i++) // safety limit
         {
             ulong typer = ReadRedistributor64(rdBase, GICR_TYPER);
 
             // GICR_TYPER affinity is in bits [39:32][23:8] → same layout as MPIDR
-            ulong rdAff = typer >> 32;
+            ulong rdAff = typer >> GicrTyperAffShift;
             // Shift to match: GICR_TYPER[63:32] contains Aff3[31:24]|0[23]|Aff2[20:16]|Aff1[15:8]|Aff0[7:0]
             // Actually GICR_TYPER bits [39:32] = Aff3, [31:24]=Aff2(??).. let's use the spec:
             // GICR_TYPER: [63:32] = Affinity_Value (Aff3[63:56] Aff2[55:48] Aff1[47:40] Aff0[39:32])
@@ -333,7 +400,7 @@ public static class GICv3
             // Actually: GICR_TYPER[63:32] = Aff3[63:56] | res0[55:48] | Aff2[47:40] | Aff1[39:32]
             // Wait - let's just compare directly with MPIDR masked:
             // GICR_TYPER affinity in bits[39:32] = Aff0, [47:40] = Aff1, [55:48] = Aff2, [63:56] = Aff3
-            ulong rdAffValue = (typer >> 32) & 0xFF00FFFFFFul;
+            ulong rdAffValue = (typer >> GicrTyperAffShift) & MpidrAffinityMask;
 
             Serial.Write("[GIC] RD@0x");
             Serial.WriteHex(rdBase);
@@ -384,7 +451,7 @@ public static class GICv3
         WriteRedistributor(rdBase, GICR_WAKER, waker);
 
         // Wait for children to wake up (with generous timeout for real hardware)
-        uint timeout = 10000000;
+        uint timeout = RedistWakeTimeoutIterations;
         while ((ReadRedistributor(rdBase, GICR_WAKER) & GICR_WAKER_CHILDREN_ASLEEP) != 0)
         {
             if (--timeout == 0)
@@ -395,19 +462,19 @@ public static class GICv3
         }
 
         // Set all SGIs/PPIs to Group 1 Non-Secure
-        WriteRedistributor(sgiBase, GICR_IGROUPR0, 0xFFFFFFFF);
+        WriteRedistributor(sgiBase, GICR_IGROUPR0, AllIntsMask);
         WriteRedistributor(sgiBase, GICR_IGRPMODR0, 0x00000000);
 
         // Disable all SGIs and PPIs
-        WriteRedistributor(sgiBase, GICR_ICENABLER0, 0xFFFFFFFF);
+        WriteRedistributor(sgiBase, GICR_ICENABLER0, AllIntsMask);
 
         // Clear all pending
-        WriteRedistributor(sgiBase, GICR_ICPENDR0, 0xFFFFFFFF);
+        WriteRedistributor(sgiBase, GICR_ICPENDR0, AllIntsMask);
 
         // Set default priority for all SGIs and PPIs
-        for (uint i = 0; i < 32; i += 4)
+        for (uint i = 0; i < SPI_START; i += PrioritiesPerReg)
         {
-            WriteRedistributor(sgiBase, GICR_IPRIORITYR + i, 0xA0A0A0A0);
+            WriteRedistributor(sgiBase, GICR_IPRIORITYR + i, DefaultPriorityPattern);
         }
 
         // Configure SGIs as edge-triggered, PPIs as level-triggered
@@ -428,7 +495,7 @@ public static class GICv3
         GICv3Native.WriteIgrpen1(0);
 
         // Set priority mask to allow all priorities
-        GICv3Native.WritePmr(0xFF);
+        GICv3Native.WritePmr(PriorityMaskAllowAll);
 
         // Set binary point to 0
         GICv3Native.WriteBpr1(0);
@@ -457,14 +524,14 @@ public static class GICv3
         if (intId < SPI_START)
         {
             // SGI/PPI: use redistributor SGI_base frame
-            uint bit = 1u << (int)(intId % 32);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteRedistributor(_currentCpuSgiBase, GICR_ISENABLER0, bit);
         }
         else
         {
             // SPI: use distributor
-            uint regOffset = GICD_ISENABLER + ((intId / 32) * 4);
-            uint bit = 1u << (int)(intId % 32);
+            uint regOffset = GICD_ISENABLER + ((intId / IntsPerBitmapReg) * RegStrideBytes);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteDistributor(regOffset, bit);
         }
 
@@ -487,13 +554,13 @@ public static class GICv3
 
         if (intId < SPI_START)
         {
-            uint bit = 1u << (int)(intId % 32);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteRedistributor(_currentCpuSgiBase, GICR_ICENABLER0, bit);
         }
         else
         {
-            uint regOffset = GICD_ICENABLER + ((intId / 32) * 4);
-            uint bit = 1u << (int)(intId % 32);
+            uint regOffset = GICD_ICENABLER + ((intId / IntsPerBitmapReg) * RegStrideBytes);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteDistributor(regOffset, bit);
         }
     }
@@ -546,7 +613,7 @@ public static class GICv3
     /// <returns>The interrupt ID, or 1023 if spurious.</returns>
     public static uint AcknowledgeInterrupt()
     {
-        return GICv3Native.ReadIar1() & 0xFFFFFF;
+        return GICv3Native.ReadIar1() & Iar1IntIdMask;
     }
 
     /// <summary>
@@ -570,19 +637,19 @@ public static class GICv3
         if (!_mmioAvailable)
         {
             // Best effort: check if the highest pending interrupt matches
-            uint hppir = GICv3Native.ReadHppir1() & 0x3FF;
+            uint hppir = GICv3Native.ReadHppir1() & Hppir1IntIdMask;
             return hppir == intId;
         }
 
         if (intId < SPI_START)
         {
-            uint bit = 1u << (int)(intId % 32);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             return (ReadRedistributor(_currentCpuSgiBase, GICR_ISPENDR0) & bit) != 0;
         }
         else
         {
-            uint regOffset = GICD_ISPENDR + ((intId / 32) * 4);
-            uint bit = 1u << (int)(intId % 32);
+            uint regOffset = GICD_ISPENDR + ((intId / IntsPerBitmapReg) * RegStrideBytes);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             return (ReadDistributor(regOffset) & bit) != 0;
         }
     }
@@ -601,13 +668,13 @@ public static class GICv3
 
         if (intId < SPI_START)
         {
-            uint bit = 1u << (int)(intId % 32);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteRedistributor(_currentCpuSgiBase, GICR_ICPENDR0, bit);
         }
         else
         {
-            uint regOffset = GICD_ICPENDR + ((intId / 32) * 4);
-            uint bit = 1u << (int)(intId % 32);
+            uint regOffset = GICD_ICPENDR + ((intId / IntsPerBitmapReg) * RegStrideBytes);
+            uint bit = 1u << (int)(intId % IntsPerBitmapReg);
             WriteDistributor(regOffset, bit);
         }
     }
@@ -628,36 +695,36 @@ public static class GICv3
         if (intId < SPI_START)
         {
             // SGI/PPI: use redistributor
-            uint regIdx = intId < 16 ? 0u : 1u;
+            uint regIdx = intId < PPI_START ? 0u : 1u;
             uint regOffset = (regIdx == 0) ? GICR_ICFGR0 : GICR_ICFGR1;
-            uint localId = intId - (regIdx * 16);
-            uint shift = localId * 2;
+            uint localId = intId - (regIdx * IntsPerCfgReg);
+            uint shift = localId * CfgBitsPerInt;
             uint value = ReadRedistributor(_currentCpuSgiBase, regOffset);
 
             if (edgeTriggered)
             {
-                value |= (2u << (int)shift);
+                value |= (IcfgrEdgeTriggered << (int)shift);
             }
             else
             {
-                value &= ~(2u << (int)shift);
+                value &= ~(IcfgrEdgeTriggered << (int)shift);
             }
 
             WriteRedistributor(_currentCpuSgiBase, regOffset, value);
         }
         else
         {
-            uint regOffset = GICD_ICFGR + ((intId / 16) * 4);
-            uint shift = (intId % 16) * 2;
+            uint regOffset = GICD_ICFGR + ((intId / IntsPerCfgReg) * RegStrideBytes);
+            uint shift = (intId % IntsPerCfgReg) * CfgBitsPerInt;
             uint value = ReadDistributor(regOffset);
 
             if (edgeTriggered)
             {
-                value |= (2u << (int)shift);
+                value |= (IcfgrEdgeTriggered << (int)shift);
             }
             else
             {
-                value &= ~(2u << (int)shift);
+                value &= ~(IcfgrEdgeTriggered << (int)shift);
             }
 
             WriteDistributor(regOffset, value);
@@ -676,17 +743,17 @@ public static class GICv3
         // [27:24] = INTID (SGI number)
         // [40]    = IRM (1 = all other PEs, 0 = use target list)
         // [15:0]  = TargetList (bit mask of target CPUs in lowest affinity level)
-        ulong value = ((ulong)(sgiId & 0xF) << 24);
+        ulong value = ((ulong)(sgiId & SgiIdMask) << Sgi1rIntIdShift);
 
         if (targetSelf)
         {
             // Target self: set TargetList bit 0 (assumes CPU 0)
-            value |= 1;
+            value |= Sgi1rTargetListCpu0;
         }
         else
         {
             // Broadcast to all other PEs
-            value |= (1ul << 40); // IRM = 1
+            value |= Sgi1rIrmBit; // IRM = 1
         }
 
         GICv3Native.WriteSgi1r(value);
@@ -706,9 +773,9 @@ public static class GICv3
         unsafe
         {
             // Step 1: Read PIDR2 at GICv2 offset (0xFE8) - always within 4KB, safe for both v2 and v3
-            uint* ptr = (uint*)(distBase + 0xFE8);
+            uint* ptr = (uint*)(distBase + Pidr2OffsetGicv2);
             uint pidr2 = System.Threading.Volatile.Read(ref *ptr);
-            uint archRev = (pidr2 >> 4) & 0xF;
+            uint archRev = (pidr2 >> Pidr2ArchRevShift) & Pidr2ArchRevMask;
 
             Serial.Write("[GIC] PIDR2@0xFE8=0x");
             Serial.WriteHex(pidr2);
@@ -719,7 +786,7 @@ public static class GICv3
                 Serial.Write(" ArchRev=");
                 Serial.WriteNumber(archRev);
                 Serial.Write("\n");
-                return archRev >= 3;
+                return archRev >= Gicv3MinArchRev;
             }
 
             // Step 2: PIDR2 at 0xFE8 returned 0 - this happens on GICv3 where
@@ -727,9 +794,9 @@ public static class GICv3
             // This is safe because if 0xFE8 returned 0 (not faulted), the region
             // is mapped to at least 4KB, and a GICv3 maps 64KB.
             Serial.Write(" (zero, trying 0xFFE8)\n");
-            ptr = (uint*)(distBase + 0xFFE8);
+            ptr = (uint*)(distBase + Pidr2OffsetGicv3);
             pidr2 = System.Threading.Volatile.Read(ref *ptr);
-            archRev = (pidr2 >> 4) & 0xF;
+            archRev = (pidr2 >> Pidr2ArchRevShift) & Pidr2ArchRevMask;
 
             Serial.Write("[GIC] PIDR2@0xFFE8=0x");
             Serial.WriteHex(pidr2);
@@ -737,14 +804,14 @@ public static class GICv3
             Serial.WriteNumber(archRev);
             Serial.Write("\n");
 
-            return archRev >= 3;
+            return archRev >= Gicv3MinArchRev;
         }
     }
 
     // Wait for distributor write to complete
     private static void WaitForDistributorWrite()
     {
-        uint timeout = 1000000;
+        uint timeout = RwpTimeoutIterations;
         while ((ReadDistributor(GICD_CTLR) & GICD_CTLR_RWP) != 0)
         {
             if (--timeout == 0)

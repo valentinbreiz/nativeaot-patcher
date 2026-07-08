@@ -46,6 +46,69 @@ public unsafe class NvmeController
     private const uint IoQueueId = 1;
     private const ulong PageSize = 4096;
 
+    /// <summary>Size of one Submission Queue Entry in bytes (NVMe 1.4 §4.2, fixed 64-byte SQE).</summary>
+    private const int SqeSizeBytes = 64;
+    /// <summary>Size of one Completion Queue Entry in bytes (NVMe 1.4 §4.6, fixed 16-byte CQE).</summary>
+    private const int CqeSizeBytes = 16;
+    /// <summary>Bytes per 64-bit word, used when zeroing a page one ulong at a time.</summary>
+    private const int BytesPerUlong = 8;
+
+    /// <summary>CC.EN — controller enable bit (bit 0 of the CC register).</summary>
+    private const uint CcEnable = 1u;
+    /// <summary>CC.IOSQES — log2 of the I/O SQ entry size (6 → 64-byte SQE).</summary>
+    private const uint CcIoSqes = 6u;
+    /// <summary>Bit position of the CC.IOSQES field (bits [19:16]).</summary>
+    private const int CcIoSqesShift = 16;
+    /// <summary>CC.IOCQES — log2 of the I/O CQ entry size (4 → 16-byte CQE).</summary>
+    private const uint CcIoCqes = 4u;
+    /// <summary>Bit position of the CC.IOCQES field (bits [23:20]).</summary>
+    private const int CcIoCqesShift = 20;
+    /// <summary>CSTS.RDY — controller ready bit (bit 0 of the CSTS register).</summary>
+    private const uint CstsReady = 1u;
+    /// <summary>INTMS value masking every pin-based interrupt vector (all 32 bits set).</summary>
+    private const uint IntmsMaskAllVectors = 0xFFFFFFFF;
+    /// <summary>Bit position of the AQA.ACQS field (admin CQ size, bits [27:16]).</summary>
+    private const int AqaAcqsShift = 16;
+
+    /// <summary>CAP.TO unit in milliseconds (NVMe 1.4 §3.1.1: TO counts 500 ms units).</summary>
+    private const uint CapToUnitMs = 500;
+    /// <summary>Microseconds per millisecond, for converting the 1 ms poll step to DelayMicroseconds units.</summary>
+    private const uint MicrosecondsPerMillisecond = 1000;
+    /// <summary>Spin/wait budget (iterations) before a command completion is declared timed out.</summary>
+    private const int CommandTimeoutSpinCount = 50_000_000;
+
+    /// <summary>Mask selecting the low 32 bits of the starting LBA for CDW10 (NVMe 1.4 §6.9, SLBA[31:0]).</summary>
+    private const uint LbaLowDwordMask = 0xFFFFFFFF;
+    /// <summary>Right-shift extracting the high 32 bits of the starting LBA for CDW11 (SLBA[63:32]).</summary>
+    private const int LbaHighDwordShift = 32;
+    /// <summary>Bit position of the queue-size-minus-one field in Create IO CQ/SQ CDW10 (bits [31:16]).</summary>
+    private const int CreateQueueCdw10SizeShift = 16;
+    /// <summary>Bit position of the interrupt vector field in Create IO CQ CDW11 (IV, bits [31:16]).</summary>
+    private const int Cdw11IvShift = 16;
+    /// <summary>IEN — interrupts enabled flag in Create IO CQ CDW11 (bit 1).</summary>
+    private const uint Cdw11InterruptEnable = 1u << 1;
+    /// <summary>PC — physically contiguous flag in Create IO CQ/SQ CDW11 (bit 0).</summary>
+    private const uint Cdw11PhysicallyContiguous = 1u;
+    /// <summary>Bit position of the completion queue ID field in Create IO SQ CDW11 (CQID, bits [31:16]).</summary>
+    private const int Cdw11CqidShift = 16;
+    /// <summary>Minimum MSI-X table size needed to park the I/O CQ on entry 1, away from admin IV 0.</summary>
+    private const int MsiXMinEntriesForDedicatedIoVector = 2;
+
+    /// <summary>Maximum NSIDs returned by Identify Active Namespace List (one 4 KiB page of 32-bit NSIDs).</summary>
+    private const int MaxActiveNamespaceIds = 1024;
+    /// <summary>Byte offset of FLBAS in the Identify Namespace data structure (NVMe 1.4 §5.15.2).</summary>
+    private const int IdentifyNsFlbasOffset = 26;
+    /// <summary>FLBAS bits [3:0] — index of the active LBA Format.</summary>
+    private const int FlbasFormatIndexMask = 0x0F;
+    /// <summary>Byte offset of the LBA Format table in the Identify Namespace data structure.</summary>
+    private const int IdentifyNsLbafTableOffset = 128;
+    /// <summary>Size of one LBA Format descriptor in bytes (MS in bytes 0-1, LBADS in byte 2).</summary>
+    private const int LbafEntrySizeBytes = 4;
+    /// <summary>Byte offset of the LBADS field within an LBA Format descriptor.</summary>
+    private const int LbafLbadsOffset = 2;
+    /// <summary>Minimum LBADS allowed by NVMe 1.4 (2^9 = 512-byte logical blocks).</summary>
+    private const int MinSupportedLbads = 9;
+
     /// <summary>
     /// Per-CID bookkeeping for in-flight I/O commands. Each slot carries
     /// its own bounce buffer so multiple namespaces (or threads) can hold
@@ -177,7 +240,7 @@ public unsafe class NvmeController
         // spurious-interrupt source on any platform where that GSI is
         // unmasked or shared. MSI-X, when it comes up later, is unaffected
         // by INTMS, and MsiX.Enable also sets PCI Command.InterruptDisable.
-        _regs.INTMS = 0xFFFFFFFF;
+        _regs.INTMS = IntmsMaskAllVectors;
 
         Serial.WriteString("[NVMe] Controller ready\n");
 
@@ -222,7 +285,7 @@ public unsafe class NvmeController
         // after MSI-X enable fires OnIoCompletion spuriously. Entry 0
         // stays masked (admin commands are polled), so admin completions
         // interrupt nobody.
-        _ioMsiXEntry = _msiX.EntryCount >= 2 ? 1 : 0;
+        _ioMsiXEntry = _msiX.EntryCount >= MsiXMinEntriesForDedicatedIoVector ? 1 : 0;
         MsiX.SetEntry(_msiX, _ioMsiXEntry, OnIoCompletion);
         _msiXEnabled = true;
 
@@ -234,9 +297,9 @@ public unsafe class NvmeController
     private void DisableController()
     {
         uint cc = _regs.CC;
-        if ((cc & 1) != 0)
+        if ((cc & CcEnable) != 0)
         {
-            _regs.CC = cc & ~1u;
+            _regs.CC = cc & ~CcEnable;
         }
 
         WaitForReady(expected: false, "[NVMe] Timeout waiting for CSTS.RDY=0");
@@ -245,7 +308,7 @@ public unsafe class NvmeController
     private void EnableController()
     {
         // CC.IOSQES=6 (64-byte SQE), CC.IOCQES=4 (16-byte CQE), CC.MPS=0 (4K), CC.CSS=0, EN=1
-        uint cc = (6u << 16) | (4u << 20) | 1u;
+        uint cc = (CcIoSqes << CcIoSqesShift) | (CcIoCqes << CcIoCqesShift) | CcEnable;
         _regs.CC = cc;
 
         WaitForReady(expected: true, "[NVMe] Timeout waiting for CSTS.RDY=1");
@@ -258,10 +321,10 @@ public unsafe class NvmeController
     private void WaitForReady(bool expected, string timeoutMessage)
     {
         // At least one 500 ms unit even if a controller reports TO=0.
-        uint budgetMs = (_regs.TO == 0 ? 1 : _regs.TO) * 500;
+        uint budgetMs = (_regs.TO == 0 ? 1 : _regs.TO) * CapToUnitMs;
         for (uint elapsedMs = 0; ; elapsedMs++)
         {
-            if (((_regs.CSTS & 1) != 0) == expected)
+            if (((_regs.CSTS & CstsReady) != 0) == expected)
             {
                 return;
             }
@@ -271,7 +334,7 @@ public unsafe class NvmeController
                 throw new Exception(timeoutMessage);
             }
 
-            PlatformHAL.Initializer?.DelayMicroseconds(1000);
+            PlatformHAL.Initializer?.DelayMicroseconds(MicrosecondsPerMillisecond);
         }
     }
 
@@ -286,7 +349,7 @@ public unsafe class NvmeController
         _adminCqPhase = true;
 
         // AQA: ACQS in [27:16], ASQS in [11:0], both 0-based.
-        _regs.AQA = ((AdminQueueDepth - 1) << 16) | (AdminQueueDepth - 1);
+        _regs.AQA = ((AdminQueueDepth - 1) << AqaAcqsShift) | (AdminQueueDepth - 1);
         _regs.ASQ = _adminSqPhys;
         _regs.ACQ = _adminCqPhys;
     }
@@ -299,7 +362,7 @@ public unsafe class NvmeController
     {
         ushort cid = _adminCmdId++;
 
-        NvmeSqe sqe = new(_adminSqVirt + (ulong)_adminSqTail * 64);
+        NvmeSqe sqe = new(_adminSqVirt + (ulong)_adminSqTail * SqeSizeBytes);
         sqe.SetOpcode(opcode, cid);
         sqe.SetNsid(nsid);
         sqe.SetPrp1(prp1);
@@ -529,13 +592,13 @@ public unsafe class NvmeController
             _submitSqLock.Acquire();
             try
             {
-                NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+                NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * SqeSizeBytes);
                 sqe.SetOpcode(opcode, cid);
                 sqe.SetNsid(nsid);
                 sqe.SetPrp1(slot.DmaBufferPhys);
                 sqe.SetPrp2(0);
-                sqe.SetCdw10((uint)(lba & 0xFFFFFFFF));
-                sqe.SetCdw11((uint)(lba >> 32));
+                sqe.SetCdw10((uint)(lba & LbaLowDwordMask));
+                sqe.SetCdw11((uint)(lba >> LbaHighDwordShift));
                 sqe.SetCdw12(numLogicalBlocksMinusOne);
 
                 _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
@@ -553,7 +616,7 @@ public unsafe class NvmeController
             // a lost or misrouted MSI-X message must surface as the same
             // timeout exception (the caller's catch quarantines the slot)
             // instead of parking the thread forever with no diagnostic.
-            if (!slot.Done.Wait(50_000_000))
+            if (!slot.Done.Wait(CommandTimeoutSpinCount))
             {
                 throw new Exception("[NVMe] Timeout waiting for command completion");
             }
@@ -566,13 +629,13 @@ public unsafe class NvmeController
         _polledIoMutex.Acquire();
         try
         {
-            NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * 64);
+            NvmeSqe sqe = new(_ioSqVirt + (ulong)_ioSqTail * SqeSizeBytes);
             sqe.SetOpcode(opcode, cid);
             sqe.SetNsid(nsid);
             sqe.SetPrp1(slot.DmaBufferPhys);
             sqe.SetPrp2(0);
-            sqe.SetCdw10((uint)(lba & 0xFFFFFFFF));
-            sqe.SetCdw11((uint)(lba >> 32));
+            sqe.SetCdw10((uint)(lba & LbaLowDwordMask));
+            sqe.SetCdw11((uint)(lba >> LbaHighDwordShift));
             sqe.SetCdw12(numLogicalBlocksMinusOne);
 
             _ioSqTail = (_ioSqTail + 1) % IoQueueDepth;
@@ -607,7 +670,7 @@ public unsafe class NvmeController
         bool drained = false;
         while (true)
         {
-            NvmeCqe cqe = new(_ioCqVirt + (ulong)_ioCqHead * 16);
+            NvmeCqe cqe = new(_ioCqVirt + (ulong)_ioCqHead * CqeSizeBytes);
             if (cqe.Phase != _ioCqPhase)
             {
                 break;
@@ -646,7 +709,7 @@ public unsafe class NvmeController
         uint spin = 0;
         while (true)
         {
-            NvmeCqe cqe = new(cqBase + (ulong)head * 16);
+            NvmeCqe cqe = new(cqBase + (ulong)head * CqeSizeBytes);
             if (cqe.Phase == expectedPhase)
             {
                 // Read barrier: the phase bit is device-written; the rest of
@@ -680,7 +743,7 @@ public unsafe class NvmeController
                 return sc;
             }
 
-            if (++spin > 50_000_000)
+            if (++spin > CommandTimeoutSpinCount)
             {
                 throw new Exception("[NVMe] Timeout waiting for command completion");
             }
@@ -719,9 +782,9 @@ public unsafe class NvmeController
             // per-namespace identifies — RegisterNamespace overwrites the
             // page, so we cannot iterate nsidList in place.
             uint* nsidList = (uint*)identifyVirt;
-            Span<uint> nsids = stackalloc uint[1024];
+            Span<uint> nsids = stackalloc uint[MaxActiveNamespaceIds];
             int nsCount = 0;
-            for (int i = 0; i < 1024; i++)
+            for (int i = 0; i < MaxActiveNamespaceIds; i++)
             {
                 uint nsid = nsidList[i];
                 if (nsid == 0)
@@ -763,12 +826,12 @@ public unsafe class NvmeController
             return;
         }
         // FLBAS (1 byte, offset 26): bits [3:0] are the active LBA Format index.
-        byte flbas = *(byte*)(identifyVirt + 26);
-        int lbafIndex = flbas & 0x0F;
+        byte flbas = *(byte*)(identifyVirt + IdentifyNsFlbasOffset);
+        int lbafIndex = flbas & FlbasFormatIndexMask;
         // LBAF entries start at offset 128, each 4 bytes: MS in bytes 0-1, LBADS in byte 2.
-        ulong lbafEntry = identifyVirt + 128 + (ulong)(lbafIndex * 4);
+        ulong lbafEntry = identifyVirt + IdentifyNsLbafTableOffset + (ulong)(lbafIndex * LbafEntrySizeBytes);
         ushort metadataSize = *(ushort*)lbafEntry;
-        byte lbads = *(byte*)(lbafEntry + 2);
+        byte lbads = *(byte*)(lbafEntry + LbafLbadsOffset);
         ulong blockSize = 1UL << lbads;
 
         // The single-PRP data path moves at most one 4 KiB page per command
@@ -780,7 +843,7 @@ public unsafe class NvmeController
         // zeroed LBAF entry would otherwise register a blockSize=1
         // namespace and partition scanning would issue nonsense
         // sub-sector I/O against it.
-        if (lbads < 9 || metadataSize != 0 || blockSize > PageSize)
+        if (lbads < MinSupportedLbads || metadataSize != 0 || blockSize > PageSize)
         {
             Serial.WriteString("[NVMe] Skipping namespace nsid=");
             Serial.WriteNumber(nsid);
@@ -816,8 +879,8 @@ public unsafe class NvmeController
         // Create IO Completion Queue first — Create IO SQ refers to it.
         // CDW10: bits [31:16] = qsize-1, bits [15:0] = qid
         // CDW11: bits [31:16] = IV (interrupt vector), bit 1 = IEN, bit 0 = PC
-        uint cqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
-        uint cqCdw11 = _msiXEnabled ? (((uint)_ioMsiXEntry << 16) | (1u << 1) | 1u) : 1u;
+        uint cqCdw10 = ((IoQueueDepth - 1) << CreateQueueCdw10SizeShift) | IoQueueId;
+        uint cqCdw11 = _msiXEnabled ? (((uint)_ioMsiXEntry << Cdw11IvShift) | Cdw11InterruptEnable | Cdw11PhysicallyContiguous) : Cdw11PhysicallyContiguous;
         uint sc = SubmitAdmin(NvmeAdminOp.CreateIoCq, nsid: 0, prp1: _ioCqPhys, cdw10: cqCdw10, cdw11: cqCdw11, cdw12: 0);
         if (sc != 0)
         {
@@ -826,8 +889,8 @@ public unsafe class NvmeController
 
         // Create IO Submission Queue. CDW11: bit 0 = PC, bits [2:1] = QPRIO (0=urgent),
         // bits [31:16] = CQID.
-        uint sqCdw10 = ((IoQueueDepth - 1) << 16) | IoQueueId;
-        uint sqCdw11 = (IoQueueId << 16) | 1; // CQID=1, PC=1
+        uint sqCdw10 = ((IoQueueDepth - 1) << CreateQueueCdw10SizeShift) | IoQueueId;
+        uint sqCdw11 = (IoQueueId << Cdw11CqidShift) | Cdw11PhysicallyContiguous; // CQID=1, PC=1
         sc = SubmitAdmin(NvmeAdminOp.CreateIoSq, nsid: 0, prp1: _ioSqPhys, cdw10: sqCdw10, cdw11: sqCdw11, cdw12: 0);
         if (sc != 0)
         {
@@ -842,7 +905,7 @@ public unsafe class NvmeController
     private static void ZeroPage(ulong virtAddr)
     {
         ulong* p = (ulong*)virtAddr;
-        for (int i = 0; i < (int)(PageSize / 8); i++)
+        for (int i = 0; i < (int)(PageSize / BytesPerUlong); i++)
         {
             p[i] = 0;
         }

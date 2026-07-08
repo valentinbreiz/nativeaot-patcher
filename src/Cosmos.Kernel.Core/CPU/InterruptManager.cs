@@ -25,6 +25,12 @@ public static class InterruptManager
 
     private const string NewLine = "\n";
 
+    /// <summary>Number of entries in the interrupt handler table (one per CPU interrupt vector, 0x00-0xFF).</summary>
+    private const int HandlerTableSize = 256;
+
+    /// <summary>Base CPU vector for ISA hardware IRQs: IRQ n is dispatched on vector 0x20 + n (legacy PIC remap window).</summary>
+    private const int IsaIrqVectorBase = 0x20;
+
     /// <summary>
     /// Whether interrupt support is enabled. Uses centralized feature flag.
     /// </summary>
@@ -37,7 +43,7 @@ public static class InterruptManager
     public static void Initialize(IInterruptController controller)
     {
         Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
-        s_irqHandlers = new IrqDelegate[256];
+        s_irqHandlers = new IrqDelegate[HandlerTableSize];
         s_controller = controller;
 
         Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
@@ -164,7 +170,7 @@ public static class InterruptManager
     /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
     public static void SetIrqHandler(byte irqNo, IrqDelegate handler, bool startMasked = false)
     {
-        byte vector = (byte)(0x20 + irqNo);
+        byte vector = (byte)(IsaIrqVectorBase + irqNo);
         SetHandler(vector, handler);
 
         // Route the IRQ through the platform-specific controller

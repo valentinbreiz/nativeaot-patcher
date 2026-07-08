@@ -13,6 +13,9 @@ namespace Cosmos.Kernel.System.Storage;
 /// </summary>
 public static class StorageManager
 {
+    /// <summary>Maximum number of block devices the manager can register.</summary>
+    private const int MaxDevices = 8;
+
     /// <summary>
     /// Whether storage support is enabled. Uses centralized feature flag.
     /// </summary>
@@ -67,7 +70,7 @@ public static class StorageManager
             return;
         }
 
-        _devices = new IBlockDevice[8];
+        _devices = new IBlockDevice[MaxDevices];
         _deviceCount = 0;
         _partitions = new List<Partition>();
         _initialized = true;

@@ -46,6 +46,135 @@ public class Sata : BlockDevice
     /// </summary>
     public const ulong RegularSectorSize = 512UL;
 
+    /// <summary>PxCMD.ATAPI (bit 24, AHCI 1.3.1) - the attached device is an ATAPI device.</summary>
+    private const uint CmdAtapiBit = 1U << 24;
+
+    /// <summary>PxCMD.ST (bit 0, AHCI 1.3.1) - Start: the port command engine is running.</summary>
+    private const uint CmdStartBit = 1U << 0;
+
+    /// <summary>PxTFD status mask: BSY (bit 7) | DRQ (bit 3) - device busy or requesting a data transfer.</summary>
+    private const uint TfdBusyDrqMask = 0x88;
+
+    /// <summary>PxIS.TFES (bit 30, AHCI 1.3.1) - Task File Error Status.</summary>
+    private const uint IsTfesBit = 1U << 30;
+
+    /// <summary>PxSCTL.DET field mask (bits 3:0) - device detection initialization request.</summary>
+    private const uint SctlDetMask = 0xFU;
+
+    /// <summary>PxSCTL.DET = 1 - perform interface communication initialization (COMRESET).</summary>
+    private const uint SctlDetComreset = 1U;
+
+    /// <summary>PxSSTS.DET field mask (bits 3:0) - interface device detection state.</summary>
+    private const uint SstsDetMask = 0x0FU;
+
+    /// <summary>PxSSTS.DET = 3 - device present and PHY communication established.</summary>
+    private const uint SstsDetDevicePresent = 3;
+
+    /// <summary>Write-one-to-clear value for RW1C registers (PxIS, PxSERR): clears every latched bit.</summary>
+    private const uint Rw1CClearAll = 0xFFFFFFFFu;
+
+    /// <summary>Highest physical address reachable by a 32-bit-only HBA DMA engine (4 GiB - 1).</summary>
+    private const uint DmaAddressLimit32Bit = 0xFFFFFFFF;
+
+    /// <summary>Mask selecting the low 32 bits of a 64-bit physical address (CTBA/DBA halves).</summary>
+    private const uint AddressLow32Mask = 0xFFFFFFFF;
+
+    /// <summary>Shift selecting the high 32 bits of a 64-bit physical address (CTBAU/DBAU halves).</summary>
+    private const int HighDwordShift = 32;
+
+    /// <summary>Register H2D FIS length in dwords (SATA spec), programmed into the command header CFL field.</summary>
+    private const byte CommandFisLengthDwords = 5;
+
+    /// <summary>Device register LBA-mode bit (bit 6), required for LBA48 commands.</summary>
+    private const byte DeviceLbaMode = 1 << 6;
+
+    /// <summary>Mask isolating one byte when splitting LBA / sector-count values into FIS byte lanes.</summary>
+    private const int ByteMask = 0xFF;
+
+    /// <summary>Shift to byte lane 1 (bits 8-15).</summary>
+    private const int Byte1Shift = 8;
+
+    /// <summary>Shift to byte lane 2 (bits 16-23).</summary>
+    private const int Byte2Shift = 16;
+
+    /// <summary>Shift to byte lane 3 (bits 24-31).</summary>
+    private const int Byte3Shift = 24;
+
+    /// <summary>Shift to byte lane 4 (bits 32-39).</summary>
+    private const int Byte4Shift = 32;
+
+    /// <summary>Shift to byte lane 5 (bits 40-47).</summary>
+    private const int Byte5Shift = 40;
+
+    /// <summary>IDENTIFY DEVICE response size in 16-bit words (ATA/ACS).</summary>
+    private const int IdentifyBufferWords = 256;
+
+    /// <summary>IDENTIFY word 10 - start of the serial number field.</summary>
+    private const int IdentifyWordSerialNumber = 10;
+
+    /// <summary>Serial number field length in characters (IDENTIFY words 10-19).</summary>
+    private const int IdentifySerialNumberChars = 20;
+
+    /// <summary>IDENTIFY word 23 - start of the firmware revision field.</summary>
+    private const int IdentifyWordFirmwareRev = 23;
+
+    /// <summary>Firmware revision field length in characters (IDENTIFY words 23-26).</summary>
+    private const int IdentifyFirmwareRevChars = 8;
+
+    /// <summary>IDENTIFY word 27 - start of the model number field.</summary>
+    private const int IdentifyWordModelNumber = 27;
+
+    /// <summary>Model number field length in characters (IDENTIFY words 27-46).</summary>
+    private const int IdentifyModelNumberChars = 40;
+
+    /// <summary>IDENTIFY word 83 - command sets supported.</summary>
+    private const int IdentifyWordCommandSets = 83;
+
+    /// <summary>IDENTIFY word 83 bit 10 - 48-bit Address feature set supported.</summary>
+    private const int Lba48SupportedMask = 1 << 10;
+
+    /// <summary>IDENTIFY word 60 - low word of the LBA28 addressable sector count.</summary>
+    private const int IdentifyWordLba28SectorsLow = 60;
+
+    /// <summary>IDENTIFY word 61 - high word of the LBA28 addressable sector count.</summary>
+    private const int IdentifyWordLba28SectorsHigh = 61;
+
+    /// <summary>IDENTIFY word 100 - word 0 (bits 15:0) of the LBA48 addressable sector count.</summary>
+    private const int IdentifyWordLba48Sectors0 = 100;
+
+    /// <summary>IDENTIFY word 101 - word 1 (bits 31:16) of the LBA48 addressable sector count.</summary>
+    private const int IdentifyWordLba48Sectors1 = 101;
+
+    /// <summary>IDENTIFY word 102 - word 2 (bits 47:32) of the LBA48 addressable sector count.</summary>
+    private const int IdentifyWordLba48Sectors2 = 102;
+
+    /// <summary>IDENTIFY word 103 - word 3 (bits 63:48) of the LBA48 addressable sector count.</summary>
+    private const int IdentifyWordLba48Sectors3 = 103;
+
+    /// <summary>Shift placing IDENTIFY word 1 of a multi-word value (bits 16-31).</summary>
+    private const int IdentifyWord1Shift = 16;
+
+    /// <summary>Shift placing IDENTIFY word 2 of a multi-word value (bits 32-47).</summary>
+    private const int IdentifyWord2Shift = 32;
+
+    /// <summary>Shift placing IDENTIFY word 3 of a multi-word value (bits 48-63).</summary>
+    private const int IdentifyWord3Shift = 48;
+
+    /// <summary>Bounded spin-loop iteration limit when polling port registers (TFD busy, SSTS/SCTL DET).</summary>
+    private const int RegisterPollSpinLimit = 1000000;
+
+    /// <summary>Bounded spin-loop iteration limit while waiting for command completion (PxCI slot clear).</summary>
+    private const uint CommandCompletionSpinLimit = 50_000_000;
+
+    /// <summary>Poll attempts while waiting for the port command engine (PxCMD.ST) to stop.</summary>
+    private const int EngineStopRetries = 50;
+
+    /// <summary><see cref="Ahci.Wait"/> ticks between PxCMD.ST stop polls.</summary>
+    private const int EngineStopPollDelayTicks = 10000;
+
+    /// <summary><see cref="Ahci.Wait"/> ticks to hold SCTL.DET = 1 during COMRESET.</summary>
+    private const int ComresetHoldDelayTicks = 1000;
+
     // Serializes command issue + bounce-buffer access on this port: the
     // buffer is shared state, so an unserialized concurrent WriteBlock
     // would interleave another caller's data into an in-flight command.
@@ -59,7 +188,7 @@ public class Sata : BlockDevice
     public unsafe Sata(PortRegisters portReg)
     {
         // Check if it is really a SATA Port!
-        if (portReg.PortType != PortType.Sata || (portReg.CMD & (1U << 24)) != 0)
+        if (portReg.PortType != PortType.Sata || (portReg.CMD & CmdAtapiBit) != 0)
         {
             // Constant message on purpose: this ctor runs in the phase-3 init
             // window where CoreLib int formatting triple-faults, and this guard
@@ -87,7 +216,7 @@ public class Sata : BlockDevice
         _dataBufferVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
         _dataBufferPhys = PageAllocator.VirtualToPhysical(_dataBufferVirt);
 
-        if (!_portReg.Controller.Supports64BitAddressing && _dataBufferPhys > 0xFFFFFFFF)
+        if (!_portReg.Controller.Supports64BitAddressing && _dataBufferPhys > DmaAddressLimit32Bit)
         {
             Serial.WriteString("[SATA] WARNING: 32-bit-only controller with bounce buffer above 4 GiB at phys=0x");
             Serial.WriteHex(_dataBufferPhys);
@@ -101,26 +230,26 @@ public class Sata : BlockDevice
         SendSataCommand(AtaCommands.Identify);
 
         // Read identify data
-        ushort[] xBuffer = new ushort[256];
+        ushort[] xBuffer = new ushort[IdentifyBufferWords];
         ReadDataBlock16(xBuffer);
 
-        SerialNo = GetString(xBuffer, 10, 20);
-        FirmwareRev = GetString(xBuffer, 23, 8);
-        ModelNo = GetString(xBuffer, 27, 40);
+        SerialNo = GetString(xBuffer, IdentifyWordSerialNumber, IdentifySerialNumberChars);
+        FirmwareRev = GetString(xBuffer, IdentifyWordFirmwareRev, IdentifyFirmwareRevChars);
+        ModelNo = GetString(xBuffer, IdentifyWordModelNumber, IdentifyModelNumberChars);
 
         // Capacity: all I/O here is issued as READ/WRITE DMA EXT, so prefer
         // the 48-bit count in IDENTIFY words 100-103 (word 83 bit 10 = 48-bit
         // feature set supported). Words 60-61 saturate at 0x0FFFFFFF
         // (~128 GiB) and would silently truncate larger disks — misplacing
         // anything derived from BlockCount, like the backup GPT header.
-        if ((xBuffer[83] & (1 << 10)) != 0)
+        if ((xBuffer[IdentifyWordCommandSets] & Lba48SupportedMask) != 0)
         {
-            BlockCount = (ulong)xBuffer[103] << 48 | (ulong)xBuffer[102] << 32
-                       | (ulong)xBuffer[101] << 16 | xBuffer[100];
+            BlockCount = (ulong)xBuffer[IdentifyWordLba48Sectors3] << IdentifyWord3Shift | (ulong)xBuffer[IdentifyWordLba48Sectors2] << IdentifyWord2Shift
+                       | (ulong)xBuffer[IdentifyWordLba48Sectors1] << IdentifyWord1Shift | xBuffer[IdentifyWordLba48Sectors0];
         }
         else
         {
-            BlockCount = (uint)xBuffer[61] << 16 | xBuffer[60];
+            BlockCount = (uint)xBuffer[IdentifyWordLba28SectorsHigh] << IdentifyWord1Shift | xBuffer[IdentifyWordLba28SectorsLow];
         }
 
         Serial.WriteString("[SATA] Initialized: ");
@@ -191,8 +320,8 @@ public class Sata : BlockDevice
         // PxIS and PxSERR are RW1C: write all ones so stale error bits
         // (including TFES, bit 30) latched by a previous command can't
         // poison this one. Writing a partial mask (or zero) clears nothing.
-        _portReg.IS = 0xFFFFFFFFu;
-        _portReg.SERR = 0xFFFFFFFFu;
+        _portReg.IS = Rw1CClearAll;
+        _portReg.SERR = Rw1CClearAll;
 
         int slot = FindCMDSlot();
         if (slot == -1)
@@ -206,18 +335,18 @@ public class Sata : BlockDevice
 
         HbaCommandHeader cmdHeader = new(clbVirt, (uint)slot)
         {
-            CFL = 5,
+            CFL = CommandFisLengthDwords,
             PRDTL = hasData ? (ushort)1 : (ushort)0,
             Write = (byte)(isWrite ? 1 : 0),
-            CTBA = (uint)(ctbaPhys & 0xFFFFFFFF),
-            CTBAU = (uint)(ctbaPhys >> 32)
+            CTBA = (uint)(ctbaPhys & AddressLow32Mask),
+            CTBAU = (uint)(ctbaPhys >> HighDwordShift)
         };
 
         HbaCommandTable cmdTable = new(ctbaVirt, cmdHeader.PRDTL);
         if (hasData)
         {
-            cmdTable.PRDTEntry[0].DBA = (uint)(_dataBufferPhys & 0xFFFFFFFF);
-            cmdTable.PRDTEntry[0].DBAU = (uint)(_dataBufferPhys >> 32);
+            cmdTable.PRDTEntry[0].DBA = (uint)(_dataBufferPhys & AddressLow32Mask);
+            cmdTable.PRDTEntry[0].DBAU = (uint)(_dataBufferPhys >> HighDwordShift);
             cmdTable.PRDTEntry[0].DBC = useLba48 ? count * DataBlockSize - 1 : DataBlockSize - 1;
             cmdTable.PRDTEntry[0].InterruptOnCompletion = 1;
         }
@@ -227,26 +356,26 @@ public class Sata : BlockDevice
             FisType = (byte)FisType.RegisterH2D,
             IsCommand = 1,
             Command = command,
-            Device = useLba48 ? (byte)(1 << 6) : (byte)0
+            Device = useLba48 ? DeviceLbaMode : (byte)0
         };
         if (useLba48)
         {
-            cmdFIS.LBA0 = (byte)((lba >> 0) & 0xFF);
-            cmdFIS.LBA1 = (byte)((lba >> 8) & 0xFF);
-            cmdFIS.LBA2 = (byte)((lba >> 16) & 0xFF);
-            cmdFIS.LBA3 = (byte)((lba >> 24) & 0xFF);
-            cmdFIS.LBA4 = (byte)((lba >> 32) & 0xFF);
-            cmdFIS.LBA5 = (byte)((lba >> 40) & 0xFF);
-            cmdFIS.CountL = (byte)(count & 0xFF);
-            cmdFIS.CountH = (byte)((count >> 8) & 0xFF);
+            cmdFIS.LBA0 = (byte)((lba >> 0) & ByteMask);
+            cmdFIS.LBA1 = (byte)((lba >> Byte1Shift) & ByteMask);
+            cmdFIS.LBA2 = (byte)((lba >> Byte2Shift) & ByteMask);
+            cmdFIS.LBA3 = (byte)((lba >> Byte3Shift) & ByteMask);
+            cmdFIS.LBA4 = (byte)((lba >> Byte4Shift) & ByteMask);
+            cmdFIS.LBA5 = (byte)((lba >> Byte5Shift) & ByteMask);
+            cmdFIS.CountL = (byte)(count & ByteMask);
+            cmdFIS.CountH = (byte)((count >> Byte1Shift) & ByteMask);
         }
 
         int spin = 0;
-        while ((_portReg.TFD & 0x88) != 0 && spin < 1000000)
+        while ((_portReg.TFD & TfdBusyDrqMask) != 0 && spin < RegisterPollSpinLimit)
         {
             spin++;
         }
-        if (spin == 1000000)
+        if (spin == RegisterPollSpinLimit)
         {
             throw new InvalidOperationException("SATA: port stuck busy (TFD BSY/DRQ) before command issue.");
         }
@@ -268,11 +397,11 @@ public class Sata : BlockDevice
             {
                 break;
             }
-            if ((_portReg.IS & (1U << 30)) != 0)
+            if ((_portReg.IS & IsTfesBit) != 0)
             {
                 throw new Exception("SATA Fatal error: Command aborted");
             }
-            if (++waitSpin > 50_000_000)
+            if (++waitSpin > CommandCompletionSpinLimit)
             {
                 // Bounded like the TFD wait above: a wedged device (link
                 // drop, hot removal) must not spin the kernel forever.
@@ -296,16 +425,16 @@ public class Sata : BlockDevice
     public static bool PortReset(PortRegisters port)
     {
         // Stop the port command engine, then wait for CMD.ST to actually clear.
-        port.CMD &= ~(1U << 0);
-        for (int i = 0; i <= 50; i++)
+        port.CMD &= ~CmdStartBit;
+        for (int i = 0; i <= EngineStopRetries; i++)
         {
-            if ((port.CMD & (1 << 0)) == 0)
+            if ((port.CMD & CmdStartBit) == 0)
             {
                 break;
             }
-            Ahci.Wait(10000);
+            Ahci.Wait(EngineStopPollDelayTicks);
         }
-        if ((port.CMD & (1U << 0)) != 0)
+        if ((port.CMD & CmdStartBit) != 0)
         {
             Serial.WriteString("[SATA] Port engine refused to stop; leaving port offline\n");
             return false;
@@ -313,24 +442,24 @@ public class Sata : BlockDevice
 
         // COMRESET: set SCTL.DET=1 while preserving the SPD/IPM restriction
         // fields, hold it, then clear DET so the PHY retrains.
-        port.SCTL = (port.SCTL & ~0xFU) | 1U;
-        Ahci.Wait(1000);
-        port.SCTL &= ~0xFU;
+        port.SCTL = (port.SCTL & ~SctlDetMask) | SctlDetComreset;
+        Ahci.Wait(ComresetHoldDelayTicks);
+        port.SCTL &= ~SctlDetMask;
 
         // Wait (bounded) for the PHY to report an established link (DET == 3); a
         // missing or wedged device must not spin the boot CPU forever.
         int spin = 0;
-        while ((port.SSTS & 0x0F) != 3 && spin < 1000000)
+        while ((port.SSTS & SstsDetMask) != SstsDetDevicePresent && spin < RegisterPollSpinLimit)
         {
             spin++;
         }
 
         // RW1C: clear every latched error bit, not just DIAG bit 0.
-        port.SERR = 0xFFFFFFFFu;
+        port.SERR = Rw1CClearAll;
 
         // Wait (bounded) for the COMRESET request bit to clear.
         spin = 0;
-        while ((port.SCTL & 0x0F) != 0 && spin < 1000000)
+        while ((port.SCTL & SctlDetMask) != 0 && spin < RegisterPollSpinLimit)
         {
             spin++;
         }
@@ -365,7 +494,7 @@ public class Sata : BlockDevice
         for (int i = 0; i < stringLength / 2; i++)
         {
             ushort xChar = buffer[indexStart + i];
-            chars[i * 2] = (char)(xChar >> 8);
+            chars[i * 2] = (char)(xChar >> Byte1Shift);
             chars[i * 2 + 1] = (char)xChar;
         }
         return new string(chars);

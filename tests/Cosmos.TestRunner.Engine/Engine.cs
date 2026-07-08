@@ -18,6 +18,33 @@ namespace Cosmos.TestRunner.Engine;
 /// </summary>
 public partial class Engine
 {
+    /// <summary>Byte 0 (least significant) of the binary test-protocol frame magic 0x19740807 as it appears little-endian on the wire.</summary>
+    private const byte ProtocolMagicByte0 = 0x07;
+
+    /// <summary>Byte 1 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte1 = 0x08;
+
+    /// <summary>Byte 2 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte2 = 0x74;
+
+    /// <summary>Byte 3 (most significant) of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte3 = 0x19;
+
+    /// <summary>Binary test-protocol command id for TestDestructiveReached (emitted only by RunDestructive).</summary>
+    private const byte TestDestructiveReachedCommand = 108;
+
+    /// <summary>Size of each per-profile sparse raw test disk image (256 MiB).</summary>
+    private const long TestDiskSizeBytes = 256L * 1024 * 1024;
+
+    /// <summary>Maximum plausible excess of ExpectedTestCount over the tests that actually ran; larger gaps are treated as UART corruption of the TestSuiteStart count field.</summary>
+    private const int ExpectedTestCountCorruptionSlack = 10000;
+
+    /// <summary>Scale factor converting a 0-1 ratio to a percentage.</summary>
+    private const int PercentScale = 100;
+
+    /// <summary>Minimum tab-separated field count of a coverage-map.txt line (id, assembly, type, method).</summary>
+    private const int CoverageMapMinFields = 4;
+
     private readonly TestConfiguration _config;
     private readonly IQemuHost _qemuHost;
     private readonly OutputHandlerBase _outputHandler;
@@ -326,7 +353,7 @@ public partial class Engine
             }
             using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
-                fs.SetLength(256L * 1024 * 1024);
+                fs.SetLength(TestDiskSizeBytes);
             }
             Console.WriteLine($"[Engine] Created test disk: {path} (256 MiB sparse)");
 
@@ -417,7 +444,7 @@ public partial class Engine
         }
         // Magic 0x19740807 little-endian = bytes 07 08 74 19, then command byte.
         // Command 108 = TestDestructiveReached (emitted only by RunDestructive).
-        byte[] needle = { 0x07, 0x08, 0x74, 0x19, 108 };
+        byte[] needle = { ProtocolMagicByte0, ProtocolMagicByte1, ProtocolMagicByte2, ProtocolMagicByte3, TestDestructiveReachedCommand };
         byte[] haystack = System.Text.Encoding.Latin1.GetBytes(uartLog);
         for (int i = 0; i + needle.Length <= haystack.Length; i++)
         {
@@ -542,7 +569,7 @@ public partial class Engine
             // Sanity check: timer interrupts can corrupt the ExpectedTestCount field in the
             // TestSuiteStart message (high byte replaced by '[' = 0x5B from "[GenericTimer]" text).
             // If the expected count is implausibly large compared to what actually ran, ignore it.
-            int maxPlausible = actualCount + 10000;
+            int maxPlausible = actualCount + ExpectedTestCountCorruptionSlack;
             if (results.ExpectedTestCount > maxPlausible)
             {
                 Console.WriteLine($"[ParseResults] Warning: ExpectedTestCount={results.ExpectedTestCount} seems corrupted (actual={actualCount}), ignoring.");
@@ -589,7 +616,7 @@ public partial class Engine
             }
 
             var parts = line.Split('\t');
-            if (parts.Length >= 4 && int.TryParse(parts[0], out int id))
+            if (parts.Length >= CoverageMapMinFields && int.TryParse(parts[0], out int id))
             {
                 allMethods.Add((id, parts[1], parts[2], parts[3]));
             }
@@ -598,7 +625,7 @@ public partial class Engine
         int totalMethods = allMethods.Count;
         var hitSet = new HashSet<int>(results.CoverageHitMethodIds.Select(id => (int)id));
         int hitMethods = allMethods.Count(m => hitSet.Contains(m.Id));
-        double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * 100 : 0;
+        double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * PercentScale : 0;
 
         Console.WriteLine($"[Coverage] {hitMethods}/{totalMethods} methods covered ({percentage:F1}%)");
 
@@ -615,7 +642,7 @@ public partial class Engine
 
         foreach (var asm in assemblyStats)
         {
-            double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+            double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * PercentScale : 0;
             Console.WriteLine($"[Coverage]   {asm.Assembly}: {asm.Hit}/{asm.Total} ({asmPct:F1}%)");
         }
 
@@ -651,7 +678,7 @@ public partial class Engine
             for (int i = 0; i < asmList.Count; i++)
             {
                 var asm = asmList[i];
-                double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+                double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * PercentScale : 0;
                 string comma = i < asmList.Count - 1 ? "," : "";
 
                 // Collect hit method signatures for this assembly

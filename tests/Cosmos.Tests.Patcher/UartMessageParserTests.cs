@@ -9,6 +9,24 @@ namespace Cosmos.Tests.Patcher;
 [Collection("PatcherTests")]
 public class UartMessageParserTests
 {
+    /// <summary>First byte of the Ds2Vs UART frame magic signature (0x07 0x08 0x74 0x19).</summary>
+    private const byte FrameMagicByte0 = 0x07;
+
+    /// <summary>Second byte of the Ds2Vs UART frame magic signature.</summary>
+    private const byte FrameMagicByte1 = 0x08;
+
+    /// <summary>Third byte of the Ds2Vs UART frame magic signature.</summary>
+    private const byte FrameMagicByte2 = 0x74;
+
+    /// <summary>Fourth byte of the Ds2Vs UART frame magic signature.</summary>
+    private const byte FrameMagicByte3 = 0x19;
+
+    /// <summary>Mask isolating a single byte of the little-endian 16-bit payload length field.</summary>
+    private const int PayloadLengthByteMask = 0xFF;
+
+    /// <summary>Shift extracting the high byte of the little-endian 16-bit payload length field.</summary>
+    private const int PayloadLengthHighByteShift = 8;
+
     [Fact]
     public void ParseUartLog_DoesNotLoseFramesAfterArchitectureInfoMessage()
     {
@@ -92,15 +110,15 @@ public class UartMessageParserTests
     private static byte[] CreateFrame(byte command, byte[] payload)
     {
         List<byte> bytes = new();
-        bytes.Add(0x07);
-        bytes.Add(0x08);
-        bytes.Add(0x74);
-        bytes.Add(0x19);
+        bytes.Add(FrameMagicByte0);
+        bytes.Add(FrameMagicByte1);
+        bytes.Add(FrameMagicByte2);
+        bytes.Add(FrameMagicByte3);
         bytes.Add(command);
 
         ushort payloadLength = (ushort)payload.Length;
-        bytes.Add((byte)(payloadLength & 0xFF));
-        bytes.Add((byte)((payloadLength >> 8) & 0xFF));
+        bytes.Add((byte)(payloadLength & PayloadLengthByteMask));
+        bytes.Add((byte)((payloadLength >> PayloadLengthHighByteShift) & PayloadLengthByteMask));
 
         bytes.AddRange(payload);
         return bytes.ToArray();

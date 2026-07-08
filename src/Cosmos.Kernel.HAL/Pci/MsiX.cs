@@ -18,6 +18,21 @@ public static class MsiX
 {
     public const byte CapId = 0x11;
 
+    /// <summary>Offset of the Message Control register within the MSI-X capability (PCI 3.0 §6.8.2.3).</summary>
+    private const byte MsgCtrlOffset = 0x02;
+    /// <summary>Offset of the Table Offset/Table BIR register within the MSI-X capability (PCI 3.0 §6.8.2.4).</summary>
+    private const byte TableOffsetBirOffset = 0x04;
+    /// <summary>Offset of the Command register in the PCI configuration header.</summary>
+    private const byte PciCommandOffset = 0x04;
+
+    /// <summary>Mask selecting the BAR Indicator Register (BIR) bits of the Table Offset/BIR register.</summary>
+    private const uint TableBirMask = 0x7;
+    /// <summary>Mask selecting the QWORD-aligned table offset bits of the Table Offset/BIR register.</summary>
+    private const uint TableOffsetMask = 0xFFFFFFF8u;
+
+    /// <summary>Right shift extracting the high 32 bits of the 64-bit message address.</summary>
+    private const int AddrHighDwordShift = 32;
+
     private const ushort MsgCtrlEnable = 1 << 15;
     private const ushort MsgCtrlFunctionMask = 1 << 14;
     private const ushort MsgCtrlTableSizeMask = 0x07FF;
@@ -55,12 +70,12 @@ public static class MsiX
             return null;
         }
 
-        ushort msgCtrl = pci.ReadRegister16((byte)(cap + 0x02));
+        ushort msgCtrl = pci.ReadRegister16((byte)(cap + MsgCtrlOffset));
         int tableSize = (msgCtrl & MsgCtrlTableSizeMask) + 1;
 
-        uint tableBirOff = pci.ReadRegister32((byte)(cap + 0x04));
-        int bir = (int)(tableBirOff & 0x7);
-        uint tableOffset = tableBirOff & 0xFFFFFFF8u;
+        uint tableBirOff = pci.ReadRegister32((byte)(cap + TableOffsetBirOffset));
+        int bir = (int)(tableBirOff & TableBirMask);
+        uint tableOffset = tableBirOff & TableOffsetMask;
 
         ulong barPhys = pci.GetBar64Address(bir);
         if (barPhys == 0)
@@ -105,11 +120,11 @@ public static class MsiX
 
         // Enable MSI-X, clear function mask.
         msgCtrl = (ushort)((msgCtrl & ~MsgCtrlFunctionMask) | MsgCtrlEnable);
-        pci.WriteRegister16((byte)(cap + 0x02), msgCtrl);
+        pci.WriteRegister16((byte)(cap + MsgCtrlOffset), msgCtrl);
 
         // Disable legacy INTx delivery so the same line can't double-fire.
-        ushort cmd = pci.ReadRegister16(0x04);
-        pci.WriteRegister16(0x04, (ushort)(cmd | PciCommandInterruptDisable));
+        ushort cmd = pci.ReadRegister16(PciCommandOffset);
+        pci.WriteRegister16(PciCommandOffset, (ushort)(cmd | PciCommandInterruptDisable));
 
         return new MsiXContext(tableVirt, tableSize, deviceCtx);
     }
@@ -130,7 +145,7 @@ public static class MsiX
 
         ulong entry = ctx.TableVirt + (ulong)index * EntryStride;
         Native.MMIO.Write32(entry + EntryAddrLo, (uint)address);
-        Native.MMIO.Write32(entry + EntryAddrHi, (uint)(address >> 32));
+        Native.MMIO.Write32(entry + EntryAddrHi, (uint)(address >> AddrHighDwordShift));
         Native.MMIO.Write32(entry + EntryData, data);
         Native.MMIO.Write32(entry + EntryVectorControl, 0);
     }

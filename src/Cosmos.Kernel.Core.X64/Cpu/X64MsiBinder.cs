@@ -12,6 +12,12 @@ namespace Cosmos.Kernel.Core.X64.Cpu;
 /// </summary>
 internal sealed class X64MsiBinder : IMsiBinder
 {
+    /// <summary>MSI message address base for x64 (Intel SDM Vol. 3, "Message Address Register Format").</summary>
+    private const ulong MsiAddressBase = 0xFEE00000UL;
+
+    /// <summary>Bit position of the Destination ID field in the MSI message address (bits 19:12).</summary>
+    private const int MsiDestinationIdShift = 12;
+
     public bool IsAvailable => LocalApic.IsInitialized;
 
     /// <summary>
@@ -31,7 +37,7 @@ internal sealed class X64MsiBinder : IMsiBinder
         // MADT-backed index→APIC-ID map, resolve the boot CPU's real ID at
         // bind time; other indices are unreachable today (single-CPU).
         byte apicId = targetCpu == 0 ? LocalApic.GetId() : (byte)targetCpu;
-        address = 0xFEE00000UL | ((ulong)apicId << 12);
+        address = MsiAddressBase | ((ulong)apicId << MsiDestinationIdShift);
         data = vector;
     }
 }

@@ -26,6 +26,44 @@ public class ARM64InterruptController : IInterruptController
     // matches the default PROPBASER allocation in GICv3Lpi.
     public const uint LpiBase = 8192;
     public const int LpiCount = 1024;
+
+    /// <summary>First GICv3-reserved special INTID (1020..1023, 1023 = spurious) per ARM IHI 0069G.</summary>
+    private const uint SpecialIntIdBase = 1020;
+    /// <summary>Exclusive upper bound of the GICv3-reserved special INTID range (1020..1023).</summary>
+    private const uint SpecialIntIdLimit = 1024;
+
+    /// <summary>ARM64 exception type reported by the vector stub: synchronous exception.</summary>
+    private const ulong ExceptionTypeSync = 0;
+    /// <summary>ARM64 exception type reported by the vector stub: IRQ (GIC).</summary>
+    private const ulong ExceptionTypeIrq = 1;
+
+    /// <summary>GIC priority for the timer PPI (lower value = higher priority; 0x80 = medium).</summary>
+    private const byte TimerPriorityMedium = 0x80;
+
+    /// <summary>Size in bytes of the NEON save area the vector stub pushes below the IRQContext.</summary>
+    private const int NeonSaveAreaBytes = 512;
+
+    /// <summary>Bit position of the EC (Exception Class) field in ESR_EL1 (bits [31:26]).</summary>
+    private const int EsrEcShift = 26;
+    /// <summary>Mask for the 6-bit EC (Exception Class) field of ESR_EL1.</summary>
+    private const uint EsrEcMask = 0x3F;
+
+    /// <summary>ESR_EL1 EC: unknown reason (ARM DDI 0487, ESR_EL1.EC = 0b000000).</summary>
+    private const uint EcUnknown = 0x00;
+    /// <summary>ESR_EL1 EC: SVC instruction execution in AArch64 state (EC = 0b010101).</summary>
+    private const uint EcSvcAArch64 = 0x15;
+    /// <summary>ESR_EL1 EC: instruction abort from a lower Exception level (EC = 0b100000).</summary>
+    private const uint EcInstrAbortLowerEl = 0x20;
+    /// <summary>ESR_EL1 EC: instruction abort taken without a change in Exception level (EC = 0b100001).</summary>
+    private const uint EcInstrAbortCurrentEl = 0x21;
+    /// <summary>ESR_EL1 EC: PC alignment fault (EC = 0b100010).</summary>
+    private const uint EcPcAlignmentFault = 0x22;
+    /// <summary>ESR_EL1 EC: data abort from a lower Exception level (EC = 0b100100).</summary>
+    private const uint EcDataAbortLowerEl = 0x24;
+    /// <summary>ESR_EL1 EC: data abort taken without a change in Exception level (EC = 0b100101).</summary>
+    private const uint EcDataAbortCurrentEl = 0x25;
+    /// <summary>ESR_EL1 EC: SP alignment fault (EC = 0b100110).</summary>
+    private const uint EcSpAlignmentFault = 0x26;
     private static InterruptManager.IrqDelegate[]? s_lpiHandlers;
     private static int s_nextLpiOffset;
 
@@ -51,7 +89,7 @@ public class ARM64InterruptController : IInterruptController
         GIC.Initialize();
 
         // Enable timer interrupts (PPI 30 = non-secure physical timer)
-        GIC.SetPriority(GIC.TIMER_NONSEC_PHYS, 0x80);  // Medium priority
+        GIC.SetPriority(GIC.TIMER_NONSEC_PHYS, TimerPriorityMedium);  // Medium priority
         GIC.EnableInterrupt(GIC.TIMER_NONSEC_PHYS);
 
         Serial.Write("[ARM64InterruptController] ARM64 interrupt system ready\n");
@@ -119,14 +157,14 @@ public class ARM64InterruptController : IInterruptController
     public void Dispatch(ref IRQContext ctx)
     {
         // ARM64 exception types: 0 = sync, 1 = IRQ (GIC), 2 = FIQ, 3 = SError.
-        if (ctx.interrupt == 1)
+        if (ctx.interrupt == ExceptionTypeIrq)
         {
             uint intId = GIC.AcknowledgeInterrupt();
             _lastAckedIntId = intId;
 
             // INTIDs 1020..1023 are GICv3-reserved (1023 = spurious); LPIs
             // start at 8192 and must NOT be treated as spurious.
-            if (intId >= 1020 && intId < LpiBase)
+            if (intId >= SpecialIntIdBase && intId < LpiBase)
             {
                 return;
             }
@@ -171,7 +209,7 @@ public class ARM64InterruptController : IInterruptController
             return;
         }
 
-        if (ctx.interrupt == 0)  // Synchronous exception
+        if (ctx.interrupt == ExceptionTypeSync)  // Synchronous exception
         {
             InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
             if (handlers != null)
@@ -195,7 +233,7 @@ public class ARM64InterruptController : IInterruptController
 
     private static unsafe void RunPendingReschedule(ref IRQContext ctx)
     {
-        SchedulerManager.ReschedulePendingFromIrq(0, (nuint)Unsafe.AsPointer(ref ctx) - 512);
+        SchedulerManager.ReschedulePendingFromIrq(0, (nuint)Unsafe.AsPointer(ref ctx) - NeonSaveAreaBytes);
     }
 
     private void SendEOI()
@@ -206,7 +244,7 @@ public class ARM64InterruptController : IInterruptController
         // delivered by the ITS — must be EOI'd or the CPU interface keeps
         // the priority active and silently drops every subsequent IRQ at
         // equal/lower priority.
-        if (_lastAckedIntId < 1020 || _lastAckedIntId >= 1024)
+        if (_lastAckedIntId < SpecialIntIdBase || _lastAckedIntId >= SpecialIntIdLimit)
         {
             GIC.EndOfInterrupt(_lastAckedIntId);
         }
@@ -215,7 +253,7 @@ public class ARM64InterruptController : IInterruptController
     private static void HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
         // Decode ESR_EL1 to get exception class.
-        uint ec = (uint)(cpuFlags >> 26) & 0x3F;
+        uint ec = (uint)(cpuFlags >> EsrEcShift) & EsrEcMask;
 
         Serial.Write("[INT] FATAL: Synchronous exception\n");
         Serial.Write("[INT] ESR_EL1: 0x");
@@ -229,14 +267,14 @@ public class ARM64InterruptController : IInterruptController
 
         switch (ec)
         {
-            case 0x00: Serial.Write("[INT] Unknown exception\n"); break;
-            case 0x15: Serial.Write("[INT] SVC from AArch64\n"); break;
-            case 0x20: Serial.Write("[INT] Instruction abort from lower EL\n"); break;
-            case 0x21: Serial.Write("[INT] Instruction abort from current EL\n"); break;
-            case 0x22: Serial.Write("[INT] PC alignment fault\n"); break;
-            case 0x24: Serial.Write("[INT] Data abort from lower EL\n"); break;
-            case 0x25: Serial.Write("[INT] Data abort from current EL\n"); break;
-            case 0x26: Serial.Write("[INT] SP alignment fault\n"); break;
+            case EcUnknown: Serial.Write("[INT] Unknown exception\n"); break;
+            case EcSvcAArch64: Serial.Write("[INT] SVC from AArch64\n"); break;
+            case EcInstrAbortLowerEl: Serial.Write("[INT] Instruction abort from lower EL\n"); break;
+            case EcInstrAbortCurrentEl: Serial.Write("[INT] Instruction abort from current EL\n"); break;
+            case EcPcAlignmentFault: Serial.Write("[INT] PC alignment fault\n"); break;
+            case EcDataAbortLowerEl: Serial.Write("[INT] Data abort from lower EL\n"); break;
+            case EcDataAbortCurrentEl: Serial.Write("[INT] Data abort from current EL\n"); break;
+            case EcSpAlignmentFault: Serial.Write("[INT] SP alignment fault\n"); break;
             default: Serial.Write("[INT] Exception class: 0x"); Serial.WriteHex(ec); Serial.Write("\n"); break;
         }
 

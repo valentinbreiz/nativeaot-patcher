@@ -23,6 +23,12 @@ namespace Cosmos.Kernel.HAL.ARM64;
 /// </summary>
 public class ARM64PlatformInitializer : IPlatformInitializer
 {
+    /// <summary>Number of microseconds in one second, used to convert the generic-timer frequency (Hz) into ticks per microsecond.</summary>
+    private const ulong MicrosecondsPerSecond = 1_000_000UL;
+
+    /// <summary>Crude spin iterations (dsb sy + isb barriers) per microsecond used when firmware left CNTFRQ unprogrammed.</summary>
+    private const uint FallbackSpinLoopsPerMicrosecond = 100;
+
     private GenericTimer? _timer;
 
     public string PlatformName => "ARM64";
@@ -73,14 +79,14 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         ulong freq = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetFrequency();
         if (freq == 0)
         {
-            for (uint i = 0; i < microseconds * 100; i++)
+            for (uint i = 0; i < microseconds * FallbackSpinLoopsPerMicrosecond; i++)
             {
                 Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
             }
             return;
         }
 
-        ulong target = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() + (freq * microseconds + 999_999UL) / 1_000_000UL;
+        ulong target = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() + (freq * microseconds + (MicrosecondsPerSecond - 1UL)) / MicrosecondsPerSecond;
         while (Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() < target)
         {
         }

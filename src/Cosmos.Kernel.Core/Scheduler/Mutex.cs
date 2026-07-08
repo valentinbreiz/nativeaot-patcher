@@ -12,6 +12,9 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </remarks>
 public class Mutex : IDisposable
 {
+    /// <summary>Initial capacity of the wait queue, pre-sized so the first Add in Acquire allocates nothing under the IRQ-off state lock (mirrors InterruptEvent._waiters).</summary>
+    private const int InitialWaitQueueCapacity = 4;
+
     /// <summary>
     /// Protects access to the mutex internal state.
     /// </summary>
@@ -41,7 +44,7 @@ public class Mutex : IDisposable
         _recursionDepth = 0;
         // Pre-sized for the same reason as InterruptEvent._waiters: the
         // first Add in Acquire happens under the IRQ-off state lock.
-        _waitingThreads = new List<SchedThread>(4);
+        _waitingThreads = new List<SchedThread>(InitialWaitQueueCapacity);
     }
 
     /// <summary>

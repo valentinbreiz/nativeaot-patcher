@@ -17,6 +17,12 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// </summary>
 internal sealed class Arm64MsiBinder : IMsiBinder
 {
+    /// <summary>Bit position of the bus number in a PCI BDF requester ID (bus[15:8], PCIe spec routing ID layout).</summary>
+    private const int BdfBusShift = 8;
+
+    /// <summary>Bit position of the device (slot) number in a PCI BDF requester ID (device[7:3], PCIe spec routing ID layout).</summary>
+    private const int BdfSlotShift = 3;
+
     private sealed class Arm64DevCtx
     {
         public uint DeviceId;
@@ -27,7 +33,7 @@ internal sealed class Arm64MsiBinder : IMsiBinder
 
     public object? PrepareDevice(uint bus, uint slot, uint function, int entryCount)
     {
-        uint bdf = (bus << 8) | (slot << 3) | function;
+        uint bdf = (bus << BdfBusShift) | (slot << BdfSlotShift) | function;
         // Resolve PCI requester ID -> ITS DeviceID via IORT. Fall back to
         // identity (DeviceID == BDF) if no IORT is present.
         //

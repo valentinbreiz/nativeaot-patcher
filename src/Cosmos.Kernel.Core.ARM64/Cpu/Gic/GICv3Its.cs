@@ -53,6 +53,9 @@ public static unsafe class GICv3Its
     private const uint GITS_CTLR_ENABLED = 1U << 0;
     private const uint GITS_CTLR_QUIESCENT = 1U << 31;
 
+    /// <summary>Spin iterations (one GITS_CTLR MMIO read each) to wait for GITS_CTLR.Quiescent after disabling the ITS; not time-calibrated (runs before any timer facility is usable).</summary>
+    private const int QuiescentSpinLimit = 1_000_000;
+
     // GITS_TYPER bit layout (§11.10.13).
     private const int TYPER_ITT_ENTRY_SIZE_SHIFT = 4;
     private const ulong TYPER_ITT_ENTRY_SIZE_MASK = 0xFUL;   // bits [7:4]
@@ -90,6 +93,12 @@ public static unsafe class GICv3Its
     private const int BASER_PAGE_SIZE_SHIFT = 8;
     private const ulong BASER_PAGE_SIZE_MASK = 0x3UL;
     private const ulong BASER_PAGE_SIZE_4K = 0UL << BASER_PAGE_SIZE_SHIFT;
+    /// <summary>BASER Page_Size field value (unshifted) selecting a 16 KiB granule; 2 selects 64 KiB (§11.10.2).</summary>
+    private const ulong BASER_PAGE_SIZE_FIELD_16K = 1UL;
+    /// <summary>Bytes per BASER table page when the ITS forces a 16 KiB granule.</summary>
+    private const ulong Granule16KBytes = 16UL * 1024;
+    /// <summary>Bytes per BASER table page when the ITS forces a 64 KiB granule.</summary>
+    private const ulong Granule64KBytes = 64UL * 1024;
 
     // BASER Type field values (§11.10.2 Table 11-22).
     private const byte BASER_TYPE_DEVICE = 1;
@@ -105,6 +114,8 @@ public static unsafe class GICv3Its
     private const uint ITS_COMMAND_SIZE = 32;
     // Command queue lives in one 4 KiB page → 128 commands of 32 bytes each.
     private const uint COMMAND_QUEUE_BYTES = 4096;
+    /// <summary>Number of 4 KiB pages backing the command-queue ring (COMMAND_QUEUE_BYTES worth).</summary>
+    private const uint CommandQueuePages = 1;
 
     // Page-sized allocations for ITT/table buffers.
     private const uint ITS_PAGE_SIZE = 4096;
@@ -204,7 +215,7 @@ public static unsafe class GICv3Its
         {
             Native.MMIO.Write32(_itsBase + GITS_CTLR, ctlr & ~GITS_CTLR_ENABLED);
             bool quiesced = false;
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < QuiescentSpinLimit; i++)
             {
                 if ((Native.MMIO.Read32(_itsBase + GITS_CTLR) & GITS_CTLR_QUIESCENT) != 0)
                 {
@@ -262,7 +273,7 @@ public static unsafe class GICv3Its
 
         // Allocate command queue (one 4 KiB page, 128 commands of 32 bytes each).
         _cmdQueueSize = COMMAND_QUEUE_BYTES;
-        _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, CommandQueuePages, zero: true);
         if (_cmdQueueVirt == 0)
         {
             // Without this check CBASER would point the ITS at physical
@@ -426,7 +437,7 @@ public static unsafe class GICv3Its
         ulong rbGranule = (rb >> BASER_PAGE_SIZE_SHIFT) & BASER_PAGE_SIZE_MASK;
         if (rbGranule != 0)
         {
-            ulong granuleBytes = rbGranule == 1 ? 16UL * 1024 : 64UL * 1024;
+            ulong granuleBytes = rbGranule == BASER_PAGE_SIZE_FIELD_16K ? Granule16KBytes : Granule64KBytes;
             // Over-allocate 2x so a granule-aligned block exists inside,
             // same trick as the LPI pending table's 64 KiB alignment.
             uint blockPages = (uint)(granuleBytes * 2 / ITS_PAGE_SIZE);

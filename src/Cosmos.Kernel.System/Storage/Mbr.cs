@@ -14,6 +14,45 @@ public static class Mbr
     private const int PartitionTableOffset = 446;
     private const int PartitionEntrySize = 16;
 
+    /// <summary>Byte offset of the 0xAA55 boot signature within the MBR sector (bytes 510-511).</summary>
+    private const int SignatureOffset = 510;
+
+    /// <summary>Size in bytes of the 0xAA55 boot signature field.</summary>
+    private const int SignatureSizeBytes = 2;
+
+    /// <summary>Number of primary partition slots in an MBR partition table.</summary>
+    private const int MaxPartitions = 4;
+
+    /// <summary>Byte offset of the partition type (system ID) within a partition entry.</summary>
+    private const int EntrySystemIdOffset = 4;
+
+    /// <summary>Byte offset of the 32-bit starting LBA within a partition entry.</summary>
+    private const int EntryStartLbaOffset = 8;
+
+    /// <summary>Byte offset of the 32-bit sector count within a partition entry.</summary>
+    private const int EntrySectorCountOffset = 12;
+
+    /// <summary>Size in bytes of the 32-bit LBA / sector-count fields in a partition entry.</summary>
+    private const int LbaFieldSizeBytes = 4;
+
+    /// <summary>Partition status byte: inactive (non-bootable) entry.</summary>
+    private const byte StatusInactive = 0x00;
+
+    /// <summary>Partition status byte: active (bootable) entry.</summary>
+    private const byte StatusBootable = 0x80;
+
+    /// <summary>System ID 0x05 - extended partition (CHS-addressed EBR container).</summary>
+    private const byte SystemIdExtendedChs = 0x05;
+
+    /// <summary>System ID 0x0F - extended partition (LBA-addressed EBR container).</summary>
+    private const byte SystemIdExtendedLba = 0x0F;
+
+    /// <summary>System ID 0x85 - Linux extended partition (EBR container).</summary>
+    private const byte SystemIdLinuxExtended = 0x85;
+
+    /// <summary>System ID 0xEE - GPT protective/hybrid MBR entry (the real table is the GPT).</summary>
+    private const byte SystemIdGptProtective = 0xEE;
+
     /// <summary>Single MBR partition entry. Sector positions are absolute on the host disk.</summary>
     public sealed class PartitionEntry
     {
@@ -40,7 +79,7 @@ public static class Mbr
     {
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(0, 1, mbr);
-        return BitConverter.ToUInt16(mbr.Slice(510, 2)) == MbrSignature;
+        return BitConverter.ToUInt16(mbr.Slice(SignatureOffset, SignatureSizeBytes)) == MbrSignature;
     }
 
     /// <summary>
@@ -50,33 +89,33 @@ public static class Mbr
     /// </summary>
     public static List<PartitionEntry> Parse(IBlockDevice device)
     {
-        List<PartitionEntry> partitions = new(4);
+        List<PartitionEntry> partitions = new(MaxPartitions);
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(0, 1, mbr);
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < MaxPartitions; i++)
         {
             int offset = PartitionTableOffset + i * PartitionEntrySize;
             byte status = mbr[offset];
-            byte systemId = mbr[offset + 4];
+            byte systemId = mbr[offset + EntrySystemIdOffset];
             // Skip empty and extended (EBR) entries, and 0xEE protective/
             // hybrid GPT entries — the real table is the GPT; registering
             // the protective entry as a data partition (e.g. when the
             // primary GPT header is damaged) would let a write destroy the
             // remaining GPT structures.
-            if (systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85 || systemId == 0xEE)
+            if (systemId == 0 || systemId == SystemIdExtendedChs || systemId == SystemIdExtendedLba || systemId == SystemIdLinuxExtended || systemId == SystemIdGptProtective)
             {
                 continue;
             }
             // The status byte must be 0x00 (inactive) or 0x80 (bootable);
             // anything else marks a corrupt entry.
-            if (status != 0x00 && status != 0x80)
+            if (status != StatusInactive && status != StatusBootable)
             {
                 continue;
             }
 
-            ulong startSector = BitConverter.ToUInt32(mbr.Slice(offset + 8, 4));
-            ulong sectorCount = BitConverter.ToUInt32(mbr.Slice(offset + 12, 4));
+            ulong startSector = BitConverter.ToUInt32(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes));
+            ulong sectorCount = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
             // Distrust on-disk metadata, mirroring the GPT hardening: start 0
             // aliases the MBR sector itself (a write through that "partition"
             // destroys the table), and a range past the disk end would
@@ -102,7 +141,7 @@ public static class Mbr
     public static void Create(IBlockDevice device)
     {
         Span<byte> mbr = new byte[device.BlockSize];
-        BitConverter.TryWriteBytes(mbr.Slice(510, 2), MbrSignature);
+        BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
         device.WriteBlock(0, 1, mbr);
 
         Span<byte> lba1 = new byte[device.BlockSize];
@@ -116,7 +155,7 @@ public static class Mbr
     /// </summary>
     public static void WritePartition(IBlockDevice device, int index, byte systemId, uint startSector, uint sectorCount)
     {
-        if ((uint)index >= 4)
+        if ((uint)index >= MaxPartitions)
         {
             throw new ArgumentOutOfRangeException(nameof(index), "MBR primary partition index must be 0..3.");
         }
@@ -138,11 +177,11 @@ public static class Mbr
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         mbr.Slice(offset, PartitionEntrySize).Clear();
-        mbr[offset + 4] = systemId;
-        BitConverter.TryWriteBytes(mbr.Slice(offset + 8, 4), startSector);
-        BitConverter.TryWriteBytes(mbr.Slice(offset + 12, 4), sectorCount);
+        mbr[offset + EntrySystemIdOffset] = systemId;
+        BitConverter.TryWriteBytes(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes), startSector);
+        BitConverter.TryWriteBytes(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes), sectorCount);
 
-        BitConverter.TryWriteBytes(mbr.Slice(510, 2), MbrSignature);
+        BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
         device.WriteBlock(0, 1, mbr);
     }
 }

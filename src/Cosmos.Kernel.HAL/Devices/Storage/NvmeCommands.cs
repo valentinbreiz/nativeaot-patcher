@@ -40,6 +40,27 @@ public static class NvmeCns
 /// </summary>
 public unsafe struct NvmeSqe
 {
+    /// <summary>Submission Queue Entry size in 64-bit words (64 bytes / 8).</summary>
+    private const int SqeSizeQwords = 8;
+
+    /// <summary>Byte offset of CDW0 (opcode/FUSE/PSDT/CID) within the SQE.</summary>
+    private const ulong Cdw0Offset = 0x00;
+    /// <summary>Byte offset of the Namespace Identifier (NSID) within the SQE.</summary>
+    private const ulong NsidOffset = 0x04;
+    /// <summary>Byte offset of PRP Entry 1 within the SQE.</summary>
+    private const ulong Prp1Offset = 0x18;
+    /// <summary>Byte offset of PRP Entry 2 within the SQE.</summary>
+    private const ulong Prp2Offset = 0x20;
+    /// <summary>Byte offset of CDW10 within the SQE.</summary>
+    private const ulong Cdw10Offset = 0x28;
+    /// <summary>Byte offset of CDW11 within the SQE.</summary>
+    private const ulong Cdw11Offset = 0x2C;
+    /// <summary>Byte offset of CDW12 within the SQE.</summary>
+    private const ulong Cdw12Offset = 0x30;
+
+    /// <summary>Bit position of the Command Identifier (CID) within CDW0.</summary>
+    private const int CidShift = 16;
+
     public ulong Address;
 
     public NvmeSqe(ulong address)
@@ -51,7 +72,7 @@ public unsafe struct NvmeSqe
     public void Clear()
     {
         ulong* p = (ulong*)Address;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < SqeSizeQwords; i++)
         {
             p[i] = 0;
         }
@@ -60,38 +81,38 @@ public unsafe struct NvmeSqe
     public void SetOpcode(byte opcode, ushort cid)
     {
         // CDW0: opcode | FUSE | reserved | PSDT | CID<<16
-        uint cdw0 = (uint)opcode | ((uint)cid << 16);
-        Native.MMIO.Write32(Address + 0x00, cdw0);
+        uint cdw0 = (uint)opcode | ((uint)cid << CidShift);
+        Native.MMIO.Write32(Address + Cdw0Offset, cdw0);
     }
 
     public void SetNsid(uint nsid)
     {
-        Native.MMIO.Write32(Address + 0x04, nsid);
+        Native.MMIO.Write32(Address + NsidOffset, nsid);
     }
 
     public void SetPrp1(ulong physAddr)
     {
-        Native.MMIO.Write64(Address + 0x18, physAddr);
+        Native.MMIO.Write64(Address + Prp1Offset, physAddr);
     }
 
     public void SetPrp2(ulong physAddr)
     {
-        Native.MMIO.Write64(Address + 0x20, physAddr);
+        Native.MMIO.Write64(Address + Prp2Offset, physAddr);
     }
 
     public void SetCdw10(uint value)
     {
-        Native.MMIO.Write32(Address + 0x28, value);
+        Native.MMIO.Write32(Address + Cdw10Offset, value);
     }
 
     public void SetCdw11(uint value)
     {
-        Native.MMIO.Write32(Address + 0x2C, value);
+        Native.MMIO.Write32(Address + Cdw11Offset, value);
     }
 
     public void SetCdw12(uint value)
     {
-        Native.MMIO.Write32(Address + 0x30, value);
+        Native.MMIO.Write32(Address + Cdw12Offset, value);
     }
 }
 
@@ -101,6 +122,26 @@ public unsafe struct NvmeSqe
 /// </summary>
 public unsafe struct NvmeCqe
 {
+    /// <summary>Byte offset of DW0 (command-specific result) within the CQE.</summary>
+    private const ulong CommandSpecificOffset = 0x00;
+    /// <summary>Byte offset of DW1 (reserved) within the CQE.</summary>
+    private const ulong ReservedOffset = 0x04;
+    /// <summary>Byte offset of the SQ Head Pointer within the CQE.</summary>
+    private const ulong SqHeadPointerOffset = 0x08;
+    /// <summary>Byte offset of the SQ Identifier within the CQE.</summary>
+    private const ulong SqIdentifierOffset = 0x0A;
+    /// <summary>Byte offset of the Command Identifier within the CQE.</summary>
+    private const ulong CommandIdentifierOffset = 0x0C;
+    /// <summary>Byte offset of the Status Field (including phase tag) within the CQE.</summary>
+    private const ulong StatusFieldOffset = 0x0E;
+
+    /// <summary>Mask selecting the phase tag bit in the status field.</summary>
+    private const int PhaseTagMask = 0x1;
+    /// <summary>Bit position of the status code within the status field (bit 0 is the phase tag).</summary>
+    private const int StatusCodeShift = 1;
+    /// <summary>Mask selecting the 15-bit status code after shifting out the phase tag.</summary>
+    private const int StatusCodeMask = 0x7FFF;
+
     public ulong Address;
 
     public NvmeCqe(ulong address)
@@ -108,16 +149,16 @@ public unsafe struct NvmeCqe
         Address = address;
     }
 
-    public uint CommandSpecific => Native.MMIO.Read32(Address + 0x00);
-    public uint Reserved => Native.MMIO.Read32(Address + 0x04);
-    public ushort SqHeadPointer => Native.MMIO.Read16(Address + 0x08);
-    public ushort SqIdentifier => Native.MMIO.Read16(Address + 0x0A);
-    public ushort CommandIdentifier => Native.MMIO.Read16(Address + 0x0C);
-    public ushort StatusField => Native.MMIO.Read16(Address + 0x0E);
+    public uint CommandSpecific => Native.MMIO.Read32(Address + CommandSpecificOffset);
+    public uint Reserved => Native.MMIO.Read32(Address + ReservedOffset);
+    public ushort SqHeadPointer => Native.MMIO.Read16(Address + SqHeadPointerOffset);
+    public ushort SqIdentifier => Native.MMIO.Read16(Address + SqIdentifierOffset);
+    public ushort CommandIdentifier => Native.MMIO.Read16(Address + CommandIdentifierOffset);
+    public ushort StatusField => Native.MMIO.Read16(Address + StatusFieldOffset);
 
     /// <summary>Phase tag bit (toggles each pass through the queue).</summary>
-    public bool Phase => (StatusField & 0x1) != 0;
+    public bool Phase => (StatusField & PhaseTagMask) != 0;
 
     /// <summary>Status code field — 0 means success.</summary>
-    public uint StatusCode => (uint)((StatusField >> 1) & 0x7FFF);
+    public uint StatusCode => (uint)((StatusField >> StatusCodeShift) & StatusCodeMask);
 }

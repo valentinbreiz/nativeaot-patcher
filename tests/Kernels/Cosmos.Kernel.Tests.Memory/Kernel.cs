@@ -11,9 +11,87 @@ namespace Cosmos.Kernel.Tests.Memory;
 
 public unsafe class Kernel : Sys.Kernel
 {
+    /// <summary>Number of test cases registered with the TestRunner in BeforeRun.</summary>
+    private const int ExpectedTestCount = 71;
+
+    /// <summary>Expected argv length: argv[0] ("cosmos") plus the 3 args passed by limine.conf.</summary>
+    private const int ExpectedArgvLength = 4;
+
+    /// <summary>Hash code of boxed 'c': char.GetHashCode packs the char value into both 16-bit halves.</summary>
+    private const int BoxedCharHashCode = 0x00630063;
+
+    /// <summary>Length of the int array used by the allocation-and-access test.</summary>
+    private const int AllocIntArrayLength = 100;
+
+    /// <summary>Size of the large-allocation test buffer (1 MiB).</summary>
+    private const int LargeAllocationSizeBytes = 1024 * 1024;
+
+    /// <summary>Marker byte (0b1010_1010) written to the first byte of the large allocation.</summary>
+    private const byte LargeAllocFirstMarker = 0xAA;
+
+    /// <summary>Marker byte (0b0101_0101) written to the last byte of the large allocation.</summary>
+    private const byte LargeAllocLastMarker = 0x55;
+
+    /// <summary>MemCopy test length below the 16-byte SIMD threshold.</summary>
+    private const int CopyLength8Bytes = 8;
+
+    /// <summary>MemCopy test length at the SIMD threshold (smallest SIMD-enabled copy).</summary>
+    private const int CopyLength16Bytes = 16;
+
+    /// <summary>MemCopy test length: one 16-byte SIMD block plus an 8-byte tail.</summary>
+    private const int CopyLength24Bytes = 24;
+
+    /// <summary>MemCopy test length: two 16-byte SIMD blocks.</summary>
+    private const int CopyLength32Bytes = 32;
+
+    /// <summary>MemCopy test length: three 16-byte SIMD blocks.</summary>
+    private const int CopyLength48Bytes = 48;
+
+    /// <summary>Test length of four 16-byte SIMD blocks; also used by the MemSet and byte[] Array.Copy tests.</summary>
+    private const int CopyLength64Bytes = 64;
+
+    /// <summary>MemCopy test length: five 16-byte SIMD blocks.</summary>
+    private const int CopyLength80Bytes = 80;
+
+    /// <summary>MemCopy test length: eight 16-byte SIMD blocks.</summary>
+    private const int CopyLength128Bytes = 128;
+
+    /// <summary>Large SIMD test length; also used by the large byte[] Array.Copy test.</summary>
+    private const int CopyLength256Bytes = 256;
+
+    /// <summary>Large SIMD test length with an 8-byte unaligned tail.</summary>
+    private const int CopyLength264Bytes = 264;
+
+    /// <summary>Mask that truncates an index to a byte value when building fill patterns.</summary>
+    private const int ByteValueMask = 0xFF;
+
+    /// <summary>Fill value for the MemSet test.</summary>
+    private const byte MemSetFillValue = 0xAB;
+
+    /// <summary>Buffer length for the overlapping MemMove tests.</summary>
+    private const int OverlapBufferLength = 32;
+
+    /// <summary>Number of bytes moved in the overlapping MemMove tests.</summary>
+    private const int OverlapMoveLength = 16;
+
+    /// <summary>Byte distance between source and destination in the overlapping MemMove tests.</summary>
+    private const int OverlapOffset = 8;
+
+    /// <summary>Sentinel written to source buffers to prove data was (or was not) copied.</summary>
+    private const byte SourceSentinel = 0xAA;
+
+    /// <summary>Sentinel pre-loaded into destination buffers to detect unexpected writes.</summary>
+    private const byte DestSentinel = 0xBB;
+
+    /// <summary>Below-HHDM probe address that VirtualToPhysical must pass through unchanged.</summary>
+    private const ulong PhysicalProbeAddress = 0x1000;
+
+    /// <summary>Base of the top-2GiB kernel image window where NativeAOT places code and statics.</summary>
+    private const ulong KernelImageWindowBase = 0xFFFF_FFFF_8000_0000;
+
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 71);
+        TR.Start("Memory Tests", expectedTests: ExpectedTestCount);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -130,7 +208,7 @@ public unsafe class Kernel : Sys.Kernel
     {
         object boxed = 'c';
         Assert.Equal("c", boxed.ToString());
-        Assert.Equal(0x00630063, boxed.GetHashCode());
+        Assert.Equal(BoxedCharHashCode, boxed.GetHashCode());
 
         char unboxed = (char)boxed;
         Assert.True(unboxed == 'c', "Boxing: char to object and back");
@@ -248,7 +326,7 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestIntArrayAllocation()
     {
-        int[] array = new int[100];
+        int[] array = new int[AllocIntArrayLength];
         for (int i = 0; i < 10; i++)
         {
             array[i] = i * 10;
@@ -288,11 +366,11 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestLargeAllocation()
     {
-        int size = 1024 * 1024; // 1MB
+        int size = LargeAllocationSizeBytes;
         byte[] large = new byte[size];
-        large[0] = 0xAA;
-        large[size - 1] = 0x55;
-        Assert.True(large.Length == size && large[0] == 0xAA && large[size - 1] == 0x55, "Memory: 1MB allocation");
+        large[0] = LargeAllocFirstMarker;
+        large[size - 1] = LargeAllocLastMarker;
+        Assert.True(large.Length == size && large[0] == LargeAllocFirstMarker && large[size - 1] == LargeAllocLastMarker, "Memory: 1MB allocation");
     }
 
     // ==================== Generic Collection Tests ====================
@@ -605,23 +683,23 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy8Bytes()
     {
-        byte* src = stackalloc byte[8];
-        byte* dest = stackalloc byte[8];
+        byte* src = stackalloc byte[CopyLength8Bytes];
+        byte* dest = stackalloc byte[CopyLength8Bytes];
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < CopyLength8Bytes; i++)
         {
             src[i] = (byte)(i + 1);
         }
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < CopyLength8Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 8);
+        MemoryOp.MemCopy(dest, src, CopyLength8Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < CopyLength8Bytes; i++)
         {
             if (dest[i] != (byte)(i + 1))
             {
@@ -633,23 +711,23 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy16Bytes()
     {
-        byte* src = stackalloc byte[16];
-        byte* dest = stackalloc byte[16];
+        byte* src = stackalloc byte[CopyLength16Bytes];
+        byte* dest = stackalloc byte[CopyLength16Bytes];
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < CopyLength16Bytes; i++)
         {
             src[i] = (byte)(i + 1);
         }
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < CopyLength16Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 16);
+        MemoryOp.MemCopy(dest, src, CopyLength16Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < CopyLength16Bytes; i++)
         {
             if (dest[i] != (byte)(i + 1))
             {
@@ -661,23 +739,23 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy24Bytes()
     {
-        byte* src = stackalloc byte[24];
-        byte* dest = stackalloc byte[24];
+        byte* src = stackalloc byte[CopyLength24Bytes];
+        byte* dest = stackalloc byte[CopyLength24Bytes];
 
-        for (int i = 0; i < 24; i++)
+        for (int i = 0; i < CopyLength24Bytes; i++)
         {
             src[i] = (byte)(i + 1);
         }
 
-        for (int i = 0; i < 24; i++)
+        for (int i = 0; i < CopyLength24Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 24);
+        MemoryOp.MemCopy(dest, src, CopyLength24Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 24; i++)
+        for (int i = 0; i < CopyLength24Bytes; i++)
         {
             if (dest[i] != (byte)(i + 1))
             {
@@ -689,23 +767,23 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy32Bytes()
     {
-        byte* src = stackalloc byte[32];
-        byte* dest = stackalloc byte[32];
+        byte* src = stackalloc byte[CopyLength32Bytes];
+        byte* dest = stackalloc byte[CopyLength32Bytes];
 
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < CopyLength32Bytes; i++)
         {
             src[i] = (byte)(i + 1);
         }
 
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < CopyLength32Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 32);
+        MemoryOp.MemCopy(dest, src, CopyLength32Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < CopyLength32Bytes; i++)
         {
             if (dest[i] != (byte)(i + 1))
             {
@@ -717,25 +795,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy48Bytes()
     {
-        byte* src = stackalloc byte[48];
-        byte* dest = stackalloc byte[48];
+        byte* src = stackalloc byte[CopyLength48Bytes];
+        byte* dest = stackalloc byte[CopyLength48Bytes];
 
-        for (int i = 0; i < 48; i++)
+        for (int i = 0; i < CopyLength48Bytes; i++)
         {
-            src[i] = (byte)((i + 1) & 0xFF);
+            src[i] = (byte)((i + 1) & ByteValueMask);
         }
 
-        for (int i = 0; i < 48; i++)
+        for (int i = 0; i < CopyLength48Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 48);
+        MemoryOp.MemCopy(dest, src, CopyLength48Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 48; i++)
+        for (int i = 0; i < CopyLength48Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF))
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
             {
                 passed = false;
             }
@@ -745,25 +823,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy64Bytes()
     {
-        byte* src = stackalloc byte[64];
-        byte* dest = stackalloc byte[64];
+        byte* src = stackalloc byte[CopyLength64Bytes];
+        byte* dest = stackalloc byte[CopyLength64Bytes];
 
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            src[i] = (byte)((i + 1) & 0xFF);
+            src[i] = (byte)((i + 1) & ByteValueMask);
         }
 
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 64);
+        MemoryOp.MemCopy(dest, src, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF))
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
             {
                 passed = false;
             }
@@ -773,25 +851,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy80Bytes()
     {
-        byte* src = stackalloc byte[80];
-        byte* dest = stackalloc byte[80];
+        byte* src = stackalloc byte[CopyLength80Bytes];
+        byte* dest = stackalloc byte[CopyLength80Bytes];
 
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < CopyLength80Bytes; i++)
         {
-            src[i] = (byte)((i + 1) & 0xFF);
+            src[i] = (byte)((i + 1) & ByteValueMask);
         }
 
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < CopyLength80Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 80);
+        MemoryOp.MemCopy(dest, src, CopyLength80Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < CopyLength80Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF))
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
             {
                 passed = false;
             }
@@ -801,25 +879,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy128Bytes()
     {
-        byte* src = stackalloc byte[128];
-        byte* dest = stackalloc byte[128];
+        byte* src = stackalloc byte[CopyLength128Bytes];
+        byte* dest = stackalloc byte[CopyLength128Bytes];
 
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < CopyLength128Bytes; i++)
         {
-            src[i] = (byte)((i + 1) & 0xFF);
+            src[i] = (byte)((i + 1) & ByteValueMask);
         }
 
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < CopyLength128Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 128);
+        MemoryOp.MemCopy(dest, src, CopyLength128Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < CopyLength128Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF))
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
             {
                 passed = false;
             }
@@ -829,25 +907,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy256Bytes()
     {
-        byte* src = stackalloc byte[256];
-        byte* dest = stackalloc byte[256];
+        byte* src = stackalloc byte[CopyLength256Bytes];
+        byte* dest = stackalloc byte[CopyLength256Bytes];
 
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            src[i] = (byte)(i & 0xFF);
+            src[i] = (byte)(i & ByteValueMask);
         }
 
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 256);
+        MemoryOp.MemCopy(dest, src, CopyLength256Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF))
+            if (dest[i] != (byte)(i & ByteValueMask))
             {
                 passed = false;
             }
@@ -857,25 +935,25 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemCopy264Bytes()
     {
-        byte* src = stackalloc byte[264];
-        byte* dest = stackalloc byte[264];
+        byte* src = stackalloc byte[CopyLength264Bytes];
+        byte* dest = stackalloc byte[CopyLength264Bytes];
 
-        for (int i = 0; i < 264; i++)
+        for (int i = 0; i < CopyLength264Bytes; i++)
         {
-            src[i] = (byte)(i & 0xFF);
+            src[i] = (byte)(i & ByteValueMask);
         }
 
-        for (int i = 0; i < 264; i++)
+        for (int i = 0; i < CopyLength264Bytes; i++)
         {
             dest[i] = 0;
         }
 
-        MemoryOp.MemCopy(dest, src, 264);
+        MemoryOp.MemCopy(dest, src, CopyLength264Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 264; i++)
+        for (int i = 0; i < CopyLength264Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF))
+            if (dest[i] != (byte)(i & ByteValueMask))
             {
                 passed = false;
             }
@@ -885,21 +963,21 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestMemSet64Bytes()
     {
-        byte* dest = stackalloc byte[64];
+        byte* dest = stackalloc byte[CopyLength64Bytes];
 
         // Clear first
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
             dest[i] = 0;
         }
 
         // Fill with value 0xAB
-        MemoryOp.MemSet(dest, 0xAB, 64);
+        MemoryOp.MemSet(dest, MemSetFillValue, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            if (dest[i] != 0xAB)
+            if (dest[i] != MemSetFillValue)
             {
                 passed = false;
             }
@@ -910,24 +988,24 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestMemMoveOverlap()
     {
         // Test overlapping copy (dest > src)
-        byte* buffer = stackalloc byte[32];
+        byte* buffer = stackalloc byte[OverlapBufferLength];
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < OverlapMoveLength; i++)
         {
             buffer[i] = (byte)(i + 1);
         }
 
-        for (int i = 16; i < 32; i++)
+        for (int i = OverlapMoveLength; i < OverlapBufferLength; i++)
         {
             buffer[i] = 0;
         }
 
         // Move 16 bytes from offset 0 to offset 8 (overlapping)
-        MemoryOp.MemMove(buffer + 8, buffer, 16);
+        MemoryOp.MemMove(buffer + OverlapOffset, buffer, OverlapMoveLength);
 
         bool passed = true;
         // First 8 bytes should be unchanged
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < OverlapOffset; i++)
         {
             if (buffer[i] != (byte)(i + 1))
             {
@@ -935,9 +1013,9 @@ public unsafe class Kernel : Sys.Kernel
             }
         }
         // Bytes 8-23 should be copies of original 0-15
-        for (int i = 8; i < 24; i++)
+        for (int i = OverlapOffset; i < OverlapOffset + OverlapMoveLength; i++)
         {
-            if (buffer[i] != (byte)(i - 8 + 1))
+            if (buffer[i] != (byte)(i - OverlapOffset + 1))
             {
                 passed = false;
             }
@@ -949,37 +1027,37 @@ public unsafe class Kernel : Sys.Kernel
     {
         byte* src = stackalloc byte[1];
         byte* dest = stackalloc byte[1];
-        src[0] = 0xAA;
-        dest[0] = 0xBB;
+        src[0] = SourceSentinel;
+        dest[0] = DestSentinel;
         MemoryOp.MemCopy(dest, src, 0);
-        Assert.True(dest[0] == 0xBB, "MemCopy: 0 bytes is no-op");
+        Assert.True(dest[0] == DestSentinel, "MemCopy: 0 bytes is no-op");
     }
 
     private static void TestMemCopy1Byte()
     {
         byte* src = stackalloc byte[1];
         byte* dest = stackalloc byte[1];
-        src[0] = 0xAA;
-        dest[0] = 0xBB;
+        src[0] = SourceSentinel;
+        dest[0] = DestSentinel;
         MemoryOp.MemCopy(dest, src, 1);
-        Assert.True(dest[0] == 0xAA, "MemCopy: 1 byte copy");
+        Assert.True(dest[0] == SourceSentinel, "MemCopy: 1 byte copy");
     }
 
     private static void TestMemMoveOverlapDestBeforeSrc()
     {
-        byte* buffer = stackalloc byte[32];
-        for (int i = 0; i < 32; i++)
+        byte* buffer = stackalloc byte[OverlapBufferLength];
+        for (int i = 0; i < OverlapBufferLength; i++)
         {
             buffer[i] = (byte)i;
         }
 
         // Move 16 bytes from offset 8 to offset 0 (overlapping, dest < src)
-        MemoryOp.MemMove(buffer, buffer + 8, 16);
+        MemoryOp.MemMove(buffer, buffer + OverlapOffset, OverlapMoveLength);
 
         bool passed = true;
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < OverlapMoveLength; i++)
         {
-            if (buffer[i] != (byte)(i + 8))
+            if (buffer[i] != (byte)(i + OverlapOffset))
             {
                 passed = false;
             }
@@ -1002,18 +1080,18 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestArrayCopyByteArray()
     {
-        byte[] source = new byte[64];
-        byte[] dest = new byte[64];
+        byte[] source = new byte[CopyLength64Bytes];
+        byte[] dest = new byte[CopyLength64Bytes];
 
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
             source[i] = (byte)(i + 1);
         }
 
-        Array.Copy(source, dest, 64);
+        Array.Copy(source, dest, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
             if (dest[i] != (byte)(i + 1))
             {
@@ -1025,20 +1103,20 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestArrayCopyLargeArray()
     {
-        byte[] source = new byte[256];
-        byte[] dest = new byte[256];
+        byte[] source = new byte[CopyLength256Bytes];
+        byte[] dest = new byte[CopyLength256Bytes];
 
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            source[i] = (byte)(i & 0xFF);
+            source[i] = (byte)(i & ByteValueMask);
         }
 
-        Array.Copy(source, dest, 256);
+        Array.Copy(source, dest, CopyLength256Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF))
+            if (dest[i] != (byte)(i & ByteValueMask))
             {
                 passed = false;
             }
@@ -1075,7 +1153,7 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestCmdlineArgCount()
     {
         string[] args = Environment.GetCommandLineArgs();
-        Assert.Equal(4, args.Length, "Cmdline: argv0 + 3 parsed args");
+        Assert.Equal(ExpectedArgvLength, args.Length, "Cmdline: argv0 + 3 parsed args");
     }
 
     private static void TestCmdlineArgv0()
@@ -1088,7 +1166,7 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestCmdlineArgValues()
     {
         string[] args = Environment.GetCommandLineArgs();
-        Assert.True(args.Length >= 4, "Cmdline: argv has 3 parsed args");
+        Assert.True(args.Length >= ExpectedArgvLength, "Cmdline: argv has 3 parsed args");
         Assert.True(args[1] == "arg1", "Cmdline: argv[1] == arg1");
         Assert.True(args[2] == "arg2", "Cmdline: argv[2] == arg2");
         Assert.True(args[3] == "arg3", "Cmdline: argv[3] == arg3");
@@ -1144,8 +1222,8 @@ public unsafe class Kernel : Sys.Kernel
     // device doorbells.
     private static void TestV2PPhysicalPassesThrough()
     {
-        ulong phys = PageAllocator.VirtualToPhysical(0x1000);
-        Assert.True(phys == 0x1000, "already-physical values must pass through unchanged");
+        ulong phys = PageAllocator.VirtualToPhysical(PhysicalProbeAddress);
+        Assert.True(phys == PhysicalProbeAddress, "already-physical values must pass through unchanged");
     }
 
     // Kernel-image addresses (statics, code) are higher-half but NOT HHDM
@@ -1155,7 +1233,7 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestV2PKernelImageRejected()
     {
         ulong va = V2PProbeAddress();
-        Assert.True(va >= 0xFFFF_FFFF_8000_0000, "a primitive static must live in the kernel image window");
+        Assert.True(va >= KernelImageWindowBase, "a primitive static must live in the kernel image window");
         Assert.True(V2PRejects(va), "VirtualToPhysical must reject kernel-image addresses instead of fabricating a physical address");
     }
 
