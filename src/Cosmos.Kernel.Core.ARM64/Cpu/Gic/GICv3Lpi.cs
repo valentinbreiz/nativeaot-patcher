@@ -71,7 +71,11 @@ public static unsafe class GICv3Lpi
 
     private const int LpiIdBits = 13;            // 16K LPI INTID space
     private const ulong LpiPropTableSize = 1UL << (LpiIdBits + 1); // 16 KiB
-    private const ulong LpiPendTableMinSize = 1UL << (LpiIdBits - 2); // 2 KiB; 64 KiB align dominates
+    // With IDbits=13 the GIC consults INTIDs 8192..2^(13+1)-1 = 16383 only:
+    // that is 8192 config bytes, half the (over-)allocated prop table. The
+    // window checks below must use this bound — bounding against the full
+    // table accepts INTIDs up to 24575 whose bytes the GIC never reads.
+    private const uint LpiCount = (1U << (LpiIdBits + 1)) - 8192;
 
     private static ulong _propTablePhys;
     private static ulong _propTableVirt;
@@ -201,7 +205,7 @@ public static unsafe class GICv3Lpi
             return;
         }
         uint off = lpi - 8192;
-        if (off >= LpiPropTableSize)
+        if (off >= LpiCount)
         {
             return;
         }
@@ -232,7 +236,7 @@ public static unsafe class GICv3Lpi
             return;
         }
         uint off = lpi - 8192;
-        if (off >= LpiPropTableSize)
+        if (off >= LpiCount)
         {
             return;
         }
