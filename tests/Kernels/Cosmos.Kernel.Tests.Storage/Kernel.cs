@@ -89,11 +89,28 @@ public class Kernel : Sys.Kernel
         }
         else
         {
-            // Bare nvme / acpi-off: the interrupt mode depends on the
-            // platform default (x64 APIC vs arm64 default GIC) or is moot
-            // (acpi-off has no MSI), so it is not pinned here — the gicv2/gicv3
-            // cells assert both paths explicitly.
+#if ARCH_X64
+            if (!TR.ProfileContains("acpi-off"))
+            {
+                // Plain x64 nvme: ACPI is on and the LAPIC MSI binder is
+                // always registered (the Interrupts suite asserts
+                // MsiRouting.IsAvailable unconditionally on x64), so the
+                // driver landing in MSI-X mode IS determinate — a silent
+                // MSI-X→polled regression here is exactly the failure this
+                // cell exists to catch. expect-MSI-X = true.
+                TR.RunIf(true, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+            }
+            else
+            {
+                // acpi-off x64: no MADT → no LAPIC MSI routing to pin.
+                TR.Skip("Profile_NvmeInterruptModeMatches", "acpi-off has no MSI routing to pin");
+            }
+#else
+            // arm64 bare nvme: the interrupt mode depends on the machine's
+            // default gic-version, so it is not pinned here — the
+            // gicv2/gicv3 cells assert both paths explicitly.
             TR.Skip("Profile_NvmeInterruptModeMatches", "interrupt mode not pinned by this cell");
+#endif
         }
 
         // ==================== Device (single-disk round-trip) ====================
