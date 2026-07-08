@@ -115,8 +115,12 @@ public class PciDevice : Device
     /// Returns the full physical base address of memory BAR
     /// <paramref name="barIndex"/>. For 64-bit BARs this combines the
     /// lower BAR with the immediately-following upper BAR; for 32-bit
-    /// BARs it returns just the lower 32 bits. I/O BARs and out-of-range
-    /// indices return 0.
+    /// BARs it returns just the lower 32 bits. I/O BARs, out-of-range
+    /// indices, and a 64-bit claim with no following BAR return 0.
+    /// Both halves are read live from config space — the ctor-cached
+    /// <see cref="BaseAddressBar"/> copy is an enumeration-time snapshot,
+    /// and splicing it with a live upper half would combine two different
+    /// addresses once a BAR is reprogrammed.
     /// </summary>
     public ulong GetBar64Address(int barIndex)
     {
@@ -125,15 +129,23 @@ public class PciDevice : Device
             return 0;
         }
 
-        PciBaseAddressBar bar = BaseAddressBar[barIndex];
-        if (bar.IsIo)
+        uint lower = ReadRegister32((byte)(0x10 + barIndex * 4));
+        if ((lower & 0x1) == 1)
         {
-            return 0;
+            return 0; // I/O BAR
         }
 
-        ulong addr = bar.BaseAddress;
-        if (bar.Is64Bit && barIndex + 1 < BaseAddressBar.Length)
+        ulong addr = lower & 0xFFFFFFF0;
+        if (((lower >> 1) & 0x3) == 0x2)
         {
+            // 64-bit BAR: the next BAR slot holds the upper half. A 64-bit
+            // claim on the last slot is malformed — report 0 rather than a
+            // lower-half-only address.
+            if (barIndex + 1 >= BaseAddressBar.Length)
+            {
+                return 0;
+            }
+
             ulong upper = ReadRegister32((byte)(0x10 + (barIndex + 1) * 4));
             addr |= upper << 32;
         }

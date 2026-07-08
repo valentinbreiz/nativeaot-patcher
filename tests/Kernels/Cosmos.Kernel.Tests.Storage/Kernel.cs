@@ -37,8 +37,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
         // 3 manager + 1 boot-scan + 2 profile + 13 device + 9 partition
-        // + 1 mmio + 1 boot-reboot = 30 tests per profile.
-        TR.Start("Storage Block Device Tests", expectedTests: 30);
+        // + 2 mmio/pci + 1 boot-reboot = 31 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: 31);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
         s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
@@ -137,8 +137,11 @@ public class Kernel : Sys.Kernel
 #if ARCH_X64
         TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Mmio_HighBar_RemappedOnDemand", TestMmio_HighBarRemapped,
             "64-bit BAR relocation probe is nvme-profile only");
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Pci_GetBar64_ReadsLiveConfig", TestPciGetBar64ReadsLiveConfig,
+            "64-bit BAR relocation probe is nvme-profile only");
 #else
         TR.Skip("Mmio_HighBar_RemappedOnDemand", "x64 mapper cell; arm64 installs Device mappings via DeviceMapper");
+        TR.Skip("Pci_GetBar64_ReadsLiveConfig", "BAR relocation probe is x64-only (same harness as the mapper cell)");
 #endif
 
         // ==================== Boot persistence (destructive: reboots QEMU) ====================
@@ -863,6 +866,37 @@ public class Kernel : Sys.Kernel
         }
 
         Assert.True(vsHigh == vsOrig, "VS read through the remapped high BAR must match the original");
+    }
+
+    // GetBar64Address must read BOTH halves of a 64-bit BAR from live
+    // config space: mixing the enumeration-time cached lower half with a
+    // live upper half splices two different addresses together the moment
+    // a BAR is reprogrammed (exactly what the remap cell above — or any
+    // future PCI resource allocator — does). Decode stays disabled for the
+    // whole probe window: only config space is touched.
+    private static void TestPciGetBar64ReadsLiveConfig()
+    {
+        PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
+        Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
+
+        uint barLow = nvmePci!.ReadRegister32(0x10);
+        uint barHigh = nvmePci.ReadRegister32(0x14);
+        ulong origPhys = ((ulong)barHigh << 32) | (barLow & 0xFFFF_FFF0);
+        Assert.True(nvmePci.GetBar64Address(0) == origPhys, "baseline: GetBar64Address must match raw config space");
+
+        ushort command = nvmePci.ReadRegister16(0x04);
+        nvmePci.WriteRegister16(0x04, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(0x10, (uint)(HighBarPhys & 0xFFFF_FFF0) | (barLow & 0xF));
+        nvmePci.WriteRegister32(0x14, (uint)(HighBarPhys >> 32));
+
+        ulong reported = nvmePci.GetBar64Address(0);
+
+        nvmePci.WriteRegister32(0x10, barLow);
+        nvmePci.WriteRegister32(0x14, barHigh);
+        nvmePci.WriteRegister16(0x04, command);
+
+        Assert.True(reported == HighBarPhys,
+            "GetBar64Address must read both halves live after a BAR reprogram, not splice cached low with live high");
     }
 #endif
 
