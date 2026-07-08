@@ -39,7 +39,9 @@ public class Mutex : IDisposable
     {
         _ownerThread = null;
         _recursionDepth = 0;
-        _waitingThreads = [];
+        // Pre-sized for the same reason as InterruptEvent._waiters: the
+        // first Add in Acquire happens under the IRQ-off state lock.
+        _waitingThreads = new List<SchedThread>(4);
     }
 
     /// <summary>

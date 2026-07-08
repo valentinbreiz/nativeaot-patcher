@@ -31,7 +31,12 @@ public class InterruptEvent
     public InterruptEvent()
     {
         _pendingSignals = 0;
-        _waiters = [];
+        // Pre-sized so Wait's first waiter-list Add doesn't heap-allocate
+        // while holding the IRQ-off spinlock the ISR-side Signal spins on
+        // (an allocation there can trigger GC, making the IRQ-off window
+        // unbounded). More than 4 simultaneous waiters would still grow
+        // the list under the lock; driver flows park at most one or two.
+        _waiters = new List<SchedThread>(4);
     }
 
     /// <summary>
