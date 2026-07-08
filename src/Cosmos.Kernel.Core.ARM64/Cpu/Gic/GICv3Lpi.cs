@@ -38,6 +38,7 @@ public static unsafe class GICv3Lpi
     private const uint GICR_SYNCR = 0x00C0;     // 32-bit RO
 
     private const uint GICR_CTLR_ENABLE_LPIS = 1U << 0;
+    private const uint GICR_CTLR_CES = 1U << 1;  // Clear Enable Supported
     private const uint GICR_CTLR_RWP = 1U << 3;
 
     // PROPBASER bit layout (ARM IHI 0069G §11.10.6):
@@ -98,6 +99,37 @@ public static unsafe class GICv3Lpi
 
         _rdBase = rdBase;
 
+        // If firmware ran with LPIs enabled, GICR_PROPBASER/PENDBASER still
+        // point at tables we don't own: silently keeping them while every
+        // later EnableLpi writes OUR (never-installed) table means INV
+        // reloads "disabled" and no MSI ever fires — with the binder still
+        // registered. EnableLPIs may only be cleared when GICR_CTLR.CES
+        // advertises 1→0 write support; without CES, fail loudly so
+        // InitializeMsi downgrades the whole MSI path to polled.
+        // GICR_CTLR is a 32-bit register; using Write/Read64 here would
+        // misalign the access and silently no-op on QEMU.
+        uint ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+        if ((ctlr & GICR_CTLR_ENABLE_LPIS) != 0)
+        {
+            if ((ctlr & GICR_CTLR_CES) == 0)
+            {
+                Serial.WriteString("[GICv3-LPI] ERROR: firmware left LPIs enabled and CES=0 — cannot reprogram, MSI path disabled\n");
+                return;
+            }
+
+            Serial.WriteString("[GICv3-LPI] firmware left LPIs enabled; CES=1, disabling to reprogram\n");
+            Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr & ~GICR_CTLR_ENABLE_LPIS);
+            for (int i = 0; i < 1_000_000; i++)
+            {
+                if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
+                {
+                    break;
+                }
+            }
+
+            ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+        }
+
         // Property table — 1 byte per INTID, 4KB-aligned. Allocate 4 pages
         // (16 KiB == 2^14) → covers IDbits=13.
         const uint propPages = 4;
@@ -125,17 +157,6 @@ public static unsafe class GICv3Lpi
         ulong delta = pendAlignedPhys - pendBlockPhys;
         _pendTablePhys = pendAlignedPhys;
         _pendTableVirt = pendBlockVirt + delta;
-
-        // Make sure LPIs are disabled before reprogramming the bases.
-        // GICR_CTLR is a 32-bit register; using Write/Read64 here would
-        // misalign the access and silently no-op on QEMU.
-        uint ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
-        if ((ctlr & GICR_CTLR_ENABLE_LPIS) != 0)
-        {
-            Serial.WriteString("[GICv3-LPI] WARNING: LPIs already enabled by firmware, leaving in place\n");
-            _initialized = true;
-            return;
-        }
 
         ulong propbaser = ((ulong)LpiIdBits & PROPBASER_IDBITS_MASK)
                         | PROPBASER_INNER_WB
