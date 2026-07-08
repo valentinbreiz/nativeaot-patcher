@@ -61,13 +61,28 @@ public static unsafe class PageAllocator
 
     /// <summary>
     /// Convert virtual address to physical address for Higher Half Kernel mapping.
-    /// Subtracts the Limine HHDM offset when the address is in higher-half
-    /// space; passes through values that look already-physical.
+    /// Subtracts the Limine HHDM offset when the address is an HHDM alias;
+    /// passes through values that look already-physical. Kernel-image
+    /// addresses (statics, stack, code — the top-2GiB window) are higher-half
+    /// but NOT HHDM aliases: subtracting the offset from one fabricates a
+    /// garbage physical address, and a device DMA aimed at it corrupts
+    /// whatever lives there. Those are rejected loudly instead — callers
+    /// that need DMA from static data must copy it to a heap buffer first.
     /// </summary>
     /// <param name="virtualAddress">Virtual address to convert</param>
     /// <returns>Physical address</returns>
     public static ulong VirtualToPhysical(ulong virtualAddress)
     {
+        const ulong KernelImageWindow = 0xFFFFFFFF80000000UL;
+        if (virtualAddress >= KernelImageWindow)
+        {
+            Serial.WriteString("[PageAllocator] ERROR: VirtualToPhysical(0x");
+            Serial.WriteHex(virtualAddress);
+            Serial.WriteString(") is a kernel-image address, not an HHDM alias\n");
+            throw new ArgumentOutOfRangeException(nameof(virtualAddress),
+                "Kernel-image addresses have no HHDM alias; copy to a heap buffer for DMA.");
+        }
+
         ulong hhdmOffset = Limine.HHDM.Response != null
             ? Limine.HHDM.Response->Offset
             : 0xFFFF800000000000UL;

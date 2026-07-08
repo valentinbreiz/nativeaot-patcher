@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.TestRunner.Framework;
@@ -12,7 +13,7 @@ public unsafe class Kernel : Sys.Kernel
 {
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 68);
+        TR.Start("Memory Tests", expectedTests: 71);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -99,6 +100,13 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("ArrayCopy_LargeArray", TestArrayCopyLargeArray);
         TR.Run("ArrayCopy_ZeroLength", TestArrayCopyZeroLength);
         TR.Run("ArrayCopy_Overlap", TestArrayCopyOverlap);
+
+        // VirtualToPhysical — the DMA-address translation every storage/GIC
+        // buffer goes through. Pins the two valid classes and the loud
+        // rejection of the invalid one.
+        TR.Run("V2P_HhdmAlias_Translates", TestV2PHhdmAliasTranslates);
+        TR.Run("V2P_PhysicalValue_PassesThrough", TestV2PPhysicalPassesThrough);
+        TR.Run("V2P_KernelImageAddress_Rejected", TestV2PKernelImageRejected);
 
         TR.Finish();
     }
@@ -1090,6 +1098,73 @@ public unsafe class Kernel : Sys.Kernel
     {
         public bool Equals(string x, string y) => x == y || (x != null && y != null && x.Equals(y));
         public int GetHashCode(string obj) => obj?.GetHashCode() ?? 0;
+    }
+
+    // ==================== VirtualToPhysical ====================
+
+    // Non-GC static: NativeAOT places primitive statics in the kernel
+    // image's data section, i.e. the top-2GiB kernel window — exactly the
+    // address class VirtualToPhysical must refuse to "translate".
+    private static ulong s_v2pImageProbe;
+
+    private static unsafe ulong HhdmOffset()
+        => Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response != null
+            ? Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response->Offset
+            : 0;
+
+    // A heap allocation is an HHDM alias (the allocator carves RamStart =
+    // HHDM + phys), so translation is exact hhdm subtraction.
+    private static unsafe void TestV2PHhdmAliasTranslates()
+    {
+        ulong hhdm = HhdmOffset();
+        Assert.True(hhdm != 0, "Limine HHDM response must be present");
+
+        void* page = PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        Assert.True(page != null, "page allocation must succeed");
+
+        ulong va = (ulong)page;
+        Assert.True(va >= hhdm, "allocator addresses must be HHDM aliases");
+        ulong phys = PageAllocator.VirtualToPhysical(va);
+        Assert.True(phys == va - hhdm, "HHDM alias must translate by exact offset subtraction");
+
+        PageAllocator.Free(page);
+    }
+
+    // Values below the HHDM base look already-physical and must pass
+    // through unchanged — storage drivers hand such values straight to
+    // device doorbells.
+    private static void TestV2PPhysicalPassesThrough()
+    {
+        ulong phys = PageAllocator.VirtualToPhysical(0x1000);
+        Assert.True(phys == 0x1000, "already-physical values must pass through unchanged");
+    }
+
+    // Kernel-image addresses (statics, code) are higher-half but NOT HHDM
+    // aliases: subtracting the HHDM offset from one yields a garbage
+    // physical address — silent DMA corruption. The translation must
+    // reject them loudly instead of returning the bogus value.
+    private static void TestV2PKernelImageRejected()
+    {
+        ulong va = V2PProbeAddress();
+        Assert.True(va >= 0xFFFF_FFFF_8000_0000, "a primitive static must live in the kernel image window");
+        Assert.True(V2PRejects(va), "VirtualToPhysical must reject kernel-image addresses instead of fabricating a physical address");
+    }
+
+    private static unsafe ulong V2PProbeAddress()
+        => (ulong)Unsafe.AsPointer(ref s_v2pImageProbe);
+
+    // Single try/catch in its own helper (arm64 EH inlining quirk).
+    private static bool V2PRejects(ulong virtualAddress)
+    {
+        try
+        {
+            PageAllocator.VirtualToPhysical(virtualAddress);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 }
 
