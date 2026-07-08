@@ -8,6 +8,7 @@ using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Mouse;
 using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Timer;
 
 namespace Internal.Runtime.CompilerHelpers
@@ -72,6 +73,31 @@ namespace Internal.Runtime.CompilerHelpers
                             NetworkManager.RegisterDevice(networkDevice);
                         }
                     }
+
+                    // Initialize Storage Manager (manager-level state only)
+                    if (StorageManager.IsEnabled)
+                    {
+                        Serial.WriteString("[KERNEL]   - Initializing storage manager...\n");
+                        StorageManager.Initialize();
+                    }
+                }
+
+                // Storage device registration runs OUTSIDE the
+                // DisableInterruptsScope: ScanPartitions issues real I/O
+                // (LBA 0 read for MBR/GPT detection), and interrupt-driven
+                // drivers like NVMe need IF=1 / DAIF.I=0 to receive
+                // completion IRQs. Disposing the scope only RESTORES the
+                // prior state — on ARM64 IRQs were still masked from boot
+                // at this point, so explicitly unmask before doing I/O.
+                // The kernel re-enables IRQs again in Kernel.Start; this
+                // call is idempotent.
+                if (StorageManager.IsEnabled)
+                {
+                    if (InterruptManager.IsEnabled)
+                    {
+                        InternalCpu.EnableInterrupts();
+                    }
+                    StorageManager.RegisterHalDevices();
                 }
             }
         }

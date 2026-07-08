@@ -454,6 +454,15 @@ output-helloworld/
 # tasks/ 
 *.pcap
 
+# Dev disk images attached to DevKernel for storage testing
+disk.img
+disk-ahci.img
+disk-nvme.img
+
+# Local QEMU boot logs / scratch deploy scripts
+log.txt
+deploy-pzserver.sh
+
 # Installer bundle (downloaded tools, staged during CI build)
 setup/bundle/
 setup/output/
@@ -462,3 +471,5 @@ setup/output/
 src/Cosmos.Kernel/Bootstrap/kmain_version.h
 
 global.json
+
+.claude

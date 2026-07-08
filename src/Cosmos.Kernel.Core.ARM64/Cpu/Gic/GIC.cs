@@ -1,7 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.Core.ARM64.Cpu;
 
@@ -25,6 +27,18 @@ public static class GIC
 
     // Default QEMU virt machine addresses (used if DTB not available)
     private const ulong DEFAULT_GICD_BASE = 0x08000000;
+
+    /// <summary>Offset of the second 64 KiB ITS register frame (GITS_TRANSLATER page) from the ITS base, per GICv3 ITS spec.</summary>
+    private const ulong ItsTranslationFrameOffset = 0x10000;
+
+    /// <summary>Minimum MADT GICC GIC version field value indicating GICv3 (ACPI MADT interrupt controller structure).</summary>
+    private const byte GicVersionV3 = 3;
+
+    /// <summary>Size in bytes of one 2 MiB block mapped by DeviceMapper (AArch64 level-2 block granule).</summary>
+    private const ulong DeviceBlockSizeBytes = 0x200000;
+
+    /// <summary>Mask of the offset bits within a 2 MiB device block, used to align addresses down to a block boundary.</summary>
+    private const ulong DeviceBlockOffsetMask = 0x1FFFFFUL;
 
     private static bool _isV3;
     private static bool _initialized;
@@ -68,6 +82,64 @@ public static class GIC
     public static bool IsVersion3 => _isV3;
 
     /// <summary>
+    /// Brings the LPI/ITS path online if the platform reports an ITS, then
+    /// registers the ARM64 MSI binder. Safe to call when no ITS is present
+    /// — it logs and returns, leaving MsiRouting unregistered so callers
+    /// fall back to whatever non-MSI path they support.
+    /// </summary>
+    private static unsafe void InitializeMsi(ulong itsBase)
+    {
+        if (!_isV3)
+        {
+            Serial.Write("[GIC] MSI/ITS only supported on GICv3, skipping\n");
+            return;
+        }
+        if (itsBase == 0)
+        {
+            Serial.Write("[GIC] No ITS in MADT, MSI-X path disabled\n");
+            return;
+        }
+        if (GICv3.CurrentCpuRdBase == 0)
+        {
+            Serial.Write("[GIC] CurrentCpuRdBase == 0, ITS init skipped\n");
+            return;
+        }
+
+        DeviceMapper.EnsureMapped(itsBase);
+        DeviceMapper.EnsureMapped(itsBase + ItsTranslationFrameOffset);
+
+        // MMIO dereferences must go through the Device-memory HHDM mapping
+        // EnsureMapped installed above — the TTBR0 identity map is Normal
+        // WB cacheable, and dereferencing raw physical only appears to work
+        // because QEMU TCG ignores memory attributes. Addresses programmed
+        // INTO the hardware (GITS_TRANSLATER MSI doorbell, MAPC RDbase)
+        // remain physical, so both spaces are passed explicitly. On the
+        // ACPI path CurrentCpuRdBase is already the HHDM alias (Configure
+        // received PhysToVirt bases) and VirtualToPhysical recovers the
+        // physical; on the legacy no-ACPI fallback it is a raw identity
+        // address, which VirtualToPhysical passes through unchanged.
+        ulong rdVirt = GICv3.CurrentCpuRdBase;
+        ulong rdPhys = PageAllocator.VirtualToPhysical(rdVirt);
+
+        GICv3Lpi.Initialize(rdVirt);
+        if (!GICv3Lpi.IsInitialized)
+        {
+            Serial.Write("[GIC] LPI init failed, MSI-X path disabled\n");
+            return;
+        }
+
+        GICv3Its.Initialize(PhysToVirt(itsBase), itsBase, rdVirt, rdPhys);
+        if (!GICv3Its.IsInitialized)
+        {
+            Serial.Write("[GIC] ITS init failed, MSI-X path disabled\n");
+            return;
+        }
+
+        MsiRouting.RegisterBinder(new Arm64MsiBinder());
+        Serial.Write("[GIC] MsiRouting registered (GICv3 ITS)\n");
+    }
+
+    /// <summary>
     /// Initializes the GIC, auto-detecting v2 or v3.
     /// Discovery priority: ACPI MADT → default QEMU addresses.
     /// </summary>
@@ -78,18 +150,60 @@ public static class GIC
         if (acpiGic != null && acpiGic->Found != 0)
         {
             _distBase = acpiGic->DistBase;
-            _isV3 = acpiGic->Version >= 3;
+            _isV3 = acpiGic->Version >= GicVersionV3;
 
             if (_isV3 && acpiGic->RedistBase != 0)
             {
-                // Real hardware GICv3: use sysreg-only mode (MMIO may be inaccessible)
+                // Default to sysreg-only (safe on hardware where GICD/GICR
+                // MMIO is inaccessible). When the firmware advertises an
+                // ITS, we MUST take the full MMIO path — LPI delivery
+                // requires GICR_PROPBASER/PENDBASER writes against the
+                // redistributor, and the redistributor walk to populate
+                // CurrentCpuRdBase, neither of which run in sysreg-only.
+                bool useSysregOnly = acpiGic->ItsFound == 0;
                 Serial.Write("[GIC] ACPI: GICv3 GICD=0x");
                 Serial.WriteHex(acpiGic->DistBase);
                 Serial.Write(" GICR=0x");
                 Serial.WriteHex(acpiGic->RedistBase);
-                Serial.Write(" (sysreg-only)\n");
-                GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
-                GICv3.Initialize(sysregOnly: true);
+                if (acpiGic->ItsFound != 0)
+                {
+                    Serial.Write(" ITS=0x");
+                    Serial.WriteHex(acpiGic->ItsBase);
+                    Serial.Write(" (full MMIO for ITS)");
+                }
+                else
+                {
+                    Serial.Write(" (sysreg-only)");
+                }
+                Serial.Write("\n");
+
+                if (useSysregOnly)
+                {
+                    GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
+                    GICv3.Initialize(sysregOnly: true);
+                }
+                else
+                {
+                    DeviceMapper.EnsureMapped(acpiGic->DistBase);
+                    // The redistributor walk strides 128 KiB frames until
+                    // GICR_TYPER.Last, spanning the whole MADT-advertised
+                    // region — one 2 MiB block only covers 16 frames, so
+                    // with more CPUs the walk would dereference past the
+                    // mapping and data-abort at boot. Map every 2 MiB block
+                    // the region touches (aligned loop so an unaligned
+                    // base+length still covers the tail block).
+                    ulong redistLength = acpiGic->RedistLength > 0 ? acpiGic->RedistLength : 1;
+                    ulong redistEnd = acpiGic->RedistBase + redistLength;
+                    for (ulong block = acpiGic->RedistBase & ~DeviceBlockOffsetMask; block < redistEnd; block += DeviceBlockSizeBytes)
+                    {
+                        DeviceMapper.EnsureMapped(block);
+                    }
+                    // Same PhysToVirt as the sysreg-only path: GICD/GICR
+                    // accesses must use the Device mapping just installed,
+                    // not the WB-cacheable TTBR0 identity alias.
+                    GICv3.Configure(PhysToVirt(acpiGic->DistBase), PhysToVirt(acpiGic->RedistBase));
+                    GICv3.Initialize(sysregOnly: false);
+                }
             }
             else if (_isV3)
             {
@@ -119,6 +233,7 @@ public static class GIC
             }
 
             _initialized = true;
+            InitializeMsi(acpiGic->ItsFound != 0 ? acpiGic->ItsBase : 0);
             return;
         }
 
@@ -144,6 +259,17 @@ public static class GIC
         }
 
         _initialized = true;
+
+        // No MADT means no authoritative ITS address. Probing QEMU's
+        // default 0x08080000 blindly reads GITS_CTLR on whatever sits
+        // there — on `-M virt,its=off` (or any non-QEMU board reaching
+        // this fallback) that's unbacked address space and the read
+        // faults or hangs the bus at boot. Without a safe probe, leave
+        // MSI off and let the drivers take their polled fallback.
+        if (_isV3)
+        {
+            Serial.Write("[GIC] No ACPI: ITS discovery unavailable, MSI path disabled\n");
+        }
     }
 
     /// <summary>

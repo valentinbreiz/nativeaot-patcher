@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
 using Cosmos.TestRunner.Engine.Protocol;
+using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestRunner.Engine;
 
@@ -15,6 +18,33 @@ namespace Cosmos.TestRunner.Engine;
 /// </summary>
 public partial class Engine
 {
+    /// <summary>Byte 0 (least significant) of the binary test-protocol frame magic 0x19740807 as it appears little-endian on the wire.</summary>
+    private const byte ProtocolMagicByte0 = 0x07;
+
+    /// <summary>Byte 1 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte1 = 0x08;
+
+    /// <summary>Byte 2 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte2 = 0x74;
+
+    /// <summary>Byte 3 (most significant) of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
+    private const byte ProtocolMagicByte3 = 0x19;
+
+    /// <summary>Binary test-protocol command id for TestDestructiveReached (emitted only by RunDestructive).</summary>
+    private const byte TestDestructiveReachedCommand = 108;
+
+    /// <summary>Size of each per-profile sparse raw test disk image (256 MiB).</summary>
+    private const long TestDiskSizeBytes = 256L * 1024 * 1024;
+
+    /// <summary>Maximum plausible excess of ExpectedTestCount over the tests that actually ran; larger gaps are treated as UART corruption of the TestSuiteStart count field.</summary>
+    private const int ExpectedTestCountCorruptionSlack = 10000;
+
+    /// <summary>Scale factor converting a 0-1 ratio to a percentage.</summary>
+    private const int PercentScale = 100;
+
+    /// <summary>Minimum tab-separated field count of a coverage-map.txt line (id, assembly, type, method).</summary>
+    private const int CoverageMapMinFields = 4;
+
     private readonly TestConfiguration _config;
     private readonly IQemuHost _qemuHost;
     private readonly OutputHandlerBase _outputHandler;
@@ -57,7 +87,7 @@ public partial class Engine
     }
 
     /// <summary>
-    /// Main execution flow: Build → Launch → Monitor → Results
+    /// Main execution flow: Build → (per profile) Launch → Monitor → Results → Aggregate
     /// </summary>
     public async Task<TestResults> ExecuteAsync()
     {
@@ -82,15 +112,39 @@ public partial class Engine
             string isoPath = await BuildKernelAsync();
             Console.WriteLine($"[Engine] Build complete: {isoPath}");
 
-            // Step 2: Launch QEMU and monitor execution
-            Console.WriteLine("[Engine] Launching QEMU...");
-            var qemuResult = await LaunchAndMonitorAsync(isoPath);
-            Console.WriteLine($"[Engine] QEMU execution complete (Exit: {qemuResult.ExitCode}, TimedOut: {qemuResult.TimedOut})");
+            // Step 2: Run the kernel once per QEMU profile the suite opts into
+            // (CosmosTestProfile + CosmosTestModifier items in the csproj,
+            // resolved against tests/profiles.json). A suite that opts into
+            // nothing gets a single anonymous profile.
+            IReadOnlyList<TestProfile> profiles = TestProfileLoader.LoadFor(_config.KernelProjectPath, _config.Architecture);
+            if (profiles.Count > 1)
+            {
+                Console.WriteLine($"[Engine] {profiles.Count} QEMU profiles declared: {string.Join(", ", profiles.Select(p => p.Name))}");
+            }
 
-            // Step 3: Parse results from UART log
-            Console.WriteLine("[Engine] Parsing test results...");
-            var results = ParseResults(qemuResult);
-            results.SuiteName = suiteName;
+            TestResults results = new()
+            {
+                SuiteName = suiteName,
+                Architecture = _config.Architecture
+            };
+
+            for (int p = 0; p < profiles.Count; p++)
+            {
+                TestProfile profile = profiles[p];
+                if (!profile.IsDefault)
+                {
+                    Console.WriteLine($"[Engine] === Profile {p + 1}/{profiles.Count}: {profile.Name} ===");
+                }
+
+                Console.WriteLine("[Engine] Launching QEMU...");
+                QemuRunResult qemuResult = await LaunchAndMonitorAsync(isoPath, profile);
+                Console.WriteLine($"[Engine] QEMU execution complete (Exit: {qemuResult.ExitCode}, TimedOut: {qemuResult.TimedOut})");
+
+                Console.WriteLine("[Engine] Parsing test results...");
+                TestResults profileResults = ParseResults(qemuResult);
+                MergeProfileResults(results, profileResults, profile);
+            }
+
             results.TotalDuration = stopwatch.Elapsed;
 
             Console.WriteLine($"[Engine] Results: {results.PassedTests}/{results.TotalTests} passed");
@@ -159,60 +213,84 @@ public partial class Engine
     // the kernel knows which destructive test already fired.
     private const int MaxBoots = 4;
 
-    private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath)
+    private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath, TestProfile profile)
     {
-        // Setup UART log path
+        // Setup UART log path. When several profiles run back-to-back, each
+        // gets its own log file so a failure in one doesn't lose the other's
+        // output and the per-profile boot-N derivatives stay disjoint.
         string baseUartLogPath = _config.UartLogPath;
         if (string.IsNullOrEmpty(baseUartLogPath))
         {
+            string baseName = profile.IsDefault ? "uart.log" : $"uart-{profile.Name}.log";
             baseUartLogPath = Path.Combine(
                 Path.GetDirectoryName(isoPath) ?? ".",
-                "uart.log"
+                baseName
             );
+        }
+        else if (!profile.IsDefault)
+        {
+            string dir = Path.GetDirectoryName(baseUartLogPath) ?? ".";
+            string stem = Path.GetFileNameWithoutExtension(baseUartLogPath);
+            string ext = Path.GetExtension(baseUartLogPath);
+            baseUartLogPath = Path.Combine(dir, $"{stem}-{profile.Name}{ext}");
         }
 
         // Detect if this is a network test kernel
         bool enableNetworkTesting = _config.KernelProjectPath.Contains("Network", StringComparison.OrdinalIgnoreCase);
 
+        // Allocate fresh 256 MiB sparse raw images per profile so back-to-back
+        // profile runs don't see each other's writes.
+        IReadOnlyList<DiskAttachment> disks = CreateProfileDisks(profile);
+
         var combinedLog = new StringBuilder();
         QemuRunResult? lastResult = null;
 
-        for (int boot = 0; boot < MaxBoots; boot++)
+        try
         {
-            string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot);
-            string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
-
-            if (boot > 0)
+            for (int boot = 0; boot < MaxBoots; boot++)
             {
-                Console.WriteLine($"[Engine] Re-launching kernel for boot #{boot} (skip={boot})");
+                string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot, profile);
+                string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
+
+                if (boot > 0)
+                {
+                    Console.WriteLine($"[Engine] Re-launching kernel for boot #{boot} (skip={boot})");
+                }
+
+                QemuRunResult result = await _qemuHost.RunKernelAsync(
+                    bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, disks, profile.MachineOptions);
+
+                combinedLog.Append(result.UartLog);
+                lastResult = result;
+
+                // Suite finished cleanly (kernel emitted the end marker).
+                if (result.SuiteMarkerSeen)
+                {
+                    break;
+                }
+
+                // No suite-end marker: either the boot reached a destructive test
+                // (RunDestructive — Power.Reboot/Shutdown) and the guest exited /
+                // hung on purpose, or the kernel crashed mid-suite. The two are
+                // distinguished by the TestDestructiveReached sentinel emitted by
+                // RunDestructive immediately before invoking the destructive
+                // action. Without that marker, treat this boot as a real failure
+                // and let the suite fail — re-launching would just mask the bug.
+                if (!UartLogShowsDestructiveProgress(result.UartLog))
+                {
+                    break;
+                }
+
+                string exitReason = result.TimedOut ? "timed out" : "guest exited";
+                Console.WriteLine($"[Engine] Boot #{boot} {exitReason} after a destructive test was reached — re-launching.");
             }
-
-            QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting);
-
-            combinedLog.Append(result.UartLog);
-            lastResult = result;
-
-            // Suite finished cleanly (kernel emitted the end marker).
-            if (result.SuiteMarkerSeen)
-            {
-                break;
-            }
-
-            // No suite-end marker: either the boot reached a destructive test
-            // (RunDestructive — Power.Reboot/Shutdown) and the guest exited /
-            // hung on purpose, or the kernel crashed mid-suite. The two are
-            // distinguished by the TestDestructiveReached sentinel emitted by
-            // RunDestructive immediately before invoking the destructive
-            // action. Without that marker, treat this boot as a real failure
-            // and let the suite fail — re-launching would just mask the bug.
-            if (!UartLogShowsDestructiveProgress(result.UartLog))
-            {
-                break;
-            }
-
-            string exitReason = result.TimedOut ? "timed out" : "guest exited";
-            Console.WriteLine($"[Engine] Boot #{boot} {exitReason} after a destructive test was reached — re-launching.");
+        }
+        finally
+        {
+            // The images must survive every boot of the profile (the
+            // destructive reboot cell reads boot-0 writes back on boot 1),
+            // so they are only deleted once the whole profile run is over.
+            CleanupProfileDisks(disks);
         }
 
         return new QemuRunResult
@@ -223,6 +301,131 @@ public partial class Engine
             ErrorMessage = lastResult?.ErrorMessage ?? string.Empty,
             SuiteMarkerSeen = lastResult?.SuiteMarkerSeen ?? false
         };
+    }
+
+    private void CleanupProfileDisks(IReadOnlyList<DiskAttachment> disks)
+    {
+        // Same opt-out as the ISO clones: KeepBuildArtifacts pins every
+        // run input for post-mortem, including the disk images.
+        if (_config.KeepBuildArtifacts)
+        {
+            return;
+        }
+
+        foreach (DiskAttachment disk in disks)
+        {
+            try
+            {
+                if (File.Exists(disk.Path))
+                {
+                    File.Delete(disk.Path);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Engine] Warning: failed to delete test disk {disk.Path}: {ex.Message}");
+            }
+        }
+    }
+
+    private IReadOnlyList<DiskAttachment> CreateProfileDisks(TestProfile profile)
+    {
+        if (profile.Disks.Count == 0)
+        {
+            return Array.Empty<DiskAttachment>();
+        }
+
+        string suite = Path.GetFileName(_config.KernelProjectPath.TrimEnd('/', '\\'));
+        string profileTag = profile.IsDefault ? "default" : profile.Name;
+        var attachments = new List<DiskAttachment>(profile.Disks.Count);
+
+        for (int i = 0; i < profile.Disks.Count; i++)
+        {
+            TestProfileDisk disk = profile.Disks[i];
+            string kindTag = disk.Kind == DiskKind.Ahci ? "ahci" : "nvme";
+            string path = Path.Combine(
+                Path.GetTempPath(),
+                $"cosmos-test-disk-{suite}-{_config.Architecture}-{profileTag}-{kindTag}{i}.img");
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+            {
+                fs.SetLength(TestDiskSizeBytes);
+            }
+            Console.WriteLine($"[Engine] Created test disk: {path} (256 MiB sparse)");
+
+            attachments.Add(new DiskAttachment
+            {
+                Path = path,
+                Kind = disk.Kind,
+                ExtraDeviceOptions = disk.FormatOptions()
+            });
+        }
+        return attachments;
+    }
+
+    /// <summary>
+    /// Fold one profile's parsed results into the suite-wide aggregate. Test
+    /// names get a `[profile]` prefix so the same logical test from different
+    /// profiles stays distinguishable, and TestNumber is renumbered across the
+    /// combined list so output handlers see a contiguous sequence.
+    /// </summary>
+    private void MergeProfileResults(TestResults aggregate, TestResults profileResults, TestProfile profile)
+    {
+        string prefix = profile.IsDefault ? string.Empty : $"[{profile.Name}] ";
+        bool isFirstProfile = aggregate.Tests.Count == 0 && aggregate.ExpectedTestCount == 0;
+
+        // A cell whose kernel died before emitting TestSuiteStart (driver
+        // bring-up crash, triple fault, QEMU launch failure) contributes
+        // zero tests and zero expected count. Without a sentinel it is
+        // invisible to AllTestsPassed once other cells contribute passing
+        // tests — the exact cells this matrix exists to pin (gicv2/gicv3/
+        // acpi-off hardware paths) would vanish from CI without failing it.
+        if (profileResults.Tests.Count == 0 && profileResults.ExpectedTestCount == 0)
+        {
+            profileResults.Tests.Add(new TestResult
+            {
+                TestName = "boot",
+                Status = TestStatus.Failed,
+                ErrorMessage = string.IsNullOrEmpty(profileResults.ErrorMessage)
+                    ? "kernel produced no test protocol output (crashed or hung before TestSuiteStart)"
+                    : profileResults.ErrorMessage,
+            });
+        }
+
+        foreach (TestResult t in profileResults.Tests)
+        {
+            t.TestNumber = aggregate.Tests.Count + 1;
+            if (prefix.Length > 0)
+            {
+                t.TestName = prefix + t.TestName;
+            }
+            aggregate.Tests.Add(t);
+        }
+
+        aggregate.ExpectedTestCount += profileResults.ExpectedTestCount;
+        aggregate.UartLog += profileResults.UartLog;
+        aggregate.CoverageHitMethodIds.AddRange(profileResults.CoverageHitMethodIds);
+
+        if (profileResults.TimedOut)
+        {
+            aggregate.TimedOut = true;
+        }
+        if (!string.IsNullOrEmpty(profileResults.ErrorMessage))
+        {
+            aggregate.ErrorMessage = string.IsNullOrEmpty(aggregate.ErrorMessage)
+                ? profileResults.ErrorMessage
+                : $"{aggregate.ErrorMessage}; {profileResults.ErrorMessage}";
+        }
+
+        // The aggregate is "completed" only when every profile in the suite
+        // emitted its end-marker. Seed with the first profile, then AND.
+        aggregate.SuiteCompleted = isFirstProfile
+            ? profileResults.SuiteCompleted
+            : aggregate.SuiteCompleted && profileResults.SuiteCompleted;
     }
 
     /// <summary>
@@ -241,7 +444,7 @@ public partial class Engine
         }
         // Magic 0x19740807 little-endian = bytes 07 08 74 19, then command byte.
         // Command 108 = TestDestructiveReached (emitted only by RunDestructive).
-        byte[] needle = { 0x07, 0x08, 0x74, 0x19, 108 };
+        byte[] needle = { ProtocolMagicByte0, ProtocolMagicByte1, ProtocolMagicByte2, ProtocolMagicByte3, TestDestructiveReachedCommand };
         byte[] haystack = System.Text.Encoding.Latin1.GetBytes(uartLog);
         for (int i = 0; i + needle.Length <= haystack.Length; i++)
         {
@@ -259,34 +462,64 @@ public partial class Engine
     }
 
     /// <summary>
-    /// Returns the ISO path to use for boot <paramref name="bootIndex"/>. Boot 0
-    /// uses the as-built ISO unchanged (its limine.conf template already has
-    /// <c>skip=0</c> or no skip token). Subsequent boots clone the ISO and
-    /// rewrite /boot/limine/limine.conf so <c>cmdline: skip=N</c> matches the boot
-    /// index.
+    /// Returns the ISO path to use for boot <paramref name="bootIndex"/> of
+    /// <paramref name="profile"/>. Boot 0 of a suite with no profiles uses the
+    /// as-built ISO unchanged. Otherwise the ISO is cloned and
+    /// /boot/limine/limine.conf rewritten with a <c>cmdline:</c> carrying
+    /// <c>profile=&lt;name&gt;</c> (so the kernel can assert the cell's hardware
+    /// path) and <c>skip=N</c> (so a re-launched boot knows which destructive
+    /// test already fired). The profile token is set on every boot of a profiled
+    /// cell, including boot 0.
     /// </summary>
-    private async Task<string> PrepareBootIsoAsync(string baseIsoPath, int bootIndex)
+    private async Task<string> PrepareBootIsoAsync(string baseIsoPath, int bootIndex, TestProfile profile)
     {
-        if (bootIndex == 0)
+        bool patchProfile = !profile.IsDefault;
+
+        // Fast path: boot 0 of a non-profiled suite needs no cmdline at all.
+        if (bootIndex == 0 && !patchProfile)
         {
             return baseIsoPath;
         }
 
-        string bootIsoPath = $"{baseIsoPath}.boot{bootIndex}.iso";
+        string tag = profile.IsDefault ? "default" : profile.Name;
+        string bootIsoPath = bootIndex == 0
+            ? $"{baseIsoPath}.{tag}.iso"
+            : $"{baseIsoPath}.{tag}.boot{bootIndex}.iso";
         File.Copy(baseIsoPath, bootIsoPath, overwrite: true);
 
-        // Read the original limine.conf from the kernel project's Bootloader
-        // directory and rewrite the skip= value. We avoid extracting from the
-        // ISO (no need to run xorriso twice) since the source is right there.
+        // Build this boot's cmdline tokens: the active profile name (for path
+        // assertions) and skip=N (for the destructive-test re-launch loop).
+        var tokens = new List<string>();
+        if (patchProfile)
+        {
+            tokens.Add($"profile={profile.Name}");
+        }
+        tokens.Add($"skip={bootIndex}");
+        string cmdline = string.Join(' ', tokens);
+
+        // Rewrite /boot/limine/limine.conf from the kernel project's Bootloader
+        // template (no need to extract from the ISO). Test templates carry no
+        // cmdline line, so append one; if a template does declare cmdline, merge
+        // our tokens in after dropping any stale profile=/skip= for idempotency.
         string sourceLimineConf = Path.Combine(_config.KernelProjectPath, "Bootloader", "limine.conf");
         string template = await File.ReadAllTextAsync(sourceLimineConf);
-        string patched = Regex.IsMatch(template, @"skip=\d+")
-            ? Regex.Replace(template, @"skip=\d+", $"skip={bootIndex}")
-            : template + $"\n    cmdline: skip={bootIndex}\n";
+        Match existing = Regex.Match(template, @"^(?<indent>[ \t]*)cmdline:(?<args>.*)$", RegexOptions.Multiline);
+        string patched;
+        if (existing.Success)
+        {
+            string priorArgs = Regex.Replace(existing.Groups["args"].Value, @"\s*\b(?:profile|skip)=\S+", string.Empty).Trim();
+            string merged = priorArgs.Length > 0 ? $"{priorArgs} {cmdline}" : cmdline;
+            string newLine = $"{existing.Groups["indent"].Value}cmdline: {merged}";
+            patched = template.Remove(existing.Index, existing.Length).Insert(existing.Index, newLine);
+        }
+        else
+        {
+            patched = template + $"\n    cmdline: {cmdline}\n";
+        }
 
         string patchedConfPath = Path.Combine(
             Path.GetDirectoryName(bootIsoPath) ?? ".",
-            $"limine.boot{bootIndex}.conf");
+            bootIndex == 0 ? $"limine.{tag}.conf" : $"limine.{tag}.boot{bootIndex}.conf");
         await File.WriteAllTextAsync(patchedConfPath, patched);
 
         // Splice the patched limine.conf into the cloned ISO. `-boot_image any
@@ -336,7 +569,7 @@ public partial class Engine
             // Sanity check: timer interrupts can corrupt the ExpectedTestCount field in the
             // TestSuiteStart message (high byte replaced by '[' = 0x5B from "[GenericTimer]" text).
             // If the expected count is implausibly large compared to what actually ran, ignore it.
-            int maxPlausible = actualCount + 10000;
+            int maxPlausible = actualCount + ExpectedTestCountCorruptionSlack;
             if (results.ExpectedTestCount > maxPlausible)
             {
                 Console.WriteLine($"[ParseResults] Warning: ExpectedTestCount={results.ExpectedTestCount} seems corrupted (actual={actualCount}), ignoring.");
@@ -383,7 +616,7 @@ public partial class Engine
             }
 
             var parts = line.Split('\t');
-            if (parts.Length >= 4 && int.TryParse(parts[0], out int id))
+            if (parts.Length >= CoverageMapMinFields && int.TryParse(parts[0], out int id))
             {
                 allMethods.Add((id, parts[1], parts[2], parts[3]));
             }
@@ -392,7 +625,7 @@ public partial class Engine
         int totalMethods = allMethods.Count;
         var hitSet = new HashSet<int>(results.CoverageHitMethodIds.Select(id => (int)id));
         int hitMethods = allMethods.Count(m => hitSet.Contains(m.Id));
-        double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * 100 : 0;
+        double percentage = totalMethods > 0 ? (double)hitMethods / totalMethods * PercentScale : 0;
 
         Console.WriteLine($"[Coverage] {hitMethods}/{totalMethods} methods covered ({percentage:F1}%)");
 
@@ -409,7 +642,7 @@ public partial class Engine
 
         foreach (var asm in assemblyStats)
         {
-            double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+            double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * PercentScale : 0;
             Console.WriteLine($"[Coverage]   {asm.Assembly}: {asm.Hit}/{asm.Total} ({asmPct:F1}%)");
         }
 
@@ -445,7 +678,7 @@ public partial class Engine
             for (int i = 0; i < asmList.Count; i++)
             {
                 var asm = asmList[i];
-                double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * 100 : 0;
+                double asmPct = asm.Total > 0 ? (double)asm.Hit / asm.Total * PercentScale : 0;
                 string comma = i < asmList.Count - 1 ? "," : "";
 
                 // Collect hit method signatures for this assembly

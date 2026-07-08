@@ -11,10 +11,13 @@
     <CosmosEnableKeyboard  Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableKeyboard>
     <CosmosEnableMouse     Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableMouse>
     <CosmosEnableNetwork   Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableNetwork>
+    <CosmosEnableStorage   Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableStorage>
     <CosmosEnableScheduler Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnableScheduler>
     <CosmosEnablePCI       Condition="'$(CosmosEnableInterrupts)' == 'false'">false</CosmosEnablePCI>
     <!-- Timer off → preemptive scheduler can't tick -->
     <CosmosEnableScheduler Condition="'$(CosmosEnableTimer)' == 'false'">false</CosmosEnableScheduler>
+    <!-- PCI off → AHCI/SATA discovery has no bus to enumerate -->
+    <CosmosEnableStorage   Condition="'$(CosmosEnablePCI)' == 'false'">false</CosmosEnableStorage>
   </PropertyGroup>
 
   <!-- Disable standard ILLink - Cosmos uses custom NativeAOT compilation via Cosmos.Build.Ilc -->

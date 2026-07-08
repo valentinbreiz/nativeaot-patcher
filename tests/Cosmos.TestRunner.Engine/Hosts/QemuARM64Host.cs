@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -14,6 +15,24 @@ namespace Cosmos.TestRunner.Engine.Hosts;
 /// </summary>
 public class QemuARM64Host : IQemuHost
 {
+    /// <summary>Default guest RAM size passed to QEMU, in megabytes.</summary>
+    private const int DefaultMemoryMb = 512;
+
+    /// <summary>Default wall-clock limit for a kernel test run, in seconds.</summary>
+    private const int DefaultTimeoutSeconds = 30;
+
+    /// <summary>Grace delay before killing QEMU after the UART monitor finishes, in milliseconds.</summary>
+    private const int KillGraceDelayMs = 200;
+
+    /// <summary>Delay to let the UART log flush to disk before reading it, in milliseconds.</summary>
+    private const int UartFlushDelayMs = 100;
+
+    /// <summary>Polling interval of the UART log monitor loop, in milliseconds.</summary>
+    private const int UartPollIntervalMs = 100;
+
+    /// <summary>Length of the test-runner protocol frame magic (0x19740807 LE) in bytes.</summary>
+    private const int TestPassMagicLengthBytes = 4;
+
     public string Architecture => "arm64";
 
     private readonly string? _qemuBinaryOverride;
@@ -22,14 +41,14 @@ public class QemuARM64Host : IQemuHost
     public QemuARM64Host(
         string? qemuBinary = null,
         string? uefiFirmwarePath = null,
-        int memoryMb = 512)
+        int memoryMb = DefaultMemoryMb)
     {
         _qemuBinaryOverride = qemuBinary;
         _memoryMb = memoryMb;
         // uefiFirmwarePath ignored — QemuLauncher.ResolveArm64Firmware() handles it.
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -64,6 +83,8 @@ public class QemuARM64Host : IQemuHost
                 Headless = !showDisplay,
                 SerialOutputFile = uartLogPath,
                 EnableNetworkTesting = enableNetworkTesting,
+                Disks = disks ?? Array.Empty<DiskAttachment>(),
+                MachineOptions = machineOptions ?? new Dictionary<string, string>(),
                 AllowGuestShutdown = true
             });
         }
@@ -115,7 +136,7 @@ public class QemuARM64Host : IQemuHost
                 testSuiteCompleted = outcome == UartMonitorOutcome.EndMarkerSeen;
                 if (!process.HasExited)
                 {
-                    await Task.Delay(200);
+                    await Task.Delay(KillGraceDelayMs);
                     process.Kill(entireProcessTree: true);
                     await process.WaitForExitAsync();
                 }
@@ -127,7 +148,7 @@ public class QemuARM64Host : IQemuHost
             }
 
             // Give UART log a moment to flush
-            await Task.Delay(100);
+            await Task.Delay(UartFlushDelayMs);
 
             // Stop test servers if running
             if (udpServer != null)
@@ -172,7 +193,7 @@ public class QemuARM64Host : IQemuHost
             }
 
             // Give UART log a moment to flush
-            await Task.Delay(100);
+            await Task.Delay(UartFlushDelayMs);
 
             // Stop test servers if running
             if (udpServer != null)
@@ -277,7 +298,7 @@ public class QemuARM64Host : IQemuHost
                             if (b == TestPassMarker[testPassMarkerIndex])
                             {
                                 testPassMarkerIndex++;
-                                if (testPassMarkerIndex == 4)
+                                if (testPassMarkerIndex == TestPassMagicLengthBytes)
                                 {
                                     lastMagicAt = DateTime.UtcNow;
                                 }
@@ -305,7 +326,7 @@ public class QemuARM64Host : IQemuHost
                 // File might be locked, try again
             }
 
-            await Task.Delay(100, cancellationToken);
+            await Task.Delay(UartPollIntervalMs, cancellationToken);
         }
 
         return UartMonitorOutcome.NotFinished;

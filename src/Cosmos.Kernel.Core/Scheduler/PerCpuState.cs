@@ -15,6 +15,12 @@ public class PerCpuState : SchedulerExtensible
     // ===== Timing =====
     public ulong LastTickAt { get; internal set; }
 
+    // Set by ReadyThread when it wakes a thread (typically an ISR-side
+    // InterruptEvent.Signal); consumed by ReschedulePendingFromIrq on
+    // hardware-IRQ exit so the woken thread runs immediately instead of
+    // sitting in the run queue until the next timer tick.
+    internal bool NeedReschedule;
+
     // ===== Synchronization =====
     public SpinLock Lock;
 }

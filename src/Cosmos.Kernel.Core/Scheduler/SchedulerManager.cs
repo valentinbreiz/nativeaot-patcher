@@ -38,10 +38,32 @@ public static class SchedulerManager
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 
+    /// <summary>Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.</summary>
+    private const ulong NanosecondsPerMillisecond = 1_000_000UL;
+
+    /// <summary>Timer ticks between debug-live snapshot refreshes (~100ms at 100Hz).</summary>
+    private const uint SnapshotRefreshTickInterval = 10;
+
+    /// <summary>Number of initial timer ticks that are always logged to serial.</summary>
+    private const uint InitialTickLogCount = 10;
+
+    /// <summary>After the initial ticks, log every Nth timer tick to avoid flooding serial output.</summary>
+    private const uint TickLogInterval = 50;
+
     /// <summary>
     /// Whether scheduler support is enabled. Uses centralized feature flag.
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
+
+    /// <summary>
+    /// Whether <see cref="Initialize"/> has run and per-CPU state exists.
+    /// Blocking primitives (and drivers built on them) must check this
+    /// before touching <see cref="GetCpuState"/>: with the scheduler
+    /// feature disabled — or before its library initializer runs — there
+    /// is exactly one execution context, so callers fall back to
+    /// spin/polled paths instead of blocking.
+    /// </summary>
+    public static bool IsReady => IsEnabled && _cpuStates != null;
 
     private static void ThrowIfDisabled()
     {
@@ -386,6 +408,11 @@ public static class SchedulerManager
 
             _currentScheduler.OnThreadReady(state, thread);
 
+            // Ask the next hardware-IRQ exit to reschedule: when this wake
+            // comes from an ISR (InterruptEvent.Signal), the woken thread
+            // would otherwise sit in the run queue until the next timer tick.
+            state.NeedReschedule = true;
+
             Serial.WriteString("[SCHED] Thread ");
             Serial.WriteNumber(thread.Id);
             Serial.WriteString(" is now ready, RSP=");
@@ -479,7 +506,7 @@ public static class SchedulerManager
             PerCpuState cpuState = _cpuStates[cpuId];
 
             ulong timestamp = GetTimestamp();
-            ulong num = timeoutMs * 1_000_000UL;
+            ulong num = timeoutMs * NanosecondsPerMillisecond;
             thread.WakeupTime = timestamp + num;
 
             _currentScheduler.OnThreadBlocked(cpuState, thread);
@@ -590,7 +617,7 @@ public static class SchedulerManager
         // Refresh the debug-live snapshot every 10 ticks (~100ms at 100Hz)
         // so the host-side QMP poller sees fresh thread state without
         // pausing the kernel.
-        if ((_tickCount % 10) == 0)
+        if ((_tickCount % SnapshotRefreshTickInterval) == 0)
         {
             Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Update();
             Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Update();
@@ -598,7 +625,7 @@ public static class SchedulerManager
         }
 
         // Log first 10 ticks and then every 50 ticks
-        if (_tickCount <= 10 || _tickCount % 50 == 0)
+        if (_tickCount <= InitialTickLogCount || _tickCount % TickLogInterval == 0)
         {
             Serial.WriteString("[SCHED] Tick ");
             Serial.WriteNumber(_tickCount);
@@ -669,6 +696,41 @@ public static class SchedulerManager
                 ReadyThread(thread.CpuId, thread);
             }
         }
+    }
+
+    /// <summary>
+    /// Runs a pending reschedule request on hardware-IRQ exit. ReadyThread
+    /// sets the request when it wakes a thread (typically an ISR-side
+    /// <see cref="InterruptEvent.Signal"/>); device-IRQ exit doesn't
+    /// otherwise reschedule — only the timer tick does — so a woken waiter
+    /// would sit in the run queue for up to a full quantum. No-op when the
+    /// timer path already staged a context switch for this interrupt: a
+    /// second ScheduleFromInterrupt would save this frame's stack pointer
+    /// into a thread whose real context lives elsewhere.
+    /// </summary>
+    /// <param name="cpuId">Current CPU ID.</param>
+    /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
+    public static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)
+    {
+        if (!_enabled || _currentScheduler == null || _cpuStates == null || cpuId >= _cpuCount)
+        {
+            return;
+        }
+
+        PerCpuState state = _cpuStates[cpuId];
+        if (state == null || !state.NeedReschedule)
+        {
+            return;
+        }
+
+        state.NeedReschedule = false;
+
+        if (ContextSwitchNative.GetContextSwitchSp() != 0)
+        {
+            return;
+        }
+
+        ScheduleFromInterrupt(cpuId, currentRsp);
     }
 
     /// <summary>

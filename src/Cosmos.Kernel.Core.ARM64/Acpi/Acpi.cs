@@ -23,11 +23,15 @@ public static unsafe class AcpiGic
     {
         public byte Found;
         public byte Version;       // GIC version: 2 or 3
-        private fixed byte _pad[6];
+        public byte ItsFound;      // 1 if at least one GIC ITS subtable seen
+        private fixed byte _pad[5];
         public ulong DistBase;     // GICD physical base
         public ulong RedistBase;   // GICR physical base (GICv3)
         public ulong RedistLength; // GICR region length
         public ulong CpuIfBase;    // GICC physical base (GICv2)
+        public ulong ItsBase;      // GIC ITS physical base; 0 if absent
+        public uint ItsId;         // ITS Translation ID (referenced by IORT)
+        private uint _pad2;
     }
 
     /// <summary>

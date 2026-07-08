@@ -10,6 +10,24 @@ namespace Cosmos.TestRunner.Engine.OutputHandlers;
 /// </summary>
 public class OutputHandlerXml : OutputHandlerBase
 {
+    /// <summary>Milliseconds per second, used to convert test durations to JUnit's seconds-based "time" attribute.</summary>
+    private const double MillisecondsPerSecond = 1000.0;
+
+    /// <summary>Tab character (#x9), allowed by the XML 1.0 Char production.</summary>
+    private const int XmlTabChar = 0x09;
+    /// <summary>Line feed character (#xA), allowed by the XML 1.0 Char production.</summary>
+    private const int XmlLineFeedChar = 0x0A;
+    /// <summary>Carriage return character (#xD), allowed by the XML 1.0 Char production.</summary>
+    private const int XmlCarriageReturnChar = 0x0D;
+    /// <summary>Lower bound (#x20) of the first valid XML 1.0 character range [#x20-#xD7FF].</summary>
+    private const int XmlPrintableRangeStart = 0x20;
+    /// <summary>Upper bound (#xD7FF) of the first valid XML 1.0 character range [#x20-#xD7FF].</summary>
+    private const int XmlPrintableRangeEnd = 0xD7FF;
+    /// <summary>Lower bound (#xE000) of the second valid XML 1.0 character range [#xE000-#xFFFD].</summary>
+    private const int XmlPrivateUseRangeStart = 0xE000;
+    /// <summary>Upper bound (#xFFFD) of the second valid XML 1.0 character range [#xE000-#xFFFD].</summary>
+    private const int XmlPrivateUseRangeEnd = 0xFFFD;
+
     private readonly string _outputPath;
     private readonly StringBuilder _xmlBuilder;
     private string _suiteName = string.Empty;
@@ -105,26 +123,32 @@ public class OutputHandlerXml : OutputHandlerBase
 
         writer.WriteEndElement(); // properties
 
-        // Individual test cases
+        // Individual test cases. Filter every string attribute through
+        // FilterInvalidXmlChars before emission — even though ParseTestStart
+        // now drops messages with control chars in the name, defending the
+        // writer keeps a malformed UART corruption from ever truncating the
+        // XML mid-suite (which loses ALL profiles' results, not just the
+        // corrupted one).
         foreach (var test in results.Tests)
         {
             writer.WriteStartElement("testcase");
-            writer.WriteAttributeString("name", test.TestName);
+            writer.WriteAttributeString("name", FilterInvalidXmlChars(test.TestName));
             writer.WriteAttributeString("classname", _suiteName);
-            writer.WriteAttributeString("time", (test.DurationMs / 1000.0).ToString("F3"));
+            writer.WriteAttributeString("time", (test.DurationMs / MillisecondsPerSecond).ToString("F3"));
 
             if (test.Status == TestStatus.Failed)
             {
+                string msg = FilterInvalidXmlChars(test.ErrorMessage);
                 writer.WriteStartElement("failure");
-                writer.WriteAttributeString("message", test.ErrorMessage);
+                writer.WriteAttributeString("message", msg);
                 writer.WriteAttributeString("type", "TestFailure");
-                writer.WriteString(test.ErrorMessage);
+                writer.WriteString(msg);
                 writer.WriteEndElement(); // failure
             }
             else if (test.Status == TestStatus.Skipped)
             {
                 writer.WriteStartElement("skipped");
-                writer.WriteAttributeString("message", test.ErrorMessage);
+                writer.WriteAttributeString("message", FilterInvalidXmlChars(test.ErrorMessage));
                 writer.WriteEndElement(); // skipped
             }
 
@@ -198,9 +222,9 @@ public class OutputHandlerXml : OutputHandlerBase
         foreach (char c in text)
         {
             // Allow: tab (0x09), newline (0x0A), carriage return (0x0D), and standard printable characters
-            if (c == 0x09 || c == 0x0A || c == 0x0D ||
-                (c >= 0x20 && c <= 0xD7FF) ||
-                (c >= 0xE000 && c <= 0xFFFD))
+            if (c == XmlTabChar || c == XmlLineFeedChar || c == XmlCarriageReturnChar ||
+                (c >= XmlPrintableRangeStart && c <= XmlPrintableRangeEnd) ||
+                (c >= XmlPrivateUseRangeStart && c <= XmlPrivateUseRangeEnd))
             {
                 filtered.Append(c);
             }
