@@ -218,42 +218,52 @@ public partial class Engine
         var combinedLog = new StringBuilder();
         QemuRunResult? lastResult = null;
 
-        for (int boot = 0; boot < MaxBoots; boot++)
+        try
         {
-            string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot, profile);
-            string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
-
-            if (boot > 0)
+            for (int boot = 0; boot < MaxBoots; boot++)
             {
-                Console.WriteLine($"[Engine] Re-launching kernel for boot #{boot} (skip={boot})");
+                string bootIsoPath = await PrepareBootIsoAsync(isoPath, boot, profile);
+                string bootLogPath = boot == 0 ? baseUartLogPath : $"{baseUartLogPath}.boot{boot}";
+
+                if (boot > 0)
+                {
+                    Console.WriteLine($"[Engine] Re-launching kernel for boot #{boot} (skip={boot})");
+                }
+
+                QemuRunResult result = await _qemuHost.RunKernelAsync(
+                    bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, disks, profile.MachineOptions);
+
+                combinedLog.Append(result.UartLog);
+                lastResult = result;
+
+                // Suite finished cleanly (kernel emitted the end marker).
+                if (result.SuiteMarkerSeen)
+                {
+                    break;
+                }
+
+                // No suite-end marker: either the boot reached a destructive test
+                // (RunDestructive — Power.Reboot/Shutdown) and the guest exited /
+                // hung on purpose, or the kernel crashed mid-suite. The two are
+                // distinguished by the TestDestructiveReached sentinel emitted by
+                // RunDestructive immediately before invoking the destructive
+                // action. Without that marker, treat this boot as a real failure
+                // and let the suite fail — re-launching would just mask the bug.
+                if (!UartLogShowsDestructiveProgress(result.UartLog))
+                {
+                    break;
+                }
+
+                string exitReason = result.TimedOut ? "timed out" : "guest exited";
+                Console.WriteLine($"[Engine] Boot #{boot} {exitReason} after a destructive test was reached — re-launching.");
             }
-
-            QemuRunResult result = await _qemuHost.RunKernelAsync(
-                bootIsoPath, bootLogPath, _config.TimeoutSeconds, _config.ShouldShowDisplay, enableNetworkTesting, disks, profile.MachineOptions);
-
-            combinedLog.Append(result.UartLog);
-            lastResult = result;
-
-            // Suite finished cleanly (kernel emitted the end marker).
-            if (result.SuiteMarkerSeen)
-            {
-                break;
-            }
-
-            // No suite-end marker: either the boot reached a destructive test
-            // (RunDestructive — Power.Reboot/Shutdown) and the guest exited /
-            // hung on purpose, or the kernel crashed mid-suite. The two are
-            // distinguished by the TestDestructiveReached sentinel emitted by
-            // RunDestructive immediately before invoking the destructive
-            // action. Without that marker, treat this boot as a real failure
-            // and let the suite fail — re-launching would just mask the bug.
-            if (!UartLogShowsDestructiveProgress(result.UartLog))
-            {
-                break;
-            }
-
-            string exitReason = result.TimedOut ? "timed out" : "guest exited";
-            Console.WriteLine($"[Engine] Boot #{boot} {exitReason} after a destructive test was reached — re-launching.");
+        }
+        finally
+        {
+            // The images must survive every boot of the profile (the
+            // destructive reboot cell reads boot-0 writes back on boot 1),
+            // so they are only deleted once the whole profile run is over.
+            CleanupProfileDisks(disks);
         }
 
         return new QemuRunResult
@@ -264,6 +274,31 @@ public partial class Engine
             ErrorMessage = lastResult?.ErrorMessage ?? string.Empty,
             SuiteMarkerSeen = lastResult?.SuiteMarkerSeen ?? false
         };
+    }
+
+    private void CleanupProfileDisks(IReadOnlyList<DiskAttachment> disks)
+    {
+        // Same opt-out as the ISO clones: KeepBuildArtifacts pins every
+        // run input for post-mortem, including the disk images.
+        if (_config.KeepBuildArtifacts)
+        {
+            return;
+        }
+
+        foreach (DiskAttachment disk in disks)
+        {
+            try
+            {
+                if (File.Exists(disk.Path))
+                {
+                    File.Delete(disk.Path);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Engine] Warning: failed to delete test disk {disk.Path}: {ex.Message}");
+            }
+        }
     }
 
     private IReadOnlyList<DiskAttachment> CreateProfileDisks(TestProfile profile)
