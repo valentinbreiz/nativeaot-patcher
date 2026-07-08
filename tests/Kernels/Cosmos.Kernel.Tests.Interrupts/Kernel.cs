@@ -224,10 +224,22 @@ public class Kernel : Sys.Kernel
     // the "device" interrupt: the waiter parks on the event, the main thread
     // fires the IPI whose handler Signals from ISR context, and the waiter
     // timestamps its wake-up.
-    private const int IrqLatencyRounds = 6;
+    private const int IrqLatencyRounds = 12;
+    // Rescheduled at IRQ exit the wake costs microseconds; parked until the
+    // next timer tick it costs up to a full 10_000us quantum, uniformly
+    // spread over the tick phase. 2_000us splits the two regimes per round.
+    private const long IrqLatencyFastUs = 2_000;
+    // A loaded CI host can steal the vCPU for several milliseconds inside
+    // any single signal→wake window, so no absolute worst-case bound is
+    // stable there. Requiring 8 of 12 rounds under the threshold tolerates
+    // a few host-induced spikes yet still refutes the tick-parked regime
+    // decisively: with P(round < 2ms) = 0.2 per round, 8 fast rounds is a
+    // ~6e-4 fluke.
+    private const int IrqLatencyFastRoundsRequired = 8;
     private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _wakeEvent;
     private static volatile bool _waiterReady;
     private static volatile bool _waiterDone;
+    private static volatile bool _waiterExited;
     private static long _wakeTimestamp;
 
     private static void IpiSignalHandler(ref IRQContext context)
@@ -240,11 +252,13 @@ public class Kernel : Sys.Kernel
         _wakeEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
         _waiterReady = false;
         _waiterDone = false;
+        _waiterExited = false;
         byte vector = InterruptManager.AllocateVector(IpiSignalHandler);
 
         var waiter = new SysThread(IrqLatencyWaiter);
         waiter.Start();
 
+        int fastRounds = 0;
         long worstTicks = 0;
         for (int round = 0; round < IrqLatencyRounds; round++)
         {
@@ -269,21 +283,37 @@ public class Kernel : Sys.Kernel
             }
 
             long latency = _wakeTimestamp - signalTicks;
+            if (latency * 1_000_000 / Stopwatch.Frequency < IrqLatencyFastUs)
+            {
+                fastRounds++;
+            }
+
             if (latency > worstTicks)
             {
                 worstTicks = latency;
             }
         }
 
+        // Hermetic exit: don't leave the waiter's async thread-exit
+        // bookkeeping (or a stale dynamic vector) to interleave with
+        // whatever the next cell sets up.
+        while (!_waiterExited)
+        {
+            // waiter finishing its last round
+        }
+        TimerManager.Wait(200);
+        InterruptManager.FreeVector(vector);
+
         long worstUs = worstTicks * 1_000_000 / Stopwatch.Frequency;
-        Serial.WriteString("[Interrupts] worst signal-to-wake latency us: ");
+        Serial.WriteString("[Interrupts] fast rounds: ");
+        Serial.WriteNumber((ulong)fastRounds);
+        Serial.WriteString("/");
+        Serial.WriteNumber((ulong)IrqLatencyRounds);
+        Serial.WriteString(", worst signal-to-wake latency us: ");
         Serial.WriteNumber((ulong)worstUs);
         Serial.WriteString("\n");
 
-        // Rescheduled at IRQ exit the wake costs microseconds; parked until
-        // the next timer tick it costs up to 10_000us. 2_000us splits the
-        // two regimes with wide margin on a loaded CI host.
-        Assert.True(worstUs < 2_000,
+        Assert.True(fastRounds >= IrqLatencyFastRoundsRequired,
             "an ISR-side Signal must wake the parked waiter at IRQ exit, not at the next timer tick");
     }
 
@@ -312,6 +342,8 @@ public class Kernel : Sys.Kernel
             _wakeTimestamp = Stopwatch.GetTimestamp();
             _waiterDone = true;
         }
+
+        _waiterExited = true;
     }
 
 #else
