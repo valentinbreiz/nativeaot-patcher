@@ -1,6 +1,12 @@
 using System;
+using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci.Enums;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -10,64 +16,397 @@ namespace Cosmos.Kernel.Tests.Storage;
 
 public class Kernel : Sys.Kernel
 {
+    // The single block device the active QEMU profile attached, captured
+    // once at BeforeRun. The profile name (set by the engine — ahci,
+    // ahci+gicv2, nvme, nvme+gicv3, nvme+acpi-off, ...) is what the report's
+    // [profile] prefix shows; this field just holds whatever device bound.
+    private static IBlockDevice? s_dev;
+
+    // Reason surfaced through TR.RunIf when a test depends on a device
+    // having actually bound. A profile whose driver did not enumerate
+    // (e.g. nvme+acpi-off on arm64, where no-ACPI removes PCIe discovery)
+    // lands here and the device tests skip.
+    private const string SkipNoDevice = "no block device bound for this profile";
+
+    // Same gating reason for the partition-table tests, which also need
+    // a backing host device.
+    private const string SkipNoHost = "no block device bound for partition-table tests";
+
+    /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
+    private const ushort ExpectedTestCount = 54;
+
+    /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
+    private const ulong SectorSizeBytes = 512;
+
+    /// <summary>1 MiB-aligned start LBA used for the first GPT data partition, safely past the header (LBA 1) and entry array.</summary>
+    private const ulong GptAlignedStartLba = 2048;
+
+    /// <summary>Sector count of the partition stamped by the destructive reboot cell for boot 1's scan to find.</summary>
+    private const ulong RebootPartitionSectorCount = 4096;
+
+    /// <summary>First usable LBA behind the primary GPT structures (header at LBA 1 + 32 entry sectors).</summary>
+    private const ulong GptFirstUsableLba = 34;
+
+    /// <summary>LBA of the first sector of the primary GPT partition-entry array (UEFI spec 5.3: header at LBA 1, entries from LBA 2).</summary>
+    private const ulong GptEntryArrayLba = 2;
+
+    /// <summary>Size of a GUID field in a GPT partition entry (bytes, UEFI spec 5.3.3).</summary>
+    private const int GptGuidSizeBytes = 16;
+
+    /// <summary>Byte offset of the unique-partition GUID within a GPT partition entry (UEFI spec 5.3.3).</summary>
+    private const int GptEntryUniqueGuidOffset = 16;
+
+    /// <summary>Byte offset of the 64-bit starting-LBA field within a GPT partition entry (UEFI spec 5.3.3).</summary>
+    private const int GptEntryStartLbaOffset = 32;
+
+    /// <summary>Byte offset of the 64-bit ending-LBA field within a GPT partition entry (UEFI spec 5.3.3).</summary>
+    private const int GptEntryEndLbaOffset = 40;
+
+    /// <summary>Size of an LBA field in a GPT partition entry (bytes, 64-bit).</summary>
+    private const int GptLbaFieldBytes = 8;
+
+    /// <summary>Non-zero byte planted in the unique-GUID field so the raw-crafted GPT entry is not all-zero.</summary>
+    private const byte BogusUniqueGuidByte = 0x42;
+
+    /// <summary>Raw-crafted start LBA that lands inside the GPT entry array (LBA 2..33), which Parse must reject.</summary>
+    private const ulong GptOverlapStartLba = 10;
+
+    /// <summary>Ending LBA paired with <see cref="GptOverlapStartLba"/> for the raw-crafted overlapping entry.</summary>
+    private const ulong GptOverlapEndLba = 100;
+
+    /// <summary>Sector count of the past-end GPT entry that AddPartition must reject.</summary>
+    private const ulong GptBogusPastEndSectorCount = 16;
+
+    /// <summary>Byte offset of MBR partition entry 0 in the boot sector.</summary>
+    private const int MbrEntry0Offset = 446;
+
+    /// <summary>Byte offset of MBR partition entry 1 in the boot sector (446 + one 16-byte entry).</summary>
+    private const int MbrEntry1Offset = 462;
+
+    /// <summary>Byte offset of the system-ID (type) byte within an MBR partition entry.</summary>
+    private const int MbrEntryTypeOffset = 4;
+
+    /// <summary>Byte offset of the 32-bit start-LBA field within an MBR partition entry.</summary>
+    private const int MbrEntryStartLbaOffset = 8;
+
+    /// <summary>Byte offset of the 32-bit sector-count field within an MBR partition entry.</summary>
+    private const int MbrEntrySectorCountOffset = 12;
+
+    /// <summary>Size of an LBA/count field in an MBR partition entry (bytes, 32-bit).</summary>
+    private const int MbrLbaFieldBytes = 4;
+
+    /// <summary>MBR system ID for a native Linux partition.</summary>
+    private const byte MbrLinuxSystemId = 0x83;
+
+    /// <summary>MBR system ID for a W95 FAT32 (LBA-unaware) partition.</summary>
+    private const byte MbrFat32SystemId = 0x0B;
+
+    /// <summary>Start sector of the first MBR round-trip partition window.</summary>
+    private const uint MbrPartAStartSector = 100;
+
+    /// <summary>Sector count of the first MBR round-trip partition window.</summary>
+    private const uint MbrPartASectorCount = 200;
+
+    /// <summary>Start sector of the second MBR round-trip partition window.</summary>
+    private const uint MbrPartBStartSector = 1000;
+
+    /// <summary>Sector count of the second MBR round-trip partition window.</summary>
+    private const uint MbrPartBSectorCount = 500;
+
+    /// <summary>Sector count of the bogus start-0 MBR entry (its start aliases the MBR sector itself).</summary>
+    private const uint MbrBogusStartZeroSectorCount = 200;
+
+    /// <summary>Sector count of the bogus past-end MBR entry.</summary>
+    private const uint MbrBogusPastEndSectorCount = 100;
+
+    /// <summary>How far before the device end the bogus past-end entry starts, so start + count overruns the disk.</summary>
+    private const ulong PastEndBacktrackSectors = 10;
+
+    /// <summary>Scratch LBA the NVMe short-span cell writes, clear of every other test window.</summary>
+    private const ulong ShortSpanLba = 4242;
+
+    /// <summary>Fill byte of the full-block write whose residue must not leak into the short-span tail.</summary>
+    private const byte ShortSpanResidueFill = 0xA5;
+
+    /// <summary>Length of the deliberately short span handed to NvmeController.Write (bytes, less than one sector).</summary>
+    private const int ShortSpanLengthBytes = 100;
+
+    /// <summary>Fill byte of the short-span payload.</summary>
+    private const byte ShortSpanFill = 0x5B;
+
+    /// <summary>XOR seed decorrelating the single-block round-trip pattern from a plain index ramp.</summary>
+    private const byte SingleBlockXorSeed = 0xA5;
+
+    /// <summary>Per-byte multiplier of the multi-block round-trip pattern.</summary>
+    private const int MultiBlockByteStep = 7;
+
+    /// <summary>XOR seed of the multi-block round-trip pattern.</summary>
+    private const byte MultiBlockXorSeed = 0x3C;
+
+    /// <summary>Fill byte of the first (overwritten) idempotency write.</summary>
+    private const byte IdempotentFirstFill = 0x11;
+
+    /// <summary>Fill byte of the second idempotency write, which is what must read back.</summary>
+    private const byte IdempotentSecondFill = 0x22;
+
+    /// <summary>Shift folding the high index byte into the large-transfer pattern so 256-byte periods differ.</summary>
+    private const int LargeTransferCarryShift = 8;
+
+    /// <summary>XOR seed of the large-transfer pattern.</summary>
+    private const byte LargeTransferXorSeed = 0x5A;
+
+    /// <summary>XOR seed of the boundary-LBA round-trip pattern.</summary>
+    private const byte BoundaryXorSeed = 0xF0;
+
+    /// <summary>XOR seed of the LBA-0 round-trip pattern.</summary>
+    private const byte LbaZeroXorSeed = 0x96;
+
+    /// <summary>Marker base ORed with the block index for the cross-block isolation fill.</summary>
+    private const byte CrossBlockMarkerBase = 0xC0;
+
+    /// <summary>Per-slot multiplier of the stride-sweep tag.</summary>
+    private const int StrideTagStep = 17;
+
+    /// <summary>XOR seed of the stride-sweep tag.</summary>
+    private const byte StrideTagXorSeed = 0x5A;
+
+    /// <summary>Fill byte of the first random-order block.</summary>
+    private const byte RandomOrderFillA = 0xAA;
+
+    /// <summary>Fill byte of the second random-order block.</summary>
+    private const byte RandomOrderFillB = 0xBB;
+
+    /// <summary>Fill byte of the third random-order block.</summary>
+    private const byte RandomOrderFillC = 0xCC;
+
+    /// <summary>Per-byte multiplier of the tail-boundary pattern.</summary>
+    private const int TailBoundaryByteStep = 13;
+
+    /// <summary>XOR seed of the tail-boundary pattern.</summary>
+    private const byte TailBoundaryXorSeed = 0x6E;
+
+    /// <summary>XOR seed of the partition LBA-translation pattern.</summary>
+    private const byte TranslateXorSeed = 0x42;
+
+    /// <summary>Start sector of the small partition used by the out-of-bounds probe.</summary>
+    private const ulong TinyPartStartSector = 5000;
+
+    /// <summary>Sector count of the small partition; reading block <see cref="TinyPartSectorCount"/> is the first out-of-range access.</summary>
+    private const ulong TinyPartSectorCount = 8;
+
+    /// <summary>Sector count of the in-memory partition used by the bounds-overflow probe.</summary>
+    private const ulong OverflowProbeSectorCount = 4;
+
+    /// <summary>MBR system ID of a CHS-addressed extended (EBR container) partition.</summary>
+    private const byte MbrExtendedSystemId = 0x05;
+
+    /// <summary>Byte offset of the 0xAA55 boot signature within an MBR/EBR sector.</summary>
+    private const int MbrBootSigOffset = 510;
+
+    /// <summary>Size in bytes of the boot signature field.</summary>
+    private const int MbrBootSigSizeBytes = 2;
+
+    /// <summary>Boot signature value stamped at the end of hand-crafted EBR sectors.</summary>
+    private const ushort MbrBootSignature = 0xAA55;
+
+    /// <summary>Absolute start LBA of the extended partition the EBR / PartitionManager lifecycle cells stamp.</summary>
+    private const uint ExtPartStartSector = 4000;
+
+    /// <summary>Sector count of the extended partition the EBR / PartitionManager lifecycle cells stamp.</summary>
+    private const uint ExtPartSectorCount = 12000;
+
+    /// <summary>Per-byte multiplier of the FillPattern move-payload pattern.</summary>
+    private const uint FillPatternByteStep = 31;
+
+    /// <summary>Low-byte mask folding the 32-bit pattern accumulator into a byte.</summary>
+    private const uint ByteMask = 0xFF;
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
-        Serial.WriteString("[Storage] Starting tests...\n");
 
-        // Test count is dynamic: 2 meta tests + 12 per registered block device.
-        // The test runner attaches multiple AHCI ports + multiple NVMe
-        // controllers, so the suite walks StorageManager and runs the full
-        // round-trip suite against every device individually — catches
-        // cross-device aliasing, bounce-buffer reuse, and per-controller
-        // state that a single-device test would miss.
-        TR.Start("Storage Block Device Tests", expectedTests: 0);
+        // 3 manager + 1 boot-scan + 2 profile + 13 device + 9 partition
+        // + 23 partition-lifecycle (MBR mutation, EBR chain, PartitionManager)
+        // + 2 mmio/pci + 1 boot-reboot = 54 tests per profile.
+        TR.Start("Storage Block Device Tests", expectedTests: ExpectedTestCount);
 
-        TR.Run("Test_StorageManager_Initialized", () =>
+        bool hasDevice = StorageManager.DeviceCount > 0;
+        s_dev = hasDevice ? StorageManager.GetDevice(0) : null;
+
+        // ==================== Manager ====================
+        TR.Run("Manager_StorageInitialized", TestManager_StorageInitialized);
+        // A cell that attached a disk must SEE a disk: on x64 PCI enumerates
+        // with or without ACPI, so zero devices is always a bind regression
+        // and must fail, not skip; on arm64, acpi-off removes PCIe discovery,
+        // so only those cells may legitimately come up empty.
+#if ARCH_X64
+        bool deviceExpected = true;
+#else
+        bool deviceExpected = !TR.ProfileContains("acpi-off");
+#endif
+        TR.RunIf(deviceExpected, "Manager_ExactlyOneDevice", TestManager_ExactlyOneDevice, SkipNoDevice);
+        TR.RunIf(hasDevice, "Manager_DuplicateRegistrationIgnored", TestManager_DuplicateRegistrationIgnored, SkipNoDevice);
+
+        // ==================== Boot persistence (works with Boot_RebootAfterGptWrite) ====================
+        // Runs before anything mutates partition state: on boot 0 the engine's
+        // fresh image must scan clean; on boot 1 the boot-time (phase-3) scan
+        // must have found the GPT written before the reboot. Pins the init-window
+        // partition scan, which regressed once without CI noticing (interpolated
+        // partition names triple-faulted phase 3 on any populated disk).
+        TR.RunIf(hasDevice, "Boot_PartitionScanMatchesBootState", TestBoot_PartitionScanMatchesBootState, SkipNoDevice);
+
+        // ==================== Profile (assert the cell's hardware path) ====================
+        // Prove the cell exercised the hardware it names, not just that block
+        // I/O happened to work — the gap that let a silent MSI-X->polled
+        // regression pass before.
+        TR.RunIf(hasDevice, "Profile_DeviceKindMatches", TestProfile_DeviceKindMatches, SkipNoDevice);
+
+        if (!TR.ProfileHasPrefix("nvme"))
         {
-            Assert.True(StorageManager.IsEnabled);
-            Assert.True(StorageManager.IsInitialized);
-        });
-
-        TR.Run("Test_AtLeastOneDevice_Present", () =>
+            TR.Skip("Profile_NvmeInterruptModeMatches", "not an NVMe profile");
+        }
+        else if (Nvme.Controllers.Count == 0)
         {
-            Assert.True(StorageManager.DeviceCount > 0);
-        });
-
-        int sataIdx = 0;
-        int nvmeIdx = 0;
-        for (int i = 0; i < StorageManager.DeviceCount; i++)
+            TR.Skip("Profile_NvmeInterruptModeMatches", SkipNoDevice);
+        }
+        else if (TR.ProfileContains("gicv2") || TR.ProfileContains("gicv3"))
         {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev == null)
+            // Only the GIC-version cells pin a determinate NVMe interrupt path:
+            // gicv3 brings up the ITS so MSI-X can route; gicv2 has no ITS so
+            // the driver must fall back to polled. The expectation flag is
+            // "expect MSI-X" == this is the gicv3 cell.
+            TR.RunWithExpectation(TR.ProfileContains("gicv3"), "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
+        }
+        else
+        {
+#if ARCH_X64
+            if (!TR.ProfileContains("acpi-off"))
             {
-                continue;
+                // Plain x64 nvme: ACPI is on and the LAPIC MSI binder is
+                // always registered (the Interrupts suite asserts
+                // MsiRouting.IsAvailable unconditionally on x64), so the
+                // driver landing in MSI-X mode IS determinate — a silent
+                // MSI-X→polled regression here is exactly the failure this
+                // cell exists to catch. expect-MSI-X = true.
+                TR.RunWithExpectation(true, "Profile_NvmeInterruptModeMatches", TestProfile_NvmeInterruptMode);
             }
-            string label = dev.Name == "SATA"
-                ? $"SATA{sataIdx++}"
-                : dev.Name == "NVMe"
-                    ? $"NVMe{nvmeIdx++}"
-                    : $"{dev.Name}{i}";
-            RunDeviceSuite(label, dev);
+            else
+            {
+                // acpi-off x64: no MADT → no LAPIC MSI routing to pin.
+                TR.Skip("Profile_NvmeInterruptModeMatches", "acpi-off has no MSI routing to pin");
+            }
+#else
+            // arm64 bare nvme: the interrupt mode depends on the machine's
+            // default gic-version, so it is not pinned here — the
+            // gicv2/gicv3 cells assert both paths explicitly.
+            TR.Skip("Profile_NvmeInterruptModeMatches", "interrupt mode not pinned by this cell");
+#endif
         }
 
-        // Partition table round-trip tests run AFTER the per-device suites
-        // because they overwrite LBA 0..33, which the per-device tests
-        // also touch. Pick the last registered device so earlier devices'
-        // results aren't affected.
-        IBlockDevice? partitionTarget = null;
-        for (int i = StorageManager.DeviceCount - 1; i >= 0; i--)
+        // ==================== Device (single-disk round-trip) ====================
+        bool dev = s_dev != null;
+        TR.RunIf(dev, "Device_BlockGeometry_Sane",         TestDevice_BlockGeometrySane,        SkipNoDevice);
+        TR.RunIf(dev, "Device_WriteRead_SingleBlock",      TestDevice_WriteReadSingleBlock,     SkipNoDevice);
+        TR.RunIf(dev, "Device_WriteRead_MultiBlock",       TestDevice_WriteReadMultiBlock,      SkipNoDevice);
+        TR.RunIf(dev, "Device_WriteRead_Idempotent",       TestDevice_WriteReadIdempotent,      SkipNoDevice);
+        TR.RunIf(dev, "Device_ReReadStable",               TestDevice_ReReadStable,             SkipNoDevice);
+        TR.RunIf(dev, "Device_LargeTransfer",              TestDevice_LargeTransfer,            SkipNoDevice);
+        TR.RunIf(dev, "Device_BoundaryLBA",                TestDevice_BoundaryLBA,              SkipNoDevice);
+        TR.RunIf(dev, "Device_LBA_Zero_RoundTrip",         TestDevice_LBAZeroRoundTrip,         SkipNoDevice);
+        TR.RunIf(dev, "Device_CrossBlock_Isolation",       TestDevice_CrossBlockIsolation,      SkipNoDevice);
+        TR.RunIf(dev, "Device_LBA_Stride_Sweep",           TestDevice_LBAStrideSweep,           SkipNoDevice);
+        TR.RunIf(dev, "Device_RandomOrder_ReadAfterWrite", TestDevice_RandomOrderReadAfterWrite, SkipNoDevice);
+        TR.RunIf(dev, "Device_Multiblock_TailBoundary",    TestDevice_MultiblockTailBoundary,   SkipNoDevice);
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Nvme_ShortSpanWritesDeterministicTail", TestNvme_ShortSpanTail, "NVMe controller API is nvme-profile only");
+
+        // ==================== Partition (MBR/GPT, partition translation) ====================
+        // These run last because they overwrite LBA 0..33, which the device
+        // round-trip tests above also touch — ordering them last keeps the
+        // earlier results from being affected by the partition-table writes.
+        TR.RunIf(dev, "Partition_MBR_RoundTrip",          TestPartition_MBRRoundTrip,          SkipNoHost);
+        TR.RunIf(dev, "Partition_GPT_RoundTrip",          TestPartition_GPTRoundTrip,          SkipNoHost);
+        TR.RunIf(dev, "Partition_RescanPartitions",       TestPartition_RescanPartitions,      SkipNoHost);
+        TR.RunIf(dev, "Partition_ReadWrite_TranslatesLba", TestPartition_ReadWriteTranslatesLba, SkipNoHost);
+        TR.RunIf(dev, "Partition_OutOfBounds_Throws",      TestPartition_OutOfBoundsThrows,     SkipNoHost);
+        TR.RunIf(dev, "Partition_MbrParseRejectsBogus",    TestPartition_MbrParseRejectsBogus,  SkipNoHost);
+        TR.RunIf(dev, "Partition_GptAddRejectsBogus",      TestPartition_GptAddRejectsBogus,    SkipNoHost);
+
+        // ==================== Partition lifecycle (MBR mutation, EBR chain, PartitionManager) ====================
+        // Each cell wipes and re-stamps its own layout (LBA 0..~16000), so
+        // like the tests above they must stay behind the device round-trip
+        // section. The final reboot cell stamps a fresh GPT afterwards, so
+        // whatever layout the last of these leaves behind is irrelevant.
+        TR.RunIf(dev, "Partition_MBR_Resize",              TestPartition_MbrResize,             SkipNoHost);
+        TR.RunIf(dev, "Partition_MBR_Delete",              TestPartition_MbrDelete,             SkipNoHost);
+        TR.RunIf(dev, "Partition_EBR_ChainDiscoversLogicals", TestEbr_ChainDiscoversLogicals,   SkipNoHost);
+        TR.RunIf(dev, "Partition_RescanPartitions_WithEBR", TestPartition_RescanWithEbr,        SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Create_OnMBR",     TestPartitionManager_CreateOnMbr,    SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Resize_OnMBR",     TestPartitionManager_ResizeOnMbr,    SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Delete_OnMBR",     TestPartitionManager_DeleteOnMbr,    SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_MoveWithData_NonOverlapping", TestPartitionManager_MoveNonOverlapping, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_MoveWithData_OverlappingForward", TestPartitionManager_MoveOverlappingForward, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Resize_OnGPT",     TestPartitionManager_ResizeOnGpt,    SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Delete_OnGPT",     TestPartitionManager_DeleteOnGpt,    SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_MoveWithData_OnGPT", TestPartitionManager_MoveOnGpt,    SkipNoHost);
+        TR.RunIf(dev, "EBR_AddLogical_FirstAndSecond",     TestEbr_AddLogicalFirstAndSecond,    SkipNoHost);
+        TR.RunIf(dev, "EBR_RemoveLogical_Last",            TestEbr_RemoveLogicalLast,           SkipNoHost);
+        TR.RunIf(dev, "EBR_RemoveLogical_First_PromotesSuccessor", TestEbr_RemoveLogicalFirstPromotesSuccessor, SkipNoHost);
+        TR.RunIf(dev, "EBR_RemoveLogical_Middle_CollapsesChain", TestEbr_RemoveLogicalMiddleCollapsesChain, SkipNoHost);
+        TR.RunIf(dev, "EBR_RemoveLogical_OnlyOne_ClearsChain", TestEbr_RemoveLogicalOnlyOneClearsChain, SkipNoHost);
+        TR.RunIf(dev, "EBR_ResizeLogical",                 TestEbr_ResizeLogical,               SkipNoHost);
+        TR.RunIf(dev, "EBR_MoveLogical_TableLevel",        TestEbr_MoveLogicalTableLevel,       SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_MoveWithData_OnLogical", TestPartitionManager_MoveOnLogical, SkipNoHost);
+
+        // Overflow-safety of the bounds check is hardware-independent (in-memory
+        // probe host), so it runs unconditionally, even on cells where no disk bound.
+        TR.Run("Partition_BoundsOverflow_Throws", TestPartition_BoundsOverflowThrows);
+        TR.Run("Partition_GptTinyDeviceSafe", TestPartition_GptTinyDeviceSafe);
+
+        // ==================== MMIO mapping (64-bit BAR above 4 GiB) ====================
+        // Runs after every cell that does block I/O: it relocates the live
+        // NVMe controller's BAR while no transfer is in flight and restores
+        // it before returning, so ordering it here keeps a mapper regression
+        // (crash mid-cell) from also taking down the I/O results above.
+#if ARCH_X64
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Mmio_HighBar_RemappedOnDemand", TestMmio_HighBarRemapped,
+            "64-bit BAR relocation probe is nvme-profile only");
+        TR.RunIf(dev && TR.ProfileHasPrefix("nvme"), "Pci_GetBar64_ReadsLiveConfig", TestPciGetBar64ReadsLiveConfig,
+            "64-bit BAR relocation probe is nvme-profile only");
+#else
+        TR.Skip("Mmio_HighBar_RemappedOnDemand", "x64 mapper cell; arm64 installs Device mappings via DeviceMapper");
+        TR.Skip("Pci_GetBar64_ReadsLiveConfig", "BAR relocation probe is x64-only (same harness as the mapper cell)");
+#endif
+
+        // ==================== Boot persistence (destructive: reboots QEMU) ====================
+        // Boot 0 stamps a fresh GPT with one partition and reboots; boot 1's
+        // Boot_PartitionScanMatchesBootState (above) then proves the phase-3
+        // boot-time scan survives a populated disk and names the partition.
+        // Last on purpose: everything before it must have reported already.
+        int skip = TR.GetSkipCount();
+        if (!dev)
         {
-            IBlockDevice? dev = StorageManager.GetDevice(i);
-            if (dev != null)
-            {
-                partitionTarget = dev;
-                break;
-            }
+            TR.Skip("Boot_RebootAfterGptWrite", SkipNoDevice);
         }
-        if (partitionTarget != null)
+        else if (skip == 0)
         {
-            RunPartitionTableSuite(partitionTarget);
+            TR.RunDestructive(
+                "Boot_RebootAfterGptWrite",
+                () =>
+                {
+                    Gpt.Create(s_dev!);
+                    Assert.True(Gpt.AddPartition(s_dev!, GptAlignedStartLba, RebootPartitionSectorCount, Gpt.BasicDataPartitionType));
+                    s_dev!.Flush();
+                    Sys.Power.Reboot();
+                },
+                "Power.Reboot() returned without rebooting");
+        }
+        else
+        {
+            // Already fired in boot 0; replay as passed like the Power suite.
+            TR.Run("Boot_RebootAfterGptWrite", () => { });
         }
 
         TR.Finish();
@@ -75,857 +414,1153 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
     }
 
-    private static void RunDeviceSuite(string label, IBlockDevice? dev)
+    protected override void Run() => Stop();
+
+    protected override void AfterRun()
     {
-        TR.Run($"Test_{label}_BlockGeometry_Sane", () =>
-        {
-            Assert.NotNull(dev);
-            Assert.Equal<ulong>(512, dev!.BlockSize);
-            Assert.True(dev.BlockCount > 0);
-        });
-
-        TR.Run($"Test_{label}_WriteRead_SingleBlock", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong lba = 100;
-            ulong size = dev!.BlockSize;
-
-            Span<byte> writeBuf = new byte[size];
-            for (int i = 0; i < (int)size; i++)
-            {
-                writeBuf[i] = (byte)(i ^ 0xA5);
-            }
-            dev.WriteBlock(lba, 1, writeBuf);
-
-            Span<byte> readBuf = new byte[size];
-            dev.ReadBlock(lba, 1, readBuf);
-
-            for (int i = 0; i < (int)size; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
-
-        TR.Run($"Test_{label}_WriteRead_MultiBlock", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong lba = 200;
-            const ulong blocks = 4;
-            ulong total = blocks * dev!.BlockSize;
-
-            Span<byte> writeBuf = new byte[total];
-            for (int i = 0; i < (int)total; i++)
-            {
-                writeBuf[i] = (byte)((i * 7) ^ 0x3C);
-            }
-            dev.WriteBlock(lba, blocks, writeBuf);
-
-            Span<byte> readBuf = new byte[total];
-            dev.ReadBlock(lba, blocks, readBuf);
-
-            for (int i = 0; i < (int)total; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
-
-        TR.Run($"Test_{label}_WriteRead_Idempotent", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong lba = 250;
-            ulong size = dev!.BlockSize;
-
-            Span<byte> first = new byte[size];
-            first.Fill(0x11);
-            dev.WriteBlock(lba, 1, first);
-
-            Span<byte> second = new byte[size];
-            second.Fill(0x22);
-            dev.WriteBlock(lba, 1, second);
-
-            Span<byte> readBuf = new byte[size];
-            dev.ReadBlock(lba, 1, readBuf);
-            for (int i = 0; i < (int)size; i++)
-            {
-                Assert.Equal((byte)0x22, readBuf[i]);
-            }
-        });
-
-        TR.Run($"Test_{label}_ReReadStable", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong lba = 300;
-            ulong size = dev!.BlockSize;
-
-            Span<byte> first = new byte[size];
-            dev.ReadBlock(lba, 1, first);
-
-            Span<byte> second = new byte[size];
-            dev.ReadBlock(lba, 1, second);
-
-            for (int i = 0; i < (int)size; i++)
-            {
-                Assert.Equal(first[i], second[i]);
-            }
-        });
-
-        TR.Run($"Test_{label}_LargeTransfer", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong lba = 1000;
-            const ulong blocks = 32;
-            ulong total = blocks * dev!.BlockSize;
-
-            Span<byte> writeBuf = new byte[total];
-            for (int i = 0; i < (int)total; i++)
-            {
-                writeBuf[i] = (byte)((i + (i >> 8)) ^ 0x5A);
-            }
-            dev.WriteBlock(lba, blocks, writeBuf);
-
-            Span<byte> readBuf = new byte[total];
-            dev.ReadBlock(lba, blocks, readBuf);
-
-            for (int i = 0; i < (int)total; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
-
-        TR.Run($"Test_{label}_BoundaryLBA", () =>
-        {
-            Assert.NotNull(dev);
-            ulong lba = dev!.BlockCount - 1;
-            ulong size = dev.BlockSize;
-
-            Span<byte> writeBuf = new byte[size];
-            for (int i = 0; i < (int)size; i++)
-            {
-                writeBuf[i] = (byte)(i ^ 0xF0);
-            }
-            dev.WriteBlock(lba, 1, writeBuf);
-
-            Span<byte> readBuf = new byte[size];
-            dev.ReadBlock(lba, 1, readBuf);
-
-            for (int i = 0; i < (int)size; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
-
-        // LBA 0 is often special (boot sector). Make sure round-trip works there.
-        TR.Run($"Test_{label}_LBA_Zero_RoundTrip", () =>
-        {
-            Assert.NotNull(dev);
-            ulong size = dev!.BlockSize;
-
-            Span<byte> writeBuf = new byte[size];
-            for (int i = 0; i < (int)size; i++)
-            {
-                writeBuf[i] = (byte)(i ^ 0x96);
-            }
-            dev.WriteBlock(0, 1, writeBuf);
-
-            Span<byte> readBuf = new byte[size];
-            dev.ReadBlock(0, 1, readBuf);
-
-            for (int i = 0; i < (int)size; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
-
-        // Catches bounce-buffer reuse / wrong-LBA-cached bugs: write 8 contiguous
-        // blocks each filled with its own marker byte, then read each block back
-        // individually and confirm the markers haven't bled across blocks.
-        TR.Run($"Test_{label}_CrossBlock_Isolation", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong baseLba = 4000;
-            const int blocks = 8;
-            ulong size = dev!.BlockSize;
-
-            for (int b = 0; b < blocks; b++)
-            {
-                Span<byte> wbuf = new byte[size];
-                wbuf.Fill((byte)(0xC0 | b));
-                dev.WriteBlock(baseLba + (ulong)b, 1, wbuf);
-            }
-
-            for (int b = 0; b < blocks; b++)
-            {
-                Span<byte> rbuf = new byte[size];
-                dev.ReadBlock(baseLba + (ulong)b, 1, rbuf);
-                byte expected = (byte)(0xC0 | b);
-                for (int i = 0; i < (int)size; i++)
-                {
-                    Assert.Equal(expected, rbuf[i]);
-                }
-            }
-        });
-
-        // Catches LBA off-by-one / stride bugs: write to LBAs that are far apart
-        // (n * 1024) so any wrap or shift error lands on a different block; the
-        // pattern depends on n so we can detect a mis-routed write.
-        TR.Run($"Test_{label}_LBA_Stride_Sweep", () =>
-        {
-            Assert.NotNull(dev);
-            const int slots = 8;
-            const ulong stride = 1024;
-            ulong size = dev!.BlockSize;
-
-            for (int n = 0; n < slots; n++)
-            {
-                Span<byte> wbuf = new byte[size];
-                byte tag = (byte)((n * 17) ^ 0x5A);
-                wbuf.Fill(tag);
-                dev.WriteBlock((ulong)n * stride, 1, wbuf);
-            }
-
-            for (int n = 0; n < slots; n++)
-            {
-                Span<byte> rbuf = new byte[size];
-                dev.ReadBlock((ulong)n * stride, 1, rbuf);
-                byte tag = (byte)((n * 17) ^ 0x5A);
-                for (int i = 0; i < (int)size; i++)
-                {
-                    Assert.Equal(tag, rbuf[i]);
-                }
-            }
-        });
-
-        // Reads in non-sequential order should still return the right data —
-        // catches code that assumes the last-touched LBA is "current".
-        TR.Run($"Test_{label}_RandomOrder_ReadAfterWrite", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong baseLba = 6000;
-            ulong size = dev!.BlockSize;
-
-            Span<byte> a = new byte[size]; a.Fill(0xAA);
-            Span<byte> b = new byte[size]; b.Fill(0xBB);
-            Span<byte> c = new byte[size]; c.Fill(0xCC);
-            dev.WriteBlock(baseLba + 0, 1, a);
-            dev.WriteBlock(baseLba + 1, 1, b);
-            dev.WriteBlock(baseLba + 2, 1, c);
-
-            Span<byte> r = new byte[size];
-
-            dev.ReadBlock(baseLba + 2, 1, r);
-            for (int i = 0; i < (int)size; i++) { Assert.Equal((byte)0xCC, r[i]); }
-
-            dev.ReadBlock(baseLba + 0, 1, r);
-            for (int i = 0; i < (int)size; i++) { Assert.Equal((byte)0xAA, r[i]); }
-
-            dev.ReadBlock(baseLba + 1, 1, r);
-            for (int i = 0; i < (int)size; i++) { Assert.Equal((byte)0xBB, r[i]); }
-        });
-
-        // Multi-block transfer that ends exactly at the device tail. Catches
-        // truncation / wrap bugs at the upper edge of LBA space.
-        TR.Run($"Test_{label}_Multiblock_TailBoundary", () =>
-        {
-            Assert.NotNull(dev);
-            const ulong blocks = 4;
-            ulong size = dev!.BlockSize;
-            ulong lba = dev.BlockCount - blocks;
-            ulong total = blocks * size;
-
-            Span<byte> writeBuf = new byte[total];
-            for (int i = 0; i < (int)total; i++)
-            {
-                writeBuf[i] = (byte)((i * 13) ^ 0x6E);
-            }
-            dev.WriteBlock(lba, blocks, writeBuf);
-
-            Span<byte> readBuf = new byte[total];
-            dev.ReadBlock(lba, blocks, readBuf);
-
-            for (int i = 0; i < (int)total; i++)
-            {
-                Assert.Equal(writeBuf[i], readBuf[i]);
-            }
-        });
+        TR.Complete();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
-    private static void RunPartitionTableSuite(IBlockDevice host)
+    // Re-registering an already-known device must be a no-op: RegisterDevice
+    // is public and unguarded (unlike Initialize), so a second
+    // RegisterHalDevices call would otherwise double-count the device and
+    // duplicate every partition under identical names.
+    private static void TestManager_DuplicateRegistrationIgnored()
     {
-        TR.Run("Test_MBR_RoundTrip", () =>
-        {
-            // Wipe LBA 0 first so a leftover GPT signature from a prior
-            // sub-test doesn't taint the IsMBR check.
-            Span<byte> wipe = new byte[host.BlockSize];
-            host.WriteBlock(0, 1, wipe);
-
-            MBR.Create(host);
-            Assert.True(MBR.IsMBR(host));
-
-            // Two primary entries at distinct LBA windows.
-            MBR.WritePartition(host, 0, systemId: 0x83, startSector: 100, sectorCount: 200);
-            MBR.WritePartition(host, 1, systemId: 0x0B, startSector: 1000, sectorCount: 500);
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(2, parts.Count);
-            Assert.Equal<byte>(0x83, parts[0].SystemId);
-            Assert.Equal<ulong>(100, parts[0].StartSector);
-            Assert.Equal<ulong>(200, parts[0].SectorCount);
-            Assert.Equal<byte>(0x0B, parts[1].SystemId);
-            Assert.Equal<ulong>(1000, parts[1].StartSector);
-            Assert.Equal<ulong>(500, parts[1].SectorCount);
-        });
-
-        TR.Run("Test_MBR_ResizePartition", () =>
-        {
-            // Resize slot 0 in place (same systemId, same start, larger size)
-            // and verify Parse reports the new geometry.
-            MBR.WritePartition(host, 0, systemId: 0x83, startSector: 100, sectorCount: 350);
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(2, parts.Count);
-            Assert.Equal<ulong>(100, parts[0].StartSector);
-            Assert.Equal<ulong>(350, parts[0].SectorCount);
-            Assert.Equal<ulong>(1000, parts[1].StartSector);
-            Assert.Equal<ulong>(500, parts[1].SectorCount);
-        });
-
-        TR.Run("Test_MBR_DeletePartition", () =>
-        {
-            // Delete slot 1 by writing systemId=0; Parse skips empty entries.
-            MBR.WritePartition(host, 1, systemId: 0x00, startSector: 0, sectorCount: 0);
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<byte>(0x83, parts[0].SystemId);
-            Assert.Equal<ulong>(100, parts[0].StartSector);
-            Assert.Equal<ulong>(350, parts[0].SectorCount);
-        });
-
-        TR.Run("Test_GPT_RoundTrip", () =>
-        {
-            GPT.Create(host);
-            Assert.True(GPT.IsGPT(host));
-
-            const ulong startA = 2048;
-            const ulong countA = 4096;
-            const ulong startB = startA + countA;
-            const ulong countB = 8192;
-
-            Assert.True(GPT.AddPartition(host, startA, countA, GPT.BasicDataPartitionType));
-            Assert.True(GPT.AddPartition(host, startB, countB, GPT.BasicDataPartitionType));
-
-            List<GPT.PartitionEntry> parts = GPT.Parse(host);
-            Assert.Equal(2, parts.Count);
-            Assert.Equal(GPT.BasicDataPartitionType, parts[0].PartitionType);
-            Assert.Equal<ulong>(startA, parts[0].StartSector);
-            Assert.Equal<ulong>(countA, parts[0].SectorCount);
-            Assert.Equal<ulong>(startB, parts[1].StartSector);
-            Assert.Equal<ulong>(countB, parts[1].SectorCount);
-        });
-
-        TR.Run("Test_StorageManager_RescanPartitions", () =>
-        {
-            // Layout from the previous test: GPT with two partitions on `host`.
-            StorageManager.RescanPartitions(host);
-
-            int matches = 0;
-            for (int i = 0; i < StorageManager.Partitions.Count; i++)
-            {
-                Partition p = StorageManager.Partitions[i];
-                if (ReferenceEquals(p.Host, host))
-                {
-                    matches++;
-                }
-            }
-            Assert.Equal(2, matches);
-        });
-
-        TR.Run("Test_Partition_ReadWrite_TranslatesLba", () =>
-        {
-            // Attach a partition starting at an arbitrary LBA, write to its
-            // LBA 0, and verify the bytes show up at the host's
-            // StartingSector — proving the translation isn't off by one.
-            const ulong startSector = 3000;
-            const ulong sectorCount = 4;
-            Partition partition = new(host, startSector, sectorCount, "test-part");
-
-            Span<byte> writeBuf = new byte[host.BlockSize];
-            for (int i = 0; i < writeBuf.Length; i++)
-            {
-                writeBuf[i] = (byte)(i ^ 0x42);
-            }
-            partition.WriteBlock(0, 1, writeBuf);
-
-            Span<byte> hostBuf = new byte[host.BlockSize];
-            host.ReadBlock(startSector, 1, hostBuf);
-            for (int i = 0; i < hostBuf.Length; i++)
-            {
-                Assert.Equal(writeBuf[i], hostBuf[i]);
-            }
-        });
-
-        TR.Run("Test_Partition_OutOfBounds_Throws", () =>
-        {
-            Partition partition = new(host, startingSector: 5000, sectorCount: 8, name: "tiny-part");
-            Span<byte> buf = new byte[host.BlockSize];
-            try
-            {
-                partition.ReadBlock(blockNo: 8, blockCount: 1, buf);
-                Assert.Fail("Expected ArgumentOutOfRangeException for partition over-read.");
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // Expected.
-            }
-        });
-
-        // EBR-chain tests are last because they overwrite LBA 0 with a fresh
-        // MBR layout and exercise StorageManager rescanning, which would
-        // perturb earlier GPT-based partition counts.
-        const ulong ebrExtendedStart = 4000;
-        const uint ebrLogicalRelStart = 32;
-        const uint ebrLogicalSectorCount = 1000;
-        const uint ebrNextRelativeLba = 2000;
-
-        TR.Run("Test_EBR_Chain_DiscoversLogicals", () =>
-        {
-            // Wipe LBAs 0..1 to clear both the GPT signature left behind by
-            // Test_GPT_RoundTrip and the MBR slot, so the upcoming
-            // StorageManager rescan takes the MBR code path.
-            Span<byte> wipe = new byte[host.BlockSize];
-            host.WriteBlock(0, 1, wipe);
-            host.WriteBlock(1, 1, wipe);
-
-            MBR.Create(host);
-            // Primary at slot 0, extended at slot 1.
-            MBR.WritePartition(host, 0, systemId: 0x83, startSector: 100, sectorCount: 200);
-            MBR.WritePartition(host, 1, systemId: 0x05, startSector: (uint)ebrExtendedStart, sectorCount: 8000);
-
-            // Two-link EBR chain: first EBR at extendedStart, second at
-            // extendedStart + ebrNextRelativeLba.
-            WriteEbrSector(host, ebrExtendedStart, ebrLogicalRelStart, ebrLogicalSectorCount, hasNext: true, nextRelativeLba: ebrNextRelativeLba);
-            WriteEbrSector(host, ebrExtendedStart + ebrNextRelativeLba, ebrLogicalRelStart, ebrLogicalSectorCount, hasNext: false, nextRelativeLba: 0);
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, ebrExtendedStart);
-            Assert.Equal(2, logicals.Count);
-            Assert.Equal<ulong>(ebrExtendedStart + ebrLogicalRelStart, logicals[0].StartSector);
-            Assert.Equal<ulong>(ebrLogicalSectorCount, logicals[0].SectorCount);
-            Assert.Equal<ulong>(ebrExtendedStart + ebrNextRelativeLba + ebrLogicalRelStart, logicals[1].StartSector);
-            Assert.Equal<ulong>(ebrLogicalSectorCount, logicals[1].SectorCount);
-        });
-
-        TR.Run("Test_StorageManager_RescanPartitions_WithEBR", () =>
-        {
-            // Layout left by the previous test: MBR with one primary + one
-            // extended pointing at a 2-link EBR chain. Rescan should pick
-            // up 1 primary + 2 logicals = 3 partitions on host.
-            StorageManager.RescanPartitions(host);
-
-            int matches = 0;
-            for (int i = 0; i < StorageManager.Partitions.Count; i++)
-            {
-                Partition p = StorageManager.Partitions[i];
-                if (ReferenceEquals(p.Host, host))
-                {
-                    matches++;
-                }
-            }
-            Assert.Equal(3, matches);
-        });
-
-        // PartitionManager lifecycle tests run on a clean MBR layout; each
-        // test wipes and re-creates so order doesn't matter.
-
-        TR.Run("Test_PartitionManager_Create_OnMBR", () =>
-        {
-            ResetHostMbr(host);
-            Assert.True(PartitionManager.Create(host, startSector: 200, sectorCount: 100, mbrSystemId: 0x83, gptType: GPT.BasicDataPartitionType));
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<byte>(0x83, parts[0].SystemId);
-            Assert.Equal<ulong>(200, parts[0].StartSector);
-            Assert.Equal<ulong>(100, parts[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_Resize_OnMBR", () =>
-        {
-            ResetHostMbr(host);
-            PartitionManager.Create(host, 200, 100, 0x83, GPT.BasicDataPartitionType);
-
-            Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(200, 100), newSectorCount: 250));
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(200, parts[0].StartSector);
-            Assert.Equal<ulong>(250, parts[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_Delete_OnMBR", () =>
-        {
-            ResetHostMbr(host);
-            PartitionManager.Create(host, 200, 100, 0x83, GPT.BasicDataPartitionType);
-            PartitionManager.Create(host, 500, 200, 0x0B, GPT.BasicDataPartitionType);
-
-            Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(200, 100)));
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(500, parts[0].StartSector);
-            Assert.Equal<ulong>(200, parts[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_MoveWithData_NonOverlapping", () =>
-        {
-            ResetHostMbr(host);
-            const uint oldStart = 1000;
-            const uint count = 64;
-            const uint newStart = 5000;
-            PartitionManager.Create(host, oldStart, count, 0x83, GPT.BasicDataPartitionType);
-
-            Span<byte> patternSector = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                FillPattern(patternSector, (uint)(0xC0DE0000 + lba));
-                host.WriteBlock(oldStart + lba, 1, patternSector);
-            }
-
-            Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
-
-            List<MBR.PartitionEntry> parts = MBR.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(newStart, parts[0].StartSector);
-            Assert.Equal<ulong>(count, parts[0].SectorCount);
-
-            Span<byte> readBuf = new byte[host.BlockSize];
-            Span<byte> expected = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                host.ReadBlock(newStart + lba, 1, readBuf);
-                FillPattern(expected, (uint)(0xC0DE0000 + lba));
-                for (int i = 0; i < (int)host.BlockSize; i++)
-                {
-                    Assert.Equal(expected[i], readBuf[i]);
-                }
-            }
-        });
-
-        TR.Run("Test_PartitionManager_MoveWithData_OverlappingForward", () =>
-        {
-            // Destination starts inside the source range, so the copy must
-            // walk backwards or it will overwrite source bytes before reading
-            // them.
-            ResetHostMbr(host);
-            const uint oldStart = 2000;
-            const uint count = 200;
-            const uint newStart = 2050; // overlaps oldStart..oldStart+count
-            PartitionManager.Create(host, oldStart, count, 0x83, GPT.BasicDataPartitionType);
-
-            Span<byte> patternSector = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                FillPattern(patternSector, (uint)(0xBABE0000 + lba));
-                host.WriteBlock(oldStart + lba, 1, patternSector);
-            }
-
-            Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
-
-            Span<byte> readBuf = new byte[host.BlockSize];
-            Span<byte> expected = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                host.ReadBlock(newStart + lba, 1, readBuf);
-                FillPattern(expected, (uint)(0xBABE0000 + lba));
-                for (int i = 0; i < (int)host.BlockSize; i++)
-                {
-                    Assert.Equal(expected[i], readBuf[i]);
-                }
-            }
-        });
-
-        TR.Run("Test_PartitionManager_Resize_OnGPT", () =>
-        {
-            ResetHostGpt(host);
-            const ulong start = 2048;
-            const ulong count = 4096;
-            Assert.True(GPT.AddPartition(host, start, count, GPT.BasicDataPartitionType));
-
-            Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(start, count), newSectorCount: 8192));
-
-            List<GPT.PartitionEntry> parts = GPT.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(start, parts[0].StartSector);
-            Assert.Equal<ulong>(8192, parts[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_Delete_OnGPT", () =>
-        {
-            ResetHostGpt(host);
-            const ulong start = 2048;
-            const ulong count = 4096;
-            Assert.True(GPT.AddPartition(host, start, count, GPT.BasicDataPartitionType));
-            Assert.True(GPT.AddPartition(host, start + count, count, GPT.BasicDataPartitionType));
-
-            Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(start, count)));
-
-            List<GPT.PartitionEntry> parts = GPT.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(start + count, parts[0].StartSector);
-        });
-
-        TR.Run("Test_PartitionManager_MoveWithData_OnGPT", () =>
-        {
-            ResetHostGpt(host);
-            const ulong start = 2048;
-            const ulong count = 64;
-            const ulong newStart = 4096;
-            Assert.True(GPT.AddPartition(host, start, count, GPT.BasicDataPartitionType));
-
-            Span<byte> patternSector = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                FillPattern(patternSector, (uint)(0xF00D0000 + lba));
-                host.WriteBlock(start + lba, 1, patternSector);
-            }
-
-            Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(start, count), newStart));
-
-            List<GPT.PartitionEntry> parts = GPT.Parse(host);
-            Assert.Equal(1, parts.Count);
-            Assert.Equal<ulong>(newStart, parts[0].StartSector);
-            Assert.Equal<ulong>(count, parts[0].SectorCount);
-
-            Span<byte> readBuf = new byte[host.BlockSize];
-            Span<byte> expected = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < count; lba++)
-            {
-                host.ReadBlock(newStart + lba, 1, readBuf);
-                FillPattern(expected, (uint)(0xF00D0000 + lba));
-                for (int i = 0; i < (int)host.BlockSize; i++)
-                {
-                    Assert.Equal(expected[i], readBuf[i]);
-                }
-            }
-        });
-
-        // --- EBR (logical partition) lifecycle -----------------------------
-        // Each test starts from a fresh MBR + extended-partition layout.
-        const uint extStart = 4000;
-        const uint extCount = 12000;
-
-        TR.Run("Test_EBR_AddLogical_FirstAndSecond", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-
-            ulong logical0Start = EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-            Assert.True(logical0Start != 0);
-
-            ulong logical1Start = EBR.AddLogical(host, extStart, extCount, 0x83, 200);
-            Assert.True(logical1Start != 0);
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(2, logicals.Count);
-            Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
-            Assert.Equal<ulong>(100, logicals[0].SectorCount);
-            Assert.Equal<ulong>(logical1Start, logicals[1].StartSector);
-            Assert.Equal<ulong>(200, logicals[1].SectorCount);
-        });
-
-        TR.Run("Test_EBR_RemoveLogical_Last", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 200);
-
-            Assert.True(EBR.RemoveLogical(host, extStart, 1));
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(100, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_EBR_RemoveLogical_First_PromotesSuccessor", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 200);
-
-            Assert.True(EBR.RemoveLogical(host, extStart, 0));
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(200, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_EBR_RemoveLogical_Middle_CollapsesChain", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 200);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 300);
-
-            Assert.True(EBR.RemoveLogical(host, extStart, 1));
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(2, logicals.Count);
-            Assert.Equal<ulong>(100, logicals[0].SectorCount);
-            Assert.Equal<ulong>(300, logicals[1].SectorCount);
-        });
-
-        TR.Run("Test_EBR_RemoveLogical_OnlyOne_ClearsChain", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-
-            Assert.True(EBR.RemoveLogical(host, extStart, 0));
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(0, logicals.Count);
-        });
-
-        TR.Run("Test_EBR_ResizeLogical", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            EBR.AddLogical(host, extStart, extCount, 0x83, 100);
-
-            Assert.True(EBR.ResizeLogical(host, extStart, 0, 250));
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(250, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_EBR_MoveLogical_TableLevel", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            ulong logicalStart = EBR.AddLogical(host, extStart, extCount, 0x83, 50);
-            // logicalStart should be extStart + 1 (right after the EBR sector).
-            Assert.Equal<ulong>(extStart + 1, logicalStart);
-
-            // Move the logical's data range forward inside its EBR's frame.
-            ulong newStart = logicalStart + 200;
-            Assert.True(EBR.MoveLogical(host, extStart, 0, newStart));
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(newStart, logicals[0].StartSector);
-            Assert.Equal<ulong>(50, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_CreateLogical", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-
-            ulong logical0 = PartitionManager.CreateLogical(host, 0x83, 100);
-            Assert.True(logical0 != 0);
-
-            ulong logical1 = PartitionManager.CreateLogical(host, 0x0B, 200);
-            Assert.True(logical1 != 0);
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(2, logicals.Count);
-            Assert.Equal<byte>(0x83, logicals[0].SystemId);
-            Assert.Equal<byte>(0x0B, logicals[1].SystemId);
-        });
-
-        TR.Run("Test_PartitionManager_Resize_OnLogical", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            ulong logicalStart = PartitionManager.CreateLogical(host, 0x83, 100);
-
-            Assert.True(PartitionManager.Resize(
-                host,
-                new PartitionManager.PartitionLocation(logicalStart, 100),
-                newSectorCount: 250));
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(250, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_Delete_OnLogical", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            ulong l0 = PartitionManager.CreateLogical(host, 0x83, 100);
-            ulong l1 = PartitionManager.CreateLogical(host, 0x83, 200);
-
-            Assert.True(PartitionManager.Delete(
-                host,
-                new PartitionManager.PartitionLocation(l0, 100)));
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(200, logicals[0].SectorCount);
-        });
-
-        TR.Run("Test_PartitionManager_MoveWithData_OnLogical", () =>
-        {
-            ResetHostExtendedMbr(host, extStart, extCount);
-            const uint logicalCount = 32;
-            ulong logicalStart = PartitionManager.CreateLogical(host, 0x83, logicalCount);
-            Assert.True(logicalStart != 0);
-
-            Span<byte> patternSector = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < logicalCount; lba++)
-            {
-                FillPattern(patternSector, (uint)(0xCAFE0000 + lba));
-                host.WriteBlock(logicalStart + lba, 1, patternSector);
-            }
-
-            ulong newStart = logicalStart + 500;
-            Assert.True(PartitionManager.MoveWithData(
-                host,
-                new PartitionManager.PartitionLocation(logicalStart, logicalCount),
-                newStart));
-
-            List<MBR.PartitionEntry> logicals = EBR.Parse(host, extStart);
-            Assert.Equal(1, logicals.Count);
-            Assert.Equal<ulong>(newStart, logicals[0].StartSector);
-            Assert.Equal<ulong>(logicalCount, logicals[0].SectorCount);
-
-            Span<byte> readBuf = new byte[host.BlockSize];
-            Span<byte> expected = new byte[host.BlockSize];
-            for (ulong lba = 0; lba < logicalCount; lba++)
-            {
-                host.ReadBlock(newStart + lba, 1, readBuf);
-                FillPattern(expected, (uint)(0xCAFE0000 + lba));
-                for (int i = 0; i < (int)host.BlockSize; i++)
-                {
-                    Assert.Equal(expected[i], readBuf[i]);
-                }
-            }
-        });
+        int before = StorageManager.DeviceCount;
+        int partitionsBefore = StorageManager.Partitions.Count;
+        StorageManager.RegisterDevice(s_dev!);
+        Assert.Equal(before, StorageManager.DeviceCount, "duplicate registration must not add a device");
+        Assert.Equal(partitionsBefore, StorageManager.Partitions.Count, "duplicate registration must not duplicate partitions");
     }
 
+    // ==================== Boot persistence ====================
+
+    // Boot 0 boots the engine's fresh blank image; boot 1 boots the GPT
+    // written by Boot_RebootAfterGptWrite. Asserting against the boot-time
+    // scan result (before any test mutates partition state) pins the
+    // phase-3 partition scan path end to end, including partition naming.
+    private static void TestBoot_PartitionScanMatchesBootState()
+    {
+        int partitionsOnDevice = 0;
+        Partition? first = null;
+        for (int i = 0; i < StorageManager.Partitions.Count; i++)
+        {
+            Partition p = StorageManager.Partitions[i];
+            if (HasOrdinalPrefix(p.Name, s_dev!.Name))
+            {
+                first ??= p;
+                partitionsOnDevice++;
+            }
+        }
+
+        if (TR.GetSkipCount() == 0)
+        {
+            Assert.Equal(0, partitionsOnDevice, "blank disk must yield no boot-time partitions");
+        }
+        else
+        {
+            Assert.Equal(1, partitionsOnDevice, "boot-time scan must find the GPT partition written before reboot");
+            Assert.Equal(s_dev!.Name + "p0", first!.Name, "boot-time partition name");
+        }
+    }
+
+    // Regression guard: Mbr.Parse must not turn corrupt on-disk entries into
+    // live partitions — start 0 aliases the MBR sector itself (formatting
+    // that "partition" destroys the table) and past-end ranges authorize
+    // wild host I/O. The GPT parser got this hardening; MBR must match.
+    private static void TestPartition_MbrParseRejectsBogus()
+    {
+        Mbr.Create(s_dev!);
+
+        // The writer must reject bogus ranges up front (same rules as the
+        // parser): start 0 aliases the MBR, past-end authorizes wild I/O.
+        Assert.True(MbrWritePartitionRejects(0, startSector: 0, sectorCount: MbrBogusStartZeroSectorCount),
+            "WritePartition must reject startSector 0");
+        Assert.True(MbrWritePartitionRejects(1, startSector: (uint)(s_dev!.BlockCount - PastEndBacktrackSectors), sectorCount: MbrBogusPastEndSectorCount),
+            "WritePartition must reject past-end ranges");
+
+        // The parser is the trust boundary for on-disk corruption, so craft
+        // the same bogus entries raw (bypassing the writer's validation).
+        int sector = (int)s_dev!.BlockSize;
+        byte[] mbr = new byte[sector];
+        s_dev!.ReadBlock(0, 1, mbr);
+        Span<byte> m = mbr;
+        m[MbrEntry0Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrBogusStartZeroSectorCount);
+        m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), (uint)(s_dev!.BlockCount - PastEndBacktrackSectors));
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrBogusPastEndSectorCount);
+        s_dev!.WriteBlock(0, 1, mbr);
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
+        Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
+    }
+
+    // One try/catch per method on purpose: mirrors the shape of the other
+    // expected-throw cells (e.g. Partition_OutOfBounds_Throws). The arm64 EH
+    // dispatch failed to match the catch clause when this cell inlined two
+    // try/catch blocks alongside span locals, taking the whole boot down.
+    private static bool MbrWritePartitionRejects(int index, uint startSector, uint sectorCount)
+    {
+        try
+        {
+            Mbr.WritePartition(s_dev!, index, systemId: MbrLinuxSystemId, startSector: startSector, sectorCount: sectorCount);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
+    }
+
+    // Same distrust for the GPT writer: AddPartition must reject entries its
+    // own Parse would silently drop (zero-length) or that point past the disk,
+    // instead of returning true for a partition that never materializes.
+    private static void TestPartition_GptAddRejectsBogus()
+    {
+        Gpt.Create(s_dev!);
+        Assert.False(Gpt.AddPartition(s_dev!, GptAlignedStartLba, 0, Gpt.BasicDataPartitionType), "zero-length entry must be rejected");
+        Assert.False(Gpt.AddPartition(s_dev!, s_dev!.BlockCount, GptBogusPastEndSectorCount, Gpt.BasicDataPartitionType), "past-end entry must be rejected");
+        Assert.Equal(0, Gpt.Parse(s_dev!).Count, "rejected entries must not appear on disk");
+
+        // Raw-craft an entry starting INSIDE the GPT entry array (LBA 10):
+        // a write through such a partition would corrupt the table itself,
+        // so Parse must drop it (CRCs are 0 — corruption is undetectable).
+        int sector = (int)s_dev!.BlockSize;
+        byte[] entries = new byte[sector];
+        Span<byte> e = entries;
+        Gpt.BasicDataPartitionType.TryWriteBytes(e.Slice(0, GptGuidSizeBytes));
+        e[GptEntryUniqueGuidOffset] = BogusUniqueGuidByte; // non-zero unique GUID
+        BitConverter.TryWriteBytes(e.Slice(GptEntryStartLbaOffset, GptLbaFieldBytes), GptOverlapStartLba);  // startLba inside the array
+        BitConverter.TryWriteBytes(e.Slice(GptEntryEndLbaOffset, GptLbaFieldBytes), GptOverlapEndLba); // endLba
+        s_dev!.WriteBlock(GptEntryArrayLba, 1, entries);
+        Assert.Equal(0, Gpt.Parse(s_dev!).Count, "entry overlapping the GPT structures must be rejected");
+    }
+
+    // The NvmeController.Read/Write public API accepts spans shorter than
+    // the device transfer; the bounce tail must then be deterministic
+    // (zeroed), not the previous command's residue leaking to disk.
+    private static void TestNvme_ShortSpanTail()
+    {
+        NvmeController controller = Nvme.Controllers[0];
+        uint nsid = 1;
+        ulong lba = ShortSpanLba;
+        int sector = (int)s_dev!.BlockSize;
+
+        byte[] full = new byte[sector];
+        for (int i = 0; i < sector; i++)
+        {
+            full[i] = ShortSpanResidueFill;
+        }
+        controller.Write(nsid, lba, full, 0);
+
+        byte[] shortSpan = new byte[ShortSpanLengthBytes];
+        for (int i = 0; i < shortSpan.Length; i++)
+        {
+            shortSpan[i] = ShortSpanFill;
+        }
+        controller.Write(nsid, lba, shortSpan, 0);
+
+        byte[] readBack = new byte[sector];
+        controller.Read(nsid, lba, readBack, 0);
+        for (int i = 0; i < shortSpan.Length; i++)
+        {
+            Assert.Equal(ShortSpanFill, readBack[i], "short-span payload");
+        }
+        for (int i = shortSpan.Length; i < sector; i++)
+        {
+            Assert.Equal((byte)0, readBack[i], "tail must be zeroed, not stale bounce residue");
+        }
+    }
+
+    // ==================== Manager ====================
+
+    private static void TestManager_StorageInitialized()
+    {
+        Assert.True(StorageManager.IsEnabled);
+        Assert.True(StorageManager.IsInitialized);
+    }
+
+    // The engine attaches exactly one disk per profile, so anything other
+    // than 1 means either the profile is misconfigured or the driver
+    // double-registered. Bound devices stay enumerated for the run.
+    private static void TestManager_ExactlyOneDevice()
+    {
+        Assert.Equal(1, StorageManager.DeviceCount);
+    }
+
+    // ==================== Profile ====================
+
+    // The cell name encodes the controller it attached: ahci => sata*,
+    // nvme-* => nvme*. Proves the driver that bound matches the cell's
+    // intent. Device names are unique per instance ("sata0", "nvme0n1"),
+    // so only the driver prefix is pinned here.
+    private static void TestProfile_DeviceKindMatches()
+    {
+        string expected = TR.ProfileHasPrefix("ahci") ? "sata" : "nvme";
+        Assert.True(HasOrdinalPrefix(s_dev!.Name, expected),
+            "device name does not match the cell's controller kind");
+    }
+
+    // Hand-rolled ordinal prefix check, mirroring TR.ProfileHasPrefix: the
+    // kernel runtime does not plug the culture-sensitive string.StartsWith.
+    private static bool HasOrdinalPrefix(string value, string prefix)
+    {
+        if (value.Length < prefix.Length)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < prefix.Length; i++)
+        {
+            if (value[i] != prefix[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // A gicv3 cell must come up MSI-X (arm64 GICv3 ITS routes it); a gicv2 cell
+    // must fall back to polled (no ITS). The bool is the cell's expected mode
+    // (true = MSI-X), supplied by the adaptive RunIf overload.
+    private static void TestProfile_NvmeInterruptMode(bool expectMsix)
+    {
+        bool actual = Nvme.Controllers[0].IsMsiXEnabled;
+        if (expectMsix)
+        {
+            Assert.True(actual, "expected NVMe MSI-X interrupts but the controller is polled");
+        }
+        else
+        {
+            Assert.False(actual, "expected NVMe polled fallback but the controller enabled MSI-X");
+        }
+    }
+
+    // ==================== Device ====================
+
+    private static void TestDevice_BlockGeometrySane()
+    {
+        Assert.Equal<ulong>(SectorSizeBytes, s_dev!.BlockSize);
+        Assert.True(s_dev.BlockCount > 0);
+    }
+
+    private static void TestDevice_WriteReadSingleBlock()
+    {
+        const ulong lba = 100;
+        ulong size = s_dev!.BlockSize;
+
+        Span<byte> writeBuf = new byte[size];
+        for (int i = 0; i < (int)size; i++)
+        {
+            writeBuf[i] = (byte)(i ^ SingleBlockXorSeed);
+        }
+        s_dev.WriteBlock(lba, 1, writeBuf);
+
+        Span<byte> readBuf = new byte[size];
+        s_dev.ReadBlock(lba, 1, readBuf);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    private static void TestDevice_WriteReadMultiBlock()
+    {
+        const ulong lba = 200;
+        const ulong blocks = 4;
+        ulong total = blocks * s_dev!.BlockSize;
+
+        Span<byte> writeBuf = new byte[total];
+        for (int i = 0; i < (int)total; i++)
+        {
+            writeBuf[i] = (byte)((i * MultiBlockByteStep) ^ MultiBlockXorSeed);
+        }
+        s_dev.WriteBlock(lba, blocks, writeBuf);
+
+        Span<byte> readBuf = new byte[total];
+        s_dev.ReadBlock(lba, blocks, readBuf);
+
+        for (int i = 0; i < (int)total; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    private static void TestDevice_WriteReadIdempotent()
+    {
+        const ulong lba = 250;
+        ulong size = s_dev!.BlockSize;
+
+        Span<byte> first = new byte[size];
+        first.Fill(IdempotentFirstFill);
+        s_dev.WriteBlock(lba, 1, first);
+
+        Span<byte> second = new byte[size];
+        second.Fill(IdempotentSecondFill);
+        s_dev.WriteBlock(lba, 1, second);
+
+        Span<byte> readBuf = new byte[size];
+        s_dev.ReadBlock(lba, 1, readBuf);
+        for (int i = 0; i < (int)size; i++)
+        {
+            Assert.Equal(IdempotentSecondFill, readBuf[i]);
+        }
+    }
+
+    private static void TestDevice_ReReadStable()
+    {
+        const ulong lba = 300;
+        ulong size = s_dev!.BlockSize;
+
+        Span<byte> first = new byte[size];
+        s_dev.ReadBlock(lba, 1, first);
+
+        Span<byte> second = new byte[size];
+        s_dev.ReadBlock(lba, 1, second);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            Assert.Equal(first[i], second[i]);
+        }
+    }
+
+    private static void TestDevice_LargeTransfer()
+    {
+        const ulong lba = 1000;
+        const ulong blocks = 32;
+        ulong total = blocks * s_dev!.BlockSize;
+
+        Span<byte> writeBuf = new byte[total];
+        for (int i = 0; i < (int)total; i++)
+        {
+            writeBuf[i] = (byte)((i + (i >> LargeTransferCarryShift)) ^ LargeTransferXorSeed);
+        }
+        s_dev.WriteBlock(lba, blocks, writeBuf);
+
+        Span<byte> readBuf = new byte[total];
+        s_dev.ReadBlock(lba, blocks, readBuf);
+
+        for (int i = 0; i < (int)total; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    private static void TestDevice_BoundaryLBA()
+    {
+        ulong lba = s_dev!.BlockCount - 1;
+        ulong size = s_dev.BlockSize;
+
+        Span<byte> writeBuf = new byte[size];
+        for (int i = 0; i < (int)size; i++)
+        {
+            writeBuf[i] = (byte)(i ^ BoundaryXorSeed);
+        }
+        s_dev.WriteBlock(lba, 1, writeBuf);
+
+        Span<byte> readBuf = new byte[size];
+        s_dev.ReadBlock(lba, 1, readBuf);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    // LBA 0 is often special (boot sector / protective MBR). Round-trip
+    // must work there too.
+    private static void TestDevice_LBAZeroRoundTrip()
+    {
+        ulong size = s_dev!.BlockSize;
+
+        Span<byte> writeBuf = new byte[size];
+        for (int i = 0; i < (int)size; i++)
+        {
+            writeBuf[i] = (byte)(i ^ LbaZeroXorSeed);
+        }
+        s_dev.WriteBlock(0, 1, writeBuf);
+
+        Span<byte> readBuf = new byte[size];
+        s_dev.ReadBlock(0, 1, readBuf);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    // Catches bounce-buffer reuse / wrong-LBA-cached bugs: write 8 contiguous
+    // blocks each filled with its own marker byte, then read each block back
+    // individually and confirm the markers haven't bled across blocks.
+    private static void TestDevice_CrossBlockIsolation()
+    {
+        const ulong baseLba = 4000;
+        const int blocks = 8;
+        ulong size = s_dev!.BlockSize;
+
+        for (int b = 0; b < blocks; b++)
+        {
+            Span<byte> wbuf = new byte[size];
+            wbuf.Fill((byte)(CrossBlockMarkerBase | b));
+            s_dev.WriteBlock(baseLba + (ulong)b, 1, wbuf);
+        }
+
+        for (int b = 0; b < blocks; b++)
+        {
+            Span<byte> rbuf = new byte[size];
+            s_dev.ReadBlock(baseLba + (ulong)b, 1, rbuf);
+            byte expected = (byte)(CrossBlockMarkerBase | b);
+            for (int i = 0; i < (int)size; i++)
+            {
+                Assert.Equal(expected, rbuf[i]);
+            }
+        }
+    }
+
+    // Catches LBA off-by-one / stride bugs: write to LBAs that are far apart
+    // (n * 1024) so any wrap or shift error lands on a different block; the
+    // pattern depends on n so we can detect a mis-routed write.
+    private static void TestDevice_LBAStrideSweep()
+    {
+        const int slots = 8;
+        const ulong stride = 1024;
+        ulong size = s_dev!.BlockSize;
+
+        for (int n = 0; n < slots; n++)
+        {
+            Span<byte> wbuf = new byte[size];
+            byte tag = (byte)((n * StrideTagStep) ^ StrideTagXorSeed);
+            wbuf.Fill(tag);
+            s_dev.WriteBlock((ulong)n * stride, 1, wbuf);
+        }
+
+        for (int n = 0; n < slots; n++)
+        {
+            Span<byte> rbuf = new byte[size];
+            s_dev.ReadBlock((ulong)n * stride, 1, rbuf);
+            byte tag = (byte)((n * StrideTagStep) ^ StrideTagXorSeed);
+            for (int i = 0; i < (int)size; i++)
+            {
+                Assert.Equal(tag, rbuf[i]);
+            }
+        }
+    }
+
+    // Reads in non-sequential order should still return the right data —
+    // catches code that assumes the last-touched LBA is "current".
+    private static void TestDevice_RandomOrderReadAfterWrite()
+    {
+        const ulong baseLba = 6000;
+        ulong size = s_dev!.BlockSize;
+
+        Span<byte> a = new byte[size]; a.Fill(RandomOrderFillA);
+        Span<byte> b = new byte[size]; b.Fill(RandomOrderFillB);
+        Span<byte> c = new byte[size]; c.Fill(RandomOrderFillC);
+        s_dev.WriteBlock(baseLba + 0, 1, a);
+        s_dev.WriteBlock(baseLba + 1, 1, b);
+        s_dev.WriteBlock(baseLba + 2, 1, c);
+
+        Span<byte> r = new byte[size];
+
+        s_dev.ReadBlock(baseLba + 2, 1, r);
+        for (int i = 0; i < (int)size; i++) { Assert.Equal(RandomOrderFillC, r[i]); }
+
+        s_dev.ReadBlock(baseLba + 0, 1, r);
+        for (int i = 0; i < (int)size; i++) { Assert.Equal(RandomOrderFillA, r[i]); }
+
+        s_dev.ReadBlock(baseLba + 1, 1, r);
+        for (int i = 0; i < (int)size; i++) { Assert.Equal(RandomOrderFillB, r[i]); }
+    }
+
+    // Multi-block transfer that ends exactly at the device tail. Catches
+    // truncation / wrap bugs at the upper edge of LBA space.
+    private static void TestDevice_MultiblockTailBoundary()
+    {
+        const ulong blocks = 4;
+        ulong size = s_dev!.BlockSize;
+        ulong lba = s_dev.BlockCount - blocks;
+        ulong total = blocks * size;
+
+        Span<byte> writeBuf = new byte[total];
+        for (int i = 0; i < (int)total; i++)
+        {
+            writeBuf[i] = (byte)((i * TailBoundaryByteStep) ^ TailBoundaryXorSeed);
+        }
+        s_dev.WriteBlock(lba, blocks, writeBuf);
+
+        Span<byte> readBuf = new byte[total];
+        s_dev.ReadBlock(lba, blocks, readBuf);
+
+        for (int i = 0; i < (int)total; i++)
+        {
+            Assert.Equal(writeBuf[i], readBuf[i]);
+        }
+    }
+
+    // ==================== Partition ====================
+
+    private static void TestPartition_MBRRoundTrip()
+    {
+        // Wipe LBA 0 first so a leftover GPT signature from a prior
+        // sub-test doesn't taint the IsMbr check.
+        Span<byte> wipe = new byte[s_dev!.BlockSize];
+        s_dev.WriteBlock(0, 1, wipe);
+
+        Mbr.Create(s_dev);
+        Assert.True(Mbr.IsMbr(s_dev));
+
+        // Two primary entries at distinct LBA windows.
+        Mbr.WritePartition(s_dev, 0, systemId: MbrLinuxSystemId, startSector: MbrPartAStartSector, sectorCount: MbrPartASectorCount);
+        Mbr.WritePartition(s_dev, 1, systemId: MbrFat32SystemId, startSector: MbrPartBStartSector, sectorCount: MbrPartBSectorCount);
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev);
+        Assert.Equal(2, parts.Count);
+        Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
+        Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
+        Assert.Equal<ulong>(MbrPartASectorCount, parts[0].SectorCount);
+        Assert.Equal<byte>(MbrFat32SystemId, parts[1].SystemId);
+        Assert.Equal<ulong>(MbrPartBStartSector, parts[1].StartSector);
+        Assert.Equal<ulong>(MbrPartBSectorCount, parts[1].SectorCount);
+    }
+
+    private static void TestPartition_GPTRoundTrip()
+    {
+        Gpt.Create(s_dev!);
+        Assert.True(Gpt.IsGpt(s_dev));
+
+        const ulong startA = 2048;
+        const ulong countA = 4096;
+        const ulong startB = startA + countA;
+        const ulong countB = 8192;
+
+        Assert.True(Gpt.AddPartition(s_dev, startA, countA, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(s_dev, startB, countB, Gpt.BasicDataPartitionType));
+
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(s_dev);
+        Assert.Equal(2, parts.Count);
+        Assert.Equal(Gpt.BasicDataPartitionType, parts[0].PartitionType);
+        Assert.Equal<ulong>(startA, parts[0].StartSector);
+        Assert.Equal<ulong>(countA, parts[0].SectorCount);
+        Assert.Equal<ulong>(startB, parts[1].StartSector);
+        Assert.Equal<ulong>(countB, parts[1].SectorCount);
+    }
+
+    // Layout left by Partition_GPTRoundTrip: GPT with two partitions on s_dev.
+    // Run order matters — depends on the previous test having succeeded.
+    private static void TestPartition_RescanPartitions()
+    {
+        StorageManager.RescanPartitions(s_dev!);
+
+        int matches = 0;
+        for (int i = 0; i < StorageManager.Partitions.Count; i++)
+        {
+            Partition p = StorageManager.Partitions[i];
+            if (ReferenceEquals(p.Host, s_dev))
+            {
+                matches++;
+            }
+        }
+        Assert.Equal(2, matches);
+    }
+
+    // Attach a partition starting at an arbitrary LBA, write to its LBA 0,
+    // and verify the bytes show up at the host's StartSector — proves
+    // the translation isn't off by one.
+    private static void TestPartition_ReadWriteTranslatesLba()
+    {
+        const ulong startSector = 3000;
+        const ulong sectorCount = 4;
+        Partition partition = new(s_dev!, startSector, sectorCount, "test-part");
+
+        Span<byte> writeBuf = new byte[s_dev!.BlockSize];
+        for (int i = 0; i < writeBuf.Length; i++)
+        {
+            writeBuf[i] = (byte)(i ^ TranslateXorSeed);
+        }
+        partition.WriteBlock(0, 1, writeBuf);
+
+        Span<byte> hostBuf = new byte[s_dev.BlockSize];
+        s_dev.ReadBlock(startSector, 1, hostBuf);
+        for (int i = 0; i < hostBuf.Length; i++)
+        {
+            Assert.Equal(writeBuf[i], hostBuf[i]);
+        }
+    }
+
+    private static void TestPartition_OutOfBoundsThrows()
+    {
+        Partition partition = new(s_dev!, startSector: TinyPartStartSector, sectorCount: TinyPartSectorCount, name: "tiny-part");
+        Span<byte> buf = new byte[s_dev!.BlockSize];
+        try
+        {
+            partition.ReadBlock(blockNo: TinyPartSectorCount, blockCount: 1, buf);
+            Assert.Fail("Expected ArgumentOutOfRangeException for partition over-read.");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // Expected.
+        }
+    }
+
+    // Regression guard: a naive `blockNo + blockCount > BlockCount` check wraps for
+    // a blockNo near ulong.MaxValue and lets an out-of-bounds request through to the
+    // host. Partition.CheckBounds ships the overflow-safe form
+    // (`blockNo > BlockCount || blockCount > BlockCount - blockNo`); this test pins it.
+    private static void TestPartition_BoundsOverflowThrows()
+    {
+        BoundsProbeDevice probe = new();
+        Partition partition = new(probe, startSector: 0, sectorCount: OverflowProbeSectorCount, name: "overflow-probe");
+        Span<byte> buf = new byte[probe.BlockSize];
+        try
+        {
+            // ulong.MaxValue + 1 wraps to 0, which is <= BlockCount (4): the current
+            // check passes and the read reaches the host. It must throw instead.
+            partition.ReadBlock(blockNo: ulong.MaxValue, blockCount: 1, buf);
+            Assert.Fail("CheckBounds let an overflowing out-of-bounds read through (expected ArgumentOutOfRangeException).");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // Correct behavior once the overflow-safe check lands.
+        }
+    }
+
+    // In-memory host for the bounds-overflow test: performs no I/O. If Partition's
+    // bounds check wrongly lets a request through, the call lands here as a no-op
+    // rather than issuing a wild DMA against a real disk.
+    // Gpt.IsGpt/Parse/AddPartition read LBA 1; per the IBlockDevice contract
+    // an out-of-range read throws, so on a degenerate 1-block device these
+    // public APIs must return false/empty instead of leaking the throw.
+    private static void TestPartition_GptTinyDeviceSafe()
+    {
+        TinyDevice tiny = new();
+        Assert.False(Gpt.IsGpt(tiny), "1-block device cannot carry a GPT");
+        Assert.Equal(0, Gpt.Parse(tiny).Count, "1-block device must parse empty");
+        Assert.False(Gpt.AddPartition(tiny, GptFirstUsableLba, 1, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
+    }
+
+    // ==================== Partition lifecycle (MBR mutation, EBR chain, PartitionManager) ====================
+
+    // Resize slot 0 in place through the dedicated table mutator (systemId
+    // and start untouched) and verify Parse reports the new geometry.
+    private static void TestPartition_MbrResize()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
+        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+
+        const uint resizedSectorCount = 350;
+        Mbr.ResizePartition(host, 0, resizedSectorCount);
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(2, parts.Count);
+        Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
+        Assert.Equal<ulong>(resizedSectorCount, parts[0].SectorCount);
+        Assert.Equal<ulong>(MbrPartBStartSector, parts[1].StartSector);
+        Assert.Equal<ulong>(MbrPartBSectorCount, parts[1].SectorCount);
+    }
+
+    // Delete slot 1 through the dedicated table mutator; Parse skips the
+    // now-empty entry.
+    private static void TestPartition_MbrDelete()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
+        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+
+        Mbr.DeletePartition(host, 1);
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
+        Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
+        Assert.Equal<ulong>(MbrPartASectorCount, parts[0].SectorCount);
+    }
+
+    // Hand-crafts a two-link EBR chain and asserts Ebr.Parse walks it,
+    // resolving each logical's absolute LBA from the EBR-relative fields.
+    private static void TestEbr_ChainDiscoversLogicals()
+    {
+        IBlockDevice host = s_dev!;
+        const ulong extendedStart = 4000;
+        const uint extendedCount = 8000;
+        const uint logicalRelStart = 32;
+        const uint logicalSectorCount = 1000;
+        const uint nextRelativeLba = 2000;
+
+        // Wipe LBAs 0..1 to clear any GPT signature a previous cell left, so
+        // the StorageManager rescan (next cell) takes the MBR code path.
+        Span<byte> wipe = new byte[host.BlockSize];
+        host.WriteBlock(0, 1, wipe);
+        host.WriteBlock(1, 1, wipe);
+
+        Mbr.Create(host);
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
+        Mbr.WritePartition(host, 1, MbrExtendedSystemId, (uint)extendedStart, extendedCount);
+
+        WriteEbrSector(host, extendedStart, logicalRelStart, logicalSectorCount, hasNext: true, nextRelativeLba: nextRelativeLba);
+        WriteEbrSector(host, extendedStart + nextRelativeLba, logicalRelStart, logicalSectorCount, hasNext: false, nextRelativeLba: 0);
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, extendedStart);
+        Assert.Equal(2, logicals.Count);
+        Assert.Equal<ulong>(extendedStart + logicalRelStart, logicals[0].StartSector);
+        Assert.Equal<ulong>(logicalSectorCount, logicals[0].SectorCount);
+        Assert.Equal<ulong>(extendedStart + nextRelativeLba + logicalRelStart, logicals[1].StartSector);
+        Assert.Equal<ulong>(logicalSectorCount, logicals[1].SectorCount);
+    }
+
+    // Layout left by TestEbr_ChainDiscoversLogicals: one primary plus one
+    // extended entry pointing at a two-link chain. Rescan must register
+    // 1 primary + 2 logicals = 3 partitions on the host.
+    private static void TestPartition_RescanWithEbr()
+    {
+        StorageManager.RescanPartitions(s_dev!);
+
+        int matches = 0;
+        for (int i = 0; i < StorageManager.Partitions.Count; i++)
+        {
+            Partition p = StorageManager.Partitions[i];
+            if (ReferenceEquals(p.Host, s_dev))
+            {
+                matches++;
+            }
+        }
+        Assert.Equal(3, matches);
+    }
+
+    private static void TestPartitionManager_CreateOnMbr()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint start = 200;
+        const uint count = 100;
+        Assert.True(PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
+        Assert.Equal<ulong>(start, parts[0].StartSector);
+        Assert.Equal<ulong>(count, parts[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_ResizeOnMbr()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint start = 200;
+        const uint count = 100;
+        const ulong resized = 250;
+        PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType);
+
+        Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(start, count), resized));
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(start, parts[0].StartSector);
+        Assert.Equal<ulong>(resized, parts[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_DeleteOnMbr()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint startA = 200;
+        const uint countA = 100;
+        const uint startB = 500;
+        const uint countB = 200;
+        PartitionManager.Create(host, startA, countA, MbrLinuxSystemId, Gpt.BasicDataPartitionType);
+        PartitionManager.Create(host, startB, countB, MbrFat32SystemId, Gpt.BasicDataPartitionType);
+
+        Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(startA, countA)));
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(startB, parts[0].StartSector);
+        Assert.Equal<ulong>(countB, parts[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_MoveNonOverlapping()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint oldStart = 1000;
+        const uint count = 64;
+        const uint newStart = 5000;
+        const uint seedBase = 0xC0DE0000;
+        PartitionManager.Create(host, oldStart, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType);
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < count; lba++)
+        {
+            FillPattern(patternSector, (uint)(seedBase + lba));
+            host.WriteBlock(oldStart + lba, 1, patternSector);
+        }
+
+        Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
+
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(newStart, parts[0].StartSector);
+        Assert.Equal<ulong>(count, parts[0].SectorCount);
+
+        AssertMovedPattern(host, newStart, count, seedBase);
+    }
+
+    // Destination starts inside the source range, so the copy must walk
+    // backwards or it would overwrite source sectors before reading them.
+    private static void TestPartitionManager_MoveOverlappingForward()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint oldStart = 2000;
+        const uint count = 200;
+        const uint newStart = 2050; // overlaps oldStart..oldStart+count
+        const uint seedBase = 0xBABE0000;
+        PartitionManager.Create(host, oldStart, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType);
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < count; lba++)
+        {
+            FillPattern(patternSector, (uint)(seedBase + lba));
+            host.WriteBlock(oldStart + lba, 1, patternSector);
+        }
+
+        Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
+
+        AssertMovedPattern(host, newStart, count, seedBase);
+    }
+
+    private static void TestPartitionManager_ResizeOnGpt()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostGpt(host);
+        const ulong start = 2048;
+        const ulong count = 4096;
+        const ulong resized = 8192;
+        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
+
+        Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(start, count), resized));
+
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(start, parts[0].StartSector);
+        Assert.Equal<ulong>(resized, parts[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_DeleteOnGpt()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostGpt(host);
+        const ulong start = 2048;
+        const ulong count = 4096;
+        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, start + count, count, Gpt.BasicDataPartitionType));
+
+        Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(start, count)));
+
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(start + count, parts[0].StartSector);
+    }
+
+    private static void TestPartitionManager_MoveOnGpt()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostGpt(host);
+        const ulong start = 2048;
+        const ulong count = 64;
+        const ulong newStart = 4096;
+        const uint seedBase = 0xF00D0000;
+        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < count; lba++)
+        {
+            FillPattern(patternSector, (uint)(seedBase + lba));
+            host.WriteBlock(start + lba, 1, patternSector);
+        }
+
+        Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(start, count), newStart));
+
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(newStart, parts[0].StartSector);
+        Assert.Equal<ulong>(count, parts[0].SectorCount);
+
+        AssertMovedPattern(host, newStart, count, seedBase);
+    }
+
+    // --- EBR (logical partition) lifecycle -----------------------------
+    // Each cell starts from a fresh MBR + extended-partition layout.
+
+    private static void TestEbr_AddLogicalFirstAndSecond()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+
+        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        Assert.True(logical0Start != 0);
+
+        ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        Assert.True(logical1Start != 0);
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(2, logicals.Count);
+        Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
+        Assert.Equal<ulong>(countA, logicals[0].SectorCount);
+        Assert.Equal<ulong>(logical1Start, logicals[1].StartSector);
+        Assert.Equal<ulong>(countB, logicals[1].SectorCount);
+    }
+
+    private static void TestEbr_RemoveLogicalLast()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+
+        Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(countA, logicals[0].SectorCount);
+    }
+
+    private static void TestEbr_RemoveLogicalFirstPromotesSuccessor()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+
+        Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(countB, logicals[0].SectorCount);
+    }
+
+    private static void TestEbr_RemoveLogicalMiddleCollapsesChain()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+        const uint countC = 300;
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC);
+
+        Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(2, logicals.Count);
+        Assert.Equal<ulong>(countA, logicals[0].SectorCount);
+        Assert.Equal<ulong>(countC, logicals[1].SectorCount);
+    }
+
+    private static void TestEbr_RemoveLogicalOnlyOneClearsChain()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+
+        Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(0, logicals.Count);
+    }
+
+    private static void TestEbr_ResizeLogical()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        const ulong resized = 250;
+        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+
+        Assert.True(Ebr.ResizeLogical(host, ExtPartStartSector, 0, resized));
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(resized, logicals[0].SectorCount);
+    }
+
+    private static void TestEbr_MoveLogicalTableLevel()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 50;
+        const ulong moveDelta = 200;
+        ulong logicalStart = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+        // The first logical lands right after its EBR sector.
+        Assert.Equal<ulong>(ExtPartStartSector + 1, logicalStart);
+
+        // Move the logical's data range forward inside its EBR's frame.
+        ulong newStart = logicalStart + moveDelta;
+        Assert.True(Ebr.MoveLogical(host, ExtPartStartSector, 0, newStart));
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(newStart, logicals[0].StartSector);
+        Assert.Equal<ulong>(count, logicals[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_CreateLogical()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+
+        ulong logical0 = PartitionManager.CreateLogical(host, MbrLinuxSystemId, countA);
+        Assert.True(logical0 != 0);
+
+        ulong logical1 = PartitionManager.CreateLogical(host, MbrFat32SystemId, countB);
+        Assert.True(logical1 != 0);
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(2, logicals.Count);
+        Assert.Equal<byte>(MbrLinuxSystemId, logicals[0].SystemId);
+        Assert.Equal<byte>(MbrFat32SystemId, logicals[1].SystemId);
+    }
+
+    private static void TestPartitionManager_ResizeOnLogical()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        const ulong resized = 250;
+        ulong logicalStart = PartitionManager.CreateLogical(host, MbrLinuxSystemId, count);
+
+        Assert.True(PartitionManager.Resize(
+            host,
+            new PartitionManager.PartitionLocation(logicalStart, count),
+            resized));
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(resized, logicals[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_DeleteOnLogical()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint countA = 100;
+        const uint countB = 200;
+        ulong l0 = PartitionManager.CreateLogical(host, MbrLinuxSystemId, countA);
+        PartitionManager.CreateLogical(host, MbrLinuxSystemId, countB);
+
+        Assert.True(PartitionManager.Delete(
+            host,
+            new PartitionManager.PartitionLocation(l0, countA)));
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(countB, logicals[0].SectorCount);
+    }
+
+    private static void TestPartitionManager_MoveOnLogical()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint logicalCount = 32;
+        const ulong moveDelta = 500;
+        const uint seedBase = 0xCAFE0000;
+        ulong logicalStart = PartitionManager.CreateLogical(host, MbrLinuxSystemId, logicalCount);
+        Assert.True(logicalStart != 0);
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < logicalCount; lba++)
+        {
+            FillPattern(patternSector, (uint)(seedBase + lba));
+            host.WriteBlock(logicalStart + lba, 1, patternSector);
+        }
+
+        ulong newStart = logicalStart + moveDelta;
+        Assert.True(PartitionManager.MoveWithData(
+            host,
+            new PartitionManager.PartitionLocation(logicalStart, logicalCount),
+            newStart));
+
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(newStart, logicals[0].StartSector);
+        Assert.Equal<ulong>(logicalCount, logicals[0].SectorCount);
+
+        AssertMovedPattern(host, newStart, logicalCount, seedBase);
+    }
+
+    // Wipes the label sectors and stamps a fresh MBR (empty table).
+    private static void ResetHostMbr(IBlockDevice host)
+    {
+        Span<byte> wipe = new byte[host.BlockSize];
+        host.WriteBlock(0, 1, wipe);
+        host.WriteBlock(1, 1, wipe);
+        Mbr.Create(host);
+    }
+
+    // Wipes the label sectors and stamps a fresh GPT.
+    private static void ResetHostGpt(IBlockDevice host)
+    {
+        Span<byte> wipe = new byte[host.BlockSize];
+        host.WriteBlock(0, 1, wipe);
+        host.WriteBlock(1, 1, wipe);
+        Gpt.Create(host);
+    }
+
+    // Wipes the label sectors plus the first EBR sector, then stamps a fresh
+    // MBR whose slot 0 is an extended partition covering
+    // [extStart, extStart + extCount).
     private static void ResetHostExtendedMbr(IBlockDevice host, uint extStart, uint extCount)
     {
         Span<byte> wipe = new byte[host.BlockSize];
         host.WriteBlock(0, 1, wipe);
         host.WriteBlock(1, 1, wipe);
         host.WriteBlock(extStart, 1, wipe);
-        MBR.Create(host);
-        MBR.WritePartition(host, 0, systemId: 0x05, startSector: extStart, sectorCount: extCount);
+        Mbr.Create(host);
+        Mbr.WritePartition(host, 0, MbrExtendedSystemId, extStart, extCount);
     }
 
-    private static void ResetHostMbr(IBlockDevice host)
-    {
-        Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
-        MBR.Create(host);
-    }
-
-    private static void ResetHostGpt(IBlockDevice host)
-    {
-        Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
-        GPT.Create(host);
-    }
-
+    // Deterministic per-seed sector pattern for the move-with-data cells.
     private static void FillPattern(Span<byte> buffer, uint seed)
     {
         for (int i = 0; i < buffer.Length; i++)
         {
-            buffer[i] = (byte)((seed + (uint)i * 31u) & 0xFFu);
+            buffer[i] = (byte)((seed + (uint)i * FillPatternByteStep) & ByteMask);
         }
     }
 
+    // Re-derives the per-LBA pattern at the destination and compares every
+    // byte — shared tail of the three move-with-data cells.
+    private static void AssertMovedPattern(IBlockDevice host, ulong newStart, ulong count, uint seedBase)
+    {
+        Span<byte> readBuf = new byte[host.BlockSize];
+        Span<byte> expected = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < count; lba++)
+        {
+            host.ReadBlock(newStart + lba, 1, readBuf);
+            FillPattern(expected, (uint)(seedBase + lba));
+            for (int i = 0; i < (int)host.BlockSize; i++)
+            {
+                Assert.Equal(expected[i], readBuf[i]);
+            }
+        }
+    }
+
+    // Hand-writes one EBR sector: a logical entry in slot 0 (start/count
+    // relative to this EBR sector) and, optionally, a chain link in slot 1
+    // (relative to the extended partition start).
     private static void WriteEbrSector(
         IBlockDevice device,
         ulong ebrLba,
@@ -936,32 +1571,192 @@ public class Kernel : Sys.Kernel
     {
         Span<byte> sector = new byte[device.BlockSize];
 
-        // Logical-partition entry at offset 446.
-        sector[446 + 4] = 0x83;
-        BitConverter.TryWriteBytes(sector.Slice(446 + 8, 4), relativeStart);
-        BitConverter.TryWriteBytes(sector.Slice(446 + 12, 4), sectorCount);
+        sector[MbrEntry0Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
+        BitConverter.TryWriteBytes(sector.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), relativeStart);
+        BitConverter.TryWriteBytes(sector.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), sectorCount);
 
-        // Next-EBR pointer at offset 462.
         if (hasNext)
         {
-            sector[462 + 4] = 0x05;
-            BitConverter.TryWriteBytes(sector.Slice(462 + 8, 4), nextRelativeLba);
+            sector[MbrEntry1Offset + MbrEntryTypeOffset] = MbrExtendedSystemId;
+            BitConverter.TryWriteBytes(sector.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), nextRelativeLba);
         }
 
-        sector[510] = 0x55;
-        sector[511] = 0xAA;
+        BitConverter.TryWriteBytes(sector.Slice(MbrBootSigOffset, MbrBootSigSizeBytes), MbrBootSignature);
 
         device.WriteBlock(ebrLba, 1, sector);
     }
 
-    protected override void Run()
+#if ARCH_X64
+    // Physical address for the relocation probe: above 4 GiB, where Limine's
+    // base-revision-0 blanket map (identity + HHDM of the low 4 GiB plus
+    // memory-map regions) no longer covers anything, and clear of RAM and of
+    // every fixed q35 window (ECAM, LAPIC, IO-APIC all sit below 4 GiB).
+    private const ulong HighBarPhys = 0x1_1000_0000;
+
+    /// <summary>BAR0 lower dword (PCI config offset 0x10).</summary>
+    private const byte PciBar0LowOffset = 0x10;
+
+    /// <summary>BAR0 upper dword of a 64-bit BAR (PCI config offset 0x14).</summary>
+    private const byte PciBar0HighOffset = 0x14;
+
+    /// <summary>Command register (PCI config offset 0x04).</summary>
+    private const byte PciCommandOffset = 0x04;
+
+    /// <summary>VS - controller Version register (RO, 32-bit, offset 0x08 into BAR0, NVMe spec 3.1).</summary>
+    private const ulong NvmeVsOffset = 0x08;
+
+    /// <summary>Mask of the type bits in a memory BAR's lower dword (bits 0-2).</summary>
+    private const uint PciBarTypeMask = 0x7;
+
+    /// <summary>Type-bit value marking a 64-bit memory BAR.</summary>
+    private const uint PciBar64BitMemoryType = 0x4;
+
+    /// <summary>Mask selecting the address bits of a memory BAR dword (low 4 flag bits cleared).</summary>
+    private const uint PciBarAddressMask = 0xFFFF_FFF0;
+
+    /// <summary>Mask selecting the flag bits of a memory BAR's lower dword.</summary>
+    private const uint PciBarFlagsMask = 0xF;
+
+    /// <summary>Shift between the two 32-bit halves of a 64-bit BAR address.</summary>
+    private const int BarHighDwordShift = 32;
+
+    /// <summary>All-ones 32-bit MMIO read value, meaning nothing decodes the address.</summary>
+    private const uint MmioAllOnesValue = 0xFFFF_FFFF;
+
+    private static unsafe ulong HhdmOffset()
+        => Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+
+    // Proves 64-bit BAR MMIO stays reachable when the BAR sits above 4 GiB,
+    // where firmware on real hardware may place it: the HHDM alias of such a
+    // BAR is unmapped until EnsureMmioMapped installs a page-table entry for
+    // it. The cell relocates the NVMe controller's own BAR0 up there, mirrors
+    // the driver-init access pattern (EnsureMmioMapped + phys-plus-HHDM
+    // arithmetic) against the new address, and asserts the VS register reads
+    // back identical — then restores the original BAR before returning. With
+    // a no-op x64 EnsureMmioMapped this cell dies on an unhandled page fault.
+    private static void TestMmio_HighBarRemapped()
     {
-        Stop();
+        PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
+        Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
+
+        uint barLow = nvmePci!.ReadRegister32(PciBar0LowOffset);
+        uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
+        Assert.True((barLow & PciBarTypeMask) == PciBar64BitMemoryType, "NVMe BAR0 must be a 64-bit memory BAR");
+
+        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciBarAddressMask);
+        ulong hhdm = HhdmOffset();
+        uint vsOrig = Native.MMIO.Read32(origPhys + hhdm + NvmeVsOffset);
+        Assert.True(vsOrig != 0 && vsOrig != MmioAllOnesValue, "NVMe VS must read sane at the original BAR");
+
+        // Quiesce decode while the BAR moves, like firmware would. No block
+        // I/O is in flight (every I/O cell ran earlier), so nothing touches
+        // the controller through the stale driver mapping meanwhile.
+        ushort command = nvmePci.ReadRegister16(PciCommandOffset);
+        nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(PciBar0LowOffset, (uint)(HighBarPhys & PciBarAddressMask) | (barLow & PciBarFlagsMask));
+        nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
+        nvmePci.WriteRegister16(PciCommandOffset, command);
+
+        uint vsHigh;
+        try
+        {
+            PlatformHAL.Initializer?.EnsureMmioMapped(HighBarPhys);
+            vsHigh = Native.MMIO.Read32(HighBarPhys + hhdm + NvmeVsOffset);
+        }
+        finally
+        {
+            // Put the BAR back exactly as found so the destructive reboot
+            // cell (and boot 1's scan) still see a working controller.
+            nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
+            nvmePci.WriteRegister32(PciBar0LowOffset, barLow);
+            nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
+            nvmePci.WriteRegister16(PciCommandOffset, command);
+        }
+
+        Assert.True(vsHigh == vsOrig, "VS read through the remapped high BAR must match the original");
     }
 
-    protected override void AfterRun()
+    // GetBar64Address must read BOTH halves of a 64-bit BAR from live
+    // config space: mixing the enumeration-time cached lower half with a
+    // live upper half splices two different addresses together the moment
+    // a BAR is reprogrammed (exactly what the remap cell above — or any
+    // future PCI resource allocator — does). Decode stays disabled for the
+    // whole probe window: only config space is touched.
+    private static void TestPciGetBar64ReadsLiveConfig()
     {
-        TR.Complete();
-        Cosmos.Kernel.System.Power.Halt();
+        PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
+        Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
+
+        uint barLow = nvmePci!.ReadRegister32(PciBar0LowOffset);
+        uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
+        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciBarAddressMask);
+        Assert.True(nvmePci.GetBar64Address(0) == origPhys, "baseline: GetBar64Address must match raw config space");
+
+        ushort command = nvmePci.ReadRegister16(PciCommandOffset);
+        nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(PciBar0LowOffset, (uint)(HighBarPhys & PciBarAddressMask) | (barLow & PciBarFlagsMask));
+        nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
+
+        ulong reported = nvmePci.GetBar64Address(0);
+
+        nvmePci.WriteRegister32(PciBar0LowOffset, barLow);
+        nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
+        nvmePci.WriteRegister16(PciCommandOffset, command);
+
+        Assert.True(reported == HighBarPhys,
+            "GetBar64Address must read both halves live after a BAR reprogram, not splice cached low with live high");
+    }
+#endif
+
+    // Contract-faithful degenerate device: one 512-byte block, throws on any
+    // out-of-range access like real drivers do.
+    private sealed class TinyDevice : BlockDevice
+    {
+        public TinyDevice()
+        {
+            BlockSize = SectorSizeBytes;
+            BlockCount = 1;
+        }
+
+        public override string Name => "tiny-probe";
+
+        public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        {
+            if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blockNo));
+            }
+            data.Clear();
+        }
+
+        public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
+        {
+            if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blockNo));
+            }
+        }
+    }
+
+    private sealed class BoundsProbeDevice : BlockDevice
+    {
+        /// <summary>Backing block count of the in-memory probe device.</summary>
+        private const ulong ProbeBlockCount = 1024;
+
+        public BoundsProbeDevice()
+        {
+            BlockSize = SectorSizeBytes;
+            BlockCount = ProbeBlockCount;
+        }
+
+        public override string Name => "bounds-probe";
+
+        public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+        {
+        }
+
+        public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
+        {
+        }
     }
 }

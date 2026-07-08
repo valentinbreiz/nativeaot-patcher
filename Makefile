@@ -84,7 +84,12 @@ run-dev: build disks
 	$(DEV_QEMU) $(DEV_ISO_FLAGS) $(DEV_DISK_FLAGS) -no-reboot -no-shutdown
 
 debug-dev: build disks
-	$(DEV_QEMU) $(DEV_ISO_FLAGS) $(DEV_DISK_FLAGS) -s -S -no-reboot -no-shutdown & \
+# @ so make does NOT echo the recipe text: the VSCode background
+# matcher's endsPattern would fire on the echoed $(DEV_READY) before
+# QEMU listens on :1234, bypassing the sleep gate and handing gdb a
+# connection-refused. The deliberate post-sleep echo below must be the
+# only READY occurrence in the output.
+	@$(DEV_QEMU) $(DEV_ISO_FLAGS) $(DEV_DISK_FLAGS) -s -S -no-reboot -no-shutdown & \
 	sleep 1; \
 	echo "$(DEV_READY)"; \
 	wait

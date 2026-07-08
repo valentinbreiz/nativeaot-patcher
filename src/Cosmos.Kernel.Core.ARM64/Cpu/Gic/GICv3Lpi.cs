@@ -38,6 +38,7 @@ public static unsafe class GICv3Lpi
     private const uint GICR_SYNCR = 0x00C0;     // 32-bit RO
 
     private const uint GICR_CTLR_ENABLE_LPIS = 1U << 0;
+    private const uint GICR_CTLR_CES = 1U << 1;  // Clear Enable Supported
     private const uint GICR_CTLR_RWP = 1U << 3;
 
     // PROPBASER bit layout (ARM IHI 0069G §11.10.6):
@@ -70,7 +71,23 @@ public static unsafe class GICv3Lpi
 
     private const int LpiIdBits = 13;            // 16K LPI INTID space
     private const ulong LpiPropTableSize = 1UL << (LpiIdBits + 1); // 16 KiB
-    private const ulong LpiPendTableMinSize = 1UL << (LpiIdBits - 2); // 2 KiB; 64 KiB align dominates
+    // With IDbits=13 the GIC consults INTIDs 8192..2^(13+1)-1 = 16383 only:
+    // that is 8192 config bytes, half the (over-)allocated prop table. The
+    // window checks below must use this bound — bounding against the full
+    // table accepts INTIDs up to 24575 whose bytes the GIC never reads.
+    private const uint LpiCount = (1U << (LpiIdBits + 1)) - 8192;
+
+    /// <summary>First LPI INTID — the LPI INTID space always starts at 8192 (ARM IHI 0069G §1.2.1).</summary>
+    private const uint LpiBaseIntId = 8192;
+
+    /// <summary>Property table allocation in 4 KiB pages: 4 pages = 16 KiB, one config byte per INTID for IDbits=13.</summary>
+    private const uint PropTablePages = 4;
+
+    /// <summary>Pending table over-allocation in 4 KiB pages: 32 pages = 128 KiB guarantees one 64 KiB-aligned 64 KiB chunk inside the run.</summary>
+    private const uint PendTableOverAllocPages = 32;
+
+    /// <summary>Maximum poll iterations while waiting for GICR_CTLR.RWP to clear or GICR_SYNCR to read 0.</summary>
+    private const int RegisterSyncSpinLimit = 1_000_000;
 
     private static ulong _propTablePhys;
     private static ulong _propTableVirt;
@@ -85,7 +102,9 @@ public static unsafe class GICv3Lpi
     /// Initialize LPI delivery on the boot CPU's redistributor. <paramref name="rdBase"/>
     /// is the per-CPU RD_base frame address (the same value GICv3 already
     /// uses for the active redistributor — see <c>GICv3.cs</c> field
-    /// <c>_currentCpuRdBase</c>).
+    /// <c>_currentCpuRdBase</c>). It is only ever dereferenced, so it must
+    /// be a virtual (HHDM) address; the physical addresses programmed into
+    /// PROPBASER/PENDBASER come from the tables this type allocates itself.
     /// </summary>
     public static void Initialize(ulong rdBase)
     {
@@ -96,10 +115,40 @@ public static unsafe class GICv3Lpi
 
         _rdBase = rdBase;
 
+        // If firmware ran with LPIs enabled, GICR_PROPBASER/PENDBASER still
+        // point at tables we don't own: silently keeping them while every
+        // later EnableLpi writes OUR (never-installed) table means INV
+        // reloads "disabled" and no MSI ever fires — with the binder still
+        // registered. EnableLPIs may only be cleared when GICR_CTLR.CES
+        // advertises 1→0 write support; without CES, fail loudly so
+        // InitializeMsi downgrades the whole MSI path to polled.
+        // GICR_CTLR is a 32-bit register; using Write/Read64 here would
+        // misalign the access and silently no-op on QEMU.
+        uint ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+        if ((ctlr & GICR_CTLR_ENABLE_LPIS) != 0)
+        {
+            if ((ctlr & GICR_CTLR_CES) == 0)
+            {
+                Serial.WriteString("[GICv3-LPI] ERROR: firmware left LPIs enabled and CES=0 — cannot reprogram, MSI path disabled\n");
+                return;
+            }
+
+            Serial.WriteString("[GICv3-LPI] firmware left LPIs enabled; CES=1, disabling to reprogram\n");
+            Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr & ~GICR_CTLR_ENABLE_LPIS);
+            for (int i = 0; i < RegisterSyncSpinLimit; i++)
+            {
+                if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
+                {
+                    break;
+                }
+            }
+
+            ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+        }
+
         // Property table — 1 byte per INTID, 4KB-aligned. Allocate 4 pages
         // (16 KiB == 2^14) → covers IDbits=13.
-        const uint propPages = 4;
-        _propTableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, propPages, zero: true);
+        _propTableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, PropTablePages, zero: true);
         if (_propTableVirt == 0)
         {
             Serial.WriteString("[GICv3-LPI] ERROR: prop table alloc failed\n");
@@ -110,8 +159,7 @@ public static unsafe class GICv3Lpi
         // Pending table — bits, 64 KiB-aligned. Over-allocate so we can
         // pick a 64KB-aligned starting page from the contiguous run.
         // 32 pages = 128 KiB guarantees one 64KB-aligned 64KB chunk inside.
-        const uint pendOverPages = 32;
-        ulong pendBlockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pendOverPages, zero: true);
+        ulong pendBlockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, PendTableOverAllocPages, zero: true);
         if (pendBlockVirt == 0)
         {
             Serial.WriteString("[GICv3-LPI] ERROR: pend table alloc failed\n");
@@ -123,17 +171,6 @@ public static unsafe class GICv3Lpi
         ulong delta = pendAlignedPhys - pendBlockPhys;
         _pendTablePhys = pendAlignedPhys;
         _pendTableVirt = pendBlockVirt + delta;
-
-        // Make sure LPIs are disabled before reprogramming the bases.
-        // GICR_CTLR is a 32-bit register; using Write/Read64 here would
-        // misalign the access and silently no-op on QEMU.
-        uint ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
-        if ((ctlr & GICR_CTLR_ENABLE_LPIS) != 0)
-        {
-            Serial.WriteString("[GICv3-LPI] WARNING: LPIs already enabled by firmware, leaving in place\n");
-            _initialized = true;
-            return;
-        }
 
         ulong propbaser = ((ulong)LpiIdBits & PROPBASER_IDBITS_MASK)
                         | PROPBASER_INNER_WB
@@ -152,7 +189,7 @@ public static unsafe class GICv3Lpi
         Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr);
 
         // Wait for RWP to clear.
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
             {
@@ -173,12 +210,12 @@ public static unsafe class GICv3Lpi
     /// </summary>
     public static void EnableLpi(uint lpi)
     {
-        if (!_initialized || lpi < 8192)
+        if (!_initialized || lpi < LpiBaseIntId)
         {
             return;
         }
-        uint off = lpi - 8192;
-        if (off >= LpiPropTableSize)
+        uint off = lpi - LpiBaseIntId;
+        if (off >= LpiCount)
         {
             return;
         }
@@ -192,7 +229,7 @@ public static unsafe class GICv3Lpi
         // the cached LPI configuration.
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_rdBase + GICR_INVLPIR, lpi);
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if (Native.MMIO.Read32(_rdBase + GICR_SYNCR) == 0)
             {
@@ -204,12 +241,12 @@ public static unsafe class GICv3Lpi
     /// <summary>Disable an LPI in the config table.</summary>
     public static void DisableLpi(uint lpi)
     {
-        if (!_initialized || lpi < 8192)
+        if (!_initialized || lpi < LpiBaseIntId)
         {
             return;
         }
-        uint off = lpi - 8192;
-        if (off >= LpiPropTableSize)
+        uint off = lpi - LpiBaseIntId;
+        if (off >= LpiCount)
         {
             return;
         }
@@ -217,7 +254,7 @@ public static unsafe class GICv3Lpi
         cfg[off] = (byte)(LPI_PRIO_DEFAULT & ~LPI_CFG_ENABLE);
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_rdBase + GICR_INVLPIR, lpi);
-        for (int i = 0; i < 1_000_000; i++)
+        for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
             if (Native.MMIO.Read32(_rdBase + GICR_SYNCR) == 0)
             {

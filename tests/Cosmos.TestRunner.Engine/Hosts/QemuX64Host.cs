@@ -20,13 +20,13 @@ public class QemuX64Host : IQemuHost
     private readonly string? _qemuBinaryOverride;
     private readonly int _memoryMb;
 
-    public QemuX64Host(string? qemuBinary = null, int memoryMb = 512)
+    public QemuX64Host(string? qemuBinary = null, int memoryMb = DefaultMemoryMb)
     {
         _qemuBinaryOverride = qemuBinary;
         _memoryMb = memoryMb;
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<string>? ahciDiskPaths = null, IReadOnlyList<string>? nvmeDiskPaths = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -59,8 +59,8 @@ public class QemuX64Host : IQemuHost
             SerialOutputFile = uartLogPath,
             EnableNetworkTesting = enableNetworkTesting,
             AllowGuestShutdown = true,
-            AhciDiskPaths = ahciDiskPaths ?? Array.Empty<string>(),
-            NvmeDiskPaths = nvmeDiskPaths ?? Array.Empty<string>()
+            Disks = disks ?? Array.Empty<DiskAttachment>(),
+            MachineOptions = machineOptions ?? new Dictionary<string, string>()
         });
         var startInfo = QemuLauncher.ToProcessStartInfo(plan);
         if (_qemuBinaryOverride is not null)
@@ -110,7 +110,7 @@ public class QemuX64Host : IQemuHost
                 // log and roll on to the next boot.
                 if (!process.HasExited)
                 {
-                    await Task.Delay(200);
+                    await Task.Delay(KillGraceDelayMs);
                     process.Kill(entireProcessTree: true);
                     await process.WaitForExitAsync();
                 }
@@ -122,7 +122,7 @@ public class QemuX64Host : IQemuHost
             }
 
             // Give UART log a moment to flush
-            await Task.Delay(100);
+            await Task.Delay(UartFlushDelayMs);
 
             // Stop test servers if running
             if (udpServer != null)
@@ -167,7 +167,7 @@ public class QemuX64Host : IQemuHost
             }
 
             // Give UART log a moment to flush
-            await Task.Delay(100);
+            await Task.Delay(UartFlushDelayMs);
 
             // Stop test servers if running
             if (udpServer != null)
@@ -225,6 +225,24 @@ public class QemuX64Host : IQemuHost
     // panic) that hang instead of cleanly exiting QEMU.
     private static readonly byte[] TestPassMarker = { 0x07, 0x08, 0x74, 0x19, 102 };
     private const int StallSecondsAfterTestPass = 10;
+
+    /// <summary>Default QEMU guest memory size in megabytes.</summary>
+    private const int DefaultMemoryMb = 512;
+
+    /// <summary>Default wall-clock limit for a kernel run before QEMU is killed, in seconds.</summary>
+    private const int DefaultTimeoutSeconds = 30;
+
+    /// <summary>Grace delay before killing QEMU once the UART monitor finished, in milliseconds — lets trailing UART bytes land.</summary>
+    private const int KillGraceDelayMs = 200;
+
+    /// <summary>Delay after QEMU exits to let the UART log flush to disk, in milliseconds.</summary>
+    private const int UartFlushDelayMs = 100;
+
+    /// <summary>Polling interval of the UART log monitor loop, in milliseconds.</summary>
+    private const int UartPollIntervalMs = 100;
+
+    /// <summary>Length of the test runner protocol magic (0x19740807 little-endian) in bytes, i.e. the prefix of <see cref="TestPassMarker"/> shared by every frame.</summary>
+    private const int ProtocolMagicLengthBytes = 4;
 
     /// <summary>
     /// Monitor UART log file for either the suite-end marker or a stall after a
@@ -284,7 +302,7 @@ public class QemuX64Host : IQemuHost
                             if (b == TestPassMarker[testPassMarkerIndex])
                             {
                                 testPassMarkerIndex++;
-                                if (testPassMarkerIndex == 4)
+                                if (testPassMarkerIndex == ProtocolMagicLengthBytes)
                                 {
                                     // Full magic 0x19740807 hit — kernel emitted a frame.
                                     lastMagicAt = DateTime.UtcNow;
@@ -313,7 +331,7 @@ public class QemuX64Host : IQemuHost
                 // File might be locked, try again
             }
 
-            await Task.Delay(100, cancellationToken);
+            await Task.Delay(UartPollIntervalMs, cancellationToken);
         }
 
         return UartMonitorOutcome.NotFinished;

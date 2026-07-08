@@ -15,7 +15,7 @@ namespace Cosmos.Kernel.System.Storage;
 ///   <item><description>Each subsequent EBR is placed immediately after the prior logical's data.</description></item>
 /// </list>
 /// </summary>
-public static class EBR
+public static class Ebr
 {
     private const ushort EbrSignature = 0xAA55;
     private const int PartitionTableOffset = 446;
@@ -37,9 +37,9 @@ public static class EBR
     /// return one entry per logical partition. <c>StartSector</c> values are
     /// absolute LBAs on <paramref name="device"/>.
     /// </summary>
-    public static List<MBR.PartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
+    public static List<Mbr.PartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
     {
-        List<MBR.PartitionEntry> logicals = new();
+        List<Mbr.PartitionEntry> logicals = new();
         if (device == null)
         {
             return logicals;
@@ -53,7 +53,7 @@ public static class EBR
             {
                 continue;
             }
-            logicals.Add(new MBR.PartitionEntry(
+            logicals.Add(new Mbr.PartitionEntry(
                 node.LogicalSystemId,
                 node.EbrLba + node.LogicalRelativeStart,
                 node.LogicalSectorCount));
@@ -332,7 +332,7 @@ public static class EBR
 
     private static ulong ResolveExtendedCount(IBlockDevice device, ulong extendedStartLba)
     {
-        if (MBR.TryGetExtendedPartition(device, out ulong start, out ulong count) && start == extendedStartLba)
+        if (Mbr.TryGetExtendedPartition(device, out ulong start, out ulong count) && start == extendedStartLba)
         {
             return count;
         }

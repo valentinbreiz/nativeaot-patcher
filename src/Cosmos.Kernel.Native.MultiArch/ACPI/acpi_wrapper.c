@@ -519,7 +519,28 @@ int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_de
             if (m_off + 20 > g_iort_length) return 1;
             uint32_t in_base = iort_rd32(m, 0);
             uint32_t id_cnt  = iort_rd32(m, 4);
-            if (cur_id >= in_base && cur_id < in_base + id_cnt) {
+            uint32_t flags   = iort_rd32(m, 16);
+            // Single-mapping entries (flags bit 0) are only architecturally
+            // valid on Named Component / PMCG nodes (ARM DEN 0049), neither
+            // of which appears on this RC → SMMU → ITS walk. On an RC hop a
+            // single-mapping entry would collapse EVERY RID into one
+            // DeviceID (two devices sharing a DeviceID: the second MAPD
+            // re-issues a fresh ITT and destroys the first device's event
+            // mappings); on SMMU nodes it describes the SMMU's own MSI
+            // DeviceID. Linux's iort_id_map rejects the flag on both as a
+            // firmware bug — skip such entries entirely, and never
+            // range-match them (id_count is 0, so the inclusive check
+            // below could fire on in_base).
+            if (flags & 1u) {
+                continue;
+            }
+            // "Number of IDs" holds the range size MINUS ONE (ARM DEN 0049),
+            // so the match is inclusive. An exclusive `< in_base + id_cnt`
+            // check drops the last ID of every range and never matches
+            // single-ID ranges (id_count == 0) — firmware with a
+            // non-identity mapping would then silently fall back to
+            // DeviceID = BDF and the ITS would discard every MSI.
+            if (cur_id >= in_base && cur_id - in_base <= id_cnt) {
                 hit = m;
                 break;
             }
@@ -529,6 +550,8 @@ int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_de
         uint32_t in_base    = iort_rd32(hit, 0);
         uint32_t out_base   = iort_rd32(hit, 8);
         uint32_t out_ref    = iort_rd32(hit, 12);
+        // hit is always a range mapping (single-mapping entries are
+        // skipped above), so the output ID is base plus offset.
         cur_id = out_base + (cur_id - in_base);
 
         const uint8_t* next = iort_node_at(out_ref);

@@ -53,6 +53,9 @@ public static unsafe class GICv3Its
     private const uint GITS_CTLR_ENABLED = 1U << 0;
     private const uint GITS_CTLR_QUIESCENT = 1U << 31;
 
+    /// <summary>Spin iterations (one GITS_CTLR MMIO read each) to wait for GITS_CTLR.Quiescent after disabling the ITS; not time-calibrated (runs before any timer facility is usable).</summary>
+    private const int QuiescentSpinLimit = 1_000_000;
+
     // GITS_TYPER bit layout (§11.10.13).
     private const int TYPER_ITT_ENTRY_SIZE_SHIFT = 4;
     private const ulong TYPER_ITT_ENTRY_SIZE_MASK = 0xFUL;   // bits [7:4]
@@ -87,7 +90,15 @@ public static unsafe class GICv3Its
     // (cacheable) writes — MAPD/MAPTI appear to complete but the device
     // entry the ITS actually fetches is whatever's still in DRAM.
     private const ulong BASER_INNER_CACHE_RaWaWb = 5UL << 59;
-    private const ulong BASER_PAGE_SIZE_4K = 0UL << 8;
+    private const int BASER_PAGE_SIZE_SHIFT = 8;
+    private const ulong BASER_PAGE_SIZE_MASK = 0x3UL;
+    private const ulong BASER_PAGE_SIZE_4K = 0UL << BASER_PAGE_SIZE_SHIFT;
+    /// <summary>BASER Page_Size field value (unshifted) selecting a 16 KiB granule; 2 selects 64 KiB (§11.10.2).</summary>
+    private const ulong BASER_PAGE_SIZE_FIELD_16K = 1UL;
+    /// <summary>Bytes per BASER table page when the ITS forces a 16 KiB granule.</summary>
+    private const ulong Granule16KBytes = 16UL * 1024;
+    /// <summary>Bytes per BASER table page when the ITS forces a 64 KiB granule.</summary>
+    private const ulong Granule64KBytes = 64UL * 1024;
 
     // BASER Type field values (§11.10.2 Table 11-22).
     private const byte BASER_TYPE_DEVICE = 1;
@@ -103,6 +114,8 @@ public static unsafe class GICv3Its
     private const uint ITS_COMMAND_SIZE = 32;
     // Command queue lives in one 4 KiB page → 128 commands of 32 bytes each.
     private const uint COMMAND_QUEUE_BYTES = 4096;
+    /// <summary>Number of 4 KiB pages backing the command-queue ring (COMMAND_QUEUE_BYTES worth).</summary>
+    private const uint CommandQueuePages = 1;
 
     // Page-sized allocations for ITT/table buffers.
     private const uint ITS_PAGE_SIZE = 4096;
@@ -130,8 +143,14 @@ public static unsafe class GICv3Its
     // MAPD ITT_address in cmd[2], bits [51:8] (256-byte aligned).
     private const ulong MAPD_ITT_ADDR_MASK = 0x000FFFFFFFFFFF00UL;
 
-    // Number of 4 KiB pages backing each shared ITS table.
-    private const uint DeviceTablePages = 8;       // 32 KiB — covers thousands of devices
+    // Number of 4 KiB pages backing each shared ITS table. NOTE: a flat
+    // device table is indexed by DeviceID VALUE, not device count — 32 KiB
+    // at the typical 8-byte entry covers DeviceIDs 0..4095 only (BDF up to
+    // bus 15). MapDevice enforces the real bound (computed from the entry
+    // size the hardware reports) and rejects wider IDs loudly; supporting
+    // sparse/wide DeviceID spaces properly means BASER.Indirect two-level
+    // tables.
+    private const uint DeviceTablePages = 8;
     private const uint CollectionTablePages = 1;   // 4 KiB — far more collections than we need
 
     // GITS_CREADR: bits[4:0] are status flags (Stalled in bit 0); the queue
@@ -145,12 +164,13 @@ public static unsafe class GICv3Its
     // ITT buffer sizing.
     private const uint ITT_MIN_EVENTS = 2;
 
-    private static ulong _itsBase;          // virt = phys (TTBR0 identity)
+    private static ulong _itsBase;          // HHDM virtual base — every GITS_* MMIO access goes through this
     private static ulong _translaterPhys;   // GITS_TRANSLATER physical address; written by devices via MSI
     private static ulong _cmdQueueVirt;
     private static ulong _cmdQueuePhys;
     private static uint _cmdQueueSize;      // bytes
     private static ulong _cmdWriteOff;      // mirror of GITS_CWRITER
+    private static ulong _maxDeviceId;      // highest DeviceID the flat device table can index
     private static int _ittEntrySize;
     private static bool _physicalTargetAddress;
     private static ulong _bootRedistTarget; // target value for collection 0 (phys addr or proc number<<16)
@@ -166,18 +186,28 @@ public static unsafe class GICv3Its
     public static ulong TranslaterPhysAddr => _translaterPhys;
 
     /// <summary>
-    /// Initialize the ITS at the given physical base. Must be called after
+    /// Initialize the ITS. Must be called after
     /// <see cref="GICv3Lpi.Initialize"/> on the boot CPU's redistributor.
+    /// Virt/phys are passed separately because both roles are needed: all
+    /// GITS_* MMIO goes through the Device-memory HHDM mapping (the TTBR0
+    /// identity map is Normal WB cacheable — only QEMU TCG's disregard for
+    /// memory attributes made dereferencing raw physical appear to work),
+    /// while GITS_TRANSLATER (handed to devices as the MSI doorbell) and
+    /// the MAPC RDbase target are bus addresses and must stay physical.
     /// </summary>
-    public static void Initialize(ulong itsBase, ulong bootRedistRdBase)
+    /// <param name="itsVirtBase">ITS register block, HHDM virtual (dereferenced).</param>
+    /// <param name="itsPhysBase">ITS register block, physical (doorbell address source).</param>
+    /// <param name="rdVirtBase">Boot CPU redistributor RD_base, HHDM virtual (dereferenced for GICR_TYPER).</param>
+    /// <param name="rdPhysBase">Boot CPU redistributor RD_base, physical (MAPC RDbase when GITS_TYPER.PTA=1).</param>
+    public static void Initialize(ulong itsVirtBase, ulong itsPhysBase, ulong rdVirtBase, ulong rdPhysBase)
     {
         if (_initialized)
         {
             return;
         }
 
-        _itsBase = itsBase;
-        _translaterPhys = itsBase + GITS_TRANSLATER_OFF;
+        _itsBase = itsVirtBase;
+        _translaterPhys = itsPhysBase + GITS_TRANSLATER_OFF;
 
         // Make sure the ITS is disabled while we configure tables.
         uint ctlr = Native.MMIO.Read32(_itsBase + GITS_CTLR);
@@ -185,7 +215,7 @@ public static unsafe class GICv3Its
         {
             Native.MMIO.Write32(_itsBase + GITS_CTLR, ctlr & ~GITS_CTLR_ENABLED);
             bool quiesced = false;
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < QuiescentSpinLimit; i++)
             {
                 if ((Native.MMIO.Read32(_itsBase + GITS_CTLR) & GITS_CTLR_QUIESCENT) != 0)
                 {
@@ -195,7 +225,10 @@ public static unsafe class GICv3Its
             }
             if (!quiesced)
             {
-                throw new System.InvalidOperationException("[GICv3-ITS] timed out waiting for QUIESCENT after disable");
+                // Not worth killing the boot over: leave the ITS
+                // uninitialized so InitializeMsi downgrades to polled.
+                Serial.WriteString("[GICv3-ITS] ERROR: timed out waiting for QUIESCENT after disable\n");
+                return;
             }
         }
 
@@ -203,16 +236,18 @@ public static unsafe class GICv3Its
         _ittEntrySize = (int)(((typer >> TYPER_ITT_ENTRY_SIZE_SHIFT) & TYPER_ITT_ENTRY_SIZE_MASK) + 1);
         _physicalTargetAddress = ((typer >> TYPER_PTA_SHIFT) & TYPER_PTA_MASK) != 0;
 
-        // Compute target address for MAPC / SYNC.
+        // Compute target address for MAPC / SYNC. With PTA=1 the RDbase
+        // field carries the redistributor's PHYSICAL address (it is a bus
+        // address the ITS emits, not something the CPU dereferences).
         if (_physicalTargetAddress)
         {
-            _bootRedistTarget = bootRedistRdBase;
+            _bootRedistTarget = rdPhysBase;
         }
         else
         {
             // Processor_Number is GICR_TYPER bits [23:8]. We're sole CPU so 0
             // is almost always right, but read it for correctness.
-            ulong rdTyper = Native.MMIO.Read64(bootRedistRdBase + GICR_TYPER);
+            ulong rdTyper = Native.MMIO.Read64(rdVirtBase + GICR_TYPER);
             ulong procNum = (rdTyper >> GICR_TYPER_PROCNUM_SHIFT) & GICR_TYPER_PROCNUM_MASK;
             _bootRedistTarget = procNum << CMD_TARGET_PROCNUM_SHIFT;
         }
@@ -223,20 +258,30 @@ public static unsafe class GICv3Its
             ulong off = GITS_BASER0 + (ulong)i * BaserStride;
             ulong baser = Native.MMIO.Read64(_itsBase + (uint)off);
             byte type = (byte)((baser >> BASER_TYPE_SHIFT) & BASER_TYPE_MASK);
-            if (type == BASER_TYPE_DEVICE)
+            if (type == BASER_TYPE_DEVICE || type == BASER_TYPE_COLLECTION)
             {
-                ConfigureBaser(off, baser, type, DeviceTablePages);
-            }
-            else if (type == BASER_TYPE_COLLECTION)
-            {
-                ConfigureBaser(off, baser, type, CollectionTablePages);
+                uint pages = type == BASER_TYPE_DEVICE ? DeviceTablePages : CollectionTablePages;
+                if (!ConfigureBaser(off, baser, type, pages))
+                {
+                    // Leave _initialized false: InitializeMsi reports the
+                    // failure and the MSI path downgrades to polled.
+                    return;
+                }
             }
             // Other types (vCPU, reserved) left untouched.
         }
 
         // Allocate command queue (one 4 KiB page, 128 commands of 32 bytes each).
         _cmdQueueSize = COMMAND_QUEUE_BYTES;
-        _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, CommandQueuePages, zero: true);
+        if (_cmdQueueVirt == 0)
+        {
+            // Without this check CBASER would point the ITS at physical
+            // page 0 — corruption instead of the clean MSI-off downgrade.
+            Serial.WriteString("[GICv3-ITS] ERROR: command queue alloc failed\n");
+            return;
+        }
+
         _cmdQueuePhys = PageAllocator.VirtualToPhysical(_cmdQueueVirt);
 
         ulong cbaser = CBASER_VALID
@@ -245,6 +290,17 @@ public static unsafe class GICv3Its
                      | (_cmdQueuePhys & CBASER_ADDR_MASK)
                      | 0; // size = (4KB / 4KB) - 1 = 0
         Native.MMIO.Write64(_itsBase + GITS_CBASER, cbaser);
+        // Same policy as the BASER tables: a command queue whose
+        // shareability reads back 0 is fetched without snooping CPU
+        // caches, and command writes would sit in cache while the ITS
+        // executes stale DRAM. Refuse rather than corrupt.
+        ulong cbRb = Native.MMIO.Read64(_itsBase + GITS_CBASER);
+        if ((cbRb & (BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT)) == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: CBASER shareability forced to 0 (non-coherent ITS), no dcache maintenance available\n");
+            return;
+        }
+
         Native.MMIO.Write64(_itsBase + GITS_CWRITER, 0);
         _cmdWriteOff = 0;
 
@@ -257,9 +313,11 @@ public static unsafe class GICv3Its
         EnqueueSync();
         FlushCommandQueue();
 
-        Serial.WriteString("[GICv3-ITS] enabled at 0x");
-        Serial.WriteHex(itsBase);
-        Serial.WriteString("\n");
+        Serial.WriteString("[GICv3-ITS] enabled at phys 0x");
+        Serial.WriteHex(itsPhysBase);
+        Serial.WriteString(" (virt 0x");
+        Serial.WriteHex(itsVirtBase);
+        Serial.WriteString(")\n");
     }
 
     /// <summary>
@@ -272,6 +330,21 @@ public static unsafe class GICv3Its
         if (!_initialized)
         {
             return;
+        }
+
+        // The flat device table is indexed by DeviceID value: a MAPD past
+        // its end is either rejected (command error -> STALLED) or walks
+        // memory beyond the table, and the device's MSIs silently vanish.
+        // Reject loudly instead; MsiX.Enable turns this into a clean
+        // polled-mode downgrade for the device.
+        if (deviceId > _maxDeviceId)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: DeviceID 0x");
+            Serial.WriteHex(deviceId);
+            Serial.WriteString(" exceeds flat device table max 0x");
+            Serial.WriteHex(_maxDeviceId);
+            Serial.WriteString(" (grow DeviceTablePages or add BASER.Indirect support)\n");
+            throw new System.InvalidOperationException("GICv3-ITS: DeviceID exceeds the flat device table range");
         }
 
         uint nrEvents = maxEvents < ITT_MIN_EVENTS ? ITT_MIN_EVENTS : RoundUpPow2(maxEvents);
@@ -290,6 +363,14 @@ public static unsafe class GICv3Its
             pages = 1;
         }
         ulong ittVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, (uint)pages, zero: true);
+        if (ittVirt == 0)
+        {
+            // Same channel as the DeviceID bound: MsiX.Enable catches this
+            // and the device downgrades to polled.
+            Serial.WriteString("[GICv3-ITS] ERROR: ITT alloc failed\n");
+            throw new System.InvalidOperationException("GICv3-ITS: ITT allocation failed");
+        }
+
         ulong ittPhys = PageAllocator.VirtualToPhysical(ittVirt);
 
         EnqueueMapd(deviceId, ittPhys, sizeField, valid: true);
@@ -322,12 +403,19 @@ public static unsafe class GICv3Its
 
     // ── BASER configuration ───────────────────────────────────────────
 
-    private static void ConfigureBaser(ulong off, ulong oldBaser, byte type, uint pages)
+    private static bool ConfigureBaser(ulong off, ulong oldBaser, byte type, uint pages)
     {
         int entrySize = (int)(((oldBaser >> BASER_ENTRY_SIZE_SHIFT) & BASER_ENTRY_SIZE_MASK) + 1);
 
         ulong tableVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, pages, zero: true);
+        if (tableVirt == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: BASER table alloc failed\n");
+            return false;
+        }
+
         ulong tablePhys = PageAllocator.VirtualToPhysical(tableVirt);
+        ulong sizeBytes = (ulong)pages * ITS_PAGE_SIZE;
 
         ulong baser = ((ulong)type << BASER_TYPE_SHIFT)
                     | ((ulong)(entrySize - 1) << BASER_ENTRY_SIZE_SHIFT)
@@ -338,16 +426,67 @@ public static unsafe class GICv3Its
                     | (ulong)((pages - 1) & BASER_PAGES_MASK)
                     | BASER_VALID;
         Native.MMIO.Write64(_itsBase + (uint)off, baser);
-
-        // Read back; if shareability bits got cleared the GIC silently
-        // refuses Inner Shareable, drop them.
-        ulong shareabilityField = BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT;
         ulong rb = Native.MMIO.Read64(_itsBase + (uint)off);
-        if ((rb & shareabilityField) == 0 && (baser & shareabilityField) != 0)
+
+        // Page_Size is not guaranteed writable: a 16K/64K-only ITS holds a
+        // larger granule in the read-back, and Size counts pages of THAT
+        // granule — keeping Size = pages-1 would multiply the window
+        // (8 x 64 KiB = 512 KiB over a 32 KiB allocation) and let the ITS
+        // read and write far past the table. Re-allocate one properly
+        // aligned granule and re-program with Size = 0 instead.
+        ulong rbGranule = (rb >> BASER_PAGE_SIZE_SHIFT) & BASER_PAGE_SIZE_MASK;
+        if (rbGranule != 0)
         {
-            baser &= ~shareabilityField;
+            ulong granuleBytes = rbGranule == BASER_PAGE_SIZE_FIELD_16K ? Granule16KBytes : Granule64KBytes;
+            // Over-allocate 2x so a granule-aligned block exists inside,
+            // same trick as the LPI pending table's 64 KiB alignment.
+            uint blockPages = (uint)(granuleBytes * 2 / ITS_PAGE_SIZE);
+            ulong blockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, blockPages, zero: true);
+            if (blockVirt == 0)
+            {
+                Serial.WriteString("[GICv3-ITS] ERROR: BASER granule realloc failed\n");
+                return false;
+            }
+
+            ulong blockPhys = PageAllocator.VirtualToPhysical(blockVirt);
+            tablePhys = (blockPhys + granuleBytes - 1) & ~(granuleBytes - 1);
+            sizeBytes = granuleBytes;
+
+            Serial.WriteString("[GICv3-ITS] BASER granule forced to 0x");
+            Serial.WriteHex(granuleBytes);
+            Serial.WriteString(" bytes, re-allocated table\n");
+
+            baser = ((ulong)type << BASER_TYPE_SHIFT)
+                  | ((ulong)(entrySize - 1) << BASER_ENTRY_SIZE_SHIFT)
+                  | (tablePhys & BASER_ADDR_MASK)
+                  | BASER_INNER_CACHE_RaWaWb
+                  | BASER_INNERSHAREABLE
+                  | (rbGranule << BASER_PAGE_SIZE_SHIFT)
+                  | BASER_VALID; // Size = 0: one granule
             Native.MMIO.Write64(_itsBase + (uint)off, baser);
+            rb = Native.MMIO.Read64(_itsBase + (uint)off);
         }
+
+        // Shareability forced to 0 means the ITS will not snoop CPU caches
+        // for its table walks, and this driver has no dcache-maintenance
+        // plumbing — keeping cacheable attributes would desync silently
+        // (MAPD/MAPTI appear to complete, the ITS fetches stale DRAM).
+        // Refuse and let Initialize downgrade the MSI path instead.
+        ulong shareabilityField = BASER_SHAREABILITY_MASK << BASER_SHAREABILITY_SHIFT;
+        if ((rb & shareabilityField) == 0)
+        {
+            Serial.WriteString("[GICv3-ITS] ERROR: BASER shareability forced to 0 (non-coherent ITS), no dcache maintenance available\n");
+            return false;
+        }
+
+        if (type == BASER_TYPE_DEVICE)
+        {
+            // A flat table indexes by DeviceID value: this is the highest
+            // ID MAPD can accept without the ITS walking past the table.
+            _maxDeviceId = sizeBytes / (ulong)entrySize - 1;
+        }
+
+        return true;
     }
 
     // ── Command queue posting ─────────────────────────────────────────
@@ -418,6 +557,16 @@ public static unsafe class GICv3Its
         _cmdLock.Release();
     }
 
+    // Hang-breaker for the CREADR poll below, in loop iterations (one MMIO
+    // read each), not time: a healthy ITS consumes a handful of queued
+    // commands in microseconds, so ~10M reads (seconds-order even on slow
+    // buses) is orders of magnitude past any legitimate completion and only
+    // trips when the ITS is wedged. Deliberately not time-calibrated: this
+    // runs during early interrupt bring-up, before any timer facility is
+    // usable from Core.ARM64 (PlatformHAL.DelayMicroseconds lives a layer
+    // above and can't be referenced from here).
+    private const int CommandFlushSpinLimit = 10_000_000;
+
     /// <summary>
     /// Publish the new write offset and spin until the ITS has consumed
     /// every command we posted (CWRITER == CREADR).
@@ -431,7 +580,7 @@ public static unsafe class GICv3Its
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_itsBase + GITS_CWRITER, _cmdWriteOff);
 
-        for (int i = 0; i < 10_000_000; i++)
+        for (int i = 0; i < CommandFlushSpinLimit; i++)
         {
             ulong reader = Native.MMIO.Read64(_itsBase + GITS_CREADR);
             if ((reader & CREADR_OFFSET_MASK) == _cmdWriteOff)

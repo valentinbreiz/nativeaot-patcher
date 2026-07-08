@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestRunner.Engine;
 
@@ -9,6 +10,9 @@ namespace Cosmos.TestRunner.Engine;
 /// </summary>
 public interface IQemuHost
 {
+    /// <summary>Default maximum time in seconds to let a kernel run in QEMU before timing out.</summary>
+    public const int DefaultTimeoutSeconds = 30;
+
     /// <summary>
     /// Architecture this host targets (x64, ARM64, etc.)
     /// </summary>
@@ -22,10 +26,10 @@ public interface IQemuHost
     /// <param name="timeoutSeconds">Maximum time to run (default 30s)</param>
     /// <param name="showDisplay">Show QEMU display window (default false = headless)</param>
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
-    /// <param name="ahciDiskPaths">Raw disk images to attach as AHCI/SATA drives (default null = no AHCI disks). One <c>ich9-ahci</c> controller carries them on successive ports.</param>
-    /// <param name="nvmeDiskPaths">Raw disk images to attach as NVMe drives (default null = no NVMe disks). Each path gets its own <c>nvme</c> controller, exercising multi-controller binding.</param>
+    /// <param name="disks">Per-profile disk attachments. AHCI entries share one <c>ich9-ahci</c> controller; NVMe entries each get their own <c>nvme</c> controller. Per-disk extra device options (e.g. <c>msix=off</c>) flow through.</param>
+    /// <param name="machineOptions">Extra <c>-M</c> properties (e.g. <c>{"gic-version", "2"}</c> on ARM64). Caller is responsible for passing arch-appropriate keys.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<string>? ahciDiskPaths = null, IReadOnlyList<string>? nvmeDiskPaths = null);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null);
 }
 
 /// <summary>

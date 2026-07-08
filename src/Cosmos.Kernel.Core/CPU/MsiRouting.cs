@@ -34,7 +34,7 @@ public static class MsiRouting
     /// <summary>
     /// True once a platform has registered a binder (x64 LAPIC, ARM64 ITS, …).
     /// </summary>
-    public static bool IsAvailable => s_binder != null && s_binder.Available;
+    public static bool IsAvailable => s_binder != null && s_binder.IsAvailable;
 
     /// <summary>
     /// Called once by the platform interrupt-controller initializer.
@@ -82,7 +82,7 @@ public static class MsiRouting
 public interface IMsiBinder
 {
     /// <summary>True if the underlying interrupt controller is online and ready to route MSIs.</summary>
-    bool Available { get; }
+    bool IsAvailable { get; }
 
     /// <summary>
     /// Per-device prep: the binder may need to allocate per-device state

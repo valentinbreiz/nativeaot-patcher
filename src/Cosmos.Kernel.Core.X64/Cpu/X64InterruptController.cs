@@ -1,7 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
 
@@ -11,6 +13,21 @@ namespace Cosmos.Kernel.Core.X64.Cpu;
 /// </summary>
 public class X64InterruptController : IInterruptController
 {
+    /// <summary>Highest CPU-exception vector; vectors 0-31 are reserved for exceptions (SDM 3A §6.2).</summary>
+    private const ulong MaxCpuExceptionVector = 31;
+
+    /// <summary>First hardware-IRQ vector; vectors >= 32 are external interrupts that require an EOI.</summary>
+    private const ulong FirstHardwareIrqVector = 32;
+
+    /// <summary>Page-fault exception vector (#PF, SDM 3A §6.15).</summary>
+    private const ulong PageFaultVector = 14;
+
+    /// <summary>Size in bytes of the XMM save area the asm stub pushes below the IRQContext.</summary>
+    private const int XmmSaveAreaSizeBytes = 256;
+
+    /// <summary>Upper canonical bits of a kernel-space (higher-half) address, used as both mask and expected value.</summary>
+    private const ulong KernelSpaceCanonicalMask = 0xFFFF000000000000;
+
     public bool IsInitialized => ApicManager.IsInitialized;
 
     public void Initialize()
@@ -28,7 +45,7 @@ public class X64InterruptController : IInterruptController
         }
     }
 
-    public void Dispatch(ref IRQContext ctx)
+    public unsafe void Dispatch(ref IRQContext ctx)
     {
         InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
         if (handlers != null && ctx.interrupt < (ulong)handlers.Length)
@@ -38,24 +55,43 @@ public class X64InterruptController : IInterruptController
             {
                 handler(ref ctx);
 
-                // Send EOI for hardware IRQs (vector >= 32)
-                if (ctx.interrupt >= 32 && IsInitialized)
+                // Send EOI for hardware IRQs (vector >= 32) — but never for
+                // the APIC spurious vector: a spurious delivery sets no ISR
+                // bit, so an EOI here would retire whichever real interrupt
+                // is currently in service (SDM 3A §11.9).
+                if (ctx.interrupt >= FirstHardwareIrqVector && ctx.interrupt != LocalApic.SPURIOUS_VECTOR && IsInitialized)
                 {
                     SendEOI();
+
+                    // A handler-side ReadyThread (e.g. InterruptEvent.Signal
+                    // from a device ISR) requests a reschedule; honor it now —
+                    // the common asm stub applies the staged context switch on
+                    // every interrupt exit, not just timer ticks. Same RSP
+                    // derivation (and kernel-space sanity check) as the LAPIC
+                    // timer handler: the saved context sits 256 bytes (XMM
+                    // save area) below the IRQContext.
+                    nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - XmmSaveAreaSizeBytes;
+                    if ((currentRsp & KernelSpaceCanonicalMask) == KernelSpaceCanonicalMask)
+                    {
+                        SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
+                    }
                 }
                 return;
             }
         }
 
         // No managed handler - for CPU exceptions (0-31), fall through to fatal halt
-        if (ctx.interrupt <= 31)
+        if (ctx.interrupt <= MaxCpuExceptionVector)
         {
             HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.fault_address);
             return;
         }
 
-        // Send EOI even for unhandled hardware interrupts to prevent lockup
-        if (ctx.interrupt >= 32 && IsInitialized)
+        // Send EOI even for unhandled hardware interrupts to prevent lockup.
+        // The spurious vector is the exception (see above): it arrives here
+        // because nothing registers a handler for it, and it must be
+        // dismissed without EOI.
+        if (ctx.interrupt >= FirstHardwareIrqVector && ctx.interrupt != LocalApic.SPURIOUS_VECTOR && IsInitialized)
         {
             SendEOI();
         }
@@ -77,7 +113,7 @@ public class X64InterruptController : IInterruptController
         Serial.Write("\n");
 
         // For page faults (#PF = 14), show the faulting address
-        if (interrupt == 14)
+        if (interrupt == PageFaultVector)
         {
             Serial.Write("[INT] Fault address (CR2): 0x");
             Serial.WriteHex(faultAddress);

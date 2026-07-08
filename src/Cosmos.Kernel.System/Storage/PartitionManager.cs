@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Storage;
 
 /// <summary>
 /// High-level partition lifecycle (create / delete / resize / move) on top
-/// of <see cref="MBR"/> and <see cref="GPT"/>. Auto-detects the table type
+/// of <see cref="Mbr"/> and <see cref="Gpt"/>. Auto-detects the table type
 /// per call. <see cref="MoveWithData"/> physically copies sectors before
 /// rewriting the table; the other operations are pure table edits.
 /// </summary>
@@ -47,12 +47,12 @@ public static class PartitionManager
             return false;
         }
 
-        if (GPT.IsGPT(device))
+        if (Gpt.IsGpt(device))
         {
-            return GPT.AddPartition(device, startSector, sectorCount, gptType);
+            return Gpt.AddPartition(device, startSector, sectorCount, gptType);
         }
 
-        if (!MBR.IsMBR(device))
+        if (!Mbr.IsMbr(device))
         {
             return false;
         }
@@ -67,7 +67,7 @@ public static class PartitionManager
             return false;
         }
 
-        MBR.WritePartition(device, freeSlot, mbrSystemId, (uint)startSector, (uint)sectorCount);
+        Mbr.WritePartition(device, freeSlot, mbrSystemId, (uint)startSector, (uint)sectorCount);
         return true;
     }
 
@@ -78,42 +78,42 @@ public static class PartitionManager
     /// </summary>
     public static ulong CreateLogical(IBlockDevice device, byte systemId, ulong sectorCount)
     {
-        if (GPT.IsGPT(device))
+        if (Gpt.IsGpt(device))
         {
             return 0;
         }
-        if (!MBR.IsMBR(device))
+        if (!Mbr.IsMbr(device))
         {
             return 0;
         }
-        if (!MBR.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
+        if (!Mbr.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
         {
             return 0;
         }
-        return EBR.AddLogical(device, extStart, extCount, systemId, sectorCount);
+        return Ebr.AddLogical(device, extStart, extCount, systemId, sectorCount);
     }
 
     /// <summary>Delete the partition occupying <paramref name="location"/>.</summary>
     public static bool Delete(IBlockDevice device, PartitionLocation location)
     {
-        if (GPT.IsGPT(device))
+        if (Gpt.IsGpt(device))
         {
             int gptIndex = FindGptIndex(device, location);
             if (gptIndex < 0)
             {
                 return false;
             }
-            return GPT.RemovePartition(device, gptIndex);
+            return Gpt.RemovePartition(device, gptIndex);
         }
 
-        if (!MBR.IsMBR(device))
+        if (!Mbr.IsMbr(device))
         {
             return false;
         }
 
         if (TryFindLogical(device, location, out ulong extStart, out int logicalIndex))
         {
-            return EBR.RemoveLogical(device, extStart, logicalIndex);
+            return Ebr.RemoveLogical(device, extStart, logicalIndex);
         }
 
         int slot = FindMbrSlot(device, location);
@@ -121,7 +121,7 @@ public static class PartitionManager
         {
             return false;
         }
-        MBR.DeletePartition(device, slot);
+        Mbr.DeletePartition(device, slot);
         return true;
     }
 
@@ -137,24 +137,24 @@ public static class PartitionManager
             return false;
         }
 
-        if (GPT.IsGPT(device))
+        if (Gpt.IsGpt(device))
         {
             int gptIndex = FindGptIndex(device, location);
             if (gptIndex < 0)
             {
                 return false;
             }
-            return GPT.ResizePartition(device, gptIndex, newSectorCount);
+            return Gpt.ResizePartition(device, gptIndex, newSectorCount);
         }
 
-        if (!MBR.IsMBR(device))
+        if (!Mbr.IsMbr(device))
         {
             return false;
         }
 
         if (TryFindLogical(device, location, out ulong extStart, out int logicalIndex))
         {
-            return EBR.ResizeLogical(device, extStart, logicalIndex, newSectorCount);
+            return Ebr.ResizeLogical(device, extStart, logicalIndex, newSectorCount);
         }
 
         int slot = FindMbrSlot(device, location);
@@ -166,7 +166,7 @@ public static class PartitionManager
         {
             return false;
         }
-        MBR.ResizePartition(device, slot, (uint)newSectorCount);
+        Mbr.ResizePartition(device, slot, (uint)newSectorCount);
         return true;
     }
 
@@ -192,24 +192,24 @@ public static class PartitionManager
 
         CopySectors(device, location.StartSector, newStartSector, location.SectorCount);
 
-        if (GPT.IsGPT(device))
+        if (Gpt.IsGpt(device))
         {
             int gptIndex = FindGptIndex(device, location);
             if (gptIndex < 0)
             {
                 return false;
             }
-            return GPT.MovePartition(device, gptIndex, newStartSector);
+            return Gpt.MovePartition(device, gptIndex, newStartSector);
         }
 
-        if (!MBR.IsMBR(device))
+        if (!Mbr.IsMbr(device))
         {
             return false;
         }
 
         if (TryFindLogical(device, location, out ulong extStart, out int logicalIndex))
         {
-            return EBR.MoveLogical(device, extStart, logicalIndex, newStartSector);
+            return Ebr.MoveLogical(device, extStart, logicalIndex, newStartSector);
         }
 
         int slot = FindMbrSlot(device, location);
@@ -221,7 +221,7 @@ public static class PartitionManager
         {
             return false;
         }
-        MBR.MovePartition(device, slot, (uint)newStartSector);
+        Mbr.MovePartition(device, slot, (uint)newStartSector);
         return true;
     }
 
@@ -267,7 +267,7 @@ public static class PartitionManager
         extendedStartLba = 0;
         logicalIndex = -1;
 
-        if (!MBR.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
+        if (!Mbr.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
         {
             return false;
         }
@@ -276,7 +276,7 @@ public static class PartitionManager
             return false;
         }
 
-        List<MBR.PartitionEntry> logicals = EBR.Parse(device, extStart);
+        List<Mbr.PartitionEntry> logicals = Ebr.Parse(device, extStart);
         for (int i = 0; i < logicals.Count; i++)
         {
             if (logicals[i].StartSector == location.StartSector && logicals[i].SectorCount == location.SectorCount)
@@ -292,7 +292,7 @@ public static class PartitionManager
 
     private static int FindGptIndex(IBlockDevice device, PartitionLocation location)
     {
-        List<GPT.PartitionEntry> entries = GPT.Parse(device);
+        List<Gpt.PartitionEntry> entries = Gpt.Parse(device);
         for (int i = 0; i < entries.Count; i++)
         {
             if (entries[i].StartSector == location.StartSector && entries[i].SectorCount == location.SectorCount)
