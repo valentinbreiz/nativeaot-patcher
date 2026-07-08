@@ -148,14 +148,26 @@ public class UartMessageParser
     {
         if (payload.Length < 2)
         {
-            results.SuiteName = Encoding.UTF8.GetString(payload);
+            string shortName = Encoding.UTF8.GetString(payload);
+            if (HasControlChars(shortName))
+            {
+                return;
+            }
+
+            results.SuiteName = shortName;
             results.ExpectedTestCount = 0;
             return;
         }
 
         // Payload: [ExpectedTests:2][SuiteName:string]
+        string suiteName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
+        if (HasControlChars(suiteName))
+        {
+            return;
+        }
+
         results.ExpectedTestCount = BitConverter.ToUInt16(payload, 0);
-        results.SuiteName = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
+        results.SuiteName = suiteName;
     }
 
     private static void ParseTestStart(byte[] payload, TestResults results)
@@ -174,13 +186,12 @@ public class UartMessageParser
         // TestStart in a way that produces a false-positive magic match here,
         // and the resulting "name" carries control characters (0x00..0x1F)
         // that downstream XML emission rejects. Drop messages whose name
-        // contains anything below 0x20 — real test names are ASCII identifiers.
-        for (int i = 0; i < testName.Length; i++)
+        // contains anything below 0x20 — real test names are ASCII
+        // identifiers. Same defense on every string-bearing frame (suite
+        // start, fail, skip).
+        if (HasControlChars(testName))
         {
-            if (testName[i] < 0x20)
-            {
-                return;
-            }
+            return;
         }
 
         TestResult? existingTest = results.Tests.Find(t => t.TestNumber == testNumber);
@@ -210,6 +221,12 @@ public class UartMessageParser
         int testNumber = BitConverter.ToUInt16(payload, 0);
         uint durationMs = BitConverter.ToUInt32(payload, 2);
 
+        TestResult? test = FindTestResult(results, testNumber);
+        if (test == null)
+        {
+            return;
+        }
+
         // Mirror the kernel-side clamp (TestRunner.Run): if a non-protocol
         // byte sequence in UART interleaves with a real TestPass frame, the
         // 4 raw duration bytes can be anything — that's where the
@@ -223,7 +240,6 @@ public class UartMessageParser
             durationMs = MaxSaneDurationMs;
         }
 
-        TestResult test = GetOrCreateTestResult(results, testNumber);
         test.Status = TestStatus.Passed;
         test.DurationMs = durationMs;
     }
@@ -238,8 +254,22 @@ public class UartMessageParser
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string errorMessage = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
+        if (HasControlChars(errorMessage))
+        {
+            return;
+        }
 
-        TestResult test = GetOrCreateTestResult(results, testNumber);
+        // The kernel always emits TestStart before Pass/Fail/Skip, so a
+        // number with no prior TestStart is a misaligned-frame artifact —
+        // fabricating a result for it turns corruption into a phantom
+        // "Test 51234" failure. A genuinely lost test still fails the run
+        // via the expected-count gap ("Test did not execute").
+        TestResult? test = FindTestResult(results, testNumber);
+        if (test == null)
+        {
+            return;
+        }
+
         test.Status = TestStatus.Failed;
         test.ErrorMessage = errorMessage;
     }
@@ -254,8 +284,17 @@ public class UartMessageParser
 
         int testNumber = BitConverter.ToUInt16(payload, 0);
         string reason = Encoding.UTF8.GetString(payload, 2, payload.Length - 2);
+        if (HasControlChars(reason))
+        {
+            return;
+        }
 
-        TestResult test = GetOrCreateTestResult(results, testNumber);
+        TestResult? test = FindTestResult(results, testNumber);
+        if (test == null)
+        {
+            return;
+        }
+
         test.Status = TestStatus.Skipped;
         test.ErrorMessage = reason;
     }
@@ -304,21 +343,21 @@ public class UartMessageParser
         }
     }
 
-    private static TestResult GetOrCreateTestResult(TestResults results, int testNumber)
+    private static TestResult? FindTestResult(TestResults results, int testNumber)
+        => results.Tests.Find(t => t.TestNumber == testNumber);
+
+    // Real protocol strings are ASCII identifiers / prose; anything below
+    // 0x20 means the frame was assembled from interleaved UART bytes.
+    private static bool HasControlChars(string value)
     {
-        TestResult? test = results.Tests.Find(t => t.TestNumber == testNumber);
-        if (test != null)
+        for (int i = 0; i < value.Length; i++)
         {
-            return test;
+            if (value[i] < 0x20)
+            {
+                return true;
+            }
         }
 
-        test = new TestResult
-        {
-            TestNumber = testNumber,
-            TestName = $"Test {testNumber}",
-            Status = TestStatus.Passed
-        };
-        results.Tests.Add(test);
-        return test;
+        return false;
     }
 }
