@@ -115,6 +115,32 @@ public static class InterruptManager
     }
 
     /// <summary>
+    /// Releases a vector previously returned by <see cref="AllocateVector"/>:
+    /// clears its handler so the slot can be handed out again (the
+    /// allocator's wrap pass picks freed slots back up). Without this, every
+    /// consumer teardown would permanently leak one of the 191 dynamic slots
+    /// and leave a stale delegate rooted — and invokable — in the table.
+    /// Vectors outside the dynamic range are ignored.
+    /// </summary>
+    public static void FreeVector(byte vector)
+    {
+        if (s_irqHandlers == null || vector < DynamicVectorMin || vector > DynamicVectorMax)
+        {
+            return;
+        }
+
+        s_allocLock.Acquire();
+        try
+        {
+            s_irqHandlers[vector] = null;
+        }
+        finally
+        {
+            s_allocLock.Release();
+        }
+    }
+
+    /// <summary>
     /// Registers a handler for a hardware IRQ and routes it through the interrupt controller.
     /// </summary>
     /// <param name="irqNo">IRQ index (0-15 for ISA IRQs).</param>

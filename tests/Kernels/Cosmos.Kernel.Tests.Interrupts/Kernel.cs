@@ -28,13 +28,14 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 4 cross-arch + 5 arch-specific = 9 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 9);
+        // 5 cross-arch + 5 arch-specific = 10 tests per cell.
+        TR.Start("Interrupt System Tests", expectedTests: 10);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
         TR.Run("TimerSource_Registered", TestTimerSourceRegistered);
         TR.Run("VectorAllocator_ReturnsDistinctDynamicVectors", TestVectorAllocatorDistinct);
+        TR.Run("VectorAllocator_ReusesFreedSlots", TestVectorAllocatorReusesFreedSlots);
         TR.Run("TimerInterrupt_WakesSleepingThread", TestTimerInterruptWakesSleepingThread);
 
 #if ARCH_X64
@@ -138,6 +139,57 @@ public class Kernel : Sys.Kernel
 
         Assert.True(elapsedMs >= 100 && elapsedMs <= 800,
             "a 200ms scheduler sleep should resume in roughly 200ms via the timer IRQ");
+    }
+
+    // Fills the dynamic range to exhaustion, frees one slot, and proves the
+    // allocator's wrap pass hands the freed slot back out — the behavior the
+    // wrap-scan comment always promised but that FreeVector only now makes
+    // possible. Frees everything it allocated so later cells see a clean
+    // allocator.
+    private static void TestVectorAllocatorReusesFreedSlots()
+    {
+        byte[] allocated = new byte[256];
+        int count = 0;
+        while (count < allocated.Length)
+        {
+            byte v = TryAllocateVector();
+            if (v == 0)
+            {
+                break;
+            }
+            allocated[count++] = v;
+        }
+
+        Assert.True(count > 0, "the dynamic range should not already be exhausted");
+
+        byte freed = allocated[count / 2];
+        InterruptManager.FreeVector(freed);
+        byte reused = TryAllocateVector();
+
+        // Free every vector this cell allocated before asserting, so a
+        // failure doesn't leave the allocator exhausted for later cells.
+        for (int i = 0; i < count; i++)
+        {
+            InterruptManager.FreeVector(allocated[i]);
+        }
+        InterruptManager.FreeVector(reused);
+
+        Assert.True(reused == freed, "after exhaustion, the allocator must reuse the freed slot");
+    }
+
+    // Single try/catch in its own helper (arm64 EH dispatch mismatches the
+    // clause when try/catch blocks share a frame with other locals). Returns
+    // 0 (an out-of-range vector) on exhaustion.
+    private static byte TryAllocateVector()
+    {
+        try
+        {
+            return InterruptManager.AllocateVector(NoopHandler);
+        }
+        catch (InvalidOperationException)
+        {
+            return 0;
+        }
     }
 
     private static void NoopHandler(ref IRQContext context)
