@@ -49,7 +49,10 @@ public static class LocalApic
 
     // SVR bits
     private const uint SVR_ENABLE = 0x100;        // APIC Software Enable
-    private const byte SPURIOUS_VECTOR = 0xFF;    // Spurious interrupt vector
+    // Public: the dispatch path must recognize spurious deliveries — the
+    // SDM forbids EOI for them (no ISR bit is set, so an EOI would retire
+    // whatever real interrupt is currently in service instead).
+    public const byte SPURIOUS_VECTOR = 0xFF;     // Spurious interrupt vector
 
     private static ulong _baseAddress;
     private static bool _initialized;

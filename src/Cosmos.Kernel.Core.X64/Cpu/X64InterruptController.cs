@@ -40,8 +40,11 @@ public class X64InterruptController : IInterruptController
             {
                 handler(ref ctx);
 
-                // Send EOI for hardware IRQs (vector >= 32)
-                if (ctx.interrupt >= 32 && IsInitialized)
+                // Send EOI for hardware IRQs (vector >= 32) — but never for
+                // the APIC spurious vector: a spurious delivery sets no ISR
+                // bit, so an EOI here would retire whichever real interrupt
+                // is currently in service (SDM 3A §11.9).
+                if (ctx.interrupt >= 32 && ctx.interrupt != LocalApic.SPURIOUS_VECTOR && IsInitialized)
                 {
                     SendEOI();
 
@@ -69,8 +72,11 @@ public class X64InterruptController : IInterruptController
             return;
         }
 
-        // Send EOI even for unhandled hardware interrupts to prevent lockup
-        if (ctx.interrupt >= 32 && IsInitialized)
+        // Send EOI even for unhandled hardware interrupts to prevent lockup.
+        // The spurious vector is the exception (see above): it arrives here
+        // because nothing registers a handler for it, and it must be
+        // dismissed without EOI.
+        if (ctx.interrupt >= 32 && ctx.interrupt != LocalApic.SPURIOUS_VECTOR && IsInitialized)
         {
             SendEOI();
         }
