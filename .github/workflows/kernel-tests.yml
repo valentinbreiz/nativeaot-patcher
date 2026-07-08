@@ -360,7 +360,12 @@ jobs:
       kernel_path: tests/Kernels/Cosmos.Kernel.Tests.Interrupts
       timeout_x64: 60
       timeout_arm64: 90
-      step_timeout_minutes: 5
+      # arm64 expands to 3 profile cells (bare/gicv2/gicv3) × up to 90 s of
+      # QEMU each, plus the publish/ILC/ISO build in the same step. 5 min
+      # left no headroom: hung cells — the case the QEMU timeouts exist
+      # for — killed the step before OutputHandlerXml wrote results, and
+      # the results job showed "No results" instead of the failing cells.
+      step_timeout_minutes: 10
 
   interrupts-results:
     needs: interrupts-tests
