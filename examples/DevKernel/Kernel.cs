@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
@@ -1222,25 +1223,46 @@ public class Kernel : Sys.Kernel
             return;
         }
 
+        // Save the original contents so the roundtrip is non-destructive on
+        // whatever image is attached.
+        Span<byte> original = new byte[dev.BlockSize];
+        dev.ReadBlock(lba, 1, original);
+
+        // Tick-derived seed: with a fixed pattern the test false-passes on
+        // repeat runs — after one success the pattern persists on the image,
+        // so a driver whose writes silently no-op would still read the stale
+        // pattern back.
+        byte seed = (byte)Stopwatch.GetTimestamp();
         Span<byte> writeBuf = new byte[dev.BlockSize];
         for (int i = 0; i < (int)dev.BlockSize; i++)
         {
-            writeBuf[i] = (byte)(i ^ 0x5A);
+            writeBuf[i] = (byte)(i ^ seed);
         }
         dev.WriteBlock(lba, 1, writeBuf);
 
         Span<byte> readBuf = new byte[dev.BlockSize];
         dev.ReadBlock(lba, 1, readBuf);
 
+        int mismatch = -1;
         for (int i = 0; i < (int)dev.BlockSize; i++)
         {
             if (writeBuf[i] != readBuf[i])
             {
-                PrintError($"Mismatch at byte {i}: wrote 0x{writeBuf[i]:X2}, read 0x{readBuf[i]:X2}.");
-                return;
+                mismatch = i;
+                break;
             }
         }
-        PrintSuccess($"Disk W/R roundtrip OK at LBA {lba} ({dev.BlockSize} bytes).");
+
+        // Restore before reporting so even a failed compare leaves the
+        // image as we found it.
+        dev.WriteBlock(lba, 1, original);
+
+        if (mismatch >= 0)
+        {
+            PrintError($"Mismatch at byte {mismatch}: wrote 0x{writeBuf[mismatch]:X2}, read 0x{readBuf[mismatch]:X2}.");
+            return;
+        }
+        PrintSuccess($"Disk W/R roundtrip OK at LBA {lba} ({dev.BlockSize} bytes, seed 0x{seed:X2}), original contents restored.");
     }
 
     private void PrintInfo(string message)
