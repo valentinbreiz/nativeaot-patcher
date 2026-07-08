@@ -546,6 +546,16 @@ public static unsafe class GICv3Its
         _cmdLock.Release();
     }
 
+    // Hang-breaker for the CREADR poll below, in loop iterations (one MMIO
+    // read each), not time: a healthy ITS consumes a handful of queued
+    // commands in microseconds, so ~10M reads (seconds-order even on slow
+    // buses) is orders of magnitude past any legitimate completion and only
+    // trips when the ITS is wedged. Deliberately not time-calibrated: this
+    // runs during early interrupt bring-up, before any timer facility is
+    // usable from Core.ARM64 (PlatformHAL.DelayMicroseconds lives a layer
+    // above and can't be referenced from here).
+    private const int CommandFlushSpinLimit = 10_000_000;
+
     /// <summary>
     /// Publish the new write offset and spin until the ITS has consumed
     /// every command we posted (CWRITER == CREADR).
@@ -559,7 +569,7 @@ public static unsafe class GICv3Its
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_itsBase + GITS_CWRITER, _cmdWriteOff);
 
-        for (int i = 0; i < 10_000_000; i++)
+        for (int i = 0; i < CommandFlushSpinLimit; i++)
         {
             ulong reader = Native.MMIO.Read64(_itsBase + GITS_CREADR);
             if ((reader & CREADR_OFFSET_MASK) == _cmdWriteOff)
