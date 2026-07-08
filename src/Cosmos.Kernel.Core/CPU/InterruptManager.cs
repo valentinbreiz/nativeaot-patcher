@@ -57,14 +57,29 @@ public static class InterruptManager
             Serial.Write("[InterruptManager] ERROR: s_irqHandlers is null! Initialize() must be called first.\n");
             return;
         }
-        s_irqHandlers[vector] = handler;
+
+        // Same lock as AllocateVector/FreeVector: an unlocked write here
+        // could land mid-scan and stomp a slot the allocator just claimed,
+        // silently dropping one of the two handlers.
+        s_allocLock.Acquire();
+        try
+        {
+            s_irqHandlers[vector] = handler;
+        }
+        finally
+        {
+            s_allocLock.Release();
+        }
     }
 
     // Dynamic vector allocations (MSI / MSI-X) start above the legacy
     // ISA-IRQ window (0x20–0x2F) and any future arch-reserved range
-    // (0x30–0x3F), and stop one short of the APIC spurious vector 0xFF.
+    // (0x30–0x3F), and stop below the platform-claimed high vectors: the
+    // x64 LAPIC timer (0xEF) and APIC spurious (0xFF) are registered via
+    // SetHandler and must never be handed out — or freed — as dynamic
+    // slots.
     private const byte DynamicVectorMin = 0x40;
-    private const byte DynamicVectorMax = 0xFE;
+    private const byte DynamicVectorMax = 0xEE;
     private static int s_nextDynamicVector = DynamicVectorMin;
 
     // Guards s_irqHandlers RMW in AllocateVector so concurrent device probes
@@ -72,7 +87,7 @@ public static class InterruptManager
     private static Scheduler.SpinLock s_allocLock;
 
     /// <summary>
-    /// Allocates an unused interrupt vector in [0x40..0xFE], registers
+    /// Allocates an unused interrupt vector in [0x40..0xEE], registers
     /// <paramref name="handler"/> for it, and returns the vector. Used by
     /// MSI / MSI-X programmers that need a fresh vector unique to their
     /// device. Throws if the dynamic range is exhausted.
@@ -118,9 +133,10 @@ public static class InterruptManager
     /// Releases a vector previously returned by <see cref="AllocateVector"/>:
     /// clears its handler so the slot can be handed out again (the
     /// allocator's wrap pass picks freed slots back up). Without this, every
-    /// consumer teardown would permanently leak one of the 191 dynamic slots
+    /// consumer teardown would permanently leak one of the 175 dynamic slots
     /// and leave a stale delegate rooted — and invokable — in the table.
-    /// Vectors outside the dynamic range are ignored.
+    /// Vectors outside the dynamic range — including the platform-claimed
+    /// LAPIC timer and spurious vectors above it — are ignored.
     /// </summary>
     public static void FreeVector(byte vector)
     {

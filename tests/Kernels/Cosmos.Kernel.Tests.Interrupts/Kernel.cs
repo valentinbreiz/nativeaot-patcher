@@ -30,8 +30,8 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 6 cross-arch + 5 arch-specific = 11 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 11);
+        // 6 cross-arch + 6 arch-specific = 12 tests per cell.
+        TR.Start("Interrupt System Tests", expectedTests: 12);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
@@ -48,6 +48,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableX64);
         TR.Run("IrqExit_ReschedulesSignaledWaiter", TestIrqExitReschedulesSignaledWaiter);
         TR.Run("Msi_AddressTargetsRunningLapic", TestMsiAddressTargetsRunningLapic);
+        TR.Run("TimerVector_OutsideDynamicWindow", TestTimerVectorOutsideDynamicWindow);
 #else
         // ==================== arm64 (GIC, per cell's gic-version) ====================
         TR.Run("Gic_Initialized", TestGicInitialized);
@@ -77,6 +78,7 @@ public class Kernel : Sys.Kernel
         // ISR-context trigger it needs (LAPIC self-IPI) only exists on x64.
         TR.Skip("IrqExit_ReschedulesSignaledWaiter", "self-IPI harness is x64-only");
         TR.Skip("Msi_AddressTargetsRunningLapic", "LAPIC MSI address contract is x64-only");
+        TR.Skip("TimerVector_OutsideDynamicWindow", "LAPIC timer vector is x64-only");
 #endif
 
         TR.Finish();
@@ -404,6 +406,51 @@ public class Kernel : Sys.Kernel
         }
 
         _waiterExited = true;
+    }
+
+    // The scheduler timer claims LocalApic.TIMER_VECTOR (0xEF) through
+    // SetHandler, so it must live OUTSIDE the dynamic allocation window:
+    // inside it, FreeVector would happily unregister the running timer
+    // handler and the allocator would then hand the scheduler's vector to
+    // the next MSI consumer. This cell attempts exactly that abuse: free
+    // the timer vector, exhaust the allocator, and assert the timer's slot
+    // was never handed out. Re-registers the timer handler unconditionally
+    // on the way out so a failing run heals itself.
+    private static void TestTimerVectorOutsideDynamicWindow()
+    {
+        InterruptManager.FreeVector(LocalApic.TIMER_VECTOR);
+
+        byte[] allocated = new byte[256];
+        int count = 0;
+        bool timerVectorHandedOut = false;
+        while (count < allocated.Length)
+        {
+            byte v = TryAllocateVector();
+            if (v == 0)
+            {
+                break;
+            }
+
+            if (v == LocalApic.TIMER_VECTOR)
+            {
+                timerVectorHandedOut = true;
+            }
+
+            allocated[count++] = v;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            InterruptManager.FreeVector(allocated[i]);
+        }
+
+        // Heal before asserting: on a buggy kernel the FreeVector above
+        // really did strip the scheduler timer's handler.
+        LocalApic.RegisterTimerHandler();
+
+        Assert.True(count > 0, "the dynamic range should not already be exhausted");
+        Assert.True(!timerVectorHandedOut,
+            "the LAPIC timer vector must be outside the dynamic window — FreeVector+AllocateVector must never touch it");
     }
 
 #else
