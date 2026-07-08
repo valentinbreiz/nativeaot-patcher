@@ -106,6 +106,12 @@ public static class QemuLauncher
             args.Append($"-L \"{shareQemu}\" ");
         }
 
+        RejectQuotes(options.IsoPath, "ISO path");
+        if (options.SerialOutputFile is not null)
+        {
+            RejectQuotes(options.SerialOutputFile, "serial output path");
+        }
+
         if (options.Architecture == "x64")
         {
             AppendX64Args(args, options);
@@ -162,7 +168,7 @@ public static class QemuLauncher
         // any attached HDDs whose 0xAA55 MBR signature would otherwise
         // satisfy the BIOS and hang when their boot code is empty (the case
         // for our Mbr.Create / Gpt protective-MBR writes).
-        args.Append($" -drive file=\"{options.IsoPath}\",if=none,id=cosmoscd,format=raw,readonly=on");
+        args.Append($" -drive file=\"{EscapeDriveFileValue(options.IsoPath)}\",if=none,id=cosmoscd,format=raw,readonly=on");
         args.Append(" -device ide-cd,drive=cosmoscd,bootindex=0");
         args.Append(" -boot d -no-reboot");
         if (!options.AllowGuestShutdown)
@@ -186,6 +192,9 @@ public static class QemuLauncher
         AppendMachineOptions(args, options.MachineOptions);
         args.Append($" -cpu cortex-a72 -m {options.MemoryMb}M");
         args.Append(" -bios edk2-aarch64-code.fd");
+        // -cdrom takes its filename verbatim (no option parsing), so commas
+        // must NOT be doubled here — only the quote rejection in BuildAsync
+        // applies.
         args.Append($" -cdrom \"{options.IsoPath}\"");
         args.Append(" -boot d -no-reboot");
         // ramfb is required for Limine framebuffer support even when headless.
@@ -197,6 +206,8 @@ public static class QemuLauncher
     {
         foreach (KeyValuePair<string, string> kv in opts)
         {
+            ValidateOptionToken(kv.Key, "machine option key");
+            ValidateOptionToken(kv.Value, "machine option value");
             args.Append(',');
             args.Append(kv.Key);
             args.Append('=');
@@ -212,7 +223,7 @@ public static class QemuLauncher
     /// appended after the standard device properties so profiles can flip
     /// things like <c>msix=off</c>.
     /// </summary>
-    private static void AppendStorageArgs(StringBuilder args, QemuLaunchOptions options)
+    internal static void AppendStorageArgs(StringBuilder args, QemuLaunchOptions options)
     {
         int ahciIndex = 0;
         int nvmeIndex = 0;
@@ -228,14 +239,14 @@ public static class QemuLauncher
                         args.Append(" -device ich9-ahci,id=ahci0");
                         ahciControllerEmitted = true;
                     }
-                    args.Append($" -drive file=\"{disk.Path}\",if=none,id=ahcidisk{ahciIndex},format=raw");
+                    args.Append($" -drive file=\"{EscapeDriveFileValue(disk.Path)}\",if=none,id=ahcidisk{ahciIndex},format=raw");
                     args.Append($" -device ide-hd,drive=ahcidisk{ahciIndex},bus=ahci0.{ahciIndex}");
                     AppendDeviceOptions(args, disk.ExtraDeviceOptions);
                     ahciIndex++;
                     break;
 
                 case DiskKind.Nvme:
-                    args.Append($" -drive file=\"{disk.Path}\",if=none,id=nvmedisk{nvmeIndex},format=raw");
+                    args.Append($" -drive file=\"{EscapeDriveFileValue(disk.Path)}\",if=none,id=nvmedisk{nvmeIndex},format=raw");
                     args.Append($" -device nvme,id=nvme{nvmeIndex},drive=nvmedisk{nvmeIndex},serial=cosmos-nvme-{nvmeIndex}");
                     AppendDeviceOptions(args, disk.ExtraDeviceOptions);
                     nvmeIndex++;
@@ -244,7 +255,7 @@ public static class QemuLauncher
         }
     }
 
-    private static void AppendDeviceOptions(StringBuilder args, string extra)
+    internal static void AppendDeviceOptions(StringBuilder args, string extra)
     {
         if (string.IsNullOrWhiteSpace(extra))
         {
@@ -253,11 +264,52 @@ public static class QemuLauncher
         // Allow callers to pass "msix=off" or ",msix=off" — normalize to a
         // single leading comma so it splices cleanly onto the -device line.
         string trimmed = extra.Trim();
+        ValidateOptionToken(trimmed, "ExtraDeviceOptions");
         if (!trimmed.StartsWith(','))
         {
             args.Append(',');
         }
         args.Append(trimmed);
+    }
+
+    /// <summary>
+    /// Validates and escapes a path spliced into a QEMU <c>-drive file=</c>
+    /// value: commas are doubled (QEMU's option-parser escape — an unescaped
+    /// comma truncates the filename and turns the remainder into bogus drive
+    /// options), and quotes are rejected because the surrounding
+    /// <c>file="…"</c> token has no way to carry one through the argument
+    /// string. Do not use for <c>-cdrom</c>, whose filename QEMU takes
+    /// verbatim.
+    /// </summary>
+    internal static string EscapeDriveFileValue(string path)
+    {
+        RejectQuotes(path, "drive path");
+        return path.Replace(",", ",,");
+    }
+
+    private static void RejectQuotes(string value, string what)
+    {
+        if (value.Contains('"'))
+        {
+            throw new ArgumentException($"QEMU {what} cannot contain a double quote: {value}");
+        }
+    }
+
+    // QEMU option splices (-M properties, -device properties) only ever need
+    // [A-Za-z0-9_.,=-]. Anything else — whitespace above all — would leave
+    // the current token and splice new arguments into the command line, so
+    // reject it instead of passing it through.
+    private static void ValidateOptionToken(string value, string what)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (!char.IsAsciiLetterOrDigit(c) && c is not ('_' or '.' or ',' or '=' or '-'))
+            {
+                throw new ArgumentException(
+                    $"{what} may only contain [A-Za-z0-9_.,=-], found '{c}' in: {value}");
+            }
+        }
     }
 
     public static ProcessStartInfo ToProcessStartInfo(QemuLaunchPlan plan)
