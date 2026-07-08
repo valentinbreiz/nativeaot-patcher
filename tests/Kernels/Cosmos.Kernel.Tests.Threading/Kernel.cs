@@ -330,6 +330,7 @@ public class Kernel : Sys.Kernel
     private static volatile bool _mutexWorkerHolding;
     private static volatile bool _mutexMainContending;
     private static volatile bool _mutexTestDone;
+    private static volatile bool _mutexWorkerExited;
 
     private static void TestMutexIdleThreadContention()
     {
@@ -343,6 +344,7 @@ public class Kernel : Sys.Kernel
         _mutexWorkerHolding = false;
         _mutexMainContending = false;
         _mutexTestDone = false;
+        _mutexWorkerExited = false;
 
         var worker = new global::System.Threading.Thread(MutexIdleWorker);
         worker.Start();
@@ -365,6 +367,16 @@ public class Kernel : Sys.Kernel
         ulong after = cpuData.TotalTickets;
         _mutexTestDone = true;
 
+        // Keep the cell hermetic: wait for the worker to leave its spin and
+        // give its exit path time to finish inside THIS cell, so the
+        // scheduler bookkeeping of the exit can't interleave with the next
+        // cell's thread creation.
+        for (int i = 0; i < 100 && !_mutexWorkerExited; i++)
+        {
+            TimerManager.Wait(50);
+        }
+        TimerManager.Wait(200);
+
         Assert.True(before == after, "idle-thread contention must not drift TotalTickets");
     }
 
@@ -384,6 +396,7 @@ public class Kernel : Sys.Kernel
         {
             // stay runnable until the main thread has sampled TotalTickets
         }
+        _mutexWorkerExited = true;
     }
 
     // ===== Multi-waiter paths (List<Thread> scans on non-empty lists) =====
@@ -421,6 +434,7 @@ public class Kernel : Sys.Kernel
         {
             TimerManager.Wait(50);
         }
+        TimerManager.Wait(200);
         Assert.True(_waiterAWoke && _waiterBWoke, "both parked waiters must be woken by two signals");
     }
 
@@ -460,6 +474,7 @@ public class Kernel : Sys.Kernel
         {
             TimerManager.Wait(50);
         }
+        TimerManager.Wait(200);
         Assert.Equal(3, _contenderAcquisitions, "all three contenders must acquire the mutex in turn");
     }
 
@@ -516,6 +531,11 @@ public class Kernel : Sys.Kernel
         {
             TimerManager.Wait(50);
         }
+
+        // Exit grace: both worker threads finished their work above; give
+        // their exit paths time to complete inside this cell (see the
+        // idle-contention cell for the rationale).
+        TimerManager.Wait(200);
 
         Assert.Equal(0, _handoffBargeResult,
             "Release must hand the mutex to the parked waiter; the releaser's immediate TryAcquire barged in");
