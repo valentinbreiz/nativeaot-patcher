@@ -63,7 +63,14 @@ jobs:
           def parse(path):
               if not os.path.exists(path):
                   return None
-              root = ET.parse(path).getroot()
+              # A run step killed mid-write (step timeout) leaves truncated
+              # XML; ET.parse raises where the old grep parser shrugged.
+              # Degrade this arch to the "No results" cell instead of
+              # failing the whole step and losing the OTHER arch's results.
+              try:
+                  root = ET.parse(path).getroot()
+              except (ET.ParseError, OSError):
+                  return None
               cells = {}
               skips = Counter()
               fails = []
