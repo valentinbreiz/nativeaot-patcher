@@ -24,7 +24,13 @@ internal sealed class X64MsiBinder : IMsiBinder
                           uint targetCpu, out ulong address, out uint data)
     {
         byte vector = InterruptManager.AllocateVector(handler);
-        byte apicId = (byte)targetCpu;
+        // The CPU index is not the LAPIC destination ID: the BSP's APIC ID
+        // is not architecturally guaranteed to be 0 (QEMU's is; real
+        // multi-socket parts often differ), and an MSI aimed at a
+        // nonexistent LAPIC is silently dropped. Until SMP brings a
+        // MADT-backed index→APIC-ID map, resolve the boot CPU's real ID at
+        // bind time; other indices are unreachable today (single-CPU).
+        byte apicId = targetCpu == 0 ? LocalApic.GetId() : (byte)targetCpu;
         address = 0xFEE00000UL | ((ulong)apicId << 12);
         data = vector;
     }

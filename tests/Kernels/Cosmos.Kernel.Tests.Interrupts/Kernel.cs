@@ -28,8 +28,8 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Interrupts] BeforeRun() reached!\n");
 
-        // 4 cross-arch + 4 arch-specific = 8 tests per cell.
-        TR.Start("Interrupt System Tests", expectedTests: 8);
+        // 4 cross-arch + 5 arch-specific = 9 tests per cell.
+        TR.Start("Interrupt System Tests", expectedTests: 9);
 
         // ==================== Cross-arch ====================
         TR.Run("InterruptManager_Enabled", TestInterruptManagerEnabled);
@@ -43,6 +43,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Lapic_TimerCalibrated", TestLapicTimerCalibrated);
         TR.Run("Msi_RoutingAvailable", TestMsiRoutingAvailableX64);
         TR.Run("IrqExit_ReschedulesSignaledWaiter", TestIrqExitReschedulesSignaledWaiter);
+        TR.Run("Msi_AddressTargetsRunningLapic", TestMsiAddressTargetsRunningLapic);
 #else
         // ==================== arm64 (GIC, per cell's gic-version) ====================
         TR.Run("Gic_Initialized", TestGicInitialized);
@@ -71,6 +72,7 @@ public class Kernel : Sys.Kernel
         // The IRQ-exit reschedule path is cross-arch, but the on-demand
         // ISR-context trigger it needs (LAPIC self-IPI) only exists on x64.
         TR.Skip("IrqExit_ReschedulesSignaledWaiter", "self-IPI harness is x64-only");
+        TR.Skip("Msi_AddressTargetsRunningLapic", "LAPIC MSI address contract is x64-only");
 #endif
 
         TR.Finish();
@@ -231,6 +233,22 @@ public class Kernel : Sys.Kernel
         // two regimes with wide margin on a loaded CI host.
         Assert.True(worstUs < 2_000,
             "an ISR-side Signal must wake the parked waiter at IRQ exit, not at the next timer tick");
+    }
+
+    // Pins the MSI address contract: the destination field must carry the
+    // running CPU's ACTUAL APIC ID (LocalApic.GetId()), not its scheduler
+    // index. QEMU's BSP APIC ID is 0, so this cell cannot fail there today —
+    // it exists to catch the index-as-ID shortcut on any machine (or future
+    // emulator config) whose BSP APIC ID is nonzero, where the mistake makes
+    // device MSIs silently target a nonexistent LAPIC.
+    private static void TestMsiAddressTargetsRunningLapic()
+    {
+        MsiRouting.BindEntry(null, 0, NoopHandler, 0, out ulong address, out uint data);
+
+        Assert.True((address & 0xFFF00000UL) == 0xFEE00000UL, "MSI doorbell must sit in the LAPIC address window");
+        byte destination = (byte)((address >> 12) & 0xFF);
+        Assert.True(destination == LocalApic.GetId(), "MSI destination must be the running CPU's actual APIC ID, not its index");
+        Assert.True(data != 0, "MSI data must carry the allocated vector");
     }
 
     private static void IrqLatencyWaiter()
