@@ -78,44 +78,107 @@ public static class FatDirectory
     /// <summary>ASCII distance between upper- and lower-case letters.</summary>
     private const int CaseDistance = 32;
 
+    /// <summary>Bit marking the last (highest-ordinal) entry of an LFN chain.</summary>
     private const byte LfnLastBit = 0x40;
+
+    /// <summary>UCS-2 characters carried per LFN entry (5 + 6 + 2).</summary>
     private const int LfnCharsPerEntry = 13;
 
-    public static List<FatDirEntry> Parse(ReadOnlySpan<byte> buffer)
+    /// <summary>Maximum LFN entries per name (255 chars / 13 per entry).</summary>
+    private const int MaxLfnEntries = 20;
+
+    /// <summary>Longest name the LFN format allows.</summary>
+    public const int MaxLfnNameLength = 255;
+
+    /// <summary>The ordinal field is the low 6 bits of the LFN sequence byte.</summary>
+    private const byte LfnOrdinalMask = 0x3F;
+
+    /// <summary>Byte offset of the LFN type field (always 0).</summary>
+    private const int LfnTypeOffset = 12;
+
+    /// <summary>Byte offset of the 8.3-name checksum within an LFN entry.</summary>
+    private const int LfnChecksumOffset = 13;
+
+    /// <summary>First LFN name region: offset / byte length (5 UCS-2 chars).</summary>
+    private const int LfnName1Offset = 1;
+    private const int LfnName1Bytes = 10;
+
+    /// <summary>Second LFN name region: offset / byte length (6 UCS-2 chars).</summary>
+    private const int LfnName2Offset = 14;
+    private const int LfnName2Bytes = 12;
+
+    /// <summary>Third LFN name region: offset / byte length (2 UCS-2 chars).</summary>
+    private const int LfnName3Offset = 28;
+    private const int LfnName3Bytes = 4;
+
+    /// <summary>Space, the 8.3 pad byte.</summary>
+    private const byte PadByte = 0x20;
+
+    /// <summary>Stored first byte substituting a real 0xE5 (Kanji lead byte).</summary>
+    private const byte KanjiLeadSubstitute = 0x05;
+
+    /// <summary>Length of the 8.3 base name field.</summary>
+    private const int ShortBaseLength = 8;
+
+    /// <summary>Length of the 8.3 extension field.</summary>
+    private const int ShortExtLength = 3;
+
+    /// <summary>Length of the full 8.3 name field.</summary>
+    private const int ShortNameLength = 11;
+
+    /// <summary>Longest rendered 8.3 name: 8 base + dot + 3 extension.</summary>
+    private const int MaxShortNameChars = 12;
+
+    /// <summary>
+    /// Parse the raw directory data. <paramref name="fat32"/> selects
+    /// whether the FstClusHI word participates in <see cref="FatDirEntry.FirstCluster"/> —
+    /// on FAT12/16 that field is reserved (OS/2/NT stored the EA handle
+    /// there) and must be ignored.
+    /// </summary>
+    public static List<FatDirEntry> Parse(ReadOnlySpan<byte> buffer, bool fat32)
     {
         List<FatDirEntry> result = new();
-        Span<char> lfnAccum = stackalloc char[LfnCharsPerEntry * 20];
+        Span<char> lfnAccum = stackalloc char[LfnCharsPerEntry * MaxLfnEntries];
         int lfnLength = 0;
         int lfnEntryCount = 0;
+        byte lfnChecksum = 0;
 
         for (int offset = 0; offset + EntrySize <= buffer.Length; offset += EntrySize)
         {
             byte first = buffer[offset];
-            if (first == 0x00)
+            if (first == EndOfDirectoryMarker)
             {
                 break;
             }
 
             if (first == DeletedMarker)
             {
+                lfnAccum.Clear();
                 lfnLength = 0;
                 lfnEntryCount = 0;
                 continue;
             }
 
-            FatAttr attr = (FatAttr)buffer[offset + 11];
+            FatAttr attr = (FatAttr)buffer[offset + AttributesOffset];
 
             if (attr == FatAttr.Lfn)
             {
+                // LFN metadata is untrusted: validate the 6-bit ordinal
+                // and require one checksum across the chain, or a stale
+                // accumulator splices two names together.
                 byte sequence = buffer[offset];
-                int seqIndex = (sequence & 0x1F) - 1;
-                if (seqIndex < 0 || seqIndex >= 20)
+                int seqIndex = (sequence & LfnOrdinalMask) - 1;
+                byte checksum = buffer[offset + LfnChecksumOffset];
+                if (seqIndex < 0 || seqIndex >= MaxLfnEntries
+                    || (lfnEntryCount > 0 && checksum != lfnChecksum))
                 {
+                    lfnAccum.Clear();
                     lfnLength = 0;
                     lfnEntryCount = 0;
                     continue;
                 }
 
+                lfnChecksum = checksum;
                 int destBase = seqIndex * LfnCharsPerEntry;
                 ReadLfnChars(buffer.Slice(offset, EntrySize), lfnAccum.Slice(destBase, LfnCharsPerEntry));
 
@@ -128,15 +191,26 @@ public static class FatDirectory
                 continue;
             }
 
-            string shortName = DecodeShortName(buffer.Slice(offset, 11), first);
-            string longName = lfnLength > 0
+            string shortName = DecodeShortName(buffer.Slice(offset, ShortNameLength), first);
+
+            // An LFN chain only belongs to this record when its checksum
+            // matches the 8.3 name; otherwise it is an orphan left by a
+            // non-LFN-aware tool and must not lend its name (or its slot
+            // count, which drives deletion) to this entry.
+            bool lfnValid = lfnLength > 0
+                && lfnChecksum == ComputeShortChecksum(buffer.Slice(offset, ShortNameLength));
+            string longName = lfnValid
                 ? TrimLfn(lfnAccum.Slice(0, lfnLength))
                 : shortName;
 
-            uint firstClusterHigh = BitConverter.ToUInt16(buffer.Slice(offset + 20, 2));
-            uint firstClusterLow = BitConverter.ToUInt16(buffer.Slice(offset + 26, 2));
-            uint firstCluster = (firstClusterHigh << 16) | firstClusterLow;
-            uint size = BitConverter.ToUInt32(buffer.Slice(offset + 28, 4));
+            uint firstClusterLow = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterLowOffset, 2));
+            uint firstCluster = firstClusterLow;
+            if (fat32)
+            {
+                uint firstClusterHigh = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterHighOffset, 2));
+                firstCluster |= firstClusterHigh << 16;
+            }
+            uint size = BitConverter.ToUInt32(buffer.Slice(offset + SizeOffset, 4));
 
             result.Add(new FatDirEntry(
                 longName,
@@ -145,8 +219,9 @@ public static class FatDirectory
                 firstCluster,
                 size,
                 offset,
-                lfnEntryCount));
+                lfnValid ? lfnEntryCount : 0));
 
+            lfnAccum.Clear();
             lfnLength = 0;
             lfnEntryCount = 0;
         }
@@ -154,17 +229,40 @@ public static class FatDirectory
         return result;
     }
 
-    /// <summary>Locate the first free entry slot (deleted or unused) where
-    /// <paramref name="entriesNeeded"/> consecutive 32-byte slots fit.</summary>
-    public static int FindFreeRun(ReadOnlySpan<byte> buffer, int entriesNeeded)
+    /// <summary>
+    /// Locate the first free entry slot (deleted or unused) where
+    /// <paramref name="entriesNeeded"/> consecutive 32-byte slots fit.
+    /// Per spec the 0x00 terminator frees its own slot and everything
+    /// after it, so scanning stops there and the remaining buffer counts
+    /// as one free region — stale bytes past the terminator must never
+    /// reset the run (or be treated as occupied). When the returned run
+    /// overlaps the terminator, <paramref name="consumedTerminator"/> is
+    /// true and the caller must re-terminate after the new entries.
+    /// </summary>
+    public static int FindFreeRun(ReadOnlySpan<byte> buffer, int entriesNeeded, out bool consumedTerminator)
     {
+        consumedTerminator = false;
         int run = 0;
         int runStart = -1;
 
         for (int offset = 0; offset + EntrySize <= buffer.Length; offset += EntrySize)
         {
             byte first = buffer[offset];
-            if (first == 0x00 || first == DeletedMarker)
+            if (first == EndOfDirectoryMarker)
+            {
+                if (run == 0)
+                {
+                    runStart = offset;
+                }
+                int available = run + (buffer.Length - offset) / EntrySize;
+                if (available >= entriesNeeded)
+                {
+                    consumedTerminator = runStart + entriesNeeded * EntrySize > offset;
+                    return runStart;
+                }
+                return -1;
+            }
+            if (first == DeletedMarker)
             {
                 if (run == 0)
                 {
@@ -186,7 +284,7 @@ public static class FatDirectory
         return -1;
     }
 
-    public static int LfnEntryCountFor(string name)
+    public static int LfnEntryCountFor(ReadOnlySpan<char> name)
     {
         if (FitsInShortName(name))
         {
@@ -207,13 +305,13 @@ public static class FatDirectory
         Span<byte> entry = dest.Slice(offset, EntrySize);
         entry.Clear();
 
-        for (int i = 0; i < 11 && i < shortName11.Length; i++)
+        for (int i = 0; i < ShortNameLength && i < shortName11.Length; i++)
         {
             entry[i] = (byte)shortName11[i];
         }
-        for (int i = shortName11.Length; i < 11; i++)
+        for (int i = shortName11.Length; i < ShortNameLength; i++)
         {
-            entry[i] = 0x20;
+            entry[i] = PadByte;
         }
 
         entry[AttributesOffset] = (byte)attributes;
@@ -258,7 +356,15 @@ public static class FatDirectory
         ReadOnlySpan<char> longName,
         ReadOnlySpan<char> shortName11)
     {
-        int entries = LfnEntryCountFor(longName.ToString());
+        // Writer-side rejection: 255 UCS-2 chars is the LFN cap, and our
+        // own parser drops ordinals past 20 — longer names would leave
+        // orphaned LFN slots behind on deletion.
+        if (longName.Length > MaxLfnNameLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(longName), "LFN names are limited to 255 characters.");
+        }
+
+        int entries = LfnEntryCountFor(longName);
         if (entries == 0)
         {
             return;
@@ -296,30 +402,49 @@ public static class FatDirectory
             Span<byte> entry = dest.Slice(offset + i * EntrySize, EntrySize);
             entry.Clear();
             entry[0] = sequence;
-            entry[11] = (byte)FatAttr.Lfn;
-            entry[12] = 0;
-            entry[13] = checksum;
+            entry[AttributesOffset] = (byte)FatAttr.Lfn;
+            entry[LfnTypeOffset] = 0;
+            entry[LfnChecksumOffset] = checksum;
 
-            WriteUcs2(chunk.Slice(0, 5), entry.Slice(1, 10));
-            WriteUcs2(chunk.Slice(5, 6), entry.Slice(14, 12));
-            WriteUcs2(chunk.Slice(11, 2), entry.Slice(28, 4));
+            WriteUcs2(chunk.Slice(0, 5), entry.Slice(LfnName1Offset, LfnName1Bytes));
+            WriteUcs2(chunk.Slice(5, 6), entry.Slice(LfnName2Offset, LfnName2Bytes));
+            WriteUcs2(chunk.Slice(11, 2), entry.Slice(LfnName3Offset, LfnName3Bytes));
         }
     }
 
     public static byte ComputeShortChecksum(ReadOnlySpan<char> shortName11)
     {
         byte sum = 0;
-        for (int i = 0; i < 11; i++)
+        for (int i = 0; i < ShortNameLength; i++)
         {
-            byte b = i < shortName11.Length ? (byte)shortName11[i] : (byte)0x20;
+            byte b = i < shortName11.Length ? (byte)shortName11[i] : PadByte;
             sum = (byte)(((sum & 1) != 0 ? 0x80 : 0) + (sum >> 1) + b);
         }
         return sum;
     }
 
-    public static void BuildShortName(string longName, Span<char> dest11)
+    /// <summary>Checksum over the raw 11 on-disk name bytes (fatgen103 algorithm).</summary>
+    public static byte ComputeShortChecksum(ReadOnlySpan<byte> raw11)
     {
-        for (int i = 0; i < 11; i++)
+        byte sum = 0;
+        for (int i = 0; i < ShortNameLength; i++)
+        {
+            sum = (byte)(((sum & 1) != 0 ? 0x80 : 0) + (sum >> 1) + raw11[i]);
+        }
+        return sum;
+    }
+
+    /// <summary>
+    /// Build the 8.3 name for <paramref name="longName"/>. When the name
+    /// does not fit 8.3 as-is, a numeric tail (~1, ~2, ...) is chosen so
+    /// the result collides with no live short name in
+    /// <paramref name="directoryData"/> — duplicate short names are
+    /// invalid on FAT, and short-name lookups would resolve to the wrong
+    /// file.
+    /// </summary>
+    public static void BuildShortName(string longName, Span<char> dest11, ReadOnlySpan<byte> directoryData)
+    {
+        for (int i = 0; i < ShortNameLength; i++)
         {
             dest11[i] = ' ';
         }
@@ -336,38 +461,84 @@ public static class FatDirectory
             : ReadOnlySpan<char>.Empty;
 
         int e = 0;
-        for (int i = 0; i < ext.Length && e < 3; i++)
+        for (int i = 0; i < ext.Length && e < ShortExtLength; i++)
         {
             char c = NormalizeShort(ext[i]);
             if (c != '\0')
             {
-                dest11[8 + e++] = c;
+                dest11[ShortBaseLength + e++] = c;
             }
         }
 
-        bool fits = FitsInShortName(longName);
-        int baseBudget = fits ? 8 : 6;
+        if (FitsInShortName(longName))
+        {
+            int b = 0;
+            for (int i = 0; i < baseName.Length && b < ShortBaseLength; i++)
+            {
+                char c = NormalizeShort(baseName[i]);
+                if (c != '\0')
+                {
+                    dest11[b++] = c;
+                }
+            }
+            return;
+        }
 
-        int b = 0;
-        for (int i = 0; i < baseName.Length && b < baseBudget; i++)
+        // Collect the normalized base once, then probe ~1, ~2, ...
+        // (shrinking the kept base as the tail widens) until the result
+        // is unique within the directory.
+        Span<char> normBase = stackalloc char[ShortBaseLength];
+        int normLen = 0;
+        for (int i = 0; i < baseName.Length && normLen < ShortBaseLength; i++)
         {
             char c = NormalizeShort(baseName[i]);
             if (c != '\0')
             {
-                dest11[b++] = c;
+                normBase[normLen++] = c;
             }
         }
 
-        if (!fits)
+        for (uint tail = 1; ; tail++)
         {
+            int digits = CountDigits(tail);
+            int keep = ShortBaseLength - 1 - digits;
+            if (keep > normLen)
+            {
+                keep = normLen;
+            }
+            if (keep < 0)
+            {
+                keep = 0;
+            }
+
+            int b = 0;
+            for (; b < keep; b++)
+            {
+                dest11[b] = normBase[b];
+            }
             dest11[b++] = '~';
-            dest11[b++] = '1';
+            uint value = tail;
+            for (int i = digits - 1; i >= 0; i--)
+            {
+                dest11[b + i] = (char)('0' + value % 10);
+                value /= 10;
+            }
+            b += digits;
+            for (int i = b; i < ShortBaseLength; i++)
+            {
+                dest11[i] = ' ';
+            }
+
+            if (!ShortNameExists(directoryData, dest11))
+            {
+                return;
+            }
         }
     }
 
-    public static bool FitsInShortName(string name)
+    public static bool FitsInShortName(ReadOnlySpan<char> name)
     {
-        if (string.IsNullOrEmpty(name) || name.Length > 12)
+        if (name.Length == 0 || name.Length > MaxShortNameChars)
         {
             return false;
         }
@@ -375,24 +546,71 @@ public static class FatDirectory
         int dot = name.LastIndexOf('.');
         int baseLen = dot >= 0 ? dot : name.Length;
         int extLen = dot >= 0 ? name.Length - dot - 1 : 0;
-        if (baseLen == 0 || baseLen > 8 || extLen > 3)
+        if (baseLen == 0 || baseLen > ShortBaseLength || extLen > ShortExtLength)
         {
             return false;
         }
 
+        int dots = 0;
         for (int i = 0; i < name.Length; i++)
         {
             char c = name[i];
             if (c == '.')
             {
+                dots++;
+                if (dots > 1)
+                {
+                    return false;
+                }
                 continue;
             }
-            if (NormalizeShort(c) == '\0' || char.IsLower(c))
+            // Any character the 8.3 encoder would alter (upcase, mangle
+            // to '_', or drop) must take the LFN path, or the requested
+            // spelling exists nowhere on the volume after a re-parse.
+            if (NormalizeShort(c) != c)
             {
                 return false;
             }
         }
         return true;
+    }
+
+    /// <summary>True when a live entry already carries this exact 11-char short name.</summary>
+    private static bool ShortNameExists(ReadOnlySpan<byte> directoryData, ReadOnlySpan<char> short11)
+    {
+        for (int offset = 0; offset + EntrySize <= directoryData.Length; offset += EntrySize)
+        {
+            byte first = directoryData[offset];
+            if (first == EndOfDirectoryMarker)
+            {
+                return false;
+            }
+            if (first == DeletedMarker || (FatAttr)directoryData[offset + AttributesOffset] == FatAttr.Lfn)
+            {
+                continue;
+            }
+            bool same = true;
+            for (int i = 0; i < ShortNameLength && same; i++)
+            {
+                same = directoryData[offset + i] == (byte)short11[i];
+            }
+            if (same)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int CountDigits(uint value)
+    {
+        int digits = 1;
+        while (value >= 10)
+        {
+            value /= 10;
+            digits++;
+        }
+        return digits;
     }
 
     public static void MarkDeleted(Span<byte> dest, int offset, int entryCount)
@@ -405,9 +623,9 @@ public static class FatDirectory
 
     private static void ReadLfnChars(ReadOnlySpan<byte> entry, Span<char> dest13)
     {
-        ReadUcs2(entry.Slice(1, 10), dest13.Slice(0, 5));
-        ReadUcs2(entry.Slice(14, 12), dest13.Slice(5, 6));
-        ReadUcs2(entry.Slice(28, 4), dest13.Slice(11, 2));
+        ReadUcs2(entry.Slice(LfnName1Offset, LfnName1Bytes), dest13.Slice(0, 5));
+        ReadUcs2(entry.Slice(LfnName2Offset, LfnName2Bytes), dest13.Slice(5, 6));
+        ReadUcs2(entry.Slice(LfnName3Offset, LfnName3Bytes), dest13.Slice(11, 2));
     }
 
     private static void ReadUcs2(ReadOnlySpan<byte> src, Span<char> dest)
@@ -443,15 +661,15 @@ public static class FatDirectory
 
     private static string DecodeShortName(ReadOnlySpan<byte> raw11, byte firstByte)
     {
-        Span<char> chars = stackalloc char[12];
+        Span<char> chars = stackalloc char[MaxShortNameChars];
         int len = 0;
 
-        byte effectiveFirst = firstByte == 0x05 ? (byte)0xE5 : firstByte;
+        byte effectiveFirst = firstByte == KanjiLeadSubstitute ? DeletedMarker : firstByte;
         chars[len++] = (char)effectiveFirst;
 
-        for (int i = 1; i < 8; i++)
+        for (int i = 1; i < ShortBaseLength; i++)
         {
-            if (raw11[i] == 0x20)
+            if (raw11[i] == PadByte)
             {
                 break;
             }
@@ -459,9 +677,9 @@ public static class FatDirectory
         }
 
         bool hasExt = false;
-        for (int i = 8; i < 11; i++)
+        for (int i = ShortBaseLength; i < ShortNameLength; i++)
         {
-            if (raw11[i] != 0x20)
+            if (raw11[i] != PadByte)
             {
                 hasExt = true;
                 break;
@@ -471,9 +689,9 @@ public static class FatDirectory
         if (hasExt)
         {
             chars[len++] = '.';
-            for (int i = 8; i < 11; i++)
+            for (int i = ShortBaseLength; i < ShortNameLength; i++)
             {
-                if (raw11[i] == 0x20)
+                if (raw11[i] == PadByte)
                 {
                     break;
                 }

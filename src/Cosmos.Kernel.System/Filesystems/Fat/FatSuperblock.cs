@@ -140,7 +140,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     {
         match = null;
         byte[] data = ReadDirectoryData(parent);
-        List<FatDirEntry> entries = FatDirectory.Parse(data);
+        List<FatDirEntry> entries = FatDirectory.Parse(data, Boot.Type == FatType.Fat32);
         string target = name.ToString();
         for (int i = 0; i < entries.Count; i++)
         {
@@ -161,7 +161,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     public bool IsDirectoryEmpty(FatInode dir)
     {
         byte[] data = ReadDirectoryData(dir);
-        List<FatDirEntry> entries = FatDirectory.Parse(data);
+        List<FatDirEntry> entries = FatDirectory.Parse(data, Boot.Type == FatType.Fat32);
         for (int i = 0; i < entries.Count; i++)
         {
             FatDirEntry entry = entries[i];
@@ -188,7 +188,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     {
         created = null;
         string longName = name.ToString();
-        if (string.IsNullOrEmpty(longName))
+        if (string.IsNullOrEmpty(longName) || longName.Length > FatDirectory.MaxLfnNameLength)
         {
             return false;
         }
@@ -197,7 +197,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
         int slots = lfnCount + 1;
 
         byte[] data = ReadDirectoryData(parent);
-        int slot = FatDirectory.FindFreeRun(data, slots);
+        int slot = FatDirectory.FindFreeRun(data, slots, out bool consumedTerminator);
         if (slot < 0)
         {
             if (parent.IsFixedRoot)
@@ -205,7 +205,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
                 return false;
             }
             data = GrowDirectory(parent, data, slots);
-            slot = FatDirectory.FindFreeRun(data, slots);
+            slot = FatDirectory.FindFreeRun(data, slots, out consumedTerminator);
             if (slot < 0)
             {
                 return false;
@@ -213,7 +213,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
         }
 
         Span<char> shortBuffer = stackalloc char[ShortNameLength];
-        FatDirectory.BuildShortName(longName, shortBuffer);
+        FatDirectory.BuildShortName(longName, shortBuffer, data);
 
         if (lfnCount > 0)
         {
@@ -221,6 +221,17 @@ internal sealed class FatSuperblock : IVfsSuperblock
         }
         int eightThreeOffset = slot + lfnCount * FatDirectory.EntrySize;
         FatDirectory.WriteShortEntry(data, eightThreeOffset, shortBuffer, attr, firstCluster, size);
+
+        // The run swallowed the 0x00 terminator: re-terminate after the
+        // new entries, or stale bytes beyond get parsed back to life.
+        if (consumedTerminator)
+        {
+            int terminatorOffset = slot + slots * FatDirectory.EntrySize;
+            if (terminatorOffset + FatDirectory.EntrySize <= data.Length)
+            {
+                data.AsSpan(terminatorOffset, FatDirectory.EntrySize).Clear();
+            }
+        }
 
         WriteDirectoryData(parent, data);
 

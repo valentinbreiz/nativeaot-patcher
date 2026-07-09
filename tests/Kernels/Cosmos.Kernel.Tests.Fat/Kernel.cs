@@ -772,6 +772,88 @@ public class Kernel : Sys.Kernel
             Assert.True(disk.FlushCount > before, "Drop (unmount) must flush the device write cache");
         });
 
+        // Short-name generation must never silently lose the requested
+        // spelling: mangled names take the LFN path, and generated 8.3
+        // tails must be unique within the directory.
+        TR.Run("Test_FatDirectory_ShortNameAndLfnHardening", () =>
+        {
+            IVfsInode root = ResolveRoot(Fat16Mount);
+
+            Assert.True(root.InodeOperations.Create(root, "A+B.TXT", ModeEnum.RegularFile, out _));
+            Assert.True(root.InodeOperations.Lookup(root, "A+B.TXT", out _),
+                "a name the 8.3 encoder mangles must take the LFN path");
+
+            Assert.True(root.InodeOperations.Create(root, "TailCollisionA.txt", ModeEnum.RegularFile, out IVfsInode? lfA));
+            Assert.True(root.InodeOperations.Create(root, "TailCollisionB.txt", ModeEnum.RegularFile, out IVfsInode? lfB));
+            WriteAll(lfA!, MakePayload(64, 0x0A));
+            WriteAll(lfB!, MakePayload(64, 0x0B));
+            Assert.True(root.InodeOperations.Lookup(root, "TAILCO~2.TXT", out IVfsInode? byTail),
+                "the second colliding long name must get a ~2 tail");
+            if (byTail != null)
+            {
+                AssertBytesEqual(MakePayload(64, 0x0B), ReadAll(byTail, 64));
+            }
+
+            Assert.False(root.InodeOperations.Create(root, new string('y', 300), ModeEnum.RegularFile, out _),
+                "names longer than the 255-char LFN cap must be refused");
+        });
+
+        // LFN chains and reserved dirent fields are on-disk metadata:
+        // orphaned LFN entries must not attach to the next short entry,
+        // FstClusHI is reserved on FAT12/16 (EA handle may be nonzero),
+        // and consuming the 0x00 terminator must re-terminate or stale
+        // bytes past it get parsed back to life.
+        TR.Run("Test_FatDirectory_DistrustsOnDiskMetadata", () =>
+        {
+            MemoryBlockDevice disk = new("DIRHARD", 512, (16UL * 1024 * 1024) / 512);
+            FatFilesystemType driver = new(disk);
+            Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
+            Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
+            IVfsInode root = sb!.Root;
+            byte[] bpbSector = new byte[512];
+            disk.ReadBlock(0, 1, bpbSector);
+            Assert.True(FatBootSector.TryParse(bpbSector, out FatBootSector? bs) && bs != null);
+
+            // FstClusHI carries an EA handle on real FAT16 volumes.
+            Assert.True(root.InodeOperations.Create(root, "EAFILE.TXT", ModeEnum.RegularFile, out IVfsInode? ea));
+            byte[] payload = MakePayload(1024, 0x33);
+            WriteAll(ea!, payload);
+            PatchRootEntry(disk, bs!, "EAFILE  TXT", static (region, off) =>
+            {
+                BitConverter.TryWriteBytes(region.AsSpan(off + 20, 2), (ushort)0x1234);
+            });
+            Assert.True(root.InodeOperations.Lookup(root, "EAFILE.TXT", out IVfsInode? eaBack));
+            if (eaBack != null)
+            {
+                AssertBytesEqual(payload, ReadAll(eaBack, payload.Length));
+            }
+
+            // A non-LFN-aware tool renaming the 8.3 entry in place leaves
+            // the preceding LFN chain orphaned; its checksum no longer
+            // matches and it must not lend its name to the renamed entry.
+            Assert.True(root.InodeOperations.Create(root, "orphantest.txt", ModeEnum.RegularFile, out _));
+            Assert.True(root.InodeOperations.Create(root, "PLAIN.TXT", ModeEnum.RegularFile, out _));
+            PatchRootEntry(disk, bs!, "ORPHAN~1TXT", static (region, off) =>
+            {
+                ReadOnlySpan<char> renamed = "RENAMED TXT";
+                for (int i = 0; i < 11; i++)
+                {
+                    region[off + i] = (byte)renamed[i];
+                }
+            });
+            Assert.False(root.InodeOperations.Lookup(root, "orphantest.txt", out _),
+                "an orphaned LFN chain must not attach to a rewritten short entry");
+            Assert.True(root.InodeOperations.Lookup(root, "RENAMED.TXT", out _));
+            Assert.True(root.InodeOperations.Lookup(root, "PLAIN.TXT", out _));
+
+            // Plant a plausible stale entry right after the terminator,
+            // then create a file over the terminator slot.
+            PlantAfterTerminator(disk, bs!);
+            Assert.True(root.InodeOperations.Create(root, "REALFILE.TXT", ModeEnum.RegularFile, out _));
+            Assert.False(root.InodeOperations.Lookup(root, "GHOST.TXT", out _),
+                "stale bytes past the consumed terminator must not be parsed back to life");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -881,6 +963,58 @@ public class Kernel : Sys.Kernel
         {
             return false;
         }
+    }
+
+    // Locates the 8.3 entry with the given raw 11-char name in the FAT16
+    // fixed root region and lets the caller patch it in place — the way
+    // a foreign, non-LFN-aware tool would.
+    private static void PatchRootEntry(MemoryBlockDevice disk, FatBootSector bs, string raw11, Action<byte[], int> patch)
+    {
+        byte[] region = new byte[bs.RootSectorCount * bs.BytesPerSector];
+        disk.ReadBlock(bs.RootStartLba, bs.RootSectorCount, region);
+        for (int off = 0; off + 32 <= region.Length; off += 32)
+        {
+            bool match = true;
+            for (int i = 0; i < 11 && match; i++)
+            {
+                match = region[off + i] == (byte)raw11[i];
+            }
+            if (match)
+            {
+                patch(region, off);
+                disk.WriteBlock(bs.RootStartLba, bs.RootSectorCount, region);
+                return;
+            }
+        }
+        Assert.True(false, "raw root entry not found: " + raw11);
+    }
+
+    // Writes a plausible stale 8.3 entry ("GHOST.TXT") into the slot right
+    // after the root directory's 0x00 terminator — the on-disk state the
+    // spec allows after a directory was truncated by a single terminator.
+    private static void PlantAfterTerminator(MemoryBlockDevice disk, FatBootSector bs)
+    {
+        byte[] region = new byte[bs.RootSectorCount * bs.BytesPerSector];
+        disk.ReadBlock(bs.RootStartLba, bs.RootSectorCount, region);
+        for (int off = 0; off + 64 <= region.Length; off += 32)
+        {
+            if (region[off] != 0x00)
+            {
+                continue;
+            }
+            int ghost = off + 32;
+            ReadOnlySpan<char> name = "GHOST   TXT";
+            for (int i = 0; i < 11; i++)
+            {
+                region[ghost + i] = (byte)name[i];
+            }
+            region[ghost + 11] = 0x20; // Archive
+            BitConverter.TryWriteBytes(region.AsSpan(ghost + 26, 2), (ushort)3);
+            BitConverter.TryWriteBytes(region.AsSpan(ghost + 28, 4), 512u);
+            disk.WriteBlock(bs.RootStartLba, bs.RootSectorCount, region);
+            return;
+        }
+        Assert.True(false, "no root terminator found to plant behind");
     }
 
     // One try/catch per method on purpose: true = Get returned an EOC

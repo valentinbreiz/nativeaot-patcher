@@ -24,7 +24,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         }
 
         byte[] data = _superblock.ReadDirectoryData(parent);
-        List<FatDirEntry> entries = FatDirectory.Parse(data);
+        List<FatDirEntry> entries = FatDirectory.Parse(data, _superblock.Boot.Type == FatType.Fat32);
 
         string targetName = name.ToString();
         for (int i = 0; i < entries.Count; i++)
@@ -55,7 +55,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         }
 
         byte[] data = _superblock.ReadDirectoryData(parent);
-        List<FatDirEntry> raw = FatDirectory.Parse(data);
+        List<FatDirEntry> raw = FatDirectory.Parse(data, _superblock.Boot.Type == FatType.Fat32);
         List<IVfsInode> result = new(raw.Count);
         for (int i = 0; i < raw.Count; i++)
         {
