@@ -512,21 +512,78 @@ public class Kernel : Sys.Kernel
         // data area — silent corruption on any moderately full volume.
         TR.Run("Test_Format_FatSize_CoversClusterCount", () =>
         {
-            // Explicit FAT32: entries are 4 bytes — 128 per 512-byte
-            // sector, half the FAT16 density.
+            // Explicit FAT32 (33 MiB, SPC auto-picks 1 → ~66k clusters):
+            // entries are 4 bytes — 128 per 512-byte sector, half the
+            // FAT16 density. Devices stay ≤ 33 MiB so the kernel heap can
+            // recycle them between sub-cases.
             AssertFormattedFatCovers(
-                new MemoryBlockDevice("FMT32", 512, (64UL * 1024 * 1024) / 512),
+                new MemoryBlockDevice("FMT32", 512, (33UL * 1024 * 1024) / 512),
                 new FatFormatOptions { Type = FatType.Fat32 });
-            // Auto-detected FAT16 (64 MiB, SPC auto-picks 8 → ~16k
+            // Auto-detected FAT16 (32 MiB, SPC auto-picks 8 → ~8k
             // clusters): the FAT must be sized for the resolved type, not
             // the FAT12 first guess.
             AssertFormattedFatCovers(
-                new MemoryBlockDevice("FMTAUTO16", 512, (64UL * 1024 * 1024) / 512),
+                new MemoryBlockDevice("FMTAUTO16", 512, (32UL * 1024 * 1024) / 512),
                 new FatFormatOptions());
             // Auto-detected FAT12 baseline.
             AssertFormattedFatCovers(
                 new MemoryBlockDevice("FMTAUTO12", 512, (4UL * 1024 * 1024) / 512),
                 new FatFormatOptions());
+        });
+
+        // Writers reject what the parser would drop, and cleanly: a
+        // sub-512-byte sector crashed the fixed-offset BPB writer
+        // mid-format, an oversized one truncated the 16-bit BPB field
+        // into an unmountable volume, and an out-of-band FAT32 root
+        // cluster underflowed ZeroRootArea into a wild write after the
+        // BPB and FATs were already on disk.
+        TR.Run("Test_Format_RejectsBogusGeometry", () =>
+        {
+            Assert.True(FormatRefusedCleanly(
+                new MemoryBlockDevice("FMTSS256", 256, 16384), new FatFormatOptions()),
+                "a 256-byte-sector device must be refused, not crash the BPB writer");
+            Assert.True(FormatRefusedCleanly(
+                new MemoryBlockDevice("FMTSS64K", 65536, 128), new FatFormatOptions()),
+                "a 64 KiB-sector device must be refused, not truncated into an unmountable BPB");
+            // One 33 MiB FAT32-band device shared by both root-cluster
+            // cases to stay easy on the kernel heap.
+            MemoryBlockDevice fat32Band = new("FMTRC", 512, (33UL * 1024 * 1024) / 512);
+            Assert.True(FormatRefusedCleanly(
+                fat32Band,
+                new FatFormatOptions { Type = FatType.Fat32, RootCluster = 1 }),
+                "a FAT32 root cluster below 2 must be refused");
+            Assert.True(FormatRefusedCleanly(
+                fat32Band,
+                new FatFormatOptions { Type = FatType.Fat32, RootCluster = 1_000_000 }),
+                "a FAT32 root cluster beyond the cluster count must be refused");
+        });
+
+        // Durability and spec conformance of the written volume.
+        TR.Run("Test_Format_DurabilityAndSpecFields", () =>
+        {
+            // TotSec16: a FAT12/16 volume under 65536 sectors must store
+            // its count in the 16-bit field (strict drivers and fsck.fat
+            // read only TotSec16 there), with TotSec32 zero.
+            MemoryBlockDevice small16 = new("FMT16SMALL", 512, (16UL * 1024 * 1024) / 512);
+            FatFilesystemType driver16 = new(small16);
+            Assert.True(driver16.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
+            Assert.True(small16.FlushCount > 0, "Format must flush the device before reporting success");
+            byte[] bpb = new byte[512];
+            small16.ReadBlock(0, 1, bpb);
+            Assert.Equal<uint>((16u * 1024 * 1024) / 512, BitConverter.ToUInt16(bpb.AsSpan(19, 2)));
+            Assert.Equal<uint>(0, BitConverter.ToUInt32(bpb.AsSpan(32, 4)));
+
+            // Destroy must clear the FAT32 FSInfo and backup boot sector
+            // too, or BPB_BkBootSec-honoring tools can still reconstruct
+            // and mount the volume.
+            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("FMTDESTROY");
+            FatFilesystemType driver32 = new(disk32);
+            Assert.True(driver32.TryDestroy(default));
+            byte[] sector = new byte[512];
+            disk32.ReadBlock(1, 1, sector);
+            AssertAllZero(sector, "FSInfo sector must be wiped by Destroy");
+            disk32.ReadBlock(6, 1, sector);
+            AssertAllZero(sector, "backup boot sector must be wiped by Destroy");
         });
 
         TR.Finish();
@@ -555,6 +612,34 @@ public class Kernel : Sys.Kernel
     {
         VfsManager.TryOpenFile(path, out IVfsFileHandle? handle);
         return handle;
+    }
+
+    // One try/catch per method on purpose: true = TryFormat returned
+    // false without throwing and without claiming success.
+    private static bool FormatRefusedCleanly(MemoryBlockDevice disk, FatFormatOptions opts)
+    {
+        try
+        {
+            FatFilesystemType driver = new(disk);
+            return !driver.TryFormat(default, opts);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    private static void AssertAllZero(byte[] sector, string message)
+    {
+        for (int i = 0; i < sector.Length; i++)
+        {
+            if (sector[i] != 0)
+            {
+                Assert.True(false, message);
+                return;
+            }
+        }
+        Assert.True(true, message);
     }
 
     // Formats the disk, decodes the fresh BPB, and checks one FAT copy's

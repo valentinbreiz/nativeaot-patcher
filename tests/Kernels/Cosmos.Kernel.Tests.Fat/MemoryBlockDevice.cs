@@ -37,8 +37,13 @@ internal sealed class MemoryBlockDevice : IBlockDevice
         data.Slice(0, byteLen).CopyTo(_storage.AsSpan(byteOffset, byteLen));
     }
 
+    /// <summary>Number of <see cref="Flush"/> calls — lets tests assert durability points.</summary>
+    public int FlushCount { get; private set; }
+
     public void Flush()
     {
-        // RAM-backed store: nothing volatile to make durable.
+        // RAM-backed store: nothing volatile to make durable; count the
+        // calls so tests can assert the contract's durability points.
+        FlushCount++;
     }
 }
