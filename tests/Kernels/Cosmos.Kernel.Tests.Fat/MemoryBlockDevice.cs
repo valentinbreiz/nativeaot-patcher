@@ -19,9 +19,34 @@ internal sealed class MemoryBlockDevice : IBlockDevice
         _storage = new byte[blockSize * blockCount];
     }
 
-    public string Name { get; }
-    public ulong BlockSize { get; }
-    public ulong BlockCount { get; }
+    public string Name { get; private set; }
+    public ulong BlockSize { get; private set; }
+    public ulong BlockCount { get; private set; }
+
+    /// <summary>
+    /// Re-purposes this device's backing array as a fresh zeroed disk with
+    /// new geometry (which must fit the capacity allocated at construction).
+    /// The kernel heap has no compacting collector to hand back per-test
+    /// device arrays, so cells recycle one scratch device instead of
+    /// allocating their own — the accumulation is what exhausted the ARM64
+    /// CI heap. Returns <c>this</c> so calls can slot in where a
+    /// constructor call used to be.
+    /// </summary>
+    public MemoryBlockDevice Reconfigure(string name, ulong blockSize, ulong blockCount)
+    {
+        ulong bytes = blockSize * blockCount;
+        if (blockSize == 0 || blockCount > ulong.MaxValue / blockSize || bytes > (ulong)_storage.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockCount));
+        }
+
+        Name = name;
+        BlockSize = blockSize;
+        BlockCount = blockCount;
+        _storage.AsSpan(0, (int)bytes).Clear();
+        FlushCount = 0;
+        return this;
+    }
 
     public void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {

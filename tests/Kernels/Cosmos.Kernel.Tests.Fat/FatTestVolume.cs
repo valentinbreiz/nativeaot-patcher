@@ -17,18 +17,23 @@ internal static class FatTestVolume
     // FAT16 geometry: 32 MiB / SPC=8 / 32-sector FAT keeps cluster count in the
     // [4085, 65525) band even with the formatter's auto-pick branches.
     private const ulong Fat16DiskSizeBytes = 32UL * 1024 * 1024;
-    private const ulong Fat16BlockCount = Fat16DiskSizeBytes / BlockSize;
+    public const ulong Fat16BlockCount = Fat16DiskSizeBytes / BlockSize;
 
     // FAT32 geometry: 33 MiB / SPC=1 / 520-sector FAT yields cluster count
     // > 65525 while one FAT copy still covers it (fatgen103 requires
     // clusterCount + 2 <= FatSectorCount * 128; 512 sectors fell 994
     // entries short and out-of-FAT accesses would corrupt copy #2).
     private const ulong Fat32DiskSizeBytes = 33UL * 1024 * 1024;
-    private const ulong Fat32BlockCount = Fat32DiskSizeBytes / BlockSize;
+    public const ulong Fat32BlockCount = Fat32DiskSizeBytes / BlockSize;
 
     public static MemoryBlockDevice CreateFat16(string name)
     {
-        MemoryBlockDevice device = new(name, BlockSize, Fat16BlockCount);
+        return FormatFat16(new MemoryBlockDevice(name, BlockSize, Fat16BlockCount));
+    }
+
+    /// <summary>Formats an existing device (sized <see cref="Fat16BlockCount"/>) with the FAT16 geometry above.</summary>
+    public static MemoryBlockDevice FormatFat16(MemoryBlockDevice device)
+    {
         FatFilesystemType driver = new(device);
         FatFormatOptions options = new()
         {
@@ -49,7 +54,12 @@ internal static class FatTestVolume
 
     public static MemoryBlockDevice CreateFat32(string name)
     {
-        MemoryBlockDevice device = new(name, BlockSize, Fat32BlockCount);
+        return FormatFat32(new MemoryBlockDevice(name, BlockSize, Fat32BlockCount));
+    }
+
+    /// <summary>Formats an existing device (sized <see cref="Fat32BlockCount"/>) with the FAT32 geometry above.</summary>
+    public static MemoryBlockDevice FormatFat32(MemoryBlockDevice device)
+    {
         FatFilesystemType driver = new(device);
         FatFormatOptions options = new()
         {

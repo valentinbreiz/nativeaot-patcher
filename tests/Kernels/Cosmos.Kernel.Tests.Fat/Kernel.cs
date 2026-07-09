@@ -32,6 +32,14 @@ public class Kernel : Sys.Kernel
         MemoryBlockDevice fat32Disk = FatTestVolume.CreateFat32("MEMFAT32");
         FatFilesystemType fat32Driver = new(fat32Disk);
 
+        // Every cell that needs its own disk recycles this one buffer via
+        // Reconfigure. Per-cell devices looked collectable but are not:
+        // the kernel GC's first collection under pressure is what hangs,
+        // so the run must fit the heap without one — ~420 MiB of per-cell
+        // arrays blew the ARM64 CI heap (~286 MiB) at cell 31 while x64
+        // (~504 MiB) finished with ~5 MiB to spare.
+        MemoryBlockDevice scratchDisk = new("SCRATCH", FatTestVolume.BlockSize, FatTestVolume.Fat32BlockCount);
+
         TR.Run("Test_RegisterFilesystem_Fat16", () =>
         {
             Assert.True(VfsManager.RegisterFilesystem("fat16-test", fat16Driver));
@@ -403,7 +411,7 @@ public class Kernel : Sys.Kernel
             // Fresh empty disk -> format via VfsManager -> mount -> create +
             // write across cluster boundaries -> read back. Proves the formatter
             // produced a real FAT32, not just one that statfs's correctly.
-            MemoryBlockDevice freshDisk = new("MEMFAT32B", 512, (33UL * 1024 * 1024) / 512);
+            MemoryBlockDevice freshDisk = scratchDisk.Reconfigure("MEMFAT32B", 512, (33UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(freshDisk);
             Assert.True(VfsManager.RegisterFilesystem("fat32-fresh", driver));
 
@@ -457,7 +465,8 @@ public class Kernel : Sys.Kernel
 
         TR.Run("Test_Vfs_Destroy_PreventsRemount", () =>
         {
-            MemoryBlockDevice disk = FatTestVolume.CreateFat16("MEMFAT16D");
+            MemoryBlockDevice disk = FatTestVolume.FormatFat16(
+                scratchDisk.Reconfigure("MEMFAT16D", FatTestVolume.BlockSize, FatTestVolume.Fat16BlockCount));
             FatFilesystemType driver = new(disk);
             Assert.True(VfsManager.RegisterFilesystem("fat16-destroy", driver));
 
@@ -477,7 +486,7 @@ public class Kernel : Sys.Kernel
         TR.Run("Test_Vfs_Format_Fat12_Mountable", () =>
         {
             // ~3 MiB / SPC=1 / 1-sector reserved -> ~6000 sectors of data, well inside FAT12 band.
-            MemoryBlockDevice disk = new("MEMFAT12", 512, (3UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("MEMFAT12", 512, (3UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(VfsManager.RegisterFilesystem("fat12-fresh", driver));
 
@@ -523,20 +532,19 @@ public class Kernel : Sys.Kernel
         {
             // Explicit FAT32 (33 MiB, SPC auto-picks 1 → ~66k clusters):
             // entries are 4 bytes — 128 per 512-byte sector, half the
-            // FAT16 density. Devices stay ≤ 33 MiB so the kernel heap can
-            // recycle them between sub-cases.
+            // FAT16 density.
             AssertFormattedFatCovers(
-                new MemoryBlockDevice("FMT32", 512, (33UL * 1024 * 1024) / 512),
+                scratchDisk.Reconfigure("FMT32", 512, (33UL * 1024 * 1024) / 512),
                 new FatFormatOptions { Type = FatType.Fat32 });
             // Auto-detected FAT16 (32 MiB, SPC auto-picks 8 → ~8k
             // clusters): the FAT must be sized for the resolved type, not
             // the FAT12 first guess.
             AssertFormattedFatCovers(
-                new MemoryBlockDevice("FMTAUTO16", 512, (32UL * 1024 * 1024) / 512),
+                scratchDisk.Reconfigure("FMTAUTO16", 512, (32UL * 1024 * 1024) / 512),
                 new FatFormatOptions());
             // Auto-detected FAT12 baseline.
             AssertFormattedFatCovers(
-                new MemoryBlockDevice("FMTAUTO12", 512, (4UL * 1024 * 1024) / 512),
+                scratchDisk.Reconfigure("FMTAUTO12", 512, (4UL * 1024 * 1024) / 512),
                 new FatFormatOptions());
         });
 
@@ -549,14 +557,13 @@ public class Kernel : Sys.Kernel
         TR.Run("Test_Format_RejectsBogusGeometry", () =>
         {
             Assert.True(FormatRefusedCleanly(
-                new MemoryBlockDevice("FMTSS256", 256, 16384), new FatFormatOptions()),
+                scratchDisk.Reconfigure("FMTSS256", 256, 16384), new FatFormatOptions()),
                 "a 256-byte-sector device must be refused, not crash the BPB writer");
             Assert.True(FormatRefusedCleanly(
-                new MemoryBlockDevice("FMTSS64K", 65536, 128), new FatFormatOptions()),
+                scratchDisk.Reconfigure("FMTSS64K", 65536, 128), new FatFormatOptions()),
                 "a 64 KiB-sector device must be refused, not truncated into an unmountable BPB");
-            // One 33 MiB FAT32-band device shared by both root-cluster
-            // cases to stay easy on the kernel heap.
-            MemoryBlockDevice fat32Band = new("FMTRC", 512, (33UL * 1024 * 1024) / 512);
+            // One FAT32-band reconfiguration shared by both root-cluster cases.
+            MemoryBlockDevice fat32Band = scratchDisk.Reconfigure("FMTRC", 512, (33UL * 1024 * 1024) / 512);
             Assert.True(FormatRefusedCleanly(
                 fat32Band,
                 new FatFormatOptions { Type = FatType.Fat32, RootCluster = 1 }),
@@ -573,7 +580,7 @@ public class Kernel : Sys.Kernel
         // computing a wild sector would read plausible data and pass.
         TR.Run("Test_MemoryBlockDevice_ThrowsOutOfRange", () =>
         {
-            MemoryBlockDevice disk = new("MBDRANGE", 512, 8192);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("MBDRANGE", 512, 8192);
             byte[] sector = new byte[512];
             // Stamp sector 0 so a silent alias would be detectable.
             sector[0] = 0xA5;
@@ -593,7 +600,7 @@ public class Kernel : Sys.Kernel
         // self-consistent-looking volume or wild cluster LBAs.
         TR.Run("Test_Mount_RejectsCorruptBpb", () =>
         {
-            MemoryBlockDevice disk = new("BPBHARD", 512, (8UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("BPBHARD", 512, (8UL * 1024 * 1024) / 512);
 
             Assert.True(MountRefusedCleanly(CorruptBpb(disk, PatchBpbFatRegionWraps)),
                 "a FAT region that wraps uint must be rejected");
@@ -605,7 +612,8 @@ public class Kernel : Sys.Kernel
                 "a non-power-of-two SectorsPerCluster must be rejected");
 
             // FAT32 root cluster 0 underflows ClusterToLba's cluster - 2.
-            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("BPBHARD32");
+            MemoryBlockDevice disk32 = FatTestVolume.FormatFat32(
+                scratchDisk.Reconfigure("BPBHARD32", FatTestVolume.BlockSize, FatTestVolume.Fat32BlockCount));
             byte[] sector = new byte[512];
             disk32.ReadBlock(0, 1, sector);
             BitConverter.TryWriteBytes(sector.AsSpan(44, 4), 0u);
@@ -614,7 +622,7 @@ public class Kernel : Sys.Kernel
                 "a FAT32 root cluster below 2 must be rejected at mount");
 
             // ClusterToLba bounds on a healthy volume.
-            MemoryBlockDevice valid = new("BPBRANGE", 512, (8UL * 1024 * 1024) / 512);
+            MemoryBlockDevice valid = scratchDisk.Reconfigure("BPBRANGE", 512, (8UL * 1024 * 1024) / 512);
             FatFilesystemType fmt = new(valid);
             Assert.True(fmt.TryFormat(default, new FatFormatOptions()));
             valid.ReadBlock(0, 1, sector);
@@ -633,7 +641,7 @@ public class Kernel : Sys.Kernel
         // file data.
         TR.Run("Test_FatTable_BoundsClusterNumbers", () =>
         {
-            MemoryBlockDevice disk = new("FATBOUND", 512, (8UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("FATBOUND", 512, (8UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(driver.TryFormat(default, new FatFormatOptions()));
             byte[] sector = new byte[512];
@@ -676,7 +684,8 @@ public class Kernel : Sys.Kernel
 
             // FAT32's gap below the EOC band is huge; a wild link must
             // resolve to EOC without out-of-range device I/O.
-            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("FATBOUND32");
+            MemoryBlockDevice disk32 = FatTestVolume.FormatFat32(
+                scratchDisk.Reconfigure("FATBOUND32", FatTestVolume.BlockSize, FatTestVolume.Fat32BlockCount));
             disk32.ReadBlock(0, 1, sector);
             Assert.True(FatBootSector.TryParse(sector, out FatBootSector? bs32) && bs32 != null);
             FatTable table32 = new(disk32, bs32!);
@@ -743,7 +752,7 @@ public class Kernel : Sys.Kernel
         // run, so creates in a packed directory fail despite free space.
         TR.Run("Test_GrowDirectory_FitsMaxLfnRun", () =>
         {
-            MemoryBlockDevice disk = new("GROWDIR", 512, (16UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("GROWDIR", 512, (16UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 1 }));
             Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
@@ -767,7 +776,7 @@ public class Kernel : Sys.Kernel
         // device's volatile write cache.
         TR.Run("Test_Superblock_SyncAndDrop_Flush", () =>
         {
-            MemoryBlockDevice disk = new("SYNCFLUSH", 512, (16UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("SYNCFLUSH", 512, (16UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
             Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
@@ -814,7 +823,7 @@ public class Kernel : Sys.Kernel
         // bytes past it get parsed back to life.
         TR.Run("Test_FatDirectory_DistrustsOnDiskMetadata", () =>
         {
-            MemoryBlockDevice disk = new("DIRHARD", 512, (16UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("DIRHARD", 512, (16UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
             Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
@@ -866,7 +875,7 @@ public class Kernel : Sys.Kernel
         // Namespace-operation ordering and integer-width guards.
         TR.Run("Test_FatInodeOps_OrderingAndGuards", () =>
         {
-            MemoryBlockDevice disk = new("INODEOPS", 512, (16UL * 1024 * 1024) / 512);
+            MemoryBlockDevice disk = scratchDisk.Reconfigure("INODEOPS", 512, (16UL * 1024 * 1024) / 512);
             FatFilesystemType driver = new(disk);
             Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
             Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
@@ -969,7 +978,8 @@ public class Kernel : Sys.Kernel
         // the manager must refuse while a matching mount exists.
         TR.Run("Test_Vfs_FormatMounted_Refused", () =>
         {
-            MemoryBlockDevice disk = FatTestVolume.CreateFat16("MNTGUARD");
+            MemoryBlockDevice disk = FatTestVolume.FormatFat16(
+                scratchDisk.Reconfigure("MNTGUARD", FatTestVolume.BlockSize, FatTestVolume.Fat16BlockCount));
             FatFilesystemType driver = new(disk);
             Assert.True(VfsManager.RegisterFilesystem("fat16-guard", driver));
             Assert.True(VfsManager.TryMount("fat16-guard", "", MountFlags.None, "/guard", out _));
@@ -991,7 +1001,7 @@ public class Kernel : Sys.Kernel
             // TotSec16: a FAT12/16 volume under 65536 sectors must store
             // its count in the 16-bit field (strict drivers and fsck.fat
             // read only TotSec16 there), with TotSec32 zero.
-            MemoryBlockDevice small16 = new("FMT16SMALL", 512, (16UL * 1024 * 1024) / 512);
+            MemoryBlockDevice small16 = scratchDisk.Reconfigure("FMT16SMALL", 512, (16UL * 1024 * 1024) / 512);
             FatFilesystemType driver16 = new(small16);
             Assert.True(driver16.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
             Assert.True(small16.FlushCount > 0, "Format must flush the device before reporting success");
@@ -1003,7 +1013,8 @@ public class Kernel : Sys.Kernel
             // Destroy must clear the FAT32 FSInfo and backup boot sector
             // too, or BPB_BkBootSec-honoring tools can still reconstruct
             // and mount the volume.
-            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("FMTDESTROY");
+            MemoryBlockDevice disk32 = FatTestVolume.FormatFat32(
+                scratchDisk.Reconfigure("FMTDESTROY", FatTestVolume.BlockSize, FatTestVolume.Fat32BlockCount));
             FatFilesystemType driver32 = new(disk32);
             Assert.True(driver32.TryDestroy(default));
             byte[] sector = new byte[512];
