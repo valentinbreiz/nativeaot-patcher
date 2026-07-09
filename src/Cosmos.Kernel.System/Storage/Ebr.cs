@@ -138,12 +138,17 @@ public static class Ebr
             }
 
             // Promote node[1] into the fixed first EBR slot at extendedStartLba.
+            // LogicalRelativeStart is relative to the EBR sector holding the
+            // entry, so it must be rebased from successor.EbrLba to the first
+            // EBR; NextRelative is already extended-relative and stays as-is.
             ChainNode successor = chain[1];
+            uint promotedRelativeStart =
+                (uint)(successor.EbrLba + successor.LogicalRelativeStart - extendedStartLba);
             WriteEbrSector(
                 device,
                 extendedStartLba,
                 successor.LogicalSystemId,
-                successor.LogicalRelativeStart,
+                promotedRelativeStart,
                 successor.LogicalSectorCount,
                 successor.NextRelative);
             return true;

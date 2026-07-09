@@ -1327,12 +1327,13 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint countA = 100;
         const uint countB = 200;
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
         List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countA, logicals[0].SectorCount);
     }
 
@@ -1343,11 +1344,12 @@ public class Kernel : Sys.Kernel
         const uint countA = 100;
         const uint countB = 200;
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
         List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
+        Assert.Equal<ulong>(logical1Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countB, logicals[0].SectorCount);
     }
 
@@ -1358,14 +1360,16 @@ public class Kernel : Sys.Kernel
         const uint countA = 100;
         const uint countB = 200;
         const uint countC = 300;
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC);
+        ulong logical2Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
         List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(2, logicals.Count);
+        Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countA, logicals[0].SectorCount);
+        Assert.Equal<ulong>(logical2Start, logicals[1].StartSector);
         Assert.Equal<ulong>(countC, logicals[1].SectorCount);
     }
 
