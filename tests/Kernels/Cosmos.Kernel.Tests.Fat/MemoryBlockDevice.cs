@@ -25,6 +25,7 @@ internal sealed class MemoryBlockDevice : IBlockDevice
 
     public void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
+        ThrowIfOutOfRange(blockNo, blockCount);
         int byteOffset = (int)(blockNo * BlockSize);
         int byteLen = (int)(blockCount * BlockSize);
         _storage.AsSpan(byteOffset, byteLen).CopyTo(data);
@@ -32,9 +33,22 @@ internal sealed class MemoryBlockDevice : IBlockDevice
 
     public void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
+        ThrowIfOutOfRange(blockNo, blockCount);
         int byteOffset = (int)(blockNo * BlockSize);
         int byteLen = (int)(blockCount * BlockSize);
         data.Slice(0, byteLen).CopyTo(_storage.AsSpan(byteOffset, byteLen));
+    }
+
+    // IBlockDevice is throw-on-failure: validate before the (int) casts
+    // below truncate — a byte offset that is a multiple of 2^32 would
+    // otherwise silently alias sector 0, hiding exactly the wild-sector
+    // driver bugs this device exists to expose.
+    private void ThrowIfOutOfRange(ulong blockNo, ulong blockCount)
+    {
+        if (blockNo > BlockCount || blockCount > BlockCount - blockNo)
+        {
+            throw new ArgumentOutOfRangeException(nameof(blockNo));
+        }
     }
 
     /// <summary>Number of <see cref="Flush"/> calls — lets tests assert durability points.</summary>

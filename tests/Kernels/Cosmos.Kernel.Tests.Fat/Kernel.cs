@@ -558,6 +558,27 @@ public class Kernel : Sys.Kernel
                 "a FAT32 root cluster beyond the cluster count must be refused");
         });
 
+        // The RAM test double must honor the throw-on-failure IBlockDevice
+        // contract: (int)(blockNo * BlockSize) truncates, and a product
+        // that is a multiple of 2^32 aliases sector 0 — a driver bug
+        // computing a wild sector would read plausible data and pass.
+        TR.Run("Test_MemoryBlockDevice_ThrowsOutOfRange", () =>
+        {
+            MemoryBlockDevice disk = new("MBDRANGE", 512, 8192);
+            byte[] sector = new byte[512];
+            // Stamp sector 0 so a silent alias would be detectable.
+            sector[0] = 0xA5;
+            disk.WriteBlock(0, 1, sector);
+
+            Assert.True(ReadThrowsOutOfRange(disk, disk.BlockCount, 1),
+                "a read past the device end must throw");
+            // 8388608 * 512 == 2^32: the truncated cast yields offset 0.
+            Assert.True(ReadThrowsOutOfRange(disk, 8_388_608, 1),
+                "a read whose byte offset wraps 2^32 must throw, not alias sector 0");
+            Assert.True(ReadThrowsOutOfRange(disk, disk.BlockCount - 1, 2),
+                "a read straddling the device end must throw");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -612,6 +633,22 @@ public class Kernel : Sys.Kernel
     {
         VfsManager.TryOpenFile(path, out IVfsFileHandle? handle);
         return handle;
+    }
+
+    // One try/catch per method on purpose: true = the read threw the
+    // contract's ArgumentOutOfRangeException.
+    private static bool ReadThrowsOutOfRange(MemoryBlockDevice disk, ulong blockNo, ulong blockCount)
+    {
+        try
+        {
+            byte[] buffer = new byte[(int)(disk.BlockSize * blockCount)];
+            disk.ReadBlock(blockNo, blockCount, buffer);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 
     // One try/catch per method on purpose: true = TryFormat returned
