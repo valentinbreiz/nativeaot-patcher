@@ -33,7 +33,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 62;
+    private const ushort ExpectedTestCount = 64;
 
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
@@ -64,6 +64,12 @@ public class Kernel : Sys.Kernel
 
     /// <summary>Size of an LBA field in a GPT partition entry (bytes, 64-bit).</summary>
     private const int GptLbaFieldBytes = 8;
+
+    /// <summary>Byte offset of the UTF-16 partition name within a GPT entry.</summary>
+    private const int GptEntryNameOffset = 56;
+
+    /// <summary>Size in bytes of one GPT partition entry.</summary>
+    private const int GptEntrySizeBytes = 128;
 
     /// <summary>Non-zero byte planted in the unique-GUID field so the raw-crafted GPT entry is not all-zero.</summary>
     private const byte BogusUniqueGuidByte = 0x42;
@@ -366,6 +372,8 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "MBR_ResizeMove_RejectsExtendedSlot", TestMbr_ResizeMoveRejectsExtendedSlot, SkipNoHost);
         TR.RunIf(dev, "MBR_ResizeMove_RejectsOverlap",     TestMbr_ResizeMoveRejectsOverlap,     SkipNoHost);
         TR.RunIf(dev, "MBR_ResizeMove_RestampsSignature",  TestMbr_ResizeMoveRestampsSignature,  SkipNoHost);
+        TR.RunIf(dev, "GPT_Mutate_SkipsEntriesParseRejects", TestGpt_MutateSkipsEntriesParseRejects, SkipNoHost);
+        TR.RunIf(dev, "GPT_Remove_ClearsWholeEntry",       TestGpt_RemoveClearsWholeEntry,       SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -1676,6 +1684,76 @@ public class Kernel : Sys.Kernel
         host.WriteBlock(0, 1, mbr);
         Mbr.MovePartition(host, 0, start + 100);
         Assert.True(Mbr.IsMbr(host), "MovePartition must restamp the boot signature");
+    }
+
+    // One corrupt entry ahead of the target must not shift MutateEntry's
+    // index space away from Parse's: Delete/Resize would then hit a
+    // different, healthy partition (CRCs are 0 — nothing on disk flags the
+    // damage), and mutators could see unvalidated LBAs (the
+    // BlockCount - startLba underflow in ResizePartition).
+    private static void TestGpt_MutateSkipsEntriesParseRejects()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostGpt(host);
+        const uint countA = 512;
+        const uint countB = 512;
+        const uint resized = 256;
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, countA, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba + 4096, countB, Gpt.BasicDataPartitionType));
+
+        // Raw-corrupt slot 0 (the first partition): start past the disk
+        // end, which Parse drops but a naive used-slot count still sees.
+        int sector = (int)host.BlockSize;
+        byte[] entries = new byte[sector];
+        host.ReadBlock(GptEntryArrayLba, 1, entries);
+        Span<byte> e = entries;
+        BitConverter.TryWriteBytes(e.Slice(GptEntryStartLbaOffset, GptLbaFieldBytes), host.BlockCount + 5);
+        BitConverter.TryWriteBytes(e.Slice(GptEntryEndLbaOffset, GptLbaFieldBytes), host.BlockCount + 14);
+        host.WriteBlock(GptEntryArrayLba, 1, entries);
+        Assert.Equal(1, Gpt.Parse(host).Count);
+
+        // Index 0 in Parse's space is the surviving partition — resize and
+        // delete must land on it, not on the corrupt slot ahead of it.
+        Assert.True(Gpt.ResizePartition(host, 0, resized));
+        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(resized, parts[0].SectorCount);
+        Assert.True(Gpt.RemovePartition(host, 0));
+        Assert.Equal(0, Gpt.Parse(host).Count, "delete must land on the partition Parse reports at index 0");
+    }
+
+    // UEFI expects unused entries fully zeroed, and AddPartition's slot
+    // reuse never rewrites the name field — a deleted partition's UTF-16
+    // name would resurface on the next partition created in that slot.
+    private static void TestGpt_RemoveClearsWholeEntry()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostGpt(host);
+        const uint count = 512;
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, count, Gpt.BasicDataPartitionType));
+
+        // Stamp a UTF-16 name into slot 0 the way external tooling would.
+        int sector = (int)host.BlockSize;
+        byte[] entries = new byte[sector];
+        host.ReadBlock(GptEntryArrayLba, 1, entries);
+        for (int i = 0; i < 8; i++)
+        {
+            entries[GptEntryNameOffset + i * 2] = (byte)('A' + i);
+        }
+        host.WriteBlock(GptEntryArrayLba, 1, entries);
+
+        Assert.True(Gpt.RemovePartition(host, 0));
+        host.ReadBlock(GptEntryArrayLba, 1, entries);
+        bool allZero = true;
+        for (int i = 0; i < GptEntrySizeBytes; i++)
+        {
+            if (entries[i] != 0)
+            {
+                allZero = false;
+                break;
+            }
+        }
+        Assert.True(allZero, "a removed entry must be fully zeroed, including the UTF-16 name");
     }
 
     // One try/catch per method on purpose (cf. MbrWritePartitionRejects).

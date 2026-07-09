@@ -87,13 +87,6 @@ public static class Gpt
     /// <summary>Partition entry field offset of the attribute flags (UEFI spec, byte 48).</summary>
     private const int EntryAttributesOffset = 48;
 
-    /// <summary>
-    /// Bytes 0..55 of a partition entry — type GUID, unique GUID, first/last
-    /// LBA and attributes. Zeroing this region marks the slot empty (the
-    /// UTF-16 name that follows is ignored once the type GUID is zero).
-    /// </summary>
-    private const int EntryUsedRegionBytes = 56;
-
     /// <summary>Width in bytes of a 64-bit on-disk field (signature, LBA values).</summary>
     private const int UInt64FieldSize = 8;
 
@@ -483,13 +476,15 @@ public static class Gpt
 
     /// <summary>
     /// Mark the <paramref name="partitionIndex"/>-th non-empty entry as
-    /// deleted (zeroed type / GUID / LBAs / attributes).
+    /// deleted by zeroing the whole entry — UEFI expects unused entries
+    /// fully zeroed, and a stale UTF-16 name would resurface when
+    /// <see cref="AddPartition"/> reuses the slot without rewriting it.
     /// </summary>
     public static bool RemovePartition(IBlockDevice device, int partitionIndex)
     {
         return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
         {
-            entry.Slice(0, EntryUsedRegionBytes).Clear();
+            entry.Clear();
             return true;
         });
     }
@@ -612,6 +607,22 @@ public static class Gpt
             {
                 int offset = (int)(j * entrySize);
                 if (IsZero(sector.Slice(offset, GuidFieldSize)))
+                {
+                    continue;
+                }
+
+                // Skip entries with exactly Parse's validity criteria so
+                // partitionIndex stays aligned with Parse's output — one
+                // corrupt entry ahead of the target would otherwise shift
+                // every later index onto a different, healthy partition.
+                // This also guarantees mutators only see validated LBAs
+                // (startLba < BlockCount), so ResizePartition's
+                // BlockCount - startLba arithmetic cannot underflow.
+                ulong entryStart = BitConverter.ToUInt64(sector.Slice(offset + EntryFirstLbaOffset, UInt64FieldSize));
+                ulong entryEnd = BitConverter.ToUInt64(sector.Slice(offset + EntryLastLbaOffset, UInt64FieldSize));
+                if (entryEnd < entryStart
+                    || entryStart < entryStartLba + arraySectors
+                    || entryEnd >= device.BlockCount)
                 {
                     continue;
                 }
