@@ -10,30 +10,35 @@ namespace Cosmos.Kernel.System.Storage;
 /// </summary>
 public static class Mbr
 {
-    private const ushort MbrSignature = 0xAA55;
-    private const int PartitionTableOffset = 446;
-    private const int PartitionEntrySize = 16;
+    /// <summary>Boot signature value stamped at bytes 510-511 of MBR and EBR sectors.</summary>
+    internal const ushort MbrSignature = 0xAA55;
+
+    /// <summary>Byte offset of the four-slot partition table within the MBR sector.</summary>
+    internal const int PartitionTableOffset = 446;
+
+    /// <summary>Size in bytes of one partition table entry.</summary>
+    internal const int PartitionEntrySize = 16;
 
     /// <summary>Byte offset of the 0xAA55 boot signature within the MBR sector (bytes 510-511).</summary>
-    private const int SignatureOffset = 510;
+    internal const int SignatureOffset = 510;
 
     /// <summary>Size in bytes of the 0xAA55 boot signature field.</summary>
-    private const int SignatureSizeBytes = 2;
+    internal const int SignatureSizeBytes = 2;
 
     /// <summary>Number of primary partition slots in an MBR partition table.</summary>
-    private const int MaxPartitions = 4;
+    internal const int MaxPartitions = 4;
 
     /// <summary>Byte offset of the partition type (system ID) within a partition entry.</summary>
-    private const int EntrySystemIdOffset = 4;
+    internal const int EntrySystemIdOffset = 4;
 
     /// <summary>Byte offset of the 32-bit starting LBA within a partition entry.</summary>
-    private const int EntryStartLbaOffset = 8;
+    internal const int EntryStartLbaOffset = 8;
 
     /// <summary>Byte offset of the 32-bit sector count within a partition entry.</summary>
-    private const int EntrySectorCountOffset = 12;
+    internal const int EntrySectorCountOffset = 12;
 
     /// <summary>Size in bytes of the 32-bit LBA / sector-count fields in a partition entry.</summary>
-    private const int LbaFieldSizeBytes = 4;
+    internal const int LbaFieldSizeBytes = 4;
 
     /// <summary>Partition status byte: inactive (non-bootable) entry.</summary>
     private const byte StatusInactive = 0x00;
@@ -42,13 +47,13 @@ public static class Mbr
     private const byte StatusBootable = 0x80;
 
     /// <summary>System ID 0x05 - extended partition (CHS-addressed EBR container).</summary>
-    private const byte SystemIdExtendedChs = 0x05;
+    internal const byte SystemIdExtendedChs = 0x05;
 
     /// <summary>System ID 0x0F - extended partition (LBA-addressed EBR container).</summary>
-    private const byte SystemIdExtendedLba = 0x0F;
+    internal const byte SystemIdExtendedLba = 0x0F;
 
     /// <summary>System ID 0x85 - Linux extended partition (EBR container).</summary>
-    private const byte SystemIdLinuxExtended = 0x85;
+    internal const byte SystemIdLinuxExtended = 0x85;
 
     /// <summary>System ID 0xEE - GPT protective/hybrid MBR entry (the real table is the GPT).</summary>
     private const byte SystemIdGptProtective = 0xEE;

@@ -17,10 +17,16 @@ namespace Cosmos.Kernel.System.Storage;
 /// </summary>
 public static class Ebr
 {
+    /// <summary>Boot signature at the end of every EBR sector (same 0xAA55 as the MBR).</summary>
     private const ushort EbrSignature = 0xAA55;
-    private const int PartitionTableOffset = 446;
-    private const int LogicalEntryOffset = PartitionTableOffset;
-    private const int NextEbrEntryOffset = PartitionTableOffset + 16;
+
+    /// <summary>Byte offset of this EBR's logical-partition entry (partition table slot 0).</summary>
+    private const int LogicalEntryOffset = Mbr.PartitionTableOffset;
+
+    /// <summary>Byte offset of the next-EBR link entry (partition table slot 1).</summary>
+    private const int NextEbrEntryOffset = Mbr.PartitionTableOffset + Mbr.PartitionEntrySize;
+
+    /// <summary>Defensive cap on chain hops so a cyclic on-disk chain cannot spin the walk forever.</summary>
     private const int MaxChainLength = 128;
 
     private struct ChainNode
@@ -78,7 +84,10 @@ public static class Ebr
         // truncated by the (uint) cast below (2^32 stamps a zero-length
         // entry), so reject it up front as ResizeLogical does.
         if (sectorCount == 0 || sectorCount > uint.MaxValue
-            || systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85)
+            || systemId == 0
+            || systemId == Mbr.SystemIdExtendedChs
+            || systemId == Mbr.SystemIdExtendedLba
+            || systemId == Mbr.SystemIdLinuxExtended)
         {
             return 0;
         }
@@ -187,7 +196,7 @@ public static class Ebr
         int logicalIndex,
         ulong newSectorCount)
     {
-        if (newSectorCount == 0 || newSectorCount > 0xFFFFFFFFUL)
+        if (newSectorCount == 0 || newSectorCount > uint.MaxValue)
         {
             return false;
         }
@@ -244,7 +253,7 @@ public static class Ebr
         }
 
         ulong newRelative = newAbsoluteStart - node.EbrLba;
-        if (newRelative > 0xFFFFFFFFUL)
+        if (newRelative > uint.MaxValue)
         {
             return false;
         }
@@ -292,23 +301,28 @@ public static class Ebr
         ulong currentEbrLba = extendedStartLba;
         int hops = 0;
 
+        // ReadBlock fully overwrites the buffer each hop, so one
+        // allocation serves the whole walk.
+        Span<byte> sector = new byte[device.BlockSize];
+
         while (hops < MaxChainLength && currentEbrLba < envelopeEnd)
         {
-            Span<byte> sector = new byte[device.BlockSize];
             device.ReadBlock(currentEbrLba, 1, sector);
 
-            if (BitConverter.ToUInt16(sector.Slice(510, 2)) != EbrSignature)
+            if (BitConverter.ToUInt16(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes)) != EbrSignature)
             {
                 break;
             }
 
-            byte logicalSystemId = sector[LogicalEntryOffset + 4];
-            uint logicalRelativeStart = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + 8, 4));
-            uint logicalSectorCount = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + 12, 4));
+            byte logicalSystemId = sector[LogicalEntryOffset + Mbr.EntrySystemIdOffset];
+            uint logicalRelativeStart = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes));
+            uint logicalSectorCount = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes));
 
-            byte nextSystemId = sector[NextEbrEntryOffset + 4];
-            uint nextRelative = (nextSystemId == 0x05 || nextSystemId == 0x0F || nextSystemId == 0x85)
-                ? BitConverter.ToUInt32(sector.Slice(NextEbrEntryOffset + 8, 4))
+            byte nextSystemId = sector[NextEbrEntryOffset + Mbr.EntrySystemIdOffset];
+            uint nextRelative = (nextSystemId == Mbr.SystemIdExtendedChs
+                    || nextSystemId == Mbr.SystemIdExtendedLba
+                    || nextSystemId == Mbr.SystemIdLinuxExtended)
+                ? BitConverter.ToUInt32(sector.Slice(NextEbrEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes))
                 : 0u;
 
             // A relative start of 0 aliases the EBR sector itself; a range
@@ -352,18 +366,17 @@ public static class Ebr
     {
         Span<byte> sector = new byte[device.BlockSize];
 
-        sector[LogicalEntryOffset + 4] = logicalSystemId;
-        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + 8, 4), relativeStart);
-        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + 12, 4), sectorCount);
+        sector[LogicalEntryOffset + Mbr.EntrySystemIdOffset] = logicalSystemId;
+        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), relativeStart);
+        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes), sectorCount);
 
         if (nextRelative != 0)
         {
-            sector[NextEbrEntryOffset + 4] = 0x05;
-            BitConverter.TryWriteBytes(sector.Slice(NextEbrEntryOffset + 8, 4), nextRelative);
+            sector[NextEbrEntryOffset + Mbr.EntrySystemIdOffset] = Mbr.SystemIdExtendedChs;
+            BitConverter.TryWriteBytes(sector.Slice(NextEbrEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), nextRelative);
         }
 
-        sector[510] = 0x55;
-        sector[511] = 0xAA;
+        BitConverter.TryWriteBytes(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), EbrSignature);
 
         device.WriteBlock(ebrLba, 1, sector);
     }
