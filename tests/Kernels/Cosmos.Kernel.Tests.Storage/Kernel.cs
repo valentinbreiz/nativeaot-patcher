@@ -33,7 +33,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 56;
+    private const ushort ExpectedTestCount = 58;
 
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
@@ -357,6 +357,8 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "EBR_MoveLogical_TableLevel",        TestEbr_MoveLogicalTableLevel,       SkipNoHost);
         TR.RunIf(dev, "EBR_Parse_SkipsCorruptEntries",     TestEbr_ParseSkipsCorruptEntries,    SkipNoHost);
         TR.RunIf(dev, "EBR_Parse_StopsOnWildNextPointer",  TestEbr_ParseStopsOnWildNextPointer, SkipNoHost);
+        TR.RunIf(dev, "EBR_AddLogical_RejectsBogusGeometry", TestEbr_AddLogicalRejectsBogusGeometry, SkipNoHost);
+        TR.RunIf(dev, "EBR_ResizeLogical_RespectsEnvelopeBounds", TestEbr_ResizeLogicalRespectsEnvelopeBounds, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -1492,6 +1494,63 @@ public class Kernel : Sys.Kernel
             (uint)(host.BlockCount - ExtPartStartSector + 10));
         host.WriteBlock(ExtPartStartSector, 1, ebr);
         Assert.Equal(1, EbrParseCountSafe(host), "walk must stop when the next pointer leaves the device");
+    }
+
+    // Ebr.AddLogical must reject geometry its own parser would drop: the
+    // caller-supplied envelope is on-disk metadata (the MBR's extended
+    // entry), so it cannot authorize I/O past the device end — and a
+    // sector count that does not fit the 32-bit on-disk field would be
+    // silently truncated (2^32 stamps a zero-length entry).
+    private static void TestEbr_AddLogicalRejectsBogusGeometry()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+
+        // Oversized caller envelope + range past the device end: the room
+        // check passes against the fake envelope, so an unclamped
+        // AddLogical stamps a logical extending past the disk.
+        ulong fakeEnvelope = ulong.MaxValue - ExtPartStartSector;
+        Assert.Equal<ulong>(0,
+            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, host.BlockCount),
+            "an envelope past the device end must not authorize a past-end logical");
+
+        Assert.Equal<ulong>(0,
+            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, 1UL << 32),
+            "a sector count exceeding the 32-bit on-disk field must be rejected");
+
+        Assert.Equal(0, EbrParseCountSafe(host), "rejected AddLogical calls must leave no live entries");
+    }
+
+    // ResolveExtendedCount hands ResizeLogical/MoveLogical their upper
+    // bound. A corrupt extended count must clamp to the device end, and a
+    // missing MBR extended entry must grant nothing — the whole-disk
+    // fallback let a resize grow the last logical into whatever follows
+    // the extended partition.
+    private static void TestEbr_ResizeLogicalRespectsEnvelopeBounds()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+
+        // Corrupt the MBR extended entry's count (raw, bypassing the
+        // writer's validation) so it runs past the device end.
+        int sector = (int)host.BlockSize;
+        byte[] mbr = new byte[sector];
+        host.ReadBlock(0, 1, mbr);
+        Span<byte> m = mbr;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), uint.MaxValue);
+        host.WriteBlock(0, 1, mbr);
+        Assert.False(Ebr.ResizeLogical(host, ExtPartStartSector, 0, host.BlockCount),
+            "a corrupt extended count must not authorize a resize past the device end");
+
+        // Remove the extended entry entirely: with no confirmable envelope
+        // the resize must be refused outright.
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+        Mbr.DeletePartition(host, 0);
+        Assert.False(Ebr.ResizeLogical(host, ExtPartStartSector, 0, ExtPartSectorCount * 2),
+            "a resize without a confirmable extended envelope must be refused");
     }
 
     // One try/catch per method on purpose (cf. MbrWritePartitionRejects):

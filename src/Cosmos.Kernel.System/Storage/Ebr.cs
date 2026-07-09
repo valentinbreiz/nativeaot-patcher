@@ -74,12 +74,25 @@ public static class Ebr
         byte systemId,
         ulong sectorCount)
     {
-        if (sectorCount == 0 || systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85)
+        // The on-disk field is 32-bit: a larger count would be silently
+        // truncated by the (uint) cast below (2^32 stamps a zero-length
+        // entry), so reject it up front as ResizeLogical does.
+        if (sectorCount == 0 || sectorCount > uint.MaxValue
+            || systemId == 0 || systemId == 0x05 || systemId == 0x0F || systemId == 0x85)
         {
             return 0;
         }
 
-        ulong extendedEnd = extendedStartLba + extendedSectorCount;
+        // The envelope is caller-supplied on-disk metadata (the MBR's
+        // extended entry): clamp it to the device end so a corrupt count
+        // can never authorize stamping a logical past the disk.
+        if (extendedStartLba >= device.BlockCount)
+        {
+            return 0;
+        }
+        ulong extendedEnd = extendedSectorCount > device.BlockCount - extendedStartLba
+            ? device.BlockCount
+            : extendedStartLba + extendedSectorCount;
         List<ChainNode> chain = WalkChain(device, extendedStartLba);
 
         ulong newEbrLba;
@@ -357,10 +370,18 @@ public static class Ebr
 
     private static ulong ResolveExtendedCount(IBlockDevice device, ulong extendedStartLba)
     {
-        if (Mbr.TryGetExtendedPartition(device, out ulong start, out ulong count) && start == extendedStartLba)
+        // The MBR extended entry is on-disk metadata: clamp its claimed
+        // count to the device end. When the lookup cannot confirm the
+        // envelope, grant nothing — a whole-disk fallback would let
+        // mutators grow a logical into whatever follows the extended
+        // partition.
+        if (Mbr.TryGetExtendedPartition(device, out ulong start, out ulong count)
+            && start == extendedStartLba
+            && extendedStartLba < device.BlockCount)
         {
-            return count;
+            ulong maxCount = device.BlockCount - extendedStartLba;
+            return count > maxCount ? maxCount : count;
         }
-        return device.BlockCount > extendedStartLba ? device.BlockCount - extendedStartLba : 0;
+        return 0;
     }
 }
