@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.System.Vfs;
 /// </summary>
 public interface IVfsDirectoryHandle : IVfsNodeHandle
 {
-    bool TryReadDir(out IList<IVfsInode> entries);
+    bool TryReadDir(out IReadOnlyList<IVfsInode> entries);
 
     bool TryLookup(ReadOnlySpan<char> name, out IVfsNodeHandle? child);
 
@@ -44,7 +44,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public IVfsInode Inode { get; }
 
-    public bool TryReadDir(out IList<IVfsInode> entries)
+    public bool TryReadDir(out IReadOnlyList<IVfsInode> entries)
     {
         if (Inode.InodeOperations == null)
         {

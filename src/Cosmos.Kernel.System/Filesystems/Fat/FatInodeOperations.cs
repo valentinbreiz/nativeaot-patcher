@@ -61,7 +61,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         return false;
     }
 
-    public bool ReadDir(IVfsInode dir, out IList<IVfsInode> entries)
+    public bool ReadDir(IVfsInode dir, out IReadOnlyList<IVfsInode> entries)
     {
         entries = Array.Empty<IVfsInode>();
         if (dir is not FatInode parent || !parent.IsDirectory)

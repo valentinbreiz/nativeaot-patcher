@@ -131,6 +131,10 @@ public static class VfsManager
         {
             return false;
         }
+        if (IsSourceMounted(name, source))
+        {
+            return false;
+        }
         return filesystemType.TryFormat(source, options);
     }
 
@@ -144,7 +148,51 @@ public static class VfsManager
         {
             return false;
         }
+        if (IsSourceMounted(name, source))
+        {
+            return false;
+        }
         return filesystemType.TryDestroy(source);
+    }
+
+    /// <summary>
+    /// Unmount the filesystem at <paramref name="mountPoint"/>: drops the
+    /// superblock (which flushes per the driver's Drop semantics) and
+    /// removes the mount from the table.
+    /// </summary>
+    public static bool TryUnmount(string mountPoint)
+    {
+        string normalizedMountPoint = NormalizeMountPoint(mountPoint);
+        for (int i = 0; i < s_mounts.Count; i++)
+        {
+            VfsMount current = s_mounts[i];
+            if (string.Equals(current.MountPoint, normalizedMountPoint, StringComparison.Ordinal))
+            {
+                current.Superblock.SuperOperations.Drop(current.Superblock);
+                s_mounts.RemoveAt(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// True when a live mount matches the driver name and source —
+    /// formatting or destroying it would rewrite the volume underneath a
+    /// superblock that still holds the old geometry and caches.
+    /// </summary>
+    private static bool IsSourceMounted(string name, ReadOnlySpan<char> source)
+    {
+        for (int i = 0; i < s_mounts.Count; i++)
+        {
+            VfsMount current = s_mounts[i];
+            if (string.Equals(current.Name, name, StringComparison.Ordinal)
+                && source.SequenceEqual(current.Source))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

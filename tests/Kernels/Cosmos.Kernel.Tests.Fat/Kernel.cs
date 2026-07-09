@@ -11,6 +11,10 @@ namespace Cosmos.Kernel.Tests.Fat;
 
 public class Kernel : Sys.Kernel
 {
+    /// <summary>Exact TR.Run cell count — the harness synthesizes failures
+    /// for missing tests, so a mid-suite hang can't report ALL TESTS PASSED.</summary>
+    private const ushort ExpectedTestCount = 41;
+
     private const string Fat16Mount = "/fat";
     private const string Fat32Mount = "/fat32";
 
@@ -18,7 +22,7 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[FatTests] BeforeRun() reached!\n");
 
-        TR.Start("FAT Driver Tests", expectedTests: 0);
+        TR.Start("FAT Driver Tests", expectedTests: ExpectedTestCount);
 
         // Two independent disks + drivers, mounted at distinct points so the
         // FAT16 and FAT32 suites can't perturb one another.
@@ -359,7 +363,10 @@ public class Kernel : Sys.Kernel
             Assert.False(root.TryLookup("HOG.BIN", out _));
 
             Assert.True(mount.Superblock.SuperOperations.StatFs(mount.Superblock, out VfsStatFs after));
-            // Removing a 64 KB file must free at least 64 clusters at SPC=1.
+            // Unlink must return Bfree to within +/-8 clusters of its
+            // pre-test value: net-neutrality catches any of the 128
+            // freed clusters (64 KiB at SPC=1) leaking, with tolerance
+            // for root-directory growth.
             Assert.True(after.Bfree >= before.Bfree - 8 && after.Bfree + 8 >= before.Bfree);
         });
 
@@ -457,7 +464,9 @@ public class Kernel : Sys.Kernel
             // Pre-destroy: the BPB is valid, mount works.
             Assert.True(VfsManager.TryMount("fat16-destroy", "", MountFlags.None, "/destroy-pre", out _));
 
-            // Destroy wipes sector 0; a fresh driver against the same buffer must refuse to mount.
+            // Destroy wipes the label head; unmount first (a mounted
+            // source is refused) so no live mount sits over wiped storage.
+            Assert.True(VfsManager.TryUnmount("/destroy-pre"));
             Assert.True(VfsManager.TryDestroy("fat16-destroy", ""));
 
             FatFilesystemType post = new(disk);
@@ -955,6 +964,27 @@ public class Kernel : Sys.Kernel
                 "'..' of a root child must store cluster 0 per the FAT spec");
         });
 
+        // Formatting or destroying a mounted source rewrites the volume
+        // underneath a live superblock (stale geometry + FAT cache), so
+        // the manager must refuse while a matching mount exists.
+        TR.Run("Test_Vfs_FormatMounted_Refused", () =>
+        {
+            MemoryBlockDevice disk = FatTestVolume.CreateFat16("MNTGUARD");
+            FatFilesystemType driver = new(disk);
+            Assert.True(VfsManager.RegisterFilesystem("fat16-guard", driver));
+            Assert.True(VfsManager.TryMount("fat16-guard", "", MountFlags.None, "/guard", out _));
+
+            Assert.False(VfsManager.TryFormat("fat16-guard", "", null),
+                "formatting a mounted source must be refused");
+            Assert.False(VfsManager.TryDestroy("fat16-guard", ""),
+                "destroying a mounted source must be refused");
+
+            // After an unmount the same operations must proceed.
+            Assert.True(VfsManager.TryUnmount("/guard"));
+            Assert.True(VfsManager.TryDestroy("fat16-guard", ""),
+                "destroy must succeed once the source is unmounted");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -1244,7 +1274,10 @@ public class Kernel : Sys.Kernel
         byte[] buffer = new byte[size];
         for (int i = 0; i < size; i++)
         {
-            buffer[i] = (byte)((i ^ salt) & 0xFF);
+            // Mix higher position bits in so the pattern does not repeat
+            // with period 256: byte-identical clusters would hide chain
+            // walks that reorder, repeat or swap clusters.
+            buffer[i] = (byte)(i ^ (i >> 8) ^ (i >> 16) ^ salt);
         }
         return buffer;
     }

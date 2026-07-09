@@ -19,7 +19,10 @@ internal static class FatTestVolume
     private const ulong Fat16DiskSizeBytes = 32UL * 1024 * 1024;
     private const ulong Fat16BlockCount = Fat16DiskSizeBytes / BlockSize;
 
-    // FAT32 geometry: 33 MiB / SPC=1 / 512-sector FAT yields cluster count > 65525.
+    // FAT32 geometry: 33 MiB / SPC=1 / 520-sector FAT yields cluster count
+    // > 65525 while one FAT copy still covers it (fatgen103 requires
+    // clusterCount + 2 <= FatSectorCount * 128; 512 sectors fell 994
+    // entries short and out-of-FAT accesses would corrupt copy #2).
     private const ulong Fat32DiskSizeBytes = 33UL * 1024 * 1024;
     private const ulong Fat32BlockCount = Fat32DiskSizeBytes / BlockSize;
 
@@ -54,7 +57,7 @@ internal static class FatTestVolume
             SectorsPerCluster = 1,
             ReservedSectorCount = 32,
             NumberOfFats = 2,
-            FatSectorCount = 512,
+            FatSectorCount = 520,
             RootCluster = 2,
             VolumeLabel = "COSMOSFAT32",
         };

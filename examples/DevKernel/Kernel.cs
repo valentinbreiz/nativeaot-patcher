@@ -2210,7 +2210,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!dir.TryReadDir(out IList<IVfsInode> entries))
+        if (!dir.TryReadDir(out IReadOnlyList<IVfsInode> entries))
         {
             PrintError("ReadDir failed.");
             return;
