@@ -13,7 +13,6 @@ using Cosmos.Kernel.HAL.ARM64.Devices.Input;
 using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
