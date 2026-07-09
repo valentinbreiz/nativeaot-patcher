@@ -217,11 +217,19 @@ public static class Mbr
             byte systemId = mbr[offset + EntrySystemIdOffset];
             if (systemId == SystemIdExtendedChs || systemId == SystemIdExtendedLba || systemId == SystemIdLinuxExtended)
             {
-                startSector = BitConverter.ToUInt32(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes));
-                sectorCount = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
-                // Start 0 aliases the MBR sector itself — same distrust of
-                // on-disk metadata as Parse.
-                return startSector != 0;
+                ulong start = BitConverter.ToUInt32(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes));
+                ulong count = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
+                // Same distrust of on-disk metadata as Parse: start 0
+                // aliases the MBR sector itself, and a range past the disk
+                // end flows into EBR sector I/O. Skip the corrupt slot so
+                // a valid extended entry behind it is still found.
+                if (start == 0 || count == 0 || start + count > device.BlockCount)
+                {
+                    continue;
+                }
+                startSector = start;
+                sectorCount = count;
+                return true;
             }
         }
 
@@ -258,10 +266,7 @@ public static class Mbr
         device.ReadBlock(0, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
-        if (mbr[offset + EntrySystemIdOffset] == 0)
-        {
-            throw new InvalidOperationException("Cannot resize an empty MBR slot.");
-        }
+        ThrowIfSlotNotMutable(mbr[offset + EntrySystemIdOffset], "resize");
 
         // Same write-time rejection as WritePartition: never stamp a
         // geometry our own parser will drop.
@@ -270,8 +275,13 @@ public static class Mbr
         {
             throw new ArgumentOutOfRangeException(nameof(newSectorCount), "MBR partition must be non-empty and end within the device.");
         }
+        if (OverlapsOtherPrimary(mbr, index, startSector, newSectorCount))
+        {
+            throw new ArgumentOutOfRangeException(nameof(newSectorCount), "MBR partition range would overlap another primary entry.");
+        }
 
         BitConverter.TryWriteBytes(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes), newSectorCount);
+        BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
         device.WriteBlock(0, 1, mbr);
     }
 
@@ -287,10 +297,7 @@ public static class Mbr
         device.ReadBlock(0, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
-        if (mbr[offset + EntrySystemIdOffset] == 0)
-        {
-            throw new InvalidOperationException("Cannot move an empty MBR slot.");
-        }
+        ThrowIfSlotNotMutable(mbr[offset + EntrySystemIdOffset], "move");
 
         // Same write-time rejection as WritePartition: start 0 aliases the
         // MBR sector itself, and a range past the disk end would authorize
@@ -300,8 +307,69 @@ public static class Mbr
         {
             throw new ArgumentOutOfRangeException(nameof(newStartSector), "MBR partition must start past LBA 0 and end within the device.");
         }
+        if (OverlapsOtherPrimary(mbr, index, newStartSector, sectorCount))
+        {
+            throw new ArgumentOutOfRangeException(nameof(newStartSector), "MBR partition range would overlap another primary entry.");
+        }
 
         BitConverter.TryWriteBytes(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes), newStartSector);
+        BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
         device.WriteBlock(0, 1, mbr);
+    }
+
+    /// <summary>
+    /// Guard for the entry-level mutators: empty slots have nothing to
+    /// edit; extended containers (0x05/0x0F/0x85) are never surfaced by
+    /// <see cref="Parse"/> and their EBR chain would be orphaned or cut
+    /// off by a table-level resize/move (use the <see cref="Ebr"/> APIs
+    /// for logical-volume management); the 0xEE protective entry guards
+    /// the GPT structures.
+    /// </summary>
+    private static void ThrowIfSlotNotMutable(byte systemId, string operation)
+    {
+        if (systemId == 0)
+        {
+            throw new InvalidOperationException($"Cannot {operation} an empty MBR slot.");
+        }
+        if (systemId == SystemIdExtendedChs || systemId == SystemIdExtendedLba || systemId == SystemIdLinuxExtended)
+        {
+            throw new InvalidOperationException($"Cannot {operation} an extended container; manage logicals via the Ebr APIs.");
+        }
+        if (systemId == SystemIdGptProtective)
+        {
+            throw new InvalidOperationException($"Cannot {operation} the GPT protective entry.");
+        }
+    }
+
+    /// <summary>
+    /// True when [<paramref name="startSector"/>, +<paramref name="sectorCount"/>)
+    /// intersects any occupied primary slot other than <paramref name="index"/>.
+    /// Slots with geometry <see cref="Parse"/> would drop are skipped.
+    /// </summary>
+    private static bool OverlapsOtherPrimary(Span<byte> mbr, int index, ulong startSector, ulong sectorCount)
+    {
+        for (int i = 0; i < MaxPartitions; i++)
+        {
+            if (i == index)
+            {
+                continue;
+            }
+            int offset = PartitionTableOffset + i * PartitionEntrySize;
+            if (mbr[offset + EntrySystemIdOffset] == 0)
+            {
+                continue;
+            }
+            ulong otherStart = BitConverter.ToUInt32(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes));
+            ulong otherCount = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
+            if (otherStart == 0 || otherCount == 0)
+            {
+                continue;
+            }
+            if (startSector < otherStart + otherCount && otherStart < startSector + sectorCount)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

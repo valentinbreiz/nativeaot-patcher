@@ -33,7 +33,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 58;
+    private const ushort ExpectedTestCount = 62;
 
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
@@ -200,6 +200,9 @@ public class Kernel : Sys.Kernel
     /// <summary>MBR system ID of a CHS-addressed extended (EBR container) partition.</summary>
     private const byte MbrExtendedSystemId = 0x05;
 
+    /// <summary>System ID 0xEE - GPT protective MBR entry.</summary>
+    private const byte MbrGptProtectiveSystemId = 0xEE;
+
     /// <summary>Byte offset of the 0xAA55 boot signature within an MBR/EBR sector.</summary>
     private const int MbrBootSigOffset = 510;
 
@@ -359,6 +362,10 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "EBR_Parse_StopsOnWildNextPointer",  TestEbr_ParseStopsOnWildNextPointer, SkipNoHost);
         TR.RunIf(dev, "EBR_AddLogical_RejectsBogusGeometry", TestEbr_AddLogicalRejectsBogusGeometry, SkipNoHost);
         TR.RunIf(dev, "EBR_ResizeLogical_RespectsEnvelopeBounds", TestEbr_ResizeLogicalRespectsEnvelopeBounds, SkipNoHost);
+        TR.RunIf(dev, "MBR_TryGetExtended_RejectsBogusGeometry", TestMbr_TryGetExtendedRejectsBogusGeometry, SkipNoHost);
+        TR.RunIf(dev, "MBR_ResizeMove_RejectsExtendedSlot", TestMbr_ResizeMoveRejectsExtendedSlot, SkipNoHost);
+        TR.RunIf(dev, "MBR_ResizeMove_RejectsOverlap",     TestMbr_ResizeMoveRejectsOverlap,     SkipNoHost);
+        TR.RunIf(dev, "MBR_ResizeMove_RestampsSignature",  TestMbr_ResizeMoveRestampsSignature,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -1551,6 +1558,152 @@ public class Kernel : Sys.Kernel
         Mbr.DeletePartition(host, 0);
         Assert.False(Ebr.ResizeLogical(host, ExtPartStartSector, 0, ExtPartSectorCount * 2),
             "a resize without a confirmable extended envelope must be refused");
+    }
+
+    // Mbr.TryGetExtendedPartition is the root every EBR walk starts from —
+    // it must apply the same on-disk distrust as Parse instead of handing
+    // Ebr whatever geometry the extended slot claims, and a corrupt slot
+    // must not hide a valid one behind it.
+    private static void TestMbr_TryGetExtendedRejectsBogusGeometry()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+
+        // Corrupt the count (raw) so the envelope runs past the device end.
+        int sector = (int)host.BlockSize;
+        byte[] mbr = new byte[sector];
+        host.ReadBlock(0, 1, mbr);
+        Span<byte> m = mbr;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), uint.MaxValue);
+        host.WriteBlock(0, 1, mbr);
+        Assert.False(Mbr.TryGetExtendedPartition(host, out _, out _),
+            "an extended entry running past the device end must be rejected");
+
+        // Slot 0 corrupt (start 0), slot 1 valid: the valid entry must win
+        // instead of the corrupt slot short-circuiting the scan.
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        host.ReadBlock(0, 1, mbr);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrExtendedSystemId;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), ExtPartStartSector);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), ExtPartSectorCount);
+        host.WriteBlock(0, 1, mbr);
+        Assert.True(Mbr.TryGetExtendedPartition(host, out ulong start, out ulong count),
+            "a corrupt extended slot must not hide a valid one");
+        Assert.Equal<ulong>(ExtPartStartSector, start);
+        Assert.Equal<ulong>(ExtPartSectorCount, count);
+    }
+
+    // Resize/Move must refuse slots Parse never surfaces: moving an
+    // extended container orphans its EBR chain (the first EBR physically
+    // stays at the old start), shrinking it can cut off tail logicals,
+    // and the 0xEE protective entry guards the GPT structures.
+    private static void TestMbr_ResizeMoveRejectsExtendedSlot()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+
+        Assert.True(MbrResizeThrows(0, ExtPartSectorCount / 2),
+            "resizing the extended container must be refused");
+        Assert.True(MbrMoveThrows(0, ExtPartStartSector + 64),
+            "moving the extended container must be refused");
+        Assert.Equal(1, EbrParseCountSafe(host));
+
+        // GPT protective entry (0xEE) in slot 1 — also never surfaced.
+        int sector = (int)host.BlockSize;
+        byte[] mbr = new byte[sector];
+        host.ReadBlock(0, 1, mbr);
+        Span<byte> m = mbr;
+        m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrGptProtectiveSystemId;
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 1u);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), 1000u);
+        host.WriteBlock(0, 1, mbr);
+        Assert.True(MbrResizeThrows(1, 128),
+            "resizing the GPT protective entry must be refused");
+    }
+
+    // Growing slot 0 into slot 1 or moving slot 1 onto slot 0 yields
+    // overlapping partitions Parse returns both of; once registered as
+    // block devices, writes through one corrupt the other. The write-time
+    // rejection must catch the intersection while the table is in hand.
+    private static void TestMbr_ResizeMoveRejectsOverlap()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint startA = 4000;
+        const uint countA = 1000;
+        const uint startB = 8000;
+        const uint countB = 1000;
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, startA, countA);
+        Mbr.WritePartition(host, 1, MbrLinuxSystemId, startB, countB);
+
+        Assert.True(MbrResizeThrows(0, startB - startA + 1),
+            "growing a primary into its neighbour must be refused");
+        Assert.True(MbrMoveThrows(1, startA + countA - 1),
+            "moving a primary onto its neighbour must be refused");
+
+        // Adjacency (half-open ranges) stays legal.
+        Mbr.ResizePartition(host, 0, startB - startA);
+        Mbr.MovePartition(host, 1, startB + 100);
+        Assert.Equal(2, Mbr.Parse(host).Count);
+    }
+
+    // Resize/Move are read-modify-write on the MBR sector; the sibling
+    // writers (WritePartition/DeletePartition) repair a corrupt signature
+    // on the way out, so these must too.
+    private static void TestMbr_ResizeMoveRestampsSignature()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint start = 4000;
+        const uint count = 1000;
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, start, count);
+
+        int sector = (int)host.BlockSize;
+        byte[] mbr = new byte[sector];
+        host.ReadBlock(0, 1, mbr);
+        mbr[sector - 2] = 0;
+        mbr[sector - 1] = 0;
+        host.WriteBlock(0, 1, mbr);
+        Mbr.ResizePartition(host, 0, count * 2);
+        Assert.True(Mbr.IsMbr(host), "ResizePartition must restamp the boot signature");
+
+        host.ReadBlock(0, 1, mbr);
+        mbr[sector - 2] = 0;
+        mbr[sector - 1] = 0;
+        host.WriteBlock(0, 1, mbr);
+        Mbr.MovePartition(host, 0, start + 100);
+        Assert.True(Mbr.IsMbr(host), "MovePartition must restamp the boot signature");
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    private static bool MbrResizeThrows(int index, uint newCount)
+    {
+        try
+        {
+            Mbr.ResizePartition(s_dev!, index, newCount);
+            return false;
+        }
+        catch (Exception)
+        {
+            return true;
+        }
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    private static bool MbrMoveThrows(int index, uint newStart)
+    {
+        try
+        {
+            Mbr.MovePartition(s_dev!, index, newStart);
+            return false;
+        }
+        catch (Exception)
+        {
+            return true;
+        }
     }
 
     // One try/catch per method on purpose (cf. MbrWritePartitionRejects):
