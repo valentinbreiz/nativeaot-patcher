@@ -33,7 +33,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 54;
+    private const ushort ExpectedTestCount = 56;
 
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
@@ -355,6 +355,8 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "EBR_RemoveLogical_OnlyOne_ClearsChain", TestEbr_RemoveLogicalOnlyOneClearsChain, SkipNoHost);
         TR.RunIf(dev, "EBR_ResizeLogical",                 TestEbr_ResizeLogical,               SkipNoHost);
         TR.RunIf(dev, "EBR_MoveLogical_TableLevel",        TestEbr_MoveLogicalTableLevel,       SkipNoHost);
+        TR.RunIf(dev, "EBR_Parse_SkipsCorruptEntries",     TestEbr_ParseSkipsCorruptEntries,    SkipNoHost);
+        TR.RunIf(dev, "EBR_Parse_StopsOnWildNextPointer",  TestEbr_ParseStopsOnWildNextPointer, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -1417,6 +1419,96 @@ public class Kernel : Sys.Kernel
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(newStart, logicals[0].StartSector);
         Assert.Equal<ulong>(count, logicals[0].SectorCount);
+    }
+
+    // Regression guard: Ebr.Parse is the trust boundary for on-disk EBR
+    // corruption, same rule as Mbr.Parse for primaries — a logical whose
+    // range leaves the extended envelope authorizes wild host I/O, and a
+    // relative start of 0 aliases the EBR sector itself (writing through
+    // that "partition" destroys the chain).
+    private static void TestEbr_ParseSkipsCorruptEntries()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 100;
+        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+
+        // Oversize the logical's sector count in place so its range runs
+        // past the extended envelope and the device end.
+        int sector = (int)host.BlockSize;
+        byte[] ebr = new byte[sector];
+        host.ReadBlock(ExtPartStartSector, 1, ebr);
+        Span<byte> e = ebr;
+        BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), uint.MaxValue);
+        host.WriteBlock(ExtPartStartSector, 1, ebr);
+        Assert.Equal(0, EbrParseCountSafe(host), "logical running past the extended envelope must be dropped");
+
+        // Relative start 0: the logical's first sector IS its EBR sector.
+        host.ReadBlock(ExtPartStartSector, 1, ebr);
+        BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), count);
+        host.WriteBlock(ExtPartStartSector, 1, ebr);
+        Assert.Equal(0, EbrParseCountSafe(host), "logical aliasing its own EBR sector must be dropped");
+    }
+
+    // A corrupt next pointer must stop the walk, not crash it: past the
+    // device end the ReadBlock would throw per the IBlockDevice contract,
+    // and inside the disk but outside the extended envelope any
+    // 0x55AA-terminated sector (e.g. a FAT VBR) parses as garbage logicals.
+    private static void TestEbr_ParseStopsOnWildNextPointer()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+        const uint count = 50;
+        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+
+        // Next pointer that stays on-disk but escapes the extended
+        // envelope, landing on a crafted 0x55AA sector with a plausible
+        // logical entry: the walk must stop at the envelope edge.
+        const uint escapeRelative = ExtPartSectorCount + 1000;
+        int sector = (int)host.BlockSize;
+        byte[] fake = new byte[sector];
+        Span<byte> f = fake;
+        f[MbrEntry0Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
+        BitConverter.TryWriteBytes(f.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 1u);
+        BitConverter.TryWriteBytes(f.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), count);
+        f[sector - 2] = 0x55;
+        f[sector - 1] = 0xAA;
+        host.WriteBlock(ExtPartStartSector + escapeRelative, 1, fake);
+
+        byte[] ebr = new byte[sector];
+        host.ReadBlock(ExtPartStartSector, 1, ebr);
+        Span<byte> e = ebr;
+        e[MbrEntry1Offset + MbrEntryTypeOffset] = MbrExtendedSystemId;
+        BitConverter.TryWriteBytes(e.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), escapeRelative);
+        host.WriteBlock(ExtPartStartSector, 1, ebr);
+        Assert.Equal(1, EbrParseCountSafe(host), "walk must stop when the next pointer leaves the extended envelope");
+
+        // Next pointer past the device end: the walk must stop instead of
+        // letting the out-of-range ReadBlock throw out of Parse.
+        host.ReadBlock(ExtPartStartSector, 1, ebr);
+        BitConverter.TryWriteBytes(
+            e.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes),
+            (uint)(host.BlockCount - ExtPartStartSector + 10));
+        host.WriteBlock(ExtPartStartSector, 1, ebr);
+        Assert.Equal(1, EbrParseCountSafe(host), "walk must stop when the next pointer leaves the device");
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects):
+    // -1 marks "Parse threw", which every caller asserts against. Exception
+    // (not ArgumentOutOfRangeException) because a past-end read surfaces
+    // driver-specific errors — AHCI raises "SATA Fatal error: Command
+    // aborted" and leaves the port wedged for every later test.
+    private static int EbrParseCountSafe(IBlockDevice host)
+    {
+        try
+        {
+            return Ebr.Parse(host, ExtPartStartSector).Count;
+        }
+        catch (Exception)
+        {
+            return -1;
+        }
     }
 
     private static void TestPartitionManager_CreateLogical()

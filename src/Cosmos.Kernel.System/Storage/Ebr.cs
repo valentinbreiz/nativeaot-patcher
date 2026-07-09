@@ -263,10 +263,23 @@ public static class Ebr
             return nodes;
         }
 
+        // On-disk EBR metadata is untrusted, same rule as Mbr.Parse for
+        // primaries: resolve the extended envelope once, drop logical
+        // entries whose range leaves it, and stop the walk before a corrupt
+        // next pointer sends ReadBlock outside it — past the device end
+        // that read throws (AHCI surfaces a fatal command abort), and a
+        // stray 0x55AA sector inside the disk (e.g. a FAT VBR) would parse
+        // as garbage logicals.
+        ulong envelopeEnd = extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+        if (envelopeEnd > device.BlockCount)
+        {
+            envelopeEnd = device.BlockCount;
+        }
+
         ulong currentEbrLba = extendedStartLba;
         int hops = 0;
 
-        while (hops < MaxChainLength)
+        while (hops < MaxChainLength && currentEbrLba < envelopeEnd)
         {
             Span<byte> sector = new byte[device.BlockSize];
             device.ReadBlock(currentEbrLba, 1, sector);
@@ -285,7 +298,14 @@ public static class Ebr
                 ? BitConverter.ToUInt32(sector.Slice(NextEbrEntryOffset + 8, 4))
                 : 0u;
 
-            if (logicalSystemId != 0)
+            // A relative start of 0 aliases the EBR sector itself; a range
+            // past the envelope authorizes wild host I/O. Skip the entry
+            // but keep walking — later links may still be intact.
+            bool entryValid = logicalSystemId != 0
+                && logicalRelativeStart != 0
+                && logicalSectorCount != 0
+                && currentEbrLba + logicalRelativeStart + logicalSectorCount <= envelopeEnd;
+            if (entryValid)
             {
                 nodes.Add(new ChainNode
                 {
