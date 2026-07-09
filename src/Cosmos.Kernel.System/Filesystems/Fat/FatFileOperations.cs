@@ -86,10 +86,26 @@ internal sealed class FatFileOperations : IFileOperations
         }
 
         long endPosition = position + buffer.Length;
+        // FAT caps file size at uint.MaxValue: past it the size cast
+        // would wrap and persist a tiny value after the data clusters
+        // were already written.
+        if (endPosition > uint.MaxValue)
+        {
+            return 0;
+        }
+
+        // Seeking past EOF: zero-fill the gap before writing, or the
+        // unzeroed clusters expose whatever freed data they previously
+        // held (holes must read as zero).
+        if (position > inode.Size && !_superblock.GrowZeroFilled(inode, (uint)position))
+        {
+            return 0;
+        }
+
         uint clusterSize = _superblock.Boot.BytesPerCluster;
         long clustersNeeded = (endPosition + clusterSize - 1) / clusterSize;
 
-        if (!EnsureChainLength(inode, (int)clustersNeeded))
+        if (!EnsureChainLength(inode, clustersNeeded))
         {
             return 0;
         }
@@ -109,26 +125,23 @@ internal sealed class FatFileOperations : IFileOperations
             long want = buffer.Length - written;
             long chunk = available < want ? available : want;
 
-            bool partial = chunk != clusterSize;
-            if (partial)
+            // Only a partial-cluster write needs the read-modify-write.
+            if (chunk != clusterSize)
             {
                 _superblock.ReadCluster(cluster, clusterBuffer);
             }
 
             buffer.Slice((int)written, (int)chunk).CopyTo(clusterBuffer.Slice((int)intraOffset, (int)chunk));
-
-            if (partial)
-            {
-                _superblock.WriteCluster(cluster, clusterBuffer);
-            }
-            else
-            {
-                _superblock.WriteCluster(cluster, clusterBuffer);
-            }
+            _superblock.WriteCluster(cluster, clusterBuffer);
 
             written += chunk;
             intraOffset = 0;
             clusterIndex++;
+        }
+
+        if (written == 0)
+        {
+            return 0;
         }
 
         long newEnd = position + written;
@@ -181,6 +194,9 @@ internal sealed class FatFileOperations : IFileOperations
         {
             _superblock.UpdateInodeEntry(inode);
         }
+        // Fsync is a durability point: per the IBlockDevice contract the
+        // FAT and data-cluster writes are only durable after Flush.
+        _superblock.Flush();
         return true;
     }
 
@@ -189,7 +205,7 @@ internal sealed class FatFileOperations : IFileOperations
         Fsync(openFile);
     }
 
-    private bool EnsureChainLength(FatInode inode, int targetCount)
+    private bool EnsureChainLength(FatInode inode, long targetCount)
     {
         List<uint> chain = inode.ResolveChain();
         if (chain.Count >= targetCount)
@@ -210,18 +226,26 @@ internal sealed class FatFileOperations : IFileOperations
             chain.Add(first);
         }
 
-        while (chain.Count < targetCount)
+        long missing = targetCount - chain.Count;
+        if (missing > 0)
         {
-            uint last = chain[^1];
-            uint added = fat.AllocateChain(1);
-            if (added == 0)
+            // One ExtendChain call instead of a per-cluster allocate-and-
+            // link loop (each Set read-modify-writes the FAT sector once
+            // per FAT copy).
+            uint oldTail = chain[^1];
+            if (fat.ExtendChain(oldTail, (uint)missing) == 0)
             {
                 return false;
             }
-            fat.Set(last, added);
-            chain.Add(added);
+            // Refresh the inode's cached chain with the new links.
+            uint next = fat.Get(oldTail);
+            while (fat.IsDataCluster(next) && !fat.IsEndOfChain(next) && chain.Count < targetCount)
+            {
+                chain.Add(next);
+                next = fat.Get(next);
+            }
         }
 
-        return true;
+        return chain.Count >= targetCount;
     }
 }

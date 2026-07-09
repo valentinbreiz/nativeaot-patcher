@@ -854,6 +854,107 @@ public class Kernel : Sys.Kernel
                 "stale bytes past the consumed terminator must not be parsed back to life");
         });
 
+        // Namespace-operation ordering and integer-width guards.
+        TR.Run("Test_FatInodeOps_OrderingAndGuards", () =>
+        {
+            MemoryBlockDevice disk = new("INODEOPS", 512, (16UL * 1024 * 1024) / 512);
+            FatFilesystemType driver = new(disk);
+            Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
+            Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
+            IVfsInode root = sb!.Root;
+
+            // Duplicate names produce an invalid volume with the second
+            // entry unreachable — Create/Mkdir/Rename must refuse them.
+            Assert.True(root.InodeOperations.Create(root, "DUP.TXT", ModeEnum.RegularFile, out _));
+            Assert.False(root.InodeOperations.Create(root, "DUP.TXT", ModeEnum.RegularFile, out _),
+                "creating an existing name must fail");
+            Assert.True(root.InodeOperations.Mkdir(root, "DUPDIR", ModeEnum.Directory, out _));
+            Assert.False(root.InodeOperations.Mkdir(root, "DUPDIR", ModeEnum.Directory, out _),
+                "mkdir over an existing name must fail");
+            Assert.True(root.InodeOperations.Create(root, "RSRC.TXT", ModeEnum.RegularFile, out _));
+            Assert.False(root.InodeOperations.Rename(root, "RSRC.TXT", root, "DUP.TXT"),
+                "renaming onto an existing name must fail");
+
+            // A failed rename must leave the source intact (destination
+            // allocation refused here by the 255-char LFN cap).
+            Assert.True(root.InodeOperations.Create(root, "KEEP.TXT", ModeEnum.RegularFile, out _));
+            Assert.False(root.InodeOperations.Rename(root, "KEEP.TXT", root, new string('z', 300)));
+            Assert.True(root.InodeOperations.Lookup(root, "KEEP.TXT", out _),
+                "a failed rename must leave the source entry intact");
+
+            // SetAttr size: 4 GiB wraps the uint cast to 0 and truncates
+            // the file — silent data loss instead of a refusal.
+            Assert.True(root.InodeOperations.Create(root, "BIGSZ.TXT", ModeEnum.RegularFile, out IVfsInode? bigsz));
+            WriteAll(bigsz!, MakePayload(512, 0x44));
+            VfsStat huge = default;
+            huge.Mode = ModeEnum.RegularFile;
+            huge.Size = 0x1_0000_0000UL;
+            Assert.False(bigsz!.InodeOperations.SetAttr(bigsz, SetAttrFlags.Size, huge),
+                "a size beyond FAT's 4 GiB cap must be refused");
+            Assert.True(bigsz.InodeOperations.GetAttr(bigsz, out VfsStat afterStat));
+            Assert.Equal<ulong>(512, afterStat.Size);
+
+            // SetAttr size on a directory would wipe live directory
+            // clusters via the grow path and stamp a nonzero size.
+            Assert.True(root.InodeOperations.Lookup(root, "DUPDIR", out IVfsInode? dupdir));
+            VfsStat dirGrow = default;
+            dirGrow.Mode = ModeEnum.Directory;
+            dirGrow.Size = 4096;
+            Assert.False(dupdir!.InodeOperations.SetAttr(dupdir, SetAttrFlags.Size, dirGrow),
+                "size changes on directories must be refused");
+
+            // Lookup('..') must not hijack the cached parent inode.
+            Assert.True(dupdir.InodeOperations.Lookup(dupdir, "..", out IVfsInode? dotdot));
+            Assert.True(dotdot != null && dotdot.Name != "..",
+                "Lookup('..') must resolve structurally, not mutate the cached parent");
+
+            // A directory moved across parents must get its '..' rewritten.
+            byte[] bpbSector = new byte[512];
+            disk.ReadBlock(0, 1, bpbSector);
+            Assert.True(FatBootSector.TryParse(bpbSector, out FatBootSector? bs) && bs != null);
+            Assert.True(root.InodeOperations.Mkdir(root, "MOVEME", ModeEnum.Directory, out _));
+            Assert.True(root.InodeOperations.Mkdir(root, "DEST", ModeEnum.Directory, out IVfsInode? dest));
+            Assert.True(root.InodeOperations.Rename(root, "MOVEME", dest!, "MOVEME"));
+            Assert.True(dest!.InodeOperations.Lookup(dest, "MOVEME", out IVfsInode? moved));
+            Assert.True(moved!.InodeOperations.GetAttr(moved, out VfsStat movedStat));
+            Assert.True(dest.InodeOperations.GetAttr(dest, out VfsStat destStat));
+            Assert.Equal<uint>((uint)destStat.Ino & 0xFFFF, ReadDotDotClusterLow(disk, bs!, (uint)movedStat.Ino),
+                "a moved directory's '..' must point at its new parent");
+
+            // Writing past EOF must zero the gap (holes read as zero, and
+            // unzeroed clusters leak other files' freed data).
+            Assert.True(root.InodeOperations.Create(root, "HOLE.BIN", ModeEnum.RegularFile, out IVfsInode? hole));
+            WriteAll(hole!, MakePayload(16, 0x77));
+            IFileOperations holeOps = hole!.FileOperations!;
+            TestOpenFile holeHandle = new(hole!, holeOps);
+            Assert.True(holeOps.Seek(holeHandle, 9000, SeekWhence.Set, out _));
+            Assert.Equal<long>(16, holeOps.Write(holeHandle, MakePayload(16, 0x78)));
+            TestOpenFile readBack = new(hole!, holeOps);
+            Assert.True(holeOps.Seek(readBack, 4096, SeekWhence.Set, out _));
+            byte[] gap = new byte[64];
+            Assert.Equal<long>(64, holeOps.Read(readBack, gap));
+            AssertAllZero(gap, "the gap between old EOF and a past-EOF write must read as zeros");
+
+            // Fsync is a durability point: it must flush the device.
+            int flushesBefore = disk.FlushCount;
+            Assert.True(holeOps.Fsync(holeHandle));
+            Assert.True(disk.FlushCount > flushesBefore, "Fsync must flush the device write cache");
+        });
+
+        // Mkdir under the FAT32 root must write 0 into '..' (fatgen103),
+        // not the root's cluster number.
+        TR.Run("Test_Fat32_Mkdir_DotDotIsZeroForRoot", () =>
+        {
+            IVfsInode root = ResolveRoot(Fat32Mount);
+            Assert.True(root.InodeOperations.Mkdir(root, "DOTZERO", ModeEnum.Directory, out IVfsInode? dir));
+            Assert.True(dir!.InodeOperations.GetAttr(dir, out VfsStat dirStat));
+            byte[] bpbSector = new byte[512];
+            fat32Disk.ReadBlock(0, 1, bpbSector);
+            Assert.True(FatBootSector.TryParse(bpbSector, out FatBootSector? bs32) && bs32 != null);
+            Assert.Equal<uint>(0, ReadDotDotClusterLow(fat32Disk, bs32!, (uint)dirStat.Ino),
+                "'..' of a root child must store cluster 0 per the FAT spec");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -963,6 +1064,15 @@ public class Kernel : Sys.Kernel
         {
             return false;
         }
+    }
+
+    // Reads the low first-cluster word of the '..' entry (slot 1) in the
+    // directory whose first cluster is dirCluster.
+    private static uint ReadDotDotClusterLow(MemoryBlockDevice disk, FatBootSector bs, uint dirCluster)
+    {
+        byte[] cluster = new byte[bs.BytesPerCluster];
+        disk.ReadBlock(bs.ClusterToLba(dirCluster), bs.SectorsPerCluster, cluster);
+        return BitConverter.ToUInt16(cluster.AsSpan(FatDirectory.EntrySize + FatDirectory.FirstClusterLowOffset, 2));
     }
 
     // Locates the 8.3 entry with the given raw 11-char name in the FAT16

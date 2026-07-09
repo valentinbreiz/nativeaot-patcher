@@ -23,14 +23,29 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
+        string targetName = name.ToString();
+        // Dot entries resolve structurally: routing them through
+        // GetOrCreateInode would hijack the cached parent/self inode
+        // (the cache is keyed by first cluster), re-pointing its name,
+        // parent and directory-slot reference at the dot entry.
+        if (targetName == ".")
+        {
+            child = parent;
+            return true;
+        }
+        if (targetName == "..")
+        {
+            child = parent.Parent ?? parent;
+            return true;
+        }
+
         byte[] data = _superblock.ReadDirectoryData(parent);
         List<FatDirEntry> entries = FatDirectory.Parse(data, _superblock.Boot.Type == FatType.Fat32);
 
-        string targetName = name.ToString();
         for (int i = 0; i < entries.Count; i++)
         {
             FatDirEntry entry = entries[i];
-            if (entry.IsVolumeId)
+            if (entry.IsVolumeId || entry.Name == "." || entry.Name == "..")
             {
                 continue;
             }
@@ -83,6 +98,13 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
+        // Duplicate names make an invalid volume (the second entry is
+        // unreachable, chkdsk flags it).
+        if (_superblock.FindChildEntry(parent, name, out _))
+        {
+            return false;
+        }
+
         FatAttr attr = FatAttributes.ToFatAttr(mode) & ~FatAttr.Directory;
         if (!_superblock.AllocateDirectoryEntry(parent, name, attr, 0, 0, out FatInode? created))
         {
@@ -101,6 +123,11 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
+        if (_superblock.FindChildEntry(parent, name, out _))
+        {
+            return false;
+        }
+
         uint cluster = _superblock.Fat.AllocateChain(1);
         if (cluster == 0)
         {
@@ -108,7 +135,10 @@ internal sealed class FatInodeOperations : IInodeOperations
         }
 
         Span<byte> clusterBuffer = new byte[_superblock.Boot.BytesPerCluster];
-        WriteDotEntries(clusterBuffer, cluster, parent.FirstCluster);
+        // fatgen103: '..' stores 0 when the parent is the root directory
+        // (the FAT32 root has a real cluster number, but '..' must not).
+        uint dotDotCluster = parent.Parent == null ? 0u : parent.FirstCluster;
+        WriteDotEntries(clusterBuffer, cluster, dotDotCluster);
         _superblock.WriteCluster(cluster, clusterBuffer);
 
         FatAttr attr = FatAttributes.ToFatAttr(mode) | FatAttr.Directory;
@@ -145,11 +175,15 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
-        if (match.FirstCluster >= 2)
+        // Remove (and persist) the entry before freeing the chain: a
+        // crash between the two steps then only leaks clusters, instead
+        // of leaving a live entry pointing at clusters the next
+        // allocation will reuse (cross-link).
+        _superblock.RemoveDirectoryEntry(parent, match);
+        if (match.FirstCluster >= FatTable.FirstDataCluster)
         {
             _superblock.Fat.Free(match.FirstCluster);
         }
-        _superblock.RemoveDirectoryEntry(parent, match);
         _superblock.ForgetInode(match.FirstCluster);
         return true;
     }
@@ -177,11 +211,12 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
-        if (target.FirstCluster >= 2)
+        // Same ordering as Unlink: entry first, chain second.
+        _superblock.RemoveDirectoryEntry(parent, match);
+        if (target.FirstCluster >= FatTable.FirstDataCluster)
         {
             _superblock.Fat.Free(target.FirstCluster);
         }
-        _superblock.RemoveDirectoryEntry(parent, match);
         _superblock.ForgetInode(match.FirstCluster);
         return true;
     }
@@ -198,19 +233,54 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
+        // Replace semantics are not implemented: refuse an existing
+        // destination instead of writing a duplicate name.
+        if (_superblock.FindChildEntry(np, newName, out _))
+        {
+            return false;
+        }
+
         FatAttr attr = match.Attributes;
         uint firstCluster = match.FirstCluster;
         uint size = match.Size;
 
-        _superblock.RemoveDirectoryEntry(op, match);
-        _superblock.ForgetInode(match.FirstCluster);
-
+        // Allocate the destination first: a failed rename must leave the
+        // filesystem unchanged (the allocator only fills free slots, so
+        // the source entry stays valid until removed). Crash-safe too —
+        // worst case is a transiently duplicated name, not a lost file.
         if (!_superblock.AllocateDirectoryEntry(np, newName, attr, firstCluster, size, out _))
         {
             return false;
         }
 
+        _superblock.RemoveDirectoryEntry(op, match);
+        _superblock.ForgetInode(match.FirstCluster);
+
+        // A directory moved across parents keeps a '..' pointing at the
+        // old parent; rewrite it (0 when the new parent is the root).
+        if ((attr & FatAttr.Directory) != 0 && !ReferenceEquals(op, np)
+            && firstCluster >= FatTable.FirstDataCluster)
+        {
+            RewriteDotDot(firstCluster, np);
+        }
+
         return true;
+    }
+
+    /// <summary>Rewrites the '..' entry (slot 1) of the directory rooted at <paramref name="dirCluster"/>.</summary>
+    private void RewriteDotDot(uint dirCluster, FatInode newParent)
+    {
+        uint parentCluster = newParent.Parent == null ? 0u : newParent.FirstCluster;
+        Span<byte> clusterBuffer = new byte[_superblock.Boot.BytesPerCluster];
+        _superblock.ReadCluster(dirCluster, clusterBuffer);
+        int offset = FatDirectory.EntrySize;
+        BitConverter.TryWriteBytes(
+            clusterBuffer.Slice(offset + FatDirectory.FirstClusterHighOffset, 2),
+            (ushort)((parentCluster >> 16) & 0xFFFFu));
+        BitConverter.TryWriteBytes(
+            clusterBuffer.Slice(offset + FatDirectory.FirstClusterLowOffset, 2),
+            (ushort)(parentCluster & 0xFFFFu));
+        _superblock.WriteCluster(dirCluster, clusterBuffer);
     }
 
     public bool GetAttr(IVfsInode inode, out VfsStat stat)
@@ -245,6 +315,14 @@ internal sealed class FatInodeOperations : IInodeOperations
 
         if ((flags & SetAttrFlags.Size) != 0)
         {
+            // FAT caps file size at uint.MaxValue (a 4 GiB request would
+            // wrap the cast to 0 and truncate the file), and directories
+            // carry size 0 on disk — resizing one would wipe its live
+            // clusters through the grow path.
+            if (node.IsDirectory || attributes.Size > uint.MaxValue)
+            {
+                return false;
+            }
             uint newSize = (uint)attributes.Size;
             if (newSize < node.Size)
             {

@@ -131,7 +131,15 @@ public sealed class FatFilesystemType : IVfsFilesystemType
             {
                 return false;
             }
-            result = result * 10 + (c - '0');
+            int digit = c - '0';
+            // Unchecked accumulation wraps: "4294967297" would parse as 1
+            // and alias destructive operations (format/destroy) onto a
+            // valid low partition index.
+            if (result > (int.MaxValue - digit) / 10)
+            {
+                return false;
+            }
+            result = result * 10 + digit;
         }
 
         value = result;

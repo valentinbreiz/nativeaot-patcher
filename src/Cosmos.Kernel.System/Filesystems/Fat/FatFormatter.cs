@@ -264,6 +264,13 @@ internal static class FatFormatter
             return false;
         }
 
+        // The FAT12/16 BPB stores the FAT size in a 16-bit field: never
+        // stamp a value that parses back differently than it was written.
+        if (resolved != FatType.Fat32 && fatSectors > ushort.MaxValue)
+        {
+            return false;
+        }
+
         string label = string.IsNullOrEmpty(opts.VolumeLabel) ? "NO NAME    " : PadLabel(opts.VolumeLabel!);
         uint serial = opts.VolumeSerial != 0 ? opts.VolumeSerial : DefaultVolumeSerial;
 

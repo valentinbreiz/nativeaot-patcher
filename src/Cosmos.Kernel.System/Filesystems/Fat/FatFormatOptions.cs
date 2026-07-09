@@ -26,7 +26,11 @@ public sealed class FatFormatOptions : IVfsFormatOptions
     /// <summary>Root entry count (FAT12/16 only). <c>0</c> = 512.</summary>
     public ushort RootEntryCount { get; init; }
 
-    /// <summary>FAT sector count. <c>0</c> = compute from cluster count.</summary>
+    /// <summary>
+    /// FAT sector count. <c>0</c> = compute from cluster count. On
+    /// FAT12/16 the BPB stores this in a 16-bit field, so values above
+    /// 65535 are rejected by the formatter for those types.
+    /// </summary>
     public uint FatSectorCount { get; init; }
 
     /// <summary>Root cluster (FAT32 only). <c>0</c> = 2.</summary>
