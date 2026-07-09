@@ -33,7 +33,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 64;
+    private const ushort ExpectedTestCount = 67;
 
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
@@ -374,6 +374,9 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "MBR_ResizeMove_RestampsSignature",  TestMbr_ResizeMoveRestampsSignature,  SkipNoHost);
         TR.RunIf(dev, "GPT_Mutate_SkipsEntriesParseRejects", TestGpt_MutateSkipsEntriesParseRejects, SkipNoHost);
         TR.RunIf(dev, "GPT_Remove_ClearsWholeEntry",       TestGpt_RemoveClearsWholeEntry,       SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_MoveFailure_IsNonDestructive", TestPartitionManager_MoveFailureIsNonDestructive, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_RejectsOccupiedRanges", TestPartitionManager_RejectsOccupiedRanges, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_GuardsDoNotWrap",  TestPartitionManager_GuardsDoNotWrap, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -1754,6 +1757,110 @@ public class Kernel : Sys.Kernel
             }
         }
         Assert.True(allZero, "a removed entry must be fully zeroed, including the UTF-16 name");
+    }
+
+    // A false return from MoveWithData must leave the disk unmodified:
+    // the data copy may only happen after the table entry is resolved and
+    // every table-specific constraint has passed.
+    private static void TestPartitionManager_MoveFailureIsNonDestructive()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint start = 4000;
+        const uint count = 64;
+        const ulong freeDest = 20000;
+        const uint sentinelSeed = 0xDEAD0000;
+        Assert.True(PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < count; lba++)
+        {
+            FillPattern(patternSector, (uint)(sentinelSeed + lba));
+            host.WriteBlock(freeDest + lba, 1, patternSector);
+        }
+
+        // Location matches no table entry (wrong count): must fail without
+        // having copied a single sector to the destination.
+        Assert.False(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(start, count - 1), freeDest));
+        AssertMovedPattern(host, freeDest, count, sentinelSeed);
+    }
+
+    // The destination of a data-copying move must be free space —
+    // copying first physically clobbers the neighbour before the table
+    // edit can refuse — and Create must not stamp a range intersecting
+    // an existing partition.
+    private static void TestPartitionManager_RejectsOccupiedRanges()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint startA = 4000;
+        const uint countA = 100;
+        const uint startB = 8000;
+        const uint countB = 100;
+        const uint seedB = 0xBEEF0000;
+        Assert.True(PartitionManager.Create(host, startA, countA, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
+        Assert.True(PartitionManager.Create(host, startB, countB, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
+
+        Span<byte> patternSector = new byte[host.BlockSize];
+        for (ulong lba = 0; lba < countB; lba++)
+        {
+            FillPattern(patternSector, (uint)(seedB + lba));
+            host.WriteBlock(startB + lba, 1, patternSector);
+        }
+
+        Assert.True(PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(startA, countA), startB - countA / 2),
+            "a move onto an occupied destination must be refused");
+        AssertMovedPattern(host, startB, countB, seedB);
+
+        Assert.True(PmCreateRefusedCleanly(startA + 10, 10),
+            "creating inside an existing partition must be refused");
+    }
+
+    // The facade's bounds guards used wrapping ulong addition: a
+    // destination near 2^64 wrapped the sum, slipped past the guard and
+    // reached raw sector I/O; Create at LBA 0 threw from Mbr.WritePartition
+    // instead of returning the documented false.
+    private static void TestPartitionManager_GuardsDoNotWrap()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostMbr(host);
+        const uint start = 4000;
+        const uint count = 64;
+        Assert.True(PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
+
+        Assert.True(PmCreateRefusedCleanly(0, 100),
+            "create at LBA 0 must be refused, not thrown");
+        // Last on purpose: pre-fix this issued a wild write near 2^64.
+        Assert.True(PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(start, count), ulong.MaxValue - 1),
+            "a move destination near 2^64 must be refused, not wrapped past the guard");
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects):
+    // true = the facade refused cleanly (false return, no throw, no side
+    // effects claimed).
+    private static bool PmMoveRefusedCleanly(PartitionManager.PartitionLocation location, ulong newStart)
+    {
+        try
+        {
+            return !PartitionManager.MoveWithData(s_dev!, location, newStart);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    private static bool PmCreateRefusedCleanly(ulong start, ulong count)
+    {
+        try
+        {
+            return !PartitionManager.Create(s_dev!, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
