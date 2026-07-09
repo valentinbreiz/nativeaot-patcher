@@ -10,6 +10,13 @@ internal sealed class FatSuperblockOperations : ISuperblockOperations
 
     public bool Sync(IVfsSuperblock superblock)
     {
+        if (superblock is not FatSuperblock fat)
+        {
+            return false;
+        }
+        // Writes are durable only after Flush per the IBlockDevice
+        // contract; sync is exactly that durability point.
+        fat.Flush();
         return true;
     }
 
@@ -29,7 +36,7 @@ internal sealed class FatSuperblockOperations : ISuperblockOperations
         statFs.Bavail = statFs.Bfree;
         statFs.Files = 0;
         statFs.Ffree = 0;
-        statFs.NameMax = 255;
+        statFs.NameMax = fat.MaxNameLength;
         statFs.Frsize = boot.BytesPerSector;
         return true;
     }
@@ -38,6 +45,8 @@ internal sealed class FatSuperblockOperations : ISuperblockOperations
     {
         if (superblock is FatSuperblock fat)
         {
+            // Unmount is a durability point: flush before tearing down.
+            fat.Flush();
             fat.Drop();
         }
     }

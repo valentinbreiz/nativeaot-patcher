@@ -7,6 +7,12 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 
 internal sealed class FatSuperblock : IVfsSuperblock
 {
+    /// <summary>Longest name the LFN format (and this VFS layer) accepts.</summary>
+    private const ulong FatMaxNameLength = 255;
+
+    /// <summary>Length of an 8.3 short name (8 base + 3 extension characters).</summary>
+    private const int ShortNameLength = 11;
+
     private readonly IBlockDevice _device;
     private readonly Dictionary<uint, FatInode> _inodeCache = new();
 
@@ -19,7 +25,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     public IVfsInode Root { get; }
     public ISuperblockOperations SuperOperations => SuperOps;
     public long BlockSize => Boot.BytesPerSector;
-    public ulong MaxNameLength => 255;
+    public ulong MaxNameLength => FatMaxNameLength;
 
     public FatSuperblock(IBlockDevice device, FatBootSector boot)
     {
@@ -40,13 +46,19 @@ internal sealed class FatSuperblock : IVfsSuperblock
         _inodeCache.Clear();
     }
 
+    /// <summary>Flush the device's volatile write cache — the durability point for sync and unmount.</summary>
+    public void Flush()
+    {
+        _device.Flush();
+    }
+
     public void ReadCluster(uint cluster, Span<byte> data)
     {
         ulong lba = Boot.ClusterToLba(cluster);
         _device.ReadBlock(lba, Boot.SectorsPerCluster, data);
     }
 
-    public void WriteCluster(uint cluster, Span<byte> data)
+    public void WriteCluster(uint cluster, ReadOnlySpan<byte> data)
     {
         ulong lba = Boot.ClusterToLba(cluster);
         _device.WriteBlock(lba, Boot.SectorsPerCluster, data);
@@ -75,22 +87,20 @@ internal sealed class FatSuperblock : IVfsSuperblock
     {
         if (dir.IsFixedRoot)
         {
-            _device.WriteBlock(Boot.RootStartLba, Boot.RootSectorCount, data.ToArray());
+            _device.WriteBlock(Boot.RootStartLba, Boot.RootSectorCount, data);
             return;
         }
 
         List<uint> chain = dir.ResolveChain();
         for (int i = 0; i < chain.Count; i++)
         {
-            byte[] sliceCopy = new byte[Boot.BytesPerCluster];
-            data.Slice(i * (int)Boot.BytesPerCluster, (int)Boot.BytesPerCluster).CopyTo(sliceCopy);
-            WriteCluster(chain[i], sliceCopy);
+            WriteCluster(chain[i], data.Slice(i * (int)Boot.BytesPerCluster, (int)Boot.BytesPerCluster));
         }
     }
 
     public FatInode GetOrCreateInode(FatInode parent, FatDirEntry entry)
     {
-        if (entry.FirstCluster >= 2 && _inodeCache.TryGetValue(entry.FirstCluster, out FatInode? cached))
+        if (entry.FirstCluster >= FatTable.FirstDataCluster && _inodeCache.TryGetValue(entry.FirstCluster, out FatInode? cached))
         {
             cached.Name = entry.Name;
             cached.Size = entry.Size;
@@ -111,7 +121,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             entry.ByteOffset,
             entry.LfnEntryCount + 1);
 
-        if (entry.FirstCluster >= 2)
+        if (entry.FirstCluster >= FatTable.FirstDataCluster)
         {
             _inodeCache[entry.FirstCluster] = node;
         }
@@ -120,7 +130,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
 
     public void ForgetInode(uint firstCluster)
     {
-        if (firstCluster >= 2)
+        if (firstCluster >= FatTable.FirstDataCluster)
         {
             _inodeCache.Remove(firstCluster);
         }
@@ -139,7 +149,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             {
                 continue;
             }
-            if (NameEquals(entry.Name, target) || NameEquals(entry.ShortName, target))
+            if (FatDirectory.NameEqualsIgnoreCase(entry.Name, target) || FatDirectory.NameEqualsIgnoreCase(entry.ShortName, target))
             {
                 match = entry;
                 return true;
@@ -202,7 +212,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             }
         }
 
-        Span<char> shortBuffer = stackalloc char[11];
+        Span<char> shortBuffer = stackalloc char[ShortNameLength];
         FatDirectory.BuildShortName(longName, shortBuffer);
 
         if (lfnCount > 0)
@@ -223,7 +233,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             parent,
             eightThreeOffset,
             slots);
-        if (firstCluster >= 2)
+        if (firstCluster >= FatTable.FirstDataCluster)
         {
             _inodeCache[firstCluster] = node;
         }
@@ -238,6 +248,17 @@ internal sealed class FatSuperblock : IVfsSuperblock
         int start = match.ByteOffset - match.LfnEntryCount * FatDirectory.EntrySize;
         FatDirectory.MarkDeleted(data, start, slots);
         WriteDirectoryData(parent, data);
+
+        // A live inode may still be referenced by an open handle; its
+        // later Fsync must not patch whatever entry reuses this slot
+        // (cross-link corruption of the new file). Invalidate the offset
+        // while the cache can still locate the inode.
+        if (match.FirstCluster >= FatTable.FirstDataCluster
+            && _inodeCache.TryGetValue(match.FirstCluster, out FatInode? live)
+            && live.DirEntryByteOffset == match.ByteOffset)
+        {
+            live.DirEntryByteOffset = -1;
+        }
     }
 
     public void UpdateInodeEntry(FatInode inode)
@@ -254,10 +275,28 @@ internal sealed class FatSuperblock : IVfsSuperblock
             return;
         }
 
-        BitConverter.TryWriteBytes(data.AsSpan(offset + 20, 2), (ushort)((inode.FirstCluster >> 16) & 0xFFFFu));
-        BitConverter.TryWriteBytes(data.AsSpan(offset + 26, 2), (ushort)(inode.FirstCluster & 0xFFFFu));
-        BitConverter.TryWriteBytes(data.AsSpan(offset + 28, 4), inode.Size);
+        // Defense in depth for handles that escaped the cache-based
+        // invalidation: never patch a slot that was deleted or is the
+        // directory terminator.
+        byte marker = data[offset];
+        if (marker == FatDirectory.DeletedMarker || marker == FatDirectory.EndOfDirectoryMarker)
+        {
+            return;
+        }
+
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterHighOffset, 2), (ushort)((inode.FirstCluster >> 16) & 0xFFFFu));
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterLowOffset, 2), (ushort)(inode.FirstCluster & 0xFFFFu));
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.SizeOffset, 4), inode.Size);
+        data[offset + FatDirectory.AttributesOffset] = (byte)inode.Attributes;
         WriteDirectoryData(inode.Parent, data);
+
+        // Files created empty enter the world with cluster 0 and are never
+        // cached; index the live inode once a first cluster exists so a
+        // later unlink can invalidate this object's slot reference.
+        if (inode.FirstCluster >= FatTable.FirstDataCluster)
+        {
+            _inodeCache[inode.FirstCluster] = inode;
+        }
     }
 
     public void TruncateChain(FatInode inode, uint newSize)
@@ -268,7 +307,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
         List<uint> chain = inode.ResolveChain();
         if (clustersToKeep == 0)
         {
-            if (inode.FirstCluster >= 2)
+            if (inode.FirstCluster >= FatTable.FirstDataCluster)
             {
                 Fat.Free(inode.FirstCluster);
             }
@@ -293,14 +332,12 @@ internal sealed class FatSuperblock : IVfsSuperblock
 
     public bool GrowZeroFilled(FatInode inode, uint newSize)
     {
-        long startPos = inode.Size;
-        uint zeros = newSize - inode.Size;
-        Span<byte> emptyBuffer = new byte[Boot.BytesPerCluster];
+        Span<byte> zeroCluster = new byte[Boot.BytesPerCluster];
 
         uint clusterSize = Boot.BytesPerCluster;
-        long endPosition = newSize;
-        long clustersNeeded = (endPosition + clusterSize - 1) / clusterSize;
+        long clustersNeeded = ((long)newSize + clusterSize - 1) / clusterSize;
         List<uint> chain = inode.ResolveChain();
+        int preexisting = chain.Count;
 
         while (chain.Count < clustersNeeded)
         {
@@ -318,23 +355,46 @@ internal sealed class FatSuperblock : IVfsSuperblock
                 Fat.Set(chain[^1], added);
             }
             chain.Add(added);
-            WriteCluster(added, emptyBuffer);
+            WriteCluster(added, zeroCluster);
         }
 
-        long pos = startPos;
+        // Zero the gap between the old EOF and newSize. Freshly allocated
+        // clusters are already zeroed above; only the partial cluster
+        // holding the old EOF needs a read-modify-write, full pre-existing
+        // clusters get the zero buffer written directly.
+        Span<byte> rmwBuffer = Span<byte>.Empty;
+        long pos = inode.Size;
         while (pos < newSize)
         {
             long clusterIndex = pos / clusterSize;
             long intra = pos % clusterSize;
-            uint cluster = chain[(int)clusterIndex];
-            ReadCluster(cluster, emptyBuffer);
             long clear = clusterSize - intra;
             if (pos + clear > newSize)
             {
                 clear = newSize - pos;
             }
-            emptyBuffer.Slice((int)intra, (int)clear).Clear();
-            WriteCluster(cluster, emptyBuffer);
+
+            if (clusterIndex >= preexisting)
+            {
+                pos += clear;
+                continue;
+            }
+
+            uint cluster = chain[(int)clusterIndex];
+            if (intra == 0 && clear == clusterSize)
+            {
+                WriteCluster(cluster, zeroCluster);
+            }
+            else
+            {
+                if (rmwBuffer.IsEmpty)
+                {
+                    rmwBuffer = new byte[Boot.BytesPerCluster];
+                }
+                ReadCluster(cluster, rmwBuffer);
+                rmwBuffer.Slice((int)intra, (int)clear).Clear();
+                WriteCluster(cluster, rmwBuffer);
+            }
             pos += clear;
         }
 
@@ -349,54 +409,47 @@ internal sealed class FatSuperblock : IVfsSuperblock
             return currentData;
         }
 
+        // One cluster may not fit the requested run: a maximal LFN needs
+        // 21 slots (672 bytes) but a 512-byte cluster holds only 16.
+        uint clustersNeeded =
+            ((uint)slotsNeeded * (uint)FatDirectory.EntrySize + Boot.BytesPerCluster - 1) / Boot.BytesPerCluster;
+        if (clustersNeeded == 0)
+        {
+            clustersNeeded = 1;
+        }
+
         List<uint> chain = parent.ResolveChain();
-        uint newCluster = Fat.AllocateChain(1);
-        if (newCluster == 0)
+        uint added = Fat.AllocateChain(clustersNeeded);
+        if (added == 0)
         {
             return currentData;
         }
 
         if (chain.Count == 0)
         {
-            parent.FirstCluster = newCluster;
+            parent.FirstCluster = added;
+            // Persist the new first cluster, or the parent's on-disk
+            // entry keeps cluster 0 and the children are lost on remount.
+            UpdateInodeEntry(parent);
         }
         else
         {
-            Fat.Set(chain[^1], newCluster);
+            Fat.Set(chain[^1], added);
         }
-        chain.Add(newCluster);
 
+        // chain is the inode's cached list: append the new clusters so the
+        // cache stays coherent with the FAT links written above.
+        List<uint> newClusters = Fat.GetChain(added);
         Span<byte> emptyCluster = new byte[Boot.BytesPerCluster];
-        WriteCluster(newCluster, emptyCluster);
+        for (int i = 0; i < newClusters.Count; i++)
+        {
+            chain.Add(newClusters[i]);
+            WriteCluster(newClusters[i], emptyCluster);
+        }
 
-        byte[] grown = new byte[currentData.Length + (int)Boot.BytesPerCluster];
+        byte[] grown = new byte[currentData.Length + newClusters.Count * (int)Boot.BytesPerCluster];
         Buffer.BlockCopy(currentData, 0, grown, 0, currentData.Length);
         return grown;
     }
 
-    private static bool NameEquals(string a, string b)
-    {
-        if (a.Length != b.Length)
-        {
-            return false;
-        }
-        for (int i = 0; i < a.Length; i++)
-        {
-            char ac = a[i];
-            char bc = b[i];
-            if (ac >= 'a' && ac <= 'z')
-            {
-                ac = (char)(ac - 32);
-            }
-            if (bc >= 'a' && bc <= 'z')
-            {
-                bc = (char)(bc - 32);
-            }
-            if (ac != bc)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 }

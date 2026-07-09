@@ -56,7 +56,28 @@ public sealed class FatDirEntry
 public static class FatDirectory
 {
     public const int EntrySize = 32;
-    private const byte DeletedMarker = 0xE5;
+
+    /// <summary>First byte value marking a deleted entry.</summary>
+    public const byte DeletedMarker = 0xE5;
+
+    /// <summary>First byte value terminating the directory (no entries follow).</summary>
+    public const byte EndOfDirectoryMarker = 0x00;
+
+    /// <summary>Byte offset of the attribute byte within an 8.3 entry.</summary>
+    public const int AttributesOffset = 11;
+
+    /// <summary>Byte offset of the high 16 bits of the first cluster (FAT32; reserved on FAT12/16).</summary>
+    public const int FirstClusterHighOffset = 20;
+
+    /// <summary>Byte offset of the low 16 bits of the first cluster.</summary>
+    public const int FirstClusterLowOffset = 26;
+
+    /// <summary>Byte offset of the 32-bit file size.</summary>
+    public const int SizeOffset = 28;
+
+    /// <summary>ASCII distance between upper- and lower-case letters.</summary>
+    private const int CaseDistance = 32;
+
     private const byte LfnLastBit = 0x40;
     private const int LfnCharsPerEntry = 13;
 
@@ -195,10 +216,40 @@ public static class FatDirectory
             entry[i] = 0x20;
         }
 
-        entry[11] = (byte)attributes;
-        BitConverter.TryWriteBytes(entry.Slice(20, 2), (ushort)((firstCluster >> 16) & 0xFFFFu));
-        BitConverter.TryWriteBytes(entry.Slice(26, 2), (ushort)(firstCluster & 0xFFFFu));
-        BitConverter.TryWriteBytes(entry.Slice(28, 4), size);
+        entry[AttributesOffset] = (byte)attributes;
+        BitConverter.TryWriteBytes(entry.Slice(FirstClusterHighOffset, 2), (ushort)((firstCluster >> 16) & 0xFFFFu));
+        BitConverter.TryWriteBytes(entry.Slice(FirstClusterLowOffset, 2), (ushort)(firstCluster & 0xFFFFu));
+        BitConverter.TryWriteBytes(entry.Slice(SizeOffset, 4), size);
+    }
+
+    /// <summary>
+    /// Case-insensitive ASCII comparison used for FAT name matching —
+    /// the single comparer shared by the superblock and inode layers.
+    /// </summary>
+    public static bool NameEqualsIgnoreCase(string a, string b)
+    {
+        if (a.Length != b.Length)
+        {
+            return false;
+        }
+        for (int i = 0; i < a.Length; i++)
+        {
+            char ac = a[i];
+            char bc = b[i];
+            if (ac >= 'a' && ac <= 'z')
+            {
+                ac = (char)(ac - CaseDistance);
+            }
+            if (bc >= 'a' && bc <= 'z')
+            {
+                bc = (char)(bc - CaseDistance);
+            }
+            if (ac != bc)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static void WriteLfnEntries(

@@ -35,7 +35,7 @@ internal sealed class FatInodeOperations : IInodeOperations
                 continue;
             }
 
-            if (NameEquals(entry.Name, targetName) || NameEquals(entry.ShortName, targetName))
+            if (FatDirectory.NameEqualsIgnoreCase(entry.Name, targetName) || FatDirectory.NameEqualsIgnoreCase(entry.ShortName, targetName))
             {
                 FatInode found = _superblock.GetOrCreateInode(parent, entry);
                 child = found;
@@ -271,31 +271,6 @@ internal sealed class FatInodeOperations : IInodeOperations
         return true;
     }
 
-    private static bool NameEquals(string a, string b)
-    {
-        if (a.Length != b.Length)
-        {
-            return false;
-        }
-        for (int i = 0; i < a.Length; i++)
-        {
-            char ac = a[i];
-            char bc = b[i];
-            if (ac >= 'a' && ac <= 'z')
-            {
-                ac = (char)(ac - 32);
-            }
-            if (bc >= 'a' && bc <= 'z')
-            {
-                bc = (char)(bc - 32);
-            }
-            if (ac != bc)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     private static void WriteDotEntries(Span<byte> clusterBuffer, uint selfCluster, uint parentCluster)
     {

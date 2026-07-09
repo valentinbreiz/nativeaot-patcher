@@ -675,6 +675,103 @@ public class Kernel : Sys.Kernel
                 "a wild FAT32 cluster must resolve to EOC, not out-of-range I/O");
         });
 
+        // Unlink invalidates nothing on a still-referenced inode, so a
+        // later Fsync through a stale handle patches whatever directory
+        // entry reused the slot — cross-linking the new file onto the old
+        // file's freed clusters.
+        TR.Run("Test_Fat16_StaleHandleFsync_DoesNotClobberReusedSlot", () =>
+        {
+            IVfsInode root = ResolveRoot(Fat16Mount);
+            Assert.True(root.InodeOperations.Create(root, "STALEA.TXT", ModeEnum.RegularFile, out IVfsInode? fileA));
+            byte[] payloadA = MakePayload(1024, 0x51);
+            WriteAll(fileA!, payloadA);
+
+            Assert.True(root.InodeOperations.Unlink(root, "STALEA.TXT"));
+
+            // Same slot count (plain 8.3 name): reuses A's freed slot.
+            Assert.True(root.InodeOperations.Create(root, "STALEB.TXT", ModeEnum.RegularFile, out IVfsInode? fileB));
+            byte[] payloadB = MakePayload(700, 0x52);
+            WriteAll(fileB!, payloadB);
+
+            // Fsync through the stale handle must not patch B's entry.
+            IFileOperations opsA = fileA!.FileOperations!;
+            opsA.Fsync(new TestOpenFile(fileA!, opsA));
+
+            Assert.True(root.InodeOperations.Lookup(root, "STALEB.TXT", out IVfsInode? lookupB));
+            Assert.True(lookupB!.InodeOperations.GetAttr(lookupB, out VfsStat statB));
+            Assert.Equal<ulong>((ulong)payloadB.Length, statB.Size);
+            byte[] readBack = ReadAll(lookupB!, payloadB.Length);
+            AssertBytesEqual(payloadB, readBack);
+        });
+
+        // SetAttr(Mode) updates the in-memory attributes and relies on
+        // UpdateInodeEntry to persist them; the attribute byte must reach
+        // disk or the change evaporates on the next Lookup.
+        TR.Run("Test_Fat16_SetAttrReadOnly_Persists", () =>
+        {
+            IVfsInode root = ResolveRoot(Fat16Mount);
+            // Create writable (mode with a write bit maps to no ReadOnly
+            // attribute), then chmod it read-only via SetAttr.
+            Assert.True(root.InodeOperations.Create(
+                root, "ROFLAG.TXT", ModeEnum.RegularFile | ModeEnum.OwnerRead | ModeEnum.OwnerWrite, out IVfsInode? created));
+            Assert.True(root.InodeOperations.Lookup(root, "ROFLAG.TXT", out IVfsInode? sanity));
+            Assert.True(sanity!.InodeOperations.GetAttr(sanity, out VfsStat sanityStat));
+            Assert.True((sanityStat.Mode & ModeEnum.OwnerWrite) != 0, "baseline file must be writable on disk");
+
+            VfsStat wanted = default;
+            wanted.Mode = ModeEnum.RegularFile | ModeEnum.OwnerRead | ModeEnum.GroupRead | ModeEnum.OtherRead;
+            Assert.True(created!.InodeOperations.SetAttr(created, SetAttrFlags.Mode, wanted));
+
+            // A fresh Lookup re-parses the on-disk entry.
+            Assert.True(root.InodeOperations.Lookup(root, "ROFLAG.TXT", out IVfsInode? lookup));
+            Assert.True(lookup!.InodeOperations.GetAttr(lookup, out VfsStat stat));
+            Assert.True((stat.Mode & ModeEnum.OwnerWrite) == 0,
+                "the ReadOnly attribute must survive a re-parse of the on-disk entry");
+        });
+
+        // A maximal LFN needs 21 slots (672 bytes) but a 512-byte cluster
+        // holds 16: growing by exactly one cluster can never satisfy the
+        // run, so creates in a packed directory fail despite free space.
+        TR.Run("Test_GrowDirectory_FitsMaxLfnRun", () =>
+        {
+            MemoryBlockDevice disk = new("GROWDIR", 512, (16UL * 1024 * 1024) / 512);
+            FatFilesystemType driver = new(disk);
+            Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 1 }));
+            Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
+            IVfsInode root = sb!.Root;
+
+            Assert.True(root.InodeOperations.Mkdir(root, "PACK", ModeEnum.Directory, out IVfsInode? dir));
+            // '.' and '..' occupy 2 of the 16 slots; fill the other 14.
+            for (int i = 0; i < 14; i++)
+            {
+                string name = "F" + (i / 10) + (i % 10) + ".TXT";
+                Assert.True(dir!.InodeOperations.Create(dir, name, ModeEnum.RegularFile, out _));
+            }
+
+            string maxLfn = new string('x', 251) + ".txt";
+            Assert.True(dir!.InodeOperations.Create(dir, maxLfn, ModeEnum.RegularFile, out _),
+                "a packed directory must grow enough clusters to fit a maximal LFN run");
+            Assert.True(dir.InodeOperations.Lookup(dir, maxLfn, out _));
+        });
+
+        // VFS sync and unmount are durability points: they must flush the
+        // device's volatile write cache.
+        TR.Run("Test_Superblock_SyncAndDrop_Flush", () =>
+        {
+            MemoryBlockDevice disk = new("SYNCFLUSH", 512, (16UL * 1024 * 1024) / 512);
+            FatFilesystemType driver = new(disk);
+            Assert.True(driver.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16, SectorsPerCluster = 4 }));
+            Assert.True(driver.TryMount(default, MountFlags.None, out IVfsSuperblock? sb));
+
+            int before = disk.FlushCount;
+            Assert.True(sb!.SuperOperations.Sync(sb));
+            Assert.True(disk.FlushCount > before, "Sync must flush the device write cache");
+
+            before = disk.FlushCount;
+            sb.SuperOperations.Drop(sb);
+            Assert.True(disk.FlushCount > before, "Drop (unmount) must flush the device write cache");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
