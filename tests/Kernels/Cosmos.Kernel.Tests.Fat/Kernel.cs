@@ -506,6 +506,29 @@ public class Kernel : Sys.Kernel
             AssertBytesEqual(payload, back);
         });
 
+        // fatgen103 §6.2: one FAT copy must hold an entry for every data
+        // cluster plus the two reserved entries. An undersized FAT makes
+        // FatTable index past the FAT region into the second copy or the
+        // data area — silent corruption on any moderately full volume.
+        TR.Run("Test_Format_FatSize_CoversClusterCount", () =>
+        {
+            // Explicit FAT32: entries are 4 bytes — 128 per 512-byte
+            // sector, half the FAT16 density.
+            AssertFormattedFatCovers(
+                new MemoryBlockDevice("FMT32", 512, (64UL * 1024 * 1024) / 512),
+                new FatFormatOptions { Type = FatType.Fat32 });
+            // Auto-detected FAT16 (64 MiB, SPC auto-picks 8 → ~16k
+            // clusters): the FAT must be sized for the resolved type, not
+            // the FAT12 first guess.
+            AssertFormattedFatCovers(
+                new MemoryBlockDevice("FMTAUTO16", 512, (64UL * 1024 * 1024) / 512),
+                new FatFormatOptions());
+            // Auto-detected FAT12 baseline.
+            AssertFormattedFatCovers(
+                new MemoryBlockDevice("FMTAUTO12", 512, (4UL * 1024 * 1024) / 512),
+                new FatFormatOptions());
+        });
+
         TR.Finish();
 
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
@@ -532,6 +555,46 @@ public class Kernel : Sys.Kernel
     {
         VfsManager.TryOpenFile(path, out IVfsFileHandle? handle);
         return handle;
+    }
+
+    // Formats the disk, decodes the fresh BPB, and checks one FAT copy's
+    // capacity against the volume's cluster count (fatgen103 §6.2: data
+    // clusters + 2 reserved entries must fit).
+    private static void AssertFormattedFatCovers(MemoryBlockDevice disk, FatFormatOptions opts)
+    {
+        FatFilesystemType driver = new(disk);
+        Assert.True(driver.TryFormat(default, opts));
+
+        byte[] bpb = new byte[512];
+        disk.ReadBlock(0, 1, bpb);
+        Span<byte> b = bpb;
+        uint bytesPerSector = BitConverter.ToUInt16(b.Slice(11, 2));
+        uint spc = b[13];
+        uint reserved = BitConverter.ToUInt16(b.Slice(14, 2));
+        uint numFats = b[16];
+        uint rootEntries = BitConverter.ToUInt16(b.Slice(17, 2));
+        uint fatSize = BitConverter.ToUInt16(b.Slice(22, 2));
+        if (fatSize == 0)
+        {
+            fatSize = BitConverter.ToUInt32(b.Slice(36, 4));
+        }
+        uint totalSectors = BitConverter.ToUInt16(b.Slice(19, 2));
+        if (totalSectors == 0)
+        {
+            totalSectors = BitConverter.ToUInt32(b.Slice(32, 4));
+        }
+
+        uint rootDirSectors = (rootEntries * 32u + bytesPerSector - 1) / bytesPerSector;
+        uint dataStart = reserved + numFats * fatSize + rootDirSectors;
+        uint clusterCount = (totalSectors - dataStart) / spc;
+
+        // Entry density per family, derived from the cluster count the
+        // way fatgen103 §3.5 resolves the type.
+        uint entriesPerSector = clusterCount < 4085
+            ? bytesPerSector * 2 / 3
+            : (clusterCount < 65525 ? bytesPerSector / 2 : bytesPerSector / 4);
+        Assert.True(fatSize * entriesPerSector >= clusterCount + 2,
+            "one FAT copy must cover every data cluster plus the two reserved entries");
     }
 
     private static byte[] MakePayload(int size, byte salt)

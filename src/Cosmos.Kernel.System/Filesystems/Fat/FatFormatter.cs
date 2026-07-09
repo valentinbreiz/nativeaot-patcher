@@ -160,16 +160,30 @@ internal static class FatFormatter
                 rootEntries = 0;
                 rootCluster = opts.RootCluster != 0 ? opts.RootCluster : 2u;
                 rootDirSectors = 0;
-                fatSectors = opts.FatSectorCount != 0
-                    ? opts.FatSectorCount
-                    : ComputeFatSectors(FatType.Fat32, totalSectors, bytesPerSector, reserved, numFats, spc, 0);
-                fatRegion = (uint)numFats * fatSectors;
-                dataStart = reserved + fatRegion;
-                if (totalSectors <= dataStart)
-                {
-                    return false;
-                }
-                clusterCount = (totalSectors - dataStart) / spc;
+            }
+            // The first fatSectors guess used the FAT12 fallback
+            // denominator; a volume resolved as FAT16/FAT32 needs a
+            // denser FAT (2/4-byte entries), so recompute with the
+            // resolved type and re-derive the layout.
+            fatSectors = opts.FatSectorCount != 0
+                ? opts.FatSectorCount
+                : ComputeFatSectors(resolved, totalSectors, bytesPerSector, reserved, numFats, spc, rootEntries);
+            if (fatSectors == 0)
+            {
+                return false;
+            }
+            fatRegion = (uint)numFats * fatSectors;
+            dataStart = reserved + fatRegion + rootDirSectors;
+            if (totalSectors <= dataStart)
+            {
+                return false;
+            }
+            clusterCount = (totalSectors - dataStart) / spc;
+            // The recomputed layout must not drift out of the resolved
+            // band (possible right at a band boundary).
+            if (!ValidateBand(resolved, clusterCount))
+            {
+                return false;
             }
         }
         else
@@ -256,18 +270,21 @@ internal static class FatFormatter
         uint dataSectors = totalSectors - reserved - rootDirSectors;
 
         uint denom;
-        if (type == FatType.Fat32)
+        if (type == FatType.Fat16 || type == FatType.Fat32)
         {
-            denom = (256u * spc) + numFats;
-        }
-        else if (type == FatType.Fat16)
-        {
-            denom = (256u * spc) + numFats;
-            // FAT16 entry is 2 bytes -> 256 entries per 512-byte sector. Same denom shape.
+            // FAT16 entries are 2 bytes -> BytesPerSec/2 per sector;
+            // fatgen103 §6.2 halves the term again for 4-byte FAT32
+            // entries (128 per 512-byte sector, not 256).
+            denom = ((bytesPerSector / 2u) * spc) + numFats;
+            if (type == FatType.Fat32)
+            {
+                denom /= 2;
+            }
         }
         else
         {
-            // FAT12: 1.5 bytes/entry -> ~341 entries per 512-byte sector. Use a safe overestimate.
+            // FAT12 (and the Unknown first pass): 1.5 bytes/entry ->
+            // ~341 entries per 512-byte sector. Safe overestimate.
             denom = ((bytesPerSector * 2u / 3u) * spc) + numFats;
         }
 
