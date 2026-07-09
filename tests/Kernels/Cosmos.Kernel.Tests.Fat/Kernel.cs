@@ -579,6 +579,43 @@ public class Kernel : Sys.Kernel
                 "a read straddling the device end must throw");
         });
 
+        // The BPB is on-disk metadata: parse/mount-time validation must
+        // reject what would otherwise wrap the uint geometry math into a
+        // self-consistent-looking volume or wild cluster LBAs.
+        TR.Run("Test_Mount_RejectsCorruptBpb", () =>
+        {
+            MemoryBlockDevice disk = new("BPBHARD", 512, (8UL * 1024 * 1024) / 512);
+
+            Assert.True(MountRefusedCleanly(CorruptBpb(disk, PatchBpbFatRegionWraps)),
+                "a FAT region that wraps uint must be rejected");
+            Assert.True(MountRefusedCleanly(CorruptBpb(disk, PatchBpbTotalPastDevice)),
+                "a volume extending past the device must be rejected");
+            Assert.True(MountRefusedCleanly(CorruptBpb(disk, PatchBpbZeroFat)),
+                "a zero-length FAT must be rejected");
+            Assert.True(MountRefusedCleanly(CorruptBpb(disk, PatchBpbBadSpc)),
+                "a non-power-of-two SectorsPerCluster must be rejected");
+
+            // FAT32 root cluster 0 underflows ClusterToLba's cluster - 2.
+            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("BPBHARD32");
+            byte[] sector = new byte[512];
+            disk32.ReadBlock(0, 1, sector);
+            BitConverter.TryWriteBytes(sector.AsSpan(44, 4), 0u);
+            disk32.WriteBlock(0, 1, sector);
+            Assert.True(MountRefusedCleanly(disk32),
+                "a FAT32 root cluster below 2 must be rejected at mount");
+
+            // ClusterToLba bounds on a healthy volume.
+            MemoryBlockDevice valid = new("BPBRANGE", 512, (8UL * 1024 * 1024) / 512);
+            FatFilesystemType fmt = new(valid);
+            Assert.True(fmt.TryFormat(default, new FatFormatOptions()));
+            valid.ReadBlock(0, 1, sector);
+            Assert.True(FatBootSector.TryParse(sector, out FatBootSector? bs) && bs != null);
+            Assert.True(ClusterToLbaThrows(bs!, 0),
+                "ClusterToLba(0) must throw, not underflow into an exabyte LBA");
+            Assert.True(ClusterToLbaThrows(bs!, bs!.ClusterCount + 5),
+                "ClusterToLba beyond the cluster count must throw");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -633,6 +670,75 @@ public class Kernel : Sys.Kernel
     {
         VfsManager.TryOpenFile(path, out IVfsFileHandle? handle);
         return handle;
+    }
+
+    // Formats the disk fresh, applies the patch to sector 0, writes it
+    // back. Keeps the corruption cells to one line per scenario.
+    private static MemoryBlockDevice CorruptBpb(MemoryBlockDevice disk, Action<byte[]> patch)
+    {
+        FatFilesystemType driver = new(disk);
+        Assert.True(driver.TryFormat(default, new FatFormatOptions()), "baseline format for a corruption cell failed");
+        byte[] sector = new byte[512];
+        disk.ReadBlock(0, 1, sector);
+        patch(sector);
+        disk.WriteBlock(0, 1, sector);
+        return disk;
+    }
+
+    // FATSz16 = 0, FATSz32 = 0x80000000: with 2 FATs the uint fatRegion
+    // product wraps to 0 and the geometry collapses onto the reserved area.
+    private static void PatchBpbFatRegionWraps(byte[] bpb)
+    {
+        BitConverter.TryWriteBytes(bpb.AsSpan(22, 2), (ushort)0);
+        BitConverter.TryWriteBytes(bpb.AsSpan(36, 4), 0x80000000u);
+        BitConverter.TryWriteBytes(bpb.AsSpan(44, 4), 2u);
+    }
+
+    // Claims 4x the device's sectors.
+    private static void PatchBpbTotalPastDevice(byte[] bpb)
+    {
+        BitConverter.TryWriteBytes(bpb.AsSpan(19, 2), (ushort)0);
+        BitConverter.TryWriteBytes(bpb.AsSpan(32, 4), 4u * (8 * 1024 * 1024 / 512));
+    }
+
+    private static void PatchBpbZeroFat(byte[] bpb)
+    {
+        BitConverter.TryWriteBytes(bpb.AsSpan(22, 2), (ushort)0);
+        BitConverter.TryWriteBytes(bpb.AsSpan(36, 4), 0u);
+    }
+
+    private static void PatchBpbBadSpc(byte[] bpb)
+    {
+        bpb[13] = 3;
+    }
+
+    // One try/catch per method on purpose: true = TryMount returned false
+    // without throwing.
+    private static bool MountRefusedCleanly(MemoryBlockDevice disk)
+    {
+        try
+        {
+            FatFilesystemType driver = new(disk);
+            return !driver.TryMount(default, MountFlags.None, out _);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    // One try/catch per method on purpose.
+    private static bool ClusterToLbaThrows(FatBootSector bs, uint cluster)
+    {
+        try
+        {
+            bs.ClusterToLba(cluster);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 
     // One try/catch per method on purpose: true = the read threw the

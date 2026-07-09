@@ -65,7 +65,15 @@ public sealed class FatBootSector
             RootEntryCount = BitConverter.ToUInt16(bpb.Slice(17, 2)),
         };
 
-        if (bs.BytesPerSector == 0 || bs.SectorsPerCluster == 0 || bs.NumberOfFats == 0)
+        // On-disk BPB fields are untrusted (same rule as Mbr/Gpt/Ebr):
+        // enforce the spec-legal ranges the derived math and FatTable's
+        // entry-spanning logic assume. BytesPerSector must be one of
+        // 512/1024/2048/4096, SectorsPerCluster a power of two <= 128.
+        if (bs.BytesPerSector < 512 || bs.BytesPerSector > 4096
+            || (bs.BytesPerSector & (bs.BytesPerSector - 1)) != 0
+            || bs.SectorsPerCluster == 0 || bs.SectorsPerCluster > 128
+            || (bs.SectorsPerCluster & (bs.SectorsPerCluster - 1)) != 0
+            || bs.NumberOfFats == 0)
         {
             return false;
         }
@@ -78,17 +86,33 @@ public sealed class FatBootSector
         uint fat16 = BitConverter.ToUInt16(bpb.Slice(22, 2));
         bs.FatSectorCount = fat16 != 0 ? fat16 : BitConverter.ToUInt32(bpb.Slice(36, 4));
 
+        if (bs.TotalSectorCount == 0 || bs.FatSectorCount == 0)
+        {
+            return false;
+        }
+
         bs.FatStartLba = bs.ReservedSectorCount;
         bs.RootSectorCount = (bs.RootEntryCount * 32u + (bs.BytesPerSector - 1)) / bs.BytesPerSector;
 
-        uint fatRegion = bs.NumberOfFats * bs.FatSectorCount;
-        bs.RootStartLba = bs.ReservedSectorCount + fatRegion;
-        bs.DataStartLba = bs.RootStartLba + bs.RootSectorCount;
+        // Derive the geometry in ulong: a crafted FATSz32/NumFATs pair
+        // (e.g. 0x80000000 x 2) wraps the uint product to 0 and collapses
+        // the data area onto the reserved sectors.
+        ulong fatRegion = (ulong)bs.NumberOfFats * bs.FatSectorCount;
+        ulong rootStart = bs.ReservedSectorCount + fatRegion;
+        ulong dataStart = rootStart + bs.RootSectorCount;
+        if (dataStart >= bs.TotalSectorCount)
+        {
+            return false;
+        }
+        bs.RootStartLba = (uint)rootStart;
+        bs.DataStartLba = (uint)dataStart;
 
-        uint dataSectorCount = bs.TotalSectorCount > bs.DataStartLba
-            ? bs.TotalSectorCount - bs.DataStartLba
-            : 0;
+        uint dataSectorCount = bs.TotalSectorCount - bs.DataStartLba;
         bs.ClusterCount = dataSectorCount / bs.SectorsPerCluster;
+        if (bs.ClusterCount == 0)
+        {
+            return false;
+        }
 
         if (bs.ClusterCount < 4085)
         {
@@ -108,7 +132,7 @@ public sealed class FatBootSector
             bs.RootCluster = BitConverter.ToUInt32(bpb.Slice(44, 4));
             bs.RootStartLba = 0;
             bs.RootSectorCount = 0;
-            bs.DataStartLba = bs.ReservedSectorCount + fatRegion;
+            bs.DataStartLba = (uint)rootStart;
         }
         else
         {
@@ -122,6 +146,14 @@ public sealed class FatBootSector
     /// <summary>Absolute LBA of the first sector of <paramref name="cluster"/>.</summary>
     public ulong ClusterToLba(uint cluster)
     {
+        // Data clusters are 2..ClusterCount+1. Below 2 the uint
+        // subtraction underflows (cluster 0 yields an exabyte-range LBA),
+        // above addresses past the volume — callers get a throw instead
+        // of wild device I/O.
+        if (cluster < 2 || cluster > ClusterCount + 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(cluster));
+        }
         return DataStartLba + ((ulong)(cluster - 2)) * SectorsPerCluster;
     }
 }

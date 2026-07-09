@@ -49,6 +49,19 @@ public sealed class FatFilesystemType : IVfsFilesystemType
         {
             return false;
         }
+        // The parser never sees the device: reject volumes whose claimed
+        // geometry leaves it, and FAT32 root clusters outside the data
+        // area (0 underflows ClusterToLba's cluster - 2), before any
+        // FAT or cluster I/O can hit the device's range guard.
+        if (boot.TotalSectorCount > device.BlockCount)
+        {
+            return false;
+        }
+        if (boot.Type == FatType.Fat32
+            && (boot.RootCluster < 2 || boot.RootCluster >= boot.ClusterCount + 2))
+        {
+            return false;
+        }
 
         superblock = new FatSuperblock(device, boot);
         return true;
