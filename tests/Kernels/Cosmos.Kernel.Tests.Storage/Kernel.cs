@@ -35,6 +35,9 @@ public class Kernel : Sys.Kernel
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
     private const ushort ExpectedTestCount = 67;
 
+    /// <summary>Block devices the engine attaches per QEMU profile; any other count is a bind or double-registration regression.</summary>
+    private const int AttachedDisksPerProfile = 1;
+
     /// <summary>Logical block size every disk in these profiles exposes (bytes).</summary>
     private const ulong SectorSizeBytes = 512;
 
@@ -47,11 +50,17 @@ public class Kernel : Sys.Kernel
     /// <summary>First usable LBA behind the primary GPT structures (header at LBA 1 + 32 entry sectors).</summary>
     private const ulong GptFirstUsableLba = 34;
 
+    /// <summary>LBA of the primary GPT header (UEFI spec 5.3.1); wiped by the reset helpers to clear a stale GPT signature.</summary>
+    private const ulong GptHeaderLba = 1;
+
     /// <summary>LBA of the first sector of the primary GPT partition-entry array (UEFI spec 5.3: header at LBA 1, entries from LBA 2).</summary>
     private const ulong GptEntryArrayLba = 2;
 
     /// <summary>Size of a GUID field in a GPT partition entry (bytes, UEFI spec 5.3.3).</summary>
     private const int GptGuidSizeBytes = 16;
+
+    /// <summary>Byte offset of the partition-type GUID within a GPT partition entry (UEFI spec 5.3.3).</summary>
+    private const int GptEntryTypeGuidOffset = 0;
 
     /// <summary>Byte offset of the unique-partition GUID within a GPT partition entry (UEFI spec 5.3.3).</summary>
     private const int GptEntryUniqueGuidOffset = 16;
@@ -71,6 +80,15 @@ public class Kernel : Sys.Kernel
     /// <summary>Size in bytes of one GPT partition entry.</summary>
     private const int GptEntrySizeBytes = 128;
 
+    /// <summary>Size of one UTF-16 code unit in the GPT entry name field (bytes).</summary>
+    private const int Utf16BytesPerChar = 2;
+
+    /// <summary>Number of UTF-16 characters stamped into the GPT entry name field by the remove-clears cell.</summary>
+    private const int GptNameStampChars = 8;
+
+    /// <summary>Base UTF-16 code unit stamped into the GPT entry name field ('A'); successive characters add the loop index.</summary>
+    private const char GptNameStampBaseChar = 'A';
+
     /// <summary>Non-zero byte planted in the unique-GUID field so the raw-crafted GPT entry is not all-zero.</summary>
     private const byte BogusUniqueGuidByte = 0x42;
 
@@ -82,6 +100,18 @@ public class Kernel : Sys.Kernel
 
     /// <summary>Sector count of the past-end GPT entry that AddPartition must reject.</summary>
     private const ulong GptBogusPastEndSectorCount = 16;
+
+    /// <summary>Start-LBA delta from the first to the second GPT partition in the mutate-skips cell (sectors).</summary>
+    private const ulong GptSecondPartitionDeltaSectors = 4096;
+
+    /// <summary>Sectors past the device end where the raw-corrupted GPT entry's start LBA lands.</summary>
+    private const ulong GptCorruptStartOvershootSectors = 5;
+
+    /// <summary>Sectors past the device end where the raw-corrupted GPT entry's inclusive ending LBA lands.</summary>
+    private const ulong GptCorruptEndOvershootSectors = 14;
+
+    /// <summary>LBA of the MBR / boot sector (the disk's first sector in the classic PC layout).</summary>
+    private const ulong MbrLba = 0;
 
     /// <summary>Byte offset of MBR partition entry 0 in the boot sector.</summary>
     private const int MbrEntry0Offset = 446;
@@ -101,6 +131,9 @@ public class Kernel : Sys.Kernel
     /// <summary>Size of an LBA/count field in an MBR partition entry (bytes, 32-bit).</summary>
     private const int MbrLbaFieldBytes = 4;
 
+    /// <summary>Bit width of the on-disk MBR/EBR sector-count field; 1UL shifted by this is the first unrepresentable count.</summary>
+    private const int MbrSectorCountFieldBits = 32;
+
     /// <summary>MBR system ID for a native Linux partition.</summary>
     private const byte MbrLinuxSystemId = 0x83;
 
@@ -119,6 +152,9 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector count of the second MBR round-trip partition window.</summary>
     private const uint MbrPartBSectorCount = 500;
 
+    /// <summary>Start LBA of 0, aliasing the owning table sector itself (MBR or EBR); writers and parsers must reject it.</summary>
+    private const uint SelfAliasingStartLba = 0;
+
     /// <summary>Sector count of the bogus start-0 MBR entry (its start aliases the MBR sector itself).</summary>
     private const uint MbrBogusStartZeroSectorCount = 200;
 
@@ -127,6 +163,15 @@ public class Kernel : Sys.Kernel
 
     /// <summary>How far before the device end the bogus past-end entry starts, so start + count overruns the disk.</summary>
     private const ulong PastEndBacktrackSectors = 10;
+
+    /// <summary>Sectors past the device end where the corrupt EBR next pointer lands, so the chain walk must stop rather than read it.</summary>
+    private const ulong WildNextOvershootSectors = 10;
+
+    /// <summary>NSID of the controller's single namespace (NVMe namespace IDs are 1-based).</summary>
+    private const uint NvmeNamespaceId = 1;
+
+    /// <summary>NVMe 0's-based Number of Logical Blocks value for a one-block transfer (NVMe spec: NLB is zero-based).</summary>
+    private const ushort NvmeSingleBlockNlb = 0;
 
     /// <summary>Scratch LBA the NVMe short-span cell writes, clear of every other test window.</summary>
     private const ulong ShortSpanLba = 4242;
@@ -203,11 +248,32 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector count of the in-memory partition used by the bounds-overflow probe.</summary>
     private const ulong OverflowProbeSectorCount = 4;
 
+    /// <summary>Smallest possible partition (one sector), requested from the degenerate 1-block device that cannot host it.</summary>
+    private const ulong MinimalPartitionSectorCount = 1;
+
+    /// <summary>Offset into the existing partition where the refused nested create starts (sectors).</summary>
+    private const uint NestedCreateOffsetSectors = 10;
+
+    /// <summary>Sector count of the refused nested create inside an existing partition.</summary>
+    private const ulong NestedCreateSectorCount = 10;
+
+    /// <summary>Sector count of the refused create at LBA 0.</summary>
+    private const ulong LbaZeroCreateSectorCount = 100;
+
     /// <summary>MBR system ID of a CHS-addressed extended (EBR container) partition.</summary>
     private const byte MbrExtendedSystemId = 0x05;
 
     /// <summary>System ID 0xEE - GPT protective MBR entry.</summary>
     private const byte MbrGptProtectiveSystemId = 0xEE;
+
+    /// <summary>Start LBA stamped into the crafted 0xEE protective entry: LBA 1, the GPT header it guards (UEFI spec 5.2.3).</summary>
+    private const uint MbrProtectiveStartLba = 1;
+
+    /// <summary>Sector count stamped into the crafted 0xEE protective entry.</summary>
+    private const uint MbrProtectiveSectorCount = 1000;
+
+    /// <summary>New sector count of the refused resize aimed at the protective entry.</summary>
+    private const uint ProtectiveResizeSectorCount = 128;
 
     /// <summary>Byte offset of the 0xAA55 boot signature within an MBR/EBR sector.</summary>
     private const int MbrBootSigOffset = 510;
@@ -218,11 +284,26 @@ public class Kernel : Sys.Kernel
     /// <summary>Boot signature value stamped at the end of hand-crafted EBR sectors.</summary>
     private const ushort MbrBootSignature = 0xAA55;
 
+    /// <summary>First (low) byte of the little-endian 0xAA55 boot signature.</summary>
+    private const byte MbrBootSigLowByte = 0x55;
+
+    /// <summary>Second (high) byte of the little-endian 0xAA55 boot signature.</summary>
+    private const byte MbrBootSigHighByte = 0xAA;
+
     /// <summary>Absolute start LBA of the extended partition the EBR / PartitionManager lifecycle cells stamp.</summary>
     private const uint ExtPartStartSector = 4000;
 
     /// <summary>Sector count of the extended partition the EBR / PartitionManager lifecycle cells stamp.</summary>
     private const uint ExtPartSectorCount = 12000;
+
+    /// <summary>Gap between an EBR sector and its logical's first data sector: Ebr.AddLogical places the data in the very next sector.</summary>
+    private const uint EbrLogicalDataOffsetSectors = 1;
+
+    /// <summary>Sector delta of the refused attempt to move the extended container.</summary>
+    private const uint ExtendedMoveProbeDeltaSectors = 64;
+
+    /// <summary>Forward delta of the deliberately legal MovePartition calls (post-adjacency and signature-restamp cells).</summary>
+    private const uint LegalMoveDeltaSectors = 100;
 
     /// <summary>Per-byte multiplier of the FillPattern move-payload pattern.</summary>
     private const uint FillPatternByteStep = 31;
@@ -498,7 +579,7 @@ public class Kernel : Sys.Kernel
 
         // The writer must reject bogus ranges up front (same rules as the
         // parser): start 0 aliases the MBR, past-end authorizes wild I/O.
-        Assert.True(MbrWritePartitionRejects(0, startSector: 0, sectorCount: MbrBogusStartZeroSectorCount),
+        Assert.True(MbrWritePartitionRejects(0, startSector: SelfAliasingStartLba, sectorCount: MbrBogusStartZeroSectorCount),
             "WritePartition must reject startSector 0");
         Assert.True(MbrWritePartitionRejects(1, startSector: (uint)(s_dev!.BlockCount - PastEndBacktrackSectors), sectorCount: MbrBogusPastEndSectorCount),
             "WritePartition must reject past-end ranges");
@@ -507,15 +588,15 @@ public class Kernel : Sys.Kernel
         // the same bogus entries raw (bypassing the writer's validation).
         int sector = (int)s_dev!.BlockSize;
         byte[] mbr = new byte[sector];
-        s_dev!.ReadBlock(0, 1, mbr);
+        s_dev!.ReadBlock(MbrLba, 1, mbr);
         Span<byte> m = mbr;
         m[MbrEntry0Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
-        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), SelfAliasingStartLba);
         BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrBogusStartZeroSectorCount);
         m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), (uint)(s_dev!.BlockCount - PastEndBacktrackSectors));
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrBogusPastEndSectorCount);
-        s_dev!.WriteBlock(0, 1, mbr);
+        s_dev!.WriteBlock(MbrLba, 1, mbr);
 
         List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
         Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
@@ -554,7 +635,7 @@ public class Kernel : Sys.Kernel
         int sector = (int)s_dev!.BlockSize;
         byte[] entries = new byte[sector];
         Span<byte> e = entries;
-        Gpt.BasicDataPartitionType.TryWriteBytes(e.Slice(0, GptGuidSizeBytes));
+        Gpt.BasicDataPartitionType.TryWriteBytes(e.Slice(GptEntryTypeGuidOffset, GptGuidSizeBytes));
         e[GptEntryUniqueGuidOffset] = BogusUniqueGuidByte; // non-zero unique GUID
         BitConverter.TryWriteBytes(e.Slice(GptEntryStartLbaOffset, GptLbaFieldBytes), GptOverlapStartLba);  // startLba inside the array
         BitConverter.TryWriteBytes(e.Slice(GptEntryEndLbaOffset, GptLbaFieldBytes), GptOverlapEndLba); // endLba
@@ -568,7 +649,7 @@ public class Kernel : Sys.Kernel
     private static void TestNvme_ShortSpanTail()
     {
         NvmeController controller = Nvme.Controllers[0];
-        uint nsid = 1;
+        uint nsid = NvmeNamespaceId;
         ulong lba = ShortSpanLba;
         int sector = (int)s_dev!.BlockSize;
 
@@ -577,17 +658,17 @@ public class Kernel : Sys.Kernel
         {
             full[i] = ShortSpanResidueFill;
         }
-        controller.Write(nsid, lba, full, 0);
+        controller.Write(nsid, lba, full, NvmeSingleBlockNlb);
 
         byte[] shortSpan = new byte[ShortSpanLengthBytes];
         for (int i = 0; i < shortSpan.Length; i++)
         {
             shortSpan[i] = ShortSpanFill;
         }
-        controller.Write(nsid, lba, shortSpan, 0);
+        controller.Write(nsid, lba, shortSpan, NvmeSingleBlockNlb);
 
         byte[] readBack = new byte[sector];
-        controller.Read(nsid, lba, readBack, 0);
+        controller.Read(nsid, lba, readBack, NvmeSingleBlockNlb);
         for (int i = 0; i < shortSpan.Length; i++)
         {
             Assert.Equal(ShortSpanFill, readBack[i], "short-span payload");
@@ -611,7 +692,7 @@ public class Kernel : Sys.Kernel
     // double-registered. Bound devices stay enumerated for the run.
     private static void TestManager_ExactlyOneDevice()
     {
-        Assert.Equal(1, StorageManager.DeviceCount);
+        Assert.Equal(AttachedDisksPerProfile, StorageManager.DeviceCount);
     }
 
     // ==================== Profile ====================
@@ -932,7 +1013,7 @@ public class Kernel : Sys.Kernel
         // Wipe LBA 0 first so a leftover GPT signature from a prior
         // sub-test doesn't taint the IsMbr check.
         Span<byte> wipe = new byte[s_dev!.BlockSize];
-        s_dev.WriteBlock(0, 1, wipe);
+        s_dev.WriteBlock(MbrLba, 1, wipe);
 
         Mbr.Create(s_dev);
         Assert.True(Mbr.IsMbr(s_dev));
@@ -1063,7 +1144,7 @@ public class Kernel : Sys.Kernel
         TinyDevice tiny = new();
         Assert.False(Gpt.IsGpt(tiny), "1-block device cannot carry a GPT");
         Assert.Equal(0, Gpt.Parse(tiny).Count, "1-block device must parse empty");
-        Assert.False(Gpt.AddPartition(tiny, GptFirstUsableLba, 1, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
+        Assert.False(Gpt.AddPartition(tiny, GptFirstUsableLba, MinimalPartitionSectorCount, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
     }
 
     // ==================== Partition lifecycle (MBR mutation, EBR chain, PartitionManager) ====================
@@ -1120,8 +1201,8 @@ public class Kernel : Sys.Kernel
         // Wipe LBAs 0..1 to clear any GPT signature a previous cell left, so
         // the StorageManager rescan (next cell) takes the MBR code path.
         Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
+        host.WriteBlock(MbrLba, 1, wipe);
+        host.WriteBlock(GptHeaderLba, 1, wipe);
 
         Mbr.Create(host);
         Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
@@ -1437,7 +1518,7 @@ public class Kernel : Sys.Kernel
         const ulong moveDelta = 200;
         ulong logicalStart = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
         // The first logical lands right after its EBR sector.
-        Assert.Equal<ulong>(ExtPartStartSector + 1, logicalStart);
+        Assert.Equal<ulong>(ExtPartStartSector + EbrLogicalDataOffsetSectors, logicalStart);
 
         // Move the logical's data range forward inside its EBR's frame.
         ulong newStart = logicalStart + moveDelta;
@@ -1473,7 +1554,7 @@ public class Kernel : Sys.Kernel
 
         // Relative start 0: the logical's first sector IS its EBR sector.
         host.ReadBlock(ExtPartStartSector, 1, ebr);
-        BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), SelfAliasingStartLba);
         BitConverter.TryWriteBytes(e.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), count);
         host.WriteBlock(ExtPartStartSector, 1, ebr);
         Assert.Equal(0, EbrParseCountSafe(host), "logical aliasing its own EBR sector must be dropped");
@@ -1498,10 +1579,10 @@ public class Kernel : Sys.Kernel
         byte[] fake = new byte[sector];
         Span<byte> f = fake;
         f[MbrEntry0Offset + MbrEntryTypeOffset] = MbrLinuxSystemId;
-        BitConverter.TryWriteBytes(f.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 1u);
+        BitConverter.TryWriteBytes(f.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), EbrLogicalDataOffsetSectors);
         BitConverter.TryWriteBytes(f.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), count);
-        f[sector - 2] = 0x55;
-        f[sector - 1] = 0xAA;
+        f[sector - MbrBootSigSizeBytes] = MbrBootSigLowByte;
+        f[sector - 1] = MbrBootSigHighByte;
         host.WriteBlock(ExtPartStartSector + escapeRelative, 1, fake);
 
         byte[] ebr = new byte[sector];
@@ -1517,7 +1598,7 @@ public class Kernel : Sys.Kernel
         host.ReadBlock(ExtPartStartSector, 1, ebr);
         BitConverter.TryWriteBytes(
             e.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes),
-            (uint)(host.BlockCount - ExtPartStartSector + 10));
+            (uint)(host.BlockCount - ExtPartStartSector + WildNextOvershootSectors));
         host.WriteBlock(ExtPartStartSector, 1, ebr);
         Assert.Equal(1, EbrParseCountSafe(host), "walk must stop when the next pointer leaves the device");
     }
@@ -1541,7 +1622,7 @@ public class Kernel : Sys.Kernel
             "an envelope past the device end must not authorize a past-end logical");
 
         Assert.Equal<ulong>(0,
-            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, 1UL << 32),
+            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, 1UL << MbrSectorCountFieldBits),
             "a sector count exceeding the 32-bit on-disk field must be rejected");
 
         Assert.Equal(0, EbrParseCountSafe(host), "rejected AddLogical calls must leave no live entries");
@@ -1563,10 +1644,10 @@ public class Kernel : Sys.Kernel
         // writer's validation) so it runs past the device end.
         int sector = (int)host.BlockSize;
         byte[] mbr = new byte[sector];
-        host.ReadBlock(0, 1, mbr);
+        host.ReadBlock(MbrLba, 1, mbr);
         Span<byte> m = mbr;
         BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), uint.MaxValue);
-        host.WriteBlock(0, 1, mbr);
+        host.WriteBlock(MbrLba, 1, mbr);
         Assert.False(Ebr.ResizeLogical(host, ExtPartStartSector, 0, host.BlockCount),
             "a corrupt extended count must not authorize a resize past the device end");
 
@@ -1591,22 +1672,22 @@ public class Kernel : Sys.Kernel
         // Corrupt the count (raw) so the envelope runs past the device end.
         int sector = (int)host.BlockSize;
         byte[] mbr = new byte[sector];
-        host.ReadBlock(0, 1, mbr);
+        host.ReadBlock(MbrLba, 1, mbr);
         Span<byte> m = mbr;
         BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), uint.MaxValue);
-        host.WriteBlock(0, 1, mbr);
+        host.WriteBlock(MbrLba, 1, mbr);
         Assert.False(Mbr.TryGetExtendedPartition(host, out _, out _),
             "an extended entry running past the device end must be rejected");
 
         // Slot 0 corrupt (start 0), slot 1 valid: the valid entry must win
         // instead of the corrupt slot short-circuiting the scan.
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
-        host.ReadBlock(0, 1, mbr);
-        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 0u);
+        host.ReadBlock(MbrLba, 1, mbr);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry0Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), SelfAliasingStartLba);
         m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrExtendedSystemId;
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), ExtPartStartSector);
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), ExtPartSectorCount);
-        host.WriteBlock(0, 1, mbr);
+        host.WriteBlock(MbrLba, 1, mbr);
         Assert.True(Mbr.TryGetExtendedPartition(host, out ulong start, out ulong count),
             "a corrupt extended slot must not hide a valid one");
         Assert.Equal<ulong>(ExtPartStartSector, start);
@@ -1626,20 +1707,20 @@ public class Kernel : Sys.Kernel
 
         Assert.True(MbrResizeThrows(0, ExtPartSectorCount / 2),
             "resizing the extended container must be refused");
-        Assert.True(MbrMoveThrows(0, ExtPartStartSector + 64),
+        Assert.True(MbrMoveThrows(0, ExtPartStartSector + ExtendedMoveProbeDeltaSectors),
             "moving the extended container must be refused");
         Assert.Equal(1, EbrParseCountSafe(host));
 
         // GPT protective entry (0xEE) in slot 1 — also never surfaced.
         int sector = (int)host.BlockSize;
         byte[] mbr = new byte[sector];
-        host.ReadBlock(0, 1, mbr);
+        host.ReadBlock(MbrLba, 1, mbr);
         Span<byte> m = mbr;
         m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrGptProtectiveSystemId;
-        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), 1u);
-        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), 1000u);
-        host.WriteBlock(0, 1, mbr);
-        Assert.True(MbrResizeThrows(1, 128),
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), MbrProtectiveStartLba);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrProtectiveSectorCount);
+        host.WriteBlock(MbrLba, 1, mbr);
+        Assert.True(MbrResizeThrows(1, ProtectiveResizeSectorCount),
             "resizing the GPT protective entry must be refused");
     }
 
@@ -1665,7 +1746,7 @@ public class Kernel : Sys.Kernel
 
         // Adjacency (half-open ranges) stays legal.
         Mbr.ResizePartition(host, 0, startB - startA);
-        Mbr.MovePartition(host, 1, startB + 100);
+        Mbr.MovePartition(host, 1, startB + LegalMoveDeltaSectors);
         Assert.Equal(2, Mbr.Parse(host).Count);
     }
 
@@ -1682,18 +1763,18 @@ public class Kernel : Sys.Kernel
 
         int sector = (int)host.BlockSize;
         byte[] mbr = new byte[sector];
-        host.ReadBlock(0, 1, mbr);
-        mbr[sector - 2] = 0;
+        host.ReadBlock(MbrLba, 1, mbr);
+        mbr[sector - MbrBootSigSizeBytes] = 0;
         mbr[sector - 1] = 0;
-        host.WriteBlock(0, 1, mbr);
+        host.WriteBlock(MbrLba, 1, mbr);
         Mbr.ResizePartition(host, 0, count * 2);
         Assert.True(Mbr.IsMbr(host), "ResizePartition must restamp the boot signature");
 
-        host.ReadBlock(0, 1, mbr);
-        mbr[sector - 2] = 0;
+        host.ReadBlock(MbrLba, 1, mbr);
+        mbr[sector - MbrBootSigSizeBytes] = 0;
         mbr[sector - 1] = 0;
-        host.WriteBlock(0, 1, mbr);
-        Mbr.MovePartition(host, 0, start + 100);
+        host.WriteBlock(MbrLba, 1, mbr);
+        Mbr.MovePartition(host, 0, start + LegalMoveDeltaSectors);
         Assert.True(Mbr.IsMbr(host), "MovePartition must restamp the boot signature");
     }
 
@@ -1710,7 +1791,7 @@ public class Kernel : Sys.Kernel
         const uint countB = 512;
         const uint resized = 256;
         Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, countA, Gpt.BasicDataPartitionType));
-        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba + 4096, countB, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba + GptSecondPartitionDeltaSectors, countB, Gpt.BasicDataPartitionType));
 
         // Raw-corrupt slot 0 (the first partition): start past the disk
         // end, which Parse drops but a naive used-slot count still sees.
@@ -1718,8 +1799,8 @@ public class Kernel : Sys.Kernel
         byte[] entries = new byte[sector];
         host.ReadBlock(GptEntryArrayLba, 1, entries);
         Span<byte> e = entries;
-        BitConverter.TryWriteBytes(e.Slice(GptEntryStartLbaOffset, GptLbaFieldBytes), host.BlockCount + 5);
-        BitConverter.TryWriteBytes(e.Slice(GptEntryEndLbaOffset, GptLbaFieldBytes), host.BlockCount + 14);
+        BitConverter.TryWriteBytes(e.Slice(GptEntryStartLbaOffset, GptLbaFieldBytes), host.BlockCount + GptCorruptStartOvershootSectors);
+        BitConverter.TryWriteBytes(e.Slice(GptEntryEndLbaOffset, GptLbaFieldBytes), host.BlockCount + GptCorruptEndOvershootSectors);
         host.WriteBlock(GptEntryArrayLba, 1, entries);
         Assert.Equal(1, Gpt.Parse(host).Count);
 
@@ -1747,9 +1828,9 @@ public class Kernel : Sys.Kernel
         int sector = (int)host.BlockSize;
         byte[] entries = new byte[sector];
         host.ReadBlock(GptEntryArrayLba, 1, entries);
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < GptNameStampChars; i++)
         {
-            entries[GptEntryNameOffset + i * 2] = (byte)('A' + i);
+            entries[GptEntryNameOffset + i * Utf16BytesPerChar] = (byte)(GptNameStampBaseChar + i);
         }
         host.WriteBlock(GptEntryArrayLba, 1, entries);
 
@@ -1820,7 +1901,7 @@ public class Kernel : Sys.Kernel
             "a move onto an occupied destination must be refused");
         AssertMovedPattern(host, startB, countB, seedB);
 
-        Assert.True(PmCreateRefusedCleanly(startA + 10, 10),
+        Assert.True(PmCreateRefusedCleanly(startA + NestedCreateOffsetSectors, NestedCreateSectorCount),
             "creating inside an existing partition must be refused");
     }
 
@@ -1836,7 +1917,7 @@ public class Kernel : Sys.Kernel
         const uint count = 64;
         Assert.True(PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
 
-        Assert.True(PmCreateRefusedCleanly(0, 100),
+        Assert.True(PmCreateRefusedCleanly(SelfAliasingStartLba, LbaZeroCreateSectorCount),
             "create at LBA 0 must be refused, not thrown");
         // Last on purpose: pre-fix this issued a wild write near 2^64.
         Assert.True(PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(start, count), ulong.MaxValue - 1),
@@ -2006,8 +2087,8 @@ public class Kernel : Sys.Kernel
     private static void ResetHostMbr(IBlockDevice host)
     {
         Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
+        host.WriteBlock(MbrLba, 1, wipe);
+        host.WriteBlock(GptHeaderLba, 1, wipe);
         Mbr.Create(host);
     }
 
@@ -2015,8 +2096,8 @@ public class Kernel : Sys.Kernel
     private static void ResetHostGpt(IBlockDevice host)
     {
         Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
+        host.WriteBlock(MbrLba, 1, wipe);
+        host.WriteBlock(GptHeaderLba, 1, wipe);
         Gpt.Create(host);
     }
 
@@ -2026,8 +2107,8 @@ public class Kernel : Sys.Kernel
     private static void ResetHostExtendedMbr(IBlockDevice host, uint extStart, uint extCount)
     {
         Span<byte> wipe = new byte[host.BlockSize];
-        host.WriteBlock(0, 1, wipe);
-        host.WriteBlock(1, 1, wipe);
+        host.WriteBlock(MbrLba, 1, wipe);
+        host.WriteBlock(GptHeaderLba, 1, wipe);
         host.WriteBlock(extStart, 1, wipe);
         Mbr.Create(host);
         Mbr.WritePartition(host, 0, MbrExtendedSystemId, extStart, extCount);
@@ -2099,6 +2180,9 @@ public class Kernel : Sys.Kernel
 
     /// <summary>BAR0 upper dword of a 64-bit BAR (PCI config offset 0x14).</summary>
     private const byte PciBar0HighOffset = 0x14;
+
+    /// <summary>Index of the NVMe controller's 64-bit register BAR (BAR0).</summary>
+    private const int NvmeRegisterBarIndex = 0;
 
     /// <summary>Command register (PCI config offset 0x04).</summary>
     private const byte PciCommandOffset = 0x04;
@@ -2191,14 +2275,14 @@ public class Kernel : Sys.Kernel
         uint barLow = nvmePci!.ReadRegister32(PciBar0LowOffset);
         uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
         ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciBarAddressMask);
-        Assert.True(nvmePci.GetBar64Address(0) == origPhys, "baseline: GetBar64Address must match raw config space");
+        Assert.True(nvmePci.GetBar64Address(NvmeRegisterBarIndex) == origPhys, "baseline: GetBar64Address must match raw config space");
 
         ushort command = nvmePci.ReadRegister16(PciCommandOffset);
         nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
         nvmePci.WriteRegister32(PciBar0LowOffset, (uint)(HighBarPhys & PciBarAddressMask) | (barLow & PciBarFlagsMask));
         nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
 
-        ulong reported = nvmePci.GetBar64Address(0);
+        ulong reported = nvmePci.GetBar64Address(NvmeRegisterBarIndex);
 
         nvmePci.WriteRegister32(PciBar0LowOffset, barLow);
         nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
@@ -2213,10 +2297,13 @@ public class Kernel : Sys.Kernel
     // out-of-range access like real drivers do.
     private sealed class TinyDevice : BlockDevice
     {
+        /// <summary>Single-block capacity of the degenerate probe: too small for even the GPT header at LBA 1.</summary>
+        private const ulong TinyBlockCount = 1;
+
         public TinyDevice()
         {
             BlockSize = SectorSizeBytes;
-            BlockCount = 1;
+            BlockCount = TinyBlockCount;
         }
 
         public override string Name => "tiny-probe";

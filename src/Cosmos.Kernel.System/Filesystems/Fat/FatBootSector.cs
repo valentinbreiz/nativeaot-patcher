@@ -58,11 +58,20 @@ public sealed class FatBootSector
     /// <summary>BPB_RootClus: root directory cluster (offset 44, FAT32 only).</summary>
     private const int RootClusOffset = 44;
 
+    /// <summary>Width in bytes of a 16-bit BPB field.</summary>
+    private const int UInt16FieldSize = 2;
+
+    /// <summary>Width in bytes of a 32-bit BPB field.</summary>
+    private const int UInt32FieldSize = 4;
+
     /// <summary>Smallest sector size the FAT spec permits (and the BPB layout floor).</summary>
     private const uint MinBytesPerSector = 512;
 
     /// <summary>Largest sector size the FAT spec permits.</summary>
     private const uint MaxBytesPerSector = 4096;
+
+    /// <summary>Largest legal BPB_SecPerClus value: a power of two up to 128 (fatgen103 §3.1).</summary>
+    private const uint MaxSectorsPerCluster = 128;
 
     /// <summary>Size in bytes of one directory entry.</summary>
     private const uint DirEntrySize = 32;
@@ -100,18 +109,18 @@ public sealed class FatBootSector
             return false;
         }
 
-        if (BitConverter.ToUInt16(bpb.Slice(BootSignatureOffset, 2)) != BootSignature)
+        if (BitConverter.ToUInt16(bpb.Slice(BootSignatureOffset, UInt16FieldSize)) != BootSignature)
         {
             return false;
         }
 
         FatBootSector bs = new()
         {
-            BytesPerSector = BitConverter.ToUInt16(bpb.Slice(BytsPerSecOffset, 2)),
+            BytesPerSector = BitConverter.ToUInt16(bpb.Slice(BytsPerSecOffset, UInt16FieldSize)),
             SectorsPerCluster = bpb[SecPerClusOffset],
-            ReservedSectorCount = BitConverter.ToUInt16(bpb.Slice(RsvdSecCntOffset, 2)),
+            ReservedSectorCount = BitConverter.ToUInt16(bpb.Slice(RsvdSecCntOffset, UInt16FieldSize)),
             NumberOfFats = bpb[NumFatsOffset],
-            RootEntryCount = BitConverter.ToUInt16(bpb.Slice(RootEntCntOffset, 2)),
+            RootEntryCount = BitConverter.ToUInt16(bpb.Slice(RootEntCntOffset, UInt16FieldSize)),
         };
 
         // On-disk BPB fields are untrusted (same rule as Mbr/Gpt/Ebr):
@@ -120,7 +129,7 @@ public sealed class FatBootSector
         // 512/1024/2048/4096, SectorsPerCluster a power of two <= 128.
         if (bs.BytesPerSector < MinBytesPerSector || bs.BytesPerSector > MaxBytesPerSector
             || (bs.BytesPerSector & (bs.BytesPerSector - 1)) != 0
-            || bs.SectorsPerCluster == 0 || bs.SectorsPerCluster > 128
+            || bs.SectorsPerCluster == 0 || bs.SectorsPerCluster > MaxSectorsPerCluster
             || (bs.SectorsPerCluster & (bs.SectorsPerCluster - 1)) != 0
             || bs.NumberOfFats == 0)
         {
@@ -129,11 +138,11 @@ public sealed class FatBootSector
 
         bs.BytesPerCluster = bs.BytesPerSector * bs.SectorsPerCluster;
 
-        uint total16 = BitConverter.ToUInt16(bpb.Slice(TotSec16Offset, 2));
-        bs.TotalSectorCount = total16 != 0 ? total16 : BitConverter.ToUInt32(bpb.Slice(TotSec32Offset, 4));
+        uint total16 = BitConverter.ToUInt16(bpb.Slice(TotSec16Offset, UInt16FieldSize));
+        bs.TotalSectorCount = total16 != 0 ? total16 : BitConverter.ToUInt32(bpb.Slice(TotSec32Offset, UInt32FieldSize));
 
-        uint fat16 = BitConverter.ToUInt16(bpb.Slice(FatSz16Offset, 2));
-        bs.FatSectorCount = fat16 != 0 ? fat16 : BitConverter.ToUInt32(bpb.Slice(FatSz32Offset, 4));
+        uint fat16 = BitConverter.ToUInt16(bpb.Slice(FatSz16Offset, UInt16FieldSize));
+        bs.FatSectorCount = fat16 != 0 ? fat16 : BitConverter.ToUInt32(bpb.Slice(FatSz32Offset, UInt32FieldSize));
 
         if (bs.TotalSectorCount == 0 || bs.FatSectorCount == 0)
         {
@@ -178,7 +187,7 @@ public sealed class FatBootSector
 
         if (bs.Type == FatType.Fat32)
         {
-            bs.RootCluster = BitConverter.ToUInt32(bpb.Slice(RootClusOffset, 4));
+            bs.RootCluster = BitConverter.ToUInt32(bpb.Slice(RootClusOffset, UInt32FieldSize));
             bs.RootStartLba = 0;
             bs.RootSectorCount = 0;
             bs.DataStartLba = (uint)rootStart;
@@ -199,10 +208,10 @@ public sealed class FatBootSector
         // subtraction underflows (cluster 0 yields an exabyte-range LBA),
         // above addresses past the volume — callers get a throw instead
         // of wild device I/O.
-        if (cluster < 2 || cluster > ClusterCount + 1)
+        if (cluster < FatTable.FirstDataCluster || cluster > ClusterCount + 1)
         {
             throw new ArgumentOutOfRangeException(nameof(cluster));
         }
-        return DataStartLba + ((ulong)(cluster - 2)) * SectorsPerCluster;
+        return DataStartLba + ((ulong)(cluster - FatTable.FirstDataCluster)) * SectorsPerCluster;
     }
 }

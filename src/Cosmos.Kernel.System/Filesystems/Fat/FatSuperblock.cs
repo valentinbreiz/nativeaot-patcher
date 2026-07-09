@@ -13,6 +13,15 @@ internal sealed class FatSuperblock : IVfsSuperblock
     /// <summary>Length of an 8.3 short name (8 base + 3 extension characters).</summary>
     private const int ShortNameLength = 11;
 
+    /// <summary>Directory slots the 8.3 short entry itself occupies — every LFN entry set ends with exactly one (fatgen103 LFN spec).</summary>
+    private const int ShortEntrySlotCount = 1;
+
+    /// <summary>First-cluster value recorded for an entry that owns no data clusters (fatgen103 §6: DIR_FstClusLO/HI hold 0); also the FAT12/16 fixed root, whose storage lies outside the data area.</summary>
+    private const uint EmptyFirstCluster = 0u;
+
+    /// <summary>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</summary>
+    private const uint DirectorySizeOnDisk = 0u;
+
     private readonly IBlockDevice _device;
     private readonly Dictionary<uint, FatInode> _inodeCache = new();
 
@@ -36,8 +45,8 @@ internal sealed class FatSuperblock : IVfsSuperblock
         FileOps = new FatFileOperations(this);
         SuperOps = new FatSuperblockOperations();
 
-        uint rootCluster = boot.Type == FatType.Fat32 ? boot.RootCluster : 0;
-        FatInode root = new(this, "/", FatAttr.Directory, rootCluster, 0, parent: null, dirEntryByteOffset: -1, dirEntrySlotCount: 0);
+        uint rootCluster = boot.Type == FatType.Fat32 ? boot.RootCluster : EmptyFirstCluster;
+        FatInode root = new(this, "/", FatAttr.Directory, rootCluster, DirectorySizeOnDisk, parent: null, dirEntryByteOffset: FatInode.NoDirEntryOffset, dirEntrySlotCount: 0);
         Root = root;
     }
 
@@ -107,7 +116,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             cached.Attributes = entry.Attributes;
             cached.Parent = parent;
             cached.DirEntryByteOffset = entry.ByteOffset;
-            cached.DirEntrySlotCount = entry.LfnEntryCount + 1;
+            cached.DirEntrySlotCount = entry.LfnEntryCount + ShortEntrySlotCount;
             return cached;
         }
 
@@ -119,7 +128,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             entry.Size,
             parent,
             entry.ByteOffset,
-            entry.LfnEntryCount + 1);
+            entry.LfnEntryCount + ShortEntrySlotCount);
 
         if (entry.FirstCluster >= FatTable.FirstDataCluster)
         {
@@ -194,7 +203,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
         }
 
         int lfnCount = FatDirectory.LfnEntryCountFor(longName);
-        int slots = lfnCount + 1;
+        int slots = lfnCount + ShortEntrySlotCount;
 
         byte[] data = ReadDirectoryData(parent);
         int slot = FatDirectory.FindFreeRun(data, slots, out bool consumedTerminator);
@@ -255,7 +264,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     public void RemoveDirectoryEntry(FatInode parent, FatDirEntry match)
     {
         byte[] data = ReadDirectoryData(parent);
-        int slots = match.LfnEntryCount + 1;
+        int slots = match.LfnEntryCount + ShortEntrySlotCount;
         int start = match.ByteOffset - match.LfnEntryCount * FatDirectory.EntrySize;
         FatDirectory.MarkDeleted(data, start, slots);
         WriteDirectoryData(parent, data);
@@ -268,7 +277,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             && _inodeCache.TryGetValue(match.FirstCluster, out FatInode? live)
             && live.DirEntryByteOffset == match.ByteOffset)
         {
-            live.DirEntryByteOffset = -1;
+            live.DirEntryByteOffset = FatInode.NoDirEntryOffset;
         }
     }
 
@@ -295,9 +304,9 @@ internal sealed class FatSuperblock : IVfsSuperblock
             return;
         }
 
-        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterHighOffset, 2), (ushort)((inode.FirstCluster >> 16) & 0xFFFFu));
-        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterLowOffset, 2), (ushort)(inode.FirstCluster & 0xFFFFu));
-        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.SizeOffset, 4), inode.Size);
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterHighOffset, FatDirectory.ClusterWordBytes), (ushort)((inode.FirstCluster >> FatDirectory.ClusterHighShift) & FatDirectory.ClusterWordMask));
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.FirstClusterLowOffset, FatDirectory.ClusterWordBytes), (ushort)(inode.FirstCluster & FatDirectory.ClusterWordMask));
+        BitConverter.TryWriteBytes(data.AsSpan(offset + FatDirectory.SizeOffset, FatDirectory.SizeFieldBytes), inode.Size);
         data[offset + FatDirectory.AttributesOffset] = (byte)inode.Attributes;
         WriteDirectoryData(inode.Parent, data);
 
@@ -322,7 +331,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             {
                 Fat.Free(inode.FirstCluster);
             }
-            inode.FirstCluster = 0;
+            inode.FirstCluster = EmptyFirstCluster;
             chain.Clear();
             return;
         }

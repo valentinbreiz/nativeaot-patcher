@@ -75,6 +75,18 @@ public static class FatDirectory
     /// <summary>Byte offset of the 32-bit file size.</summary>
     public const int SizeOffset = 28;
 
+    /// <summary>Byte width of each 16-bit half of the first-cluster field (DIR_FstClusLO / DIR_FstClusHI, fatgen103 §6).</summary>
+    public const int ClusterWordBytes = 2;
+
+    /// <summary>Byte width of the 32-bit DIR_FileSize field (fatgen103 §6).</summary>
+    public const int SizeFieldBytes = 4;
+
+    /// <summary>Shift placing DIR_FstClusHI in the upper 16 bits of the 32-bit cluster number (FAT32).</summary>
+    public const int ClusterHighShift = 16;
+
+    /// <summary>Mask isolating one 16-bit half of a first-cluster number.</summary>
+    public const uint ClusterWordMask = 0xFFFFu;
+
     /// <summary>ASCII distance between upper- and lower-case letters.</summary>
     private const int CaseDistance = 32;
 
@@ -93,11 +105,23 @@ public static class FatDirectory
     /// <summary>The ordinal field is the low 6 bits of the LFN sequence byte.</summary>
     private const byte LfnOrdinalMask = 0x3F;
 
+    /// <summary>Lowest valid LFN ordinal; ordinals are 1-based on disk, so 0 marks a corrupt sequence byte (fatgen103 long-name spec).</summary>
+    private const int LfnFirstOrdinal = 1;
+
+    /// <summary>Byte offset of the LFN sequence/ordinal byte (LDIR_Ord) within an LFN entry.</summary>
+    private const int LfnSequenceOffset = 0;
+
     /// <summary>Byte offset of the LFN type field (always 0).</summary>
     private const int LfnTypeOffset = 12;
 
+    /// <summary>LDIR_Type value marking an LFN name-component entry (always 0, fatgen103).</summary>
+    private const byte LfnTypeNameEntry = 0;
+
     /// <summary>Byte offset of the 8.3-name checksum within an LFN entry.</summary>
     private const int LfnChecksumOffset = 13;
+
+    /// <summary>Bit injected at the top when the fatgen103 ChkSum rotate-right carries the low bit into bit 7.</summary>
+    private const byte ChecksumCarryBit = 0x80;
 
     /// <summary>First LFN name region: offset / byte length (5 UCS-2 chars).</summary>
     private const int LfnName1Offset = 1;
@@ -110,6 +134,30 @@ public static class FatDirectory
     /// <summary>Third LFN name region: offset / byte length (2 UCS-2 chars).</summary>
     private const int LfnName3Offset = 28;
     private const int LfnName3Bytes = 4;
+
+    /// <summary>UCS-2 characters held by the first LFN name region.</summary>
+    private const int LfnName1Chars = 5;
+
+    /// <summary>UCS-2 characters held by the second LFN name region.</summary>
+    private const int LfnName2Chars = 6;
+
+    /// <summary>UCS-2 characters held by the third LFN name region.</summary>
+    private const int LfnName3Chars = 2;
+
+    /// <summary>Fill character padding unused LFN name slots after the NUL terminator (fatgen103).</summary>
+    private const char LfnPadChar = (char)0xFFFF;
+
+    /// <summary>Bytes per UCS-2 character in the on-disk LFN name regions (UTF-16LE).</summary>
+    private const int Ucs2BytesPerChar = 2;
+
+    /// <summary>Byte offset of the high-order byte within one little-endian UCS-2 character.</summary>
+    private const int Ucs2HighByteOffset = 1;
+
+    /// <summary>Shift between the low and high byte of a little-endian UCS-2 character.</summary>
+    private const int BitsPerByte = 8;
+
+    /// <summary>Mask isolating the low byte of a UCS-2 character.</summary>
+    private const int LowByteMask = 0xFF;
 
     /// <summary>Space, the 8.3 pad byte.</summary>
     private const byte PadByte = 0x20;
@@ -128,6 +176,18 @@ public static class FatDirectory
 
     /// <summary>Longest rendered 8.3 name: 8 base + dot + 3 extension.</summary>
     private const int MaxShortNameChars = 12;
+
+    /// <summary>An 8.3-representable name carries at most one dot (the base/extension separator).</summary>
+    private const int MaxShortNameDots = 1;
+
+    /// <summary>Numeric ~N short-name tails are rendered in decimal (fatgen103 numeric-tail generation).</summary>
+    private const uint NumericTailRadix = 10;
+
+    /// <summary>First tail value probed when mangling a long name (~1 before ~2, fatgen103 numeric-tail generation).</summary>
+    private const uint FirstNumericTail = 1;
+
+    /// <summary>Base-name slots consumed by the '~' separator of a numeric tail.</summary>
+    private const int NumericTailTildeChars = 1;
 
     /// <summary>
     /// Parse the raw directory data. <paramref name="fat32"/> selects
@@ -167,7 +227,7 @@ public static class FatDirectory
                 // and require one checksum across the chain, or a stale
                 // accumulator splices two names together.
                 byte sequence = buffer[offset];
-                int seqIndex = (sequence & LfnOrdinalMask) - 1;
+                int seqIndex = (sequence & LfnOrdinalMask) - LfnFirstOrdinal;
                 byte checksum = buffer[offset + LfnChecksumOffset];
                 if (seqIndex < 0 || seqIndex >= MaxLfnEntries
                     || (lfnEntryCount > 0 && checksum != lfnChecksum))
@@ -203,14 +263,14 @@ public static class FatDirectory
                 ? TrimLfn(lfnAccum.Slice(0, lfnLength))
                 : shortName;
 
-            uint firstClusterLow = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterLowOffset, 2));
+            uint firstClusterLow = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterLowOffset, ClusterWordBytes));
             uint firstCluster = firstClusterLow;
             if (fat32)
             {
-                uint firstClusterHigh = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterHighOffset, 2));
-                firstCluster |= firstClusterHigh << 16;
+                uint firstClusterHigh = BitConverter.ToUInt16(buffer.Slice(offset + FirstClusterHighOffset, ClusterWordBytes));
+                firstCluster |= firstClusterHigh << ClusterHighShift;
             }
-            uint size = BitConverter.ToUInt32(buffer.Slice(offset + SizeOffset, 4));
+            uint size = BitConverter.ToUInt32(buffer.Slice(offset + SizeOffset, SizeFieldBytes));
 
             result.Add(new FatDirEntry(
                 longName,
@@ -315,9 +375,9 @@ public static class FatDirectory
         }
 
         entry[AttributesOffset] = (byte)attributes;
-        BitConverter.TryWriteBytes(entry.Slice(FirstClusterHighOffset, 2), (ushort)((firstCluster >> 16) & 0xFFFFu));
-        BitConverter.TryWriteBytes(entry.Slice(FirstClusterLowOffset, 2), (ushort)(firstCluster & 0xFFFFu));
-        BitConverter.TryWriteBytes(entry.Slice(SizeOffset, 4), size);
+        BitConverter.TryWriteBytes(entry.Slice(FirstClusterHighOffset, ClusterWordBytes), (ushort)((firstCluster >> ClusterHighShift) & ClusterWordMask));
+        BitConverter.TryWriteBytes(entry.Slice(FirstClusterLowOffset, ClusterWordBytes), (ushort)(firstCluster & ClusterWordMask));
+        BitConverter.TryWriteBytes(entry.Slice(SizeOffset, SizeFieldBytes), size);
     }
 
     /// <summary>
@@ -375,7 +435,7 @@ public static class FatDirectory
         for (int i = 0; i < entries; i++)
         {
             int seq = entries - i;
-            int sourceStart = (seq - 1) * LfnCharsPerEntry;
+            int sourceStart = (seq - LfnFirstOrdinal) * LfnCharsPerEntry;
             for (int c = 0; c < LfnCharsPerEntry; c++)
             {
                 int srcIdx = sourceStart + c;
@@ -389,7 +449,7 @@ public static class FatDirectory
                 }
                 else
                 {
-                    chunk[c] = (char)0xFFFF;
+                    chunk[c] = LfnPadChar;
                 }
             }
 
@@ -401,14 +461,14 @@ public static class FatDirectory
 
             Span<byte> entry = dest.Slice(offset + i * EntrySize, EntrySize);
             entry.Clear();
-            entry[0] = sequence;
+            entry[LfnSequenceOffset] = sequence;
             entry[AttributesOffset] = (byte)FatAttr.Lfn;
-            entry[LfnTypeOffset] = 0;
+            entry[LfnTypeOffset] = LfnTypeNameEntry;
             entry[LfnChecksumOffset] = checksum;
 
-            WriteUcs2(chunk.Slice(0, 5), entry.Slice(LfnName1Offset, LfnName1Bytes));
-            WriteUcs2(chunk.Slice(5, 6), entry.Slice(LfnName2Offset, LfnName2Bytes));
-            WriteUcs2(chunk.Slice(11, 2), entry.Slice(LfnName3Offset, LfnName3Bytes));
+            WriteUcs2(chunk.Slice(0, LfnName1Chars), entry.Slice(LfnName1Offset, LfnName1Bytes));
+            WriteUcs2(chunk.Slice(LfnName1Chars, LfnName2Chars), entry.Slice(LfnName2Offset, LfnName2Bytes));
+            WriteUcs2(chunk.Slice(LfnName1Chars + LfnName2Chars, LfnName3Chars), entry.Slice(LfnName3Offset, LfnName3Bytes));
         }
     }
 
@@ -418,7 +478,7 @@ public static class FatDirectory
         for (int i = 0; i < ShortNameLength; i++)
         {
             byte b = i < shortName11.Length ? (byte)shortName11[i] : PadByte;
-            sum = (byte)(((sum & 1) != 0 ? 0x80 : 0) + (sum >> 1) + b);
+            sum = (byte)(((sum & 1) != 0 ? ChecksumCarryBit : 0) + (sum >> 1) + b);
         }
         return sum;
     }
@@ -429,7 +489,7 @@ public static class FatDirectory
         byte sum = 0;
         for (int i = 0; i < ShortNameLength; i++)
         {
-            sum = (byte)(((sum & 1) != 0 ? 0x80 : 0) + (sum >> 1) + raw11[i]);
+            sum = (byte)(((sum & 1) != 0 ? ChecksumCarryBit : 0) + (sum >> 1) + raw11[i]);
         }
         return sum;
     }
@@ -498,10 +558,10 @@ public static class FatDirectory
             }
         }
 
-        for (uint tail = 1; ; tail++)
+        for (uint tail = FirstNumericTail; ; tail++)
         {
             int digits = CountDigits(tail);
-            int keep = ShortBaseLength - 1 - digits;
+            int keep = ShortBaseLength - NumericTailTildeChars - digits;
             if (keep > normLen)
             {
                 keep = normLen;
@@ -520,8 +580,8 @@ public static class FatDirectory
             uint value = tail;
             for (int i = digits - 1; i >= 0; i--)
             {
-                dest11[b + i] = (char)('0' + value % 10);
-                value /= 10;
+                dest11[b + i] = (char)('0' + value % NumericTailRadix);
+                value /= NumericTailRadix;
             }
             b += digits;
             for (int i = b; i < ShortBaseLength; i++)
@@ -558,7 +618,7 @@ public static class FatDirectory
             if (c == '.')
             {
                 dots++;
-                if (dots > 1)
+                if (dots > MaxShortNameDots)
                 {
                     return false;
                 }
@@ -605,9 +665,9 @@ public static class FatDirectory
     private static int CountDigits(uint value)
     {
         int digits = 1;
-        while (value >= 10)
+        while (value >= NumericTailRadix)
         {
-            value /= 10;
+            value /= NumericTailRadix;
             digits++;
         }
         return digits;
@@ -623,16 +683,16 @@ public static class FatDirectory
 
     private static void ReadLfnChars(ReadOnlySpan<byte> entry, Span<char> dest13)
     {
-        ReadUcs2(entry.Slice(LfnName1Offset, LfnName1Bytes), dest13.Slice(0, 5));
-        ReadUcs2(entry.Slice(LfnName2Offset, LfnName2Bytes), dest13.Slice(5, 6));
-        ReadUcs2(entry.Slice(LfnName3Offset, LfnName3Bytes), dest13.Slice(11, 2));
+        ReadUcs2(entry.Slice(LfnName1Offset, LfnName1Bytes), dest13.Slice(0, LfnName1Chars));
+        ReadUcs2(entry.Slice(LfnName2Offset, LfnName2Bytes), dest13.Slice(LfnName1Chars, LfnName2Chars));
+        ReadUcs2(entry.Slice(LfnName3Offset, LfnName3Bytes), dest13.Slice(LfnName1Chars + LfnName2Chars, LfnName3Chars));
     }
 
     private static void ReadUcs2(ReadOnlySpan<byte> src, Span<char> dest)
     {
         for (int i = 0; i < dest.Length; i++)
         {
-            dest[i] = (char)(src[i * 2] | (src[i * 2 + 1] << 8));
+            dest[i] = (char)(src[i * Ucs2BytesPerChar] | (src[i * Ucs2BytesPerChar + Ucs2HighByteOffset] << BitsPerByte));
         }
     }
 
@@ -640,8 +700,8 @@ public static class FatDirectory
     {
         for (int i = 0; i < src.Length; i++)
         {
-            dest[i * 2] = (byte)(src[i] & 0xFF);
-            dest[i * 2 + 1] = (byte)((src[i] >> 8) & 0xFF);
+            dest[i * Ucs2BytesPerChar] = (byte)(src[i] & LowByteMask);
+            dest[i * Ucs2BytesPerChar + Ucs2HighByteOffset] = (byte)((src[i] >> BitsPerByte) & LowByteMask);
         }
     }
 
@@ -650,7 +710,7 @@ public static class FatDirectory
         int end = chars.Length;
         for (int i = 0; i < chars.Length; i++)
         {
-            if (chars[i] == '\0' || chars[i] == (char)0xFFFF)
+            if (chars[i] == '\0' || chars[i] == LfnPadChar)
             {
                 end = i;
                 break;
@@ -710,7 +770,7 @@ public static class FatDirectory
         }
         if (c >= 'a' && c <= 'z')
         {
-            return (char)(c - 32);
+            return (char)(c - CaseDistance);
         }
         if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
         {

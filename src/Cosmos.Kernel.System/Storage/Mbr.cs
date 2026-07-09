@@ -40,11 +40,20 @@ public static class Mbr
     /// <summary>Size in bytes of the 32-bit LBA / sector-count fields in a partition entry.</summary>
     internal const int LbaFieldSizeBytes = 4;
 
+    /// <summary>LBA of the MBR sector itself (sector 0) — where the partition table is read/written, and the start LBA no partition entry may alias.</summary>
+    internal const uint MbrSectorLba = 0;
+
+    /// <summary>LBA of a primary GPT header (sector 1); <see cref="Create"/> wipes it so a stale "EFI PART" label from a previous GPT layout cannot outrank this MBR.</summary>
+    private const ulong GptHeaderLba = 1;
+
     /// <summary>Partition status byte: inactive (non-bootable) entry.</summary>
     private const byte StatusInactive = 0x00;
 
     /// <summary>Partition status byte: active (bootable) entry.</summary>
     private const byte StatusBootable = 0x80;
+
+    /// <summary>System ID 0x00 - unused (empty) partition table slot.</summary>
+    internal const byte SystemIdEmpty = 0x00;
 
     /// <summary>System ID 0x05 - extended partition (CHS-addressed EBR container).</summary>
     internal const byte SystemIdExtendedChs = 0x05;
@@ -83,7 +92,7 @@ public static class Mbr
     public static bool IsMbr(IBlockDevice device)
     {
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
         return BitConverter.ToUInt16(mbr.Slice(SignatureOffset, SignatureSizeBytes)) == MbrSignature;
     }
 
@@ -97,7 +106,7 @@ public static class Mbr
     {
         List<PartitionEntry> partitions = new(MaxPartitions);
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         for (int i = 0; i < MaxPartitions; i++)
         {
@@ -109,7 +118,7 @@ public static class Mbr
             // the protective entry as a data partition (e.g. when the
             // primary GPT header is damaged) would let a write destroy the
             // remaining GPT structures.
-            if (systemId == 0 || systemId == SystemIdExtendedChs || systemId == SystemIdExtendedLba || systemId == SystemIdLinuxExtended || systemId == SystemIdGptProtective)
+            if (systemId == SystemIdEmpty || systemId == SystemIdExtendedChs || systemId == SystemIdExtendedLba || systemId == SystemIdLinuxExtended || systemId == SystemIdGptProtective)
             {
                 continue;
             }
@@ -126,7 +135,7 @@ public static class Mbr
             // aliases the MBR sector itself (a write through that "partition"
             // destroys the table), and a range past the disk end would
             // authorize wild host I/O through the resulting Partition.
-            if (startSector == 0 || sectorCount == 0 || startSector + sectorCount > device.BlockCount)
+            if (startSector == MbrSectorLba || sectorCount == 0 || startSector + sectorCount > device.BlockCount)
             {
                 continue;
             }
@@ -148,10 +157,10 @@ public static class Mbr
     {
         Span<byte> mbr = new byte[device.BlockSize];
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
-        device.WriteBlock(0, 1, mbr);
+        device.WriteBlock(MbrSectorLba, 1, mbr);
 
         Span<byte> lba1 = new byte[device.BlockSize];
-        device.WriteBlock(1, 1, lba1);
+        device.WriteBlock(GptHeaderLba, 1, lba1);
     }
 
     /// <summary>
@@ -169,7 +178,7 @@ public static class Mbr
         // itself, and a range past the disk end would authorize wild host
         // I/O through the resulting Partition. Reject at write time rather
         // than stamping an entry our own parser will drop.
-        if (startSector == 0 || sectorCount == 0)
+        if (startSector == MbrSectorLba || sectorCount == 0)
         {
             throw new ArgumentOutOfRangeException(nameof(startSector), "MBR partition must start past LBA 0 and be non-empty.");
         }
@@ -179,7 +188,7 @@ public static class Mbr
         }
 
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         mbr.Slice(offset, PartitionEntrySize).Clear();
@@ -188,7 +197,7 @@ public static class Mbr
         BitConverter.TryWriteBytes(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes), sectorCount);
 
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
-        device.WriteBlock(0, 1, mbr);
+        device.WriteBlock(MbrSectorLba, 1, mbr);
     }
 
     /// <summary>
@@ -209,7 +218,7 @@ public static class Mbr
         startSector = 0;
         sectorCount = 0;
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         for (int i = 0; i < MaxPartitions; i++)
         {
@@ -223,7 +232,7 @@ public static class Mbr
                 // aliases the MBR sector itself, and a range past the disk
                 // end flows into EBR sector I/O. Skip the corrupt slot so
                 // a valid extended entry behind it is still found.
-                if (start == 0 || count == 0 || start + count > device.BlockCount)
+                if (start == MbrSectorLba || count == 0 || start + count > device.BlockCount)
                 {
                     continue;
                 }
@@ -245,13 +254,13 @@ public static class Mbr
         }
 
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         mbr.Slice(offset, PartitionEntrySize).Clear();
 
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
-        device.WriteBlock(0, 1, mbr);
+        device.WriteBlock(MbrSectorLba, 1, mbr);
     }
 
     /// <summary>Rewrite the SectorCount field of slot <paramref name="index"/>, leaving systemId / startSector untouched.</summary>
@@ -263,7 +272,7 @@ public static class Mbr
         }
 
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         ThrowIfSlotNotMutable(mbr[offset + EntrySystemIdOffset], "resize");
@@ -282,7 +291,7 @@ public static class Mbr
 
         BitConverter.TryWriteBytes(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes), newSectorCount);
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
-        device.WriteBlock(0, 1, mbr);
+        device.WriteBlock(MbrSectorLba, 1, mbr);
     }
 
     /// <summary>Rewrite the StartSector field of slot <paramref name="index"/>, leaving systemId / sectorCount untouched. Table-level only — does not relocate data.</summary>
@@ -294,7 +303,7 @@ public static class Mbr
         }
 
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, mbr);
+        device.ReadBlock(MbrSectorLba, 1, mbr);
 
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         ThrowIfSlotNotMutable(mbr[offset + EntrySystemIdOffset], "move");
@@ -303,7 +312,7 @@ public static class Mbr
         // MBR sector itself, and a range past the disk end would authorize
         // wild host I/O through the resulting Partition.
         ulong sectorCount = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
-        if (newStartSector == 0 || newStartSector + sectorCount > device.BlockCount)
+        if (newStartSector == MbrSectorLba || newStartSector + sectorCount > device.BlockCount)
         {
             throw new ArgumentOutOfRangeException(nameof(newStartSector), "MBR partition must start past LBA 0 and end within the device.");
         }
@@ -314,7 +323,7 @@ public static class Mbr
 
         BitConverter.TryWriteBytes(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes), newStartSector);
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
-        device.WriteBlock(0, 1, mbr);
+        device.WriteBlock(MbrSectorLba, 1, mbr);
     }
 
     /// <summary>
@@ -327,7 +336,7 @@ public static class Mbr
     /// </summary>
     private static void ThrowIfSlotNotMutable(byte systemId, string operation)
     {
-        if (systemId == 0)
+        if (systemId == SystemIdEmpty)
         {
             throw new InvalidOperationException($"Cannot {operation} an empty MBR slot.");
         }
@@ -355,13 +364,13 @@ public static class Mbr
                 continue;
             }
             int offset = PartitionTableOffset + i * PartitionEntrySize;
-            if (mbr[offset + EntrySystemIdOffset] == 0)
+            if (mbr[offset + EntrySystemIdOffset] == SystemIdEmpty)
             {
                 continue;
             }
             ulong otherStart = BitConverter.ToUInt32(mbr.Slice(offset + EntryStartLbaOffset, LbaFieldSizeBytes));
             ulong otherCount = BitConverter.ToUInt32(mbr.Slice(offset + EntrySectorCountOffset, LbaFieldSizeBytes));
-            if (otherStart == 0 || otherCount == 0)
+            if (otherStart == MbrSectorLba || otherCount == 0)
             {
                 continue;
             }

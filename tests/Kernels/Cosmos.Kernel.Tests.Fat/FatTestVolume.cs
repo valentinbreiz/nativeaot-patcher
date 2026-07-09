@@ -14,10 +14,25 @@ internal static class FatTestVolume
 {
     public const ulong BlockSize = 512;
 
+    /// <summary>Number of FAT copies on both test volumes — the standard redundant pair (fatgen103 BPB_NumFATs).</summary>
+    private const byte FatCopyCount = 2;
+
     // FAT16 geometry: 32 MiB / SPC=8 / 32-sector FAT keeps cluster count in the
     // [4085, 65525) band even with the formatter's auto-pick branches.
     private const ulong Fat16DiskSizeBytes = 32UL * 1024 * 1024;
     public const ulong Fat16BlockCount = Fat16DiskSizeBytes / BlockSize;
+
+    /// <summary>Sectors per cluster on the FAT16 volume; keeps the 32 MiB disk's cluster count inside the FAT16 band (fatgen103 BPB_SecPerClus).</summary>
+    private const byte Fat16SectorsPerCluster = 8;
+
+    /// <summary>Reserved sectors before the first FAT on the FAT16 volume — boot sector only, the classic FAT12/16 layout (fatgen103 BPB_RsvdSecCnt).</summary>
+    private const ushort Fat16ReservedSectorCount = 1;
+
+    /// <summary>Fixed root-directory entry count on the FAT16 volume — the fatgen103 BPB_RootEntCnt default of 512 32-byte entries.</summary>
+    private const ushort Fat16RootEntryCount = 512;
+
+    /// <summary>Sectors per FAT copy on the FAT16 volume; 32 sectors of 256 two-byte entries cover the ~8k clusters (fatgen103 BPB_FATSz16).</summary>
+    private const uint Fat16FatSectorCount = 32;
 
     // FAT32 geometry: 33 MiB / SPC=1 / 520-sector FAT yields cluster count
     // > 65525 while one FAT copy still covers it (fatgen103 requires
@@ -25,6 +40,15 @@ internal static class FatTestVolume
     // entries short and out-of-FAT accesses would corrupt copy #2).
     private const ulong Fat32DiskSizeBytes = 33UL * 1024 * 1024;
     public const ulong Fat32BlockCount = Fat32DiskSizeBytes / BlockSize;
+
+    /// <summary>Sectors per cluster on the FAT32 volume; 1 maximizes the cluster count so it clears the 65525 FAT32 threshold (fatgen103 BPB_SecPerClus).</summary>
+    private const byte Fat32SectorsPerCluster = 1;
+
+    /// <summary>Reserved sectors before the first FAT on the FAT32 volume — the fatgen103 BPB_RsvdSecCnt default of 32 for FAT32.</summary>
+    private const ushort Fat32ReservedSectorCount = 32;
+
+    /// <summary>Sectors per FAT copy on the FAT32 volume; 520 sectors of 128 four-byte entries cover clusterCount + 2 where 512 fell short (fatgen103 BPB_FATSz32).</summary>
+    private const uint Fat32FatSectorCount = 520;
 
     public static MemoryBlockDevice CreateFat16(string name)
     {
@@ -38,11 +62,11 @@ internal static class FatTestVolume
         FatFormatOptions options = new()
         {
             Type = FatType.Fat16,
-            SectorsPerCluster = 8,
-            ReservedSectorCount = 1,
-            NumberOfFats = 2,
-            RootEntryCount = 512,
-            FatSectorCount = 32,
+            SectorsPerCluster = Fat16SectorsPerCluster,
+            ReservedSectorCount = Fat16ReservedSectorCount,
+            NumberOfFats = FatCopyCount,
+            RootEntryCount = Fat16RootEntryCount,
+            FatSectorCount = Fat16FatSectorCount,
             VolumeLabel = "COSMOSFAT  ",
         };
         if (!driver.TryFormat(default, options))
@@ -64,11 +88,11 @@ internal static class FatTestVolume
         FatFormatOptions options = new()
         {
             Type = FatType.Fat32,
-            SectorsPerCluster = 1,
-            ReservedSectorCount = 32,
-            NumberOfFats = 2,
-            FatSectorCount = 520,
-            RootCluster = 2,
+            SectorsPerCluster = Fat32SectorsPerCluster,
+            ReservedSectorCount = Fat32ReservedSectorCount,
+            NumberOfFats = FatCopyCount,
+            FatSectorCount = Fat32FatSectorCount,
+            RootCluster = FatTable.FirstDataCluster,
             VolumeLabel = "COSMOSFAT32",
         };
         if (!driver.TryFormat(default, options))

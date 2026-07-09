@@ -78,10 +78,17 @@ public class Kernel : Sys.Kernel
     private const int PanelRowCount = 9;
     /// <summary>Extra vertical padding (pixels) of the startx info panel.</summary>
     private const int PanelPaddingPx = 8;
+    /// <summary>Text rows advanced after the last line of a startx panel section (the line itself plus one blank separator row).</summary>
+    private const int SectionBreakRowCount = 2;
     /// <summary>Frame interval at which the startx loop triggers a heap collection.</summary>
     private const int GfxGcCollectFrameInterval = 100;
     /// <summary>Frame interval at which the live GC info overlay collects and samples Gen0 stats.</summary>
     private const int GcInfoCollectFrameInterval = 50;
+    /// <summary>Index of generation 0 in GCMemoryInfo.GenerationInfo, the generation the gc overlay samples.</summary>
+    private const int Gen0Index = 0;
+
+    /// <summary>Thread ID of the scheduler's idle thread, which the kill command must refuse to kill.</summary>
+    private const uint IdleThreadId = 0;
 
     /// <summary>Number of phases in the graphics worker color cycle (six 10-phase segments).</summary>
     private const int ColorCyclePhaseCount = 60;
@@ -114,6 +121,8 @@ public class Kernel : Sys.Kernel
     private const byte CloudflareDnsOctet = 1;
     /// <summary>UDP port used for the netsend/netlisten test traffic.</summary>
     private const ushort TestUdpPort = 5555;
+    /// <summary>Sentinel returned by DHCPClient.SendDiscoverPacket when no DHCP server answered before the timeout.</summary>
+    private const int DhcpTimeoutResult = -1;
     /// <summary>First printable ASCII code (space); lower bound of the payload dump filter.</summary>
     private const int AsciiPrintableMin = 32;
     /// <summary>ASCII DEL code; exclusive upper bound of the payload dump filter.</summary>
@@ -121,12 +130,12 @@ public class Kernel : Sys.Kernel
     /// <summary>Maximum UDP payload bytes echoed to the console per packet.</summary>
     private const int UdpPreviewMaxBytes = 64;
 
+    /// <summary>Device index of the first-registered disk, which StorageManager treats as the primary device.</summary>
+    private const int PrimaryDeviceIndex = 0;
     /// <summary>Number of bytes hex-dumped by the diskread command.</summary>
     private const int HexDumpLengthBytes = 64;
     /// <summary>Number of bytes shown per line of the diskread hex dump.</summary>
     private const int HexDumpBytesPerLine = 16;
-
-    /// <summary>First usable LBA on a GPT disk (past the protective MBR, header, and entry array).</summary>
 
     /// <summary>Conventional first partition LBA on an MBR disk (1 MiB alignment).</summary>
     private const ulong MbrFirstPartitionLba = 2048;
@@ -590,14 +599,14 @@ public class Kernel : Sys.Kernel
                         canvas.DrawString("Free : " + (freeBytes / BytesPerKiB / BytesPerKiB) + " MB", font, Color.White, x, rowY);
                         rowY += lineHeight;
                         canvas.DrawString("Pages: " + usedPages + "/" + totalPages, font, Color.White, x, rowY);
-                        rowY += lineHeight * 2;
+                        rowY += lineHeight * SectionBreakRowCount;
 
                         canvas.DrawString("GCinfo", font, Color.Cyan, x, rowY);
                         rowY += lineHeight;
                         canvas.DrawString("Collections: " + totalCollections, font, Color.White, x, rowY);
                         rowY += lineHeight;
                         canvas.DrawString("Objects Freed: " + totalObjectsFreed, font, Color.White, x, rowY);
-                        rowY += lineHeight * 2;
+                        rowY += lineHeight * SectionBreakRowCount;
 
                         canvas.DrawString("FPS: " + fps + " / " + refreshRate + " Hz", font, Color.Yellow, x, rowY);
 
@@ -707,10 +716,10 @@ public class Kernel : Sys.Kernel
             {
                 Cosmos.Kernel.Core.Memory.Heap.Heap.Collect();
                 info = GC.GetGCMemoryInfo();
-                sizeBefore = info.GenerationInfo[0].SizeBeforeBytes;
-                sizeAfter = info.GenerationInfo[0].SizeAfterBytes;
-                fragBefore = info.GenerationInfo[0].FragmentationBeforeBytes;
-                fragAfter = info.GenerationInfo[0].FragmentationAfterBytes;
+                sizeBefore = info.GenerationInfo[Gen0Index].SizeBeforeBytes;
+                sizeAfter = info.GenerationInfo[Gen0Index].SizeAfterBytes;
+                fragBefore = info.GenerationInfo[Gen0Index].FragmentationBeforeBytes;
+                fragAfter = info.GenerationInfo[Gen0Index].FragmentationAfterBytes;
 
                 sizeDelta = sizeBefore - sizeAfter;
                 maxDeltaSize = Math.Max(maxDeltaSize, sizeDelta);
@@ -1029,7 +1038,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (threadId == 0)
+        if (threadId == IdleThreadId)
         {
             PrintError("Cannot kill idle thread (ID 0)");
             return;
@@ -1340,7 +1349,7 @@ public class Kernel : Sys.Kernel
         var dhcpClient = new DHCPClient();
         int result = dhcpClient.SendDiscoverPacket();
 
-        if (result == -1)
+        if (result == DhcpTimeoutResult)
         {
             PrintError("DHCP timeout - no response from server");
             return;
@@ -1442,7 +1451,7 @@ public class Kernel : Sys.Kernel
             Console.WriteLine();
             // Same block lsdisk prints, so the labels cannot drift.
             PrintDiskBlock(i, dev, detailed: true);
-            if (i == 0)
+            if (i == PrimaryDeviceIndex)
             {
                 PrintInfoLine("    Primary".PadRight(DiskLabelColumnWidth), "yes");
             }

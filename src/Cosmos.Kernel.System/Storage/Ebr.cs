@@ -26,6 +26,9 @@ public static class Ebr
     /// <summary>Byte offset of the next-EBR link entry (partition table slot 1).</summary>
     private const int NextEbrEntryOffset = Mbr.PartitionTableOffset + Mbr.PartitionEntrySize;
 
+    /// <summary>Sectors the EBR itself occupies; a logical's data area starts this many sectors after its hosting EBR (classic EBR layout).</summary>
+    private const uint EbrSectorSpan = 1;
+
     /// <summary>Defensive cap on chain hops so a cyclic on-disk chain cannot spin the walk forever.</summary>
     private const int MaxChainLength = 128;
 
@@ -55,7 +58,7 @@ public static class Ebr
         for (int i = 0; i < chain.Count; i++)
         {
             ChainNode node = chain[i];
-            if (node.LogicalSystemId == 0)
+            if (node.LogicalSystemId == Mbr.SystemIdEmpty)
             {
                 continue;
             }
@@ -84,7 +87,7 @@ public static class Ebr
         // truncated by the (uint) cast below (2^32 stamps a zero-length
         // entry), so reject it up front as ResizeLogical does.
         if (sectorCount == 0 || sectorCount > uint.MaxValue
-            || systemId == 0
+            || systemId == Mbr.SystemIdEmpty
             || systemId == Mbr.SystemIdExtendedChs
             || systemId == Mbr.SystemIdExtendedLba
             || systemId == Mbr.SystemIdLinuxExtended)
@@ -115,12 +118,12 @@ public static class Ebr
             newEbrLba = tail.EbrLba + tail.LogicalRelativeStart + tail.LogicalSectorCount;
         }
 
-        if (newEbrLba + 1 + sectorCount > extendedEnd)
+        if (newEbrLba + EbrSectorSpan + sectorCount > extendedEnd)
         {
             return 0;
         }
 
-        WriteEbrSector(device, newEbrLba, systemId, relativeStart: 1, sectorCount: (uint)sectorCount, nextRelative: 0);
+        WriteEbrSector(device, newEbrLba, systemId, relativeStart: EbrSectorSpan, sectorCount: (uint)sectorCount, nextRelative: 0);
 
         if (chain.Count > 0)
         {
@@ -135,7 +138,7 @@ public static class Ebr
                 newNextRelative);
         }
 
-        return newEbrLba + 1;
+        return newEbrLba + EbrSectorSpan;
     }
 
     /// <summary>
@@ -328,7 +331,7 @@ public static class Ebr
             // A relative start of 0 aliases the EBR sector itself; a range
             // past the envelope authorizes wild host I/O. Skip the entry
             // but keep walking — later links may still be intact.
-            bool entryValid = logicalSystemId != 0
+            bool entryValid = logicalSystemId != Mbr.SystemIdEmpty
                 && logicalRelativeStart != 0
                 && logicalSectorCount != 0
                 && currentEbrLba + logicalRelativeStart + logicalSectorCount <= envelopeEnd;

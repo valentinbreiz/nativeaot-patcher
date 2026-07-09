@@ -16,6 +16,15 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// </summary>
 public sealed class FatFilesystemType : IVfsFilesystemType
 {
+    /// <summary>LBA of the boot sector holding the BPB — always the first sector of the volume (fatgen103 section 3.1).</summary>
+    private const ulong BootSectorLba = 0;
+
+    /// <summary>Number of blocks the BPB probe reads: the boot sector occupies exactly one sector (fatgen103 section 3.1).</summary>
+    private const ulong BootSectorBlockCount = 1;
+
+    /// <summary>Radix used to parse the decimal partition-index mount source string.</summary>
+    private const int DecimalRadix = 10;
+
     private readonly IBlockDevice? _injectedDevice;
 
     public FatFilesystemType()
@@ -38,7 +47,7 @@ public sealed class FatFilesystemType : IVfsFilesystemType
         }
 
         Span<byte> bpb = new byte[device.BlockSize];
-        device.ReadBlock(0, 1, bpb);
+        device.ReadBlock(BootSectorLba, BootSectorBlockCount, bpb);
 
         if (!FatBootSector.TryParse(bpb, out FatBootSector? boot) || boot == null)
         {
@@ -58,7 +67,8 @@ public sealed class FatFilesystemType : IVfsFilesystemType
             return false;
         }
         if (boot.Type == FatType.Fat32
-            && (boot.RootCluster < 2 || boot.RootCluster >= boot.ClusterCount + 2))
+            && (boot.RootCluster < FatTable.FirstDataCluster
+                || boot.RootCluster >= boot.ClusterCount + FatTable.FirstDataCluster))
         {
             return false;
         }
@@ -135,11 +145,11 @@ public sealed class FatFilesystemType : IVfsFilesystemType
             // Unchecked accumulation wraps: "4294967297" would parse as 1
             // and alias destructive operations (format/destroy) onto a
             // valid low partition index.
-            if (result > (int.MaxValue - digit) / 10)
+            if (result > (int.MaxValue - digit) / DecimalRadix)
             {
                 return false;
             }
-            result = result * 10 + digit;
+            result = result * DecimalRadix + digit;
         }
 
         value = result;

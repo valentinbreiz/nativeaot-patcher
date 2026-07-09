@@ -69,6 +69,9 @@ public static class Gpt
     /// <summary>Size in bytes of the GPT header structure (UEFI spec: 92).</summary>
     private const uint GptHeaderSizeBytes = 92u;
 
+    /// <summary>Placeholder stamped into the header and entry-array CRC32 fields (UEFI spec 5.3.2) — this writer does not compute checksums.</summary>
+    private const uint UncomputedCrc32 = 0u;
+
     /// <summary>Standard GPT partition entry size in bytes (UEFI spec); also the minimum SizeOfPartitionEntry accepted when parsing.</summary>
     private const uint PartitionEntrySizeBytes = 128u;
 
@@ -86,6 +89,9 @@ public static class Gpt
 
     /// <summary>Partition entry field offset of the attribute flags (UEFI spec, byte 48).</summary>
     private const int EntryAttributesOffset = 48;
+
+    /// <summary>Attribute flags stamped on a freshly added partition entry: none set (UEFI spec 5.3.3).</summary>
+    private const ulong NoEntryAttributes = 0UL;
 
     /// <summary>Width in bytes of a 64-bit on-disk field (signature, LBA values).</summary>
     private const int UInt64FieldSize = 8;
@@ -166,14 +172,26 @@ public static class Gpt
     /// <summary>CHS placeholder value used when the geometry exceeds CHS addressing (all bits set).</summary>
     private const byte MbrChsPlaceholder = 0xFF;
 
+    /// <summary>Boot indicator of the protective partition: non-bootable (UEFI spec 5.2.3).</summary>
+    private const byte ProtectiveMbrBootIndicator = 0x00;
+
+    /// <summary>Starting CHS head of the protective partition (head 0; with sector 2 and cylinder 0 this addresses LBA 1, UEFI spec 5.2.3).</summary>
+    private const byte ProtectiveMbrStartChsHead = 0x00;
+
     /// <summary>Starting CHS sector of the protective partition (sector numbering is 1-based; 2 maps to LBA 1).</summary>
     private const byte ProtectiveMbrStartChsSector = 0x02;
+
+    /// <summary>Starting CHS cylinder of the protective partition (cylinder 0, UEFI spec 5.2.3).</summary>
+    private const byte ProtectiveMbrStartChsCylinder = 0x00;
 
     /// <summary>First absolute LBA of the protective partition (LBA 1, right after the MBR).</summary>
     private const uint ProtectiveMbrStartLba = 1u;
 
     /// <summary>Maximum size-in-LBA value the 32-bit MBR field can express; larger disks are clamped to it (UEFI spec).</summary>
     private const uint MbrMaxSizeInLba = 0xFFFFFFFFu;
+
+    /// <summary>Byte offset of the first 32-bit word inside a 16-byte GUID.</summary>
+    private const int GuidDword0Offset = 0;
 
     /// <summary>Byte offset of the second 32-bit word inside a 16-byte GUID.</summary>
     private const int GuidDword1Offset = 4;
@@ -344,10 +362,10 @@ public static class Gpt
 
         // Protective MBR at LBA 0.
         Span<byte> protectiveMbr = new byte[blockSize];
-        protectiveMbr[MbrPartitionTableOffset + MbrBootIndicatorOffset] = 0x00; // boot indicator
-        protectiveMbr[MbrPartitionTableOffset + MbrStartChsHeadOffset] = 0x00; // start CHS head
+        protectiveMbr[MbrPartitionTableOffset + MbrBootIndicatorOffset] = ProtectiveMbrBootIndicator; // boot indicator
+        protectiveMbr[MbrPartitionTableOffset + MbrStartChsHeadOffset] = ProtectiveMbrStartChsHead; // start CHS head
         protectiveMbr[MbrPartitionTableOffset + MbrStartChsSectorOffset] = ProtectiveMbrStartChsSector; // start CHS sector
-        protectiveMbr[MbrPartitionTableOffset + MbrStartChsCylinderOffset] = 0x00; // start CHS cylinder
+        protectiveMbr[MbrPartitionTableOffset + MbrStartChsCylinderOffset] = ProtectiveMbrStartChsCylinder; // start CHS cylinder
         protectiveMbr[MbrPartitionTableOffset + MbrPartitionTypeOffset] = GptProtectivePartitionType; // GPT protective system id
         protectiveMbr[MbrPartitionTableOffset + MbrEndChsHeadOffset] = MbrChsPlaceholder; // end CHS head
         protectiveMbr[MbrPartitionTableOffset + MbrEndChsSectorOffset] = MbrChsPlaceholder; // end CHS sector
@@ -365,7 +383,7 @@ public static class Gpt
         BitConverter.TryWriteBytes(header.Slice(HeaderSignatureOffset, UInt64FieldSize), EfiPartSignature);
         BitConverter.TryWriteBytes(header.Slice(HeaderRevisionOffset, UInt32FieldSize), GptRevision);  // Revision 1.0
         BitConverter.TryWriteBytes(header.Slice(HeaderSizeOffset, UInt32FieldSize), GptHeaderSizeBytes);          // header size
-        BitConverter.TryWriteBytes(header.Slice(HeaderCrcOffset, UInt32FieldSize), 0u);           // CRC32 (not computed; consumers that care will reject)
+        BitConverter.TryWriteBytes(header.Slice(HeaderCrcOffset, UInt32FieldSize), UncomputedCrc32);           // CRC32 (not computed; consumers that care will reject)
         BitConverter.TryWriteBytes(header.Slice(HeaderCurrentLbaOffset, UInt64FieldSize), PrimaryHeaderLba);          // current LBA
         BitConverter.TryWriteBytes(header.Slice(HeaderBackupLbaOffset, UInt64FieldSize), device.BlockCount - 1);  // backup LBA
         BitConverter.TryWriteBytes(header.Slice(HeaderFirstUsableOffset, UInt64FieldSize), FirstUsableLba);         // first usable LBA
@@ -376,7 +394,7 @@ public static class Gpt
         BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayLbaOffset, UInt64FieldSize), EntryArrayLba);          // partition entry array LBA
         BitConverter.TryWriteBytes(header.Slice(HeaderEntryCountOffset, UInt32FieldSize), DefaultPartitionEntryCount);         // entry count
         BitConverter.TryWriteBytes(header.Slice(HeaderEntrySizeOffset, UInt32FieldSize), PartitionEntrySizeBytes);         // entry size
-        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayCrcOffset, UInt32FieldSize), 0u);           // entry array CRC32
+        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayCrcOffset, UInt32FieldSize), UncomputedCrc32);           // entry array CRC32
         device.WriteBlock(PrimaryHeaderLba, 1, header);
 
         // Zero the partition entry array (LBAs 2..33 with 512B sectors and 128 entries × 128B).
@@ -468,7 +486,7 @@ public static class Gpt
                 WriteDeterministicGuid(sector.Slice(offset + EntryUniqueGuidOffset, GuidFieldSize), guidMix);
                 BitConverter.TryWriteBytes(sector.Slice(offset + EntryFirstLbaOffset, UInt64FieldSize), startSector);
                 BitConverter.TryWriteBytes(sector.Slice(offset + EntryLastLbaOffset, UInt64FieldSize), startSector + sectorCount - 1);
-                BitConverter.TryWriteBytes(sector.Slice(offset + EntryAttributesOffset, UInt64FieldSize), 0UL);
+                BitConverter.TryWriteBytes(sector.Slice(offset + EntryAttributesOffset, UInt64FieldSize), NoEntryAttributes);
 
                 device.WriteBlock(lba, 1, sector);
                 return true;
@@ -662,7 +680,7 @@ public static class Gpt
 
     private static void WriteDeterministicGuid(Span<byte> dest, ulong mix)
     {
-        BitConverter.TryWriteBytes(dest.Slice(0, UInt32FieldSize), (uint)mix);
+        BitConverter.TryWriteBytes(dest.Slice(GuidDword0Offset, UInt32FieldSize), (uint)mix);
         BitConverter.TryWriteBytes(dest.Slice(GuidDword1Offset, UInt32FieldSize), (uint)(mix ^ GuidMixSalt1));
         BitConverter.TryWriteBytes(dest.Slice(GuidDword2Offset, UInt32FieldSize), (uint)(mix ^ GuidMixSalt2));
         BitConverter.TryWriteBytes(dest.Slice(GuidDword3Offset, UInt32FieldSize), (uint)(mix ^ GuidMixSalt3));

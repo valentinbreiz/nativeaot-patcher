@@ -11,6 +11,9 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// </summary>
 internal sealed class FatInode : IVfsInode
 {
+    /// <summary>Sentinel <see cref="DirEntryByteOffset"/> for inodes with no backing on-disk 8.3 entry (the root directory).</summary>
+    internal const int NoDirEntryOffset = -1;
+
     public FatSuperblock Superblock { get; }
     public string Name { get; internal set; }
     public FatAttr Attributes { get; internal set; }
@@ -19,7 +22,7 @@ internal sealed class FatInode : IVfsInode
     public FatInode? Parent { get; internal set; }
 
     /// <summary>Byte offset within parent directory data of the 8.3 entry that backs this inode; <c>-1</c> for the root.</summary>
-    public int DirEntryByteOffset { get; internal set; } = -1;
+    public int DirEntryByteOffset { get; internal set; } = NoDirEntryOffset;
 
     /// <summary>Number of contiguous 32-byte slots (LFN + 8.3) the on-disk entry occupies, for delete bookkeeping.</summary>
     public int DirEntrySlotCount { get; internal set; }
@@ -62,7 +65,7 @@ internal sealed class FatInode : IVfsInode
             return CachedChain;
         }
 
-        List<uint> chain = FirstCluster >= 2 ? Superblock.Fat.GetChain(FirstCluster) : new List<uint>();
+        List<uint> chain = FirstCluster >= FatTable.FirstDataCluster ? Superblock.Fat.GetChain(FirstCluster) : new List<uint>();
         CachedChain = chain;
         return chain;
     }

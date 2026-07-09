@@ -67,6 +67,24 @@ public sealed class FatTable
     /// <summary>FAT16 entry width in bytes.</summary>
     private const uint Fat16EntrySize = 2;
 
+    /// <summary>FAT12 packs two 12-bit entries into every three bytes (fatgen103 §4: FATOffset = N + N / 2).</summary>
+    private const uint Fat12EntriesPerPair = 2;
+
+    /// <summary>Bytes holding one FAT12 entry pair (fatgen103 §4).</summary>
+    private const uint Fat12PairBytes = 3;
+
+    /// <summary>Bytes spanned by a single 12-bit FAT12 entry when read as a little-endian word.</summary>
+    private const int Fat12EntrySpanBytes = 2;
+
+    /// <summary>Bit position of the odd-numbered FAT12 entry within its 16-bit pair word (fatgen103 §4).</summary>
+    private const int Fat12OddEntryShift = 4;
+
+    /// <summary>Shift between the low and high byte of a little-endian 16-bit FAT12 pair word.</summary>
+    private const int BitsPerByte = 8;
+
+    /// <summary>Mask isolating the low byte of a 16-bit FAT12 pair word.</summary>
+    private const int LowByteMask = 0xFF;
+
     private readonly IBlockDevice _device;
     private readonly FatBootSector _boot;
 
@@ -101,7 +119,7 @@ public sealed class FatTable
         {
             FatType.Fat32 => fatBytes / Fat32EntrySize,
             FatType.Fat16 => fatBytes / Fat16EntrySize,
-            _ => fatBytes * 2 / 3,
+            _ => fatBytes * Fat12EntriesPerPair / Fat12PairBytes,
         };
         ulong limit = (ulong)boot.ClusterCount + FirstDataCluster;
         if (fatCapacity < limit)
@@ -443,7 +461,7 @@ public sealed class FatTable
 
     private uint GetFat12(uint cluster)
     {
-        uint fatOffset = cluster + cluster / 2;
+        uint fatOffset = cluster + cluster / Fat12EntriesPerPair;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
@@ -454,19 +472,19 @@ public sealed class FatTable
         {
             Span<byte> next = _fatSpill;
             _device.ReadBlock(sectorNumber + 1, 1, next);
-            word = (ushort)(buffer[(int)entryOffset] | (next[0] << 8));
+            word = (ushort)(buffer[(int)entryOffset] | (next[0] << BitsPerByte));
         }
         else
         {
-            word = BitConverter.ToUInt16(buffer.Slice((int)entryOffset, 2));
+            word = BitConverter.ToUInt16(buffer.Slice((int)entryOffset, Fat12EntrySpanBytes));
         }
 
-        return (cluster & 1) != 0 ? (uint)(word >> 4) : word & Fat12EntryMask;
+        return (cluster & 1) != 0 ? (uint)(word >> Fat12OddEntryShift) : word & Fat12EntryMask;
     }
 
     private void SetFat12(uint cluster, uint value)
     {
-        uint fatOffset = cluster + cluster / 2;
+        uint fatOffset = cluster + cluster / Fat12EntriesPerPair;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
         bool spans = entryOffset == _boot.BytesPerSector - 1;
@@ -482,25 +500,25 @@ public sealed class FatTable
 
         byte low = buffer[(int)entryOffset];
         byte high = spans ? next[0] : buffer[(int)entryOffset + 1];
-        ushort word = (ushort)(low | (high << 8));
+        ushort word = (ushort)(low | (high << BitsPerByte));
 
         if ((cluster & 1) != 0)
         {
-            word = (ushort)(((uint)word & Fat12LowNibbleMask) | ((value & Fat12EntryMask) << 4));
+            word = (ushort)(((uint)word & Fat12LowNibbleMask) | ((value & Fat12EntryMask) << Fat12OddEntryShift));
         }
         else
         {
             word = (ushort)(((uint)word & Fat12HighNibbleMask) | (value & Fat12EntryMask));
         }
 
-        buffer[(int)entryOffset] = (byte)(word & 0xFF);
+        buffer[(int)entryOffset] = (byte)(word & LowByteMask);
         if (spans)
         {
-            next[0] = (byte)(word >> 8);
+            next[0] = (byte)(word >> BitsPerByte);
         }
         else
         {
-            buffer[(int)entryOffset + 1] = (byte)(word >> 8);
+            buffer[(int)entryOffset + 1] = (byte)(word >> BitsPerByte);
         }
 
         for (uint i = 0; i < _boot.NumberOfFats; i++)

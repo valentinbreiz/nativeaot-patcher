@@ -11,6 +11,9 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// </summary>
 public sealed class FatFormatOptions : IVfsFormatOptions
 {
+    /// <summary>Default BPB_NumFATs: two mirrored FAT copies (fatgen103 §3.1).</summary>
+    private const byte DefaultNumberOfFats = 2;
+
     /// <summary>FAT family to format. <see cref="FatType.Unknown"/> picks
     /// the smallest type that fits the device's cluster count.</summary>
     public FatType Type { get; init; } = FatType.Unknown;
@@ -21,7 +24,7 @@ public sealed class FatFormatOptions : IVfsFormatOptions
     /// <summary>Reserved sector count. <c>0</c> = 1 for FAT12/16, 32 for FAT32.</summary>
     public ushort ReservedSectorCount { get; init; }
 
-    public byte NumberOfFats { get; init; } = 2;
+    public byte NumberOfFats { get; init; } = DefaultNumberOfFats;
 
     /// <summary>Root entry count (FAT12/16 only). <c>0</c> = 512.</summary>
     public ushort RootEntryCount { get; init; }

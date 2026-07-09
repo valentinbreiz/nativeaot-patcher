@@ -56,8 +56,14 @@ internal static class FatAttributes
     /// <summary>FAT dates count years from 1980 (bits 15-9 of the date word).</summary>
     private const int FatEpochYear = 1980;
 
+    /// <summary>Bit shift of the year field within the FAT date word (bits 15-9, fatgen103 "Date and Time Formats").</summary>
+    private const int DateYearShift = 9;
+
     /// <summary>Year field mask after shifting (7 bits, 1980..2107).</summary>
     private const int DateYearMask = 0x7F;
+
+    /// <summary>Bit shift of the month field within the FAT date word (bits 8-5, fatgen103 "Date and Time Formats").</summary>
+    private const int DateMonthShift = 5;
 
     /// <summary>Month field mask after shifting (bits 8-5).</summary>
     private const int DateMonthMask = 0x0F;
@@ -65,8 +71,14 @@ internal static class FatAttributes
     /// <summary>Day field mask (bits 4-0).</summary>
     private const int DateDayMask = 0x1F;
 
+    /// <summary>Bit shift of the hour field within the FAT time word (bits 15-11, fatgen103 "Date and Time Formats").</summary>
+    private const int TimeHourShift = 11;
+
     /// <summary>Hour field mask after shifting (bits 15-11).</summary>
     private const int TimeHourMask = 0x1F;
+
+    /// <summary>Bit shift of the minute field within the FAT time word (bits 10-5, fatgen103 "Date and Time Formats").</summary>
+    private const int TimeMinuteShift = 5;
 
     /// <summary>Minute field mask after shifting (bits 10-5).</summary>
     private const int TimeMinuteMask = 0x3F;
@@ -88,6 +100,33 @@ internal static class FatAttributes
     private const long SecondsPerHour = 3600L;
     private const long SecondsPerMinute = 60L;
 
+    /// <summary>Unix epoch year the VFS timespec counts seconds from.</summary>
+    private const int UnixEpochYear = 1970;
+
+    /// <summary>Months per year; upper bound of the FAT month field.</summary>
+    private const int MonthsPerYear = 12;
+
+    /// <summary>Longest month length in days; upper bound of the FAT day field.</summary>
+    private const int MaxDaysInMonth = 31;
+
+    /// <summary>Days in a Gregorian leap year.</summary>
+    private const int DaysPerLeapYear = 366;
+
+    /// <summary>Days in a Gregorian common (non-leap) year.</summary>
+    private const int DaysPerCommonYear = 365;
+
+    /// <summary>Month number of February, the month that gains the leap day.</summary>
+    private const int February = 2;
+
+    /// <summary>Gregorian rule: every 4th year is a leap year.</summary>
+    private const int LeapYearInterval = 4;
+
+    /// <summary>Gregorian rule: century years are not leap years.</summary>
+    private const int LeapCenturyException = 100;
+
+    /// <summary>Gregorian rule: years divisible by 400 are leap years after all.</summary>
+    private const int LeapQuadCenturyInterval = 400;
+
     /// <summary>Days per month (non-leap); compiler-emitted static data, no per-call allocation.</summary>
     private static ReadOnlySpan<byte> DaysInMonth => new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
@@ -98,12 +137,12 @@ internal static class FatAttributes
             return new VfsTimespec(0, 0);
         }
 
-        int year = ((fatDate >> 9) & DateYearMask) + FatEpochYear;
-        int month = (fatDate >> 5) & DateMonthMask;
+        int year = ((fatDate >> DateYearShift) & DateYearMask) + FatEpochYear;
+        int month = (fatDate >> DateMonthShift) & DateMonthMask;
         int day = fatDate & DateDayMask;
 
-        int hour = (fatTime >> 11) & TimeHourMask;
-        int minute = (fatTime >> 5) & TimeMinuteMask;
+        int hour = (fatTime >> TimeHourShift) & TimeHourMask;
+        int minute = (fatTime >> TimeMinuteShift) & TimeMinuteMask;
         int second = (fatTime & TimeTwoSecondMask) * TwoSecondGranularity + (tenths >= TenthsPerSecond ? 1 : 0);
 
         long epochSeconds = ToUnixSeconds(year, month, day, hour, minute, second);
@@ -113,20 +152,20 @@ internal static class FatAttributes
 
     private static long ToUnixSeconds(int year, int month, int day, int hour, int minute, int second)
     {
-        if (month < 1 || month > 12 || day < 1 || day > 31)
+        if (month < 1 || month > MonthsPerYear || day < 1 || day > MaxDaysInMonth)
         {
             return 0;
         }
 
         long days = 0;
-        for (int y = 1970; y < year; y++)
+        for (int y = UnixEpochYear; y < year; y++)
         {
-            days += IsLeap(y) ? 366 : 365;
+            days += IsLeap(y) ? DaysPerLeapYear : DaysPerCommonYear;
         }
         for (int m = 1; m < month; m++)
         {
             days += DaysInMonth[m - 1];
-            if (m == 2 && IsLeap(year))
+            if (m == February && IsLeap(year))
             {
                 days++;
             }
@@ -137,6 +176,6 @@ internal static class FatAttributes
 
     private static bool IsLeap(int year)
     {
-        return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+        return (year % LeapYearInterval == 0 && year % LeapCenturyException != 0) || year % LeapQuadCenturyInterval == 0;
     }
 }

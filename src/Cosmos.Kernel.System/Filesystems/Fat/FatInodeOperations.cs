@@ -8,6 +8,30 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 
 internal sealed class FatInodeOperations : IInodeOperations
 {
+    /// <summary>Byte offset of the '.' entry — the first slot of a new directory's cluster (fatgen103 §6).</summary>
+    private const int DotEntryOffset = 0;
+
+    /// <summary>Byte offset of the '..' entry — the second directory slot, right after '.' (fatgen103 §6).</summary>
+    private const int DotDotEntryOffset = FatDirectory.EntrySize;
+
+    /// <summary>First-cluster value the '..' entry stores when the parent is the root directory (fatgen103 §6).</summary>
+    private const uint RootDotDotCluster = 0u;
+
+    /// <summary>First-cluster value recorded for an entry that owns no data clusters yet (fatgen103 §6: DIR_FstClusLO/HI hold 0 for a zero-length file).</summary>
+    private const uint EmptyFirstCluster = 0u;
+
+    /// <summary>DIR_FileSize recorded for a newly created, still-empty file (bytes).</summary>
+    private const uint EmptyFileSize = 0u;
+
+    /// <summary>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</summary>
+    private const uint DirectorySizeOnDisk = 0u;
+
+    /// <summary>Cluster count a fresh directory starts with — one cluster holding its '.'/'..' entries.</summary>
+    private const uint InitialDirectoryClusters = 1u;
+
+    /// <summary>Link count every FAT inode reports — FAT has no hard links.</summary>
+    private const uint FatLinkCount = 1u;
+
     private readonly FatSuperblock _superblock;
 
     public FatInodeOperations(FatSuperblock superblock)
@@ -106,7 +130,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         }
 
         FatAttr attr = FatAttributes.ToFatAttr(mode) & ~FatAttr.Directory;
-        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, 0, 0, out FatInode? created))
+        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, EmptyFirstCluster, EmptyFileSize, out FatInode? created))
         {
             return false;
         }
@@ -128,7 +152,7 @@ internal sealed class FatInodeOperations : IInodeOperations
             return false;
         }
 
-        uint cluster = _superblock.Fat.AllocateChain(1);
+        uint cluster = _superblock.Fat.AllocateChain(InitialDirectoryClusters);
         if (cluster == 0)
         {
             return false;
@@ -137,12 +161,12 @@ internal sealed class FatInodeOperations : IInodeOperations
         Span<byte> clusterBuffer = new byte[_superblock.Boot.BytesPerCluster];
         // fatgen103: '..' stores 0 when the parent is the root directory
         // (the FAT32 root has a real cluster number, but '..' must not).
-        uint dotDotCluster = parent.Parent == null ? 0u : parent.FirstCluster;
+        uint dotDotCluster = parent.Parent == null ? RootDotDotCluster : parent.FirstCluster;
         WriteDotEntries(clusterBuffer, cluster, dotDotCluster);
         _superblock.WriteCluster(cluster, clusterBuffer);
 
         FatAttr attr = FatAttributes.ToFatAttr(mode) | FatAttr.Directory;
-        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, cluster, 0, out FatInode? created))
+        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, cluster, DirectorySizeOnDisk, out FatInode? created))
         {
             _superblock.Fat.Free(cluster);
             return false;
@@ -270,16 +294,16 @@ internal sealed class FatInodeOperations : IInodeOperations
     /// <summary>Rewrites the '..' entry (slot 1) of the directory rooted at <paramref name="dirCluster"/>.</summary>
     private void RewriteDotDot(uint dirCluster, FatInode newParent)
     {
-        uint parentCluster = newParent.Parent == null ? 0u : newParent.FirstCluster;
+        uint parentCluster = newParent.Parent == null ? RootDotDotCluster : newParent.FirstCluster;
         Span<byte> clusterBuffer = new byte[_superblock.Boot.BytesPerCluster];
         _superblock.ReadCluster(dirCluster, clusterBuffer);
-        int offset = FatDirectory.EntrySize;
+        int offset = DotDotEntryOffset;
         BitConverter.TryWriteBytes(
-            clusterBuffer.Slice(offset + FatDirectory.FirstClusterHighOffset, 2),
-            (ushort)((parentCluster >> 16) & 0xFFFFu));
+            clusterBuffer.Slice(offset + FatDirectory.FirstClusterHighOffset, FatDirectory.ClusterWordBytes),
+            (ushort)((parentCluster >> FatDirectory.ClusterHighShift) & FatDirectory.ClusterWordMask));
         BitConverter.TryWriteBytes(
-            clusterBuffer.Slice(offset + FatDirectory.FirstClusterLowOffset, 2),
-            (ushort)(parentCluster & 0xFFFFu));
+            clusterBuffer.Slice(offset + FatDirectory.FirstClusterLowOffset, FatDirectory.ClusterWordBytes),
+            (ushort)(parentCluster & FatDirectory.ClusterWordMask));
         _superblock.WriteCluster(dirCluster, clusterBuffer);
     }
 
@@ -293,7 +317,7 @@ internal sealed class FatInodeOperations : IInodeOperations
 
         stat.Ino = node.FirstCluster;
         stat.Mode = FatAttributes.ToMode(node.Attributes);
-        stat.NLink = 1;
+        stat.NLink = FatLinkCount;
         stat.Uid = 0;
         stat.Gid = 0;
         stat.Rdev = 0;
@@ -353,7 +377,7 @@ internal sealed class FatInodeOperations : IInodeOperations
     private static void WriteDotEntries(Span<byte> clusterBuffer, uint selfCluster, uint parentCluster)
     {
         clusterBuffer.Clear();
-        FatDirectory.WriteShortEntry(clusterBuffer, 0, ".          ", FatAttr.Directory, selfCluster, 0);
-        FatDirectory.WriteShortEntry(clusterBuffer, FatDirectory.EntrySize, "..         ", FatAttr.Directory, parentCluster, 0);
+        FatDirectory.WriteShortEntry(clusterBuffer, DotEntryOffset, ".          ", FatAttr.Directory, selfCluster, DirectorySizeOnDisk);
+        FatDirectory.WriteShortEntry(clusterBuffer, DotDotEntryOffset, "..         ", FatAttr.Directory, parentCluster, DirectorySizeOnDisk);
     }
 }
