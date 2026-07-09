@@ -127,7 +127,7 @@ public class Kernel : Sys.Kernel
     private const int HexDumpBytesPerLine = 16;
 
     /// <summary>First usable LBA on a GPT disk (past the protective MBR, header, and entry array).</summary>
-    private const ulong GptFirstUsableLba = 34;
+
     /// <summary>Conventional first partition LBA on an MBR disk (1 MiB alignment).</summary>
     private const ulong MbrFirstPartitionLba = 2048;
     /// <summary>MBR system ID byte (FAT32 LBA) stamped on partitions created by mkpart.</summary>
@@ -1439,12 +1439,9 @@ public class Kernel : Sys.Kernel
                 continue;
             }
 
-            ulong totalBytes = dev.BlockCount * dev.BlockSize;
             Console.WriteLine();
-            PrintInfoLine($"[{i}] Name".PadRight(DiskLabelColumnWidth), dev.Name);
-            PrintInfoLine("    Block Size".PadRight(DiskLabelColumnWidth), dev.BlockSize.ToString() + " B");
-            PrintInfoLine("    Block Count".PadRight(DiskLabelColumnWidth), dev.BlockCount.ToString());
-            PrintInfoLine("    Capacity".PadRight(DiskLabelColumnWidth), (totalBytes / BytesPerKiB / BytesPerKiB).ToString() + " MiB");
+            // Same block lsdisk prints, so the labels cannot drift.
+            PrintDiskBlock(i, dev, detailed: true);
             if (i == 0)
             {
                 PrintInfoLine("    Primary".PadRight(DiskLabelColumnWidth), "yes");
@@ -1804,7 +1801,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        ulong firstUsable = isGpt ? GptFirstUsableLba : MbrFirstPartitionLba;
+        ulong firstUsable = isGpt ? Gpt.FirstUsableLba : MbrFirstPartitionLba;
         ulong sectorsPerMB = BytesPerKiB * BytesPerKiB / dev.BlockSize;
         ulong sectorCount = (ulong)sizeMB * sectorsPerMB;
 
@@ -1959,6 +1956,20 @@ public class Kernel : Sys.Kernel
                 return;
         }
 
+        // Refuse formatting a mounted partition: there is no umount
+        // command, so the stale superblock would flush cached FAT and
+        // directory state with the old geometry over the fresh volume.
+        // m.Source is the global partition index recorded at mount time.
+        for (int i = 0; i < VfsManager.Mounts.Count; i++)
+        {
+            VfsManager.VfsMount m = VfsManager.Mounts[i];
+            if (int.TryParse(m.Source, out int mountedIndex) && mountedIndex == globalIndex)
+            {
+                PrintError("Partition is mounted at " + m.MountPoint + ". Reboot before reformatting.");
+                return;
+            }
+        }
+
         if (!VfsManager.TryFormat(driverName, globalIndex.ToString(), options))
         {
             ulong sizeMiB = target.BlockCount * target.BlockSize / BytesPerKiB / BytesPerKiB;
@@ -1968,15 +1979,6 @@ public class Kernel : Sys.Kernel
         }
 
         PrintSuccess("Disk " + diskNum + " partition " + partNum + " formatted as " + fsType.ToUpper() + ".");
-
-        // Warn if any mount likely targets this partition. We can't (yet)
-        // ask VfsManager which superblock backs which IBlockDevice, so this
-        // fires whenever there's any mount — better a stray warning than a
-        // confused user staring at the pre-format files in /mnt.
-        if (VfsManager.Mounts.Count > 0)
-        {
-            PrintWarning("If this partition is currently mounted, its cached state is now stale. Reboot to pick up the fresh layout.");
-        }
     }
 
     private void MountPartition(int diskNum, int partNum, string mountPoint)
@@ -2024,9 +2026,10 @@ public class Kernel : Sys.Kernel
             Console.ResetColor();
             Console.Write(" -> ");
 
-            // For the FAT driver, m.Source is the global partition index in
-            // StorageManager.Partitions. Turn that into the per-disk view
-            // ('disk D part P  PartitionName  FAT32') the user reasons about.
+            // For the FAT driver, m.Source is the global partition index
+            // in StorageManager.Partitions *recorded at mount time* —
+            // mkpart/rmpart/format rescans shift the global indices, so a
+            // stale mapping must not be presented as authoritative.
             if (int.TryParse(m.Source, out int globalIdx)
                 && globalIdx >= 0
                 && globalIdx < StorageManager.Partitions.Count)
@@ -2034,32 +2037,37 @@ public class Kernel : Sys.Kernel
                 Partition p = StorageManager.Partitions[globalIdx];
                 int diskIdx = -1;
                 int localIdx = 0;
-                int seen = 0;
-                for (int d = 0; d < StorageManager.DeviceCount; d++)
+                bool found = false;
+                for (int d = 0; d < StorageManager.DeviceCount && !found; d++)
                 {
                     IBlockDevice? dev = StorageManager.GetDevice(d);
-                    if (dev == null) { continue; }
+                    if (dev == null)
+                    {
+                        continue;
+                    }
                     int local = 0;
                     for (int g = 0; g < StorageManager.Partitions.Count; g++)
                     {
-                        if (!ReferenceEquals(StorageManager.Partitions[g].Host, dev)) { continue; }
+                        if (!ReferenceEquals(StorageManager.Partitions[g].Host, dev))
+                        {
+                            continue;
+                        }
                         if (g == globalIdx)
                         {
                             diskIdx = d;
                             localIdx = local;
-                            seen = 1;
+                            found = true;
                             break;
                         }
                         local++;
                     }
-                    if (seen != 0) { break; }
                 }
 
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("disk " + diskIdx + " part " + localIdx);
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write("  " + p.Name);
+                Console.Write("  " + p.Name + " (index at mount time)");
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Magenta;
                 Console.Write("  " + DetectFilesystem(p));
@@ -2124,10 +2132,21 @@ public class Kernel : Sys.Kernel
     {
         string target = NormalizePath(ResolvePath(path));
 
-        if (target != "/" && (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null))
+        if (target != "/")
         {
-            PrintError("No such directory: " + target);
-            return;
+            if (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null)
+            {
+                PrintError("No such directory: " + target);
+                return;
+            }
+            // TryOpenDirectory only checks the ops table, so a regular
+            // file opens fine — and every later ls/mkdir then fails with
+            // misleading errors.
+            if (!dir.TryStat(out VfsStat st) || (st.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+            {
+                PrintError("Not a directory: " + target);
+                return;
+            }
         }
 
         _cwd = target;
@@ -2416,6 +2435,20 @@ public class Kernel : Sys.Kernel
                 || file == null)
             {
                 PrintError("Cannot open or create: " + fullPath);
+                return;
+            }
+        }
+        else
+        {
+            // Advertised as overwrite: truncate first, or the old tail
+            // past the new text survives and the next cat looks corrupt.
+            VfsStat zeroSize = default;
+            zeroSize.Mode = ModeEnum.RegularFile;
+            zeroSize.Size = 0;
+            if (!file.Inode.InodeOperations.SetAttr(file.Inode, SetAttrFlags.Size, zeroSize))
+            {
+                PrintError("Cannot truncate: " + fullPath);
+                file.Dispose();
                 return;
             }
         }

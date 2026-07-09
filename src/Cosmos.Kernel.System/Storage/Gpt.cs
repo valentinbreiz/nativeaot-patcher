@@ -108,8 +108,12 @@ public static class Gpt
     /// <summary>LBA where the partition entry array starts in the standard layout (first sector after the protective MBR and primary header); also the minimum PartitionEntryLBA accepted when parsing.</summary>
     private const ulong EntryArrayLba = 2;
 
-    /// <summary>First usable LBA in the standard layout: protective MBR + header + 32 entry-array sectors occupy LBAs 0..33.</summary>
-    private const ulong FirstUsableLba = 34;
+    /// <summary>
+    /// First usable LBA in the standard layout: protective MBR + header +
+    /// 32 entry-array sectors occupy LBAs 0..33. Public so shell tooling
+    /// validates against the same value the writer stamps.
+    /// </summary>
+    public const ulong FirstUsableLba = 34;
 
     /// <summary>Minimum device size in sectors for a GPT to exist at all (LBA 0 plus the header at LBA 1).</summary>
     private const ulong MinGptBlockCount = 2;
