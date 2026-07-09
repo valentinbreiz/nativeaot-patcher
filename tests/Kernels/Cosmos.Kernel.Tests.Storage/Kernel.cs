@@ -1256,6 +1256,14 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
 
+        // Same table assertions as the non-overlapping variant: an
+        // overlap-specific slot-resolution regression would keep the data
+        // pattern intact while rewriting the wrong entry.
+        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        Assert.Equal(1, parts.Count);
+        Assert.Equal<ulong>(newStart, parts[0].StartSector);
+        Assert.Equal<ulong>(count, parts[0].SectorCount);
+
         AssertMovedPattern(host, newStart, count, seedBase);
     }
 
