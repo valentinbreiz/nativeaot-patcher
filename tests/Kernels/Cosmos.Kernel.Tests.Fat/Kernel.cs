@@ -616,6 +616,65 @@ public class Kernel : Sys.Kernel
                 "ClusterToLba beyond the cluster count must throw");
         });
 
+        // A corrupt FAT entry or dirent FirstCluster with a huge cluster
+        // number passes the EOC/bad checks: GetChain follows it, Get reads
+        // sectors past the first FAT copy as entries, and Free()'s
+        // read-modify-write lands outside the FAT region (mirrored
+        // NumberOfFats times) — silent corruption of other FAT copies or
+        // file data.
+        TR.Run("Test_FatTable_BoundsClusterNumbers", () =>
+        {
+            MemoryBlockDevice disk = new("FATBOUND", 512, (8UL * 1024 * 1024) / 512);
+            FatFilesystemType driver = new(disk);
+            Assert.True(driver.TryFormat(default, new FatFormatOptions()));
+            byte[] sector = new byte[512];
+            disk.ReadBlock(0, 1, sector);
+            Assert.True(FatBootSector.TryParse(sector, out FatBootSector? bs) && bs != null);
+            FatTable table = new(disk, bs!);
+
+            uint first = table.AllocateChain(3);
+            Assert.True(first != 0);
+            Assert.Equal(3, table.GetChain(first).Count);
+
+            // Corrupt the middle link to a cluster far past the volume's
+            // count (still decodable — it lands inside the second FAT copy).
+            List<uint> chain = table.GetChain(first);
+            uint wild = bs!.ClusterCount + 500;
+            table.Set(chain[1], wild);
+
+            Assert.Equal(2, table.GetChain(first).Count,
+                "the chain walk must stop at an out-of-range link");
+            Assert.True(table.IsEndOfChain(table.Get(wild)),
+                "Get outside the volume's clusters must return EOC, not decode other sectors");
+
+            // Set on an out-of-range cluster must not touch the device:
+            // snapshot the two sectors the unbounded math would RMW (one
+            // in the second FAT copy, its mirror in the region beyond).
+            uint wildOffset = wild + wild / 2;
+            ulong wildLba = bs!.FatStartLba + wildOffset / 512;
+            ulong mirrorLba = wildLba + bs!.FatSectorCount;
+            byte[] beforeA = new byte[512];
+            byte[] beforeB = new byte[512];
+            disk.ReadBlock(wildLba, 1, beforeA);
+            disk.ReadBlock(mirrorLba, 1, beforeB);
+            table.Set(wild, FatTable.FreeCluster);
+            byte[] afterA = new byte[512];
+            byte[] afterB = new byte[512];
+            disk.ReadBlock(wildLba, 1, afterA);
+            disk.ReadBlock(mirrorLba, 1, afterB);
+            AssertBytesEqual(beforeA, afterA);
+            AssertBytesEqual(beforeB, afterB);
+
+            // FAT32's gap below the EOC band is huge; a wild link must
+            // resolve to EOC without out-of-range device I/O.
+            MemoryBlockDevice disk32 = FatTestVolume.CreateFat32("FATBOUND32");
+            disk32.ReadBlock(0, 1, sector);
+            Assert.True(FatBootSector.TryParse(sector, out FatBootSector? bs32) && bs32 != null);
+            FatTable table32 = new(disk32, bs32!);
+            Assert.True(GetReturnsEocSafely(table32, 0x00FF0000u),
+                "a wild FAT32 cluster must resolve to EOC, not out-of-range I/O");
+        });
+
         // Durability and spec conformance of the written volume.
         TR.Run("Test_Format_DurabilityAndSpecFields", () =>
         {
@@ -720,6 +779,20 @@ public class Kernel : Sys.Kernel
         {
             FatFilesystemType driver = new(disk);
             return !driver.TryMount(default, MountFlags.None, out _);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    // One try/catch per method on purpose: true = Get returned an EOC
+    // marker without any out-of-range device I/O throwing.
+    private static bool GetReturnsEocSafely(FatTable table, uint cluster)
+    {
+        try
+        {
+            return table.IsEndOfChain(table.Get(cluster));
         }
         catch (Exception)
         {

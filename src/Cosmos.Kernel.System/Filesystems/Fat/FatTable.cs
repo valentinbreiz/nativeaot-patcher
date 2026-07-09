@@ -7,26 +7,126 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// <summary>
 /// FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry
 /// reads and writes go through the underlying <see cref="IBlockDevice"/>
-/// using <see cref="FatBootSector"/> geometry.
+/// using <see cref="FatBootSector"/> geometry. Cluster numbers coming from
+/// on-disk metadata are untrusted: accessors treat anything outside the
+/// volume's data clusters as end-of-chain and never let it drive I/O.
 /// </summary>
 public sealed class FatTable
 {
+    /// <summary>Entry value marking a free cluster.</summary>
     public const uint FreeCluster = 0x00000000;
+
+    /// <summary>First data-cluster number; clusters 0 and 1 are reserved.</summary>
+    public const uint FirstDataCluster = 2;
+
+    /// <summary>Lowest FAT32 entry value of the end-of-chain band.</summary>
     public const uint Fat32EndOfChain = 0x0FFFFFF8;
+
+    /// <summary>FAT32 bad-cluster marker.</summary>
     public const uint Fat32BadCluster = 0x0FFFFFF7;
+
+    /// <summary>Canonical FAT32 end-of-chain value written by this driver.</summary>
+    private const uint Fat32EndOfChainValue = 0x0FFFFFFF;
+
+    /// <summary>Lowest FAT16 entry value of the end-of-chain band.</summary>
+    private const uint Fat16EndOfChain = 0xFFF8;
+
+    /// <summary>FAT16 bad-cluster marker.</summary>
+    private const uint Fat16BadCluster = 0xFFF7;
+
+    /// <summary>Canonical FAT16 end-of-chain value written by this driver.</summary>
+    private const uint Fat16EndOfChainValue = 0xFFFF;
+
+    /// <summary>Lowest FAT12 entry value of the end-of-chain band.</summary>
+    private const uint Fat12EndOfChain = 0x0FF8;
+
+    /// <summary>FAT12 bad-cluster marker.</summary>
+    private const uint Fat12BadCluster = 0x0FF7;
+
+    /// <summary>Canonical FAT12 end-of-chain value written by this driver.</summary>
+    private const uint Fat12EndOfChainValue = 0x0FFF;
+
+    /// <summary>FAT32 entries use only the low 28 bits.</summary>
+    private const uint Fat32EntryMask = 0x0FFFFFFF;
+
+    /// <summary>FAT32 reserved high bits, preserved on write per fatgen103.</summary>
+    private const uint Fat32ReservedMask = 0xF0000000;
+
+    /// <summary>FAT12 entries are 12 bits.</summary>
+    private const uint Fat12EntryMask = 0x0FFF;
+
+    /// <summary>Low nibble kept when rewriting the odd half of a FAT12 pair.</summary>
+    private const uint Fat12LowNibbleMask = 0x000F;
+
+    /// <summary>High nibble kept when rewriting the even half of a FAT12 pair.</summary>
+    private const uint Fat12HighNibbleMask = 0xF000;
+
+    /// <summary>FAT32 entry width in bytes.</summary>
+    private const uint Fat32EntrySize = 4;
+
+    /// <summary>FAT16 entry width in bytes.</summary>
+    private const uint Fat16EntrySize = 2;
 
     private readonly IBlockDevice _device;
     private readonly FatBootSector _boot;
-    private uint _nextFreeHint = 2;
+
+    /// <summary>
+    /// First cluster number past the last addressable one: the smaller of
+    /// the volume's data clusters and what one FAT copy can actually hold,
+    /// so no entry access can leave the FAT region.
+    /// </summary>
+    private readonly uint _clusterLimit;
+
+    /// <summary>Reusable FAT-sector buffer; caches the sector at <see cref="_fatSectorLba"/>.</summary>
+    private readonly byte[] _fatSector;
+
+    /// <summary>Reusable second buffer for FAT12 entries straddling a sector boundary.</summary>
+    private readonly byte[] _fatSpill;
+
+    /// <summary>LBA currently held by <see cref="_fatSector"/>; ulong.MaxValue = invalid.</summary>
+    private ulong _fatSectorLba = ulong.MaxValue;
+
+    private uint _nextFreeHint = FirstDataCluster;
 
     public FatTable(IBlockDevice device, FatBootSector boot)
     {
         _device = device;
         _boot = boot;
+        _fatSector = new byte[boot.BytesPerSector];
+        _fatSpill = new byte[boot.BytesPerSector];
+
+        // Entries one FAT copy can hold (FAT12 packs 2 entries per 3 bytes).
+        ulong fatBytes = (ulong)boot.FatSectorCount * boot.BytesPerSector;
+        ulong fatCapacity = boot.Type switch
+        {
+            FatType.Fat32 => fatBytes / Fat32EntrySize,
+            FatType.Fat16 => fatBytes / Fat16EntrySize,
+            _ => fatBytes * 2 / 3,
+        };
+        ulong limit = (ulong)boot.ClusterCount + FirstDataCluster;
+        if (fatCapacity < limit)
+        {
+            limit = fatCapacity;
+        }
+        _clusterLimit = (uint)limit;
+    }
+
+    /// <summary>True when <paramref name="cluster"/> addresses a data cluster this volume (and its FAT) actually has.</summary>
+    public bool IsDataCluster(uint cluster)
+    {
+        return cluster >= FirstDataCluster && cluster < _clusterLimit;
     }
 
     public uint Get(uint cluster)
     {
+        // Out-of-range numbers come from corrupt on-disk metadata; treat
+        // them as end-of-chain instead of decoding whatever sector the
+        // unbounded offset math would land on.
+        if (!IsDataCluster(cluster))
+        {
+            return EndOfChainMarker();
+        }
+
         return _boot.Type switch
         {
             FatType.Fat32 => GetFat32(cluster),
@@ -38,6 +138,13 @@ public sealed class FatTable
 
     public void Set(uint cluster, uint value)
     {
+        // Never let a corrupt cluster number drive a read-modify-write
+        // outside the FAT region (it would be mirrored NumberOfFats times).
+        if (!IsDataCluster(cluster))
+        {
+            return;
+        }
+
         switch (_boot.Type)
         {
             case FatType.Fat32:
@@ -51,7 +158,7 @@ public sealed class FatTable
                 break;
         }
 
-        if (value == FreeCluster && cluster >= 2 && cluster < _nextFreeHint)
+        if (value == FreeCluster && cluster >= FirstDataCluster && cluster < _nextFreeHint)
         {
             _nextFreeHint = cluster;
         }
@@ -61,9 +168,9 @@ public sealed class FatTable
     {
         return _boot.Type switch
         {
-            FatType.Fat32 => entry >= 0x0FFFFFF8,
-            FatType.Fat16 => entry >= 0xFFF8,
-            FatType.Fat12 => entry >= 0x0FF8,
+            FatType.Fat32 => entry >= Fat32EndOfChain,
+            FatType.Fat16 => entry >= Fat16EndOfChain,
+            FatType.Fat12 => entry >= Fat12EndOfChain,
             _ => true,
         };
     }
@@ -72,9 +179,9 @@ public sealed class FatTable
     {
         return _boot.Type switch
         {
-            FatType.Fat32 => entry == 0x0FFFFFF7,
-            FatType.Fat16 => entry == 0xFFF7,
-            FatType.Fat12 => entry == 0x0FF7,
+            FatType.Fat32 => entry == Fat32BadCluster,
+            FatType.Fat16 => entry == Fat16BadCluster,
+            FatType.Fat12 => entry == Fat12BadCluster,
             _ => false,
         };
     }
@@ -83,30 +190,26 @@ public sealed class FatTable
     {
         return _boot.Type switch
         {
-            FatType.Fat32 => 0x0FFFFFFF,
-            FatType.Fat16 => 0xFFFF,
-            FatType.Fat12 => 0x0FFF,
+            FatType.Fat32 => Fat32EndOfChainValue,
+            FatType.Fat16 => Fat16EndOfChainValue,
+            FatType.Fat12 => Fat12EndOfChainValue,
             _ => 0,
         };
     }
 
     /// <summary>
     /// Walk the chain starting at <paramref name="firstCluster"/>. Stops on
-    /// EOC, free, or bad-cluster markers, and bails out if the chain
-    /// exceeds the volume's cluster count to defend against loops.
+    /// EOC, free, or bad-cluster markers, truncates at links leaving the
+    /// volume's data clusters, and bails out if the chain exceeds the
+    /// cluster count to defend against loops.
     /// </summary>
     public List<uint> GetChain(uint firstCluster)
     {
         List<uint> chain = new();
-        if (firstCluster < 2)
-        {
-            return chain;
-        }
-
         uint current = firstCluster;
-        uint guard = _boot.ClusterCount + 2;
+        uint guard = _boot.ClusterCount + FirstDataCluster;
 
-        while (current >= 2 && !IsEndOfChain(current) && !IsBadCluster(current))
+        while (IsDataCluster(current) && !IsEndOfChain(current) && !IsBadCluster(current))
         {
             chain.Add(current);
             uint next = Get(current);
@@ -196,8 +299,8 @@ public sealed class FatTable
 
     public uint FindFree()
     {
-        uint upper = _boot.ClusterCount + 2;
-        uint start = _nextFreeHint < 2 ? 2u : _nextFreeHint;
+        uint upper = _clusterLimit;
+        uint start = _nextFreeHint < FirstDataCluster ? FirstDataCluster : _nextFreeHint;
 
         for (uint i = start; i < upper; i++)
         {
@@ -209,7 +312,7 @@ public sealed class FatTable
         }
 
         // Wrap and search from the beginning in case earlier clusters were freed.
-        for (uint i = 2; i < start; i++)
+        for (uint i = FirstDataCluster; i < start; i++)
         {
             if (Get(i) == FreeCluster)
             {
@@ -223,13 +326,14 @@ public sealed class FatTable
 
     public uint CountFree()
     {
-        // Per-entry reads through Get() re-read the same sector for every
-        // adjacent cluster, which on FAT32 means 128× the necessary I/O.
-        // Sweep the FAT one sector at a time instead.
+        // Per-entry reads through Get() cost one cached-sector lookup per
+        // entry; the FAT12 entry straddling makes a sector sweep fiddly,
+        // so FAT12 keeps the per-entry path (the sector cache makes it one
+        // read per FAT sector anyway).
         if (_boot.Type == FatType.Fat12)
         {
             uint count = 0;
-            for (uint i = 2; i < _boot.ClusterCount + 2; i++)
+            for (uint i = FirstDataCluster; i < _clusterLimit; i++)
             {
                 if (Get(i) == FreeCluster)
                 {
@@ -239,10 +343,10 @@ public sealed class FatTable
             return count;
         }
 
-        uint entrySize = _boot.Type == FatType.Fat32 ? 4u : 2u;
+        uint entrySize = _boot.Type == FatType.Fat32 ? Fat32EntrySize : Fat16EntrySize;
         uint entriesPerSector = _boot.BytesPerSector / entrySize;
         uint freeCount = 0;
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
+        Span<byte> buffer = _fatSpill;
 
         for (uint sectorIdx = 0; sectorIdx < _boot.FatSectorCount; sectorIdx++)
         {
@@ -250,14 +354,14 @@ public sealed class FatTable
             for (uint j = 0; j < entriesPerSector; j++)
             {
                 uint cluster = sectorIdx * entriesPerSector + j;
-                if (cluster < 2 || cluster >= _boot.ClusterCount + 2)
+                if (!IsDataCluster(cluster))
                 {
                     continue;
                 }
 
-                uint entry = entrySize == 4
-                    ? BitConverter.ToUInt32(buffer.Slice((int)(j * 4), 4)) & 0x0FFFFFFFu
-                    : BitConverter.ToUInt16(buffer.Slice((int)(j * 2), 2));
+                uint entry = entrySize == Fat32EntrySize
+                    ? BitConverter.ToUInt32(buffer.Slice((int)(j * Fat32EntrySize), (int)Fat32EntrySize)) & Fat32EntryMask
+                    : BitConverter.ToUInt16(buffer.Slice((int)(j * Fat16EntrySize), (int)Fat16EntrySize));
                 if (entry == FreeCluster)
                 {
                     freeCount++;
@@ -267,30 +371,44 @@ public sealed class FatTable
         return freeCount;
     }
 
+    /// <summary>
+    /// Returns the cached FAT sector at <paramref name="lba"/>, reading it
+    /// from the device only when the cache holds a different sector.
+    /// Consecutive entry accesses in the same sector cost no I/O and no
+    /// allocation; writers update the buffer in place and write through,
+    /// so the cache stays coherent.
+    /// </summary>
+    private Span<byte> LoadFatSector(ulong lba)
+    {
+        Span<byte> sector = _fatSector;
+        if (_fatSectorLba != lba)
+        {
+            _device.ReadBlock(lba, 1, sector);
+            _fatSectorLba = lba;
+        }
+        return sector;
+    }
+
     private uint GetFat32(uint cluster)
     {
-        uint fatOffset = cluster * 4;
+        uint fatOffset = cluster * Fat32EntrySize;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
-
-        return BitConverter.ToUInt32(buffer.Slice((int)entryOffset, 4)) & 0x0FFFFFFF;
+        Span<byte> buffer = LoadFatSector(sectorNumber);
+        return BitConverter.ToUInt32(buffer.Slice((int)entryOffset, (int)Fat32EntrySize)) & Fat32EntryMask;
     }
 
     private void SetFat32(uint cluster, uint value)
     {
-        uint fatOffset = cluster * 4;
+        uint fatOffset = cluster * Fat32EntrySize;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
-
-        uint existing = BitConverter.ToUInt32(buffer.Slice((int)entryOffset, 4));
-        uint merged = (existing & 0xF0000000u) | (value & 0x0FFFFFFFu);
-        BitConverter.TryWriteBytes(buffer.Slice((int)entryOffset, 4), merged);
+        Span<byte> buffer = LoadFatSector(sectorNumber);
+        uint existing = BitConverter.ToUInt32(buffer.Slice((int)entryOffset, (int)Fat32EntrySize));
+        uint merged = (existing & Fat32ReservedMask) | (value & Fat32EntryMask);
+        BitConverter.TryWriteBytes(buffer.Slice((int)entryOffset, (int)Fat32EntrySize), merged);
 
         for (uint i = 0; i < _boot.NumberOfFats; i++)
         {
@@ -300,26 +418,22 @@ public sealed class FatTable
 
     private uint GetFat16(uint cluster)
     {
-        uint fatOffset = cluster * 2;
+        uint fatOffset = cluster * Fat16EntrySize;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
-
-        return BitConverter.ToUInt16(buffer.Slice((int)entryOffset, 2));
+        Span<byte> buffer = LoadFatSector(sectorNumber);
+        return BitConverter.ToUInt16(buffer.Slice((int)entryOffset, (int)Fat16EntrySize));
     }
 
     private void SetFat16(uint cluster, uint value)
     {
-        uint fatOffset = cluster * 2;
+        uint fatOffset = cluster * Fat16EntrySize;
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
-
-        BitConverter.TryWriteBytes(buffer.Slice((int)entryOffset, 2), (ushort)value);
+        Span<byte> buffer = LoadFatSector(sectorNumber);
+        BitConverter.TryWriteBytes(buffer.Slice((int)entryOffset, (int)Fat16EntrySize), (ushort)value);
 
         for (uint i = 0; i < _boot.NumberOfFats; i++)
         {
@@ -333,13 +447,12 @@ public sealed class FatTable
         uint sectorNumber = _boot.FatStartLba + fatOffset / _boot.BytesPerSector;
         uint entryOffset = fatOffset % _boot.BytesPerSector;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
+        Span<byte> buffer = LoadFatSector(sectorNumber);
 
         ushort word;
         if (entryOffset == _boot.BytesPerSector - 1)
         {
-            Span<byte> next = new byte[_boot.BytesPerSector];
+            Span<byte> next = _fatSpill;
             _device.ReadBlock(sectorNumber + 1, 1, next);
             word = (ushort)(buffer[(int)entryOffset] | (next[0] << 8));
         }
@@ -348,7 +461,7 @@ public sealed class FatTable
             word = BitConverter.ToUInt16(buffer.Slice((int)entryOffset, 2));
         }
 
-        return (cluster & 1) != 0 ? (uint)(word >> 4) : (uint)(word & 0x0FFFu);
+        return (cluster & 1) != 0 ? (uint)(word >> 4) : word & Fat12EntryMask;
     }
 
     private void SetFat12(uint cluster, uint value)
@@ -358,13 +471,12 @@ public sealed class FatTable
         uint entryOffset = fatOffset % _boot.BytesPerSector;
         bool spans = entryOffset == _boot.BytesPerSector - 1;
 
-        Span<byte> buffer = new byte[_boot.BytesPerSector];
-        _device.ReadBlock(sectorNumber, 1, buffer);
+        Span<byte> buffer = LoadFatSector(sectorNumber);
 
         Span<byte> next = Span<byte>.Empty;
         if (spans)
         {
-            next = new byte[_boot.BytesPerSector];
+            next = _fatSpill;
             _device.ReadBlock(sectorNumber + 1, 1, next);
         }
 
@@ -374,11 +486,11 @@ public sealed class FatTable
 
         if ((cluster & 1) != 0)
         {
-            word = (ushort)(((uint)word & 0x000Fu) | ((value & 0x0FFFu) << 4));
+            word = (ushort)(((uint)word & Fat12LowNibbleMask) | ((value & Fat12EntryMask) << 4));
         }
         else
         {
-            word = (ushort)(((uint)word & 0xF000u) | (value & 0x0FFFu));
+            word = (ushort)(((uint)word & Fat12HighNibbleMask) | (value & Fat12EntryMask));
         }
 
         buffer[(int)entryOffset] = (byte)(word & 0xFF);
