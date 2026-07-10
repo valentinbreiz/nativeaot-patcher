@@ -10,15 +10,6 @@ namespace Cosmos.TestRunner.Engine.Protocol;
 /// </summary>
 public class UartMessageParser
 {
-    /// <summary>First byte of the protocol magic signature (0x19740807 little-endian).</summary>
-    private const byte MagicByte0 = 0x07;
-    /// <summary>Second byte of the protocol magic signature (0x19740807 little-endian).</summary>
-    private const byte MagicByte1 = 0x08;
-    /// <summary>Third byte of the protocol magic signature (0x19740807 little-endian).</summary>
-    private const byte MagicByte2 = 0x74;
-    /// <summary>Fourth byte of the protocol magic signature (0x19740807 little-endian).</summary>
-    private const byte MagicByte3 = 0x19;
-
     /// <summary>Offset of the second magic byte within a frame header.</summary>
     private const int MagicByte1Offset = 1;
     /// <summary>Offset of the third magic byte within a frame header.</summary>
@@ -110,8 +101,8 @@ public class UartMessageParser
         }
 
         // Check for magic signature (0x19740807 little-endian)
-        if (data[offset] != MagicByte0 || data[offset + MagicByte1Offset] != MagicByte1 ||
-            data[offset + MagicByte2Offset] != MagicByte2 || data[offset + MagicByte3Offset] != MagicByte3)
+        if (data[offset] != Consts.SerialSignatureByte0 || data[offset + MagicByte1Offset] != Consts.SerialSignatureByte1 ||
+            data[offset + MagicByte2Offset] != Consts.SerialSignatureByte2 || data[offset + MagicByte3Offset] != Consts.SerialSignatureByte3)
         {
             return false;
         }

@@ -22,11 +22,11 @@ public class X64InterruptController : IInterruptController
     /// <summary>Page-fault exception vector (#PF, SDM 3A §6.15).</summary>
     private const ulong PageFaultVector = 14;
 
-    /// <summary>Size in bytes of the XMM save area the asm stub pushes below the IRQContext.</summary>
-    private const int XmmSaveAreaSizeBytes = 256;
+    /// <summary>Size in bytes of the XMM save area the asm stub pushes below the IRQContext. Internal: shared with the LAPIC timer handler's RSP derivation.</summary>
+    internal const int XmmSaveAreaSizeBytes = 256;
 
-    /// <summary>Upper canonical bits of a kernel-space (higher-half) address, used as both mask and expected value.</summary>
-    private const ulong KernelSpaceCanonicalMask = 0xFFFF000000000000;
+    /// <summary>Upper canonical bits of a kernel-space (higher-half) address, used as both mask and expected value. Internal: shared with the LAPIC timer handler's RSP sanity check.</summary>
+    internal const ulong KernelSpaceCanonicalMask = 0xFFFF000000000000;
 
     public bool IsInitialized => ApicManager.IsInitialized;
 

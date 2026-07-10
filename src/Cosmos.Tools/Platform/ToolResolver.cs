@@ -23,6 +23,9 @@ public sealed record ResolvedTool(string Path, ToolSource Source, string? Versio
 /// </summary>
 public static class ToolResolver
 {
+    /// <summary>
+    /// Timeout for spawned tool subprocesses (e.g. version probes).
+    /// </summary>
     private const int CommandTimeoutMs = 5000;
     private static readonly ConcurrentDictionary<string, ResolvedTool> s_cache = new();
 

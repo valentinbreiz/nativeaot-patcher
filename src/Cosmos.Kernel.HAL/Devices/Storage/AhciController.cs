@@ -20,17 +20,21 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public unsafe class AhciController
 {
-    // Per-port memory layout inside the controller's command region. 0x4A000
-    // (296 KiB, 74 pages) covers all 32 possible port indices' CLB + FB +
-    // 32 command-table slots each, with the alignment AHCI requires
-    // (CLB 1 KiB, FB 256 B, CTBA 128 B) inherited from page alignment.
+    /// <summary>Stride between consecutive ports' command lists inside the command region (1 KiB; AHCI's CLB alignment).</summary>
     private const uint PortStrideCLB = 0x400;
+    /// <summary>Offset of port 0's FIS-receive area inside the command region (after 32 ports' command lists).</summary>
     private const uint FBBaseOffset = 0x8000;
+    /// <summary>Stride between consecutive ports' FIS-receive areas (256 B; AHCI's FB alignment).</summary>
     private const uint PortStrideFB = 0x100;
+    /// <summary>Offset of port 0's command tables inside the command region (after 32 ports' FIS-receive areas).</summary>
     private const uint CTBABaseOffset = 0xA000;
+    /// <summary>Stride between consecutive ports' command-table blocks (32 slots × 0x100 B each).</summary>
     private const uint PortStrideCTBA = 0x2000;
+    /// <summary>Stride between consecutive command-table slots within a port (AHCI's 128 B CTBA alignment holds via page alignment).</summary>
     private const uint SlotStrideCTBA = 0x100;
+    /// <summary>Command-region size: 0x4A000 (296 KiB) covers CLB + FB + 32 command-table slots for all 32 possible port indices.</summary>
     private const ulong CommandRegionBytes = 0x4A000;
+    /// <summary>Command-region size in 4 KiB pages (74).</summary>
     private const ulong CommandRegionPages = (CommandRegionBytes + 4095) / 4096;
 
     /// <summary>Bytes zeroed for one port's command list: 32 headers × 32 B (AHCI 1.3.1 s4.2.2).</summary>
@@ -113,19 +117,6 @@ public unsafe class AhciController
     /// <summary>VS patch version byte position (bits 15:8).</summary>
     private const int VersionPatchShift = 8;
 
-    /// <summary>PxSSTS.DET - Device Detection 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.10).</summary>
-    private const uint SstsDetMask = 0x0F;
-    /// <summary>PxSSTS.DET value 3: device present and PHY communication established.</summary>
-    private const uint SstsDetPhyEstablished = 3;
-    /// <summary>PxSSTS.IPM - Interface Power Management field position (bits 11:8).</summary>
-    private const int SstsIpmShift = 8;
-    /// <summary>PxSSTS.IPM - Interface Power Management 4-bit field mask.</summary>
-    private const uint SstsIpmMask = 0x0F;
-    /// <summary>PxSCTL.DET - Device Detection Initialization 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.11).</summary>
-    private const uint SctlDetMask = 0xFU;
-    /// <summary>PxSCTL.DET value 1: perform interface communication initialization (COMRESET).</summary>
-    private const uint SctlDetComreset = 1U;
-
     /// <summary>PxSIG value when no D2H signature FIS has been received.</summary>
     private const uint InvalidSignature = 0xFFFFFFFFu;
     /// <summary>Shift isolating the high word of PxSIG (LBA high/mid bytes) for device classification.</summary>
@@ -133,26 +124,12 @@ public unsafe class AhciController
     /// <summary>Poll attempts waiting for PxSIG to leave 0xFFFFFFFF after rebase.</summary>
     private const int SignatureRetryLimit = 200;
 
-    /// <summary>PxCMD.ST - Start (bit 0, AHCI 1.3.1 s3.3.7).</summary>
-    private const uint CmdStart = 1U << 0;
-    /// <summary>PxCMD.CLO - Command List Override (bit 3).</summary>
-    private const uint CmdCommandListOverride = 1U << 3;
-    /// <summary>PxCMD.FRE - FIS Receive Enable (bit 4).</summary>
-    private const uint CmdFisReceiveEnable = 1U << 4;
-    /// <summary>PxCMD.FR - FIS Receive Running (bit 14).</summary>
-    private const uint CmdFisReceiveRunning = 1U << 14;
-    /// <summary>PxCMD.CR - Command List Running (bit 15).</summary>
-    private const uint CmdListRunning = 1U << 15;
-
-    /// <summary>All-ones write for RW1C registers (PxSERR/PxIS): clears every latched bit.</summary>
-    private const uint Rw1CClearAll = 0xFFFFFFFFu;
-
-    /// <summary>Highest address reachable through the 32-bit CLB/FB/CTBA registers (4 GiB - 1).</summary>
-    private const ulong Max32BitAddress = 0xFFFFFFFF;
-    /// <summary>Mask keeping the low dword of a 64-bit DMA address.</summary>
-    private const ulong Low32BitsMask = 0xFFFFFFFF;
-    /// <summary>Shift extracting the high dword of a 64-bit DMA address.</summary>
-    private const int High32Shift = 32;
+    /// <summary>Highest address reachable through the 32-bit CLB/FB/CTBA registers (4 GiB - 1). Internal so <see cref="Sata"/> shares it.</summary>
+    internal const ulong Max32BitAddress = 0xFFFFFFFF;
+    /// <summary>Mask keeping the low dword of a 64-bit DMA address. Internal so <see cref="Sata"/> shares it.</summary>
+    internal const ulong Low32BitsMask = 0xFFFFFFFF;
+    /// <summary>Shift extracting the high dword of a 64-bit DMA address. Internal so <see cref="Sata"/> shares it.</summary>
+    internal const int High32Shift = 32;
 
     /// <summary>Per-iteration poll delay in AHCI ticks (~µs) for PHY/engine waits in KickPort and PxSIG polls.</summary>
     private const int PollDelayTicks = 1000;
@@ -443,7 +420,7 @@ public unsafe class AhciController
                 // would clear PxSIG to 0xFFFFFFFF and we'd lose the type
                 // classification. EDK2 on aarch64 leaves DET=0, so we kick
                 // there to train the PHY ourselves.
-                if ((portReg.SSTS & SstsDetMask) != SstsDetPhyEstablished)
+                if ((DeviceDetectionStatus)(portReg.SSTS & PortRegisters.SstsDetMask) != DeviceDetectionStatus.DeviceDetectedWithPhy)
                 {
                     KickPort(portReg);
                 }
@@ -457,8 +434,8 @@ public unsafe class AhciController
                 Serial.WriteHex(portReg.SIG);
                 Serial.WriteString("\n");
 
-                InterfacePowerManagementStatus ipm = (InterfacePowerManagementStatus)((ssts >> SstsIpmShift) & SstsIpmMask);
-                DeviceDetectionStatus det = (DeviceDetectionStatus)(ssts & SstsDetMask);
+                InterfacePowerManagementStatus ipm = (InterfacePowerManagementStatus)((ssts >> PortRegisters.SstsIpmShift) & PortRegisters.SstsIpmMask);
+                DeviceDetectionStatus det = (DeviceDetectionStatus)(ssts & PortRegisters.SstsDetMask);
                 if (ipm != InterfacePowerManagementStatus.Active ||
                     det != DeviceDetectionStatus.DeviceDetectedWithPhy)
                 {
@@ -579,31 +556,31 @@ public unsafe class AhciController
     /// </summary>
     private static void KickPort(PortRegisters port)
     {
-        port.CMD &= ~CmdStart; // ST
-        port.CMD &= ~CmdFisReceiveEnable; // FRE
+        port.CMD &= ~(uint)CommandAndStatus.StartProcess; // ST
+        port.CMD &= ~(uint)CommandAndStatus.FISReceiveEnable; // FRE
         for (int i = 0; i < KickPortPollLimit; i++)
         {
-            if ((port.CMD & (CmdFisReceiveRunning | CmdListRunning)) == 0)
+            if ((port.CMD & (uint)(CommandAndStatus.FISReceiveRunning | CommandAndStatus.CMDListRunning)) == 0)
             {
                 break;
             }
             Ahci.Wait(PollDelayTicks);
         }
 
-        port.SCTL = (port.SCTL & ~SctlDetMask) | SctlDetComreset;
+        port.SCTL = (port.SCTL & ~PortRegisters.SctlDetMask) | PortRegisters.SctlDetComreset;
         Ahci.Wait(ComresetHoldTicks); // hold COMRESET ≥1 ms before clearing
-        port.SCTL &= ~SctlDetMask;
+        port.SCTL &= ~PortRegisters.SctlDetMask;
 
         for (int i = 0; i < KickPortPollLimit; i++)
         {
-            if ((port.SSTS & SstsDetMask) == SstsDetPhyEstablished)
+            if ((DeviceDetectionStatus)(port.SSTS & PortRegisters.SstsDetMask) == DeviceDetectionStatus.DeviceDetectedWithPhy)
             {
                 break;
             }
             Ahci.Wait(PollDelayTicks);
         }
 
-        port.SERR = Rw1CClearAll;
+        port.SERR = PortRegisters.Rw1CClearAll;
     }
 
     private bool PortRebase(PortRegisters port, uint portNumber)
@@ -635,8 +612,8 @@ public unsafe class AhciController
         // PxSERR / PxIS are RW1C: writing all ones clears every latched
         // bit (AHCI 10.1.2 requires SERR fully cleared before ST=1);
         // writing 0 or a partial mask clears nothing.
-        port.SERR = Rw1CClearAll;
-        port.IS = Rw1CClearAll;
+        port.SERR = PortRegisters.Rw1CClearAll;
+        port.IS = PortRegisters.Rw1CClearAll;
         port.IE = 0;
 
         MemoryOp.MemSet((byte*)clbVirt, 0, CommandListBytes);
@@ -663,7 +640,7 @@ public unsafe class AhciController
         // PxIS itself) and no AHCI ISR exists. Enabling PxIE here was only
         // benign while GHC.IE stayed 0 — any future GHC.IE=1 would turn the
         // latched events into an interrupt storm with no handler.
-        port.IS = Rw1CClearAll;
+        port.IS = PortRegisters.Rw1CClearAll;
         port.IE = 0;
 
         Serial.WriteString("[AHCI] Port rebased\n");
@@ -715,8 +692,8 @@ public unsafe class AhciController
             return false;
         }
 
-        port.CMD |= CmdFisReceiveEnable; // FIS Receive Enable
-        port.CMD |= CmdStart; // Start
+        port.CMD |= (uint)CommandAndStatus.FISReceiveEnable; // FIS Receive Enable
+        port.CMD |= (uint)CommandAndStatus.StartProcess; // Start
 
         return true;
     }
@@ -724,7 +701,7 @@ public unsafe class AhciController
     private bool StopCMD(PortRegisters port)
     {
         int spin;
-        port.CMD &= ~CmdStart; // Clear Start bit
+        port.CMD &= ~(uint)CommandAndStatus.StartProcess; // Clear Start bit
 
         for (spin = 0; spin < EnginePollLimit; spin++)
         {
@@ -752,19 +729,19 @@ public unsafe class AhciController
             return false;
         }
 
-        port.CMD &= ~CmdFisReceiveEnable; // Clear FIS Receive Enable
+        port.CMD &= ~(uint)CommandAndStatus.FISReceiveEnable; // Clear FIS Receive Enable
 
         if (_supportsCommandListOverride)
         {
             if ((port.TFD & (uint)AtaDeviceStatus.Busy) != 0)
             {
-                port.CMD |= CmdCommandListOverride;
+                port.CMD |= (uint)CommandAndStatus.CMDListOverride;
                 // AHCI 1.3.1 s3.3.7: software must wait for CLO to read
                 // back 0 before setting ST again; proceeding early would
                 // reprogram the port mid-override.
                 for (spin = 0; spin < EnginePollLimit; spin++)
                 {
-                    if ((port.CMD & CmdCommandListOverride) == 0)
+                    if ((port.CMD & (uint)CommandAndStatus.CMDListOverride) == 0)
                     {
                         break;
                     }
@@ -791,7 +768,7 @@ public unsafe class AhciController
             // hardware, not by software writing 0).
             if (_supportsCommandListOverride)
             {
-                port.CMD |= CmdCommandListOverride;
+                port.CMD |= (uint)CommandAndStatus.CMDListOverride;
             }
             return false;
         }

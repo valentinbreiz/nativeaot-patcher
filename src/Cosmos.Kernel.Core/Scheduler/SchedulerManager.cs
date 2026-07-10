@@ -38,8 +38,11 @@ public static class SchedulerManager
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 
-    /// <summary>Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.</summary>
-    private const ulong NanosecondsPerMillisecond = 1_000_000UL;
+    /// <summary>
+    /// Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.
+    /// Public so other kernel components (e.g. timer drivers) can share the unit conversion.
+    /// </summary>
+    public const ulong NanosecondsPerMillisecond = 1_000_000UL;
 
     /// <summary>Timer ticks between debug-live snapshot refreshes (~100ms at 100Hz).</summary>
     private const uint SnapshotRefreshTickInterval = 10;

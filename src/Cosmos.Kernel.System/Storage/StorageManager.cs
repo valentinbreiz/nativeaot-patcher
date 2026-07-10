@@ -211,10 +211,24 @@ public static class StorageManager
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
                 List<Mbr.PartitionEntry> entries = Mbr.Parse(device);
+                uint slot = 0;
                 for (int i = 0; i < entries.Count; i++)
                 {
                     Mbr.PartitionEntry e = entries[i];
-                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
+                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
+                    slot++;
+                }
+
+                if (Mbr.TryGetExtendedPartition(device, out ulong extendedStart))
+                {
+                    Serial.WriteString("[StorageManager] Extended partition found, walking EBR chain\n");
+                    List<Mbr.PartitionEntry> logicals = Ebr.Parse(device, extendedStart);
+                    for (int i = 0; i < logicals.Count; i++)
+                    {
+                        Mbr.PartitionEntry e = logicals[i];
+                        _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
+                        slot++;
+                    }
                 }
             }
         }

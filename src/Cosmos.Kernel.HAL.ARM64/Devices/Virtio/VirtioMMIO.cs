@@ -17,6 +17,8 @@ public static class VirtioMMIO
     public const ulong VIRTIO_MMIO_BASE = 0x0a000000;
     public const ulong VIRTIO_MMIO_SIZE = 0x200;
     public const int VIRTIO_MMIO_MAX_DEVICES = 32;
+    // IRQ base for virtio devices on QEMU virt (SPI 16 = INTID 48)
+    public const uint VIRTIO_IRQ_BASE = 48;
 
     // Virtio MMIO magic value ("virt" in little endian)
     public const uint VIRTIO_MAGIC = 0x74726976;
@@ -38,6 +40,7 @@ public static class VirtioMMIO
     public const uint REG_DEVICE_FEATURES_SEL = 0x14;
     public const uint REG_DRIVER_FEATURES = 0x20;
     public const uint REG_DRIVER_FEATURES_SEL = 0x24;
+    public const uint REG_GUEST_PAGE_SIZE = 0x28; // Legacy: must set before using PFN
     public const uint REG_QUEUE_SEL = 0x30;
     public const uint REG_QUEUE_NUM_MAX = 0x34;
     public const uint REG_QUEUE_NUM = 0x38;
@@ -45,7 +48,6 @@ public static class VirtioMMIO
     public const uint REG_QUEUE_PFN = 0x40;       // Legacy: queue page frame number
     public const uint REG_QUEUE_READY = 0x44;
     public const uint REG_QUEUE_NOTIFY = 0x50;
-    public const uint REG_GUEST_PAGE_SIZE = 0x28; // Legacy: must set before using PFN
     public const uint REG_INTERRUPT_STATUS = 0x60;
     public const uint REG_INTERRUPT_ACK = 0x64;
     public const uint REG_STATUS = 0x70;
@@ -64,9 +66,6 @@ public static class VirtioMMIO
     public const uint STATUS_DRIVER_OK = 4;
     public const uint STATUS_FEATURES_OK = 8;
     public const uint STATUS_FAILED = 128;
-
-    // IRQ base for virtio devices on QEMU virt (SPI 16 = INTID 48)
-    public const uint VIRTIO_IRQ_BASE = 48;
 
     /// <summary>
     /// Converts a kernel virtual address (HHDM) to a guest physical address for DMA.

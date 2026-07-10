@@ -19,13 +19,13 @@ public class ARM64InterruptController : IInterruptController
     private bool _initialized;
     private uint _lastAckedIntId;
 
-    // ARM64 LPIs (GICv3 ITS) live in INTID space starting at 8192. The
-    // dense InterruptManager.s_irqHandlers[256] table can't index them — we
-    // keep a separate sparse array sized to the LPI window the kernel
-    // commits to. 1024 covers many devices' worth of MSI-X vectors and
-    // matches the default PROPBASER allocation in GICv3Lpi.
-    public const uint LpiBase = 8192;
-    public const int LpiCount = 1024;
+    // ARM64 LPIs (GICv3 ITS) live in INTID space starting at 8192 (see
+    // GIC.LPI_START). The dense InterruptManager.s_irqHandlers[256] table
+    // can't index them — we keep a separate sparse handler array.
+    /// <summary>First LPI INTID; public alias of <see cref="GIC.LPI_START"/>.</summary>
+    public const uint LpiBase = GIC.LPI_START;
+    /// <summary>Entries in the kernel's sparse LPI handler table (dispatchable window LpiBase..LpiBase + LpiHandlerCount - 1). Kernel dispatch policy only: 1024 covers many devices' worth of MSI-X vectors and is deliberately smaller than the 8192-INTID window the GICv3Lpi prop table covers.</summary>
+    public const int LpiHandlerCount = 1024;
 
     /// <summary>First GICv3-reserved special INTID (1020..1023, 1023 = spurious) per ARM IHI 0069G.</summary>
     private const uint SpecialIntIdBase = 1020;
@@ -40,8 +40,8 @@ public class ARM64InterruptController : IInterruptController
     /// <summary>GIC priority for the timer PPI (lower value = higher priority; 0x80 = medium).</summary>
     private const byte TimerPriorityMedium = 0x80;
 
-    /// <summary>Size in bytes of the NEON save area the vector stub pushes below the IRQContext.</summary>
-    private const int NeonSaveAreaBytes = 512;
+    /// <summary>Size in bytes of the NEON save area the vector stub pushes below the IRQContext (public: GenericTimer derives the saved-context SP from it).</summary>
+    public const int NeonSaveAreaBytes = 512;
 
     /// <summary>Bit position of the EC (Exception Class) field in ESR_EL1 (bits [31:26]).</summary>
     private const int EsrEcShift = 26;
@@ -83,7 +83,7 @@ public class ARM64InterruptController : IInterruptController
 
         // Allocate the LPI handler table before the GIC (and therefore ITS)
         // comes online — Arm64MsiBinder can call AllocateLpi mid-bring-up.
-        s_lpiHandlers = new InterruptManager.IrqDelegate[LpiCount];
+        s_lpiHandlers = new InterruptManager.IrqDelegate[LpiHandlerCount];
 
         // Initialize the GIC (Generic Interrupt Controller)
         GIC.Initialize();

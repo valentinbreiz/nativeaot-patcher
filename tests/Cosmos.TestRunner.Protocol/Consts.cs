@@ -6,10 +6,37 @@ namespace Cosmos.TestRunner.Protocol
     /// Protocol constants for test runner communication.
     /// Ported from CosmosOS Cosmos.Debug.DebugConnectors with test-specific extensions.
     /// </summary>
-    public class Consts
+    public static class Consts
     {
-        public const string EngineGUID = "DFE8F1F6-691C-4c08-8FFA-54551AD8FEAF";
-        public static uint SerialSignature = 0x19740807;
+        // Frame magic
+
+        /// <summary>Frame magic every protocol frame starts with; sent little-endian on the wire.</summary>
+        public const uint SerialSignature = 0x19740807;
+
+        /// <summary>Byte 0 (least significant) of the frame magic <see cref="SerialSignature"/> (0x19740807) as it appears little-endian on the wire.</summary>
+        public const byte SerialSignatureByte0 = 0x07;
+
+        /// <summary>Byte 1 of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte1 = 0x08;
+
+        /// <summary>Byte 2 of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte2 = 0x74;
+
+        /// <summary>Byte 3 (most significant) of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte3 = 0x19;
+
+        /// <summary>Length of the frame magic <see cref="SerialSignature"/> (0x19740807 little-endian) on the wire, in bytes.</summary>
+        public const int SerialSignatureLengthBytes = 4;
+
+        // Suite-end marker
+
+        /// <summary>
+        /// Marker the kernel emits after the whole test suite finished, telling the
+        /// host it can kill QEMU. Must match the kernel-side QemuKillMarkerByte0..7
+        /// sequence in Cosmos.TestRunner.Framework/TestRunner.cs (separate assembly,
+        /// duplicated by design as a wire contract).
+        /// </summary>
+        public static readonly byte[] SuiteEndMarker = { 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE };
     }
 
     /// <summary>
@@ -18,7 +45,8 @@ namespace Cosmos.TestRunner.Protocol
     /// </summary>
     public static class Ds2Vs
     {
-        // Original CosmosOS debug messages (0-25)
+        // Original CosmosOS debug messages (0-25). Reserved — unused by this
+        // runner except Message; kept as CosmosOS wire-protocol documentation.
         public const byte Noop = 0;
         public const byte TracePoint = 1;
         public const byte Message = 192;
@@ -104,6 +132,7 @@ namespace Cosmos.TestRunner.Protocol
     /// <summary>
     /// Messages from Host (Test Runner) to Guest (Kernel)
     /// For test runner, we primarily receive messages, so this is minimal.
+    /// Reserved — unused by this runner, kept as CosmosOS wire-protocol documentation.
     /// </summary>
     public static class Vs2Ds
     {

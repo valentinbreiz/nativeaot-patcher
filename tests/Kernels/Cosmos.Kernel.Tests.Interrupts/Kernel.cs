@@ -40,8 +40,6 @@ public class Kernel : Sys.Kernel
     private const int SleepDurationMs = 200;
     /// <summary>Lower bound the measured sleep must reach to prove the timer IRQ actually elapsed it (ms).</summary>
     private const int MinMeasuredSleepMs = 100;
-    /// <summary>Milliseconds per second — converts Stopwatch ticks to milliseconds.</summary>
-    private const int MillisecondsPerSecond = 1000;
 
     /// <summary>Entry count of the fake MSI-X table used for bounds probing (also the first out-of-range index).</summary>
     private const int MsiXProbeEntryCount = 2;
@@ -167,7 +165,7 @@ public class Kernel : Sys.Kernel
         SysThread.Sleep(SleepDurationMs);
         long end = Stopwatch.GetTimestamp();
 
-        long elapsedMs = (end - start) * MillisecondsPerSecond / Stopwatch.Frequency;
+        long elapsedMs = (end - start) * TR.MillisecondsPerSecond / Stopwatch.Frequency;
         Serial.WriteString("[Interrupts] Sleep(200ms) measured ms: ");
         Serial.WriteNumber((ulong)elapsedMs);
         Serial.WriteString("\n");

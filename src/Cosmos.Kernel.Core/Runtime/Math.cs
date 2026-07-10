@@ -87,12 +87,16 @@ internal static class Math
 
     private const double PI = 3.14159265358979323846;
     private const double PI_OVER_2 = 1.57079632679489661923;
+    // Low word of the pi/2 double-double split (fdlibm pio2_lo, shared by asin/acos).
+    private const double PI_OVER_2_LO = 6.12323399573676603587e-17; /* 0x3C91A626, 0x33145C07 */
     private const double PI_OVER_4 = 0.78539816339744830962;
-    private const double TWO_PI = 6.28318530717958647692;
     private const double LN2 = 0.69314718055994530942;
-    private const double LOG2_E = 1.44269504088896340736;
+    // Hi/lo extended-precision split of ln 2 (fdlibm ln2_hi/ln2_lo, shared by exp/log);
+    // deliberately distinct from the full-precision LN2 above.
+    private const double LN2_HI = 6.93147180369123816490e-01; /* 0x3FE62E42, 0xFEE00000 */
+    private const double LN2_LO = 1.90821492927058770002e-10; /* 0x3DEA39EF, 0x35793C76 */
+    private const double LOG2_E = 1.44269504088896340736; /* 0x3FF71547, 0x652B82FE */
     private const double LOG10_E = 0.43429448190325182765;
-    private const double SQRT2 = 1.41421356237309504880;
 
     // =========================================================================
     // Unconditional functions (both arches use C#)
@@ -244,15 +248,12 @@ internal static class Math
     {
         const double o_threshold = 7.09782712893383973096e+02;  /* 0x40862E42, 0xFEFA39EF */
         const double u_threshold = -7.45133219101941108420e+02; /* 0xC0874910, 0xD52D3051 */
-        const double invln2 = 1.44269504088896338700e+00;       /* 0x3FF71547, 0x652B82FE */
         const double twom1000 = 9.33263618503218878990e-302;    /* 2^-1000 */
         const double P1 = 1.66666666666666019037e-01;           /* 0x3FC55555, 0x5555553E */
         const double P2 = -2.77777777770155933842e-03;          /* 0xBF66C16C, 0x16BEBD93 */
         const double P3 = 6.61375632143793436117e-05;           /* 0x3F11566A, 0xAF25DE2C */
         const double P4 = -1.65339022054652515390e-06;          /* 0xBEBBBD41, 0xC5D26BF1 */
         const double P5 = 4.13813679705723846039e-08;           /* 0x3E663769, 0x72BEA4D0 */
-        const double ln2_hi = 6.93147180369123816490e-01;       /* 0x3FE62E42, 0xFEE00000 */
-        const double ln2_lo = 1.90821492927058770002e-10;       /* 0x3DEA39EF, 0x35793C76 */
         const double huge = 1.0e+300;
 
         double y, hi = 0, lo = 0, t, c;
@@ -291,23 +292,23 @@ internal static class Math
             {
                 if (xsb == 0)
                 {
-                    hi = x - ln2_hi;
-                    lo = ln2_lo;
+                    hi = x - LN2_HI;
+                    lo = LN2_LO;
                 }
                 else
                 {
-                    hi = x + ln2_hi;
-                    lo = -ln2_lo;
+                    hi = x + LN2_HI;
+                    lo = -LN2_LO;
                 }
 
                 k = 1 - xsb - xsb;
             }
             else
             {
-                k = (int)(invln2 * x + (xsb == 0 ? 0.5 : -0.5));
+                k = (int)(LOG2_E * x + (xsb == 0 ? 0.5 : -0.5));
                 t = k;
-                hi = x - t * ln2_hi;
-                lo = t * ln2_lo;
+                hi = x - t * LN2_HI;
+                lo = t * LN2_LO;
             }
 
             x = hi - lo;
@@ -354,8 +355,6 @@ internal static class Math
 
     private static double FdlibmLog(double x)
     {
-        const double ln2_hi = 6.93147180369123816490e-01;
-        const double ln2_lo = 1.90821492927058770002e-10;
         const double two54 = 1.80143985094819840000e+16;
         const double Lg1 = 6.666666666666735130e-01;
         const double Lg2 = 3.999999999940941908e-01;
@@ -410,7 +409,7 @@ internal static class Math
                 }
 
                 dk = k;
-                return dk * ln2_hi + dk * ln2_lo;
+                return dk * LN2_HI + dk * LN2_LO;
             }
 
             R = f * f * (0.5 - 0.33333333333333333 * f);
@@ -420,7 +419,7 @@ internal static class Math
             }
 
             dk = k;
-            return dk * ln2_hi - (R - dk * ln2_lo - f);
+            return dk * LN2_HI - (R - dk * LN2_LO - f);
         }
 
         double s = f / (2.0 + f);
@@ -442,7 +441,7 @@ internal static class Math
                 return f - (hfsq - s * (hfsq + R));
             }
 
-            return dk * ln2_hi - (hfsq - (s * (hfsq + R) + dk * ln2_lo) - f);
+            return dk * LN2_HI - (hfsq - (s * (hfsq + R) + dk * LN2_LO) - f);
         }
         else
         {
@@ -451,7 +450,7 @@ internal static class Math
                 return f - s * (f - R);
             }
 
-            return dk * ln2_hi - (s * (f - R) - dk * ln2_lo - f);
+            return dk * LN2_HI - (s * (f - R) - dk * LN2_LO - f);
         }
     }
 
@@ -460,7 +459,7 @@ internal static class Math
     private const double atanhi_0 = 4.63647609000806093515e-01; /* 0x3FDDAC67, 0x0561BB4F */
     private const double atanhi_1 = 7.85398163397448278999e-01; /* 0x3FE921FB, 0x54442D18 */
     private const double atanhi_2 = 9.82793723247329054082e-01; /* 0x3FEF730B, 0xD281F69B */
-    private const double atanhi_3 = 1.57079632679489655800e+00; /* 0x3FF921FB, 0x54442D18 */
+    private const double atanhi_3 = PI_OVER_2;                  /* 0x3FF921FB, 0x54442D18 */
     private const double atanlo_0 = 2.26987774529616870924e-17; /* 0x3C7A2B7F, 0x222F65E2 */
     private const double atanlo_1 = 3.06161699786838301793e-17; /* 0x3C81A626, 0x33145C07 */
     private const double atanlo_2 = 1.39033110312309984516e-17; /* 0x3C700788, 0x7AF0CBBD */
@@ -838,25 +837,27 @@ internal static class Math
     [RuntimeExport("atan2f")]
     internal static float atan2f(float y, float x) => (float)atan2(y, x);
 
+    // --------------- asin/acos shared coefficients ---------------
+    // Rational approximation R(x^2) of fdlibm e_asin.c, reused verbatim by e_acos.c.
+
+    private const double pS0 = 1.66666666666666657415e-01;
+    private const double pS1 = -3.25565818622400915405e-01;
+    private const double pS2 = 2.01212532134862925881e-01;
+    private const double pS3 = -4.00555345006794114027e-02;
+    private const double pS4 = 7.91534994289814532176e-04;
+    private const double pS5 = 3.47933107596021167570e-05;
+    private const double qS1 = -2.40339491173441421878e+00;
+    private const double qS2 = 2.02094576023350569471e+00;
+    private const double qS3 = -6.88283971605453293030e-01;
+    private const double qS4 = 7.70381505559019352791e-02;
+
     // --------------- asin (fdlibm e_asin.c) ---------------
 
     [RuntimeExport("asin")]
     internal static double asin(double x)
     {
         const double huge = 1.000e+300;
-        const double pio2_hi = 1.57079632679489655800e+00;
-        const double pio2_lo = 6.12323399573676603587e-17;
-        const double pio4_hi = 7.85398163397448278999e-01;
-        const double pS0 = 1.66666666666666657415e-01;
-        const double pS1 = -3.25565818622400915405e-01;
-        const double pS2 = 2.01212532134862925881e-01;
-        const double pS3 = -4.00555345006794114027e-02;
-        const double pS4 = 7.91534994289814532176e-04;
-        const double pS5 = 3.47933107596021167570e-05;
-        const double qS1 = -2.40339491173441421878e+00;
-        const double qS2 = 2.02094576023350569471e+00;
-        const double qS3 = -6.88283971605453293030e-01;
-        const double qS4 = 7.70381505559019352791e-02;
+        const double pio2_hi = PI_OVER_2;
 
         double t = 0, w, p, q, c, r, s;
         int hx = HighWord(x);
@@ -866,7 +867,7 @@ internal static class Math
         {
             if (((ix - 0x3ff00000) | LowWord(x)) == 0)
             {
-                return x * pio2_hi + x * pio2_lo;
+                return x * pio2_hi + x * PI_OVER_2_LO;
             }
 
             return (x - x) / (x - x);
@@ -900,7 +901,7 @@ internal static class Math
         if (ix >= 0x3FEF3333)
         {
             w = p / q;
-            t = pio2_hi - (2.0 * (s + s * w) - pio2_lo);
+            t = pio2_hi - (2.0 * (s + s * w) - PI_OVER_2_LO);
         }
         else
         {
@@ -908,9 +909,9 @@ internal static class Math
             w = SetLowWord(w, 0);
             c = (t - w * w) / (s + w);
             r = p / q;
-            p = 2.0 * s * r - (pio2_lo - 2.0 * c);
-            q = pio4_hi - 2.0 * w;
-            t = pio4_hi - (p - q);
+            p = 2.0 * s * r - (PI_OVER_2_LO - 2.0 * c);
+            q = PI_OVER_4 - 2.0 * w;
+            t = PI_OVER_4 - (p - q);
         }
 
         return hx > 0 ? t : -t;
@@ -924,18 +925,7 @@ internal static class Math
     [RuntimeExport("acos")]
     internal static double acos(double x)
     {
-        const double pio2_hi = 1.57079632679489655800e+00;
-        const double pio2_lo = 6.12323399573676603587e-17;
-        const double pS0 = 1.66666666666666657415e-01;
-        const double pS1 = -3.25565818622400915405e-01;
-        const double pS2 = 2.01212532134862925881e-01;
-        const double pS3 = -4.00555345006794114027e-02;
-        const double pS4 = 7.91534994289814532176e-04;
-        const double pS5 = 3.47933107596021167570e-05;
-        const double qS1 = -2.40339491173441421878e+00;
-        const double qS2 = 2.02094576023350569471e+00;
-        const double qS3 = -6.88283971605453293030e-01;
-        const double qS4 = 7.70381505559019352791e-02;
+        const double pio2_hi = PI_OVER_2;
 
         double z, p, q, r, w, s, c, df;
         int hx = HighWord(x);
@@ -950,7 +940,7 @@ internal static class Math
                     return 0.0;
                 }
 
-                return PI + 2.0 * pio2_lo;
+                return PI + 2.0 * PI_OVER_2_LO;
             }
 
             return (x - x) / (x - x);
@@ -960,14 +950,14 @@ internal static class Math
         {
             if (ix <= 0x3c600000)
             {
-                return pio2_hi + pio2_lo;
+                return pio2_hi + PI_OVER_2_LO;
             }
 
             z = x * x;
             p = z * (pS0 + z * (pS1 + z * (pS2 + z * (pS3 + z * (pS4 + z * pS5)))));
             q = 1 + z * (qS1 + z * (qS2 + z * (qS3 + z * qS4)));
             r = p / q;
-            return pio2_hi - (x - (pio2_lo - x * r));
+            return pio2_hi - (x - (PI_OVER_2_LO - x * r));
         }
         else if (hx < 0)
         {
@@ -976,7 +966,7 @@ internal static class Math
             q = 1 + z * (qS1 + z * (qS2 + z * (qS3 + z * qS4)));
             s = sqrt(z);
             r = p / q;
-            w = r * s - pio2_lo;
+            w = r * s - PI_OVER_2_LO;
             return PI - 2.0 * (s + w);
         }
         else

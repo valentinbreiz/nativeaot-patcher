@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestRunner.Engine;
@@ -10,9 +11,6 @@ namespace Cosmos.TestRunner.Engine;
 /// </summary>
 public interface IQemuHost
 {
-    /// <summary>Default maximum time in seconds to let a kernel run in QEMU before timing out.</summary>
-    public const int DefaultTimeoutSeconds = 30;
-
     /// <summary>
     /// Architecture this host targets (x64, ARM64, etc.)
     /// </summary>
@@ -29,7 +27,7 @@ public interface IQemuHost
     /// <param name="disks">Per-profile disk attachments. AHCI entries share one <c>ich9-ahci</c> controller; NVMe entries each get their own <c>nvme</c> controller. Per-disk extra device options (e.g. <c>msix=off</c>) flow through.</param>
     /// <param name="machineOptions">Extra <c>-M</c> properties (e.g. <c>{"gic-version", "2"}</c> on ARM64). Caller is responsible for passing arch-appropriate keys.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null);
 }
 
 /// <summary>

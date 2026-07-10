@@ -18,6 +18,8 @@
     <CosmosEnableScheduler Condition="'$(CosmosEnableTimer)' == 'false'">false</CosmosEnableScheduler>
     <!-- PCI off → AHCI/SATA discovery has no bus to enumerate -->
     <CosmosEnableStorage   Condition="'$(CosmosEnablePCI)' == 'false'">false</CosmosEnableStorage>
+    <!-- Storage off → no block device for filesystems to mount on -->
+    <CosmosEnableFat       Condition="'$(CosmosEnableStorage)' == 'false'">false</CosmosEnableFat>
   </PropertyGroup>
 
   <!-- Disable standard ILLink - Cosmos uses custom NativeAOT compilation via Cosmos.Build.Ilc -->

@@ -17,9 +17,6 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public static class Ahci
 {
-    /// <summary>Legacy POST diagnostic I/O port (0x80); reads impose a small fixed delay on x64.</summary>
-    private const ushort LegacyPostPort = 0x80;
-
     private static List<AhciController>? s_controllers;
     private static List<BlockDevice>? s_ports;
     private static bool s_initialized;
@@ -118,10 +115,10 @@ public static class Ahci
 
         for (int i = 0; i < ticks; i++)
         {
-            PlatformHAL.PortIO.ReadByte(LegacyPostPort);
-            PlatformHAL.PortIO.ReadByte(LegacyPostPort);
-            PlatformHAL.PortIO.ReadByte(LegacyPostPort);
-            PlatformHAL.PortIO.ReadByte(LegacyPostPort);
+            PlatformHAL.PortIO.ReadByte(PlatformHAL.LegacyPostPort);
+            PlatformHAL.PortIO.ReadByte(PlatformHAL.LegacyPostPort);
+            PlatformHAL.PortIO.ReadByte(PlatformHAL.LegacyPostPort);
+            PlatformHAL.PortIO.ReadByte(PlatformHAL.LegacyPostPort);
         }
     }
 }

@@ -178,6 +178,27 @@ public class PortRegisters
     /// <summary>PxDEVSLP - Device Sleep register offset (AHCI spec 3.3.17).</summary>
     private const ulong DevslpOffset = 0x44;
 
+    // Port register field masks (AHCI spec 3.3.10 / 3.3.11); shared with
+    // AhciController and Sata, which operate on this register bank.
+
+    /// <summary>PxSSTS.DET - Device Detection 4-bit field mask (bits 3:0, AHCI spec 3.3.10).</summary>
+    internal const uint SstsDetMask = 0x0F;
+
+    /// <summary>PxSSTS.IPM - Interface Power Management field position (bits 11:8, AHCI spec 3.3.10).</summary>
+    internal const int SstsIpmShift = 8;
+
+    /// <summary>PxSSTS.IPM - Interface Power Management 4-bit field mask (AHCI spec 3.3.10).</summary>
+    internal const uint SstsIpmMask = 0x0F;
+
+    /// <summary>PxSCTL.DET - Device Detection Initialization 4-bit field mask (bits 3:0, AHCI spec 3.3.11).</summary>
+    internal const uint SctlDetMask = 0xFU;
+
+    /// <summary>PxSCTL.DET value 1: perform interface communication initialization (COMRESET, AHCI spec 3.3.11).</summary>
+    internal const uint SctlDetComreset = 1U;
+
+    /// <summary>All-ones write for RW1C registers (PxSERR/PxIS): clears every latched bit.</summary>
+    internal const uint Rw1CClearAll = 0xFFFFFFFFu;
+
     private readonly ulong _address;
     public uint PortNumber { get; }
     public PortType PortType { get; set; } = PortType.Nothing;
@@ -323,9 +344,6 @@ public class HbaCommandHeader
     /// <summary>Number of 32-bit dwords in a command header (32 bytes / 4).</summary>
     private const int CommandHeaderDwordCount = 8;
 
-    /// <summary>Size of a 32-bit dword in bytes, used to step through the header when clearing it.</summary>
-    private const int DwordSizeBytes = 4;
-
     /// <summary>CFL - Command FIS Length mask, bits 4:0 of the header DW0 (AHCI spec 4.2.2).</summary>
     private const int CommandFisLengthMask = 0x1F;
 
@@ -355,7 +373,7 @@ public class HbaCommandHeader
         // Clear the header
         for (int i = 0; i < CommandHeaderDwordCount; i++)
         {
-            Native.MMIO.Write32(_address + (ulong)(i * DwordSizeBytes), 0);
+            Native.MMIO.Write32(_address + (ulong)(i * sizeof(uint)), 0);
         }
     }
 
@@ -420,9 +438,6 @@ public class HbaCommandTable
     /// <summary>Offset of the PRDT within the command table; the CFIS, ACMD and reserved areas occupy the first 0x80 bytes (AHCI spec 4.2.3).</summary>
     private const int PrdtOffsetBytes = 0x80;
 
-    /// <summary>Size of a 32-bit dword in bytes, used to step through the table when clearing it.</summary>
-    private const int DwordSizeBytes = 4;
-
     /// <summary>ACMD - ATAPI Command area offset within the command table (AHCI spec 4.2.3).</summary>
     private const int AcmdOffsetBytes = 0x40;
 
@@ -434,9 +449,9 @@ public class HbaCommandTable
         CFIS = address;
 
         // Clear the first 0x80 bytes
-        for (int i = 0; i < PrdtOffsetBytes / DwordSizeBytes; i++)
+        for (int i = 0; i < PrdtOffsetBytes / sizeof(uint); i++)
         {
-            Native.MMIO.Write32(address + (ulong)(i * DwordSizeBytes), 0);
+            Native.MMIO.Write32(address + (ulong)(i * sizeof(uint)), 0);
         }
 
         PRDTEntry = new HbaPrdtEntry[prdtCount];
@@ -459,9 +474,6 @@ public class HbaPrdtEntry
 
     /// <summary>Number of 32-bit dwords in a PRDT entry (16 bytes / 4).</summary>
     private const int PrdtEntryDwordCount = 4;
-
-    /// <summary>Size of a 32-bit dword in bytes, used to step through the entry when clearing it.</summary>
-    private const int DwordSizeBytes = 4;
 
     /// <summary>DBA - Data Base Address field offset (AHCI spec 4.2.3.3).</summary>
     private const ulong DbaOffset = 0x00;
@@ -489,7 +501,7 @@ public class HbaPrdtEntry
         // Clear the entry
         for (int i = 0; i < PrdtEntryDwordCount; i++)
         {
-            Native.MMIO.Write32(_address + (ulong)(i * DwordSizeBytes), 0);
+            Native.MMIO.Write32(_address + (ulong)(i * sizeof(uint)), 0);
         }
     }
 
@@ -523,11 +535,8 @@ public class HbaPrdtEntry
 /// </summary>
 public class FisRegisterH2D
 {
-    /// <summary>Number of 32-bit dwords in a Register H2D FIS (20 bytes / 4, SATA spec 10.5.4).</summary>
-    private const int FisDwordCount = 5;
-
-    /// <summary>Size of a 32-bit dword in bytes, used to step through the FIS when clearing it.</summary>
-    private const int DwordSizeBytes = 4;
+    /// <summary>Number of 32-bit dwords in a Register H2D FIS (20 bytes / 4, SATA spec 10.5.4). Internal so <see cref="Sata"/> programs it into the command header CFL field.</summary>
+    internal const int FisDwordCount = 5;
 
     /// <summary>FIS Type field offset (SATA spec 10.5.4).</summary>
     private const ulong FisTypeOffset = 0x00;
@@ -588,7 +597,7 @@ public class FisRegisterH2D
         // Clear the FIS (20 bytes)
         for (int i = 0; i < FisDwordCount; i++)
         {
-            Native.MMIO.Write32(_address + (ulong)(i * DwordSizeBytes), 0);
+            Native.MMIO.Write32(_address + (ulong)(i * sizeof(uint)), 0);
         }
     }
 
