@@ -156,9 +156,6 @@ public class Kernel : Sys.Kernel
     /// <summary>SPC the 16 MiB FAT16 scratch volumes format with (2 KiB clusters).</summary>
     private const byte Fat16ScratchSectorsPerCluster = 4;
 
-    /// <summary>Two FAT copies — the standard BPB_NumFATs redundancy (fatgen103).</summary>
-    private const byte StandardFatCopies = 2;
-
     /// <summary>Reserved sectors ahead of the first FAT on the fresh FAT32 volume (fatgen103's customary 32 for FAT32).</summary>
     private const ushort Fat32ReservedSectors = 32;
 
@@ -789,7 +786,7 @@ public class Kernel : Sys.Kernel
                 Type = FatType.Fat32,
                 SectorsPerCluster = OneSectorPerCluster,
                 ReservedSectorCount = Fat32ReservedSectors,
-                NumberOfFats = StandardFatCopies,
+                NumberOfFats = FatTestVolume.FatCopyCount,
                 FatSectorCount = Fat32FreshFatSectors,
                 RootCluster = FatTable.FirstDataCluster,
                 VolumeLabel = "FRESHFAT32 ",
@@ -864,7 +861,7 @@ public class Kernel : Sys.Kernel
                 Type = FatType.Fat12,
                 SectorsPerCluster = Fat12SectorsPerCluster,
                 ReservedSectorCount = Fat12ReservedSectors,
-                NumberOfFats = StandardFatCopies,
+                NumberOfFats = FatTestVolume.FatCopyCount,
                 RootEntryCount = Fat12RootEntryCount,
                 FatSectorCount = Fat12FatSectors,
                 VolumeLabel = "FAT12VOL   ",

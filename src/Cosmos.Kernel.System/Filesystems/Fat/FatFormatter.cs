@@ -12,12 +12,6 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// </summary>
 internal static class FatFormatter
 {
-    /// <summary>Boot signature stamped at bytes 510-511 of the boot sector.</summary>
-    private const ushort BootSignature = 0xAA55;
-
-    /// <summary>Byte offset of the 0xAA55 boot signature.</summary>
-    private const int BootSignatureOffset = 510;
-
     /// <summary>BS_jmpBoot: 3-byte x86 jump opening the boot sector (offset 0, fatgen103 §3.1).</summary>
     private const int JmpBootOffset = 0;
 
@@ -33,29 +27,8 @@ internal static class FatFormatter
     /// <summary>Byte length of the BS_OEMName field.</summary>
     private const int OemNameLength = 8;
 
-    /// <summary>BPB_BytsPerSec: bytes per sector (offset 11, 16-bit).</summary>
-    private const int BytsPerSecOffset = 11;
-
-    /// <summary>BPB_SecPerClus: sectors per cluster (offset 13, 8-bit).</summary>
-    private const int SecPerClusOffset = 13;
-
-    /// <summary>BPB_RsvdSecCnt: reserved sector count (offset 14, 16-bit).</summary>
-    private const int RsvdSecCntOffset = 14;
-
-    /// <summary>BPB_NumFATs: FAT copy count (offset 16, 8-bit).</summary>
-    private const int NumFatsOffset = 16;
-
-    /// <summary>BPB_RootEntCnt: root entry count (offset 17, 16-bit).</summary>
-    private const int RootEntCntOffset = 17;
-
-    /// <summary>BPB_TotSec16: 16-bit total sector count (offset 19).</summary>
-    private const int TotSec16Offset = 19;
-
     /// <summary>BPB_Media: media descriptor (offset 21, 8-bit).</summary>
     private const int MediaOffset = 21;
-
-    /// <summary>BPB_FATSz16: 16-bit FAT size (offset 22).</summary>
-    private const int FatSz16Offset = 22;
 
     /// <summary>BPB_SecPerTrk: legacy CHS sectors per track (offset 24, 16-bit).</summary>
     private const int SecPerTrkOffset = 24;
@@ -66,20 +39,11 @@ internal static class FatFormatter
     /// <summary>BPB_HiddSec: sectors hidden before the volume (offset 28, 32-bit).</summary>
     private const int HiddSecOffset = 28;
 
-    /// <summary>BPB_TotSec32: 32-bit total sector count (offset 32).</summary>
-    private const int TotSec32Offset = 32;
-
-    /// <summary>BPB_FATSz32: 32-bit FAT size (offset 36, FAT32 only).</summary>
-    private const int FatSz32Offset = 36;
-
     /// <summary>BPB_ExtFlags: FAT mirroring flags (offset 40, FAT32 only).</summary>
     private const int ExtFlagsOffset = 40;
 
     /// <summary>BPB_FSVer: filesystem version (offset 42, FAT32 only).</summary>
     private const int FsVerOffset = 42;
-
-    /// <summary>BPB_RootClus: root directory cluster (offset 44, FAT32 only).</summary>
-    private const int RootClusOffset = 44;
 
     /// <summary>BPB_FSInfo: FSInfo sector number (offset 48, FAT32 only).</summary>
     private const int FsInfoOffset = 48;
@@ -138,23 +102,11 @@ internal static class FatFormatter
     /// <summary>Byte length of the BS_FilSysType field.</summary>
     private const int FilSysTypeLength = 8;
 
-    /// <summary>Byte width of a 16-bit BPB field.</summary>
-    private const int Field16Bytes = 2;
-
-    /// <summary>Byte width of a 32-bit BPB / FSInfo field.</summary>
-    private const int Field32Bytes = 4;
-
     /// <summary>Highest cluster count of the FAT12 band (fatgen103 §3.5).</summary>
     private const uint Fat12MaxClusters = 4084;
 
     /// <summary>Highest cluster count of the FAT16 band (fatgen103 §3.5).</summary>
     private const uint Fat16MaxClusters = 65524;
-
-    /// <summary>Smallest sector size the FAT spec permits (and the BPB layout assumes).</summary>
-    private const uint MinBytesPerSector = 512;
-
-    /// <summary>Largest sector size the FAT spec permits; larger would truncate the 16-bit BPB field.</summary>
-    private const uint MaxBytesPerSector = 4096;
 
     /// <summary>Smallest device (in sectors) <see cref="Format"/> will attempt; anything smaller cannot hold even the reserved head.</summary>
     private const ulong MinDeviceSectors = 8;
@@ -166,7 +118,7 @@ internal static class FatFormatter
     private const ushort Fat1216DefaultReservedSectors = 1;
 
     /// <summary>Default BPB_NumFATs: two mirrored FAT copies (fatgen103 §3.1).</summary>
-    private const byte DefaultNumberOfFats = 2;
+    internal const byte DefaultNumberOfFats = 2;
 
     /// <summary>Default BPB_RootEntCnt for FAT12/16: 512 root directory entries (fatgen103 §3.1).</summary>
     private const ushort DefaultRootEntryCount = 512;
@@ -200,24 +152,6 @@ internal static class FatFormatter
 
     /// <summary>FAT32 sectors per cluster at or above the ~32 GiB threshold (32 KiB clusters, fatgen103 §3.4).</summary>
     private const byte Fat32SpcAbove32GiB = 64;
-
-    /// <summary>Size in bytes of one directory entry.</summary>
-    private const uint DirEntrySize = 32;
-
-    /// <summary>FAT32 FAT entry width in bytes (4; FAT16 is 2, FAT12 is 1.5).</summary>
-    private const uint Fat32EntrySize = 4;
-
-    /// <summary>FAT16 FAT entry width in bytes.</summary>
-    private const uint Fat16EntrySize = 2;
-
-    /// <summary>FAT12 packs this many 12-bit FAT entries into each 3-byte group (fatgen103 §4).</summary>
-    private const uint Fat12EntriesPerPair = 2;
-
-    /// <summary>Byte length of one packed pair of FAT12 entries.</summary>
-    private const uint Fat12PairBytes = 3;
-
-    /// <summary>LBA of the boot sector holding the BPB.</summary>
-    private const ulong BootSectorLba = 0;
 
     /// <summary>Sector number of the FAT32 FSInfo block, mirrored into the BPB at offset 48.</summary>
     private const ushort FsInfoSectorNumber = 1;
@@ -378,7 +312,7 @@ internal static class FatFormatter
         public string Label { get; }
         public uint Serial { get; }
 
-        public uint RootDirSectors => (uint)(RootEntryCount * DirEntrySize + (BytesPerSector - 1)) / BytesPerSector;
+        public uint RootDirSectors => (uint)(RootEntryCount * (uint)FatDirectory.EntrySize + (BytesPerSector - 1)) / BytesPerSector;
         public uint FatRegion => NumberOfFats * FatSectorCount;
         public uint DataStart => Type == FatType.Fat32
             ? ReservedSectorCount + FatRegion
@@ -394,7 +328,7 @@ internal static class FatFormatter
         // smaller crashes the fixed-offset BPB writer, larger truncates
         // the 16-bit BPB field into an unmountable volume. Writers reject
         // what the parser would drop.
-        if (bytesPerSector < MinBytesPerSector || bytesPerSector > MaxBytesPerSector
+        if (bytesPerSector < FatBootSector.MinBytesPerSector || bytesPerSector > FatBootSector.MaxBytesPerSector
             || (bytesPerSector & (bytesPerSector - 1)) != 0
             || device.BlockCount > uint.MaxValue)
         {
@@ -429,7 +363,7 @@ internal static class FatFormatter
         }
 
         // Decide / validate type from cluster count.
-        uint rootDirSectors = (uint)(rootEntries * DirEntrySize + (bytesPerSector - 1)) / bytesPerSector;
+        uint rootDirSectors = (uint)(rootEntries * (uint)FatDirectory.EntrySize + (bytesPerSector - 1)) / bytesPerSector;
         uint fatRegion = (uint)numFats * fatSectors;
         uint dataStart = reserved + fatRegion + rootDirSectors;
         if (totalSectors <= dataStart)
@@ -568,7 +502,7 @@ internal static class FatFormatter
         // Microsoft fatgen103 § 6.2: solve for FatSz so that
         //   (TotSec - Reserved - RootDir) / SPC <= (FatSz * BytesPerSec) / EntrySize - 2
         // We use the closed-form approximation with a +1-sector slack.
-        uint rootDirSectors = (uint)(rootEntries * DirEntrySize + (bytesPerSector - 1)) / bytesPerSector;
+        uint rootDirSectors = (uint)(rootEntries * (uint)FatDirectory.EntrySize + (bytesPerSector - 1)) / bytesPerSector;
         if (totalSectors <= reserved + rootDirSectors)
         {
             return 0;
@@ -581,17 +515,17 @@ internal static class FatFormatter
             // FAT16 entries are 2 bytes -> BytesPerSec/2 per sector;
             // fatgen103 §6.2 halves the term again for 4-byte FAT32
             // entries (128 per 512-byte sector, not 256).
-            denom = ((bytesPerSector / Fat16EntrySize) * spc) + numFats;
+            denom = ((bytesPerSector / FatTable.Fat16EntrySize) * spc) + numFats;
             if (type == FatType.Fat32)
             {
-                denom /= Fat32EntrySize / Fat16EntrySize;
+                denom /= FatTable.Fat32EntrySize / FatTable.Fat16EntrySize;
             }
         }
         else
         {
             // FAT12 (and the Unknown first pass): 1.5 bytes/entry ->
             // ~341 entries per 512-byte sector. Safe overestimate.
-            denom = ((bytesPerSector * Fat12EntriesPerPair / Fat12PairBytes) * spc) + numFats;
+            denom = ((bytesPerSector * FatTable.Fat12EntriesPerPair / FatTable.Fat12PairBytes) * spc) + numFats;
         }
 
         uint fatSize = (dataSectors + denom - 1) / denom;
@@ -633,35 +567,35 @@ internal static class FatFormatter
         ReadOnlySpan<byte> oem = "MSWIN4.1"u8;
         oem.CopyTo(bpb.Slice(OemNameOffset, OemNameLength));
 
-        BitConverter.TryWriteBytes(bpb.Slice(BytsPerSecOffset, Field16Bytes), (ushort)g.BytesPerSector);
-        bpb[SecPerClusOffset] = g.SectorsPerCluster;
-        BitConverter.TryWriteBytes(bpb.Slice(RsvdSecCntOffset, Field16Bytes), g.ReservedSectorCount);
-        bpb[NumFatsOffset] = g.NumberOfFats;
-        BitConverter.TryWriteBytes(bpb.Slice(RootEntCntOffset, Field16Bytes), g.RootEntryCount);
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.BytsPerSecOffset, FatBootSector.UInt16FieldSize), (ushort)g.BytesPerSector);
+        bpb[FatBootSector.SecPerClusOffset] = g.SectorsPerCluster;
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.RsvdSecCntOffset, FatBootSector.UInt16FieldSize), g.ReservedSectorCount);
+        bpb[FatBootSector.NumFatsOffset] = g.NumberOfFats;
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.RootEntCntOffset, FatBootSector.UInt16FieldSize), g.RootEntryCount);
         // fatgen103: FAT12/16 volumes whose count fits 16 bits store it in
         // TotSec16 (strict drivers and fsck.fat read only that field
         // there) with TotSec32 zero; FAT32 and larger volumes use TotSec32.
         bool useTotSec16 = g.Type != FatType.Fat32 && g.TotalSectorCount <= ushort.MaxValue;
-        BitConverter.TryWriteBytes(bpb.Slice(TotSec16Offset, Field16Bytes), useTotSec16 ? (ushort)g.TotalSectorCount : (ushort)0);
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.TotSec16Offset, FatBootSector.UInt16FieldSize), useTotSec16 ? (ushort)g.TotalSectorCount : (ushort)0);
         bpb[MediaOffset] = MediaDescriptorFixed;
-        BitConverter.TryWriteBytes(bpb.Slice(FatSz16Offset, Field16Bytes), g.Type == FatType.Fat32 ? (ushort)0 : (ushort)g.FatSectorCount);
-        BitConverter.TryWriteBytes(bpb.Slice(SecPerTrkOffset, Field16Bytes), LegacySectorsPerTrack); // CHS sectors/track (unused by LBA)
-        BitConverter.TryWriteBytes(bpb.Slice(NumHeadsOffset, Field16Bytes), LegacyHeadCount); // CHS heads (unused by LBA)
-        BitConverter.TryWriteBytes(bpb.Slice(HiddSecOffset, Field32Bytes), (uint)0);
-        BitConverter.TryWriteBytes(bpb.Slice(TotSec32Offset, Field32Bytes), useTotSec16 ? 0u : g.TotalSectorCount);
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.FatSz16Offset, FatBootSector.UInt16FieldSize), g.Type == FatType.Fat32 ? (ushort)0 : (ushort)g.FatSectorCount);
+        BitConverter.TryWriteBytes(bpb.Slice(SecPerTrkOffset, FatBootSector.UInt16FieldSize), LegacySectorsPerTrack); // CHS sectors/track (unused by LBA)
+        BitConverter.TryWriteBytes(bpb.Slice(NumHeadsOffset, FatBootSector.UInt16FieldSize), LegacyHeadCount); // CHS heads (unused by LBA)
+        BitConverter.TryWriteBytes(bpb.Slice(HiddSecOffset, FatBootSector.UInt32FieldSize), (uint)0);
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.TotSec32Offset, FatBootSector.UInt32FieldSize), useTotSec16 ? 0u : g.TotalSectorCount);
 
         if (g.Type == FatType.Fat32)
         {
-            BitConverter.TryWriteBytes(bpb.Slice(FatSz32Offset, Field32Bytes), g.FatSectorCount);
-            BitConverter.TryWriteBytes(bpb.Slice(ExtFlagsOffset, Field16Bytes), (ushort)0); // ext flags
-            BitConverter.TryWriteBytes(bpb.Slice(FsVerOffset, Field16Bytes), (ushort)0); // version
-            BitConverter.TryWriteBytes(bpb.Slice(RootClusOffset, Field32Bytes), g.RootCluster);
-            BitConverter.TryWriteBytes(bpb.Slice(FsInfoOffset, Field16Bytes), FsInfoSectorNumber);
-            BitConverter.TryWriteBytes(bpb.Slice(BkBootSecOffset, Field16Bytes), BackupBootSectorNumber);
+            BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.FatSz32Offset, FatBootSector.UInt32FieldSize), g.FatSectorCount);
+            BitConverter.TryWriteBytes(bpb.Slice(ExtFlagsOffset, FatBootSector.UInt16FieldSize), (ushort)0); // ext flags
+            BitConverter.TryWriteBytes(bpb.Slice(FsVerOffset, FatBootSector.UInt16FieldSize), (ushort)0); // version
+            BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.RootClusOffset, FatBootSector.UInt32FieldSize), g.RootCluster);
+            BitConverter.TryWriteBytes(bpb.Slice(FsInfoOffset, FatBootSector.UInt16FieldSize), FsInfoSectorNumber);
+            BitConverter.TryWriteBytes(bpb.Slice(BkBootSecOffset, FatBootSector.UInt16FieldSize), BackupBootSectorNumber);
 
             bpb[Fat32DrvNumOffset] = DriveNumberFixedDisk;
             bpb[Fat32BootSigOffset] = ExtendedBootSignature;
-            BitConverter.TryWriteBytes(bpb.Slice(Fat32VolIdOffset, Field32Bytes), g.Serial);
+            BitConverter.TryWriteBytes(bpb.Slice(Fat32VolIdOffset, FatBootSector.UInt32FieldSize), g.Serial);
             ReadOnlySpan<char> labelChars = g.Label.AsSpan();
             for (int i = 0; i < VolumeLabelLength && i < labelChars.Length; i++)
             {
@@ -674,7 +608,7 @@ internal static class FatFormatter
         {
             bpb[Fat1216DrvNumOffset] = DriveNumberFixedDisk;
             bpb[Fat1216BootSigOffset] = ExtendedBootSignature;
-            BitConverter.TryWriteBytes(bpb.Slice(Fat1216VolIdOffset, Field32Bytes), g.Serial);
+            BitConverter.TryWriteBytes(bpb.Slice(Fat1216VolIdOffset, FatBootSector.UInt32FieldSize), g.Serial);
             ReadOnlySpan<char> labelChars = g.Label.AsSpan();
             for (int i = 0; i < VolumeLabelLength && i < labelChars.Length; i++)
             {
@@ -684,19 +618,19 @@ internal static class FatFormatter
             fsType.CopyTo(bpb.Slice(Fat1216FilSysTypeOffset, FilSysTypeLength));
         }
 
-        BitConverter.TryWriteBytes(bpb.Slice(BootSignatureOffset, Field16Bytes), BootSignature);
+        BitConverter.TryWriteBytes(bpb.Slice(FatBootSector.BootSignatureOffset, FatBootSector.UInt16FieldSize), FatBootSector.BootSignature);
 
-        device.WriteBlock(BootSectorLba, 1, bpb);
+        device.WriteBlock(FatBootSector.BootSectorLba, 1, bpb);
     }
 
     private static void WriteFat32FsInfo(IBlockDevice device, FormatGeometry g)
     {
         Span<byte> sector = new byte[(int)g.BytesPerSector];
-        BitConverter.TryWriteBytes(sector.Slice(FsiLeadSigOffset, Field32Bytes), FsiLeadSig);
-        BitConverter.TryWriteBytes(sector.Slice(FsiStrucSigOffset, Field32Bytes), FsiStrucSig);
-        BitConverter.TryWriteBytes(sector.Slice(FsiFreeCountOffset, Field32Bytes), FsiUnknownValue);
-        BitConverter.TryWriteBytes(sector.Slice(FsiNextFreeOffset, Field32Bytes), FsiUnknownValue);
-        BitConverter.TryWriteBytes(sector.Slice(FsiTrailSigOffset, Field32Bytes), FsiTrailSig);
+        BitConverter.TryWriteBytes(sector.Slice(FsiLeadSigOffset, FatBootSector.UInt32FieldSize), FsiLeadSig);
+        BitConverter.TryWriteBytes(sector.Slice(FsiStrucSigOffset, FatBootSector.UInt32FieldSize), FsiStrucSig);
+        BitConverter.TryWriteBytes(sector.Slice(FsiFreeCountOffset, FatBootSector.UInt32FieldSize), FsiUnknownValue);
+        BitConverter.TryWriteBytes(sector.Slice(FsiNextFreeOffset, FatBootSector.UInt32FieldSize), FsiUnknownValue);
+        BitConverter.TryWriteBytes(sector.Slice(FsiTrailSigOffset, FatBootSector.UInt32FieldSize), FsiTrailSig);
         device.WriteBlock(FsInfoSectorNumber, 1, sector);
     }
 
@@ -704,7 +638,7 @@ internal static class FatFormatter
     {
         // Re-emit the boot sector at offset 6 so the backup matches.
         Span<byte> bpb = new byte[(int)g.BytesPerSector];
-        device.ReadBlock(BootSectorLba, 1, bpb);
+        device.ReadBlock(FatBootSector.BootSectorLba, 1, bpb);
         device.WriteBlock(BackupBootSectorNumber, 1, bpb);
     }
 
@@ -719,20 +653,20 @@ internal static class FatFormatter
                 // descriptor takes its low byte, every remaining nibble
                 // of the group reads all-ones.
                 firstSector[0] = MediaDescriptorFixed;
-                firstSector.Slice(1, (int)Fat12PairBytes - 1).Fill(Fat12ReservedFill);
+                firstSector.Slice(1, (int)FatTable.Fat12PairBytes - 1).Fill(Fat12ReservedFill);
                 break;
             case FatType.Fat16:
-                BitConverter.TryWriteBytes(firstSector.Slice(0, (int)Fat16EntrySize), Fat16Fat0Entry);
-                BitConverter.TryWriteBytes(firstSector.Slice((int)Fat16EntrySize, (int)Fat16EntrySize), Fat16Fat1Entry);
+                BitConverter.TryWriteBytes(firstSector.Slice(0, (int)FatTable.Fat16EntrySize), Fat16Fat0Entry);
+                BitConverter.TryWriteBytes(firstSector.Slice((int)FatTable.Fat16EntrySize, (int)FatTable.Fat16EntrySize), Fat16Fat1Entry);
                 break;
             case FatType.Fat32:
-                BitConverter.TryWriteBytes(firstSector.Slice(0, (int)Fat32EntrySize), Fat32Fat0Entry);
-                BitConverter.TryWriteBytes(firstSector.Slice((int)Fat32EntrySize, (int)Fat32EntrySize), Fat32EndOfChainEntry);
+                BitConverter.TryWriteBytes(firstSector.Slice(0, (int)FatTable.Fat32EntrySize), Fat32Fat0Entry);
+                BitConverter.TryWriteBytes(firstSector.Slice((int)FatTable.Fat32EntrySize, (int)FatTable.Fat32EntrySize), Fat32EndOfChainEntry);
                 // Mark the root cluster as end-of-chain.
-                uint rootEntryByte = g.RootCluster * Fat32EntrySize;
-                if (rootEntryByte + Fat32EntrySize <= g.BytesPerSector)
+                uint rootEntryByte = g.RootCluster * FatTable.Fat32EntrySize;
+                if (rootEntryByte + FatTable.Fat32EntrySize <= g.BytesPerSector)
                 {
-                    BitConverter.TryWriteBytes(firstSector.Slice((int)rootEntryByte, (int)Fat32EntrySize), Fat32EndOfChainEntry);
+                    BitConverter.TryWriteBytes(firstSector.Slice((int)rootEntryByte, (int)FatTable.Fat32EntrySize), Fat32EndOfChainEntry);
                 }
                 break;
         }
@@ -749,7 +683,7 @@ internal static class FatFormatter
             // FAT32: if the root cluster's FAT entry didn't land in sector 0, write it where it does.
             if (g.Type == FatType.Fat32)
             {
-                uint rootByte = g.RootCluster * Fat32EntrySize;
+                uint rootByte = g.RootCluster * FatTable.Fat32EntrySize;
                 if (rootByte >= g.BytesPerSector)
                 {
                     uint sectorOffset = rootByte / g.BytesPerSector;
@@ -759,7 +693,7 @@ internal static class FatFormatter
                     if (sectorOffset < g.FatSectorCount)
                     {
                         Span<byte> rsec = new byte[(int)g.BytesPerSector];
-                        BitConverter.TryWriteBytes(rsec.Slice((int)inSector, (int)Fat32EntrySize), Fat32EndOfChainEntry);
+                        BitConverter.TryWriteBytes(rsec.Slice((int)inSector, (int)FatTable.Fat32EntrySize), Fat32EndOfChainEntry);
                         device.WriteBlock(fatStart + sectorOffset, 1, rsec);
                     }
                 }

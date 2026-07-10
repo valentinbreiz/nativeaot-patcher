@@ -25,8 +25,20 @@ public static class GIC
     public const uint TIMER_VIRT = 27;
     public const uint TIMER_HYP = 26;
 
-    // Default QEMU virt machine addresses (used if DTB not available)
-    private const ulong DEFAULT_GICD_BASE = 0x08000000;
+    // Register field and layout values (common to v2 and v3)
+    /// <summary>Byte stride between consecutive 32-bit GIC registers.</summary>
+    internal const uint RegisterStrideBytes = 4;
+    /// <summary>All-ones mask covering every interrupt bit in a 32-bit enable/pending register.</summary>
+    internal const uint AllInterruptsMask = 0xFFFFFFFF;
+    /// <summary>GICD_ICFGR per-interrupt 2-bit field value selecting edge-triggered (0b10), common to GICv2 GICD_ICFGR and GICv3 GICD_ICFGR/GICR_ICFGRn.</summary>
+    internal const uint IcfgrEdgeTriggered = 2u;
+    /// <summary>Priority mask value allowing all interrupt priorities (0xFF = lowest priority threshold), written to GICC_PMR (v2) / ICC_PMR_EL1 (v3).</summary>
+    internal const uint PriorityMaskAllowAll = 0xFF;
+    /// <summary>Default priority 0xA0 replicated into each byte of a GICD_IPRIORITYR word (lower value = higher priority).</summary>
+    internal const uint DefaultPriorityAllBytes = 0xA0A0A0A0;
+
+    /// <summary>Default GICD (distributor) base address on the QEMU virt machine, used when DTB/ACPI are absent (internal: shared fallback default for GICv2 and GICv3).</summary>
+    internal const ulong DEFAULT_GICD_BASE = 0x08000000;
 
     /// <summary>Offset of the second 64 KiB ITS register frame (GITS_TRANSLATER page) from the ITS base, per GICv3 ITS spec.</summary>
     private const ulong ItsTranslationFrameOffset = 0x10000;

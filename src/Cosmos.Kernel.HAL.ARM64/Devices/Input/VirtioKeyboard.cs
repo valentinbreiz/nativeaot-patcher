@@ -24,16 +24,6 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         public uint Value;
     }
 
-    // Linux input event types
-    private const ushort EV_SYN = 0x00;
-    private const ushort EV_KEY = 0x01;
-    private const ushort EV_REL = 0x02;
-    private const ushort EV_ABS = 0x03;
-
-    // Event queue index
-    private const int EVENTQ = 0;
-    private const int STATUSQ = 1;
-
     // Queue size
     private const uint QUEUE_SIZE = 64;
 
@@ -118,7 +108,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Set up event queue
-        if (!SetupQueue(EVENTQ))
+        if (!SetupQueue(VirtioMMIO.VIRTIO_INPUT_EVENTQ))
         {
             Serial.Write("[VirtioKeyboard] ERROR: Failed to setup event queue\n");
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
@@ -133,7 +123,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Notify device that buffers are available
-        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, EVENTQ);
+        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
 
         // Set DRIVER_OK to complete initialization
         status = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_STATUS);
@@ -322,7 +312,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             // Process the event
             VirtioInputEvent* evt = &_eventBuffers[id];
 
-            if (evt->Type == EV_KEY)
+            if (evt->Type == VirtioDevice.EV_KEY)
             {
                 // Convert Linux keycode to PS2 scan code
                 byte scanCode = LinuxToPS2ScanCode(evt->Code);
@@ -343,7 +333,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             AddEventBuffer((int)id);
 
             // Notify device
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, EVENTQ);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
         }
     }
 

@@ -13,10 +13,25 @@ namespace Cosmos.Kernel.HAL.Devices.Clock;
 /// </summary>
 public static class EfiRtc
 {
-    private const long TicksPerSecond = 10_000_000L;
-    private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour = TicksPerMinute * 60;
-    private const long TicksPerDay = TicksPerHour * 24;
+    /// <summary>
+    /// .NET DateTime ticks (100-nanosecond intervals) per second.
+    /// Public so the arch-specific RTC drivers can share the same tick unit.
+    /// </summary>
+    public const long TicksPerSecond = 10_000_000L;
+
+    /// <summary>.NET DateTime ticks per minute.</summary>
+    public const long TicksPerMinute = TicksPerSecond * 60;
+
+    /// <summary>.NET DateTime ticks per hour.</summary>
+    public const long TicksPerHour = TicksPerMinute * 60;
+
+    /// <summary>.NET DateTime ticks per day.</summary>
+    public const long TicksPerDay = TicksPerHour * 24;
+
+    /// <summary>
+    /// Unix epoch (1970-01-01 00:00:00 UTC) as DateTime ticks: DateTime(1970,1,1).Ticks.
+    /// </summary>
+    public const long UnixEpochTicks = 621_355_968_000_000_000L;
 
     /// <summary>
     /// Attempts to read the current wall-clock time via EFI Runtime Services.

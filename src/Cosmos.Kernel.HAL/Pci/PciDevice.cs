@@ -36,12 +36,10 @@ public class PciDevice : Device
     public const ushort ConfigAddressPort = 0xCF8;
     public const ushort ConfigDataPort = 0xCFC;
 
-    /// <summary>Command register offset in PCI configuration space (0x04).</summary>
-    private const byte CommandRegisterOffset = 0x04;
     /// <summary>Capabilities Pointer register offset in PCI configuration space (0x34, Type-0 header only).</summary>
     private const byte CapabilitiesPointerOffset = 0x34;
     /// <summary>BAR0 register offset in PCI configuration space (0x10).</summary>
-    private const byte Bar0Offset = 0x10;
+    public const byte Bar0Offset = 0x10;
     /// <summary>BAR1 register offset in PCI configuration space (0x14).</summary>
     private const byte Bar1Offset = 0x14;
     /// <summary>BAR2 register offset in PCI configuration space (0x18).</summary>
@@ -65,7 +63,7 @@ public class PciDevice : Device
     /// <summary>BAR bit 0 — set when the BAR maps I/O space instead of memory space.</summary>
     private const uint BarIoSpaceMask = 0x1;
     /// <summary>Mask selecting the address bits of a memory BAR (low 4 bits are flags).</summary>
-    private const uint BarMemoryAddressMask = 0xFFFFFFF0;
+    public const uint BarMemoryAddressMask = 0xFFFFFFF0;
     /// <summary>Shift down to the memory BAR type field (bits 2:1).</summary>
     private const int BarTypeShift = 1;
     /// <summary>Mask for the memory BAR type field after shifting.</summary>
@@ -135,8 +133,8 @@ public class PciDevice : Device
 
     public PciCommand Command
     {
-        get => (PciCommand)ReadRegister16(CommandRegisterOffset);
-        set => WriteRegister16(CommandRegisterOffset, (ushort)value);
+        get => (PciCommand)ReadRegister16((byte)Config.Command);
+        set => WriteRegister16((byte)Config.Command, (ushort)value);
     }
 
     /// <summary>
@@ -473,7 +471,7 @@ public class PciDevice : Device
     /// <param name="enable">bool value.</param>
     public void EnableMemory(bool enable)
     {
-        ushort command = ReadRegister16(CommandRegisterOffset);
+        ushort command = ReadRegister16((byte)Config.Command);
 
         ushort flags = CommandEnableFlags;
 
@@ -486,12 +484,12 @@ public class PciDevice : Device
             command &= (ushort)~flags;
         }
 
-        WriteRegister16(CommandRegisterOffset, command);
+        WriteRegister16((byte)Config.Command, command);
     }
 
     public void EnableBusMaster(bool enable)
     {
-        ushort command = ReadRegister16(CommandRegisterOffset);
+        ushort command = ReadRegister16((byte)Config.Command);
 
         ushort flags = CommandBusMasterFlag;
 
@@ -504,6 +502,6 @@ public class PciDevice : Device
             command &= (ushort)~flags;
         }
 
-        WriteRegister16(CommandRegisterOffset, command);
+        WriteRegister16((byte)Config.Command, command);
     }
 }

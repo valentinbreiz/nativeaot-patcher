@@ -20,9 +20,6 @@ internal static class StorageView
     /// <summary>Block count passed to <c>ReadBlock</c> when probing a single sector.</summary>
     private const ulong SingleBlock = 1;
 
-    /// <summary>First block of a partition, where its boot sector lives.</summary>
-    private const ulong BootSectorLba = 0;
-
     /// <summary>Reports that storage is off or empty; returns false when there is nothing to list.</summary>
     public static bool RequireDevices()
     {
@@ -106,7 +103,7 @@ internal static class StorageView
         Span<byte> boot = new byte[partition.BlockSize];
         try
         {
-            partition.ReadBlock(BootSectorLba, SingleBlock, boot);
+            partition.ReadBlock(FatBootSector.BootSectorLba, SingleBlock, boot);
         }
         catch
         {

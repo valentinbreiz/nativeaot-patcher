@@ -99,17 +99,15 @@ public static class Gpt
     /// <summary>Width in bytes of a 32-bit on-disk field (revision, sizes, counts, CRCs).</summary>
     private const int UInt32FieldSize = 4;
 
-    /// <summary>Width in bytes of a 16-bit on-disk field (MBR boot signature).</summary>
-    private const int UInt16FieldSize = 2;
-
     /// <summary>Width in bytes of an on-disk GUID field.</summary>
     private const int GuidFieldSize = 16;
 
-    /// <summary>LBA of the protective MBR (sector 0).</summary>
-    private const ulong ProtectiveMbrLba = 0;
-
-    /// <summary>LBA of the primary GPT header (sector 1).</summary>
-    private const ulong PrimaryHeaderLba = 1;
+    /// <summary>
+    /// LBA of the primary GPT header (sector 1, UEFI spec). Public so MBR
+    /// creation and tests wipe the same sector this writer stamps,
+    /// mirroring <see cref="FirstUsableLba"/>.
+    /// </summary>
+    public const ulong PrimaryHeaderLba = 1;
 
     /// <summary>LBA where the partition entry array starts in the standard layout (first sector after the protective MBR and primary header); also the minimum PartitionEntryLBA accepted when parsing.</summary>
     private const ulong EntryArrayLba = 2;
@@ -127,9 +125,6 @@ public static class Gpt
     /// <summary>Minimum device size in sectors accepted by Create: LBAs 0..33 plus a usable area and a backup slot at BlockCount-1.</summary>
     private const ulong MinCreateBlockCount = 64;
 
-    /// <summary>Byte offset of the first MBR partition table entry within LBA 0.</summary>
-    private const int MbrPartitionTableOffset = 446;
-
     /// <summary>MBR partition entry field offset of the boot indicator (byte 0).</summary>
     private const int MbrBootIndicatorOffset = 0;
 
@@ -142,9 +137,6 @@ public static class Gpt
     /// <summary>MBR partition entry field offset of the starting CHS cylinder (byte 3).</summary>
     private const int MbrStartChsCylinderOffset = 3;
 
-    /// <summary>MBR partition entry field offset of the partition type id (byte 4).</summary>
-    private const int MbrPartitionTypeOffset = 4;
-
     /// <summary>MBR partition entry field offset of the ending CHS head (byte 5).</summary>
     private const int MbrEndChsHeadOffset = 5;
 
@@ -154,26 +146,8 @@ public static class Gpt
     /// <summary>MBR partition entry field offset of the ending CHS cylinder (byte 7).</summary>
     private const int MbrEndChsCylinderOffset = 7;
 
-    /// <summary>MBR partition entry field offset of the first absolute LBA (byte 8).</summary>
-    private const int MbrFirstLbaOffset = 8;
-
-    /// <summary>MBR partition entry field offset of the size in LBAs (byte 12).</summary>
-    private const int MbrSizeInLbaOffset = 12;
-
-    /// <summary>Byte offset of the MBR boot signature within LBA 0.</summary>
-    private const int MbrBootSignatureOffset = 510;
-
-    /// <summary>MBR boot signature value (0x55, 0xAA little-endian).</summary>
-    private const ushort MbrBootSignature = 0xAA55;
-
-    /// <summary>MBR partition type id of the GPT protective partition (UEFI spec: 0xEE).</summary>
-    private const byte GptProtectivePartitionType = 0xEE;
-
     /// <summary>CHS placeholder value used when the geometry exceeds CHS addressing (all bits set).</summary>
     private const byte MbrChsPlaceholder = 0xFF;
-
-    /// <summary>Boot indicator of the protective partition: non-bootable (UEFI spec 5.2.3).</summary>
-    private const byte ProtectiveMbrBootIndicator = 0x00;
 
     /// <summary>Starting CHS head of the protective partition (head 0; with sector 2 and cylinder 0 this addresses LBA 1, UEFI spec 5.2.3).</summary>
     private const byte ProtectiveMbrStartChsHead = 0x00;
@@ -184,8 +158,12 @@ public static class Gpt
     /// <summary>Starting CHS cylinder of the protective partition (cylinder 0, UEFI spec 5.2.3).</summary>
     private const byte ProtectiveMbrStartChsCylinder = 0x00;
 
-    /// <summary>First absolute LBA of the protective partition (LBA 1, right after the MBR).</summary>
-    private const uint ProtectiveMbrStartLba = 1u;
+    /// <summary>
+    /// First absolute LBA of the protective partition (LBA 1, right after
+    /// the MBR; UEFI spec 5.2.3). Public so tests craft protective entries
+    /// with the same value this writer stamps.
+    /// </summary>
+    public const uint ProtectiveMbrStartLba = 1u;
 
     /// <summary>Maximum size-in-LBA value the 32-bit MBR field can express; larger disks are clamped to it (UEFI spec).</summary>
     private const uint MbrMaxSizeInLba = 0xFFFFFFFFu;
@@ -362,21 +340,21 @@ public static class Gpt
 
         // Protective MBR at LBA 0.
         Span<byte> protectiveMbr = new byte[blockSize];
-        protectiveMbr[MbrPartitionTableOffset + MbrBootIndicatorOffset] = ProtectiveMbrBootIndicator; // boot indicator
-        protectiveMbr[MbrPartitionTableOffset + MbrStartChsHeadOffset] = ProtectiveMbrStartChsHead; // start CHS head
-        protectiveMbr[MbrPartitionTableOffset + MbrStartChsSectorOffset] = ProtectiveMbrStartChsSector; // start CHS sector
-        protectiveMbr[MbrPartitionTableOffset + MbrStartChsCylinderOffset] = ProtectiveMbrStartChsCylinder; // start CHS cylinder
-        protectiveMbr[MbrPartitionTableOffset + MbrPartitionTypeOffset] = GptProtectivePartitionType; // GPT protective system id
-        protectiveMbr[MbrPartitionTableOffset + MbrEndChsHeadOffset] = MbrChsPlaceholder; // end CHS head
-        protectiveMbr[MbrPartitionTableOffset + MbrEndChsSectorOffset] = MbrChsPlaceholder; // end CHS sector
-        protectiveMbr[MbrPartitionTableOffset + MbrEndChsCylinderOffset] = MbrChsPlaceholder; // end CHS cylinder
-        BitConverter.TryWriteBytes(protectiveMbr.Slice(MbrPartitionTableOffset + MbrFirstLbaOffset, UInt32FieldSize), ProtectiveMbrStartLba);
+        protectiveMbr[Mbr.PartitionTableOffset + MbrBootIndicatorOffset] = Mbr.StatusInactive; // boot indicator: non-bootable (UEFI spec 5.2.3)
+        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsHeadOffset] = ProtectiveMbrStartChsHead; // start CHS head
+        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsSectorOffset] = ProtectiveMbrStartChsSector; // start CHS sector
+        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsCylinderOffset] = ProtectiveMbrStartChsCylinder; // start CHS cylinder
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntrySystemIdOffset] = Mbr.SystemIdGptProtective; // GPT protective system id
+        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsHeadOffset] = MbrChsPlaceholder; // end CHS head
+        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsSectorOffset] = MbrChsPlaceholder; // end CHS sector
+        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsCylinderOffset] = MbrChsPlaceholder; // end CHS cylinder
+        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntryStartLbaOffset, UInt32FieldSize), ProtectiveMbrStartLba);
         uint sizeInLba = device.BlockCount > MbrMaxSizeInLba
             ? MbrMaxSizeInLba
             : (uint)(device.BlockCount - 1);
-        BitConverter.TryWriteBytes(protectiveMbr.Slice(MbrPartitionTableOffset + MbrSizeInLbaOffset, UInt32FieldSize), sizeInLba);
-        BitConverter.TryWriteBytes(protectiveMbr.Slice(MbrBootSignatureOffset, UInt16FieldSize), MbrBootSignature);
-        device.WriteBlock(ProtectiveMbrLba, 1, protectiveMbr);
+        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntrySectorCountOffset, UInt32FieldSize), sizeInLba);
+        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), Mbr.MbrSignature);
+        device.WriteBlock(Mbr.MbrSectorLba, 1, protectiveMbr);
 
         // GPT header at LBA 1.
         Span<byte> header = new byte[blockSize];

@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.ARM64.Bridge;
+using Cosmos.Kernel.Core.ARM64.Cpu;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
@@ -38,10 +39,10 @@ public class GenericTimer : TimerDevice
     private ulong _ticksPerPeriod;
 
     /// <summary>
-    /// Physical timer interrupt number on GIC.
-    /// For QEMU virt machine: INTID 30 (non-secure physical timer).
+    /// Physical timer interrupt number on GIC: INTID 30, the non-secure
+    /// physical timer PPI (alias of <see cref="GIC.TIMER_NONSEC_PHYS"/>).
     /// </summary>
-    public const uint PhysicalTimerIrq = 30;
+    public const uint PhysicalTimerIrq = GIC.TIMER_NONSEC_PHYS;
 
     /// <summary>
     /// Default timer period: 10ms (100 Hz) for scheduling.

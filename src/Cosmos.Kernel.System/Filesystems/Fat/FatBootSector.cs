@@ -22,59 +22,59 @@ public enum FatType
 /// </summary>
 public sealed class FatBootSector
 {
+    /// <summary>LBA of the boot sector holding the BPB — always the first sector of the volume (fatgen103 section 3.1). Public so the formatter, mount probe, and shell tooling read/write the same sector.</summary>
+    public const ulong BootSectorLba = 0;
+
     /// <summary>Boot signature value at bytes 510-511.</summary>
-    private const ushort BootSignature = 0xAA55;
+    internal const ushort BootSignature = 0xAA55;
 
     /// <summary>Byte offset of the 0xAA55 boot signature.</summary>
-    private const int BootSignatureOffset = 510;
+    internal const int BootSignatureOffset = 510;
 
     /// <summary>BPB_BytsPerSec: bytes per sector (offset 11, 16-bit).</summary>
-    private const int BytsPerSecOffset = 11;
+    internal const int BytsPerSecOffset = 11;
 
     /// <summary>BPB_SecPerClus: sectors per cluster (offset 13, 8-bit).</summary>
-    private const int SecPerClusOffset = 13;
+    internal const int SecPerClusOffset = 13;
 
     /// <summary>BPB_RsvdSecCnt: reserved sector count (offset 14, 16-bit).</summary>
-    private const int RsvdSecCntOffset = 14;
+    internal const int RsvdSecCntOffset = 14;
 
     /// <summary>BPB_NumFATs: FAT copy count (offset 16, 8-bit).</summary>
-    private const int NumFatsOffset = 16;
+    internal const int NumFatsOffset = 16;
 
     /// <summary>BPB_RootEntCnt: root entry count (offset 17, 16-bit).</summary>
-    private const int RootEntCntOffset = 17;
+    internal const int RootEntCntOffset = 17;
 
     /// <summary>BPB_TotSec16: 16-bit total sector count (offset 19).</summary>
-    private const int TotSec16Offset = 19;
+    internal const int TotSec16Offset = 19;
 
     /// <summary>BPB_FATSz16: 16-bit FAT size (offset 22).</summary>
-    private const int FatSz16Offset = 22;
+    internal const int FatSz16Offset = 22;
 
     /// <summary>BPB_TotSec32: 32-bit total sector count (offset 32).</summary>
-    private const int TotSec32Offset = 32;
+    internal const int TotSec32Offset = 32;
 
     /// <summary>BPB_FATSz32: 32-bit FAT size (offset 36, FAT32 only).</summary>
-    private const int FatSz32Offset = 36;
+    internal const int FatSz32Offset = 36;
 
     /// <summary>BPB_RootClus: root directory cluster (offset 44, FAT32 only).</summary>
-    private const int RootClusOffset = 44;
+    internal const int RootClusOffset = 44;
 
     /// <summary>Width in bytes of a 16-bit BPB field.</summary>
-    private const int UInt16FieldSize = 2;
+    internal const int UInt16FieldSize = 2;
 
     /// <summary>Width in bytes of a 32-bit BPB field.</summary>
-    private const int UInt32FieldSize = 4;
+    internal const int UInt32FieldSize = 4;
 
     /// <summary>Smallest sector size the FAT spec permits (and the BPB layout floor).</summary>
-    private const uint MinBytesPerSector = 512;
+    internal const uint MinBytesPerSector = 512;
 
     /// <summary>Largest sector size the FAT spec permits.</summary>
-    private const uint MaxBytesPerSector = 4096;
+    internal const uint MaxBytesPerSector = 4096;
 
     /// <summary>Largest legal BPB_SecPerClus value: a power of two up to 128 (fatgen103 §3.1).</summary>
     private const uint MaxSectorsPerCluster = 128;
-
-    /// <summary>Size in bytes of one directory entry.</summary>
-    private const uint DirEntrySize = 32;
 
     /// <summary>Cluster counts at or above this are FAT16 (fatgen103 §3.5).</summary>
     private const uint Fat16MinClusters = 4085;
@@ -150,7 +150,7 @@ public sealed class FatBootSector
         }
 
         bs.FatStartLba = bs.ReservedSectorCount;
-        bs.RootSectorCount = (bs.RootEntryCount * DirEntrySize + (bs.BytesPerSector - 1)) / bs.BytesPerSector;
+        bs.RootSectorCount = (bs.RootEntryCount * (uint)FatDirectory.EntrySize + (bs.BytesPerSector - 1)) / bs.BytesPerSector;
 
         // Derive the geometry in ulong: a crafted FATSz32/NumFATs pair
         // (e.g. 0x80000000 x 2) wraps the uint product to 0 and collapses

@@ -93,7 +93,7 @@ public class RTC : Device
             long unixSecs = Limine.BootTime.Response->BootTime;
             if (unixSecs > 0)
             {
-                BootTimeTicks = UnixEpochTicks + unixSecs * TicksPerSecond;
+                BootTimeTicks = EfiRtc.UnixEpochTicks + unixSecs * EfiRtc.TicksPerSecond;
                 Serial.Write("[RTC] Boot time (Limine): ");
                 LogTime(BootTimeTicks);
                 IsInitialized = true;
@@ -334,7 +334,7 @@ public class RTC : Device
         days += day - 1;
 
         // Convert to ticks (100-nanosecond intervals)
-        return days * TicksPerDay;
+        return days * EfiRtc.TicksPerDay;
     }
 
     /// <summary>
@@ -342,7 +342,7 @@ public class RTC : Device
     /// </summary>
     private static long TimeToTicks(int hour, int minute, int second)
     {
-        return hour * TicksPerHour + minute * TicksPerMinute + second * TicksPerSecond;
+        return hour * EfiRtc.TicksPerHour + minute * EfiRtc.TicksPerMinute + second * EfiRtc.TicksPerSecond;
     }
 
     /// <summary>
@@ -365,11 +365,4 @@ public class RTC : Device
         result += remainder * b / c;
         return result;
     }
-
-    // DateTime tick constants
-    private const long TicksPerSecond = 10_000_000L;
-    private const long UnixEpochTicks = 621_355_968_000_000_000L;
-    private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour = TicksPerMinute * 60;
-    private const long TicksPerDay = TicksPerHour * 24;
 }

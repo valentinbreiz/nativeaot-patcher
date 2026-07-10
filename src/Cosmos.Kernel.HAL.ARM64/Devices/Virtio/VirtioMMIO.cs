@@ -29,6 +29,10 @@ public static class VirtioMMIO
     public const uint VIRTIO_DEV_GPU = 16;
     public const uint VIRTIO_DEV_INPUT = 18;
 
+    // Virtio-input virtqueue indexes (virtio spec 5.8.2: eventq = 0, statusq = 1)
+    public const int VIRTIO_INPUT_EVENTQ = 0;
+    public const int VIRTIO_INPUT_STATUSQ = 1;
+
     // Virtio MMIO register offsets
     public const uint REG_MAGIC = 0x00;
     public const uint REG_VERSION = 0x04;

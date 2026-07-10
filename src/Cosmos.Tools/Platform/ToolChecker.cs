@@ -15,8 +15,6 @@ public class ToolStatus
 
 public static class ToolChecker
 {
-    private const int CommandTimeoutMs = 5000;
-
     public static async Task<ToolStatus> CheckToolAsync(ToolDefinition tool)
     {
         return tool switch
@@ -245,7 +243,7 @@ public static class ToolChecker
             var stderrTask = process.StandardError.ReadToEndAsync();
 
             // Apply timeout to prevent hanging on tools that wait for input
-            using var cts = new CancellationTokenSource(CommandTimeoutMs);
+            using var cts = new CancellationTokenSource(ToolResolver.CommandTimeoutMs);
             try
             {
                 await process.WaitForExitAsync(cts.Token);

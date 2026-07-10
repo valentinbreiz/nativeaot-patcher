@@ -11,8 +11,8 @@ namespace Cosmos.TestRunner.Framework
     /// </summary>
     public static class TestRunner
     {
-        /// <summary>Milliseconds per second; converts a Stopwatch tick delta divided by frequency into ms.</summary>
-        private const int MillisecondsPerSecond = 1000;
+        /// <summary>Milliseconds per second; converts a Stopwatch tick delta divided by frequency into ms. Public so test kernels can share the same conversion factor.</summary>
+        public const int MillisecondsPerSecond = 1000;
         /// <summary>Upper bound (5 minutes, in ms) for a plausible single-test duration; larger raw readings are clamped (QEMU TCG CNTPCT_EL0 anomaly).</summary>
         private const long MaxSaneDurationMs = 5L * 60L * 1000L;
         /// <summary>Length of the "skip=" token skipped over when parsing the Limine cmdline.</summary>

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
 using Cosmos.TestRunner.Engine.Protocol;
+using Cosmos.TestRunner.Protocol;
 using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestRunner.Engine;
@@ -18,21 +19,6 @@ namespace Cosmos.TestRunner.Engine;
 /// </summary>
 public partial class Engine
 {
-    /// <summary>Byte 0 (least significant) of the binary test-protocol frame magic 0x19740807 as it appears little-endian on the wire.</summary>
-    private const byte ProtocolMagicByte0 = 0x07;
-
-    /// <summary>Byte 1 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
-    private const byte ProtocolMagicByte1 = 0x08;
-
-    /// <summary>Byte 2 of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
-    private const byte ProtocolMagicByte2 = 0x74;
-
-    /// <summary>Byte 3 (most significant) of the binary test-protocol frame magic 0x19740807 (little-endian on the wire).</summary>
-    private const byte ProtocolMagicByte3 = 0x19;
-
-    /// <summary>Binary test-protocol command id for TestDestructiveReached (emitted only by RunDestructive).</summary>
-    private const byte TestDestructiveReachedCommand = 108;
-
     /// <summary>Size of each per-profile sparse raw test disk image (256 MiB).</summary>
     private const long TestDiskSizeBytes = 256L * 1024 * 1024;
 
@@ -444,7 +430,7 @@ public partial class Engine
         }
         // Magic 0x19740807 little-endian = bytes 07 08 74 19, then command byte.
         // Command 108 = TestDestructiveReached (emitted only by RunDestructive).
-        byte[] needle = { ProtocolMagicByte0, ProtocolMagicByte1, ProtocolMagicByte2, ProtocolMagicByte3, TestDestructiveReachedCommand };
+        byte[] needle = { Consts.SerialSignatureByte0, Consts.SerialSignatureByte1, Consts.SerialSignatureByte2, Consts.SerialSignatureByte3, Ds2Vs.TestDestructiveReached };
         byte[] haystack = System.Text.Encoding.Latin1.GetBytes(uartLog);
         for (int i = 0; i + needle.Length <= haystack.Length; i++)
         {

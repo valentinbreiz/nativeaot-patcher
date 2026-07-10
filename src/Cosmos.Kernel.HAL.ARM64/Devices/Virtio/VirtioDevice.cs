@@ -16,11 +16,12 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 [EagerStaticClassConstruction]
 public static class VirtioDevice
 {
-    // Linux input event types
-    private const ushort EV_SYN = 0x00;
-    private const ushort EV_KEY = 0x01;
-    private const ushort EV_REL = 0x02;
-    private const ushort EV_ABS = 0x03;
+    // Linux input event types (virtio-input passes them through verbatim;
+    // internal so the virtio-input drivers share these definitions)
+    internal const ushort EV_SYN = 0x00;
+    internal const ushort EV_KEY = 0x01;
+    internal const ushort EV_REL = 0x02;
+    internal const ushort EV_ABS = 0x03;
     private static readonly object?[] s_virtioDevices = new object?[VIRTIO_MMIO_MAX_DEVICES];
 
     /// <summary>object

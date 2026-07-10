@@ -43,11 +43,8 @@ public static class Mbr
     /// <summary>LBA of the MBR sector itself (sector 0) — where the partition table is read/written, and the start LBA no partition entry may alias.</summary>
     internal const uint MbrSectorLba = 0;
 
-    /// <summary>LBA of a primary GPT header (sector 1); <see cref="Create"/> wipes it so a stale "EFI PART" label from a previous GPT layout cannot outrank this MBR.</summary>
-    private const ulong GptHeaderLba = 1;
-
-    /// <summary>Partition status byte: inactive (non-bootable) entry.</summary>
-    private const byte StatusInactive = 0x00;
+    /// <summary>Partition status byte: inactive (non-bootable) entry; also the boot indicator <see cref="Gpt"/> stamps on the protective entry (UEFI spec 5.2.3).</summary>
+    internal const byte StatusInactive = 0x00;
 
     /// <summary>Partition status byte: active (bootable) entry.</summary>
     private const byte StatusBootable = 0x80;
@@ -65,7 +62,7 @@ public static class Mbr
     internal const byte SystemIdLinuxExtended = 0x85;
 
     /// <summary>System ID 0xEE - GPT protective/hybrid MBR entry (the real table is the GPT).</summary>
-    private const byte SystemIdGptProtective = 0xEE;
+    internal const byte SystemIdGptProtective = 0xEE;
 
     /// <summary>Single MBR partition entry. Sector positions are absolute on the host disk.</summary>
     public sealed class PartitionEntry
@@ -159,8 +156,11 @@ public static class Mbr
         BitConverter.TryWriteBytes(mbr.Slice(SignatureOffset, SignatureSizeBytes), MbrSignature);
         device.WriteBlock(MbrSectorLba, 1, mbr);
 
+        // Wipe the primary GPT header sector: a stale "EFI PART" label from
+        // a previous GPT layout would keep outranking this MBR in the
+        // partition scanner, which checks GPT first.
         Span<byte> lba1 = new byte[device.BlockSize];
-        device.WriteBlock(GptHeaderLba, 1, lba1);
+        device.WriteBlock(Gpt.PrimaryHeaderLba, 1, lba1);
     }
 
     /// <summary>

@@ -17,17 +17,14 @@ namespace Cosmos.Kernel.System.Storage;
 /// </summary>
 public static class Ebr
 {
-    /// <summary>Boot signature at the end of every EBR sector (same 0xAA55 as the MBR).</summary>
-    private const ushort EbrSignature = 0xAA55;
-
     /// <summary>Byte offset of this EBR's logical-partition entry (partition table slot 0).</summary>
     private const int LogicalEntryOffset = Mbr.PartitionTableOffset;
 
     /// <summary>Byte offset of the next-EBR link entry (partition table slot 1).</summary>
     private const int NextEbrEntryOffset = Mbr.PartitionTableOffset + Mbr.PartitionEntrySize;
 
-    /// <summary>Sectors the EBR itself occupies; a logical's data area starts this many sectors after its hosting EBR (classic EBR layout).</summary>
-    private const uint EbrSectorSpan = 1;
+    /// <summary>Sectors the EBR itself occupies; a logical's data area starts this many sectors after its hosting EBR (classic EBR layout). Internal so <see cref="PartitionManager"/>'s collision checks track the same placement.</summary>
+    internal const uint EbrSectorSpan = 1;
 
     /// <summary>Defensive cap on chain hops so a cyclic on-disk chain cannot spin the walk forever.</summary>
     private const int MaxChainLength = 128;
@@ -312,7 +309,7 @@ public static class Ebr
         {
             device.ReadBlock(currentEbrLba, 1, sector);
 
-            if (BitConverter.ToUInt16(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes)) != EbrSignature)
+            if (BitConverter.ToUInt16(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes)) != Mbr.MbrSignature)
             {
                 break;
             }
@@ -379,7 +376,7 @@ public static class Ebr
             BitConverter.TryWriteBytes(sector.Slice(NextEbrEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), nextRelative);
         }
 
-        BitConverter.TryWriteBytes(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), EbrSignature);
+        BitConverter.TryWriteBytes(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), Mbr.MbrSignature);
 
         device.WriteBlock(ebrLba, 1, sector);
     }

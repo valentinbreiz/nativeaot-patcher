@@ -14,8 +14,8 @@ internal static class FatTestVolume
 {
     public const ulong BlockSize = 512;
 
-    /// <summary>Number of FAT copies on both test volumes — the standard redundant pair (fatgen103 BPB_NumFATs).</summary>
-    private const byte FatCopyCount = 2;
+    /// <summary>Number of FAT copies on every test volume — the standard redundant pair (fatgen103 BPB_NumFATs); shared with the format cells in <see cref="Kernel"/>.</summary>
+    internal const byte FatCopyCount = 2;
 
     // FAT16 geometry: 32 MiB / SPC=8 / 32-sector FAT keeps cluster count in the
     // [4085, 65525) band even with the formatter's auto-pick branches.

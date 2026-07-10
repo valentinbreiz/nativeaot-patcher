@@ -4,6 +4,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
@@ -22,8 +23,6 @@ public static class MsiX
     private const byte MsgCtrlOffset = 0x02;
     /// <summary>Offset of the Table Offset/Table BIR register within the MSI-X capability (PCI 3.0 §6.8.2.4).</summary>
     private const byte TableOffsetBirOffset = 0x04;
-    /// <summary>Offset of the Command register in the PCI configuration header.</summary>
-    private const byte PciCommandOffset = 0x04;
 
     /// <summary>Mask selecting the BAR Indicator Register (BIR) bits of the Table Offset/BIR register.</summary>
     private const uint TableBirMask = 0x7;
@@ -123,8 +122,8 @@ public static class MsiX
         pci.WriteRegister16((byte)(cap + MsgCtrlOffset), msgCtrl);
 
         // Disable legacy INTx delivery so the same line can't double-fire.
-        ushort cmd = pci.ReadRegister16(PciCommandOffset);
-        pci.WriteRegister16(PciCommandOffset, (ushort)(cmd | PciCommandInterruptDisable));
+        ushort cmd = pci.ReadRegister16((byte)Config.Command);
+        pci.WriteRegister16((byte)Config.Command, (ushort)(cmd | PciCommandInterruptDisable));
 
         return new MsiXContext(tableVirt, tableSize, deviceCtx);
     }

@@ -27,11 +27,11 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// </summary>
 public static unsafe class GICv3Lpi
 {
-    // GICR RD_base register offsets that matter for LPI setup. Note the
-    // exact widths: CTLR and SYNCR are 32-bit, PROPBASER/PENDBASER/INVLPIR
-    // are 64-bit. A 64-bit access to a 32-bit register gets silently
-    // rejected (or split-and-misrouted) on QEMU, leaving the bit unset.
-    private const uint GICR_CTLR = 0x0000;     // 32-bit
+    // GICR RD_base register offsets that matter for LPI setup (GICR_CTLR
+    // comes from GICv3). Note the exact widths: CTLR and SYNCR are 32-bit,
+    // PROPBASER/PENDBASER/INVLPIR are 64-bit. A 64-bit access to a 32-bit
+    // register gets silently rejected (or split-and-misrouted) on QEMU,
+    // leaving the bit unset.
     private const uint GICR_PROPBASER = 0x0070; // 64-bit
     private const uint GICR_PENDBASER = 0x0078; // 64-bit
     private const uint GICR_INVLPIR = 0x00A0;   // 64-bit WO
@@ -75,10 +75,7 @@ public static unsafe class GICv3Lpi
     // that is 8192 config bytes, half the (over-)allocated prop table. The
     // window checks below must use this bound — bounding against the full
     // table accepts INTIDs up to 24575 whose bytes the GIC never reads.
-    private const uint LpiCount = (1U << (LpiIdBits + 1)) - 8192;
-
-    /// <summary>First LPI INTID — the LPI INTID space always starts at 8192 (ARM IHI 0069G §1.2.1).</summary>
-    private const uint LpiBaseIntId = 8192;
+    private const uint LpiCount = (1U << (LpiIdBits + 1)) - ARM64InterruptController.LpiBase;
 
     /// <summary>Property table allocation in 4 KiB pages: 4 pages = 16 KiB, one config byte per INTID for IDbits=13.</summary>
     private const uint PropTablePages = 4;
@@ -124,7 +121,7 @@ public static unsafe class GICv3Lpi
         // InitializeMsi downgrades the whole MSI path to polled.
         // GICR_CTLR is a 32-bit register; using Write/Read64 here would
         // misalign the access and silently no-op on QEMU.
-        uint ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+        uint ctlr = Native.MMIO.Read32(_rdBase + GICv3.GICR_CTLR);
         if ((ctlr & GICR_CTLR_ENABLE_LPIS) != 0)
         {
             if ((ctlr & GICR_CTLR_CES) == 0)
@@ -134,16 +131,16 @@ public static unsafe class GICv3Lpi
             }
 
             Serial.WriteString("[GICv3-LPI] firmware left LPIs enabled; CES=1, disabling to reprogram\n");
-            Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr & ~GICR_CTLR_ENABLE_LPIS);
+            Native.MMIO.Write32(_rdBase + GICv3.GICR_CTLR, ctlr & ~GICR_CTLR_ENABLE_LPIS);
             for (int i = 0; i < RegisterSyncSpinLimit; i++)
             {
-                if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
+                if ((Native.MMIO.Read32(_rdBase + GICv3.GICR_CTLR) & GICR_CTLR_RWP) == 0)
                 {
                     break;
                 }
             }
 
-            ctlr = Native.MMIO.Read32(_rdBase + GICR_CTLR);
+            ctlr = Native.MMIO.Read32(_rdBase + GICv3.GICR_CTLR);
         }
 
         // Property table — 1 byte per INTID, 4KB-aligned. Allocate 4 pages
@@ -186,12 +183,12 @@ public static unsafe class GICv3Lpi
 
         // Enable LPIs (32-bit write).
         ctlr |= GICR_CTLR_ENABLE_LPIS;
-        Native.MMIO.Write32(_rdBase + GICR_CTLR, ctlr);
+        Native.MMIO.Write32(_rdBase + GICv3.GICR_CTLR, ctlr);
 
         // Wait for RWP to clear.
         for (int i = 0; i < RegisterSyncSpinLimit; i++)
         {
-            if ((Native.MMIO.Read32(_rdBase + GICR_CTLR) & GICR_CTLR_RWP) == 0)
+            if ((Native.MMIO.Read32(_rdBase + GICv3.GICR_CTLR) & GICR_CTLR_RWP) == 0)
             {
                 break;
             }
@@ -210,11 +207,11 @@ public static unsafe class GICv3Lpi
     /// </summary>
     public static void EnableLpi(uint lpi)
     {
-        if (!_initialized || lpi < LpiBaseIntId)
+        if (!_initialized || lpi < ARM64InterruptController.LpiBase)
         {
             return;
         }
-        uint off = lpi - LpiBaseIntId;
+        uint off = lpi - ARM64InterruptController.LpiBase;
         if (off >= LpiCount)
         {
             return;
@@ -241,11 +238,11 @@ public static unsafe class GICv3Lpi
     /// <summary>Disable an LPI in the config table.</summary>
     public static void DisableLpi(uint lpi)
     {
-        if (!_initialized || lpi < LpiBaseIntId)
+        if (!_initialized || lpi < ARM64InterruptController.LpiBase)
         {
             return;
         }
-        uint off = lpi - LpiBaseIntId;
+        uint off = lpi - ARM64InterruptController.LpiBase;
         if (off >= LpiCount)
         {
             return;

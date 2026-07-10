@@ -16,9 +16,6 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 /// </summary>
 public sealed class FatFilesystemType : IVfsFilesystemType
 {
-    /// <summary>LBA of the boot sector holding the BPB — always the first sector of the volume (fatgen103 section 3.1).</summary>
-    private const ulong BootSectorLba = 0;
-
     /// <summary>Number of blocks the BPB probe reads: the boot sector occupies exactly one sector (fatgen103 section 3.1).</summary>
     private const ulong BootSectorBlockCount = 1;
 
@@ -47,7 +44,7 @@ public sealed class FatFilesystemType : IVfsFilesystemType
         }
 
         Span<byte> bpb = new byte[device.BlockSize];
-        device.ReadBlock(BootSectorLba, BootSectorBlockCount, bpb);
+        device.ReadBlock(FatBootSector.BootSectorLba, BootSectorBlockCount, bpb);
 
         if (!FatBootSector.TryParse(bpb, out FatBootSector? boot) || boot == null)
         {

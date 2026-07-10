@@ -18,12 +18,6 @@ public static class PartitionManager
     /// <summary>Sectors copied per ReadBlock/WriteBlock batch in <see cref="CopySectors"/>.</summary>
     private const int BatchBlocks = 128;
 
-    /// <summary>LBA of the MBR, the first sector of every MBR-formatted device.</summary>
-    private const ulong MbrLba = 0;
-
-    /// <summary>Sectors an EBR occupies: one, immediately preceding the logical partition it describes.</summary>
-    private const ulong EbrSectorCount = 1;
-
     /// <summary>Identifies a partition by its absolute LBA range on the host disk.</summary>
     public readonly struct PartitionLocation
     {
@@ -349,12 +343,12 @@ public static class PartitionManager
             {
                 continue;
             }
-            if (Intersects(startSector, sectorCount, logicals[i].StartSector - EbrSectorCount, logicals[i].SectorCount + EbrSectorCount))
+            if (Intersects(startSector, sectorCount, logicals[i].StartSector - Ebr.EbrSectorSpan, logicals[i].SectorCount + Ebr.EbrSectorSpan))
             {
                 return true;
             }
         }
-        return Intersects(startSector, sectorCount, extStart, EbrSectorCount);
+        return Intersects(startSector, sectorCount, extStart, Ebr.EbrSectorSpan);
     }
 
     /// <summary>Half-open interval intersection on absolute LBA ranges.</summary>
@@ -374,7 +368,7 @@ public static class PartitionManager
     private static int FindFreeMbrSlot(IBlockDevice device)
     {
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(MbrLba, 1, mbr);
+        device.ReadBlock(Mbr.MbrSectorLba, 1, mbr);
         for (int i = 0; i < Mbr.MaxPartitions; i++)
         {
             int offset = Mbr.PartitionTableOffset + i * Mbr.PartitionEntrySize;
@@ -389,7 +383,7 @@ public static class PartitionManager
     private static int FindMbrSlot(IBlockDevice device, PartitionLocation location)
     {
         Span<byte> mbr = new byte[device.BlockSize];
-        device.ReadBlock(MbrLba, 1, mbr);
+        device.ReadBlock(Mbr.MbrSectorLba, 1, mbr);
         for (int i = 0; i < Mbr.MaxPartitions; i++)
         {
             int offset = Mbr.PartitionTableOffset + i * Mbr.PartitionEntrySize;

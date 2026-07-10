@@ -47,12 +47,6 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector count of the partition stamped by the destructive reboot cell for boot 1's scan to find.</summary>
     private const ulong RebootPartitionSectorCount = 4096;
 
-    /// <summary>First usable LBA behind the primary GPT structures (header at LBA 1 + 32 entry sectors).</summary>
-    private const ulong GptFirstUsableLba = 34;
-
-    /// <summary>LBA of the primary GPT header (UEFI spec 5.3.1); wiped by the reset helpers to clear a stale GPT signature.</summary>
-    private const ulong GptHeaderLba = 1;
-
     /// <summary>LBA of the first sector of the primary GPT partition-entry array (UEFI spec 5.3: header at LBA 1, entries from LBA 2).</summary>
     private const ulong GptEntryArrayLba = 2;
 
@@ -265,9 +259,6 @@ public class Kernel : Sys.Kernel
 
     /// <summary>System ID 0xEE - GPT protective MBR entry.</summary>
     private const byte MbrGptProtectiveSystemId = 0xEE;
-
-    /// <summary>Start LBA stamped into the crafted 0xEE protective entry: LBA 1, the GPT header it guards (UEFI spec 5.2.3).</summary>
-    private const uint MbrProtectiveStartLba = 1;
 
     /// <summary>Sector count stamped into the crafted 0xEE protective entry.</summary>
     private const uint MbrProtectiveSectorCount = 1000;
@@ -1037,18 +1028,17 @@ public class Kernel : Sys.Kernel
         Gpt.Create(s_dev!);
         Assert.True(Gpt.IsGpt(s_dev));
 
-        const ulong startA = 2048;
         const ulong countA = 4096;
-        const ulong startB = startA + countA;
+        const ulong startB = GptAlignedStartLba + countA;
         const ulong countB = 8192;
 
-        Assert.True(Gpt.AddPartition(s_dev, startA, countA, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(s_dev, GptAlignedStartLba, countA, Gpt.BasicDataPartitionType));
         Assert.True(Gpt.AddPartition(s_dev, startB, countB, Gpt.BasicDataPartitionType));
 
         List<Gpt.PartitionEntry> parts = Gpt.Parse(s_dev);
         Assert.Equal(2, parts.Count);
         Assert.Equal(Gpt.BasicDataPartitionType, parts[0].PartitionType);
-        Assert.Equal<ulong>(startA, parts[0].StartSector);
+        Assert.Equal<ulong>(GptAlignedStartLba, parts[0].StartSector);
         Assert.Equal<ulong>(countA, parts[0].SectorCount);
         Assert.Equal<ulong>(startB, parts[1].StartSector);
         Assert.Equal<ulong>(countB, parts[1].SectorCount);
@@ -1144,7 +1134,7 @@ public class Kernel : Sys.Kernel
         TinyDevice tiny = new();
         Assert.False(Gpt.IsGpt(tiny), "1-block device cannot carry a GPT");
         Assert.Equal(0, Gpt.Parse(tiny).Count, "1-block device must parse empty");
-        Assert.False(Gpt.AddPartition(tiny, GptFirstUsableLba, MinimalPartitionSectorCount, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
+        Assert.False(Gpt.AddPartition(tiny, Gpt.FirstUsableLba, MinimalPartitionSectorCount, Gpt.BasicDataPartitionType), "AddPartition must reject a 1-block device");
     }
 
     // ==================== Partition lifecycle (MBR mutation, EBR chain, PartitionManager) ====================
@@ -1202,7 +1192,7 @@ public class Kernel : Sys.Kernel
         // the StorageManager rescan (next cell) takes the MBR code path.
         Span<byte> wipe = new byte[host.BlockSize];
         host.WriteBlock(MbrLba, 1, wipe);
-        host.WriteBlock(GptHeaderLba, 1, wipe);
+        host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
 
         Mbr.Create(host);
         Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
@@ -1352,16 +1342,15 @@ public class Kernel : Sys.Kernel
     {
         IBlockDevice host = s_dev!;
         ResetHostGpt(host);
-        const ulong start = 2048;
         const ulong count = 4096;
         const ulong resized = 8192;
-        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, count, Gpt.BasicDataPartitionType));
 
-        Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(start, count), resized));
+        Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count), resized));
 
         List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
-        Assert.Equal<ulong>(start, parts[0].StartSector);
+        Assert.Equal<ulong>(GptAlignedStartLba, parts[0].StartSector);
         Assert.Equal<ulong>(resized, parts[0].SectorCount);
     }
 
@@ -1369,36 +1358,34 @@ public class Kernel : Sys.Kernel
     {
         IBlockDevice host = s_dev!;
         ResetHostGpt(host);
-        const ulong start = 2048;
         const ulong count = 4096;
-        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
-        Assert.True(Gpt.AddPartition(host, start + count, count, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, count, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba + count, count, Gpt.BasicDataPartitionType));
 
-        Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(start, count)));
+        Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count)));
 
         List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
-        Assert.Equal<ulong>(start + count, parts[0].StartSector);
+        Assert.Equal<ulong>(GptAlignedStartLba + count, parts[0].StartSector);
     }
 
     private static void TestPartitionManager_MoveOnGpt()
     {
         IBlockDevice host = s_dev!;
         ResetHostGpt(host);
-        const ulong start = 2048;
         const ulong count = 64;
         const ulong newStart = 4096;
         const uint seedBase = 0xF00D0000;
-        Assert.True(Gpt.AddPartition(host, start, count, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, count, Gpt.BasicDataPartitionType));
 
         Span<byte> patternSector = new byte[host.BlockSize];
         for (ulong lba = 0; lba < count; lba++)
         {
             FillPattern(patternSector, (uint)(seedBase + lba));
-            host.WriteBlock(start + lba, 1, patternSector);
+            host.WriteBlock(GptAlignedStartLba + lba, 1, patternSector);
         }
 
-        Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(start, count), newStart));
+        Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count), newStart));
 
         List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
@@ -1717,7 +1704,7 @@ public class Kernel : Sys.Kernel
         host.ReadBlock(MbrLba, 1, mbr);
         Span<byte> m = mbr;
         m[MbrEntry1Offset + MbrEntryTypeOffset] = MbrGptProtectiveSystemId;
-        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), MbrProtectiveStartLba);
+        BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), Gpt.ProtectiveMbrStartLba);
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrProtectiveSectorCount);
         host.WriteBlock(MbrLba, 1, mbr);
         Assert.True(MbrResizeThrows(1, ProtectiveResizeSectorCount),
@@ -2088,7 +2075,7 @@ public class Kernel : Sys.Kernel
     {
         Span<byte> wipe = new byte[host.BlockSize];
         host.WriteBlock(MbrLba, 1, wipe);
-        host.WriteBlock(GptHeaderLba, 1, wipe);
+        host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
         Mbr.Create(host);
     }
 
@@ -2097,7 +2084,7 @@ public class Kernel : Sys.Kernel
     {
         Span<byte> wipe = new byte[host.BlockSize];
         host.WriteBlock(MbrLba, 1, wipe);
-        host.WriteBlock(GptHeaderLba, 1, wipe);
+        host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
         Gpt.Create(host);
     }
 
@@ -2108,7 +2095,7 @@ public class Kernel : Sys.Kernel
     {
         Span<byte> wipe = new byte[host.BlockSize];
         host.WriteBlock(MbrLba, 1, wipe);
-        host.WriteBlock(GptHeaderLba, 1, wipe);
+        host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
         host.WriteBlock(extStart, 1, wipe);
         Mbr.Create(host);
         Mbr.WritePartition(host, 0, MbrExtendedSystemId, extStart, extCount);
@@ -2175,29 +2162,17 @@ public class Kernel : Sys.Kernel
     // every fixed q35 window (ECAM, LAPIC, IO-APIC all sit below 4 GiB).
     private const ulong HighBarPhys = 0x1_1000_0000;
 
-    /// <summary>BAR0 lower dword (PCI config offset 0x10).</summary>
-    private const byte PciBar0LowOffset = 0x10;
-
     /// <summary>BAR0 upper dword of a 64-bit BAR (PCI config offset 0x14).</summary>
     private const byte PciBar0HighOffset = 0x14;
 
     /// <summary>Index of the NVMe controller's 64-bit register BAR (BAR0).</summary>
     private const int NvmeRegisterBarIndex = 0;
 
-    /// <summary>Command register (PCI config offset 0x04).</summary>
-    private const byte PciCommandOffset = 0x04;
-
-    /// <summary>VS - controller Version register (RO, 32-bit, offset 0x08 into BAR0, NVMe spec 3.1).</summary>
-    private const ulong NvmeVsOffset = 0x08;
-
     /// <summary>Mask of the type bits in a memory BAR's lower dword (bits 0-2).</summary>
     private const uint PciBarTypeMask = 0x7;
 
     /// <summary>Type-bit value marking a 64-bit memory BAR.</summary>
     private const uint PciBar64BitMemoryType = 0x4;
-
-    /// <summary>Mask selecting the address bits of a memory BAR dword (low 4 flag bits cleared).</summary>
-    private const uint PciBarAddressMask = 0xFFFF_FFF0;
 
     /// <summary>Mask selecting the flag bits of a memory BAR's lower dword.</summary>
     private const uint PciBarFlagsMask = 0xF;
@@ -2224,38 +2199,38 @@ public class Kernel : Sys.Kernel
         PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
         Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
 
-        uint barLow = nvmePci!.ReadRegister32(PciBar0LowOffset);
+        uint barLow = nvmePci!.ReadRegister32(PciDevice.Bar0Offset);
         uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
         Assert.True((barLow & PciBarTypeMask) == PciBar64BitMemoryType, "NVMe BAR0 must be a 64-bit memory BAR");
 
-        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciBarAddressMask);
+        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciDevice.BarMemoryAddressMask);
         ulong hhdm = HhdmOffset();
-        uint vsOrig = Native.MMIO.Read32(origPhys + hhdm + NvmeVsOffset);
+        uint vsOrig = Native.MMIO.Read32(origPhys + hhdm + NvmeRegisters.VsOffset);
         Assert.True(vsOrig != 0 && vsOrig != MmioAllOnesValue, "NVMe VS must read sane at the original BAR");
 
         // Quiesce decode while the BAR moves, like firmware would. No block
         // I/O is in flight (every I/O cell ran earlier), so nothing touches
         // the controller through the stale driver mapping meanwhile.
-        ushort command = nvmePci.ReadRegister16(PciCommandOffset);
-        nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
-        nvmePci.WriteRegister32(PciBar0LowOffset, (uint)(HighBarPhys & PciBarAddressMask) | (barLow & PciBarFlagsMask));
+        ushort command = nvmePci.ReadRegister16((byte)Config.Command);
+        nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(PciDevice.Bar0Offset, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
         nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
-        nvmePci.WriteRegister16(PciCommandOffset, command);
+        nvmePci.WriteRegister16((byte)Config.Command, command);
 
         uint vsHigh;
         try
         {
             PlatformHAL.Initializer?.EnsureMmioMapped(HighBarPhys);
-            vsHigh = Native.MMIO.Read32(HighBarPhys + hhdm + NvmeVsOffset);
+            vsHigh = Native.MMIO.Read32(HighBarPhys + hhdm + NvmeRegisters.VsOffset);
         }
         finally
         {
             // Put the BAR back exactly as found so the destructive reboot
             // cell (and boot 1's scan) still see a working controller.
-            nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
-            nvmePci.WriteRegister32(PciBar0LowOffset, barLow);
+            nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
+            nvmePci.WriteRegister32(PciDevice.Bar0Offset, barLow);
             nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
-            nvmePci.WriteRegister16(PciCommandOffset, command);
+            nvmePci.WriteRegister16((byte)Config.Command, command);
         }
 
         Assert.True(vsHigh == vsOrig, "VS read through the remapped high BAR must match the original");
@@ -2272,21 +2247,21 @@ public class Kernel : Sys.Kernel
         PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
         Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
 
-        uint barLow = nvmePci!.ReadRegister32(PciBar0LowOffset);
+        uint barLow = nvmePci!.ReadRegister32(PciDevice.Bar0Offset);
         uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
-        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciBarAddressMask);
+        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciDevice.BarMemoryAddressMask);
         Assert.True(nvmePci.GetBar64Address(NvmeRegisterBarIndex) == origPhys, "baseline: GetBar64Address must match raw config space");
 
-        ushort command = nvmePci.ReadRegister16(PciCommandOffset);
-        nvmePci.WriteRegister16(PciCommandOffset, (ushort)(command & ~(ushort)PciCommand.Memory));
-        nvmePci.WriteRegister32(PciBar0LowOffset, (uint)(HighBarPhys & PciBarAddressMask) | (barLow & PciBarFlagsMask));
+        ushort command = nvmePci.ReadRegister16((byte)Config.Command);
+        nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
+        nvmePci.WriteRegister32(PciDevice.Bar0Offset, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
         nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
 
         ulong reported = nvmePci.GetBar64Address(NvmeRegisterBarIndex);
 
-        nvmePci.WriteRegister32(PciBar0LowOffset, barLow);
+        nvmePci.WriteRegister32(PciDevice.Bar0Offset, barLow);
         nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
-        nvmePci.WriteRegister16(PciCommandOffset, command);
+        nvmePci.WriteRegister16((byte)Config.Command, command);
 
         Assert.True(reported == HighBarPhys,
             "GetBar64Address must read both halves live after a BAR reprogram, not splice cached low with live high");

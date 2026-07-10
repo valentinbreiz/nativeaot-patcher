@@ -36,16 +36,6 @@ public class RTC : Device
     private const ulong RTCPCELLID2 = 0xFF8;
     private const ulong RTCPCELLID3 = 0xFFC;
 
-    // DateTime ticks per second (100-nanosecond intervals)
-    private const long TicksPerSecond = 10_000_000L;
-    private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour = TicksPerMinute * 60;
-    private const long TicksPerDay = TicksPerHour * 24;
-
-    // Unix epoch as DateTime ticks (1970-01-01 00:00:00 UTC)
-    // DateTime(1970,1,1).Ticks = 621355968000000000L
-    private const long UnixEpochTicks = 621_355_968_000_000_000L;
-
     // Fallback boot time: 2024-01-01 00:00:00 UTC (if no RTC)
     private const long FallbackBootTicks = 638_388_288_000_000_000L;
 
@@ -101,7 +91,7 @@ public class RTC : Device
             Serial.Write("\n");
             if (unixSecs > 0)
             {
-                BootTimeTicks = UnixEpochTicks + unixSecs * TicksPerSecond;
+                BootTimeTicks = EfiRtc.UnixEpochTicks + unixSecs * EfiRtc.TicksPerSecond;
                 IsAvailable = true;
 
                 UnixSecondsToDate((uint)unixSecs, out int year, out int month, out int day,
@@ -166,7 +156,7 @@ public class RTC : Device
 
             if (TryReadPL031(pl031Virt, out uint unixSeconds))
             {
-                BootTimeTicks = UnixEpochTicks + (long)unixSeconds * TicksPerSecond;
+                BootTimeTicks = EfiRtc.UnixEpochTicks + (long)unixSeconds * EfiRtc.TicksPerSecond;
                 IsAvailable = true;
 
                 UnixSecondsToDate(unixSeconds, out int year, out int month, out int day,
@@ -236,7 +226,7 @@ public class RTC : Device
             ulong counterElapsed = current - _bootCounter;
             // Convert counter ticks → 100-ns DateTime ticks
             // = counterElapsed * 10_000_000 / frequency
-            elapsed = MultiplyDivide(counterElapsed, TicksPerSecond, _timerFrequency);
+            elapsed = MultiplyDivide(counterElapsed, EfiRtc.TicksPerSecond, _timerFrequency);
         }
 
         return BootTimeTicks + (long)elapsed;
@@ -252,7 +242,7 @@ public class RTC : Device
             ulong counterElapsed = current - _bootCounter;
             // Convert counter ticks → 100-ns DateTime ticks
             // = counterElapsed * 10_000_000 / frequency
-            elapsed = MultiplyDivide(counterElapsed, TicksPerSecond, _timerFrequency);
+            elapsed = MultiplyDivide(counterElapsed, EfiRtc.TicksPerSecond, _timerFrequency);
         }
 
         return (long)elapsed;

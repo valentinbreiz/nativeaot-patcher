@@ -55,6 +55,7 @@ public sealed class FatDirEntry
 /// </summary>
 public static class FatDirectory
 {
+    /// <summary>Size in bytes of one 8.3 directory entry (fatgen103 §6).</summary>
     public const int EntrySize = 32;
 
     /// <summary>First byte value marking a deleted entry.</summary>
@@ -72,6 +73,9 @@ public static class FatDirectory
     /// <summary>Byte offset of the low 16 bits of the first cluster.</summary>
     public const int FirstClusterLowOffset = 26;
 
+    /// <summary>First-cluster value recorded for an entry that owns no data clusters (fatgen103 §6: DIR_FstClusLO/HI hold 0); also the FAT12/16 fixed root, whose storage lies outside the data area.</summary>
+    public const uint EmptyFirstCluster = 0u;
+
     /// <summary>Byte offset of the 32-bit file size.</summary>
     public const int SizeOffset = 28;
 
@@ -80,6 +84,9 @@ public static class FatDirectory
 
     /// <summary>Byte width of the 32-bit DIR_FileSize field (fatgen103 §6).</summary>
     public const int SizeFieldBytes = 4;
+
+    /// <summary>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</summary>
+    public const uint DirectorySizeOnDisk = 0u;
 
     /// <summary>Shift placing DIR_FstClusHI in the upper 16 bits of the 32-bit cluster number (FAT32).</summary>
     public const int ClusterHighShift = 16;
@@ -172,7 +179,7 @@ public static class FatDirectory
     private const int ShortExtLength = 3;
 
     /// <summary>Length of the full 8.3 name field.</summary>
-    private const int ShortNameLength = 11;
+    internal const int ShortNameLength = 11;
 
     /// <summary>Longest rendered 8.3 name: 8 base + dot + 3 extension.</summary>
     private const int MaxShortNameChars = 12;

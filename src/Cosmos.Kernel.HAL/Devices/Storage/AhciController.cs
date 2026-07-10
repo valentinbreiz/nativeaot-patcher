@@ -113,18 +113,16 @@ public unsafe class AhciController
     /// <summary>VS patch version byte position (bits 15:8).</summary>
     private const int VersionPatchShift = 8;
 
-    /// <summary>PxSSTS.DET - Device Detection 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.10).</summary>
-    private const uint SstsDetMask = 0x0F;
-    /// <summary>PxSSTS.DET value 3: device present and PHY communication established.</summary>
-    private const uint SstsDetPhyEstablished = 3;
+    /// <summary>PxSSTS.DET - Device Detection 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.10). Internal so <see cref="Sata"/> shares it.</summary>
+    internal const uint SstsDetMask = 0x0F;
     /// <summary>PxSSTS.IPM - Interface Power Management field position (bits 11:8).</summary>
     private const int SstsIpmShift = 8;
     /// <summary>PxSSTS.IPM - Interface Power Management 4-bit field mask.</summary>
     private const uint SstsIpmMask = 0x0F;
-    /// <summary>PxSCTL.DET - Device Detection Initialization 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.11).</summary>
-    private const uint SctlDetMask = 0xFU;
-    /// <summary>PxSCTL.DET value 1: perform interface communication initialization (COMRESET).</summary>
-    private const uint SctlDetComreset = 1U;
+    /// <summary>PxSCTL.DET - Device Detection Initialization 4-bit field mask (bits 3:0, AHCI 1.3.1 s3.3.11). Internal so <see cref="Sata"/> shares it.</summary>
+    internal const uint SctlDetMask = 0xFU;
+    /// <summary>PxSCTL.DET value 1: perform interface communication initialization (COMRESET). Internal so <see cref="Sata"/> shares it.</summary>
+    internal const uint SctlDetComreset = 1U;
 
     /// <summary>PxSIG value when no D2H signature FIS has been received.</summary>
     private const uint InvalidSignature = 0xFFFFFFFFu;
@@ -133,8 +131,6 @@ public unsafe class AhciController
     /// <summary>Poll attempts waiting for PxSIG to leave 0xFFFFFFFF after rebase.</summary>
     private const int SignatureRetryLimit = 200;
 
-    /// <summary>PxCMD.ST - Start (bit 0, AHCI 1.3.1 s3.3.7).</summary>
-    private const uint CmdStart = 1U << 0;
     /// <summary>PxCMD.CLO - Command List Override (bit 3).</summary>
     private const uint CmdCommandListOverride = 1U << 3;
     /// <summary>PxCMD.FRE - FIS Receive Enable (bit 4).</summary>
@@ -144,15 +140,15 @@ public unsafe class AhciController
     /// <summary>PxCMD.CR - Command List Running (bit 15).</summary>
     private const uint CmdListRunning = 1U << 15;
 
-    /// <summary>All-ones write for RW1C registers (PxSERR/PxIS): clears every latched bit.</summary>
-    private const uint Rw1CClearAll = 0xFFFFFFFFu;
+    /// <summary>All-ones write for RW1C registers (PxSERR/PxIS): clears every latched bit. Internal so <see cref="Sata"/> shares it.</summary>
+    internal const uint Rw1CClearAll = 0xFFFFFFFFu;
 
-    /// <summary>Highest address reachable through the 32-bit CLB/FB/CTBA registers (4 GiB - 1).</summary>
-    private const ulong Max32BitAddress = 0xFFFFFFFF;
-    /// <summary>Mask keeping the low dword of a 64-bit DMA address.</summary>
-    private const ulong Low32BitsMask = 0xFFFFFFFF;
-    /// <summary>Shift extracting the high dword of a 64-bit DMA address.</summary>
-    private const int High32Shift = 32;
+    /// <summary>Highest address reachable through the 32-bit CLB/FB/CTBA registers (4 GiB - 1). Internal so <see cref="Sata"/> shares it.</summary>
+    internal const ulong Max32BitAddress = 0xFFFFFFFF;
+    /// <summary>Mask keeping the low dword of a 64-bit DMA address. Internal so <see cref="Sata"/> shares it.</summary>
+    internal const ulong Low32BitsMask = 0xFFFFFFFF;
+    /// <summary>Shift extracting the high dword of a 64-bit DMA address. Internal so <see cref="Sata"/> shares it.</summary>
+    internal const int High32Shift = 32;
 
     /// <summary>Per-iteration poll delay in AHCI ticks (~µs) for PHY/engine waits in KickPort and PxSIG polls.</summary>
     private const int PollDelayTicks = 1000;
@@ -443,7 +439,7 @@ public unsafe class AhciController
                 // would clear PxSIG to 0xFFFFFFFF and we'd lose the type
                 // classification. EDK2 on aarch64 leaves DET=0, so we kick
                 // there to train the PHY ourselves.
-                if ((portReg.SSTS & SstsDetMask) != SstsDetPhyEstablished)
+                if ((DeviceDetectionStatus)(portReg.SSTS & SstsDetMask) != DeviceDetectionStatus.DeviceDetectedWithPhy)
                 {
                     KickPort(portReg);
                 }
@@ -579,7 +575,7 @@ public unsafe class AhciController
     /// </summary>
     private static void KickPort(PortRegisters port)
     {
-        port.CMD &= ~CmdStart; // ST
+        port.CMD &= ~(uint)CommandAndStatus.StartProcess; // ST
         port.CMD &= ~CmdFisReceiveEnable; // FRE
         for (int i = 0; i < KickPortPollLimit; i++)
         {
@@ -596,7 +592,7 @@ public unsafe class AhciController
 
         for (int i = 0; i < KickPortPollLimit; i++)
         {
-            if ((port.SSTS & SstsDetMask) == SstsDetPhyEstablished)
+            if ((DeviceDetectionStatus)(port.SSTS & SstsDetMask) == DeviceDetectionStatus.DeviceDetectedWithPhy)
             {
                 break;
             }
@@ -716,7 +712,7 @@ public unsafe class AhciController
         }
 
         port.CMD |= CmdFisReceiveEnable; // FIS Receive Enable
-        port.CMD |= CmdStart; // Start
+        port.CMD |= (uint)CommandAndStatus.StartProcess; // Start
 
         return true;
     }
@@ -724,7 +720,7 @@ public unsafe class AhciController
     private bool StopCMD(PortRegisters port)
     {
         int spin;
-        port.CMD &= ~CmdStart; // Clear Start bit
+        port.CMD &= ~(uint)CommandAndStatus.StartProcess; // Clear Start bit
 
         for (spin = 0; spin < EnginePollLimit; spin++)
         {

@@ -7,20 +7,8 @@ namespace Cosmos.Kernel.System.Filesystems.Fat;
 
 internal sealed class FatSuperblock : IVfsSuperblock
 {
-    /// <summary>Longest name the LFN format (and this VFS layer) accepts.</summary>
-    private const ulong FatMaxNameLength = 255;
-
-    /// <summary>Length of an 8.3 short name (8 base + 3 extension characters).</summary>
-    private const int ShortNameLength = 11;
-
     /// <summary>Directory slots the 8.3 short entry itself occupies — every LFN entry set ends with exactly one (fatgen103 LFN spec).</summary>
     private const int ShortEntrySlotCount = 1;
-
-    /// <summary>First-cluster value recorded for an entry that owns no data clusters (fatgen103 §6: DIR_FstClusLO/HI hold 0); also the FAT12/16 fixed root, whose storage lies outside the data area.</summary>
-    private const uint EmptyFirstCluster = 0u;
-
-    /// <summary>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</summary>
-    private const uint DirectorySizeOnDisk = 0u;
 
     private readonly IBlockDevice _device;
     private readonly Dictionary<uint, FatInode> _inodeCache = new();
@@ -34,7 +22,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
     public IVfsInode Root { get; }
     public ISuperblockOperations SuperOperations => SuperOps;
     public long BlockSize => Boot.BytesPerSector;
-    public ulong MaxNameLength => FatMaxNameLength;
+    public ulong MaxNameLength => FatDirectory.MaxLfnNameLength;
 
     public FatSuperblock(IBlockDevice device, FatBootSector boot)
     {
@@ -45,8 +33,8 @@ internal sealed class FatSuperblock : IVfsSuperblock
         FileOps = new FatFileOperations(this);
         SuperOps = new FatSuperblockOperations();
 
-        uint rootCluster = boot.Type == FatType.Fat32 ? boot.RootCluster : EmptyFirstCluster;
-        FatInode root = new(this, "/", FatAttr.Directory, rootCluster, DirectorySizeOnDisk, parent: null, dirEntryByteOffset: FatInode.NoDirEntryOffset, dirEntrySlotCount: 0);
+        uint rootCluster = boot.Type == FatType.Fat32 ? boot.RootCluster : FatDirectory.EmptyFirstCluster;
+        FatInode root = new(this, "/", FatAttr.Directory, rootCluster, FatDirectory.DirectorySizeOnDisk, parent: null, dirEntryByteOffset: FatInode.NoDirEntryOffset, dirEntrySlotCount: 0);
         Root = root;
     }
 
@@ -221,7 +209,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             }
         }
 
-        Span<char> shortBuffer = stackalloc char[ShortNameLength];
+        Span<char> shortBuffer = stackalloc char[FatDirectory.ShortNameLength];
         FatDirectory.BuildShortName(longName, shortBuffer, data);
 
         if (lfnCount > 0)
@@ -331,7 +319,7 @@ internal sealed class FatSuperblock : IVfsSuperblock
             {
                 Fat.Free(inode.FirstCluster);
             }
-            inode.FirstCluster = EmptyFirstCluster;
+            inode.FirstCluster = FatDirectory.EmptyFirstCluster;
             chain.Clear();
             return;
         }

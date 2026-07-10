@@ -10,6 +10,21 @@ namespace Cosmos.TestRunner.Protocol
     {
         public const string EngineGUID = "DFE8F1F6-691C-4c08-8FFA-54551AD8FEAF";
         public static uint SerialSignature = 0x19740807;
+
+        /// <summary>Byte 0 (least significant) of the frame magic <see cref="SerialSignature"/> (0x19740807) as it appears little-endian on the wire.</summary>
+        public const byte SerialSignatureByte0 = 0x07;
+
+        /// <summary>Byte 1 of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte1 = 0x08;
+
+        /// <summary>Byte 2 of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte2 = 0x74;
+
+        /// <summary>Byte 3 (most significant) of the frame magic <see cref="SerialSignature"/> (0x19740807, little-endian on the wire).</summary>
+        public const byte SerialSignatureByte3 = 0x19;
+
+        /// <summary>Length of the frame magic <see cref="SerialSignature"/> (0x19740807 little-endian) on the wire, in bytes.</summary>
+        public const int SerialSignatureLengthBytes = 4;
     }
 
     /// <summary>

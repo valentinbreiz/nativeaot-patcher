@@ -45,7 +45,6 @@ public static class LocalApic
     private const uint IcrDestShorthandSelf = 0b01u << 18;
 
     // Timer LVT bits
-    private const uint TIMER_MASKED = 0x10000;    // Timer interrupt masked
     private const uint TIMER_PERIODIC = 0x20000;  // Periodic mode (vs one-shot)
     public const byte TIMER_VECTOR = 0xEF;        // Timer interrupt vector (239) - separate from IRQ remapping range
 
@@ -72,8 +71,6 @@ public static class LocalApic
     private const uint CalibrationDurationMs = 10;
     /// <summary>Maximum LAPIC timer initial count (32-bit register, all bits set) used during calibration.</summary>
     private const uint TimerMaxInitialCount = 0xFFFFFFFF;
-    /// <summary>Nanoseconds per millisecond (unit conversion for the timer interval).</summary>
-    private const ulong NanosecondsPerMs = 1_000_000UL;
 
     // SVR bits
     private const uint SVR_ENABLE = 0x100;        // APIC Software Enable
@@ -82,10 +79,6 @@ public static class LocalApic
     // whatever real interrupt is currently in service instead).
     public const byte SPURIOUS_VECTOR = 0xFF;     // Spurious interrupt vector
 
-    /// <summary>Size in bytes of the XMM save area preceding the saved IRQ context on the interrupt stack.</summary>
-    private const uint XmmSaveAreaBytes = 256;
-    /// <summary>Mask of the upper 16 address bits; all set means a canonical kernel-space address (0xFFFF800000000000+).</summary>
-    private const ulong KernelAddressMask = 0xFFFF000000000000;
     /// <summary>Number of initial timer ticks that are always logged.</summary>
     private const uint TimerLogInitialTicks = 5;
     /// <summary>Period, in ticks, of the recurring timer-tick log message.</summary>
@@ -272,7 +265,7 @@ public static class LocalApic
         Native.IO.Write8(PIT_CHANNEL0_DATA, (byte)(pitCount >> ByteShift));
 
         // Set LAPIC timer to max initial count (one-shot, masked)
-        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_LVT, LvtMasked);
         Write(LAPIC_TIMER_INIT, TimerMaxInitialCount);
 
         // Wait for PIT to count down by polling
@@ -333,7 +326,7 @@ public static class LocalApic
         uint ticks = _ticksPerMs * ms;
 
         // Set up one-shot timer (masked - we poll instead of interrupt)
-        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_LVT, LvtMasked);
         Write(LAPIC_TIMER_INIT, ticks);
 
         // Poll until timer reaches zero
@@ -358,7 +351,7 @@ public static class LocalApic
 
         uint ticks = _ticksPerMs * intervalMs;
         _timerIntervalMs = intervalMs;
-        _timerIntervalNs = (ulong)intervalMs * NanosecondsPerMs;  // Convert ms to ns
+        _timerIntervalNs = (ulong)intervalMs * SchedulerManager.NanosecondsPerMillisecond;  // Convert ms to ns
 
         Serial.Write("[LocalAPIC] Starting periodic timer:\n");
         Serial.Write("[LocalAPIC]   TicksPerMs: ", _ticksPerMs, "\n");
@@ -382,7 +375,7 @@ public static class LocalApic
     public static void StopTimer()
     {
         // Mask the timer and set count to 0
-        Write(LAPIC_TIMER_LVT, TIMER_MASKED);
+        Write(LAPIC_TIMER_LVT, LvtMasked);
         Write(LAPIC_TIMER_INIT, 0);
     }
 
@@ -409,10 +402,10 @@ public static class LocalApic
 
         // Calculate RSP pointing to saved context for context switching
         nuint contextPtr = (nuint)Unsafe.AsPointer(ref context);
-        nuint currentRsp = contextPtr - XmmSaveAreaBytes;  // RSP points to start of XMM save area
+        nuint currentRsp = contextPtr - X64InterruptController.XmmSaveAreaSizeBytes;  // RSP points to start of XMM save area
 
         // Sanity check RSP - should be in kernel space (0xFFFF800000000000+)
-        if ((currentRsp & KernelAddressMask) != KernelAddressMask)
+        if ((currentRsp & X64InterruptController.KernelSpaceCanonicalMask) != X64InterruptController.KernelSpaceCanonicalMask)
         {
             Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", _timerTickCount, ": ");
             Serial.WriteHex((ulong)currentRsp);

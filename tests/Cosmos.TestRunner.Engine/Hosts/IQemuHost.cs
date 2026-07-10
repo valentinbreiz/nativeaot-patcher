@@ -13,6 +13,16 @@ public interface IQemuHost
     /// <summary>Default maximum time in seconds to let a kernel run in QEMU before timing out.</summary>
     public const int DefaultTimeoutSeconds = 30;
 
+    /// <summary>Grace delay before killing QEMU once the UART monitor finished, in milliseconds — lets trailing UART bytes land.</summary>
+    public const int KillGraceDelayMs = 200;
+
+    /// <summary>
+    /// Seconds of UART quiet (no protocol-frame magic) after a TestPass before
+    /// the UART monitor declares the kernel stalled — handles destructive ops
+    /// (e.g. Power.Shutdown) that hang instead of cleanly exiting QEMU.
+    /// </summary>
+    public const int StallSecondsAfterTestPass = 10;
+
     /// <summary>
     /// Architecture this host targets (x64, ARM64, etc.)
     /// </summary>

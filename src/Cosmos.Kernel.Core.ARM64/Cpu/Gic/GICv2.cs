@@ -11,13 +11,11 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// </summary>
 public static class GICv2
 {
-    /// <summary>Default GICD (distributor) base address on the QEMU virt machine.</summary>
-    private const ulong DefaultGicdBase = 0x08000000;
     /// <summary>Default GICC (CPU interface) base address on the QEMU virt machine.</summary>
     private const ulong DefaultGiccBase = 0x08010000;
 
     // Default QEMU virt machine GIC base addresses (overridable via Configure)
-    private static ulong _gicDistBase = DefaultGicdBase;
+    private static ulong _gicDistBase = GIC.DEFAULT_GICD_BASE;
     private static ulong _gicCpuBase = DefaultGiccBase;
 
     // Distributor registers (offsets from GICD_BASE)
@@ -47,16 +45,8 @@ public static class GICv2
     private const uint IarInterruptIdMask = 0x3FF;
     /// <summary>Enable bit of GICD_CTLR / GICC_CTLR (bit 0).</summary>
     private const uint CtlrEnable = 1;
-    /// <summary>GICC_PMR value allowing all priorities (0xFF = lowest priority threshold).</summary>
-    private const uint PriorityMaskAllowAll = 0xFF;
-    /// <summary>All-ones mask covering every interrupt bit in a 32-bit enable/pending register.</summary>
-    private const uint AllInterruptsMask = 0xFFFFFFFF;
-    /// <summary>Default priority 0xA0 replicated into each byte of a GICD_IPRIORITYR word (lower value = higher priority).</summary>
-    private const uint DefaultPriorityAllBytes = 0xA0A0A0A0;
     /// <summary>CPU 0 target mask (0x01) replicated into each byte of a GICD_ITARGETSR word.</summary>
     private const uint TargetCpu0AllBytes = 0x01010101;
-    /// <summary>Edge-triggered configuration value (0b10) of a 2-bit GICD_ICFGR field.</summary>
-    private const uint CfgEdgeTriggeredValue = 2u;
 
     // Register layout strides (GICv2 Architecture Specification)
     /// <summary>Interrupts covered by one 32-bit enable/pending register (one bit per interrupt).</summary>
@@ -67,19 +57,6 @@ public static class GICv2
     private const uint IrqsPerCfgRegister = 16;
     /// <summary>Width in bits of one GICD_ICFGR configuration field.</summary>
     private const uint CfgBitsPerIrq = 2;
-    /// <summary>Byte stride between consecutive 32-bit GIC registers.</summary>
-    private const uint RegisterStrideBytes = 4;
-
-    // Interrupt type constants
-    public const uint SGI_START = 0;             // Software Generated Interrupts (0-15)
-    public const uint PPI_START = 16;            // Private Peripheral Interrupts (16-31)
-    public const uint SPI_START = 32;            // Shared Peripheral Interrupts (32+)
-
-    // Timer interrupt IDs (PPIs)
-    public const uint TIMER_SECURE_PHYS = 29;    // Secure Physical Timer
-    public const uint TIMER_NONSEC_PHYS = 30;    // Non-secure Physical Timer
-    public const uint TIMER_VIRT = 27;           // Virtual Timer
-    public const uint TIMER_HYP = 26;            // Hypervisor Timer
 
     private static bool _initialized;
 
@@ -125,30 +102,30 @@ public static class GICv2
 
         // Configure all SPIs (shared peripheral interrupts)
         // For PPIs (16-31), they are banked per-CPU and need different handling
-        for (uint i = SPI_START; i < maxInterrupts; i += IrqsPerBitRegister)
+        for (uint i = GIC.SPI_START; i < maxInterrupts; i += IrqsPerBitRegister)
         {
             // Disable all interrupts in this group
-            WriteDistributor(GICD_ICENABLER + ((i / IrqsPerBitRegister) * RegisterStrideBytes), AllInterruptsMask);
+            WriteDistributor(GICD_ICENABLER + ((i / IrqsPerBitRegister) * GIC.RegisterStrideBytes), GIC.AllInterruptsMask);
             // Clear all pending
-            WriteDistributor(GICD_ICPENDR + ((i / IrqsPerBitRegister) * RegisterStrideBytes), AllInterruptsMask);
+            WriteDistributor(GICD_ICPENDR + ((i / IrqsPerBitRegister) * GIC.RegisterStrideBytes), GIC.AllInterruptsMask);
         }
 
         // Set all SPI priorities to default (lower value = higher priority)
-        for (uint i = SPI_START; i < maxInterrupts; i += IrqsPerByteRegister)
+        for (uint i = GIC.SPI_START; i < maxInterrupts; i += IrqsPerByteRegister)
         {
-            WriteDistributor(GICD_IPRIORITYR + i, DefaultPriorityAllBytes);
+            WriteDistributor(GICD_IPRIORITYR + i, GIC.DefaultPriorityAllBytes);
         }
 
         // Target all SPIs to CPU 0
-        for (uint i = SPI_START; i < maxInterrupts; i += IrqsPerByteRegister)
+        for (uint i = GIC.SPI_START; i < maxInterrupts; i += IrqsPerByteRegister)
         {
             WriteDistributor(GICD_ITARGETSR + i, TargetCpu0AllBytes);
         }
 
         // Configure all SPIs as level-triggered
-        for (uint i = SPI_START; i < maxInterrupts; i += IrqsPerCfgRegister)
+        for (uint i = GIC.SPI_START; i < maxInterrupts; i += IrqsPerCfgRegister)
         {
-            WriteDistributor(GICD_ICFGR + ((i / IrqsPerCfgRegister) * RegisterStrideBytes), 0);
+            WriteDistributor(GICD_ICFGR + ((i / IrqsPerCfgRegister) * GIC.RegisterStrideBytes), 0);
         }
 
         // Enable distributor
@@ -172,7 +149,7 @@ public static class GICv2
         WriteCpuInterface(GICC_CTLR, 0);
 
         // Set priority mask to allow all priorities (0xFF = lowest priority threshold)
-        WriteCpuInterface(GICC_PMR, PriorityMaskAllowAll);
+        WriteCpuInterface(GICC_PMR, GIC.PriorityMaskAllowAll);
 
         // Set binary point to 0 (all priority bits used for preemption)
         WriteCpuInterface(GICC_BPR, 0);
@@ -189,7 +166,7 @@ public static class GICv2
     /// <param name="intId">Interrupt ID (0-1019).</param>
     public static void EnableInterrupt(uint intId)
     {
-        uint regOffset = GICD_ISENABLER + ((intId / IrqsPerBitRegister) * RegisterStrideBytes);
+        uint regOffset = GICD_ISENABLER + ((intId / IrqsPerBitRegister) * GIC.RegisterStrideBytes);
         uint bit = 1u << (int)(intId % IrqsPerBitRegister);
         WriteDistributor(regOffset, bit);
 
@@ -204,7 +181,7 @@ public static class GICv2
     /// <param name="intId">Interrupt ID.</param>
     public static void DisableInterrupt(uint intId)
     {
-        uint regOffset = GICD_ICENABLER + ((intId / IrqsPerBitRegister) * RegisterStrideBytes);
+        uint regOffset = GICD_ICENABLER + ((intId / IrqsPerBitRegister) * GIC.RegisterStrideBytes);
         uint bit = 1u << (int)(intId % IrqsPerBitRegister);
         WriteDistributor(regOffset, bit);
     }
@@ -252,7 +229,7 @@ public static class GICv2
     /// <returns>True if pending.</returns>
     public static bool IsInterruptPending(uint intId)
     {
-        uint regOffset = GICD_ISPENDR + ((intId / IrqsPerBitRegister) * RegisterStrideBytes);
+        uint regOffset = GICD_ISPENDR + ((intId / IrqsPerBitRegister) * GIC.RegisterStrideBytes);
         uint bit = 1u << (int)(intId % IrqsPerBitRegister);
         return (ReadDistributor(regOffset) & bit) != 0;
     }
@@ -263,7 +240,7 @@ public static class GICv2
     /// <param name="intId">Interrupt ID.</param>
     public static void ClearPending(uint intId)
     {
-        uint regOffset = GICD_ICPENDR + ((intId / IrqsPerBitRegister) * RegisterStrideBytes);
+        uint regOffset = GICD_ICPENDR + ((intId / IrqsPerBitRegister) * GIC.RegisterStrideBytes);
         uint bit = 1u << (int)(intId % IrqsPerBitRegister);
         WriteDistributor(regOffset, bit);
     }
@@ -275,17 +252,17 @@ public static class GICv2
     /// <param name="edgeTriggered">True for edge-triggered, false for level-triggered.</param>
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
-        uint regOffset = GICD_ICFGR + ((intId / IrqsPerCfgRegister) * RegisterStrideBytes);
+        uint regOffset = GICD_ICFGR + ((intId / IrqsPerCfgRegister) * GIC.RegisterStrideBytes);
         uint shift = (intId % IrqsPerCfgRegister) * CfgBitsPerIrq;
         uint value = ReadDistributor(regOffset);
 
         if (edgeTriggered)
         {
-            value |= (CfgEdgeTriggeredValue << (int)shift);  // Edge-triggered
+            value |= (GIC.IcfgrEdgeTriggered << (int)shift);  // Edge-triggered
         }
         else
         {
-            value &= ~(CfgEdgeTriggeredValue << (int)shift); // Level-triggered
+            value &= ~(GIC.IcfgrEdgeTriggered << (int)shift); // Level-triggered
         }
 
         WriteDistributor(regOffset, value);

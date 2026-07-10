@@ -17,14 +17,8 @@ internal sealed class FatInodeOperations : IInodeOperations
     /// <summary>First-cluster value the '..' entry stores when the parent is the root directory (fatgen103 §6).</summary>
     private const uint RootDotDotCluster = 0u;
 
-    /// <summary>First-cluster value recorded for an entry that owns no data clusters yet (fatgen103 §6: DIR_FstClusLO/HI hold 0 for a zero-length file).</summary>
-    private const uint EmptyFirstCluster = 0u;
-
     /// <summary>DIR_FileSize recorded for a newly created, still-empty file (bytes).</summary>
     private const uint EmptyFileSize = 0u;
-
-    /// <summary>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</summary>
-    private const uint DirectorySizeOnDisk = 0u;
 
     /// <summary>Cluster count a fresh directory starts with — one cluster holding its '.'/'..' entries.</summary>
     private const uint InitialDirectoryClusters = 1u;
@@ -130,7 +124,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         }
 
         FatAttr attr = FatAttributes.ToFatAttr(mode) & ~FatAttr.Directory;
-        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, EmptyFirstCluster, EmptyFileSize, out FatInode? created))
+        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, FatDirectory.EmptyFirstCluster, EmptyFileSize, out FatInode? created))
         {
             return false;
         }
@@ -166,7 +160,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         _superblock.WriteCluster(cluster, clusterBuffer);
 
         FatAttr attr = FatAttributes.ToFatAttr(mode) | FatAttr.Directory;
-        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, cluster, DirectorySizeOnDisk, out FatInode? created))
+        if (!_superblock.AllocateDirectoryEntry(parent, name, attr, cluster, FatDirectory.DirectorySizeOnDisk, out FatInode? created))
         {
             _superblock.Fat.Free(cluster);
             return false;
@@ -377,7 +371,7 @@ internal sealed class FatInodeOperations : IInodeOperations
     private static void WriteDotEntries(Span<byte> clusterBuffer, uint selfCluster, uint parentCluster)
     {
         clusterBuffer.Clear();
-        FatDirectory.WriteShortEntry(clusterBuffer, DotEntryOffset, ".          ", FatAttr.Directory, selfCluster, DirectorySizeOnDisk);
-        FatDirectory.WriteShortEntry(clusterBuffer, DotDotEntryOffset, "..         ", FatAttr.Directory, parentCluster, DirectorySizeOnDisk);
+        FatDirectory.WriteShortEntry(clusterBuffer, DotEntryOffset, ".          ", FatAttr.Directory, selfCluster, FatDirectory.DirectorySizeOnDisk);
+        FatDirectory.WriteShortEntry(clusterBuffer, DotDotEntryOffset, "..         ", FatAttr.Directory, parentCluster, FatDirectory.DirectorySizeOnDisk);
     }
 }

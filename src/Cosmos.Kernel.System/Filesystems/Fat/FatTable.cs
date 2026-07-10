@@ -62,16 +62,16 @@ public sealed class FatTable
     private const uint Fat12HighNibbleMask = 0xF000;
 
     /// <summary>FAT32 entry width in bytes.</summary>
-    private const uint Fat32EntrySize = 4;
+    internal const uint Fat32EntrySize = 4;
 
     /// <summary>FAT16 entry width in bytes.</summary>
-    private const uint Fat16EntrySize = 2;
+    internal const uint Fat16EntrySize = 2;
 
     /// <summary>FAT12 packs two 12-bit entries into every three bytes (fatgen103 §4: FATOffset = N + N / 2).</summary>
-    private const uint Fat12EntriesPerPair = 2;
+    internal const uint Fat12EntriesPerPair = 2;
 
     /// <summary>Bytes holding one FAT12 entry pair (fatgen103 §4).</summary>
-    private const uint Fat12PairBytes = 3;
+    internal const uint Fat12PairBytes = 3;
 
     /// <summary>Bytes spanned by a single 12-bit FAT12 entry when read as a little-endian word.</summary>
     private const int Fat12EntrySpanBytes = 2;

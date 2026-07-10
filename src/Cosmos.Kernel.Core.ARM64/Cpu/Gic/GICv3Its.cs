@@ -44,9 +44,6 @@ public static unsafe class GICv3Its
     private const int BaserCount = 8;
     private const ulong BaserStride = 8;
 
-    // GICR_TYPER offset within the per-CPU redistributor RD_base frame.
-    private const uint GICR_TYPER = 0x008;
-
     // Translation register frame is at +0x10000 from ITS base.
     private const uint GITS_TRANSLATER_OFF = 0x10040;
 
@@ -89,6 +86,8 @@ public static unsafe class GICv3Its
     // caches when reading these tables, which silently desyncs from our
     // (cacheable) writes — MAPD/MAPTI appear to complete but the device
     // entry the ITS actually fetches is whatever's still in DRAM.
+    // GITS_CBASER shares the identical InnerCache bit slice, so this value
+    // is also used when programming the command queue.
     private const ulong BASER_INNER_CACHE_RaWaWb = 5UL << 59;
     private const int BASER_PAGE_SIZE_SHIFT = 8;
     private const ulong BASER_PAGE_SIZE_MASK = 0x3UL;
@@ -108,7 +107,6 @@ public static unsafe class GICv3Its
     private const ulong CBASER_ADDR_MASK = 0x000FFFFFFFFFF000UL;
     private const ulong CBASER_VALID = 1UL << 63;
     private const ulong CBASER_INNERSHAREABLE = 1UL << 10;
-    private const ulong CBASER_INNER_CACHE_RaWaWb = 5UL << 59;
 
     // ITS command layout: every command is 32 bytes (4 × u64) in the queue.
     private const uint ITS_COMMAND_SIZE = 32;
@@ -247,7 +245,7 @@ public static unsafe class GICv3Its
         {
             // Processor_Number is GICR_TYPER bits [23:8]. We're sole CPU so 0
             // is almost always right, but read it for correctness.
-            ulong rdTyper = Native.MMIO.Read64(rdVirtBase + GICR_TYPER);
+            ulong rdTyper = Native.MMIO.Read64(rdVirtBase + GICv3.GICR_TYPER);
             ulong procNum = (rdTyper >> GICR_TYPER_PROCNUM_SHIFT) & GICR_TYPER_PROCNUM_MASK;
             _bootRedistTarget = procNum << CMD_TARGET_PROCNUM_SHIFT;
         }
@@ -286,7 +284,7 @@ public static unsafe class GICv3Its
 
         ulong cbaser = CBASER_VALID
                      | CBASER_INNERSHAREABLE
-                     | CBASER_INNER_CACHE_RaWaWb
+                     | BASER_INNER_CACHE_RaWaWb
                      | (_cmdQueuePhys & CBASER_ADDR_MASK)
                      | 0; // size = (4KB / 4KB) - 1 = 0
         Native.MMIO.Write64(_itsBase + GITS_CBASER, cbaser);

@@ -99,7 +99,6 @@ public class E1000E : PciDevice, INetworkDevice
     private const int RX_BUFFER_SIZE = 2048;
 
     // PCI Capability IDs
-    private const byte CAP_MSIX = 0x11;
     private const byte CAP_MSI = 0x05;
 
     /// <summary>
@@ -426,7 +425,7 @@ public class E1000E : PciDevice, INetworkDevice
         while (capPtr != 0)
         {
             byte capId = ReadRegister8(capPtr);
-            if (capId == CAP_MSIX)
+            if (capId == MsiX.CapId)
             {
                 _hasMsix = true;
                 // MSI-X table info is at capPtr + 4
@@ -753,10 +752,9 @@ public class E1000E : PciDevice, INetworkDevice
     /// </summary>
     private static ulong VirtToPhys(ulong virtualAddress)
     {
-        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
-        if (virtualAddress >= HigherHalfOffset)
+        if (virtualAddress >= PageAllocator.DefaultHhdmOffset)
         {
-            return virtualAddress - HigherHalfOffset;
+            return virtualAddress - PageAllocator.DefaultHhdmOffset;
         }
 
         return virtualAddress;
