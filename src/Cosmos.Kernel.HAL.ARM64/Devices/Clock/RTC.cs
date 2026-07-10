@@ -22,6 +22,7 @@ public class RTC : Device
 {
     /// <summary>Singleton instance of the RTC.</summary>
     public static RTC? Instance { get; private set; }
+
     // PL031 RTC base address on QEMU virt machine (physical)
     private const ulong PL031_BASE_PHYS = 0x09010000;
 
@@ -91,7 +92,7 @@ public class RTC : Device
             Serial.Write("\n");
             if (unixSecs > 0)
             {
-                BootTimeTicks = EfiRtc.UnixEpochTicks + unixSecs * EfiRtc.TicksPerSecond;
+                BootTimeTicks = DateTime.UnixEpoch.Ticks + unixSecs * TimeSpan.TicksPerSecond;
                 IsAvailable = true;
 
                 UnixSecondsToDate((uint)unixSecs, out int year, out int month, out int day,
@@ -156,7 +157,7 @@ public class RTC : Device
 
             if (TryReadPL031(pl031Virt, out uint unixSeconds))
             {
-                BootTimeTicks = EfiRtc.UnixEpochTicks + (long)unixSeconds * EfiRtc.TicksPerSecond;
+                BootTimeTicks = DateTime.UnixEpoch.Ticks + (long)unixSeconds * TimeSpan.TicksPerSecond;
                 IsAvailable = true;
 
                 UnixSecondsToDate(unixSeconds, out int year, out int month, out int day,
@@ -226,7 +227,7 @@ public class RTC : Device
             ulong counterElapsed = current - _bootCounter;
             // Convert counter ticks → 100-ns DateTime ticks
             // = counterElapsed * 10_000_000 / frequency
-            elapsed = MultiplyDivide(counterElapsed, EfiRtc.TicksPerSecond, _timerFrequency);
+            elapsed = MultiplyDivide(counterElapsed, TimeSpan.TicksPerSecond, _timerFrequency);
         }
 
         return BootTimeTicks + (long)elapsed;
@@ -242,7 +243,7 @@ public class RTC : Device
             ulong counterElapsed = current - _bootCounter;
             // Convert counter ticks → 100-ns DateTime ticks
             // = counterElapsed * 10_000_000 / frequency
-            elapsed = MultiplyDivide(counterElapsed, EfiRtc.TicksPerSecond, _timerFrequency);
+            elapsed = MultiplyDivide(counterElapsed, TimeSpan.TicksPerSecond, _timerFrequency);
         }
 
         return (long)elapsed;

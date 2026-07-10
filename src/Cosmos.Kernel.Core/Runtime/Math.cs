@@ -90,7 +90,6 @@ internal static class Math
     // Low word of the pi/2 double-double split (fdlibm pio2_lo, shared by asin/acos).
     private const double PI_OVER_2_LO = 6.12323399573676603587e-17; /* 0x3C91A626, 0x33145C07 */
     private const double PI_OVER_4 = 0.78539816339744830962;
-    private const double TWO_PI = 6.28318530717958647692;
     private const double LN2 = 0.69314718055994530942;
     // Hi/lo extended-precision split of ln 2 (fdlibm ln2_hi/ln2_lo, shared by exp/log);
     // deliberately distinct from the full-precision LN2 above.
@@ -98,7 +97,6 @@ internal static class Math
     private const double LN2_LO = 1.90821492927058770002e-10; /* 0x3DEA39EF, 0x35793C76 */
     private const double LOG2_E = 1.44269504088896340736; /* 0x3FF71547, 0x652B82FE */
     private const double LOG10_E = 0.43429448190325182765;
-    private const double SQRT2 = 1.41421356237309504880;
 
     // =========================================================================
     // Unconditional functions (both arches use C#)

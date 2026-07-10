@@ -14,26 +14,6 @@ namespace Cosmos.Kernel.HAL.Devices.Clock;
 public static class EfiRtc
 {
     /// <summary>
-    /// .NET DateTime ticks (100-nanosecond intervals) per second.
-    /// Public so the arch-specific RTC drivers can share the same tick unit.
-    /// </summary>
-    public const long TicksPerSecond = 10_000_000L;
-
-    /// <summary>.NET DateTime ticks per minute.</summary>
-    public const long TicksPerMinute = TicksPerSecond * 60;
-
-    /// <summary>.NET DateTime ticks per hour.</summary>
-    public const long TicksPerHour = TicksPerMinute * 60;
-
-    /// <summary>.NET DateTime ticks per day.</summary>
-    public const long TicksPerDay = TicksPerHour * 24;
-
-    /// <summary>
-    /// Unix epoch (1970-01-01 00:00:00 UTC) as DateTime ticks: DateTime(1970,1,1).Ticks.
-    /// </summary>
-    public const long UnixEpochTicks = 621_355_968_000_000_000L;
-
-    /// <summary>
     /// Attempts to read the current wall-clock time via EFI Runtime Services.
     /// Returns true and sets <paramref name="ticks"/> to DateTime ticks (UTC) on success.
     /// </summary>
@@ -113,15 +93,15 @@ public static class EfiRtc
         }
 
         long dateTicks = DateToTicks(time.Year, time.Month, time.Day);
-        long timeTicks = time.Hour * TicksPerHour
-                       + time.Minute * TicksPerMinute
-                       + time.Second * TicksPerSecond
+        long timeTicks = time.Hour * TimeSpan.TicksPerHour
+                       + time.Minute * TimeSpan.TicksPerMinute
+                       + time.Second * TimeSpan.TicksPerSecond
                        + time.Nanosecond / 100;
 
         long tzOffset = 0;
         if (time.TimeZone != unchecked((short)0x07FF))
         {
-            tzOffset = -(long)time.TimeZone * TicksPerMinute;
+            tzOffset = -(long)time.TimeZone * TimeSpan.TicksPerMinute;
         }
 
         ticks = dateTicks + timeTicks + tzOffset;
@@ -144,7 +124,7 @@ public static class EfiRtc
         }
 
         days += day - 1;
-        return days * TicksPerDay;
+        return days * TimeSpan.TicksPerDay;
     }
 
     private static bool IsLeapYear(int year)

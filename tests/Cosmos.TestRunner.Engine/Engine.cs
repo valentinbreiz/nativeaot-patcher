@@ -22,6 +22,15 @@ public partial class Engine
     /// <summary>Size of each per-profile sparse raw test disk image (256 MiB).</summary>
     private const long TestDiskSizeBytes = 256L * 1024 * 1024;
 
+    /// <summary>
+    /// Cap on the number of boots a single suite can ask for. Any test that
+    /// triggers a guest reboot/shutdown (Power.Reboot, Power.Shutdown) ends
+    /// its boot without emitting the suite-end marker; the engine then
+    /// re-launches the kernel, advancing <c>skip=N</c> on the Limine cmdline
+    /// so the kernel knows which destructive test already fired.
+    /// </summary>
+    private const int MaxBoots = 4;
+
     /// <summary>Maximum plausible excess of ExpectedTestCount over the tests that actually ran; larger gaps are treated as UART corruption of the TestSuiteStart count field.</summary>
     private const int ExpectedTestCountCorruptionSlack = 10000;
 
@@ -191,13 +200,6 @@ public partial class Engine
             return results;
         }
     }
-
-    // Cap on the number of boots a single suite can ask for. Any test that
-    // triggers a guest reboot/shutdown (Power.Reboot, Power.Shutdown) ends
-    // its boot without emitting the suite-end marker; the engine then
-    // re-launches the kernel, advancing `skip=N` on the Limine cmdline so
-    // the kernel knows which destructive test already fired.
-    private const int MaxBoots = 4;
 
     private async Task<QemuRunResult> LaunchAndMonitorAsync(string isoPath, TestProfile profile)
     {

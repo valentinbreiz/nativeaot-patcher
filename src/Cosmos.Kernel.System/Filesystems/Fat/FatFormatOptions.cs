@@ -21,6 +21,7 @@ public sealed class FatFormatOptions : IVfsFormatOptions
     /// <summary>Reserved sector count. <c>0</c> = 1 for FAT12/16, 32 for FAT32.</summary>
     public ushort ReservedSectorCount { get; init; }
 
+    /// <summary>Number of FAT copies. <c>0</c> = 2 mirrored copies (fatgen103 §3.1).</summary>
     public byte NumberOfFats { get; init; } = FatFormatter.DefaultNumberOfFats;
 
     /// <summary>Root entry count (FAT12/16 only). <c>0</c> = 512.</summary>

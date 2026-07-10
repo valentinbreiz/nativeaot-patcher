@@ -53,6 +53,17 @@ public static unsafe class GICv3Its
     /// <summary>Spin iterations (one GITS_CTLR MMIO read each) to wait for GITS_CTLR.Quiescent after disabling the ITS; not time-calibrated (runs before any timer facility is usable).</summary>
     private const int QuiescentSpinLimit = 1_000_000;
 
+    // Hang-breaker for the CREADR poll in FlushCommandQueue, in loop
+    // iterations (one MMIO read each), not time: a healthy ITS consumes a
+    // handful of queued commands in microseconds, so ~10M reads
+    // (seconds-order even on slow buses) is orders of magnitude past any
+    // legitimate completion and only trips when the ITS is wedged.
+    // Deliberately not time-calibrated: this runs during early interrupt
+    // bring-up, before any timer facility is usable from Core.ARM64
+    // (PlatformHAL.DelayMicroseconds lives a layer above and can't be
+    // referenced from here).
+    private const int CommandFlushSpinLimit = 10_000_000;
+
     // GITS_TYPER bit layout (§11.10.13).
     private const int TYPER_ITT_ENTRY_SIZE_SHIFT = 4;
     private const ulong TYPER_ITT_ENTRY_SIZE_MASK = 0xFUL;   // bits [7:4]
@@ -109,15 +120,15 @@ public static unsafe class GICv3Its
     private const ulong CBASER_INNERSHAREABLE = 1UL << 10;
 
     // ITS command layout: every command is 32 bytes (4 × u64) in the queue.
-    private const uint ITS_COMMAND_SIZE = 32;
+    private const uint ItsCommandSize = 32;
     // Command queue lives in one 4 KiB page → 128 commands of 32 bytes each.
-    private const uint COMMAND_QUEUE_BYTES = 4096;
-    /// <summary>Number of 4 KiB pages backing the command-queue ring (COMMAND_QUEUE_BYTES worth).</summary>
+    private const uint CommandQueueBytes = 4096;
+    /// <summary>Number of 4 KiB pages backing the command-queue ring (CommandQueueBytes worth).</summary>
     private const uint CommandQueuePages = 1;
 
     // Page-sized allocations for ITT/table buffers.
-    private const uint ITS_PAGE_SIZE = 4096;
-    private const uint ITS_PAGE_MASK = ITS_PAGE_SIZE - 1;
+    private const uint ItsPageSize = 4096;
+    private const uint ItsPageMask = ItsPageSize - 1;
 
     // Command opcodes (low byte of cmd[0]).
     private const byte CMD_MAPD = 0x08;
@@ -160,7 +171,7 @@ public static unsafe class GICv3Its
     private const ushort BootCollectionId = 0;
 
     // ITT buffer sizing.
-    private const uint ITT_MIN_EVENTS = 2;
+    private const uint IttMinEvents = 2;
 
     private static ulong _itsBase;          // HHDM virtual base — every GITS_* MMIO access goes through this
     private static ulong _translaterPhys;   // GITS_TRANSLATER physical address; written by devices via MSI
@@ -270,7 +281,7 @@ public static unsafe class GICv3Its
         }
 
         // Allocate command queue (one 4 KiB page, 128 commands of 32 bytes each).
-        _cmdQueueSize = COMMAND_QUEUE_BYTES;
+        _cmdQueueSize = CommandQueueBytes;
         _cmdQueueVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, CommandQueuePages, zero: true);
         if (_cmdQueueVirt == 0)
         {
@@ -345,7 +356,7 @@ public static unsafe class GICv3Its
             throw new System.InvalidOperationException("GICv3-ITS: DeviceID exceeds the flat device table range");
         }
 
-        uint nrEvents = maxEvents < ITT_MIN_EVENTS ? ITT_MIN_EVENTS : RoundUpPow2(maxEvents);
+        uint nrEvents = maxEvents < IttMinEvents ? IttMinEvents : RoundUpPow2(maxEvents);
         int sizeField = Log2(nrEvents) - 1; // ARM IHI 0069G: size = log2(nr_ites) - 1
         if (sizeField < 0)
         {
@@ -355,7 +366,7 @@ public static unsafe class GICv3Its
         ulong ittBytes = (ulong)nrEvents * (ulong)_ittEntrySize;
         // ITT must be 256-byte aligned. PageAllocator returns 4 KiB pages
         // which already satisfies that; allocate at least 1 page.
-        ulong pages = (ittBytes + ITS_PAGE_MASK) / ITS_PAGE_SIZE;
+        ulong pages = (ittBytes + ItsPageMask) / ItsPageSize;
         if (pages == 0)
         {
             pages = 1;
@@ -413,7 +424,7 @@ public static unsafe class GICv3Its
         }
 
         ulong tablePhys = PageAllocator.VirtualToPhysical(tableVirt);
-        ulong sizeBytes = (ulong)pages * ITS_PAGE_SIZE;
+        ulong sizeBytes = (ulong)pages * ItsPageSize;
 
         ulong baser = ((ulong)type << BASER_TYPE_SHIFT)
                     | ((ulong)(entrySize - 1) << BASER_ENTRY_SIZE_SHIFT)
@@ -438,7 +449,7 @@ public static unsafe class GICv3Its
             ulong granuleBytes = rbGranule == BASER_PAGE_SIZE_FIELD_16K ? Granule16KBytes : Granule64KBytes;
             // Over-allocate 2x so a granule-aligned block exists inside,
             // same trick as the LPI pending table's 64 KiB alignment.
-            uint blockPages = (uint)(granuleBytes * 2 / ITS_PAGE_SIZE);
+            uint blockPages = (uint)(granuleBytes * 2 / ItsPageSize);
             ulong blockVirt = (ulong)PageAllocator.AllocPages(PageType.Unmanaged, blockPages, zero: true);
             if (blockVirt == 0)
             {
@@ -498,7 +509,7 @@ public static unsafe class GICv3Its
         q[2] = cmd2;
         q[3] = cmd3;
 
-        _cmdWriteOff += ITS_COMMAND_SIZE;
+        _cmdWriteOff += ItsCommandSize;
         if (_cmdWriteOff >= _cmdQueueSize)
         {
             _cmdWriteOff = 0;
@@ -554,16 +565,6 @@ public static unsafe class GICv3Its
         EnqueueRaw(CMD_SYNC, 0, c2, 0);
         _cmdLock.Release();
     }
-
-    // Hang-breaker for the CREADR poll below, in loop iterations (one MMIO
-    // read each), not time: a healthy ITS consumes a handful of queued
-    // commands in microseconds, so ~10M reads (seconds-order even on slow
-    // buses) is orders of magnitude past any legitimate completion and only
-    // trips when the ITS is wedged. Deliberately not time-calibrated: this
-    // runs during early interrupt bring-up, before any timer facility is
-    // usable from Core.ARM64 (PlatformHAL.DelayMicroseconds lives a layer
-    // above and can't be referenced from here).
-    private const int CommandFlushSpinLimit = 10_000_000;
 
     /// <summary>
     /// Publish the new write offset and spin until the ITS has consumed

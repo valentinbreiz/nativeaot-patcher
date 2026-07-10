@@ -199,9 +199,9 @@ public class GenericTimer : TimerDevice
         uint cpuId = 0;
 
         // Calculate SP pointing to saved context for context switching
-        // On ARM64, ctx is at offset 512 from start of saved context (after NEON regs)
+        // On ARM64, ctx sits one NEON save area above the start of the saved context
         nuint contextPtr = (nuint)Unsafe.AsPointer(ref ctx);
-        nuint currentSp = contextPtr - 512;  // SP points to start of NEON save area
+        nuint currentSp = contextPtr - ARM64InterruptController.NeonSaveAreaBytes;  // SP points to start of NEON save area
 
         // Log first few ticks and then periodically
         if (_timerTickCount <= 5 || _timerTickCount % 100 == 0)

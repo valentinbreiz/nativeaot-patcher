@@ -24,10 +24,9 @@ public sealed record ResolvedTool(string Path, ToolSource Source, string? Versio
 public static class ToolResolver
 {
     /// <summary>
-    /// Timeout for spawned tool subprocesses (e.g. version probes); internal so
-    /// ToolChecker shares the same bound for its command runs.
+    /// Timeout for spawned tool subprocesses (e.g. version probes).
     /// </summary>
-    internal const int CommandTimeoutMs = 5000;
+    private const int CommandTimeoutMs = 5000;
     private static readonly ConcurrentDictionary<string, ResolvedTool> s_cache = new();
 
     public static Task<ResolvedTool> ResolveAsync(CommandToolDefinition tool, string? overridePath = null)

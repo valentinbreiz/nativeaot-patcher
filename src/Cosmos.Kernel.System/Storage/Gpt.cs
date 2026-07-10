@@ -125,30 +125,6 @@ public static class Gpt
     /// <summary>Minimum device size in sectors accepted by Create: LBAs 0..33 plus a usable area and a backup slot at BlockCount-1.</summary>
     private const ulong MinCreateBlockCount = 64;
 
-    /// <summary>MBR partition entry field offset of the boot indicator (byte 0).</summary>
-    private const int MbrBootIndicatorOffset = 0;
-
-    /// <summary>MBR partition entry field offset of the starting CHS head (byte 1).</summary>
-    private const int MbrStartChsHeadOffset = 1;
-
-    /// <summary>MBR partition entry field offset of the starting CHS sector (byte 2).</summary>
-    private const int MbrStartChsSectorOffset = 2;
-
-    /// <summary>MBR partition entry field offset of the starting CHS cylinder (byte 3).</summary>
-    private const int MbrStartChsCylinderOffset = 3;
-
-    /// <summary>MBR partition entry field offset of the ending CHS head (byte 5).</summary>
-    private const int MbrEndChsHeadOffset = 5;
-
-    /// <summary>MBR partition entry field offset of the ending CHS sector (byte 6).</summary>
-    private const int MbrEndChsSectorOffset = 6;
-
-    /// <summary>MBR partition entry field offset of the ending CHS cylinder (byte 7).</summary>
-    private const int MbrEndChsCylinderOffset = 7;
-
-    /// <summary>CHS placeholder value used when the geometry exceeds CHS addressing (all bits set).</summary>
-    private const byte MbrChsPlaceholder = 0xFF;
-
     /// <summary>Starting CHS head of the protective partition (head 0; with sector 2 and cylinder 0 this addresses LBA 1, UEFI spec 5.2.3).</summary>
     private const byte ProtectiveMbrStartChsHead = 0x00;
 
@@ -164,9 +140,6 @@ public static class Gpt
     /// with the same value this writer stamps.
     /// </summary>
     public const uint ProtectiveMbrStartLba = 1u;
-
-    /// <summary>Maximum size-in-LBA value the 32-bit MBR field can express; larger disks are clamped to it (UEFI spec).</summary>
-    private const uint MbrMaxSizeInLba = 0xFFFFFFFFu;
 
     /// <summary>Byte offset of the first 32-bit word inside a 16-byte GUID.</summary>
     private const int GuidDword0Offset = 0;
@@ -340,39 +313,39 @@ public static class Gpt
 
         // Protective MBR at LBA 0.
         Span<byte> protectiveMbr = new byte[blockSize];
-        protectiveMbr[Mbr.PartitionTableOffset + MbrBootIndicatorOffset] = Mbr.StatusInactive; // boot indicator: non-bootable (UEFI spec 5.2.3)
-        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsHeadOffset] = ProtectiveMbrStartChsHead; // start CHS head
-        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsSectorOffset] = ProtectiveMbrStartChsSector; // start CHS sector
-        protectiveMbr[Mbr.PartitionTableOffset + MbrStartChsCylinderOffset] = ProtectiveMbrStartChsCylinder; // start CHS cylinder
-        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntrySystemIdOffset] = Mbr.SystemIdGptProtective; // GPT protective system id
-        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsHeadOffset] = MbrChsPlaceholder; // end CHS head
-        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsSectorOffset] = MbrChsPlaceholder; // end CHS sector
-        protectiveMbr[Mbr.PartitionTableOffset + MbrEndChsCylinderOffset] = MbrChsPlaceholder; // end CHS cylinder
-        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntryStartLbaOffset, UInt32FieldSize), ProtectiveMbrStartLba);
-        uint sizeInLba = device.BlockCount > MbrMaxSizeInLba
-            ? MbrMaxSizeInLba
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryStatusOffset] = Mbr.StatusInactive;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryStartChsHeadOffset] = ProtectiveMbrStartChsHead;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryStartChsSectorOffset] = ProtectiveMbrStartChsSector;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryStartChsCylinderOffset] = ProtectiveMbrStartChsCylinder;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntrySystemIdOffset] = Mbr.SystemIdGptProtective;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryEndChsHeadOffset] = Mbr.ChsPlaceholder;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryEndChsSectorOffset] = Mbr.ChsPlaceholder;
+        protectiveMbr[Mbr.PartitionTableOffset + Mbr.EntryEndChsCylinderOffset] = Mbr.ChsPlaceholder;
+        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), ProtectiveMbrStartLba);
+        uint sizeInLba = device.BlockCount > Mbr.LbaFieldMaxValue
+            ? Mbr.LbaFieldMaxValue
             : (uint)(device.BlockCount - 1);
-        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntrySectorCountOffset, UInt32FieldSize), sizeInLba);
+        BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.PartitionTableOffset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes), sizeInLba);
         BitConverter.TryWriteBytes(protectiveMbr.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), Mbr.MbrSignature);
         device.WriteBlock(Mbr.MbrSectorLba, 1, protectiveMbr);
 
         // GPT header at LBA 1.
         Span<byte> header = new byte[blockSize];
         BitConverter.TryWriteBytes(header.Slice(HeaderSignatureOffset, UInt64FieldSize), EfiPartSignature);
-        BitConverter.TryWriteBytes(header.Slice(HeaderRevisionOffset, UInt32FieldSize), GptRevision);  // Revision 1.0
-        BitConverter.TryWriteBytes(header.Slice(HeaderSizeOffset, UInt32FieldSize), GptHeaderSizeBytes);          // header size
-        BitConverter.TryWriteBytes(header.Slice(HeaderCrcOffset, UInt32FieldSize), UncomputedCrc32);           // CRC32 (not computed; consumers that care will reject)
-        BitConverter.TryWriteBytes(header.Slice(HeaderCurrentLbaOffset, UInt64FieldSize), PrimaryHeaderLba);          // current LBA
-        BitConverter.TryWriteBytes(header.Slice(HeaderBackupLbaOffset, UInt64FieldSize), device.BlockCount - 1);  // backup LBA
-        BitConverter.TryWriteBytes(header.Slice(HeaderFirstUsableOffset, UInt64FieldSize), FirstUsableLba);         // first usable LBA
-        BitConverter.TryWriteBytes(header.Slice(HeaderLastUsableOffset, UInt64FieldSize), device.BlockCount - FirstUsableLba); // last usable LBA
+        BitConverter.TryWriteBytes(header.Slice(HeaderRevisionOffset, UInt32FieldSize), GptRevision);
+        BitConverter.TryWriteBytes(header.Slice(HeaderSizeOffset, UInt32FieldSize), GptHeaderSizeBytes);
+        BitConverter.TryWriteBytes(header.Slice(HeaderCrcOffset, UInt32FieldSize), UncomputedCrc32); // not computed; consumers that care will reject
+        BitConverter.TryWriteBytes(header.Slice(HeaderCurrentLbaOffset, UInt64FieldSize), PrimaryHeaderLba);
+        BitConverter.TryWriteBytes(header.Slice(HeaderBackupLbaOffset, UInt64FieldSize), device.BlockCount - 1);
+        BitConverter.TryWriteBytes(header.Slice(HeaderFirstUsableOffset, UInt64FieldSize), FirstUsableLba);
+        BitConverter.TryWriteBytes(header.Slice(HeaderLastUsableOffset, UInt64FieldSize), device.BlockCount - FirstUsableLba);
         // Disk GUID — deterministic, derived from disk size so identical inputs yield identical layouts.
         ulong sizeMix = device.BlockCount;
         WriteDeterministicGuid(header.Slice(HeaderDiskGuidOffset, GuidFieldSize), sizeMix);
-        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayLbaOffset, UInt64FieldSize), EntryArrayLba);          // partition entry array LBA
-        BitConverter.TryWriteBytes(header.Slice(HeaderEntryCountOffset, UInt32FieldSize), DefaultPartitionEntryCount);         // entry count
-        BitConverter.TryWriteBytes(header.Slice(HeaderEntrySizeOffset, UInt32FieldSize), PartitionEntrySizeBytes);         // entry size
-        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayCrcOffset, UInt32FieldSize), UncomputedCrc32);           // entry array CRC32
+        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayLbaOffset, UInt64FieldSize), EntryArrayLba);
+        BitConverter.TryWriteBytes(header.Slice(HeaderEntryCountOffset, UInt32FieldSize), DefaultPartitionEntryCount);
+        BitConverter.TryWriteBytes(header.Slice(HeaderEntrySizeOffset, UInt32FieldSize), PartitionEntrySizeBytes);
+        BitConverter.TryWriteBytes(header.Slice(HeaderEntryArrayCrcOffset, UInt32FieldSize), UncomputedCrc32);
         device.WriteBlock(PrimaryHeaderLba, 1, header);
 
         // Zero the partition entry array (LBAs 2..33 with 512B sectors and 128 entries × 128B).

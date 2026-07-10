@@ -12,9 +12,6 @@ namespace Cosmos.Kernel.System.Storage;
 /// </summary>
 public static class PartitionManager
 {
-    /// <summary>Largest value a 32-bit MBR LBA / sector-count field can hold.</summary>
-    private const ulong MbrMaxLbaValue = uint.MaxValue;
-
     /// <summary>Sectors copied per ReadBlock/WriteBlock batch in <see cref="CopySectors"/>.</summary>
     private const int BatchBlocks = 128;
 
@@ -78,7 +75,7 @@ public static class PartitionManager
         {
             return false;
         }
-        if (startSector > MbrMaxLbaValue || sectorCount > MbrMaxLbaValue)
+        if (startSector > Mbr.LbaFieldMaxValue || sectorCount > Mbr.LbaFieldMaxValue)
         {
             return false;
         }
@@ -180,7 +177,7 @@ public static class PartitionManager
         {
             return false;
         }
-        if (newSectorCount > MbrMaxLbaValue)
+        if (newSectorCount > Mbr.LbaFieldMaxValue)
         {
             return false;
         }
@@ -258,7 +255,7 @@ public static class PartitionManager
         {
             return false;
         }
-        if (newStartSector > MbrMaxLbaValue)
+        if (newStartSector > Mbr.LbaFieldMaxValue)
         {
             return false;
         }
@@ -372,7 +369,7 @@ public static class PartitionManager
         for (int i = 0; i < Mbr.MaxPartitions; i++)
         {
             int offset = Mbr.PartitionTableOffset + i * Mbr.PartitionEntrySize;
-            if (mbr[offset + Mbr.EntrySystemIdOffset] == 0)
+            if (mbr[offset + Mbr.EntrySystemIdOffset] == Mbr.SystemIdEmpty)
             {
                 return i;
             }
@@ -388,7 +385,7 @@ public static class PartitionManager
         {
             int offset = Mbr.PartitionTableOffset + i * Mbr.PartitionEntrySize;
             byte systemId = mbr[offset + Mbr.EntrySystemIdOffset];
-            if (systemId == 0)
+            if (systemId == Mbr.SystemIdEmpty)
             {
                 continue;
             }

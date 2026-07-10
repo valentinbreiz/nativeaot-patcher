@@ -94,6 +94,12 @@ public static class FatDirectory
     /// <summary>Mask isolating one 16-bit half of a first-cluster number.</summary>
     public const uint ClusterWordMask = 0xFFFFu;
 
+    /// <summary>Longest name the LFN format allows.</summary>
+    public const int MaxLfnNameLength = 255;
+
+    /// <summary>Length of the full 8.3 name field.</summary>
+    internal const int ShortNameLength = 11;
+
     /// <summary>ASCII distance between upper- and lower-case letters.</summary>
     private const int CaseDistance = 32;
 
@@ -105,9 +111,6 @@ public static class FatDirectory
 
     /// <summary>Maximum LFN entries per name (255 chars / 13 per entry).</summary>
     private const int MaxLfnEntries = 20;
-
-    /// <summary>Longest name the LFN format allows.</summary>
-    public const int MaxLfnNameLength = 255;
 
     /// <summary>The ordinal field is the low 6 bits of the LFN sequence byte.</summary>
     private const byte LfnOrdinalMask = 0x3F;
@@ -177,9 +180,6 @@ public static class FatDirectory
 
     /// <summary>Length of the 8.3 extension field.</summary>
     private const int ShortExtLength = 3;
-
-    /// <summary>Length of the full 8.3 name field.</summary>
-    internal const int ShortNameLength = 11;
 
     /// <summary>Longest rendered 8.3 name: 8 base + dot + 3 extension.</summary>
     private const int MaxShortNameChars = 12;

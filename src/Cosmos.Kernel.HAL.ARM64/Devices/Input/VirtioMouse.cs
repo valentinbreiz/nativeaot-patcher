@@ -35,7 +35,7 @@ public unsafe class VirtioMouse : MouseDevice
     private const ushort REL_WHEEL = 0x08;
 
     // Queue size
-    private const uint QUEUE_SIZE = 64;
+    private const uint QueueSize = 64;
 
     private readonly ulong _baseAddress;
     private readonly uint _irq;
@@ -44,7 +44,7 @@ public unsafe class VirtioMouse : MouseDevice
 
     // Event buffers
     private VirtioInputEvent* _eventBuffers;
-    private const int NUM_EVENT_BUFFERS = 32;
+    private const int EventBufferCount = 32;
 
     private bool _initialized;
     private bool _irqRegistered;
@@ -121,7 +121,7 @@ public unsafe class VirtioMouse : MouseDevice
         }
 
         // Set up event queue
-        if (!SetupQueue(VirtioMMIO.VIRTIO_INPUT_EVENTQ))
+        if (!SetupQueue(VirtioInput.EVENTQ))
         {
             Serial.Write("[VirtioMouse] ERROR: Failed to setup event queue\n");
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
@@ -129,14 +129,14 @@ public unsafe class VirtioMouse : MouseDevice
         }
 
         // Allocate event buffers and add to queue
-        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(NUM_EVENT_BUFFERS * sizeof(VirtioInputEvent)));
-        for (int i = 0; i < NUM_EVENT_BUFFERS; i++)
+        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(EventBufferCount * sizeof(VirtioInputEvent)));
+        for (int i = 0; i < EventBufferCount; i++)
         {
             AddEventBuffer(i);
         }
 
         // Notify device
-        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
+        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
 
         // Set DRIVER_OK
         status = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_STATUS);
@@ -176,7 +176,7 @@ public unsafe class VirtioMouse : MouseDevice
             return false;
         }
 
-        uint queueSize = maxSize < QUEUE_SIZE ? maxSize : QUEUE_SIZE;
+        uint queueSize = maxSize < QueueSize ? maxSize : QueueSize;
         _eventQueue = new Virtqueue(queueSize);
 
         VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NUM, queueSize);
@@ -285,7 +285,7 @@ public unsafe class VirtioMouse : MouseDevice
             }
 
             VirtioInputEvent* evt = &_eventBuffers[id];
-            if (evt->Type == VirtioDevice.EV_REL)
+            if (evt->Type == VirtioInput.EV_REL)
             {
                 // Accumulate relative axis changes to account for multiple REL events
                 if (evt->Code == REL_X)
@@ -304,7 +304,7 @@ public unsafe class VirtioMouse : MouseDevice
                     _hasEvents = true;
                 }
             }
-            else if (evt->Type == VirtioDevice.EV_KEY)
+            else if (evt->Type == VirtioInput.EV_KEY)
             {
                 bool pressed = evt->Value != 0;
                 if (evt->Code == BTN_LEFT)
@@ -323,7 +323,7 @@ public unsafe class VirtioMouse : MouseDevice
                     _hasEvents = true;
                 }
             }
-            else if (evt->Type == VirtioDevice.EV_SYN && _hasEvents)
+            else if (evt->Type == VirtioInput.EV_SYN && _hasEvents)
             {
                 // Sync event - dispatch accumulated changes
                 X += _tempDeltaX;
@@ -347,7 +347,7 @@ public unsafe class VirtioMouse : MouseDevice
             _eventQueue.FreeDescriptor((int)id);
             AddEventBuffer((int)id);
 
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
         }
     }
 

@@ -25,8 +25,8 @@ public sealed class FatTable
     /// <summary>FAT32 bad-cluster marker.</summary>
     public const uint Fat32BadCluster = 0x0FFFFFF7;
 
-    /// <summary>Canonical FAT32 end-of-chain value written by this driver.</summary>
-    private const uint Fat32EndOfChainValue = 0x0FFFFFFF;
+    /// <summary>Canonical FAT32 end-of-chain value written by this driver; also stamped by the formatter into FAT[1] and the root cluster's FAT entry (fatgen103 §4).</summary>
+    internal const uint Fat32EndOfChainValue = 0x0FFFFFFF;
 
     /// <summary>Lowest FAT16 entry value of the end-of-chain band.</summary>
     private const uint Fat16EndOfChain = 0xFFF8;

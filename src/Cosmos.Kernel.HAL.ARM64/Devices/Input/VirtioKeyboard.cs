@@ -25,7 +25,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     }
 
     // Queue size
-    private const uint QUEUE_SIZE = 64;
+    private const uint QueueSize = 64;
 
     private readonly ulong _baseAddress;
     private readonly uint _irq;
@@ -34,7 +34,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
     // Event buffers
     private VirtioInputEvent* _eventBuffers;
-    private const int NUM_EVENT_BUFFERS = 32;
+    private const int EventBufferCount = 32;
 
     private bool _initialized;
     private bool _irqRegistered;
@@ -108,7 +108,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Set up event queue
-        if (!SetupQueue(VirtioMMIO.VIRTIO_INPUT_EVENTQ))
+        if (!SetupQueue(VirtioInput.EVENTQ))
         {
             Serial.Write("[VirtioKeyboard] ERROR: Failed to setup event queue\n");
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
@@ -116,14 +116,14 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Allocate event buffers and add to queue
-        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(NUM_EVENT_BUFFERS * sizeof(VirtioInputEvent)));
-        for (int i = 0; i < NUM_EVENT_BUFFERS; i++)
+        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(EventBufferCount * sizeof(VirtioInputEvent)));
+        for (int i = 0; i < EventBufferCount; i++)
         {
             AddEventBuffer(i);
         }
 
         // Notify device that buffers are available
-        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
+        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
 
         // Set DRIVER_OK to complete initialization
         status = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_STATUS);
@@ -174,7 +174,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             return false;
         }
 
-        uint queueSize = maxSize < QUEUE_SIZE ? maxSize : QUEUE_SIZE;
+        uint queueSize = maxSize < QueueSize ? maxSize : QueueSize;
 
         Serial.Write("[VirtioKeyboard] Setting up queue ");
         Serial.WriteNumber((uint)queueIndex);
@@ -312,7 +312,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             // Process the event
             VirtioInputEvent* evt = &_eventBuffers[id];
 
-            if (evt->Type == VirtioDevice.EV_KEY)
+            if (evt->Type == VirtioInput.EV_KEY)
             {
                 // Convert Linux keycode to PS2 scan code
                 byte scanCode = LinuxToPS2ScanCode(evt->Code);
@@ -333,7 +333,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             AddEventBuffer((int)id);
 
             // Notify device
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioMMIO.VIRTIO_INPUT_EVENTQ);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
         }
     }
 

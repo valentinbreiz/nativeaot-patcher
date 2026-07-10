@@ -33,50 +33,36 @@ public class PciDevice : Device
     public readonly PciBist Bist;
     public readonly PciInterruptPin InterruptPin;
 
-    public const ushort ConfigAddressPort = 0xCF8;
-    public const ushort ConfigDataPort = 0xCFC;
-
-    /// <summary>Capabilities Pointer register offset in PCI configuration space (0x34, Type-0 header only).</summary>
-    private const byte CapabilitiesPointerOffset = 0x34;
-    /// <summary>BAR0 register offset in PCI configuration space (0x10).</summary>
-    public const byte Bar0Offset = 0x10;
-    /// <summary>BAR1 register offset in PCI configuration space (0x14).</summary>
-    private const byte Bar1Offset = 0x14;
-    /// <summary>BAR2 register offset in PCI configuration space (0x18).</summary>
-    private const byte Bar2Offset = 0x18;
-    /// <summary>BAR3 register offset in PCI configuration space (0x1C).</summary>
-    private const byte Bar3Offset = 0x1C;
-    /// <summary>BAR4 register offset in PCI configuration space (0x20).</summary>
-    private const byte Bar4Offset = 0x20;
-    /// <summary>BAR5 register offset in PCI configuration space (0x24).</summary>
-    private const byte Bar5Offset = 0x24;
+    // Capability list walking (register offsets come from the Config enum).
     /// <summary>Offset of the next-capability pointer within a capability header.</summary>
     private const byte CapabilityNextPointerOffset = 1;
+    /// <summary>Mask clearing the two reserved low bits of a capability pointer (dword aligned).</summary>
+    private const byte CapabilityPointerMask = 0xFC;
+    /// <summary>Upper bound on capability-list entries (the cap area spans 0x40..0xFF, 4-byte aligned).</summary>
+    private const int MaxCapabilityEntries = 48;
+    /// <summary>Status register bit 4 — Capabilities List present.</summary>
+    private const ushort StatusCapabilitiesListMask = 0x0010;
 
+    // Type-0 header geometry (BAR slots start at Config.Bar0).
     /// <summary>Size in bytes of one BAR slot in configuration space.</summary>
     private const int BarSlotSizeBytes = 4;
     /// <summary>Number of Base Address Registers in a Type-0 (Normal) PCI header.</summary>
     private const int BarCount = 6;
-    /// <summary>Upper bound on capability-list entries (the cap area spans 0x40..0xFF, 4-byte aligned).</summary>
-    private const int MaxCapabilityEntries = 48;
 
+    // BAR bit-field layout (PCI 3.0 §6.2.5.1). PciDevice owns BAR decoding;
+    // these are public so BAR-manipulating consumers share one definition.
     /// <summary>BAR bit 0 — set when the BAR maps I/O space instead of memory space.</summary>
-    private const uint BarIoSpaceMask = 0x1;
+    public const uint BarIoSpaceMask = 0x1;
     /// <summary>Mask selecting the address bits of a memory BAR (low 4 bits are flags).</summary>
     public const uint BarMemoryAddressMask = 0xFFFFFFF0;
     /// <summary>Shift down to the memory BAR type field (bits 2:1).</summary>
-    private const int BarTypeShift = 1;
+    public const int BarTypeShift = 1;
     /// <summary>Mask for the memory BAR type field after shifting.</summary>
-    private const uint BarTypeMask = 0x3;
+    public const uint BarTypeMask = 0x3;
     /// <summary>Memory BAR type value indicating a 64-bit BAR.</summary>
-    private const uint BarType64Bit = 0x2;
+    public const uint BarType64Bit = 0x2;
     /// <summary>Shift placing the upper BAR half into bits 63:32 of the combined address.</summary>
-    private const int BarUpperHalfShift = 32;
-
-    /// <summary>Status register bit 4 — Capabilities List present.</summary>
-    private const ushort StatusCapabilitiesListMask = 0x0010;
-    /// <summary>Mask clearing the two reserved low bits of a capability pointer (dword aligned).</summary>
-    private const byte CapabilityPointerMask = 0xFC;
+    public const int BarUpperHalfShift = 32;
 
     /// <summary>Vendor ID value read back from an absent device (bus reads as all ones).</summary>
     private const uint InvalidVendorId = 0xFF;
@@ -84,11 +70,13 @@ public class PciDevice : Device
     private const uint InvalidDeviceId = 0xFFFF;
 
     /// <summary>Command register flags set by EnableMemory: I/O Space, Memory Space and Bus Master (bits 2:0).</summary>
-    private const ushort CommandEnableFlags = 0x0007;
-    /// <summary>Command register Bus Master flag (bit 2).</summary>
-    private const ushort CommandBusMasterFlag = 1 << 2;
+    private const ushort CommandEnableFlags = (ushort)(PciCommand.Io | PciCommand.Memory | PciCommand.Master);
 
     // x86 Configuration Mechanism #1 (CONFIG_ADDRESS) encoding.
+    /// <summary>CONFIG_ADDRESS I/O port of Configuration Mechanism #1 (0xCF8).</summary>
+    private const ushort ConfigAddressPort = 0xCF8;
+    /// <summary>CONFIG_DATA I/O port of Configuration Mechanism #1 (32-bit window at 0xCFC..0xCFF).</summary>
+    private const ushort ConfigDataPort = 0xCFC;
     /// <summary>Enable bit (bit 31) of the CONFIG_ADDRESS value for Configuration Mechanism #1.</summary>
     private const uint ConfigEnableBit = 0x80000000;
     /// <summary>Shift placing the bus number into CONFIG_ADDRESS bits 23:16.</summary>
@@ -186,12 +174,10 @@ public class PciDevice : Device
         if (HeaderType == PciHeaderType.Normal)
         {
             BaseAddressBar = new PciBaseAddressBar[BarCount];
-            BaseAddressBar[0] = new PciBaseAddressBar(ReadRegister32(Bar0Offset));
-            BaseAddressBar[1] = new PciBaseAddressBar(ReadRegister32(Bar1Offset));
-            BaseAddressBar[2] = new PciBaseAddressBar(ReadRegister32(Bar2Offset));
-            BaseAddressBar[3] = new PciBaseAddressBar(ReadRegister32(Bar3Offset));
-            BaseAddressBar[4] = new PciBaseAddressBar(ReadRegister32(Bar4Offset));
-            BaseAddressBar[5] = new PciBaseAddressBar(ReadRegister32(Bar5Offset));
+            for (int i = 0; i < BarCount; i++)
+            {
+                BaseAddressBar[i] = new PciBaseAddressBar(ReadRegister32((byte)((byte)Config.Bar0 + i * BarSlotSizeBytes)));
+            }
         }
 
         Serial.WriteString("[PciDevice] Init Done \n");
@@ -217,7 +203,7 @@ public class PciDevice : Device
             return 0;
         }
 
-        uint lower = ReadRegister32((byte)(Bar0Offset + barIndex * BarSlotSizeBytes));
+        uint lower = ReadRegister32((byte)((byte)Config.Bar0 + barIndex * BarSlotSizeBytes));
         if ((lower & BarIoSpaceMask) == 1)
         {
             return 0; // I/O BAR
@@ -234,7 +220,7 @@ public class PciDevice : Device
                 return 0;
             }
 
-            ulong upper = ReadRegister32((byte)(Bar0Offset + (barIndex + 1) * BarSlotSizeBytes));
+            ulong upper = ReadRegister32((byte)((byte)Config.Bar0 + (barIndex + 1) * BarSlotSizeBytes));
             addr |= upper << BarUpperHalfShift;
         }
         return addr;
@@ -260,7 +246,7 @@ public class PciDevice : Device
             return 0;
         }
 
-        byte offset = (byte)(ReadRegister8(CapabilitiesPointerOffset) & CapabilityPointerMask);
+        byte offset = (byte)(ReadRegister8((byte)Config.CapabilityPointer) & CapabilityPointerMask);
         // The list is at most 48 entries long (the cap area is 0x40..0xFF).
         // Bound the walk so a malformed list cannot loop forever.
         for (int i = 0; offset != 0 && i < MaxCapabilityEntries; i++)
@@ -491,7 +477,7 @@ public class PciDevice : Device
     {
         ushort command = ReadRegister16((byte)Config.Command);
 
-        ushort flags = CommandBusMasterFlag;
+        ushort flags = (ushort)PciCommand.Master;
 
         if (enable)
         {

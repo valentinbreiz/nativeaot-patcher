@@ -20,18 +20,10 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// </summary>
 public class Sata : BlockDevice
 {
-    private static uint s_nextIndex;
-
-    private readonly string _name;
-
-    /// <inheritdoc />
-    public override string Name => _name;
-
-    public uint PortNumber => _portReg.PortNumber;
-
-    private readonly PortRegisters _portReg;
-    private readonly ulong _dataBufferVirt;
-    private readonly ulong _dataBufferPhys;
+    /// <summary>
+    /// Regular sector size (512 bytes).
+    /// </summary>
+    public const ulong RegularSectorSize = 512UL;
 
     /// <summary>
     /// Bounce-buffer capacity in sectors (one 4 KiB page). A command must
@@ -40,19 +32,8 @@ public class Sata : BlockDevice
     /// </summary>
     private const uint MaxSectorsPerCommand = (uint)(4096 / RegularSectorSize);
 
-    /// <summary>
-    /// Regular sector size (512 bytes).
-    /// </summary>
-    public const ulong RegularSectorSize = 512UL;
-
-    /// <summary>PxCMD.ATAPI (bit 24, AHCI 1.3.1) - the attached device is an ATAPI device.</summary>
-    private const uint CmdAtapiBit = 1U << 24;
-
     /// <summary>PxTFD status mask: BSY (bit 7) | DRQ (bit 3) - device busy or requesting a data transfer.</summary>
-    private const uint TfdBusyDrqMask = 0x88;
-
-    /// <summary>PxIS.TFES (bit 30, AHCI 1.3.1) - Task File Error Status.</summary>
-    private const uint IsTfesBit = 1U << 30;
+    private const uint TfdBusyDrqMask = (uint)(AtaDeviceStatus.Busy | AtaDeviceStatus.DRQ);
 
     /// <summary>Device register LBA-mode bit (bit 6), required for LBA48 commands.</summary>
     private const byte DeviceLbaMode = 1 << 6;
@@ -144,12 +125,23 @@ public class Sata : BlockDevice
     /// <summary><see cref="Ahci.Wait"/> ticks to hold SCTL.DET = 1 during COMRESET.</summary>
     private const int ComresetHoldDelayTicks = 1000;
 
+    private static uint s_nextIndex;
+
+    private readonly string _name;
+    private readonly PortRegisters _portReg;
+    private readonly ulong _dataBufferVirt;
+    private readonly ulong _dataBufferPhys;
+
     // Serializes command issue + bounce-buffer access on this port: the
     // buffer is shared state, so an unserialized concurrent WriteBlock
     // would interleave another caller's data into an in-flight command.
     private SchedSpinLock _ioLock;
 
-    // Properties
+    /// <inheritdoc />
+    public override string Name => _name;
+
+    public uint PortNumber => _portReg.PortNumber;
+
     public string SerialNo { get; }
     public string FirmwareRev { get; }
     public string ModelNo { get; }
@@ -157,7 +149,7 @@ public class Sata : BlockDevice
     public unsafe Sata(PortRegisters portReg)
     {
         // Check if it is really a SATA Port!
-        if (portReg.PortType != PortType.Sata || (portReg.CMD & CmdAtapiBit) != 0)
+        if (portReg.PortType != PortType.Sata || (portReg.CMD & (uint)CommandAndStatus.ATAPIDevice) != 0)
         {
             // Constant message on purpose: this ctor runs in the phase-3 init
             // window where CoreLib int formatting triple-faults, and this guard
@@ -289,8 +281,8 @@ public class Sata : BlockDevice
         // PxIS and PxSERR are RW1C: write all ones so stale error bits
         // (including TFES, bit 30) latched by a previous command can't
         // poison this one. Writing a partial mask (or zero) clears nothing.
-        _portReg.IS = AhciController.Rw1CClearAll;
-        _portReg.SERR = AhciController.Rw1CClearAll;
+        _portReg.IS = PortRegisters.Rw1CClearAll;
+        _portReg.SERR = PortRegisters.Rw1CClearAll;
 
         int slot = FindCMDSlot();
         if (slot == -1)
@@ -366,7 +358,7 @@ public class Sata : BlockDevice
             {
                 break;
             }
-            if ((_portReg.IS & IsTfesBit) != 0)
+            if ((_portReg.IS & (uint)InterruptStatus.TaskFileErrorStatus) != 0)
             {
                 throw new Exception("SATA Fatal error: Command aborted");
             }
@@ -411,24 +403,24 @@ public class Sata : BlockDevice
 
         // COMRESET: set SCTL.DET=1 while preserving the SPD/IPM restriction
         // fields, hold it, then clear DET so the PHY retrains.
-        port.SCTL = (port.SCTL & ~AhciController.SctlDetMask) | AhciController.SctlDetComreset;
+        port.SCTL = (port.SCTL & ~PortRegisters.SctlDetMask) | PortRegisters.SctlDetComreset;
         Ahci.Wait(ComresetHoldDelayTicks);
-        port.SCTL &= ~AhciController.SctlDetMask;
+        port.SCTL &= ~PortRegisters.SctlDetMask;
 
         // Wait (bounded) for the PHY to report an established link (DET == 3); a
         // missing or wedged device must not spin the boot CPU forever.
         int spin = 0;
-        while ((DeviceDetectionStatus)(port.SSTS & AhciController.SstsDetMask) != DeviceDetectionStatus.DeviceDetectedWithPhy && spin < RegisterPollSpinLimit)
+        while ((DeviceDetectionStatus)(port.SSTS & PortRegisters.SstsDetMask) != DeviceDetectionStatus.DeviceDetectedWithPhy && spin < RegisterPollSpinLimit)
         {
             spin++;
         }
 
         // RW1C: clear every latched error bit, not just DIAG bit 0.
-        port.SERR = AhciController.Rw1CClearAll;
+        port.SERR = PortRegisters.Rw1CClearAll;
 
         // Wait (bounded) for the COMRESET request bit to clear.
         spin = 0;
-        while ((port.SCTL & AhciController.SctlDetMask) != 0 && spin < RegisterPollSpinLimit)
+        while ((port.SCTL & PortRegisters.SctlDetMask) != 0 && spin < RegisterPollSpinLimit)
         {
             spin++;
         }

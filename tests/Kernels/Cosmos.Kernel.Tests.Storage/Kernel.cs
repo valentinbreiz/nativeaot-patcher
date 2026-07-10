@@ -2162,23 +2162,17 @@ public class Kernel : Sys.Kernel
     // every fixed q35 window (ECAM, LAPIC, IO-APIC all sit below 4 GiB).
     private const ulong HighBarPhys = 0x1_1000_0000;
 
-    /// <summary>BAR0 upper dword of a 64-bit BAR (PCI config offset 0x14).</summary>
-    private const byte PciBar0HighOffset = 0x14;
-
     /// <summary>Index of the NVMe controller's 64-bit register BAR (BAR0).</summary>
     private const int NvmeRegisterBarIndex = 0;
 
-    /// <summary>Mask of the type bits in a memory BAR's lower dword (bits 0-2).</summary>
-    private const uint PciBarTypeMask = 0x7;
+    /// <summary>Mask of the type bits in a memory BAR's lower dword (bits 0-2), composed from the PciDevice BAR field layout.</summary>
+    private const uint PciBarTypeMask = (PciDevice.BarTypeMask << PciDevice.BarTypeShift) | PciDevice.BarIoSpaceMask;
 
     /// <summary>Type-bit value marking a 64-bit memory BAR.</summary>
-    private const uint PciBar64BitMemoryType = 0x4;
+    private const uint PciBar64BitMemoryType = PciDevice.BarType64Bit << PciDevice.BarTypeShift;
 
     /// <summary>Mask selecting the flag bits of a memory BAR's lower dword.</summary>
-    private const uint PciBarFlagsMask = 0xF;
-
-    /// <summary>Shift between the two 32-bit halves of a 64-bit BAR address.</summary>
-    private const int BarHighDwordShift = 32;
+    private const uint PciBarFlagsMask = ~PciDevice.BarMemoryAddressMask;
 
     /// <summary>All-ones 32-bit MMIO read value, meaning nothing decodes the address.</summary>
     private const uint MmioAllOnesValue = 0xFFFF_FFFF;
@@ -2199,11 +2193,11 @@ public class Kernel : Sys.Kernel
         PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
         Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
 
-        uint barLow = nvmePci!.ReadRegister32(PciDevice.Bar0Offset);
-        uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
+        uint barLow = nvmePci!.ReadRegister32((byte)Config.Bar0);
+        uint barHigh = nvmePci.ReadRegister32((byte)Config.Bar1);
         Assert.True((barLow & PciBarTypeMask) == PciBar64BitMemoryType, "NVMe BAR0 must be a 64-bit memory BAR");
 
-        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciDevice.BarMemoryAddressMask);
+        ulong origPhys = ((ulong)barHigh << PciDevice.BarUpperHalfShift) | (barLow & PciDevice.BarMemoryAddressMask);
         ulong hhdm = HhdmOffset();
         uint vsOrig = Native.MMIO.Read32(origPhys + hhdm + NvmeRegisters.VsOffset);
         Assert.True(vsOrig != 0 && vsOrig != MmioAllOnesValue, "NVMe VS must read sane at the original BAR");
@@ -2213,8 +2207,8 @@ public class Kernel : Sys.Kernel
         // the controller through the stale driver mapping meanwhile.
         ushort command = nvmePci.ReadRegister16((byte)Config.Command);
         nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
-        nvmePci.WriteRegister32(PciDevice.Bar0Offset, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
-        nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
+        nvmePci.WriteRegister32((byte)Config.Bar0, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
+        nvmePci.WriteRegister32((byte)Config.Bar1, (uint)(HighBarPhys >> PciDevice.BarUpperHalfShift));
         nvmePci.WriteRegister16((byte)Config.Command, command);
 
         uint vsHigh;
@@ -2228,8 +2222,8 @@ public class Kernel : Sys.Kernel
             // Put the BAR back exactly as found so the destructive reboot
             // cell (and boot 1's scan) still see a working controller.
             nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
-            nvmePci.WriteRegister32(PciDevice.Bar0Offset, barLow);
-            nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
+            nvmePci.WriteRegister32((byte)Config.Bar0, barLow);
+            nvmePci.WriteRegister32((byte)Config.Bar1, barHigh);
             nvmePci.WriteRegister16((byte)Config.Command, command);
         }
 
@@ -2247,20 +2241,20 @@ public class Kernel : Sys.Kernel
         PciDevice? nvmePci = PciManager.GetDeviceClass(ClassId.MassStorageController, SubclassId.NvmController);
         Assert.True(nvmePci != null, "an NVMe PCI function must exist on an nvme profile");
 
-        uint barLow = nvmePci!.ReadRegister32(PciDevice.Bar0Offset);
-        uint barHigh = nvmePci.ReadRegister32(PciBar0HighOffset);
-        ulong origPhys = ((ulong)barHigh << BarHighDwordShift) | (barLow & PciDevice.BarMemoryAddressMask);
+        uint barLow = nvmePci!.ReadRegister32((byte)Config.Bar0);
+        uint barHigh = nvmePci.ReadRegister32((byte)Config.Bar1);
+        ulong origPhys = ((ulong)barHigh << PciDevice.BarUpperHalfShift) | (barLow & PciDevice.BarMemoryAddressMask);
         Assert.True(nvmePci.GetBar64Address(NvmeRegisterBarIndex) == origPhys, "baseline: GetBar64Address must match raw config space");
 
         ushort command = nvmePci.ReadRegister16((byte)Config.Command);
         nvmePci.WriteRegister16((byte)Config.Command, (ushort)(command & ~(ushort)PciCommand.Memory));
-        nvmePci.WriteRegister32(PciDevice.Bar0Offset, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
-        nvmePci.WriteRegister32(PciBar0HighOffset, (uint)(HighBarPhys >> BarHighDwordShift));
+        nvmePci.WriteRegister32((byte)Config.Bar0, (uint)(HighBarPhys & PciDevice.BarMemoryAddressMask) | (barLow & PciBarFlagsMask));
+        nvmePci.WriteRegister32((byte)Config.Bar1, (uint)(HighBarPhys >> PciDevice.BarUpperHalfShift));
 
         ulong reported = nvmePci.GetBar64Address(NvmeRegisterBarIndex);
 
-        nvmePci.WriteRegister32(PciDevice.Bar0Offset, barLow);
-        nvmePci.WriteRegister32(PciBar0HighOffset, barHigh);
+        nvmePci.WriteRegister32((byte)Config.Bar0, barLow);
+        nvmePci.WriteRegister32((byte)Config.Bar1, barHigh);
         nvmePci.WriteRegister16((byte)Config.Command, command);
 
         Assert.True(reported == HighBarPhys,

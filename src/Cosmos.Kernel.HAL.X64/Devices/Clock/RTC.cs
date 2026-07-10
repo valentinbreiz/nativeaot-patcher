@@ -93,7 +93,7 @@ public class RTC : Device
             long unixSecs = Limine.BootTime.Response->BootTime;
             if (unixSecs > 0)
             {
-                BootTimeTicks = EfiRtc.UnixEpochTicks + unixSecs * EfiRtc.TicksPerSecond;
+                BootTimeTicks = DateTime.UnixEpoch.Ticks + unixSecs * TimeSpan.TicksPerSecond;
                 Serial.Write("[RTC] Boot time (Limine): ");
                 LogTime(BootTimeTicks);
                 IsInitialized = true;
@@ -182,7 +182,7 @@ public class RTC : Device
 
         // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
         // Use 128-bit math to avoid overflow
-        ulong elapsedTicks = MultiplyDivide(elapsedTsc, 10_000_000, (ulong)tscFrequency);
+        ulong elapsedTicks = MultiplyDivide(elapsedTsc, TimeSpan.TicksPerSecond, (ulong)tscFrequency);
 
         return BootTimeTicks + (long)elapsedTicks;
     }
@@ -209,7 +209,7 @@ public class RTC : Device
 
         // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
         // Use 128-bit math to avoid overflow
-        ulong elapsedTicks = MultiplyDivide(elapsedTsc, 10_000_000, (ulong)tscFrequency);
+        ulong elapsedTicks = MultiplyDivide(elapsedTsc, TimeSpan.TicksPerSecond, (ulong)tscFrequency);
 
         return (long)elapsedTicks;
     }
@@ -334,7 +334,7 @@ public class RTC : Device
         days += day - 1;
 
         // Convert to ticks (100-nanosecond intervals)
-        return days * EfiRtc.TicksPerDay;
+        return days * TimeSpan.TicksPerDay;
     }
 
     /// <summary>
@@ -342,7 +342,7 @@ public class RTC : Device
     /// </summary>
     private static long TimeToTicks(int hour, int minute, int second)
     {
-        return hour * EfiRtc.TicksPerHour + minute * EfiRtc.TicksPerMinute + second * EfiRtc.TicksPerSecond;
+        return hour * TimeSpan.TicksPerHour + minute * TimeSpan.TicksPerMinute + second * TimeSpan.TicksPerSecond;
     }
 
     /// <summary>

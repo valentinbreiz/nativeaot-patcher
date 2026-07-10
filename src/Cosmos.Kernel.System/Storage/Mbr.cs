@@ -28,8 +28,29 @@ public static class Mbr
     /// <summary>Number of primary partition slots in an MBR partition table.</summary>
     internal const int MaxPartitions = 4;
 
+    /// <summary>Byte offset of the status (boot indicator) byte within a partition entry.</summary>
+    internal const int EntryStatusOffset = 0;
+
+    /// <summary>Byte offset of the starting CHS head within a partition entry.</summary>
+    internal const int EntryStartChsHeadOffset = 1;
+
+    /// <summary>Byte offset of the starting CHS sector within a partition entry.</summary>
+    internal const int EntryStartChsSectorOffset = 2;
+
+    /// <summary>Byte offset of the starting CHS cylinder within a partition entry.</summary>
+    internal const int EntryStartChsCylinderOffset = 3;
+
     /// <summary>Byte offset of the partition type (system ID) within a partition entry.</summary>
     internal const int EntrySystemIdOffset = 4;
+
+    /// <summary>Byte offset of the ending CHS head within a partition entry.</summary>
+    internal const int EntryEndChsHeadOffset = 5;
+
+    /// <summary>Byte offset of the ending CHS sector within a partition entry.</summary>
+    internal const int EntryEndChsSectorOffset = 6;
+
+    /// <summary>Byte offset of the ending CHS cylinder within a partition entry.</summary>
+    internal const int EntryEndChsCylinderOffset = 7;
 
     /// <summary>Byte offset of the 32-bit starting LBA within a partition entry.</summary>
     internal const int EntryStartLbaOffset = 8;
@@ -39,6 +60,12 @@ public static class Mbr
 
     /// <summary>Size in bytes of the 32-bit LBA / sector-count fields in a partition entry.</summary>
     internal const int LbaFieldSizeBytes = 4;
+
+    /// <summary>Largest value the 32-bit LBA / sector-count fields in a partition entry can hold; larger geometry is clamped or rejected by writers.</summary>
+    internal const uint LbaFieldMaxValue = uint.MaxValue;
+
+    /// <summary>CHS field placeholder stamped when the geometry exceeds CHS addressing (all bits set).</summary>
+    internal const byte ChsPlaceholder = 0xFF;
 
     /// <summary>LBA of the MBR sector itself (sector 0) — where the partition table is read/written, and the start LBA no partition entry may alias.</summary>
     internal const uint MbrSectorLba = 0;
