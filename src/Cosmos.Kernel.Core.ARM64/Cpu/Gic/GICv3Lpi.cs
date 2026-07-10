@@ -31,12 +31,12 @@ public static unsafe class GICv3Lpi
     // exact widths: CTLR and SYNCR are 32-bit, PROPBASER/PENDBASER/INVLPIR
     // are 64-bit. A 64-bit access to a 32-bit register gets silently
     // rejected (or split-and-misrouted) on QEMU, leaving the bit unset.
-    private const uint GICR_CTLR = 0x0000;     // 32-bit
     private const uint GICR_PROPBASER = 0x0070; // 64-bit
     private const uint GICR_PENDBASER = 0x0078; // 64-bit
     private const uint GICR_INVLPIR = 0x00A0;   // 64-bit WO
     private const uint GICR_SYNCR = 0x00C0;     // 32-bit RO
 
+    private const uint GICR_CTLR = 0x0000;      // 32-bit — Redistributor Control
     private const uint GICR_CTLR_ENABLE_LPIS = 1U << 0;
     private const uint GICR_CTLR_CES = 1U << 1;  // Clear Enable Supported
     private const uint GICR_CTLR_RWP = 1U << 3;
@@ -65,8 +65,8 @@ public static unsafe class GICv3Lpi
     private const ulong PendTableAlignment = 64UL * 1024UL;
     private const ulong PendTableAlignmentMask = PendTableAlignment - 1;
 
-    // Per-LPI configuration byte: bit 0 = Enable, bits [7:2] = priority.
-    private const byte LPI_PRIO_DEFAULT = 0xA0;
+    // Per-LPI configuration byte: bit 0 = Enable, bits [7:2] = priority
+    // (the priority written is the shared GicArch.DefaultPriority policy).
     private const byte LPI_CFG_ENABLE = 0x01;
 
     private const int LpiIdBits = 13;            // 16K LPI INTID space
@@ -75,10 +75,7 @@ public static unsafe class GICv3Lpi
     // that is 8192 config bytes, half the (over-)allocated prop table. The
     // window checks below must use this bound — bounding against the full
     // table accepts INTIDs up to 24575 whose bytes the GIC never reads.
-    private const uint LpiCount = (1U << (LpiIdBits + 1)) - 8192;
-
-    /// <summary>First LPI INTID — the LPI INTID space always starts at 8192 (ARM IHI 0069G §1.2.1).</summary>
-    private const uint LpiBaseIntId = 8192;
+    private const uint LpiCount = (1U << (LpiIdBits + 1)) - GIC.LPI_START;
 
     /// <summary>Property table allocation in 4 KiB pages: 4 pages = 16 KiB, one config byte per INTID for IDbits=13.</summary>
     private const uint PropTablePages = 4;
@@ -210,17 +207,17 @@ public static unsafe class GICv3Lpi
     /// </summary>
     public static void EnableLpi(uint lpi)
     {
-        if (!_initialized || lpi < LpiBaseIntId)
+        if (!_initialized || lpi < GIC.LPI_START)
         {
             return;
         }
-        uint off = lpi - LpiBaseIntId;
+        uint off = lpi - GIC.LPI_START;
         if (off >= LpiCount)
         {
             return;
         }
         byte* cfg = (byte*)_propTableVirt;
-        cfg[off] = (byte)(LPI_PRIO_DEFAULT | LPI_CFG_ENABLE);
+        cfg[off] = (byte)(GicArch.DefaultPriority | LPI_CFG_ENABLE);
 
         // The redistributor reads the config table over the bus; the byte
         // write must reach memory BEFORE we tell it to refetch. INVLPIR is
@@ -241,17 +238,17 @@ public static unsafe class GICv3Lpi
     /// <summary>Disable an LPI in the config table.</summary>
     public static void DisableLpi(uint lpi)
     {
-        if (!_initialized || lpi < LpiBaseIntId)
+        if (!_initialized || lpi < GIC.LPI_START)
         {
             return;
         }
-        uint off = lpi - LpiBaseIntId;
+        uint off = lpi - GIC.LPI_START;
         if (off >= LpiCount)
         {
             return;
         }
         byte* cfg = (byte*)_propTableVirt;
-        cfg[off] = (byte)(LPI_PRIO_DEFAULT & ~LPI_CFG_ENABLE);
+        cfg[off] = (byte)(GicArch.DefaultPriority & ~LPI_CFG_ENABLE);
         DeviceMapperNative.DsbIsb();
         Native.MMIO.Write64(_rdBase + GICR_INVLPIR, lpi);
         for (int i = 0; i < RegisterSyncSpinLimit; i++)

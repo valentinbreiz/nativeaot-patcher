@@ -9,6 +9,14 @@ public interface IInodeOperations
 {
     bool Lookup(IVfsInode dir, ReadOnlySpan<char> name, out IVfsInode? child);
 
+    /// <summary>
+    /// List the directory's children. <paramref name="entries"/> is
+    /// intentionally non-nullable (empty on failure) and read-only:
+    /// implementations return fixed or immutable collections; callers
+    /// that need to mutate must copy.
+    /// </summary>
+    bool ReadDir(IVfsInode dir, out IReadOnlyList<IVfsInode> entries);
+
     bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);
 
     bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);

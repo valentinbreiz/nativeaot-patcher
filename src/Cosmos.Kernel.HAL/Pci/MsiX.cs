@@ -4,6 +4,7 @@ using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Pci;
 
@@ -20,24 +21,23 @@ public static class MsiX
 
     /// <summary>Offset of the Message Control register within the MSI-X capability (PCI 3.0 §6.8.2.3).</summary>
     private const byte MsgCtrlOffset = 0x02;
-    /// <summary>Offset of the Table Offset/Table BIR register within the MSI-X capability (PCI 3.0 §6.8.2.4).</summary>
-    private const byte TableOffsetBirOffset = 0x04;
-    /// <summary>Offset of the Command register in the PCI configuration header.</summary>
-    private const byte PciCommandOffset = 0x04;
+    /// <summary>Offset of the Table Offset/Table BIR register within the MSI-X capability (PCI 3.0 §6.8.2.4). Public: MsiX owns the capability layout; drivers decoding the table location share these.</summary>
+    public const byte TableOffsetBirOffset = 0x04;
 
     /// <summary>Mask selecting the BAR Indicator Register (BIR) bits of the Table Offset/BIR register.</summary>
-    private const uint TableBirMask = 0x7;
+    public const uint TableBirMask = 0x7;
     /// <summary>Mask selecting the QWORD-aligned table offset bits of the Table Offset/BIR register.</summary>
-    private const uint TableOffsetMask = 0xFFFFFFF8u;
+    public const uint TableOffsetMask = 0xFFFFFFF8u;
 
     /// <summary>Right shift extracting the high 32 bits of the 64-bit message address.</summary>
     private const int AddrHighDwordShift = 32;
 
+    /// <summary>Message Control bit 15 — MSI-X Enable (PCI 3.0 §6.8.2.3).</summary>
     private const ushort MsgCtrlEnable = 1 << 15;
+    /// <summary>Message Control bit 14 — Function Mask: masks every table entry while set (PCI 3.0 §6.8.2.3).</summary>
     private const ushort MsgCtrlFunctionMask = 1 << 14;
+    /// <summary>Message Control bits 10:0 — Table Size, encoded as entry count minus one (PCI 3.0 §6.8.2.3).</summary>
     private const ushort MsgCtrlTableSizeMask = 0x07FF;
-
-    private const ushort PciCommandInterruptDisable = 1 << 10;
 
     /// <summary>
     /// Per-entry layout (PCI 3.0 §6.8.2.9): 16 bytes, MsgAddrLo @0,
@@ -123,8 +123,8 @@ public static class MsiX
         pci.WriteRegister16((byte)(cap + MsgCtrlOffset), msgCtrl);
 
         // Disable legacy INTx delivery so the same line can't double-fire.
-        ushort cmd = pci.ReadRegister16(PciCommandOffset);
-        pci.WriteRegister16(PciCommandOffset, (ushort)(cmd | PciCommandInterruptDisable));
+        ushort cmd = pci.ReadRegister16((byte)Config.Command);
+        pci.WriteRegister16((byte)Config.Command, (ushort)(cmd | (ushort)PciCommand.InterruptDisable));
 
         return new MsiXContext(tableVirt, tableSize, deviceCtx);
     }

@@ -8,7 +8,7 @@ using Cosmos.Kernel.System.Graphics.Fonts;
 using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using SysThread = System.Threading.Thread;
 
-namespace DevKernel;
+namespace DevKernel.Diagnostics;
 
 internal static class CpuStat
 {

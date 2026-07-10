@@ -16,14 +16,9 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
 [EagerStaticClassConstruction]
 public static class VirtioDevice
 {
-    // Linux input event types
-    private const ushort EV_SYN = 0x00;
-    private const ushort EV_KEY = 0x01;
-    private const ushort EV_REL = 0x02;
-    private const ushort EV_ABS = 0x03;
     private static readonly object?[] s_virtioDevices = new object?[VIRTIO_MMIO_MAX_DEVICES];
 
-    /// <summary>object
+    /// <summary>
     /// Retrieves a registered virtio device by its IRQ number.
     /// </summary>
     /// <typeparam name="T">The type of device to retrieve.</typeparam>
@@ -228,11 +223,11 @@ public static class VirtioDevice
         Write32(baseAddr, REG_STATUS, STATUS_ACKNOWLEDGE | STATUS_DRIVER);  // Set driver present
 
         // Probe supported event types for this device
-        bool supportsKey = SupportsEventType(baseAddr, EV_KEY);
-        bool supportsRel = SupportsEventType(baseAddr, EV_REL);
+        bool supportsKey = SupportsEventType(baseAddr, VirtioInput.EV_KEY);
+        bool supportsRel = SupportsEventType(baseAddr, VirtioInput.EV_REL);
         // TODO: TouchScreen support with EV_ABS
-        bool supportsAbs = SupportsEventType(baseAddr, EV_ABS);
-        bool supportsSyn = SupportsEventType(baseAddr, EV_SYN);
+        bool supportsAbs = SupportsEventType(baseAddr, VirtioInput.EV_ABS);
+        bool supportsSyn = SupportsEventType(baseAddr, VirtioInput.EV_SYN);
 
         // Mouse devices support both EV_KEY and EV_REL.
         if (supportsKey && supportsRel)

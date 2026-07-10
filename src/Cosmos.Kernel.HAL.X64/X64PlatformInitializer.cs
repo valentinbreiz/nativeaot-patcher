@@ -23,9 +23,6 @@ namespace Cosmos.Kernel.HAL.X64;
 /// </summary>
 public class X64PlatformInitializer : IPlatformInitializer
 {
-    /// <summary>Legacy POST diagnostic I/O port (0x80); a read takes ~1 µs on PC chipsets, used for calibration-free delays.</summary>
-    private const ushort PostDiagnosticPort = 0x80;
-
     private PIT? _pit;
     private RTC? _rtc;
     private PS2Controller? _ps2Controller;
@@ -69,7 +66,7 @@ public class X64PlatformInitializer : IPlatformInitializer
         // interrupts or calibration needed, safe from phase-3 init.
         for (uint i = 0; i < microseconds; i++)
         {
-            s_delayPort.ReadByte(PostDiagnosticPort);
+            s_delayPort.ReadByte(PlatformHAL.LegacyPostPort);
         }
     }
 

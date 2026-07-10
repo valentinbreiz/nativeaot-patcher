@@ -21,8 +21,8 @@ public static unsafe class PageAllocator
     /// <summary>Base of the kernel-image window (top 2 GiB of the canonical higher half); addresses at or above it are kernel-image mappings, not HHDM aliases.</summary>
     private const ulong KernelImageWindow = 0xFFFFFFFF80000000UL;
 
-    /// <summary>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset).</summary>
-    private const ulong DefaultHhdmOffset = 0xFFFF800000000000UL;
+    /// <summary>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset). Public so drivers translating HHDM aliases for DMA share the same base.</summary>
+    public const ulong DefaultHhdmOffset = 0xFFFF800000000000UL;
 
     /// <summary>Bytes per kilobyte; applied once for KB and twice for MB conversions in diagnostics.</summary>
     private const ulong BytesPerKilobyte = 1024;

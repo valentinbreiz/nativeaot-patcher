@@ -1,4 +1,5 @@
 using System;
+using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
 
 namespace Cosmos.TestRunner.Engine;
@@ -42,7 +43,7 @@ public class TestConfiguration
     /// <summary>
     /// Timeout in seconds for test execution
     /// </summary>
-    public int TimeoutSeconds { get; set; } = 30;
+    public int TimeoutSeconds { get; set; } = QemuHostDefaults.DefaultTimeoutSeconds;
 
     /// <summary>
     /// Output directory for build artifacts

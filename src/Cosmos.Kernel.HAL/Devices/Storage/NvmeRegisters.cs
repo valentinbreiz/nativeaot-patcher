@@ -16,8 +16,8 @@ public class NvmeRegisters
     /// <summary>CAP — Controller Capabilities register offset (RO, 64-bit, NVMe 1.4 §3.1.1).</summary>
     private const ulong CapOffset = 0x00;
 
-    /// <summary>VS — Version register offset (RO, 32-bit, NVMe 1.4 §3.1.2).</summary>
-    private const ulong VsOffset = 0x08;
+    /// <summary>VS — Version register offset (RO, 32-bit, NVMe 1.4 §3.1.2). Public so callers probing the register block (e.g. MMIO-remap tests) share the spec offset.</summary>
+    public const ulong VsOffset = 0x08;
 
     /// <summary>INTMS — Interrupt Mask Set register offset (RW, 32-bit, NVMe 1.4 §3.1.3).</summary>
     private const ulong IntmsOffset = 0x0C;

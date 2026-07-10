@@ -14,19 +14,28 @@ namespace Cosmos.Kernel.Core.ARM64.Cpu;
 /// </summary>
 public static class GIC
 {
-    // Interrupt type constants (common to v2 and v3)
+    // INTID space range starts (GIC architecture, common to v2 and v3)
+    /// <summary>First SGI (Software Generated Interrupt) INTID; SGIs span 0..15.</summary>
     public const uint SGI_START = 0;
+    /// <summary>First PPI (Private Peripheral Interrupt) INTID; PPIs span 16..31.</summary>
     public const uint PPI_START = 16;
+    /// <summary>First SPI (Shared Peripheral Interrupt) INTID; SPIs span 32..1019.</summary>
     public const uint SPI_START = 32;
+    /// <summary>First LPI (Locality-specific Peripheral Interrupt) INTID; the LPI space starts at 8192 per ARM IHI 0069.</summary>
+    public const uint LPI_START = 8192;
 
-    // Timer interrupt IDs (PPIs - same for v2 and v3)
+    // Architected timer PPI INTIDs (same for v2 and v3)
+    /// <summary>INTID 29 = secure physical timer PPI.</summary>
     public const uint TIMER_SECURE_PHYS = 29;
+    /// <summary>INTID 30 = non-secure physical timer PPI.</summary>
     public const uint TIMER_NONSEC_PHYS = 30;
+    /// <summary>INTID 27 = virtual timer PPI.</summary>
     public const uint TIMER_VIRT = 27;
+    /// <summary>INTID 26 = hypervisor physical timer PPI.</summary>
     public const uint TIMER_HYP = 26;
 
-    // Default QEMU virt machine addresses (used if DTB not available)
-    private const ulong DEFAULT_GICD_BASE = 0x08000000;
+    /// <summary>Default GICD (distributor) base address on the QEMU virt machine, used when DTB/ACPI are absent (internal: shared fallback default for GICv2 and GICv3).</summary>
+    internal const ulong QemuVirtGicdBase = 0x08000000;
 
     /// <summary>Offset of the second 64 KiB ITS register frame (GITS_TRANSLATER page) from the ITS base, per GICv3 ITS spec.</summary>
     private const ulong ItsTranslationFrameOffset = 0x10000;
@@ -239,10 +248,10 @@ public static class GIC
 
         // Priority 3: Default QEMU virt machine addresses (no DTB, no ACPI)
         Serial.Write("[GIC] No DTB/ACPI, using default QEMU addresses\n");
-        _distBase = PhysToVirt(DEFAULT_GICD_BASE);
+        _distBase = PhysToVirt(QemuVirtGicdBase);
 
         // Map device MMIO into TTBR1 page tables before any MMIO access
-        DeviceMapper.EnsureMapped(DEFAULT_GICD_BASE);
+        DeviceMapper.EnsureMapped(QemuVirtGicdBase);
 
         // Detect GIC version via distributor PIDR2.ArchRev
         _isV3 = GICv3.IsGICv3Available(_distBase);
