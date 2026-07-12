@@ -5923,11 +5923,81 @@
       "version": ""
     },
     {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-device.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-device.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-dhcp.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-dhcp.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-dns.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-dns.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-tcp-client.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-tcp-client.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-tcp-server.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-tcp-server.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/network-udp.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/network-udp.png"
+        }
+      },
+      "version": ""
+    },
+    {
       "type": "Conceptual",
       "source_relative_path": "articles/user/install.md",
       "output": {
         ".html": {
           "relative_path": "articles/user/install.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/network.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/network.html"
         }
       },
       "version": ""

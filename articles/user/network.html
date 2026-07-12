@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Network | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Network | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/network.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="network">Network</h1>
+
+<p>In this article, we will discuss networking on Cosmos Gen3: how to bring the network stack up and send and receive packets. The available protocols are <strong>ARP</strong>, <strong>IPv4</strong>, <strong>UDP</strong>, <strong>TCP</strong>, <strong>DHCP</strong> and <strong>DNS</strong>.</p>
+<p>The main differences if you come from Gen2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gen2</th>
+<th>Gen3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TCP</td>
+<td>Standard <code>System.Net.Sockets</code> (plugged)</td>
+<td>Standard <code>System.Net.Sockets</code> (plugged)</td>
+</tr>
+<tr>
+<td>UDP</td>
+<td>Cosmos-specific <code>UdpClient</code> class</td>
+<td>Standard <code>System.Net.Sockets.UdpClient</code> (plugged)</td>
+</tr>
+<tr>
+<td>DHCP / DNS</td>
+<td>Cosmos client classes</td>
+<td>Cosmos client classes (<code>Cosmos.Kernel.System.Network</code>)</td>
+</tr>
+<tr>
+<td>NIC drivers</td>
+<td>RTL8168, E1000, PCNET</td>
+<td>Intel E1000E (x64), virtio-net (ARM64)</td>
+</tr>
+</tbody>
+</table>
+<p>None of these protocols implements every feature of its RFC. If you find bugs or something abnormal, please <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/new">submit an issue</a> on our repository.</p>
+<h2 id="enable-networking-in-your-kernel">Enable networking in your kernel</h2>
+<p>Network support is behind a feature switch. Make sure your kernel's <code>.csproj</code> does not turn it off (it defaults to <code>true</code>):</p>
+<pre><code class="lang-xml">&lt;PropertyGroup&gt;
+  &lt;CosmosEnableNetwork&gt;true&lt;/CosmosEnableNetwork&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p>At boot the kernel detects the NIC and registers it with <code>NetworkManager</code>. On x64 the driver is <strong>Intel E1000E</strong> — which is exactly what QEMU's default q35 machine provides, so <code>cosmos run</code> needs no extra flags. On ARM64 attach a virtio NIC explicitly:</p>
+<pre><code class="lang-console">$ cosmos run                          # x64: default e1000e NIC, user-mode networking
+$ cosmos run --nic virtio-net-pci     # arm64: virtio NIC
+</code></pre>
+<p>With QEMU <em>user-mode networking</em> (the default), your kernel lives in a private <code>10.0.2.0/24</code> network: the host is reachable at <strong>10.0.2.2</strong>, QEMU's built-in DHCP server assigns addresses, and outbound UDP/TCP is NATed to the real network.</p>
+<p>These are the <code>using</code>s the snippets below rely on:</p>
+<pre><code class="lang-csharp">using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.Config;
+using Cosmos.Kernel.System.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
+using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
+using Cosmos.Kernel.System.Timer;
+</code></pre>
+<h2 id="the-network-device">The network device</h2>
+<p><code>NetworkManager</code> owns the detected NICs. Check that a device is there and ready before configuring anything:</p>
+<pre><code class="lang-csharp">var device = NetworkManager.PrimaryDevice;
+
+if (device != null)
+{
+    Console.WriteLine(&quot;Device:  &quot; + device.Name);
+    Console.WriteLine(&quot;MAC:     &quot; + device.MacAddress.ToString());
+    Console.WriteLine(&quot;Link up: &quot; + device.LinkUp);
+    Console.WriteLine(&quot;Ready:   &quot; + device.Ready);
+}
+</code></pre>
+<!-- screenshot: console showing "Device: Intel E1000E", the MAC, "Link up: True", "Ready: True" -->
+<p><img src="images/network-device.png" alt="Network Device"></p>
+<h2 id="initialize-the-network-stack">Initialize the network stack</h2>
+<p>Before using any protocol, initialize the stack once (this hooks packet reception to the device):</p>
+<pre><code class="lang-csharp">NetworkStack.Initialize();
+</code></pre>
+<h2 id="configure-ipv4">Configure IPv4</h2>
+<p>Like on any operating system, the kernel needs an IPv4 configuration (address, subnet mask, gateway) before it can talk to the network. It can be obtained dynamically through DHCP or set manually.</p>
+<h3 id="dynamically-through-dhcp">Dynamically through DHCP</h3>
+<p><code>DHCPClient.SendDiscoverPacket()</code> runs the whole DISCOVER → OFFER → REQUEST → ACK exchange and applies the resulting configuration. It returns the elapsed milliseconds, or <code>-1</code> on timeout:</p>
+<pre><code class="lang-csharp">var dhcpClient = new DHCPClient();
+
+if (dhcpClient.SendDiscoverPacket() != -1)
+{
+    IPConfig? config = NetworkConfigManager.Get(device);
+    Console.WriteLine(&quot;IP address: &quot; + config.IPAddress.ToString());
+    Console.WriteLine(&quot;Subnet:     &quot; + config.SubnetMask.ToString());
+    Console.WriteLine(&quot;Gateway:    &quot; + config.DefaultGateway.ToString());
+}
+else
+{
+    Console.WriteLine(&quot;DHCP timed out&quot;);
+}
+</code></pre>
+<!-- screenshot: console showing the DHCP-assigned 10.0.2.15 address, subnet and 10.0.2.2 gateway -->
+<p><img src="images/network-dhcp.png" alt="DHCP"></p>
+<h3 id="manually">Manually</h3>
+<pre><code class="lang-csharp">IPConfig.Enable(device,
+    new Address(192, 168, 1, 69),     // local address
+    new Address(255, 255, 255, 0),    // subnet mask
+    new Address(192, 168, 1, 254));   // gateway
+</code></pre>
+<h3 id="get-the-local-ip-address">Get the local IP address</h3>
+<pre><code class="lang-csharp">Console.WriteLine(NetworkConfigManager.Get(device).IPAddress.ToString());
+</code></pre>
+<h2 id="udp">UDP</h2>
+<p>UDP uses the standard .NET <code>UdpClient</code> — no Cosmos-specific classes. Sends go out immediately; for receives, poll <code>Available</code> (a receive with nothing pending would block):</p>
+<pre><code class="lang-csharp">using System.Net.Sockets;
+
+var udpClient = new UdpClient(4242);
+
+/* Send data — 10.0.2.2 is the host under QEMU user networking */
+byte[] message = Encoding.ASCII.GetBytes(&quot;Hello from CosmosOS!&quot;);
+udpClient.Send(message, message.Length, new IPEndPoint(IPAddress.Parse(&quot;10.0.2.2&quot;), 4242));
+
+/* Receive data */
+IPEndPoint remote = new(IPAddress.Any, 0);
+while (udpClient.Available == 0)
+{
+    TimerManager.Wait(100);
+}
+
+byte[] data = udpClient.Receive(ref remote);
+Console.WriteLine(&quot;Received '&quot; + Encoding.ASCII.GetString(data) + &quot;' from &quot; + remote.Address);
+
+udpClient.Close();
+</code></pre>
+<!-- screenshot: console showing the UDP echo received back from the host -->
+<p><img src="images/network-udp.png" alt="UDP"></p>
+<h2 id="tcp-client">TCP client</h2>
+<p>TCP also goes through the standard .NET classes: <code>TcpClient</code>, <code>TcpListener</code> and <code>NetworkStream</code>.</p>
+<pre><code class="lang-csharp">var tcpClient = new TcpClient();
+tcpClient.Connect(IPAddress.Parse(&quot;10.0.2.2&quot;), 4343);
+
+NetworkStream stream = tcpClient.GetStream();
+
+/* Send data */
+byte[] message = Encoding.ASCII.GetBytes(&quot;Hello from CosmosOS!&quot;);
+stream.Write(message, 0, message.Length);
+
+/* Receive data */
+while (!stream.DataAvailable)
+{
+    TimerManager.Wait(100);
+}
+
+byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
+int bytesRead = stream.Read(buffer, 0, buffer.Length);
+Console.WriteLine(&quot;Received '&quot; + Encoding.ASCII.GetString(buffer, 0, bytesRead) + &quot;'&quot;);
+
+tcpClient.Close();
+</code></pre>
+<!-- screenshot: console showing the TCP echo received back from the host -->
+<p><img src="images/network-tcp-client.png" alt="TCP Client"></p>
+<h2 id="tcp-server">TCP server</h2>
+<p><code>TcpListener</code> accepts incoming connections. Poll <code>Pending()</code> to avoid blocking in <code>AcceptTcpClient()</code>:</p>
+<pre><code class="lang-csharp">var listener = new TcpListener(IPAddress.Any, 4444);
+listener.Start();
+Console.WriteLine(&quot;Listening on port 4444...&quot;);
+
+while (!listener.Pending())
+{
+    TimerManager.Wait(100);
+}
+
+TcpClient client = listener.AcceptTcpClient();
+Console.WriteLine(&quot;Client connected!&quot;);
+
+NetworkStream stream = client.GetStream();
+while (!stream.DataAvailable)
+{
+    TimerManager.Wait(100);
+}
+
+byte[] buffer = new byte[client.ReceiveBufferSize];
+int bytesRead = stream.Read(buffer, 0, buffer.Length);
+Console.WriteLine(&quot;Received '&quot; + Encoding.ASCII.GetString(buffer, 0, bytesRead) + &quot;'&quot;);
+
+/* Echo it back */
+stream.Write(buffer, 0, bytesRead);
+
+client.Close();
+listener.Stop();
+</code></pre>
+<p>To reach a listener inside QEMU user networking from your host, forward a host port to the guest. With plain QEMU that is <code>-nic user,model=e1000e,hostfwd=tcp::4444-:4444</code>, then connect to <code>localhost:4444</code> on the host.</p>
+<!-- screenshot: console showing "Listening on port 4444...", "Client connected!" and the received message -->
+<p><img src="images/network-tcp-server.png" alt="TCP Server"></p>
+<h2 id="dns">DNS</h2>
+<p>DNS uses the Cosmos <code>DnsClient</code> (the .NET <code>Dns</code> class is not plugged yet). Register a nameserver, ask for one domain, and read the answer back:</p>
+<pre><code class="lang-csharp">DNSConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
+
+var dnsClient = new DnsClient();
+dnsClient.Connect(new Address(1, 1, 1, 1));
+
+/* Ask for a single domain name */
+dnsClient.SendAsk(&quot;github.com&quot;);
+
+/* Receive the answer (5 s timeout) */
+Address address = dnsClient.Receive(5000);
+if (address != null)
+{
+    Console.WriteLine(&quot;github.com resolved to &quot; + address.ToString());
+}
+
+dnsClient.Close();
+</code></pre>
+<!-- screenshot: console showing github.com resolved to an IP address -->
+<p><img src="images/network-dns.png" alt="DNS"></p>
+<h2 id="current-limitations">Current limitations</h2>
+<ul>
+<li>ICMP is not implemented yet — no ping, in either direction.</li>
+<li><code>System.Net.Dns</code> is not plugged; use the Cosmos <code>DnsClient</code> shown above.</li>
+<li>No TLS, so no <code>HttpClient</code>/HTTPS — raw TCP only.</li>
+<li>One NIC: the stack talks to <code>NetworkManager.PrimaryDevice</code>.</li>
+<li>Half-close is not supported: <code>Close()</code> on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p>Your code calls the standard .NET socket classes, whose PAL bottoms out in <code>Socket</code>-level <a href="../dev/plugs.html">plugs</a> in <code>Cosmos.Kernel.Plugs</code> (<code>SocketPlug</code>, <code>TcpClientPlug</code>, <code>TcpListenerPlug</code>, <code>UdpClientPlug</code>, <code>NetworkStreamPlug</code>). Those delegate to the Cosmos network stack — the TCP state machine and UDP layer over IPv4, ARP and Ethernet — which sends and receives frames through the <code>NetworkDevice</code> driver registered with <code>NetworkManager</code>. The Cosmos <code>DHCPClient</code> and <code>DnsClient</code> sit directly on the Cosmos UDP layer.</p>
+<pre><code>TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)
+        │
+Socket plugs                                            (Cosmos.Kernel.Plugs)
+        │
+Cosmos TCP state machine / UDP                          (Cosmos.Kernel.System.Network.IPv4)
+        │                                    DHCPClient / DnsClient ride UDP directly
+IPv4 / ARP / Ethernet
+        │
+NetworkDevice driver                                    (Intel E1000E, virtio-net)
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/network.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

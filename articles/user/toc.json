@@ -1,2 +1,2 @@
 
-{"items":[{"name":"Installation Guide","href":"install.html","topicHref":"install.html"},{"name":"File System","href":"filesystem.html","topicHref":"filesystem.html"},{"name":"Debugging with VSCode and QEMU","href":"debugging.html","topicHref":"debugging.html"}],"pdf":false}
+{"items":[{"name":"Installation Guide","href":"install.html","topicHref":"install.html"},{"name":"File System","href":"filesystem.html","topicHref":"filesystem.html"},{"name":"Network","href":"network.html","topicHref":"network.html"},{"name":"Debugging with VSCode and QEMU","href":"debugging.html","topicHref":"debugging.html"}],"pdf":false}
