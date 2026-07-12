@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Graphics | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Graphics | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/graphics.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="graphics">Graphics</h1>
+
+<p>In this article, we will discuss the Cosmos Graphics Subsystem (CGS) on Cosmos Gen3: how to get a drawing surface and put shapes, text and images on the screen. CGS is based on the abstraction of a <strong>Canvas</strong> — an empty space you draw on. It is a drawing layer, not a widget toolkit: there are no windows or buttons, but everything you need to build them.</p>
+<p>The main differences if you come from Gen2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gen2</th>
+<th>Gen3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Canvas API</td>
+<td><code>Cosmos.System.Graphics</code></td>
+<td>Same API, in <code>Cosmos.Kernel.System.Graphics</code></td>
+</tr>
+<tr>
+<td>Video drivers</td>
+<td>VBE, VGA, VMWare SVGA II</td>
+<td>Limine-provided framebuffer (x64 and ARM64)</td>
+</tr>
+<tr>
+<td><code>Display()</code></td>
+<td>Required on double-buffered drivers</td>
+<td>Always required — the canvas is double-buffered</td>
+</tr>
+<tr>
+<td>Video mode</td>
+<td>Switchable at runtime</td>
+<td>Fixed at boot by the bootloader</td>
+</tr>
+<tr>
+<td>Text console</td>
+<td>Separate VGA text mode</td>
+<td>Rendered on the same canvas</td>
+</tr>
+<tr>
+<td>Colors</td>
+<td><code>System.Drawing.Color</code></td>
+<td><code>System.Drawing.Color</code></td>
+</tr>
+</tbody>
+</table>
+<p>If you find bugs or something abnormal, please <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/new">submit an issue</a> on our repository.</p>
+<h2 id="enable-graphics-in-your-kernel">Enable graphics in your kernel</h2>
+<p>Graphics support is behind a feature switch. Make sure your kernel's <code>.csproj</code> does not turn it off (it defaults to <code>true</code>):</p>
+<pre><code class="lang-xml">&lt;PropertyGroup&gt;
+  &lt;CosmosEnableGraphics&gt;true&lt;/CosmosEnableGraphics&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p>These are the <code>using</code>s the snippets below rely on:</p>
+<pre><code class="lang-csharp">using System.Drawing;
+using System.IO;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Graphics.Fonts;
+</code></pre>
+<h2 id="getting-a-canvas">Getting a canvas</h2>
+<p><code>Canvas.GetFullScreen()</code> returns the canvas backed by the screen — the framebuffer the bootloader set up at boot:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+
+Console.WriteLine(&quot;Canvas:     &quot; + canvas.Name());
+Console.WriteLine(&quot;Resolution: &quot; + canvas.Width + &quot;x&quot; + canvas.Height);
+Console.WriteLine(&quot;Refresh:    &quot; + canvas.RefreshRate + &quot; Hz&quot;);
+</code></pre>
+<!-- screenshot: console showing "Canvas: GopCanvas", the resolution and refresh rate -->
+<p><img src="images/graphics-canvas.png" alt="Getting a canvas"></p>
+<p>Two things to know before you start drawing:</p>
+<ul>
+<li><strong>The resolution is fixed at boot.</strong> Unlike Gen2, requesting a different <code>Mode</code> does not reprogram the video card — the canvas always has the resolution the bootloader chose. Use <code>canvas.Width</code> and <code>canvas.Height</code> instead of assuming one.</li>
+<li><strong>Nothing appears until you call <code>Display()</code>.</strong> The canvas is double-buffered: every drawing call goes to a back buffer, and <code>Display()</code> swaps the finished frame to video memory. Draw the whole frame, then call <code>Display()</code> once — that is also what keeps animations flicker-free.</li>
+<li><strong><code>Console</code> shares the screen with you.</strong> There is no separate text mode: <code>Console.WriteLine</code> is itself rendered on the full-screen canvas (and calls <code>Display()</code> on every write). Once you start drawing, stop writing to <code>Console</code> — the next write would paint text right over your graphics. This also means an uncaught exception prints over whatever you drew, which — unlike Gen2, where the screen just froze — at least tells you what went wrong.</li>
+</ul>
+<h2 id="drawing-shapes">Drawing shapes</h2>
+<p>The canvas offers the classic set of primitives — points, lines, rectangles, circles, ellipses, arcs, triangles and polygons, most in outlined and filled variants:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+
+canvas.Clear(Color.MidnightBlue);
+
+/* A single point */
+canvas.DrawPoint(Color.White, 100, 100);
+
+/* Lines: horizontal, vertical and diagonal */
+canvas.DrawLine(Color.GreenYellow, 250, 100, 400, 100);
+canvas.DrawLine(Color.IndianRed, 350, 150, 350, 250);
+canvas.DrawLine(Color.MintCream, 250, 150, 400, 250);
+
+/* Outlined and filled rectangles */
+canvas.DrawRectangle(Color.PaleVioletRed, 450, 100, 120, 80);
+canvas.DrawFilledRectangle(Color.Chocolate, 450, 220, 120, 80);
+
+/* Circles and ellipses */
+canvas.DrawCircle(Color.Chartreuse, 130, 200, 40);
+canvas.DrawFilledCircle(Color.MediumOrchid, 130, 320, 40);
+canvas.DrawEllipse(Color.DeepSkyBlue, 300, 350, 60, 30);
+
+/* An arc — angles are in degrees */
+canvas.DrawArc(500, 400, 50, 50, Color.CadetBlue, 90, 270);
+
+/* Triangles and polygons */
+canvas.DrawTriangle(Color.Gold, 600, 100, 650, 200, 550, 200);
+canvas.DrawPolygon(Color.MediumPurple,
+    new Point(650, 300), new Point(720, 340), new Point(700, 420), new Point(620, 400));
+
+/* Swap the finished frame to the screen */
+canvas.Display();
+</code></pre>
+<!-- screenshot: the shapes above on a midnight blue background -->
+<p><img src="images/graphics-shapes.png" alt="Drawing shapes"></p>
+<p>Colors are plain <code>System.Drawing.Color</code> values, so the full named palette (<code>Color.MidnightBlue</code>, <code>Color.Chartreuse</code>, ...) and <code>Color.FromArgb(...)</code> are available. Colors with an alpha channel below 255 are blended with the pixel already on the canvas.</p>
+<h2 id="drawing-text">Drawing text</h2>
+<p>Text rendering uses PSF (PC Screen Font) bitmap fonts — the format the Linux console uses, in both its <strong>PSF1</strong> and <strong>PSF2</strong> versions. A 16x32 <a href="https://github.com/fcambus/spleen">Spleen</a> font is built in as <code>PCScreenFont.DefaultFont</code>, and <code>PCScreenFont.LoadFont(byte[])</code> loads any other PSF font at runtime.</p>
+<p>There are plenty of ready-made PSF fonts to download:</p>
+<ul>
+<li><a href="https://www.zap.org.au/projects/console-fonts-zap/">The Zap Group's console fonts</a> — classic 8x16 PSF1 fonts (<code>zap-light16.psf</code>, <code>zap-vga16.psf</code>).</li>
+<li><a href="https://terminus-font.sourceforge.net/">Terminus</a> — PSF2 in many sizes; most Linux distributions already ship it under <code>/usr/share/consolefonts/</code> as <code>.psf.gz</code> files (decompress with <code>gunzip</code> first, the kernel reads plain <code>.psf</code>).</li>
+<li><a href="https://github.com/fcambus/spleen">Spleen</a> — PSF2 releases from 5x8 up to 32x64.</li>
+</ul>
+<p>A font is just a file, so the easiest way to ship one is on the FAT disk from the <a href="filesystem.html">File System</a> article. Here <code>zap16.psf</code> is Zap Light (PSF1) and <code>term24.psf</code> is Terminus 12x24 (PSF2), copied onto the disk under FAT-friendly names:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+
+canvas.Clear(Color.MidnightBlue);
+
+/* The built-in 16x32 font */
+Font font = PCScreenFont.DefaultFont;
+canvas.DrawString(&quot;Hello Cosmos World!&quot;, font, Color.White, 100, 100);
+canvas.DrawString(&quot;Spleen &quot; + font.Width + &quot;x&quot; + font.Height + &quot; (built in)&quot;,
+    font, Color.GreenYellow, 100, 140);
+
+/* Load a PSF1 font from the mounted disk... */
+Font zap = PCScreenFont.LoadFont(File.ReadAllBytes(&quot;/mnt/zap16.psf&quot;));
+canvas.DrawString(&quot;Zap Light &quot; + zap.Width + &quot;x&quot; + zap.Height + &quot; (PSF1)&quot;,
+    zap, Color.Gold, 100, 200);
+
+/* ...and a PSF2 font */
+Font terminus = PCScreenFont.LoadFont(File.ReadAllBytes(&quot;/mnt/term24.psf&quot;));
+canvas.DrawString(&quot;Terminus &quot; + terminus.Width + &quot;x&quot; + terminus.Height + &quot; (PSF2)&quot;,
+    terminus, Color.DeepSkyBlue, 100, 240);
+
+canvas.Display();
+</code></pre>
+<!-- screenshot: three strings rendered with the built-in Spleen 16x32, Zap Light 8x16 (PSF1) and Terminus 12x24 (PSF2) -->
+<p><img src="images/graphics-text.png" alt="Drawing text"></p>
+<h2 id="drawing-images">Drawing images</h2>
+<p>Images are represented by the <code>Bitmap</code> class. You can build one in code from raw pixel data — each pixel is four bytes in <strong>B, G, R, A</strong> order:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+
+canvas.Clear(Color.MidnightBlue);
+
+/* A 2x2 bitmap: blue, green, red and white pixels (B G R A byte order) */
+Bitmap bitmap = new Bitmap(2, 2, new byte[]
+{
+    255, 0, 0, 255,      // blue
+    0, 255, 0, 255,      // green
+    0, 0, 255, 255,      // red
+    255, 255, 255, 255,  // white
+}, ColorDepth.ColorDepth32);
+
+/* Draw it pixel-for-pixel, then scaled up to 128x128 */
+canvas.DrawImage(bitmap, 100, 100);
+canvas.DrawImage(bitmap, 100, 150, 128, 128);
+
+canvas.Display();
+</code></pre>
+<p>More usefully, <code>Bitmap</code> can load an uncompressed 24-bit or 32-bit <strong>BMP file</strong> through standard <code>System.IO</code> — for example from a FAT disk mounted as shown in the <a href="filesystem.html">File System</a> article:</p>
+<pre><code class="lang-csharp">/* logo.bmp is a 24-bit BMP on the FAT partition mounted at /mnt */
+Bitmap logo = new Bitmap(@&quot;/mnt/logo.bmp&quot;);
+
+canvas.DrawImage(logo,
+    (canvas.Width - (int)logo.Width) / 2,
+    (canvas.Height - (int)logo.Height) / 2);
+
+canvas.Display();
+</code></pre>
+<!-- screenshot: the 2x2 bitmap raw and scaled, plus the logo loaded from disk centered on screen -->
+<p><img src="images/graphics-images.png" alt="Drawing images"></p>
+<p><code>DrawImageAlpha</code> draws with per-pixel alpha blending, and <code>canvas.GetImage(x, y, width, height)</code> does the reverse — it copies a region of the canvas back into a <code>Bitmap</code>.</p>
+<h2 id="off-screen-canvases">Off-screen canvases</h2>
+<p>A <code>Canvas</code> does not have to be the screen. Constructing one with a size gives you a memory-backed canvas with the exact same drawing API — compose a tile or sprite once, then blit it to the screen with <code>DrawCanvas</code> as many times as you like:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+
+canvas.Clear(Color.MidnightBlue);
+
+/* Compose off-screen... */
+Canvas tile = new Canvas(220, 220);
+tile.Clear(Color.DarkSlateGray);
+tile.DrawFilledCircle(Color.OrangeRed, 110, 110, 70);
+tile.DrawString(&quot;off-screen&quot;, PCScreenFont.DefaultFont, Color.White, 30, 94);
+
+/* ...then blit it to the screen wherever it is needed */
+canvas.DrawCanvas(tile, (canvas.Width - 220) / 2, (canvas.Height - 220) / 2);
+
+canvas.Display();
+</code></pre>
+<!-- screenshot: the composed 220x220 tile blitted in the middle of the screen -->
+<p><img src="images/graphics-offscreen.png" alt="Off-screen canvas"></p>
+<h2 id="reading-pixels-back">Reading pixels back</h2>
+<p><code>GetPointColor</code> returns the color of a pixel already on the canvas:</p>
+<pre><code class="lang-csharp">canvas.DrawPoint(Color.Red, 69, 69);
+Color color = canvas.GetPointColor(69, 69);   // Color.Red
+</code></pre>
+<h2 id="current-limitations">Current limitations</h2>
+<ul>
+<li>Only 32-bit color depth is supported end to end; BMP loading additionally accepts 24-bit files.</li>
+<li>The video mode cannot be changed at runtime — the framebuffer resolution is whatever the bootloader negotiated at boot.</li>
+<li>Only the BMP image format is supported (uncompressed, 24 or 32 bpp).</li>
+<li>No hardware acceleration: every primitive is drawn pixel by pixel by the CPU.</li>
+<li><code>FullScreenCanvas.Disable()</code> exists but there is no VGA text mode to fall back to on UEFI machines.</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p><code>Canvas.GetFullScreen()</code> returns a <code>GopCanvas</code>, a canvas backed by the framebuffer that the <a href="https://limine-bootloader.org/">Limine</a> bootloader requests from the firmware (UEFI GOP) before handing control to the kernel. This is why the same code works unmodified on x64 and ARM64 — the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; <code>Display()</code> copies the whole back buffer into the mapped framebuffer in one go. The kernel console (<a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs"><code>KernelConsole</code></a>) renders <code>Console</code> output onto that same canvas with the default PSF font, calling <code>Display()</code> after every write.</p>
+<pre><code>Canvas API (shapes, text, images)      (Cosmos.Kernel.System.Graphics)
+        │
+GopCanvas ── shared with ── KernelConsole (Console output)
+        │
+Back buffer ──── Display() ────▶ framebuffer mapped by Limine (UEFI GOP, x64 &amp; ARM64)
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/graphics.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -5853,6 +5853,16 @@
       "version": ""
     },
     {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/graphics.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/graphics.html"
+        }
+      },
+      "version": ""
+    },
+    {
       "type": "Resource",
       "source_relative_path": "articles/user/images/filesystem-directory-listing.png",
       "output": {
@@ -5918,6 +5928,56 @@
       "output": {
         "resource": {
           "relative_path": "articles/user/images/filesystem-streams.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-canvas.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-canvas.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-images.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-images.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-offscreen.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-offscreen.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-shapes.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-shapes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-text.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-text.png"
         }
       },
       "version": ""
