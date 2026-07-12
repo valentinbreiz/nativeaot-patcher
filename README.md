@@ -59,6 +59,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 - [Installation Guide](docs/articles/user/install.md)
 - [File System](docs/articles/user/filesystem.md)
+- [Network](docs/articles/user/network.md)
 - [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
 
 **Developer Docs**

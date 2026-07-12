@@ -17,6 +17,7 @@ Everything you need to create, build and run your own Cosmos kernel:
 
  - [Installation Guide](articles/user/install.md) — set up the toolchain and create your first kernel from VS Code.
  - [File System](articles/user/filesystem.md) — mount a disk and use the standard .NET `System.IO` API (`File`, `Directory`, streams).
+ - [Network](articles/user/network.md) — DHCP, UDP and TCP through the standard .NET `System.Net.Sockets` API, plus DNS.
  - [Debugging with VSCode and QEMU](articles/user/debugging.md) — set breakpoints in your kernel with remote GDB.
 
 ## Developer Docs

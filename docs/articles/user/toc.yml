@@ -2,5 +2,7 @@
   href: install.md
 - name: File System
   href: filesystem.md
+- name: Network
+  href: network.md
 - name: Debugging with VSCode and QEMU
   href: debugging.md
