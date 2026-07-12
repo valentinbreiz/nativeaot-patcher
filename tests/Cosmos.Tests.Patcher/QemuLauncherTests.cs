@@ -64,4 +64,62 @@ public class QemuLauncherTests
     {
         Assert.Equal("/tmp/plain.img", QemuLauncher.EscapeDriveFileValue("/tmp/plain.img"));
     }
+
+    [Fact]
+    public void AppendNetworkCardArgs_NoneDisablesTheDefaultNic()
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendNetworkCardArgs(args, "none");
+        Assert.Equal(" -nic none", args.ToString());
+    }
+
+    [Theory]
+    [InlineData("e1000e")]
+    [InlineData("virtio-net-device")]
+    public void AppendNetworkCardArgs_AttachesUserModeNicForAModel(string model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendNetworkCardArgs(args, model);
+        Assert.Equal($" -netdev user,id=net0 -device {model},netdev=net0", args.ToString());
+    }
+
+    [Theory]
+    [InlineData("e1000e -device rm")] // whitespace injects new argv tokens
+    [InlineData("e1000e,netdev=x;rm")]
+    public void AppendNetworkCardArgs_RejectsCharactersOutsideOptionAlphabet(string model)
+    {
+        StringBuilder args = new();
+
+        Assert.Throws<ArgumentException>(() => QemuLauncher.AppendNetworkCardArgs(args, model));
+    }
+
+    [Theory]
+    [InlineData("virtio-keyboard-device")]
+    [InlineData("virtio-mouse-device")]
+    public void AppendInputDevice_EmitsDeviceForRealModels(string model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendInputDevice(args, model);
+        Assert.Equal($" -device {model}", args.ToString());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("none")]
+    [InlineData("ps2")]
+    [InlineData("PS2")]
+    public void AppendInputDevice_AddsNothingForSentinels(string? model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendInputDevice(args, model);
+        Assert.Equal(string.Empty, args.ToString());
+    }
+
+    [Fact]
+    public void AppendInputDevice_RejectsCharactersOutsideOptionAlphabet()
+    {
+        StringBuilder args = new();
+        Assert.Throws<ArgumentException>(() => QemuLauncher.AppendInputDevice(args, "virtio-keyboard-device -device rm"));
+    }
 }

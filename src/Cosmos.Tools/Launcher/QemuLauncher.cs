@@ -18,6 +18,32 @@ public sealed class QemuLaunchOptions
     public string? SerialOutputFile { get; init; }
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
+
+    /// <summary>
+    /// NIC model exposed to the guest. <c>null</c> leaves QEMU's default NIC in
+    /// place (the historical behaviour); <c>"none"</c> emits <c>-nic none</c> so
+    /// the guest gets no card at all; any other value emits a user-mode
+    /// <c>-netdev</c> + <c>-device &lt;model&gt;</c> pair (e.g. <c>e1000e</c>,
+    /// <c>virtio-net-device</c>). Ignored when <see cref="EnableNetworkTesting"/>
+    /// is set, which owns the NIC in that path.
+    /// </summary>
+    public string? NetworkCard { get; init; }
+
+    /// <summary>
+    /// Keyboard device attached to the guest, or <c>null</c> to add none.
+    /// <c>"ps2"</c>/<c>"none"</c> add nothing (x64's PS/2 keyboard is built into
+    /// the q35 chipset); any other value (e.g. <c>virtio-keyboard-device</c>,
+    /// required on the ARM64 <c>virt</c> machine which has no PS/2 controller) is
+    /// emitted as a <c>-device</c> line.
+    /// </summary>
+    public string? KeyboardDevice { get; init; }
+
+    /// <summary>
+    /// Mouse device attached to the guest, or <c>null</c> to add none. Same
+    /// <c>"ps2"</c>/<c>"none"</c> handling as <see cref="KeyboardDevice"/>;
+    /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
+    /// </summary>
+    public string? MouseDevice { get; init; }
     /// <summary>
     /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
     /// path, the controller type (ahci or nvme), and an optional comma-prefixed
@@ -153,6 +179,13 @@ public static class QemuLauncher
             string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
             args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
         }
+        else if (options.NetworkCard is not null)
+        {
+            AppendNetworkCardArgs(args, options.NetworkCard);
+        }
+
+        AppendInputDevice(args, options.KeyboardDevice);
+        AppendInputDevice(args, options.MouseDevice);
 
         if (options.Debug)
         {
@@ -262,6 +295,43 @@ public static class QemuLauncher
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Emits the NIC selection: <c>"none"</c> disables QEMU's default card with
+    /// <c>-nic none</c>; any other value attaches a user-mode NIC of that model.
+    /// The model is validated as an option token so it can't splice extra
+    /// arguments into the command line.
+    /// </summary>
+    internal static void AppendNetworkCardArgs(StringBuilder args, string card)
+    {
+        if (card.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Append(" -nic none");
+            return;
+        }
+
+        ValidateOptionToken(card, "network card model");
+        args.Append($" -netdev user,id=net0 -device {card},netdev=net0");
+    }
+
+    /// <summary>
+    /// Attaches an input device (keyboard/mouse) as a <c>-device</c> line.
+    /// <c>null</c>/empty and the sentinels <c>"none"</c>/<c>"ps2"</c> add
+    /// nothing — PS/2 is part of the x64 chipset, not a device you attach — so
+    /// only real QEMU models (e.g. <c>virtio-keyboard-device</c>) are emitted.
+    /// </summary>
+    internal static void AppendInputDevice(StringBuilder args, string? model)
+    {
+        if (string.IsNullOrWhiteSpace(model)
+            || model.Equals("none", StringComparison.OrdinalIgnoreCase)
+            || model.Equals("ps2", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        ValidateOptionToken(model, "input device model");
+        args.Append($" -device {model}");
     }
 
     internal static void AppendDeviceOptions(StringBuilder args, string extra)

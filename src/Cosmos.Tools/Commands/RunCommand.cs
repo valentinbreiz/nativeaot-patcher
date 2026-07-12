@@ -34,6 +34,22 @@ public class RunSettings : CommandSettings
     [CommandOption("--debug")]
     [Description("Wait for a GDB connection on port 1234 (-s -S).")]
     public bool Debug { get; set; }
+
+    [CommandOption("--disk <SPEC>")]
+    [Description("Attach a disk image the kernel can use at boot. Format: 'path' or 'path,kind' where kind is ahci (default) or nvme. Repeatable.")]
+    public string[] Disks { get; set; } = Array.Empty<string>();
+
+    [CommandOption("--nic <MODEL>")]
+    [Description("Network card exposed to the guest: 'none' for no card, or a QEMU model like e1000e or virtio-net-device. Omit to keep QEMU's default NIC.")]
+    public string? Nic { get; set; }
+
+    [CommandOption("--keyboard <MODEL>")]
+    [Description("Keyboard device to attach, e.g. virtio-keyboard-device (needed on arm64 virt). 'ps2'/'none' add nothing; x64 PS/2 is built into the chipset.")]
+    public string? Keyboard { get; set; }
+
+    [CommandOption("--mouse <MODEL>")]
+    [Description("Mouse device to attach, e.g. virtio-mouse-device (needed on arm64 virt). 'ps2'/'none' add nothing; x64 PS/2 is built into the chipset.")]
+    public string? Mouse { get; set; }
 }
 
 public class RunCommand : AsyncCommand<RunSettings>
@@ -53,6 +69,17 @@ public class RunCommand : AsyncCommand<RunSettings>
             return 1;
         }
 
+        List<DiskAttachment> disks;
+        try
+        {
+            disks = ParseDisks(settings.Disks);
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"  [red]{Markup.Escape(ex.Message)}[/]");
+            return 1;
+        }
+
         QemuLaunchPlan plan;
         try
         {
@@ -64,6 +91,10 @@ public class RunCommand : AsyncCommand<RunSettings>
                 Headless = settings.Headless,
                 Debug = settings.Debug,
                 SerialOutputFile = null, // CLI: serial → stdio
+                Disks = disks,
+                NetworkCard = settings.Nic,
+                KeyboardDevice = settings.Keyboard,
+                MouseDevice = settings.Mouse,
                 ExtraArgs = context.Remaining.Raw.ToArray()
             });
         }
@@ -106,6 +137,54 @@ public class RunCommand : AsyncCommand<RunSettings>
             AnsiConsole.MarkupLine($"  [red]Failed to start QEMU: {Markup.Escape(ex.Message)}[/]");
             return 1;
         }
+    }
+
+    /// <summary>
+    /// Turns <c>--disk</c> specs (<c>path[,kind]</c>) into <see cref="DiskAttachment"/>s.
+    /// The kind suffix is optional and defaults to AHCI; the split is on the last
+    /// comma so a bare path (the common case) is never mistaken for a kind. The
+    /// image must already exist — the launcher would otherwise fail deep inside
+    /// QEMU with a less obvious message.
+    /// </summary>
+    internal static List<DiskAttachment> ParseDisks(string[] specs)
+    {
+        var disks = new List<DiskAttachment>(specs.Length);
+        foreach (string spec in specs)
+        {
+            string path = spec;
+            DiskKind kind = DiskKind.Ahci;
+
+            int comma = spec.LastIndexOf(',');
+            if (comma >= 0)
+            {
+                string suffix = spec[(comma + 1)..].Trim();
+                if (suffix.Equals("ahci", StringComparison.OrdinalIgnoreCase))
+                {
+                    kind = DiskKind.Ahci;
+                    path = spec[..comma];
+                }
+                else if (suffix.Equals("nvme", StringComparison.OrdinalIgnoreCase))
+                {
+                    kind = DiskKind.Nvme;
+                    path = spec[..comma];
+                }
+                // Any other suffix is treated as part of the path (a filename that
+                // legitimately contains a comma), leaving the default AHCI kind.
+            }
+
+            path = path.Trim();
+            if (path.Length == 0)
+            {
+                throw new ArgumentException($"Empty disk path in --disk spec: '{spec}'");
+            }
+            if (!File.Exists(path))
+            {
+                throw new ArgumentException($"Disk image not found: '{path}'");
+            }
+
+            disks.Add(new DiskAttachment { Path = Path.GetFullPath(path), Kind = kind });
+        }
+        return disks;
     }
 
     private static string? FindIso(string? projectPath, string arch)
