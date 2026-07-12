@@ -63,7 +63,8 @@ public class Bitmap : Image
             }
             else
             {
-                RawData[i] = BitConverter.ToInt32(new byte[] { 0, pixelData[i * 3], pixelData[i * 3 + 1], pixelData[i * 3 + 2] }, 0);
+                // B, G, R input; 24bpp has no alpha, so the pixel is opaque.
+                RawData[i] = BitConverter.ToInt32(new byte[] { pixelData[i * 3], pixelData[i * 3 + 1], pixelData[i * 3 + 2], 255 }, 0);
             }
         }
     }
@@ -358,22 +359,25 @@ public class Bitmap : Image
                 }
                 else
                 {
+                    // BitConverter.ToInt32 is little-endian, so the ARGB int is
+                    // pixel[3]<<24 | pixel[2]<<16 | pixel[1]<<8 | pixel[0] —
+                    // pixel[] must hold B, G, R, A. 24bpp has no alpha: opaque.
                     if (colorOrder == ColorOrder.BGR)
-                    {
-                        pixel[3] = pixelData[position++];
-                        pixel[2] = pixelData[position++];
-                        pixel[1] = pixelData[position++];
-                        pixel[0] = 0;
-                    }
-                    else
                     {
                         pixel[0] = pixelData[position++];
                         pixel[1] = pixelData[position++];
                         pixel[2] = pixelData[position++];
-                        pixel[3] = 0;
+                        pixel[3] = 255;
+                    }
+                    else
+                    {
+                        pixel[2] = pixelData[position++];
+                        pixel[1] = pixelData[position++];
+                        pixel[0] = pixelData[position++];
+                        pixel[3] = 255;
                     }
                 }
-                RawData[x + (imageHeight - (y + 1)) * imageWidth] = BitConverter.ToInt32(pixel, 0); //This bits should be A, R, G, B but order is switched
+                RawData[x + (imageHeight - (y + 1)) * imageWidth] = BitConverter.ToInt32(pixel, 0);
             }
             position += paddingPerRow;
         }
