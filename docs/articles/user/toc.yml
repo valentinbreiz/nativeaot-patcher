@@ -1,5 +1,7 @@
 - name: Installation Guide
   href: install.md
+- name: Kernel Startup
+  href: startup.md
 - name: File System
   href: filesystem.md
 - name: Network
