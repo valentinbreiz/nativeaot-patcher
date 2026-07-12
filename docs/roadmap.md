@@ -10,8 +10,8 @@
 | Memory Management | ✅ | ✅ ||
 | Driver support | ✅ | ✅ | PCI and MMIO |
 | Garbage Collection | ✅ | ✅ | Mark-and-sweep GC |
-| Filesystem | ✅ | 🟡 In progress | FAT12/16/32 on a Unix-style VFS (mount, superblocks, inodes) with formatting; MBR/GPT/EBR partitioning. Not yet exposed through `System.IO.File`. |
-| .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Math, Console, DateTime, Random, BitOperations plugged. Missing: `System.IO.File`. |
+| Filesystem | ✅ | ✅ | FAT12/16/32 on a Unix-style VFS (mount, superblocks, inodes) with formatting; MBR/GPT/EBR partitioning. Exposed through `System.IO.File`/`FileStream`. |
+| .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Math, Console, DateTime, Random, BitOperations, `System.IO.File` plugged. |
 | Plug system | ✅ | ✅  |  |
 | Test Framework | ✅ | ✅  |  |
 | Debugger| ✅ | 🟡 Partial | Source link + variables bugs in vscode |
