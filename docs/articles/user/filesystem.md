@@ -367,7 +367,7 @@ With **nothing mounted at all**, `System.IO` still degrades gracefully: `Directo
 
 ## How it works
 
-Your code calls the stock BCL, which bottoms out in the Unix PAL (`Interop.Sys.*` P/Invokes). Those ~45 entry points are [plugged](plugs.md) in `Cosmos.Kernel.Plugs` — a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to `VfsManager`, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an `IBlockDevice` (AHCI or NVMe via `StorageManager`, RAM via `MemoryBlockDevice`).
+Your code calls the stock BCL, which bottoms out in the Unix PAL (`Interop.Sys.*` P/Invokes). Those ~45 entry points are [plugged](../dev/plugs.md) in `Cosmos.Kernel.Plugs` — a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to `VfsManager`, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an `IBlockDevice` (AHCI or NVMe via `StorageManager`, RAM via `MemoryBlockDevice`).
 
 ```
 File / Directory / FileStream          (stock BCL)

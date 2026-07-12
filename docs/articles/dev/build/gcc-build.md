@@ -62,4 +62,4 @@ Notes:
 
 ## Related components
 
-- [`Cosmos.Build.GCC`](../../../src/Cosmos.Build.GCC)
+- [`Cosmos.Build.GCC`](../../../../src/Cosmos.Build.GCC)

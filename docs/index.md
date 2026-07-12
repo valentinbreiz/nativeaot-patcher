@@ -6,34 +6,33 @@ Welcome to the Cosmos gen3 wiki!
 
 Check out the [Roadmap](roadmap.md) to see our progress toward the first release 🚀.
 
-## How to Use
+The documentation is split in two parts, depending on what you want to do with gen3:
 
-There are two ways to use gen3 depending on your needs:
+- **[User Guide](articles/user/install.md)** — you want to **build your own OS** with Cosmos: installing the toolchain, using the filesystem, debugging your kernel.
+- **[Developer Docs](articles/dev/install-dev.md)** — you want to **contribute to Cosmos itself** or understand its internals: architecture, build pipeline, runtime subsystems.
 
-### As a User
+## User Guide
 
-If you want to build bare-metal C# kernels without setting up the full toolchain manually, see the [Installation guide](articles/install.md) to get started. It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor.
+Everything you need to create, build and run your own Cosmos kernel:
 
-### As a Contributor
+ - [Installation Guide](articles/user/install.md) — set up the toolchain and create your first kernel from VS Code.
+ - [File System](articles/user/filesystem.md) — mount a disk and use the standard .NET `System.IO` API (`File`, `Directory`, streams).
+ - [Debugging with VSCode and QEMU](articles/user/debugging.md) — set breakpoints in your kernel with remote GDB.
 
-If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the [Dev Container Setup](articles/install-dev.md), [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md), [Debugging with VSCode and QEMU](articles/debugging.md), and [Coding Guidelines](articles/coding-guidelines.md) articles to get started.
+## Developer Docs
 
-## Documentation
- - [Installation Guide](articles/install.md)
- - [Dev Container Setup](articles/install-dev.md)
- - [Kernel Compilation Steps](articles/build/kernel-compilation-steps.md)
- - [Debugging with VSCode and QEMU](articles/debugging.md)
- - [Kernel Project Layout](articles/kernel-project-layout.md)
- - [Coding Guidelines](articles/coding-guidelines.md)
- - [Plugs](articles/plugs.md)
- - [Testing](articles/testing.md)
- - [Garbage Collector](articles/garbage-collector.md)
- - [Garbage Collector — Precise Stack Scan (GCInfo)](articles/garbage-collector-gcinfo.md)
- - [Scheduler](articles/scheduler.md)
- - [Cosmos.Build.Asm](articles/build/asm-build.md)
- - [Cosmos.Build.CC](articles/build/cc-build.md)
- - [Cosmos.Build.Patcher](articles/build/patcher-build.md)
- - [Cosmos.Build.Ilc](articles/build/ilc-build.md)
+Architecture and internals, for contributors and the curious:
+
+ - [Dev Container Setup](articles/dev/install-dev.md) — build the framework from source.
+ - [Kernel Project Layout](articles/dev/kernel-project-layout.md) — the layered project graph.
+ - [Coding Guidelines](articles/dev/coding-guidelines.md) — style and architecture patterns.
+ - [Plugs](articles/dev/plugs.md) — the IL-level method replacement system.
+ - [Testing](articles/dev/testing.md) — unit tests and QEMU kernel test suites.
+ - [Garbage Collector](articles/dev/garbage-collector.md) — the mark-and-sweep GC.
+ - [Garbage Collector — Precise Stack Scan (GCInfo)](articles/dev/garbage-collector-gcinfo.md)
+ - [Scheduler](articles/dev/scheduler.md) — the preemptive, pluggable scheduler.
+ - [Kernel Compilation Steps](articles/dev/build/kernel-compilation-steps.md) — C# to bootable ISO, end to end.
+ - [Cosmos.Build.Asm](articles/dev/build/asm-build.md), [Cosmos.Build.GCC](articles/dev/build/gcc-build.md), [Cosmos.Build.Patcher](articles/dev/build/patcher-build.md), [Cosmos.Build.Ilc](articles/dev/build/ilc-build.md) — the build pipeline components.
 
 ## Resources
 - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)

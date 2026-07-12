@@ -34,11 +34,11 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - NativeAOT compilation
 - x64 and ARM64
 - [Limine](https://github.com/Limine-Bootloader/Limine) boot protocol
-- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/plugs.html)
+- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/plugs.html)
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
-- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/garbage-collector.html)
-- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/scheduler.html)
+- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/garbage-collector.html)
+- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/scheduler.html)
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
 - ACPI (via [LAI](https://github.com/managarm/lai))
@@ -53,17 +53,25 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 ## Documentation
 
-- [Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html)
-- [Installation Guide](docs/articles/install.md)
-- [Dev Container Setup](docs/articles/install-dev.md)
-- [Kernel Compilation Steps](docs/articles/build/kernel-compilation-steps.md)
-- [Debugging with VS Code and QEMU](docs/articles/debugging.md)
-- [Kernel Project Layout](docs/articles/kernel-project-layout.md)
-- [Coding Guidelines](docs/articles/coding-guidelines.md)
-- [Plugs](docs/articles/plugs.md)
-- [Garbage Collector](docs/articles/garbage-collector.md)
-- [Testing](docs/articles/testing.md)
-- [Cosmos.Build.Asm](docs/articles/build/asm-build.md), [.CC](docs/articles/build/cc-build.md), [.Patcher](docs/articles/build/patcher-build.md), [.Ilc](docs/articles/build/ilc-build.md)
+[Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
+
+**User Guide**
+
+- [Installation Guide](docs/articles/user/install.md)
+- [File System](docs/articles/user/filesystem.md)
+- [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
+
+**Developer Docs**
+
+- [Dev Container Setup](docs/articles/dev/install-dev.md)
+- [Kernel Project Layout](docs/articles/dev/kernel-project-layout.md)
+- [Coding Guidelines](docs/articles/dev/coding-guidelines.md)
+- [Plugs](docs/articles/dev/plugs.md)
+- [Testing](docs/articles/dev/testing.md)
+- [Garbage Collector](docs/articles/dev/garbage-collector.md), [Precise Stack Scan (GCInfo)](docs/articles/dev/garbage-collector-gcinfo.md)
+- [Scheduler](docs/articles/dev/scheduler.md)
+- [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
+- [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
 
 ## Related resources
 

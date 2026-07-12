@@ -202,7 +202,7 @@ jobs:
 
             ### Quick Start
 
-            - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/install.html)
+            - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/install.html)
           draft: false
           prerelease: false
           files: |
