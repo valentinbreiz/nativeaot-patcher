@@ -92,6 +92,31 @@ public static class InteropSysPlug
         // No-op for now
     }
 
+    /// <summary>
+    /// dlopen replacement. There is no dynamic library loading on bare metal, so
+    /// every load fails. This is what turns a call to an unplugged
+    /// libSystem.Native P/Invoke into a catchable <see cref="DllNotFoundException"/>:
+    /// without it, the lazy P/Invoke resolver recurses through its own unplugged
+    /// P/Invokes (LoadLibrary, GetProcessPath, ...) until the stack overflows and
+    /// the kernel triple-faults.
+    /// </summary>
+    [PlugMember]
+    internal static IntPtr LoadLibrary(string filename)
+    {
+        return IntPtr.Zero;
+    }
+
+    /// <summary>
+    /// The kernel image is the process. A fixed path keeps
+    /// <c>AppContext.BaseDirectory</c> (used by the P/Invoke resolver's library
+    /// search, among others) from re-entering an unresolvable P/Invoke.
+    /// </summary>
+    [PlugMember]
+    internal static string? GetProcessPath()
+    {
+        return "/kernel.elf";
+    }
+
     [PlugMember]
     internal static IntPtr LowLevelMonitor_Create()
     {

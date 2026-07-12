@@ -65,8 +65,10 @@ public class Kernel : Sys.Kernel
             Assert.Equal(0, Directory.GetDirectories("/").Length);
             Assert.False(File.Exists("/nofs/file.txt"));
             Assert.False(Directory.Exists("/nofs"));
-            Assert.True(ReadMissingThrowsFileNotFound("/nofs/file.txt"),
-                "read with no mount should raise FileNotFoundException");
+            Assert.True(ReadMissingThrowsFileNotFound("/missing.txt"),
+                "read of a missing file in the virtual root should raise FileNotFoundException");
+            Assert.True(ReadInMissingDirectoryThrows("/nofs/file.txt"),
+                "read under a missing directory should raise DirectoryNotFoundException");
             Assert.True(WriteInMissingDirectoryThrows("/nofs/file.txt"),
                 "write with no mount should raise DirectoryNotFoundException");
             Assert.True(WriteThrowsIOException("/direct.txt"),
@@ -551,6 +553,19 @@ public class Kernel : Sys.Kernel
         catch (Exception e)
         {
             return e is FileNotFoundException;
+        }
+    }
+
+    private static bool ReadInMissingDirectoryThrows(string path)
+    {
+        try
+        {
+            File.ReadAllText(path);
+            return false;
+        }
+        catch (Exception e)
+        {
+            return e is DirectoryNotFoundException;
         }
     }
 
