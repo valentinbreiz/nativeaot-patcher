@@ -75,29 +75,31 @@
 
 <p>Welcome to the Cosmos gen3 wiki!</p>
 <p>Check out the <a href="roadmap.html">Roadmap</a> to see our progress toward the first release 🚀.</p>
-<h2 id="how-to-use">How to Use</h2>
-<p>There are two ways to use gen3 depending on your needs:</p>
-<h3 id="as-a-user">As a User</h3>
-<p>If you want to build bare-metal C# kernels without setting up the full toolchain manually, see the <a href="articles/install.html">Installation guide</a> to get started. It integrates gen3 into VS Code, providing a streamlined experience for creating, building, and running Cosmos kernels directly from the editor.</p>
-<h3 id="as-a-contributor">As a Contributor</h3>
-<p>If you want to develop or contribute to the project, clone the repository and open it in VS Code. The workspace includes tasks for building and debugging kernels, running tests, and launching QEMU. See the <a href="articles/install-dev.html">Dev Container Setup</a>, <a href="articles/build/kernel-compilation-steps.html">Kernel Compilation Steps</a>, <a href="articles/debugging.html">Debugging with VSCode and QEMU</a>, and <a href="articles/coding-guidelines.html">Coding Guidelines</a> articles to get started.</p>
-<h2 id="documentation">Documentation</h2>
+<p>The documentation is split in two parts, depending on what you want to do with gen3:</p>
 <ul>
-<li><a href="articles/install.html">Installation Guide</a></li>
-<li><a href="articles/install-dev.html">Dev Container Setup</a></li>
-<li><a href="articles/build/kernel-compilation-steps.html">Kernel Compilation Steps</a></li>
-<li><a href="articles/debugging.html">Debugging with VSCode and QEMU</a></li>
-<li><a href="articles/kernel-project-layout.html">Kernel Project Layout</a></li>
-<li><a href="articles/coding-guidelines.html">Coding Guidelines</a></li>
-<li><a href="articles/plugs.html">Plugs</a></li>
-<li><a href="articles/testing.html">Testing</a></li>
-<li><a href="articles/garbage-collector.html">Garbage Collector</a></li>
-<li><a href="articles/garbage-collector-gcinfo.html">Garbage Collector — Precise Stack Scan (GCInfo)</a></li>
-<li><a href="articles/scheduler.html">Scheduler</a></li>
-<li><a href="articles/build/asm-build.html">Cosmos.Build.Asm</a></li>
-<li><a href="articles/build/cc-build.md">Cosmos.Build.CC</a></li>
-<li><a href="articles/build/patcher-build.html">Cosmos.Build.Patcher</a></li>
-<li><a href="articles/build/ilc-build.html">Cosmos.Build.Ilc</a></li>
+<li><strong><a href="articles/user/install.html">User Guide</a></strong> — you want to <strong>build your own OS</strong> with Cosmos: installing the toolchain, using the filesystem, debugging your kernel.</li>
+<li><strong><a href="articles/dev/install-dev.html">Developer Docs</a></strong> — you want to <strong>contribute to Cosmos itself</strong> or understand its internals: architecture, build pipeline, runtime subsystems.</li>
+</ul>
+<h2 id="user-guide">User Guide</h2>
+<p>Everything you need to create, build and run your own Cosmos kernel:</p>
+<ul>
+<li><a href="articles/user/install.html">Installation Guide</a> — set up the toolchain and create your first kernel from VS Code.</li>
+<li><a href="articles/user/filesystem.html">File System</a> — mount a disk and use the standard .NET <code>System.IO</code> API (<code>File</code>, <code>Directory</code>, streams).</li>
+<li><a href="articles/user/debugging.html">Debugging with VSCode and QEMU</a> — set breakpoints in your kernel with remote GDB.</li>
+</ul>
+<h2 id="developer-docs">Developer Docs</h2>
+<p>Architecture and internals, for contributors and the curious:</p>
+<ul>
+<li><a href="articles/dev/install-dev.html">Dev Container Setup</a> — build the framework from source.</li>
+<li><a href="articles/dev/kernel-project-layout.html">Kernel Project Layout</a> — the layered project graph.</li>
+<li><a href="articles/dev/coding-guidelines.html">Coding Guidelines</a> — style and architecture patterns.</li>
+<li><a href="articles/dev/plugs.html">Plugs</a> — the IL-level method replacement system.</li>
+<li><a href="articles/dev/testing.html">Testing</a> — unit tests and QEMU kernel test suites.</li>
+<li><a href="articles/dev/garbage-collector.html">Garbage Collector</a> — the mark-and-sweep GC.</li>
+<li><a href="articles/dev/garbage-collector-gcinfo.html">Garbage Collector — Precise Stack Scan (GCInfo)</a></li>
+<li><a href="articles/dev/scheduler.html">Scheduler</a> — the preemptive, pluggable scheduler.</li>
+<li><a href="articles/dev/build/kernel-compilation-steps.html">Kernel Compilation Steps</a> — C# to bootable ISO, end to end.</li>
+<li><a href="articles/dev/build/asm-build.html">Cosmos.Build.Asm</a>, <a href="articles/dev/build/gcc-build.html">Cosmos.Build.GCC</a>, <a href="articles/dev/build/patcher-build.html">Cosmos.Build.Patcher</a>, <a href="articles/dev/build/ilc-build.html">Cosmos.Build.Ilc</a> — the build pipeline components.</li>
 </ul>
 <h2 id="resources">Resources</h2>
 <ul>

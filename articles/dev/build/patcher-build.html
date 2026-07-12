@@ -7,16 +7,16 @@
       <meta name="title" content=" | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../../favicon.ico">
-      <link rel="stylesheet" href="../../public/docfx.min.css">
-      <link rel="stylesheet" href="../../public/main.css">
-      <meta name="docfx:navrel" content="../../toc.html">
+      <link rel="icon" href="../../../favicon.ico">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
       <meta name="docfx:tocrel" content="../toc.html">
       
-      <meta name="docfx:rel" content="../../">
+      <meta name="docfx:rel" content="../../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/build/patcher-build.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/build/patcher-build.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script type="module" src="./../../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../../index.html">
-            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,7 +87,7 @@
         <article data-uid="">
 
 <h2 id="overview">Overview</h2>
-<p><code>Cosmos.Patcher.Build</code> wires the <a href="../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a> tool into the MSBuild pipeline. <code>Cosmos.Patcher</code> rewrites IL in candidate assemblies by applying CosmosOS-style plugs so that the .NET Core framework can run on NativeAOT targets. Static analysis is provided by <a href="../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a>, which reports plug errors during C# compilation before any IL is rewritten.</p>
+<p><code>Cosmos.Patcher.Build</code> wires the <a href="../../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a> tool into the MSBuild pipeline. <code>Cosmos.Patcher</code> rewrites IL in candidate assemblies by applying CosmosOS-style plugs so that the .NET Core framework can run on NativeAOT targets. Static analysis is provided by <a href="../../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a>, which reports plug errors during C# compilation before any IL is rewritten.</p>
 <hr>
 <h2 id="net-assembly-structure">.NET Assembly Structure</h2>
 <p>A .NET assembly (<code>.dll</code> or <code>.exe</code>) is a portable executable containing metadata and IL code. The patcher manipulates these structures using Mono.Cecil.</p>
@@ -261,20 +261,20 @@
 <ol>
 <li><p><strong>SetupPatcher</strong> gathers output and reference assemblies, resolves plug references, and stores them in <code>$(IntermediateOutputPath)/cosmos</code>.</p>
 </li>
-<li><p><strong>FindPluggedAssembliesTask</strong> uses <a href="../../../src/Cosmos.Patcher/PlugScanner.cs"><code>PlugScanner.FindPluggedAssemblies</code></a> to cross-reference plug targets against the candidate assemblies and produces <code>AssembliesToPatch</code>.</p>
+<li><p><strong>FindPluggedAssembliesTask</strong> uses <a href="../../../../src/Cosmos.Patcher/PlugScanner.cs"><code>PlugScanner.FindPluggedAssemblies</code></a> to cross-reference plug targets against the candidate assemblies and produces <code>AssembliesToPatch</code>.</p>
 </li>
-<li><p><strong>RunPatcher</strong> iterates over <code>AssembliesToPatch</code> and, for each assembly, the <a href="../../../src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs"><code>PatcherTask</code></a> launches the <a href="../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a> CLI (<a href="../../../src/Cosmos.Patcher/Program.cs"><code>Program</code></a> → <a href="../../../src/Cosmos.Patcher/PatchCommand.cs"><code>PatchCommand.Execute</code></a>). Inside <code>Execute</code>:</p>
+<li><p><strong>RunPatcher</strong> iterates over <code>AssembliesToPatch</code> and, for each assembly, the <a href="../../../../src/Cosmos.Build.Patcher/Tasks/PatcherTask.cs"><code>PatcherTask</code></a> launches the <a href="../../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a> CLI (<a href="../../../../src/Cosmos.Patcher/Program.cs"><code>Program</code></a> → <a href="../../../../src/Cosmos.Patcher/PatchCommand.cs"><code>PatchCommand.Execute</code></a>). Inside <code>Execute</code>:</p>
 <ul>
 <li>The target assembly is loaded with <code>AssemblyDefinition.ReadAssembly</code> and plug assemblies are gathered.</li>
-<li><a href="../../../src/Cosmos.Patcher/PlugScanner.cs"><code>PlugScanner.LoadPlugs</code></a> discovers plug types in those assemblies.</li>
-<li><a href="../../../src/Cosmos.Patcher/PlugPatcher.cs"><code>PlugPatcher.PatchAssembly</code></a> groups plugs by their <code>[Plug]</code> target and patches each target type using:
+<li><a href="../../../../src/Cosmos.Patcher/PlugScanner.cs"><code>PlugScanner.LoadPlugs</code></a> discovers plug types in those assemblies.</li>
+<li><a href="../../../../src/Cosmos.Patcher/PlugPatcher.cs"><code>PlugPatcher.PatchAssembly</code></a> groups plugs by their <code>[Plug]</code> target and patches each target type using:
 <ul>
-<li><a href="../../../src/Cosmos.Patcher/Resolution/MethodResolver.cs"><code>MethodResolver</code></a> matches plug signatures (including constructors and <code>aThis</code> parameters) by name and parameter types.</li>
-<li><a href="../../../src/Cosmos.Patcher/Patching/MethodPatcher.cs"><code>MethodPatcher</code></a> swaps or clones IL and strips P/Invoke metadata.</li>
-<li><a href="../../../src/Cosmos.Patcher/IL/ILCloner.cs"><code>ILCloner</code></a> clones instructions, remaps parameters, and fixes branch targets.</li>
-<li><a href="../../../src/Cosmos.Patcher/IL/TypeImporter.cs"><code>TypeImporter</code></a> safely imports type/method/field references, fixing self-references that would cause invalid IL metadata.</li>
-<li><a href="../../../src/Cosmos.Patcher/Patching/PropertyPatcher.cs"><code>PropertyPatcher</code></a> wires getters and setters to plug implementations.</li>
-<li><a href="../../../src/Cosmos.Patcher/Patching/FieldPatcher.cs"><code>FieldPatcher</code></a> copies constant values and redirects field accesses.</li>
+<li><a href="../../../../src/Cosmos.Patcher/Resolution/MethodResolver.cs"><code>MethodResolver</code></a> matches plug signatures (including constructors and <code>aThis</code> parameters) by name and parameter types.</li>
+<li><a href="../../../../src/Cosmos.Patcher/Patching/MethodPatcher.cs"><code>MethodPatcher</code></a> swaps or clones IL and strips P/Invoke metadata.</li>
+<li><a href="../../../../src/Cosmos.Patcher/IL/ILCloner.cs"><code>ILCloner</code></a> clones instructions, remaps parameters, and fixes branch targets.</li>
+<li><a href="../../../../src/Cosmos.Patcher/IL/TypeImporter.cs"><code>TypeImporter</code></a> safely imports type/method/field references, fixing self-references that would cause invalid IL metadata.</li>
+<li><a href="../../../../src/Cosmos.Patcher/Patching/PropertyPatcher.cs"><code>PropertyPatcher</code></a> wires getters and setters to plug implementations.</li>
+<li><a href="../../../../src/Cosmos.Patcher/Patching/FieldPatcher.cs"><code>FieldPatcher</code></a> copies constant values and redirects field accesses.</li>
 </ul>
 </li>
 <li>The patched assembly is written to <code>PatcherOutputPath</code>.</li>
@@ -282,7 +282,7 @@
 </li>
 <li><p><strong>CleanPatcher</strong> deletes the patched output when the project is cleaned.</p>
 </li>
-<li><p><a href="../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a> validates plug rules during compilation to catch errors before patching.</p>
+<li><p><a href="../../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a> validates plug rules during compilation to catch errors before patching.</p>
 </li>
 </ol>
 <hr>
@@ -299,14 +299,14 @@
 <hr>
 <h2 id="related-components">Related components</h2>
 <ul>
-<li><a href="../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a></li>
-<li><a href="../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a></li>
+<li><a href="../../../../src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a></li>
+<li><a href="../../../../src/Cosmos.Build.Analyzer.Patcher"><code>Cosmos.Patcher.Analyzer</code></a></li>
 </ul>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/build/patcher-build.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/build/patcher-build.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

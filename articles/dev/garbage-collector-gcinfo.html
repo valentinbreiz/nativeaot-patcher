@@ -7,16 +7,16 @@
       <meta name="title" content=" | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../public/docfx.min.css">
-      <link rel="stylesheet" href="../public/main.css">
-      <meta name="docfx:navrel" content="../toc.html">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
       <meta name="docfx:tocrel" content="toc.html">
       
-      <meta name="docfx:rel" content="../">
+      <meta name="docfx:rel" content="../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector-gcinfo.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-gcinfo.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../public/docfx.min.js"></script>
+      <script type="module" src="./../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@ in the scheduler — replacing that needs <a href="#the-safepoint-constraint">re
 local variables, spilled registers, method arguments. It does <strong>not</strong> know which stack words are
 object references and which are integers, so it treats <em>every</em> pointer-sized word as a candidate:
 <code>ScanStackRoots</code> → <code>ScanThreadStack</code> → <code>ScanMemoryRange</code> → <code>TryMarkRoot</code> in
-<a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a>.
+<a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a>.
 <code>TryMarkRoot</code> keeps a candidate only if it lands inside the GC heap (<code>IsInGCHeap</code>) and the
 <code>MethodTable*</code> it would point at lives in the kernel's higher half — but those are plausibility
 filters, not proof.</p>
@@ -135,7 +135,7 @@ stack layout the compiler chose — which slot the compiler reused, which value 
 the GC's scan range happens to cover it. That layout shifts whenever codegen shifts.</p>
 <p>The concrete instance (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/346">issue #346</a>):
 commit <code>6c497186</code> added one field — <code>private ulong _savedFlags;</code> — to the
-<a href="../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> <code>ref struct</code>. <code>InterruptScope</code>
+<a href="../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> <code>ref struct</code>. <code>InterruptScope</code>
 is a <code>ref struct</code>, so it always lives on the stack, and <code>DisableInterruptsScope()</code> plus the
 constructor are <code>AggressiveInlining</code>'d, so the struct's fields become locals in the caller's frame —
 and <code>using (InternalCpu.DisableInterruptsScope())</code> wraps GC, heap and scheduler hot paths (<code>GC.Collect</code>,
@@ -170,7 +170,7 @@ is the canary because, empirically, ARM64 codegen surfaces this first.</p>
 walking the RBP / X29 frame-pointer chain. That is <strong>not safe here</strong>: ILC compiles many functions
 without a frame pointer (<code>-fomit-frame-pointer</code>-style codegen), so the frame chain silently <em>skips</em>
 those frames. The kernel's own exception unwinder documents this — see the comment in
-<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a> (around the x64
+<a href="../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a> (around the x64
 <code>REGDISPLAY</code> construction): <em>&quot;CFI says RBP is 'SameValue' because function may use
 -fomit-frame-pointer …&quot;</em>. For exception dispatch a skipped frame is tolerable (worst case: a missed
 catch handler). For the GC a skipped frame means <strong>missed roots</strong>, which collects a live object →
@@ -191,11 +191,11 @@ words look like pointers, the GC asks the compiler.</p>
 <p>ILC writes, per method, a record into the <code>.dotnet_eh_table</code> section, laid out
 <code>[LSDA header][GCInfo blob][EH clauses]</code>. The linker keeps that section and its bounds — see
 <code>*(.dotnet_eh_table)</code> and <code>__dotnet_eh_table_start</code> / <code>__dotnet_eh_table_end</code> in
-<a href="../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a> and
-<a href="../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a>. The DWARF <code>.eh_frame</code>
+<a href="../../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a> and
+<a href="../../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a>. The DWARF <code>.eh_frame</code>
 FDE for a method carries a pointer to that record's LSDA header — and the GC's per-frame walk already
 extracts it (<code>TryGetMethodLSDA</code> in
-<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>). So an
+<a href="../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>). So an
 instruction pointer is only an LSDA-header walk away from the GCInfo blob — <strong>no build-pipeline, no
 post-link tool, no patcher change is needed</strong>.</p>
 <pre><code> .dotnet_eh_table  (kept by the linker; bounded by __dotnet_eh_table_start/end)
@@ -297,7 +297,7 @@ already has, built for exception handling (<a href="https://github.com/valentinb
 the <code>REGDISPLAY</code> struct (laid out to match NativeAOT's), <code>TryGetMethodLSDA</code>, the DWARF <code>.eh_frame</code>
 FDE/CIE parsing, and <code>UnwindOneFrameWithCFI</code> (executes DWARF call-frame instructions to reconstruct
 the caller's register state) — all in
-<a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>. The GC scanner
+<a href="../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a>. The GC scanner
 drives the same per-frame loop the exception dispatcher does.</p>
 <pre><code class="lang-mermaid">flowchart TD
     START[&quot;frame: REGDISPLAY + IP&quot;] --&gt; LOOKUP{&quot;IP in managed code?&lt;br/&gt;(TryGetMethodLSDA)&quot;}
@@ -344,8 +344,8 @@ GC-triggering thread, then funclet frames), and the conservative scan now covers
 the precise scan does not yet handle — those preempted in the scheduler, until return-address
 hijacking lands. The threads the GC iterates and their saved register state come from the scheduler's
 thread registry — see <a href="scheduler.html">Scheduler</a>, <code>SchedulerManager</code>, and
-<a href="../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>ThreadContext.X64.cs</code></a> /
-<a href="../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs"><code>ThreadContext.ARM64.cs</code></a>.</p>
+<a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>ThreadContext.X64.cs</code></a> /
+<a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs"><code>ThreadContext.ARM64.cs</code></a>.</p>
 <hr>
 <h2 id="what-its-built-from">What it's built from</h2>
 <p>The precise scan reuses the exception-handling machinery and adds the GCInfo decoder plus the
@@ -362,42 +362,42 @@ work — GCInfo is already emitted into <code>.dotnet_eh_table</code> and reacha
 <tbody>
 <tr>
 <td>CFI unwinder, <code>REGDISPLAY</code>, <code>UnwindOneFrameWithCFI</code></td>
-<td><a href="../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs"><code>ExceptionHandling.cs</code></a></td>
 <td>the per-frame walk machinery, built for <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/227">#227</a>; its <code>.eh_frame</code> / LSDA parsing was factored out to <code>MethodGcInfoLookup</code></td>
 </tr>
 <tr>
 <td><code>.eh_frame</code> / LSDA / GCInfo lookup</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs"><code>MethodGcInfoLookup.cs</code></a>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs"><code>EhFrameNative.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs"><code>MethodGcInfoLookup.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs"><code>EhFrameNative.cs</code></a></td>
 <td>the kernel's single <code>.eh_frame</code> walker — IP → FDE/CIE/LSDA → GCInfo blob (incl. funclet → main redirect)</td>
 </tr>
 <tr>
 <td>GCInfo v4 decoder</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs"><code>GcInfoDecoder.cs</code></a> (+ <code>GcInfoBitStreamReader</code>, <code>GcSlotTable</code>, <code>GcInfoTypes</code>)</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs"><code>GcInfoDecoder.cs</code></a> (+ <code>GcInfoBitStreamReader</code>, <code>GcSlotTable</code>, <code>GcInfoTypes</code>)</td>
 <td>header, slot table, <code>EnumerateLiveSlots</code> — port of <code>gcinfodecoder.cpp</code></td>
 </tr>
 <tr>
 <td>Precise per-frame walk</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
 <td>the walk loop; <code>ScanStackRoots</code> in <code>GarbageCollector.Mark.cs</code> dispatches to it for the GC-triggering thread</td>
 </tr>
 <tr>
 <td><code>_native_capture_regdisplay</code> asm stub</td>
-<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s</code>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>ContextSwitchNative.cs</code></a></td>
+<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s</code>, <a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>ContextSwitchNative.cs</code></a></td>
 <td>seeds the initial <code>REGDISPLAY</code> for the GC-triggering thread</td>
 </tr>
 <tr>
 <td><code>.dotnet_eh_table</code> kept, with <code>__dotnet_eh_table_start/end</code></td>
-<td><a href="../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a>, <a href="../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a></td>
+<td><a href="../../../src/Cosmos.Build.Templates/Linker/linker.x64.ld"><code>linker.x64.ld</code></a>, <a href="../../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld"><code>linker.arm64.ld</code></a></td>
 <td>GCInfo is reachable at runtime via the FDE LSDA</td>
 </tr>
 <tr>
 <td>IRQ save/restore natives</td>
-<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s</code>, <a href="../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs"><code>CpuNative.cs</code></a></td>
-<td>used by <a href="../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> (the re-added <code>_savedFlags</code> / save-restore-IRQ form)</td>
+<td><code>Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s</code>, <a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs"><code>CpuNative.cs</code></a></td>
+<td>used by <a href="../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs"><code>InterruptScope</code></a> (the re-added <code>_savedFlags</code> / save-restore-IRQ form)</td>
 </tr>
 <tr>
 <td>Mark phase (conservative scan, for parked threads)</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
 <td><code>ScanThreadStack</code> / <code>ScanMemoryRange</code> / <code>TryMarkRoot</code> — what the precise scan replaces, frame by frame</td>
 </tr>
 <tr>
@@ -481,7 +481,7 @@ preempted in the scheduler. Phase 4 removes that last conservative path.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector-gcinfo.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-gcinfo.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

@@ -30930,6 +30930,80 @@ references:
   commentId: T:Cosmos.Kernel.System.Vfs.VfsManager
   fullName: Cosmos.Kernel.System.Vfs.VfsManager
   nameWithType: VfsManager
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory
+  name: CurrentDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory
+  commentId: P:Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory
+  nameWithType: VfsManager.CurrentDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory*
+  name: CurrentDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory
+  nameWithType: VfsManager.CurrentDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries
+  name: GetVirtualRootEntries()
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_GetVirtualRootEntries
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries()
+  nameWithType: VfsManager.GetVirtualRootEntries()
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries*
+  name: GetVirtualRootEntries
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_GetVirtualRootEntries_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries
+  nameWithType: VfsManager.GetVirtualRootEntries
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(System.String)
+  name: IsMountPoint(string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_IsMountPoint_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(System.String)
+  name.vb: IsMountPoint(String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(String)
+  nameWithType: VfsManager.IsMountPoint(string)
+  nameWithType.vb: VfsManager.IsMountPoint(String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint*
+  name: IsMountPoint
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_IsMountPoint_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint
+  nameWithType: VfsManager.IsMountPoint
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(System.String)
+  name: MakeAbsolute(string?)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_MakeAbsolute_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(System.String)
+  name.vb: MakeAbsolute(String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(string?)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(String)
+  nameWithType: VfsManager.MakeAbsolute(string?)
+  nameWithType.vb: VfsManager.MakeAbsolute(String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute*
+  name: MakeAbsolute
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_MakeAbsolute_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute
+  nameWithType: VfsManager.MakeAbsolute
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(System.String,System.String)
+  name: MountCovers(string, string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_MountCovers_System_String_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(System.String,System.String)
+  name.vb: MountCovers(String, String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(string, string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(String, String)
+  nameWithType: VfsManager.MountCovers(string, string)
+  nameWithType.vb: VfsManager.MountCovers(String, String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.MountCovers*
+  name: MountCovers
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_MountCovers_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.MountCovers
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.MountCovers
+  nameWithType: VfsManager.MountCovers
 - uid: Cosmos.Kernel.System.Vfs.VfsManager.Mounts
   name: Mounts
   href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_Mounts
@@ -30959,6 +31033,54 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem
   nameWithType: VfsManager.RegisterFilesystem
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(System.String,System.String@,System.String@)
+  name: SplitParentLeaf(string, out string, out string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_SplitParentLeaf_System_String_System_String__System_String__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(System.String,System.String@,System.String@)
+  name.vb: SplitParentLeaf(String, String, String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(string, out string, out string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(String, String, String)
+  nameWithType: VfsManager.SplitParentLeaf(string, out string, out string)
+  nameWithType.vb: VfsManager.SplitParentLeaf(String, String, String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf*
+  name: SplitParentLeaf
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_SplitParentLeaf_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf
+  nameWithType: VfsManager.SplitParentLeaf
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  name: TryCreateDirectory(string, ModeEnum)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryCreateDirectory_System_String_Cosmos_Kernel_HAL_Vfs_ModeEnum_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  name.vb: TryCreateDirectory(String, ModeEnum)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(string, Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(String, Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  nameWithType: VfsManager.TryCreateDirectory(string, ModeEnum)
+  nameWithType.vb: VfsManager.TryCreateDirectory(String, ModeEnum)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory*
+  name: TryCreateDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryCreateDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory
+  nameWithType: VfsManager.TryCreateDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  name: TryCreateFile(string, ModeEnum)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryCreateFile_System_String_Cosmos_Kernel_HAL_Vfs_ModeEnum_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  name.vb: TryCreateFile(String, ModeEnum)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(string, Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(String, Cosmos.Kernel.HAL.Vfs.ModeEnum)
+  nameWithType: VfsManager.TryCreateFile(string, ModeEnum)
+  nameWithType.vb: VfsManager.TryCreateFile(String, ModeEnum)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile*
+  name: TryCreateFile
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryCreateFile_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile
+  nameWithType: VfsManager.TryCreateFile
 - uid: Cosmos.Kernel.System.Vfs.VfsManager.TryDestroy(System.String,System.ReadOnlySpan{System.Char})
   name: TryDestroy(string, ReadOnlySpan<char>)
   href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryDestroy_System_String_System_ReadOnlySpan_System_Char__
@@ -31055,6 +31177,86 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile
   nameWithType: VfsManager.TryOpenFile
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory(System.String)
+  name: TryRemoveDirectory(string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryRemoveDirectory_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory(System.String)
+  name.vb: TryRemoveDirectory(String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory(string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory(String)
+  nameWithType: VfsManager.TryRemoveDirectory(string)
+  nameWithType.vb: VfsManager.TryRemoveDirectory(String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory*
+  name: TryRemoveDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryRemoveDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory
+  nameWithType: VfsManager.TryRemoveDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryRename(System.String,System.String)
+  name: TryRename(string, string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryRename_System_String_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryRename(System.String,System.String)
+  name.vb: TryRename(String, String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryRename(string, string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryRename(String, String)
+  nameWithType: VfsManager.TryRename(string, string)
+  nameWithType.vb: VfsManager.TryRename(String, String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryRename*
+  name: TryRename
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryRename_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryRename
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryRename
+  nameWithType: VfsManager.TryRename
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(System.String)
+  name: TrySetCurrentDirectory(string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TrySetCurrentDirectory_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(System.String)
+  name.vb: TrySetCurrentDirectory(String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(String)
+  nameWithType: VfsManager.TrySetCurrentDirectory(string)
+  nameWithType.vb: VfsManager.TrySetCurrentDirectory(String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory*
+  name: TrySetCurrentDirectory
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TrySetCurrentDirectory_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory
+  nameWithType: VfsManager.TrySetCurrentDirectory
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryStat(System.String,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name: TryStat(string, out VfsStat)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryStat_System_String_Cosmos_Kernel_HAL_Vfs_VfsStat__
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryStat(System.String,Cosmos.Kernel.HAL.Vfs.VfsStat@)
+  name.vb: TryStat(String, VfsStat)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryStat(string, out Cosmos.Kernel.HAL.Vfs.VfsStat)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryStat(String, Cosmos.Kernel.HAL.Vfs.VfsStat)
+  nameWithType: VfsManager.TryStat(string, out VfsStat)
+  nameWithType.vb: VfsManager.TryStat(String, VfsStat)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryStat*
+  name: TryStat
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryStat_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryStat
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryStat
+  nameWithType: VfsManager.TryStat
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(System.String)
+  name: TryUnlink(string)
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryUnlink_System_String_
+  commentId: M:Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(System.String)
+  name.vb: TryUnlink(String)
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(string)
+  fullName.vb: Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(String)
+  nameWithType: VfsManager.TryUnlink(string)
+  nameWithType.vb: VfsManager.TryUnlink(String)
+- uid: Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink*
+  name: TryUnlink
+  href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryUnlink_
+  commentId: Overload:Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink
+  nameWithType: VfsManager.TryUnlink
 - uid: Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount(System.String)
   name: TryUnmount(string)
   href: api/Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryUnmount_System_String_

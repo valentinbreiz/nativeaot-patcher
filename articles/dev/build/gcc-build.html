@@ -7,16 +7,16 @@
       <meta name="title" content=" | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../../favicon.ico">
-      <link rel="stylesheet" href="../../public/docfx.min.css">
-      <link rel="stylesheet" href="../../public/main.css">
-      <meta name="docfx:navrel" content="../../toc.html">
+      <link rel="icon" href="../../../favicon.ico">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
       <meta name="docfx:tocrel" content="../toc.html">
       
-      <meta name="docfx:rel" content="../../">
+      <meta name="docfx:rel" content="../../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/build/asm-build.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/build/gcc-build.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script type="module" src="./../../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../../index.html">
-            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,13 +86,13 @@
 
         <article data-uid="">
 
-<p><code>Cosmos.Build.Asm</code> compiles handwritten assembly sources into object files that are linked with the NativeAOT output. Both x64 and ARM64 targets use the <strong>clang integrated assembler</strong> on GAS-syntax <code>.s</code> files.</p>
+<p><code>Cosmos.Build.GCC</code> compiles C sources into object files that are linked with the NativeAOT output.</p>
 <hr>
 <h2 id="flow-chart">Flow chart</h2>
 <pre><code class="lang-mermaid">flowchart TD
-    A[GetAsmTool] --&gt; B[FindAsmSourceFiles]
-    B --&gt; C[BuildAsm]
-    C --&gt; D[.obj files under cosmos/asm]
+    A[GetGCC] --&gt; B[FindCSourceFilesForGCC]
+    B --&gt; C[BuildGCC]
+    C --&gt; D[.o/.obj files under cosmos/cobj]
 </code></pre>
 <hr>
 <h2 id="parameters">Parameters</h2>
@@ -106,31 +106,31 @@
 </thead>
 <tbody>
 <tr>
-<td><code>AsmToolPath</code></td>
-<td>Full path to the <code>clang</code> executable. Auto-detected by <code>GetAsmTool</code> if not set.</td>
-<td>Resolved via <code>ResolveCosmosToolTask</code> (system PATH + Cosmos tools bundle)</td>
+<td><code>GCCPath</code></td>
+<td>Full path or name of the <code>gcc</code> executable. Set by <code>GetGCC</code> per-OS, overridable in your project.</td>
+<td>Unix: <code>gcc</code>; Windows: <code>x86_64-elf-gcc</code></td>
 </tr>
 <tr>
-<td><code>AsmSearchPath</code></td>
-<td>One or more directories to scan (non-recursive) for <code>*.s</code>.</td>
+<td><code>GCCProject</code></td>
+<td>One or more directories to scan (non-recursive) for <code>*.c</code>. Supports arch subfolder override.</td>
 <td>none</td>
 </tr>
 <tr>
-<td><code>AsmFiles</code></td>
-<td>Explicit list of <code>*.s</code> files to compile (added to scan results).</td>
-<td>none</td>
-</tr>
-<tr>
-<td><code>AsmOutputPath</code></td>
+<td><code>GCCOutputPath</code></td>
 <td>Directory for compiled object files.</td>
-<td><code>$(IntermediateOutputPath)/cosmos/asm/</code></td>
+<td><code>$(IntermediateOutputPath)/cosmos/cobj/</code></td>
+</tr>
+<tr>
+<td><code>GCCCompilerFlags</code></td>
+<td>Additional compiler flags passed to GCC.</td>
+<td><code>-O2 -fno-stack-protector -nostdinc -fno-builtin</code> plus arch flags</td>
 </tr>
 </tbody>
 </table>
 <p>Notes:</p>
 <ul>
-<li>When <code>RuntimeIdentifier</code> is set (e.g., <code>linux-x64</code>), <code>FindAsmSourceFiles</code> will prefer an architecture subfolder if present (e.g., <code>&lt;searchDir&gt;/x64/</code>).</li>
-<li>The target triple is selected by <code>AsmBuildTask</code> from <code>TargetArchitecture</code>: <code>x86_64-elf</code> for x64 and <code>aarch64-none-elf</code> for ARM64.</li>
+<li>When <code>RuntimeIdentifier</code> is set (e.g., <code>linux-x64</code>), <code>FindCSourceFilesForGCC</code> prefers an architecture subfolder if present (e.g., <code>&lt;dir&gt;/x64/</code>).</li>
+<li>On Windows the default tool is a cross-compiler (<code>x86_64-elf-gcc</code>); on Unix it is <code>gcc</code>. You can override <code>GCCPath</code>.</li>
 </ul>
 <hr>
 <h2 id="tasks">Tasks</h2>
@@ -144,61 +144,62 @@
 </thead>
 <tbody>
 <tr>
-<td><code>GetAsmTool</code></td>
-<td>Resolves <code>AsmToolPath</code> to the clang binary via <code>ResolveCosmosToolTask</code>.</td>
+<td><code>GetGCC</code></td>
+<td>Resolves <code>GCCPath</code> per OS (Unix: <code>gcc</code>, Windows: <code>x86_64-elf-gcc</code>).</td>
 <td>none</td>
 </tr>
 <tr>
-<td><code>FindAsmSourceFiles</code></td>
-<td>Cleans inputs, applies arch overrides, and discovers <code>*.s</code> under <code>AsmSearchPath</code>.</td>
+<td><code>FindCSourceFilesForGCC</code></td>
+<td>Cleans <code>@(GCCProject)</code> inputs and applies arch overrides.</td>
 <td><code>Build</code></td>
 </tr>
 <tr>
-<td><code>BuildAsm</code></td>
-<td>Invokes <code>AsmBuildTask</code> for each file with <code>--target=&lt;triple&gt; -c</code>, writing to <code>AsmOutputPath</code>.</td>
-<td><code>FindAsmSourceFiles; GetAsmTool</code></td>
+<td><code>BuildGCC</code></td>
+<td>Invokes <code>GCCBuildTask</code> to compile each <code>*.c</code> in every <code>@(GCCProject)</code> directory.</td>
+<td><code>FindCSourceFilesForGCC; GetGCC</code></td>
 </tr>
 <tr>
-<td><code>CleanAsm</code></td>
-<td>Removes <code>$(IntermediateOutputPath)/cosmos/asm/</code>.</td>
+<td><code>CleanGCC</code></td>
+<td>Removes <code>$(IntermediateOutputPath)/cosmos/cobj/</code>.</td>
 <td><code>Clean</code></td>
 </tr>
 </tbody>
 </table>
 <hr>
-<h2 id="detailed-workflow">Detailed Workflow</h2>
+<h2 id="detailed-workflow">Detailed workflow</h2>
 <ol>
-<li><code>GetAsmTool</code> resolves <code>AsmToolPath</code> to a <code>clang</code> binary (override / system / Cosmos tools bundle).</li>
-<li><code>FindAsmSourceFiles</code>:
+<li><code>GetGCC</code> sets <code>GCCPath</code> according to the host OS. You can override <code>GCCPath</code> in your project file if needed.</li>
+<li><code>FindCSourceFilesForGCC</code>:
 <ul>
-<li>Removes any nonexistent entries from <code>AsmSearchPath</code> and <code>AsmFiles</code> (emits warnings).</li>
-<li>If <code>RuntimeIdentifier</code> is set, replaces any <code>AsmSearchPath</code> that contains a matching arch subfolder with that subfolder (e.g., <code>x64</code>).</li>
-<li>Builds a non-recursive search pattern <code>%(AsmSearchPath.FullPath)/*.s</code> and adds results to <code>AsmFiles</code> (deduplicated).</li>
+<li>Removes any nonexistent paths from <code>@(GCCProject)</code> (emits warnings).</li>
+<li>If <code>RuntimeIdentifier</code> is set and a matching arch subfolder exists (e.g., <code>x64</code>), the folder is replaced with that subfolder.</li>
+<li>Logs the final list of C project directories.</li>
 </ul>
 </li>
-<li><code>BuildAsm</code> calls the <code>AsmBuildTask</code> for each file:
+<li><code>BuildGCC</code>:
 <ul>
-<li>Computes a SHA1 of the source and emits <code>&lt;name&gt;-&lt;sha1&gt;.obj</code> into <code>AsmOutputPath</code>.</li>
-<li>Executes <code>clang --target=&lt;x86_64-elf|aarch64-none-elf&gt; -c -o &lt;output.obj&gt; &lt;input.s&gt;</code>.</li>
+<li>Ensures <code>GCCOutputPath</code> (<code>$(IntermediateOutputPath)/cosmos/cobj/</code>) exists and cleans stale objects.</li>
+<li>For each <code>@(GCCProject)</code> directory, calls <code>GCCBuildTask</code> which compiles every <code>*.c</code> file in that directory (non-recursive).</li>
+<li>Each file is compiled individually to an object named <code>&lt;name&gt;-&lt;sha1&gt;.(obj|o)</code> where the hash is derived from file contents; extension is <code>.obj</code> on Windows, <code>.o</code> elsewhere.</li>
 </ul>
 </li>
-<li><code>CleanAsm</code> deletes the <code>cosmos/asm</code> intermediate folder during <code>Clean</code>.</li>
+<li><code>CleanGCC</code> removes the <code>cosmos/cobj</code> directory during <code>Clean</code>.</li>
 </ol>
 <hr>
 <h2 id="outputs">Outputs</h2>
 <ul>
-<li>Object files in <code>$(IntermediateOutputPath)/cosmos/asm/</code> named as <code>&lt;sourceName&gt;-&lt;sha1&gt;.obj</code> where <code>&lt;sha1&gt;</code> is the content hash of the source. This guarantees deterministic, cache-friendly names across builds.</li>
+<li>Object files in <code>$(IntermediateOutputPath)/cosmos/cobj/</code> named as <code>&lt;sourceName&gt;-&lt;sha1&gt;.(obj|o)</code>.</li>
 </ul>
 <hr>
 <h2 id="related-components">Related components</h2>
 <ul>
-<li><a href="../../../src/Cosmos.Build.Asm"><code>Cosmos.Build.Asm</code></a></li>
+<li><a href="../../../../src/Cosmos.Build.GCC"><code>Cosmos.Build.GCC</code></a></li>
 </ul>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/build/asm-build.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/build/gcc-build.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

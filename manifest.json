@@ -5440,7 +5440,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Vfs.VfsManager",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.VfsManager.yml\" sourcestartlinenumber=\"1\">Central entry point for registering filesystem drivers and resolving VFS paths.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Vfs.VfsManager.yml\" sourcestartlinenumber=\"1\">Central entry point for registering filesystem drivers and resolving VFS paths.\nPath-level operations (current directory, create/unlink/rename/remove,\nvirtual root) live in the <code>VfsManager.Paths.cs</code> partial.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -5691,163 +5691,256 @@
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/build/asm-build.md",
+      "source_relative_path": "articles/dev/build/asm-build.md",
       "output": {
         ".html": {
-          "relative_path": "articles/build/asm-build.html"
+          "relative_path": "articles/dev/build/asm-build.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/build/gcc-build.md",
+      "source_relative_path": "articles/dev/build/gcc-build.md",
       "output": {
         ".html": {
-          "relative_path": "articles/build/gcc-build.html"
+          "relative_path": "articles/dev/build/gcc-build.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/build/ilc-build.md",
+      "source_relative_path": "articles/dev/build/ilc-build.md",
       "output": {
         ".html": {
-          "relative_path": "articles/build/ilc-build.html"
+          "relative_path": "articles/dev/build/ilc-build.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/build/kernel-compilation-steps.md",
+      "source_relative_path": "articles/dev/build/kernel-compilation-steps.md",
       "output": {
         ".html": {
-          "relative_path": "articles/build/kernel-compilation-steps.html"
+          "relative_path": "articles/dev/build/kernel-compilation-steps.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/build/patcher-build.md",
+      "source_relative_path": "articles/dev/build/patcher-build.md",
       "output": {
         ".html": {
-          "relative_path": "articles/build/patcher-build.html"
+          "relative_path": "articles/dev/build/patcher-build.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/coding-guidelines.md",
+      "source_relative_path": "articles/dev/coding-guidelines.md",
       "output": {
         ".html": {
-          "relative_path": "articles/coding-guidelines.html"
+          "relative_path": "articles/dev/coding-guidelines.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/debugging.md",
+      "source_relative_path": "articles/dev/garbage-collector-gcinfo.md",
       "output": {
         ".html": {
-          "relative_path": "articles/debugging.html"
+          "relative_path": "articles/dev/garbage-collector-gcinfo.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/garbage-collector-gcinfo.md",
+      "source_relative_path": "articles/dev/garbage-collector.md",
       "output": {
         ".html": {
-          "relative_path": "articles/garbage-collector-gcinfo.html"
+          "relative_path": "articles/dev/garbage-collector.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/garbage-collector.md",
+      "source_relative_path": "articles/dev/install-dev.md",
       "output": {
         ".html": {
-          "relative_path": "articles/garbage-collector.html"
+          "relative_path": "articles/dev/install-dev.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/install-dev.md",
+      "source_relative_path": "articles/dev/kernel-project-layout.md",
       "output": {
         ".html": {
-          "relative_path": "articles/install-dev.html"
+          "relative_path": "articles/dev/kernel-project-layout.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/install.md",
+      "source_relative_path": "articles/dev/plugs.md",
       "output": {
         ".html": {
-          "relative_path": "articles/install.html"
+          "relative_path": "articles/dev/plugs.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/kernel-project-layout.md",
+      "source_relative_path": "articles/dev/scheduler.md",
       "output": {
         ".html": {
-          "relative_path": "articles/kernel-project-layout.html"
+          "relative_path": "articles/dev/scheduler.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/plugs.md",
+      "source_relative_path": "articles/dev/testing.md",
       "output": {
         ".html": {
-          "relative_path": "articles/plugs.html"
-        }
-      },
-      "version": ""
-    },
-    {
-      "type": "Conceptual",
-      "source_relative_path": "articles/scheduler.md",
-      "output": {
-        ".html": {
-          "relative_path": "articles/scheduler.html"
-        }
-      },
-      "version": ""
-    },
-    {
-      "type": "Conceptual",
-      "source_relative_path": "articles/testing.md",
-      "output": {
-        ".html": {
-          "relative_path": "articles/testing.html"
+          "relative_path": "articles/dev/testing.html"
         }
       },
       "version": ""
     },
     {
       "type": "Toc",
-      "source_relative_path": "articles/toc.yml",
+      "source_relative_path": "articles/dev/toc.yml",
       "output": {
         ".html": {
-          "relative_path": "articles/toc.html"
+          "relative_path": "articles/dev/toc.html"
         },
         ".json": {
-          "relative_path": "articles/toc.json"
+          "relative_path": "articles/dev/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/debugging.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/debugging.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/filesystem.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/filesystem.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-directory-listing.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-directory-listing.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-files-list.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-files-list.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-mount.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-mount.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-mounts.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-mounts.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-read-all-files.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-read-all-files.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-read-specific-file.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-read-specific-file.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/filesystem-streams.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/filesystem-streams.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/install.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/install.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/user/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/user/toc.json"
         }
       },
       "version": ""

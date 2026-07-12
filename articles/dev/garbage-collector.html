@@ -7,16 +7,16 @@
       <meta name="title" content=" | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../public/docfx.min.css">
-      <link rel="stylesheet" href="../public/main.css">
-      <meta name="docfx:navrel" content="../toc.html">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
       <meta name="docfx:tocrel" content="toc.html">
       
-      <meta name="docfx:rel" content="../">
+      <meta name="docfx:rel" content="../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../public/docfx.min.js"></script>
+      <script type="module" src="./../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,35 +98,35 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>GarbageCollector.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>GarbageCollector.cs</code></a></td>
 <td>Core types, constants, fields, public API (Initialize, Collect, GetStats), AllocObject</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>GarbageCollector.Alloc.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>GarbageCollector.Alloc.cs</code></a></td>
 <td>Private allocation (segments, bump alloc, free lists)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>GarbageCollector.Mark.cs</code></a></td>
 <td>Mark phase (root scanning, reference enumeration, mark stack)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs"><code>GarbageCollector.PreciseStack.cs</code></a></td>
 <td>Precise GCInfo-driven stack scan of the GC-triggering thread (incl. exception-funclet frames)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>GarbageCollector.Sweep.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>GarbageCollector.Sweep.cs</code></a></td>
 <td>Sweep phase (segment sweep, heap sweepers, helpers)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>GarbageCollector.GCHandler.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>GarbageCollector.GCHandler.cs</code></a></td>
 <td>GC handle table (Weak, Normal, Pinned handles)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>GarbageCollector.Frozen.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>GarbageCollector.Frozen.cs</code></a></td>
 <td>Frozen segment registration (pre-initialized read-only data)</td>
 </tr>
 <tr>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>GarbageCollector.PinnedHeap.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>GarbageCollector.PinnedHeap.cs</code></a></td>
 <td>Pinned object allocation and sweeping</td>
 </tr>
 </tbody>
@@ -162,7 +162,7 @@
 </table>
 <p>Because <code>MethodTable</code> pointers always reside in kernel code sections, the GC uses <code>IsInGCHeap((nint)mt)</code> as a validity check. If a <code>MethodTable*</code> points inside the heap, it cannot be a real type descriptor and the candidate object is rejected.</p>
 <h3 id="object-struct">Object struct</h3>
-<p>Every managed object on the GC heap starts with a <a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>GCObject</code></a> header:</p>
+<p>Every managed object on the GC heap starts with a <a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>GCObject</code></a> header:</p>
 <pre><code>              ┌──────────────────────────────────┐
               │  MethodTable*  (8 bytes on x64)  │  ← bit 0 used as mark bit
               ├──────────────────────────────────┤
@@ -304,7 +304,7 @@
 <h2 id="allocation">Allocation</h2>
 <h3 id="runtime-bridge">Runtime bridge</h3>
 <h4 id="gc-allocation">GC Allocation</h4>
-<p>The .NET runtime calls exported functions (defined in <a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>) which all funnel into <code>GarbageCollector.AllocObject(size, flags)</code>:</p>
+<p>The .NET runtime calls exported functions (defined in <a href="../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>) which all funnel into <code>GarbageCollector.AllocObject(size, flags)</code>:</p>
 <table>
 <thead>
 <tr>
@@ -352,7 +352,7 @@
 </tbody>
 </table>
 <h4 id="handles">Handles</h4>
-<p>The .NET runtime accesses GC handles through exported functions in <a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>:</p>
+<p>The .NET runtime accesses GC handles through exported functions in <a href="../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>Memory.cs</code></a>:</p>
 <table>
 <thead>
 <tr>
@@ -548,43 +548,43 @@
 <tbody>
 <tr>
 <td>GC core</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs</code></a></td>
 </tr>
 <tr>
 <td>Allocation</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs</code></a></td>
 </tr>
 <tr>
 <td>Mark phase</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs</code></a></td>
 </tr>
 <tr>
 <td>Sweep phase</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs</code></a></td>
 </tr>
 <tr>
 <td>GC handles</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs</code></a></td>
 </tr>
 <tr>
 <td>Frozen segments</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs</code></a></td>
 </tr>
 <tr>
 <td>Pinned heap</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs</code></a></td>
 </tr>
 <tr>
 <td>Object header</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs"><code>src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs</code></a></td>
 </tr>
 <tr>
 <td>Runtime exports</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>src/Cosmos.Kernel.Core/Runtime/Memory.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs"><code>src/Cosmos.Kernel.Core/Runtime/Memory.cs</code></a></td>
 </tr>
 <tr>
 <td>Page allocator</td>
-<td><a href="../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs"><code>src/Cosmos.Kernel.Core/Memory/PageAllocator.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs"><code>src/Cosmos.Kernel.Core/Memory/PageAllocator.cs</code></a></td>
 </tr>
 </tbody>
 </table>
@@ -592,7 +592,7 @@
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/garbage-collector.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

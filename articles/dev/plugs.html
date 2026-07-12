@@ -7,16 +7,16 @@
       <meta name="title" content=" | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../public/docfx.min.css">
-      <link rel="stylesheet" href="../public/main.css">
-      <meta name="docfx:navrel" content="../toc.html">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
       <meta name="docfx:tocrel" content="toc.html">
       
-      <meta name="docfx:rel" content="../">
+      <meta name="docfx:rel" content="../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/plugs.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/plugs.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../public/docfx.min.js"></script>
+      <script type="module" src="./../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,11 +89,11 @@
 <p>A <strong>plug</strong> is a mechanism that replaces existing methods, variables, or types with custom implementations to enable platform-specific functionality (<a href="https://cosmosos.github.io/articles/Kernel/Plugs.html">what is a plug?</a>).</p>
 <h2 id="plug-related-attributes">Plug-related attributes</h2>
 <h3 id="plug"><code>[Plug]</code></h3>
-<p>Marks a class as the replacement for a target type. The attribute accepts the fully qualified name of the type to replace and optional flags to skip missing targets or substitute base implementations. See the definition in <a href="../../src/Cosmos.Build.API/Attributes/PlugAttribute.cs">PlugAttribute.cs</a> for details.</p>
+<p>Marks a class as the replacement for a target type. The attribute accepts the fully qualified name of the type to replace and optional flags to skip missing targets or substitute base implementations. See the definition in <a href="../../../src/Cosmos.Build.API/Attributes/PlugAttribute.cs">PlugAttribute.cs</a> for details.</p>
 <p><strong>Use when:</strong> creating a plug class that substitutes an existing type.</p>
 <p><strong>Pitfalls:</strong> mismatched <code>TargetName</code> can break builds.</p>
 <h3 id="plugmember"><code>[PlugMember]</code></h3>
-<p>Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in <a href="../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs">PlugMemberAttribute.cs</a>.</p>
+<p>Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in <a href="../../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs">PlugMemberAttribute.cs</a>.</p>
 <p><strong>Use when:</strong> you need fine‑grained control over which members of the target type are replaced.</p>
 <p><strong>Pitfalls:</strong> ensure signatures match the target member; otherwise the patcher cannot wire them up correctly.</p>
 <h3 id="expose"><code>[Expose]</code></h3>
@@ -101,7 +101,7 @@
 <p><strong>Use when:</strong> a plug requires additional private storage or logic.</p>
 <p><strong>Pitfalls:</strong> exposing members that conflict with existing names can cause unpredictable behavior.</p>
 <h3 id="fieldaccess"><code>[FieldAccess]</code></h3>
-<p>Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see <code>ReplaceFieldAccess</code> in <a href="../../src/Cosmos.Patcher/PlugPatcher.cs">PlugPatcher.cs</a>).</p>
+<p>Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see <code>ReplaceFieldAccess</code> in <a href="../../../src/Cosmos.Patcher/PlugPatcher.cs">PlugPatcher.cs</a>).</p>
 <p><strong>Use when:</strong> accessing or modifying an object field inside a plugged method.</p>
 <p><strong>Pitfalls:</strong> incorrect field names or mismatched parameter types result in runtime failures when the patcher attempts to rewrite field accesses.</p>
 <h2 id="cosmos-gen3-plug-template">Cosmos gen3 plug template</h2>
@@ -184,7 +184,7 @@ public class FileStream
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/plugs.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/plugs.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

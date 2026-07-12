@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>File System | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="File System | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/filesystem.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="file-system">File System</h1>
+
+<p>In this article, we will discuss using the Cosmos Gen3 VFS (virtual file system).
+Unlike Gen2, where you talked to <code>CosmosVFS</code> and a plugged subset of <code>System.IO</code>, Gen3 gives you the <strong>standard .NET <code>System.IO</code> API</strong> — <code>File</code>, <code>Directory</code>, <code>FileStream</code>, <code>StreamReader</code>/<code>StreamWriter</code>, <code>FileInfo</code>/<code>DirectoryInfo</code> — running unmodified on top of the kernel's VFS. You mount a filesystem at a Unix-style mount point and use ordinary rooted paths.</p>
+<p>The main differences if you come from Gen2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gen2</th>
+<th>Gen3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paths</td>
+<td>DOS drive letters (<code>0:\file.txt</code>)</td>
+<td>Unix paths (<code>/mnt/file.txt</code>)</td>
+</tr>
+<tr>
+<td>Setup</td>
+<td><code>CosmosVFS</code> + <code>VFSManager.RegisterVFS</code></td>
+<td><code>VfsManager.RegisterFilesystem</code> + <code>VfsManager.TryMount</code></td>
+</tr>
+<tr>
+<td>API surface</td>
+<td>Plugged subset of <code>System.IO</code></td>
+<td>Full <code>System.IO</code> (streams, enumeration patterns, <code>FileInfo</code>, …)</td>
+</tr>
+<tr>
+<td><code>File.Move</code></td>
+<td>Not plugged (copy + delete)</td>
+<td>Works, including onto-existing overwrite semantics</td>
+</tr>
+<tr>
+<td>Filesystems</td>
+<td>FAT32 (FAT12/16 partial)</td>
+<td>FAT12/16/32</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attention</strong>: <strong>Always</strong> format your drive with Cosmos and <strong>only</strong> Cosmos if you plan to use it with Cosmos. Tools like Parted or FDisk are much more advanced and may lay the disk out differently than Cosmos expects.</p>
+<p><strong>WARNING!</strong>: Please do <strong>not</strong> try this on actual hardware! It may cause <strong>IRREPARABLE DAMAGE</strong> to your data. Use a virtual machine (QEMU via <code>cosmos run</code>, VMware, VirtualBox, …).</p>
+<h2 id="enable-storage-in-your-kernel">Enable storage in your kernel</h2>
+<p>Storage support is behind a feature switch. Make sure your kernel's <code>.csproj</code> does not turn it off (it defaults to <code>true</code>):</p>
+<pre><code class="lang-xml">&lt;PropertyGroup&gt;
+  &lt;CosmosEnableStorage&gt;true&lt;/CosmosEnableStorage&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p>At boot the kernel initializes <code>StorageManager</code>, which registers every AHCI and NVMe device it finds and scans their MBR/GPT partition tables into <code>StorageManager.Partitions</code>.</p>
+<p>To give your kernel a disk in QEMU, attach an image with <code>cosmos run</code>:</p>
+<pre><code class="lang-console">$ qemu-img create disk.img 64M
+$ cosmos run --disk disk.img            # attached as an AHCI disk (default)
+$ cosmos run --disk disk.img,nvme       # or as an NVMe namespace
+</code></pre>
+<p><code>--disk</code> is repeatable if you want several drives.</p>
+<h2 id="register-a-filesystem-driver-and-mount-it">Register a filesystem driver and mount it</h2>
+<p>These are the <code>using</code>s the snippets below rely on:</p>
+<pre><code class="lang-csharp">using System.IO;
+using Cosmos.Kernel.System.Storage;
+using Cosmos.Kernel.System.Vfs;
+using Cosmos.Kernel.System.Filesystems.Fat;
+using Cosmos.Kernel.HAL.Vfs;
+</code></pre>
+<p>First, register a FAT driver under a name of your choice, then mount a partition at a mount point. For the FAT driver, the <code>source</code> argument is the index into <code>StorageManager.Partitions</code> as a string (<code>&quot;0&quot;</code> = first discovered partition across all disks). Add this to your kernel's <code>BeforeRun()</code>:</p>
+<pre><code class="lang-csharp">FatFilesystemType fat = new();
+
+VfsManager.RegisterFilesystem(&quot;fat&quot;, fat);
+
+if (VfsManager.TryMount(&quot;fat&quot;, &quot;0&quot;, MountFlags.None, &quot;/mnt&quot;, out VfsManager.VfsMount? mount))
+{
+    Console.WriteLine(&quot;Mounted &quot; + mount.Name + &quot; partition &quot; + mount.Source + &quot; at &quot; + mount.MountPoint);
+}
+</code></pre>
+<!-- screenshot: kernel console right after boot showing the "Mounted fat partition 0 at /mnt" line -->
+<p><img src="images/filesystem-mount.png" alt="Mount"></p>
+<p>From this point on, everything under <code>/mnt</code> is served by the FAT driver, and everything in this article is plain <code>System.IO</code>.</p>
+<p><strong>Note</strong>: <code>/</code> itself is a <em>virtual root</em>. It always exists — even with nothing mounted — and enumerating it lists the mount points. You cannot create files directly in it (<code>IOException</code>, read-only file system); create them under a mount point like <code>/mnt</code>.</p>
+<h3 id="alternative-a-ram-disk">Alternative: a RAM disk</h3>
+<p>For quick experiments you don't need a disk image at all. A block device is just an <code>IBlockDevice</code> (from <code>Cosmos.Kernel.HAL.Interfaces.Devices</code>), and a RAM-backed one fits in a few lines — this is exactly what the kernel test suites use:</p>
+<pre><code class="lang-csharp">internal sealed class MemoryBlockDevice : IBlockDevice
+{
+    private readonly byte[] _storage;
+
+    public MemoryBlockDevice(string name, ulong blockSize, ulong blockCount)
+    {
+        Name = name;
+        BlockSize = blockSize;
+        BlockCount = blockCount;
+        _storage = new byte[blockSize * blockCount];
+    }
+
+    public string Name { get; }
+    public ulong BlockSize { get; }
+    public ulong BlockCount { get; }
+
+    public void ReadBlock(ulong blockNo, ulong blockCount, Span&lt;byte&gt; data)
+        =&gt; _storage.AsSpan((int)(blockNo * BlockSize), (int)(blockCount * BlockSize)).CopyTo(data);
+
+    public void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan&lt;byte&gt; data)
+        =&gt; data.Slice(0, (int)(blockCount * BlockSize)).CopyTo(_storage.AsSpan((int)(blockNo * BlockSize)));
+
+    public void Flush() { }
+}
+</code></pre>
+<p>The FAT driver accepts an injected device directly (leave <code>source</code> empty when formatting and mounting):</p>
+<pre><code class="lang-csharp">MemoryBlockDevice ramDisk = new(&quot;RAMDISK&quot;, 512, 65536);   // 32 MiB
+FatFilesystemType fat = new(ramDisk);
+
+fat.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16 });
+
+VfsManager.RegisterFilesystem(&quot;ramfat&quot;, fat);
+VfsManager.TryMount(&quot;ramfat&quot;, &quot;&quot;, MountFlags.None, &quot;/mnt&quot;, out _);
+</code></pre>
+<h2 id="format-a-disk">Format a disk</h2>
+<p>To format (mkfs) a partition through the VFS, use <code>VfsManager.TryFormat</code> with the driver name, the partition index and the driver's option type. The FAT formatter picks sane geometry from the options you give it:</p>
+<pre><code class="lang-csharp">FatFormatOptions options = new()
+{
+    Type = FatType.Fat32,
+    VolumeLabel = &quot;COSMOS     &quot;,
+};
+
+if (!VfsManager.TryFormat(&quot;fat&quot;, &quot;0&quot;, options))
+{
+    Console.WriteLine(&quot;Format failed&quot;);
+}
+</code></pre>
+<p>Formatting is refused while the source is mounted — unmount first with <code>VfsManager.TryUnmount(&quot;/mnt&quot;)</code>.</p>
+<h2 id="list-mounted-volumes">List mounted volumes</h2>
+<p><code>VfsManager.Mounts</code> is the mount table. Each entry tells you the driver name, the backing source and the mount point:</p>
+<pre><code class="lang-csharp">foreach (VfsManager.VfsMount m in VfsManager.Mounts)
+{
+    Console.WriteLine(m.MountPoint + &quot; -&gt; &quot; + m.Name + &quot; (source &quot; + m.Source + &quot;)&quot;);
+}
+</code></pre>
+<!-- screenshot: console output of the mount-table loop, e.g. "/mnt -> fat (source 0)" -->
+<p><img src="images/filesystem-mounts.png" alt="Mounts"></p>
+<h2 id="get-a-list-of-files">Get a list of files</h2>
+<p>We start by getting a list of files, using:</p>
+<pre><code class="lang-csharp">string[] files = Directory.GetFiles(&quot;/mnt&quot;);
+
+foreach (string file in files)
+{
+    Console.WriteLine(file);
+}
+</code></pre>
+<p>Search patterns work too — this is the stock BCL enumeration engine:</p>
+<pre><code class="lang-csharp">string[] logs = Directory.GetFiles(&quot;/mnt&quot;, &quot;*.txt&quot;);
+</code></pre>
+<!-- screenshot: console listing a few files under /mnt -->
+<p><img src="images/filesystem-files-list.png" alt="Files List"></p>
+<h2 id="get-a-directory-listing-files-and-other-directories">Get a directory listing (files and other directories)</h2>
+<pre><code class="lang-csharp">string[] files = Directory.GetFiles(&quot;/mnt&quot;);
+string[] directories = Directory.GetDirectories(&quot;/mnt&quot;);
+
+foreach (string file in files)
+{
+    Console.WriteLine(file);
+}
+foreach (string directory in directories)
+{
+    Console.WriteLine(directory);
+}
+</code></pre>
+<!-- screenshot: console listing files and directories under /mnt -->
+<p><img src="images/filesystem-directory-listing.png" alt="Directory Listing"></p>
+<h2 id="read-all-the-files-in-a-directory">Read all the files in a directory</h2>
+<p>We get the file list and print the content of each file. As in Gen2, keep filesystem code inside <code>try</code>/<code>catch</code> — the exceptions are the standard <code>System.IO</code> ones and they are catchable:</p>
+<pre><code class="lang-csharp">try
+{
+    foreach (string file in Directory.GetFiles(&quot;/mnt&quot;))
+    {
+        string content = File.ReadAllText(file);
+
+        Console.WriteLine(&quot;File name: &quot; + file);
+        Console.WriteLine(&quot;File size: &quot; + content.Length);
+        Console.WriteLine(&quot;Content: &quot; + content);
+    }
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<!-- screenshot: console showing a file's name, size and content -->
+<p><img src="images/filesystem-read-all-files.png" alt="Read All Files"></p>
+<h2 id="create-a-new-file">Create a new file</h2>
+<pre><code class="lang-csharp">try
+{
+    using FileStream stream = File.Create(&quot;/mnt/testing.txt&quot;);
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<h2 id="create-a-new-directory">Create a new directory</h2>
+<p><code>Directory.CreateDirectory</code> creates the whole chain of missing parents in one call:</p>
+<pre><code class="lang-csharp">try
+{
+    Directory.CreateDirectory(&quot;/mnt/documents/reports&quot;);
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<h2 id="write-to-a-file">Write to a file</h2>
+<pre><code class="lang-csharp">try
+{
+    File.WriteAllText(&quot;/mnt/testing.txt&quot;, &quot;Learning how to use the Gen3 VFS!&quot;);
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<p><code>File.AppendAllText</code>, <code>File.WriteAllBytes</code> and <code>File.WriteAllLines</code> work the same way.</p>
+<h2 id="read-a-specific-file">Read a specific file</h2>
+<pre><code class="lang-csharp">try
+{
+    Console.WriteLine(File.ReadAllText(&quot;/mnt/testing.txt&quot;));
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<!-- screenshot: console printing the file content written in the previous step -->
+<p><img src="images/filesystem-read-specific-file.png" alt="Read Specific File"></p>
+<p>And for binary data:</p>
+<pre><code class="lang-csharp">byte[] data = File.ReadAllBytes(&quot;/mnt/testing.txt&quot;);
+Console.WriteLine(&quot;Read &quot; + data.Length + &quot; bytes&quot;);
+</code></pre>
+<h2 id="copy-move-delete">Copy, move, delete</h2>
+<p>Unlike Gen2, <code>File.Move</code> is fully supported — no copy-and-delete workaround needed. A move onto an existing destination throws <code>IOException</code> unless you pass <code>overwrite: true</code>; the overwrite is crash-safe (the destination is kept as a backup until the rename lands).</p>
+<pre><code class="lang-csharp">try
+{
+    File.Copy(&quot;/mnt/testing.txt&quot;, &quot;/mnt/copy.txt&quot;);
+    File.Move(&quot;/mnt/copy.txt&quot;, &quot;/mnt/renamed.txt&quot;);
+    File.Delete(&quot;/mnt/renamed.txt&quot;);
+
+    Directory.Delete(&quot;/mnt/documents&quot;, recursive: true);
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.ToString());
+}
+</code></pre>
+<p>Deleting a file that is still open does not fail: the delete goes <em>pending</em> and the entry disappears when the last handle closes, which is what the BCL's <code>DeleteOnClose</code> semantics expect.</p>
+<h2 id="streams">Streams</h2>
+<p>The full stream stack is available, including seeking, truncation (<code>SetLength</code>) and buffered text I/O:</p>
+<pre><code class="lang-csharp">using (FileStream stream = new(&quot;/mnt/log.bin&quot;, FileMode.Create, FileAccess.ReadWrite))
+{
+    stream.Write(new byte[] { 1, 2, 3, 4 });
+    stream.Seek(0, SeekOrigin.Begin);
+    int first = stream.ReadByte();          // 1
+}
+
+using (StreamWriter writer = new(&quot;/mnt/notes.txt&quot;))
+{
+    writer.WriteLine(&quot;first line&quot;);
+    writer.WriteLine(&quot;second line&quot;);
+}
+
+using (StreamReader reader = new(&quot;/mnt/notes.txt&quot;))
+{
+    string? line;
+    while ((line = reader.ReadLine()) != null)
+    {
+        Console.WriteLine(line);
+    }
+}
+</code></pre>
+<!-- screenshot: console printing the two lines read back through StreamReader -->
+<p><img src="images/filesystem-streams.png" alt="Streams"></p>
+<h2 id="current-directory-and-relative-paths">Current directory and relative paths</h2>
+<p>The kernel keeps a current directory (it starts at <code>/</code>), so relative paths and <code>Path.GetFullPath</code> behave like on any Unix system:</p>
+<pre><code class="lang-csharp">Directory.CreateDirectory(&quot;/mnt/work&quot;);
+Directory.SetCurrentDirectory(&quot;/mnt/work&quot;);
+
+File.WriteAllText(&quot;relative.txt&quot;, &quot;resolved against the CWD&quot;);
+Console.WriteLine(File.Exists(&quot;/mnt/work/relative.txt&quot;));      // True
+Console.WriteLine(Path.GetFullPath(&quot;sub/../file.txt&quot;));        // /mnt/work/file.txt
+
+Directory.SetCurrentDirectory(&quot;/&quot;);
+</code></pre>
+<h2 id="error-handling">Error handling</h2>
+<p>The standard <code>System.IO</code> exception contract applies, so you can catch precisely:</p>
+<ul>
+<li>Opening a missing file whose parent exists → <code>FileNotFoundException</code></li>
+<li>Any path under a missing directory (or an unmounted prefix) → <code>DirectoryNotFoundException</code></li>
+<li>Creating a file directly in the virtual root <code>/</code> → <code>IOException</code> (read-only file system)</li>
+<li>Deleting a non-empty directory without <code>recursive: true</code> → <code>IOException</code></li>
+<li><code>File.Copy</code>/<code>File.Move</code> onto an existing file without overwrite → <code>IOException</code></li>
+</ul>
+<p>With <strong>nothing mounted at all</strong>, <code>System.IO</code> still degrades gracefully: <code>Directory.Exists(&quot;/&quot;)</code> is <code>true</code>, enumerating <code>/</code> returns an empty list, and every access to another path fails with one of the exceptions above — never a kernel fault.</p>
+<h2 id="current-limitations">Current limitations</h2>
+<ul>
+<li>Symbolic links and hard links are not supported (<code>ENOTSUP</code>/<code>EPERM</code> under the hood; the BCL surfaces <code>IOException</code>).</li>
+<li>File timestamps are not persisted yet (<code>File.SetLastWriteTime</code> is accepted but a FAT timestamp lands later).</li>
+<li><code>DriveInfo</code> (free-space queries) is not wired up yet.</li>
+<li>FAT is the only filesystem driver today; the <code>IVfsFilesystemType</code> interface is what a new driver implements.</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p>Your code calls the stock BCL, which bottoms out in the Unix PAL (<code>Interop.Sys.*</code> P/Invokes). Those ~45 entry points are <a href="../dev/plugs.html">plugged</a> in <code>Cosmos.Kernel.Plugs</code> — a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to <code>VfsManager</code>, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an <code>IBlockDevice</code> (AHCI or NVMe via <code>StorageManager</code>, RAM via <code>MemoryBlockDevice</code>).</p>
+<pre><code>File / Directory / FileStream          (stock BCL)
+        │
+Interop.Sys.* PAL calls                (stock BCL, plugged)
+        │
+FileDescriptorTable                    (Cosmos.Kernel.Plugs — fds, dir streams, errno)
+        │
+VfsManager                             (mounts, paths, CWD, open handles)
+        │
+IVfsFilesystemType / IVfsSuperblock    (FAT driver)
+        │
+IBlockDevice                           (AHCI, NVMe, MemoryBlockDevice)
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/filesystem.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
