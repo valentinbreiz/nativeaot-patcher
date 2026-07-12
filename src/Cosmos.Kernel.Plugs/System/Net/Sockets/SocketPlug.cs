@@ -820,9 +820,13 @@ public static class SocketPlug
         }
         else if (sm.Status == Status.ESTABLISHED)
         {
-            sm.SendEmptyPacket(Flags.FIN | Flags.ACK);
-
+            // Set status BEFORE sending the FIN — same race as ConnectTcp:
+            // SendEmptyPacket pumps NetworkStack.Update, which can process the
+            // peer's immediate FIN|ACK inline. Under ESTABLISHED that runs the
+            // passive close all the way to CLOSED, and an assignment after the
+            // send would overwrite CLOSED with FIN_WAIT1 and hang the close.
             sm.Status = Status.FIN_WAIT1;
+            sm.SendEmptyPacket(Flags.FIN | Flags.ACK);
 
             if (sm.WaitStatus(Status.CLOSED, 5000) == false)
             {
