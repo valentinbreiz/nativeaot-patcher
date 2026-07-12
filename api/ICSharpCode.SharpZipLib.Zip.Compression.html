@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 </title>
+      <title>Namespace ICSharpCode.SharpZipLib.Zip.Compression | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 ">
+      <meta name="title" content="Namespace ICSharpCode.SharpZipLib.Zip.Compression | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -84,9 +84,9 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Graphics">
+        <article data-uid="ICSharpCode.SharpZipLib.Zip.Compression">
 
-  <h1 id="Cosmos_Kernel_System_Graphics" data-uid="Cosmos.Kernel.System.Graphics" class="text-break">Namespace Cosmos.Kernel.System.Graphics</h1>
+  <h1 id="ICSharpCode_SharpZipLib_Zip_Compression" data-uid="ICSharpCode.SharpZipLib.Zip.Compression" class="text-break">Namespace ICSharpCode.SharpZipLib.Zip.Compression</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
@@ -95,80 +95,70 @@
 Namespaces
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.html">Cosmos.Kernel.System.Graphics.Fonts</a></dt>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.Streams.html">ICSharpCode.SharpZipLib.Zip.Compression.Streams</a></dt>
       <dd></dd>
     </dl>
     <h3 id="classes">
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></dt>
-      <dd><p>Represents a bitmap image.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.Deflater.html">Deflater</a></dt>
+      <dd><p>Stand-in for SharpZipLib's Deflater exposing the single constant the
+inflater needs to validate a zlib header.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-      <dd><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
-canvas, or subclassed for hardware-backed canvases (e.g. <span class="xref">Cosmos.Kernel.System.Graphics.GopCanvas</span>).</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.DeflaterConstants.html">DeflaterConstants</a></dt>
+      <dd><p>This class contains constants used for deflation.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.FullScreenCanvas.html">FullScreenCanvas</a></dt>
-      <dd><p>Provides functionality to fetch canvases that write directly to the
-underlying display device.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.DeflaterHuffman.html">DeflaterHuffman</a></dt>
+      <dd><p>Stand-in for SharpZipLib's DeflaterHuffman exposing the bit-reversal
+helper used when building Huffman decoding tables.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
-      <dd><p>Represents a raster image.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.Inflater.html">Inflater</a></dt>
+      <dd><pre><code> Inflater is used to decompress data that has been compressed according
+ to the &quot;deflate&quot; standard described in rfc1951.
+
+ By default Zlib (rfc1950) headers and footers are expected in the input.
+ You can use constructor 
+</code></pre>
+<pre><code class="lang-csharp">public Inflater(bool noHeader)</code></pre>
+<p>passing true
+if there is no Zlib header information</p>
+<pre><code> The usage is as following.  First you have to set some input with
+
+ &lt;pre&gt;&lt;code class=&quot;lang-csharp&quot;&gt;SetInput()&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
+<p>, then Inflate() it.  If inflate doesn't
+inflate any bytes there may be three reasons:</p>
+<pre><code> &lt;ul&gt;
+ &lt;li&gt;IsNeedingInput() returns true because the input buffer is empty.
+ You have to provide more input with 
+</code></pre>
+<pre><code class="lang-csharp">SetInput()</code></pre>
+<p>.
+NOTE: IsNeedingInput() also returns true when, the stream is finished.
+
+<li>IsNeedingDictionary() returns true, you have to provide a preset
+dictionary with
+<pre><code class="lang-csharp">SetDictionary()</code></pre>
+<p>.</p></li>
+<li>IsFinished returns true, the inflater has finished.</li>
+
+<pre><code> Once the first output byte is produced, a dictionary will not be
+ needed at a later stage.
+
+ author of the original java version : John Leuner, Jochen Hoenicke
+</code></pre>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.KernelConsole.html">KernelConsole</a></dt>
-      <dd><p>Cell-based graphics console for kernel output.
-Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.
-Can be instantiated on any canvas (hardware or virtual).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a></dt>
-      <dd><p>Represents a PNG image. All PNG color types are supported (grayscale,
-truecolor and palette, with or without alpha), at every legal bit depth,
-with or without Adam7 interlacing. Decoding is done entirely in managed
-code by the vendored BigGustave decoder and SharpZipLib inflater (see the
-Credits page of the documentation).</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Cell.html">Cell</a></dt>
-      <dd><p>Represents a single cell in the terminal grid.
-Each cell contains a character and its associated colors.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
-      <dd><p>Represents a video mode, definining its width (rows), height (columns) and color depth.</p>
-</dd>
-    </dl>
-    <h3 id="enums">
-Enums
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
-      <dd><p>Represents the color depth of the pixels of a graphics surface.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorOrder.html">ColorOrder</a></dt>
-      <dd><p>Describes the order in which the colors are stored in each pixel of an image.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ImageFormat.html">ImageFormat</a></dt>
-      <dd><p>Supported image formats.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Zip.Compression.InflaterHuffmanTree.html">InflaterHuffmanTree</a></dt>
+      <dd><p>Huffman tree used for inflation</p>
 </dd>
     </dl>
 

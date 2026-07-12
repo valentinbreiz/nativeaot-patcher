@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 </title>
+      <title>Namespace ICSharpCode.SharpZipLib.Checksum | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 ">
+      <meta name="title" content="Namespace ICSharpCode.SharpZipLib.Checksum | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -84,91 +84,68 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Graphics">
+        <article data-uid="ICSharpCode.SharpZipLib.Checksum">
 
-  <h1 id="Cosmos_Kernel_System_Graphics" data-uid="Cosmos.Kernel.System.Graphics" class="text-break">Namespace Cosmos.Kernel.System.Graphics</h1>
+  <h1 id="ICSharpCode_SharpZipLib_Checksum" data-uid="ICSharpCode.SharpZipLib.Checksum" class="text-break">Namespace ICSharpCode.SharpZipLib.Checksum</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.html">Cosmos.Kernel.System.Graphics.Fonts</a></dt>
-      <dd></dd>
-    </dl>
     <h3 id="classes">
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></dt>
-      <dd><p>Represents a bitmap image.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Checksum.Adler32.html">Adler32</a></dt>
+      <dd><p>Computes Adler32 checksum for a stream of data. An Adler32
+checksum is not as reliable as a CRC32 checksum, but a lot faster to
+compute.</p>
+<p>The specification for Adler32 may be found in RFC 1950.
+ZLIB Compressed Data Format Specification version 3.3)</p>
+<p>From that document:</p>
+<pre><code> &quot;ADLER32 (Adler-32 checksum)
+  This contains a checksum value of the uncompressed data
+  (excluding any dictionary data) computed according to Adler-32
+  algorithm. This algorithm is a 32-bit extension and improvement
+  of the Fletcher algorithm, used in the ITU-T X.224 / ISO 8073
+  standard.
+
+  Adler-32 is composed of two sums accumulated per byte: s1 is
+  the sum of all bytes, s2 is the sum of all s1 values. Both sums
+  are done modulo 65521. s1 is initialized to 1, s2 to zero.  The
+  Adler-32 checksum is stored as s2*65536 + s1 in most-
+  significant-byte first (network) order.&quot;
+</code></pre>
+<p>&quot;8.2. The Adler-32 algorithm</p>
+<p>The Adler-32 algorithm is much faster than the CRC32 algorithm yet
+still provides an extremely low probability of undetected errors.</p>
+<p>The modulo on unsigned long accumulators can be delayed for 5552
+bytes, so the modulo operation time is negligible.  If the bytes
+are a, b, c, the second sum is 3a + 2b + c + 3, and so is position
+and order sensitive, unlike the first sum, which is just a
+checksum.  That 65521 is prime is important to avoid a possible
+large class of two-byte errors that leave the check unchanged.
+(The Fletcher checksum uses 255, which is not prime and which also
+makes the Fletcher check insensitive to single byte changes 0 -
+255.)</p>
+<p>The sum s1 is initialized to 1 instead of zero to make the length
+of the sequence part of s2, so that the length does not have to be
+checked separately. (Any sequence of zeroes has a Fletcher
+checksum of zero.)&quot;</p>
 </dd>
     </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
-      <dd><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
-canvas, or subclassed for hardware-backed canvases (e.g. <span class="xref">Cosmos.Kernel.System.Graphics.GopCanvas</span>).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.FullScreenCanvas.html">FullScreenCanvas</a></dt>
-      <dd><p>Provides functionality to fetch canvases that write directly to the
-underlying display device.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
-      <dd><p>Represents a raster image.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.KernelConsole.html">KernelConsole</a></dt>
-      <dd><p>Cell-based graphics console for kernel output.
-Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.
-Can be instantiated on any canvas (hardware or virtual).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a></dt>
-      <dd><p>Represents a PNG image. All PNG color types are supported (grayscale,
-truecolor and palette, with or without alpha), at every legal bit depth,
-with or without Adam7 interlacing. Decoding is done entirely in managed
-code by the vendored BigGustave decoder and SharpZipLib inflater (see the
-Credits page of the documentation).</p>
-</dd>
-    </dl>
-    <h3 id="structs">
-Structs
+    <h3 id="interfaces">
+Interfaces
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Cell.html">Cell</a></dt>
-      <dd><p>Represents a single cell in the terminal grid.
-Each cell contains a character and its associated colors.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
-      <dd><p>Represents a video mode, definining its width (rows), height (columns) and color depth.</p>
-</dd>
-    </dl>
-    <h3 id="enums">
-Enums
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
-      <dd><p>Represents the color depth of the pixels of a graphics surface.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorOrder.html">ColorOrder</a></dt>
-      <dd><p>Describes the order in which the colors are stored in each pixel of an image.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ImageFormat.html">ImageFormat</a></dt>
-      <dd><p>Supported image formats.</p>
+      <dt><a class="xref" href="ICSharpCode.SharpZipLib.Checksum.IChecksum.html">IChecksum</a></dt>
+      <dd><pre><code>Interface to compute a data checksum used by checked input/output streams.
+A data checksum can be updated by one byte or with a byte array. After each
+update the value of the current checksum can be returned by calling
+
+&lt;pre&gt;&lt;code class=&quot;lang-csharp&quot;&gt;getValue&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
+<p>. The complete checksum object can also be reset
+so it can be used again with new data.</p>
 </dd>
     </dl>
 

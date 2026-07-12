@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Image | Cosmos Gen 3 </title>
+      <title>Class Png | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Image | Cosmos Gen 3 ">
+      <meta name="title" content="Class Png | Cosmos Gen 3 ">
       
-      <meta name="description" content="Represents a raster image.">
+      <meta name="description" content="Represents a PNG image. All PNG color types are supported (grayscale, truecolor and palette, with or without alpha), at every legal bit depth, with or without Adam7 interlacing. Decoding is done entirely in managed code by the vendored BigGustave decoder and SharpZipLib inflater (see the Credits page of the documentation).">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,12 +84,12 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Graphics.Image">
+        <article data-uid="Cosmos.Kernel.System.Graphics.Png">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Graphics_Image" data-uid="Cosmos.Kernel.System.Graphics.Image" class="text-break">
-Class Image  
+  <h1 id="Cosmos_Kernel_System_Graphics_Png" data-uid="Cosmos.Kernel.System.Graphics.Png" class="text-break">
+Class Png  
   </h1>
 
   <div class="facts text-secondary">
@@ -97,12 +97,16 @@ Class Image
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Represents a raster image.</p>
+  <div class="markdown summary"><p>Represents a PNG image. All PNG color types are supported (grayscale,
+truecolor and palette, with or without alpha), at every legal bit depth,
+with or without Adam7 interlacing. Decoding is done entirely in managed
+code by the vendored BigGustave decoder and SharpZipLib inflater (see the
+Credits page of the documentation).</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Image</code></pre>
+    <pre><code class="lang-csharp hljs">public class Png : Image</code></pre>
   </div>
 
 
@@ -112,22 +116,28 @@ Class Image
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Image</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></div>
+      <div><span class="xref">Png</span></div>
     </dd>
   </dl>
 
 
-  <dl class="typelist derived">
-    <dt>Derived</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a></div>
-    </dd>
-  </dl>
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html#Cosmos_Kernel_System_Graphics_Image_RawData">Image.RawData</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html#Cosmos_Kernel_System_Graphics_Image_Width">Image.Width</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html#Cosmos_Kernel_System_Graphics_Image_Height">Image.Height</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html#Cosmos_Kernel_System_Graphics_Image_Depth">Image.Depth</a>
+    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -160,31 +170,25 @@ Class Image
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Graphics_Image__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Image.#ctor*"></a>
+  <a id="Cosmos_Kernel_System_Graphics_Png__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_Image__ctor_System_UInt32_System_UInt32_Cosmos_Kernel_System_Graphics_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Image.#ctor(System.UInt32,System.UInt32,Cosmos.Kernel.System.Graphics.ColorDepth)">
-  Image(uint, uint, ColorDepth)
+  <h3 id="Cosmos_Kernel_System_Graphics_Png__ctor_System_Byte___" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor(System.Byte[])">
+  Png(byte[])
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a> class.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a> class from the bytes of a PNG file.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected Image(uint width, uint height, ColorDepth color)</code></pre>
+    <pre><code class="lang-csharp hljs">public Png(byte[] imageData)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>The width of the image.</p>
-</dd>
-    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>The height of the image.</p>
-</dd>
-    <dt><code>color</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
-    <dd><p>The color depth of each pixel.</p>
+    <dt><code>imageData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>The bytes of the PNG file.</p>
 </dd>
   </dl>
 
@@ -199,32 +203,26 @@ Class Image
 
 
 
-  <h2 class="section" id="fields">Fields
-</h2>
+  <a id="Cosmos_Kernel_System_Graphics_Png__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor*"></a>
 
-
-
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_RawData" data-uid="Cosmos.Kernel.System.Graphics.Image.RawData">
-  RawData
+  <h3 id="Cosmos_Kernel_System_Graphics_Png__ctor_System_IO_Stream_" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor(System.IO.Stream)">
+  Png(Stream)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The raw data of the image. This array holds all of the pixel
-values of the raster image.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a> class from a stream containing PNG data.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public int[] RawData</code></pre>
+    <pre><code class="lang-csharp hljs">public Png(Stream stream)</code></pre>
   </div>
 
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
-    <dd></dd>
+    <dt><code>stream</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.io.stream">Stream</a></dt>
+    <dd><p>The stream containing PNG data.</p>
+</dd>
   </dl>
 
 
@@ -235,99 +233,34 @@ values of the raster image.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
-</h2>
 
 
-  <a id="Cosmos_Kernel_System_Graphics_Image_Depth_" data-uid="Cosmos.Kernel.System.Graphics.Image.Depth*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_Depth" data-uid="Cosmos.Kernel.System.Graphics.Image.Depth">
-  Depth
+  <a id="Cosmos_Kernel_System_Graphics_Png__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Png__ctor_System_String_" data-uid="Cosmos.Kernel.System.Graphics.Png.#ctor(System.String)">
+  Png(string)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The color depth of each pixel of the image - i.e, the amount
-of bits per each pixel.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a> class, using the specified path to a PNG file.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ColorDepth Depth { get; protected set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Png(string path)</code></pre>
   </div>
 
-
-
-
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
-    <dd></dd>
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Path to the PNG file.</p>
+</dd>
   </dl>
 
 
 
 
-
-
-
-
-  <a id="Cosmos_Kernel_System_Graphics_Image_Height_" data-uid="Cosmos.Kernel.System.Graphics.Image.Height*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_Height" data-uid="Cosmos.Kernel.System.Graphics.Image.Height">
-  Height
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The height of the image.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Height { get; protected set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Graphics_Image_Width_" data-uid="Cosmos.Kernel.System.Graphics.Image.Width*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_Width" data-uid="Cosmos.Kernel.System.Graphics.Image.Width">
-  Width
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The width of the image.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Width { get; protected set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

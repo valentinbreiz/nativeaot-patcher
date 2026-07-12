@@ -4408,6 +4408,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Png.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Png.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Png",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Png.yml\" sourcestartlinenumber=\"1\">Represents a PNG image. All PNG color types are supported (grayscale,\ntruecolor and palette, with or without alpha), at every legal bit depth,\nwith or without Adam7 interlacing. Decoding is done entirely in managed\ncode by the vendored BigGustave decoder and SharpZipLib inflater (see the\nCredits page of the documentation).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Graphics.yml",
       "output": {
         ".html": {
@@ -5486,6 +5500,230 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Checksum.Adler32.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Checksum.Adler32",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"1\">Computes Adler32 checksum for a stream of data. An Adler32\nchecksum is not as reliable as a CRC32 checksum, but a lot faster to\ncompute.</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"5\">The specification for Adler32 may be found in RFC 1950.\nZLIB Compressed Data Format Specification version 3.3)</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"9\">From that document:</p>\n<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"11\"> &quot;ADLER32 (Adler-32 checksum)\n  This contains a checksum value of the uncompressed data\n  (excluding any dictionary data) computed according to Adler-32\n  algorithm. This algorithm is a 32-bit extension and improvement\n  of the Fletcher algorithm, used in the ITU-T X.224 / ISO 8073\n  standard.\n\n  Adler-32 is composed of two sums accumulated per byte: s1 is\n  the sum of all bytes, s2 is the sum of all s1 values. Both sums\n  are done modulo 65521. s1 is initialized to 1, s2 to zero.  The\n  Adler-32 checksum is stored as s2*65536 + s1 in most-\n  significant-byte first (network) order.&quot;\n</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"24\">&quot;8.2. The Adler-32 algorithm</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"26\">The Adler-32 algorithm is much faster than the CRC32 algorithm yet\nstill provides an extremely low probability of undetected errors.</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"29\">The modulo on unsigned long accumulators can be delayed for 5552\nbytes, so the modulo operation time is negligible.  If the bytes\nare a, b, c, the second sum is 3a + 2b + c + 3, and so is position\nand order sensitive, unlike the first sum, which is just a\nchecksum.  That 65521 is prime is important to avoid a possible\nlarge class of two-byte errors that leave the check unchanged.\n(The Fletcher checksum uses 255, which is not prime and which also\nmakes the Fletcher check insensitive to single byte changes 0 -\n255.)</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.Adler32.yml\" sourcestartlinenumber=\"39\">The sum s1 is initialized to 1 instead of zero to make the length\nof the sequence part of s2, so that the length does not have to be\nchecked separately. (Any sequence of zeroes has a Fletcher\nchecksum of zero.)&quot;</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Checksum.IChecksum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Checksum.IChecksum.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Checksum.IChecksum",
+      "Summary": "<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.IChecksum.yml\" sourcestartlinenumber=\"1\">Interface to compute a data checksum used by checked input/output streams.\nA data checksum can be updated by one byte or with a byte array. After each\nupdate the value of the current checksum can be returned by calling\n\n&lt;pre&gt;&lt;code class=&quot;lang-csharp&quot;&gt;getValue&lt;/code&gt;&lt;/pre&gt;\n</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Checksum.IChecksum.yml\" sourcestartlinenumber=\"6\">. The complete checksum object can also be reset\nso it can be used again with new data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Checksum.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Checksum.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Checksum",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.SharpZipBaseException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.SharpZipBaseException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.SharpZipBaseException",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.SharpZipBaseException.yml\" sourcestartlinenumber=\"1\">Base exception for corrupt or unsupported compressed data.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.StreamDecodingException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.StreamDecodingException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.StreamDecodingException",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.StreamDecodingException.yml\" sourcestartlinenumber=\"1\">Indicates that an error occurred while decoding a compressed stream.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.ValueOutOfRangeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.ValueOutOfRangeException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.ValueOutOfRangeException",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.ValueOutOfRangeException.yml\" sourcestartlinenumber=\"1\">Indicates that a value read from a compressed stream is out of its legal range.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Deflater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Deflater.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.Deflater",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Deflater.yml\" sourcestartlinenumber=\"1\">Stand-in for SharpZipLib's Deflater exposing the single constant the\ninflater needs to validate a zlib header.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterConstants.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterConstants.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.DeflaterConstants",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterConstants.yml\" sourcestartlinenumber=\"1\">This class contains constants used for deflation.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterHuffman.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterHuffman.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.DeflaterHuffman",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.DeflaterHuffman.yml\" sourcestartlinenumber=\"1\">Stand-in for SharpZipLib's DeflaterHuffman exposing the bit-reversal\nhelper used when building Huffman decoding tables.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.Inflater",
+      "Summary": "<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"1\"> Inflater is used to decompress data that has been compressed according\n to the &quot;deflate&quot; standard described in rfc1951.\n\n By default Zlib (rfc1950) headers and footers are expected in the input.\n You can use constructor \n</code></pre>\n<pre><code class=\"lang-csharp\">public Inflater(bool noHeader)</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"7\">passing true\nif there is no Zlib header information</p>\n<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"10\"> The usage is as following.  First you have to set some input with\n\n &lt;pre&gt;&lt;code class=&quot;lang-csharp&quot;&gt;SetInput()&lt;/code&gt;&lt;/pre&gt;\n</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"13\">, then Inflate() it.  If inflate doesn't\ninflate any bytes there may be three reasons:</p>\n<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"16\"> &lt;ul&gt;\n &lt;li&gt;IsNeedingInput() returns true because the input buffer is empty.\n You have to provide more input with \n</code></pre>\n<pre><code class=\"lang-csharp\">SetInput()</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"20\">.\nNOTE: IsNeedingInput() also returns true when, the stream is finished.\n\n<li>IsNeedingDictionary() returns true, you have to provide a preset\ndictionary with\n<pre><code class=\"lang-csharp\">SetDictionary()</code></pre>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"26\">.</p></li>\n<li>IsFinished returns true, the inflater has finished.</li>\n\n<pre><code sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Inflater.yml\" sourcestartlinenumber=\"30\"> Once the first output byte is produced, a dictionary will not be\n needed at a later stage.\n\n author of the original java version : John Leuner, Jochen Hoenicke\n</code></pre>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.InflaterHuffmanTree.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.InflaterHuffmanTree.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.InflaterHuffmanTree",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.InflaterHuffmanTree.yml\" sourcestartlinenumber=\"1\">Huffman tree used for inflation</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.OutputWindow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.OutputWindow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.Streams.OutputWindow",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.OutputWindow.yml\" sourcestartlinenumber=\"1\">Contains the output from the Inflation process.\nWe need to have a window so that we can refer backwards into the output stream\nto repeat stuff.<br>\nAuthor of the original java version : John Leuner</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator",
+      "Summary": "<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.yml\" sourcestartlinenumber=\"1\">This class allows us to retrieve a specified number of bits from\nthe input buffer, as well as copy big byte blocks.</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.yml\" sourcestartlinenumber=\"4\">It uses an int buffer to store up to 31 bits for direct\nmanipulation.  This guarantees that we can get at least 16 bits,\nbut we only need at most 15, so this is all safe.</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.yml\" sourcestartlinenumber=\"8\">There are some optimizations in this class, for example, you must\nnever peek more than 8 bits more than needed, and you must first\npeek bits before you may drop them.  This is not a general purpose\nclass but optimized for the behaviour of the Inflater.</p>\n<p sourcefile=\"api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.StreamManipulator.yml\" sourcestartlinenumber=\"13\">authors of the original java version : John Leuner, Jochen Hoenicke</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.Streams.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression.Streams",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.Zip.Compression.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib.Zip.Compression",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ICSharpCode.SharpZipLib.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ICSharpCode.SharpZipLib.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "ICSharpCode.SharpZipLib",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Internal.Runtime.ClassLibFunctionId.yml",
       "output": {
         ".html": {
@@ -5964,6 +6202,16 @@
     },
     {
       "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-png.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-png.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
       "source_relative_path": "articles/user/images/graphics-shapes.png",
       "output": {
         "resource": {
@@ -6081,6 +6329,16 @@
         },
         ".json": {
           "relative_path": "articles/user/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "credits.md",
+      "output": {
+        ".html": {
+          "relative_path": "credits.html"
         }
       },
       "version": ""
