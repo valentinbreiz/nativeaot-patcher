@@ -37,10 +37,11 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 5);
+        TR.Start("Graphic Tests", expectedTests: 6);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
+        TR.Run("Png_Decode", TestPngDecode);
         TR.Run("ColorClass_Basic", TestColorClass);
         TR.Run("Canvas_Basic", TestCanvasDrawing);
         TR.Run("VirtualCanvas_Basic", TestVirtualCanvas);
@@ -80,6 +81,29 @@ public class Kernel : Sys.Kernel
         Assert.Equal(bitmapData, letterData, "Saving a bitmap creates the same data as used to create it");
         Bitmap letter2 = new Bitmap(bitmapData);
         Assert.Equal(letter2.RawData, letter.RawData, "Creating a new bitmap from saved bitmap creates same bitmap");
+    }
+
+    private static void TestPngDecode()
+    {
+        /* 4x4 RGBA PNG: blue background, distinct corner pixels, one semi-transparent */
+        Png rgba = new Png(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJklEQVR4nF3JMQ4AIBDDMPd+zsvLAAPCW5SURoFG6K1jfOb9lbUBeK8JgkrGyJkAAAAASUVORK5CYII="));
+
+        Assert.True(rgba.Width == 4 && rgba.Height == 4, "PNG width and height decoded correctly");
+        Assert.Equal(rgba.RawData[0], unchecked((int)0xFFFF0000), "PNG top-left pixel is red");
+        Assert.Equal(rgba.RawData[3], unchecked((int)0xFF00FF00), "PNG top-right pixel is green");
+        Assert.Equal(rgba.RawData[1], unchecked((int)0xFF0000FF), "PNG background pixel is blue");
+        Assert.Equal(rgba.RawData[12], unchecked((int)0xFFFFFFFF), "PNG bottom-left pixel is white");
+        Assert.Equal(rgba.RawData[15], unchecked((int)0x80FF0000), "PNG alpha channel is preserved");
+
+        /* 4x4 paletted PNG (PLTE chunk): color index cycles red, green, blue */
+        Png paletted = new Png(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAMAAACeL25MAAADAFBMVEX/AAAA/wAAAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUz4tDAAAAE0lEQVR4nGNgYGRiAGFGBiYYEwAApwAQmSkL9AAAAABJRU5ErkJggg=="));
+
+        Assert.True(paletted.Width == 4 && paletted.Height == 4, "Paletted PNG width and height decoded correctly");
+        Assert.Equal(paletted.RawData[0], unchecked((int)0xFFFF0000), "Paletted PNG index 0 maps to red");
+        Assert.Equal(paletted.RawData[1], unchecked((int)0xFF00FF00), "Paletted PNG index 1 maps to green");
+        Assert.Equal(paletted.RawData[2], unchecked((int)0xFF0000FF), "Paletted PNG index 2 maps to blue");
     }
 
     private static void TestColorClass()

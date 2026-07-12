@@ -1,0 +1,5 @@
+# Vendored BigGustave code keeps its upstream style so it stays diffable
+# against the original sources; do not enforce the repository style here.
+[*.cs]
+csharp_prefer_braces = true:silent
+dotnet_diagnostic.IDE0011.severity = none
