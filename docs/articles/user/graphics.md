@@ -178,6 +178,23 @@ canvas.Display();
 <!-- screenshot: the 2x2 bitmap raw and scaled, plus the logo loaded from disk centered on screen -->
 ![Drawing images](images/graphics-images.png)
 
+**PNG** files work the same way through the `Png` class — also an `Image`, so it goes wherever a `Bitmap` goes. The whole format is supported (grayscale, truecolor and palette, with or without alpha, interlaced or not), decoded by pure managed code (see the [Credits](../../credits.md) page). Transparent pixels blend with what is already on the canvas:
+
+```csharp
+/* logo.png is a PNG with transparency on the FAT partition mounted at /mnt */
+Png logo = new Png("/mnt/logo.png");
+
+/* Draw it scaled to half size, centered — transparent pixels blend with the background */
+int width = (int)logo.Width / 2;
+int height = (int)logo.Height / 2;
+canvas.DrawImage(logo, (canvas.Width - width) / 2, (canvas.Height - height) / 2, width, height);
+
+canvas.Display();
+```
+
+<!-- screenshot: the Cosmos logo PNG decoded from disk, scaled and alpha-blended over the background -->
+![Drawing a PNG](images/graphics-png.png)
+
 `DrawImageAlpha` draws with per-pixel alpha blending, and `canvas.GetImage(x, y, width, height)` does the reverse — it copies a region of the canvas back into a `Bitmap`.
 
 ## Off-screen canvases
@@ -217,7 +234,7 @@ Color color = canvas.GetPointColor(69, 69);   // Color.Red
 
 - Only 32-bit color depth is supported end to end; BMP loading additionally accepts 24-bit files.
 - The video mode cannot be changed at runtime — the framebuffer resolution is whatever the bootloader negotiated at boot.
-- Only the BMP image format is supported (uncompressed, 24 or 32 bpp).
+- Supported image formats are BMP (uncompressed, 24 or 32 bpp) and PNG; there is no JPEG support.
 - No hardware acceleration: every primitive is drawn pixel by pixel by the CPU.
 - `FullScreenCanvas.Disable()` exists but there is no VGA text mode to fall back to on UEFI machines.
 
