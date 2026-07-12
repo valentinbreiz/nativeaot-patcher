@@ -137,6 +137,39 @@ canvas.Display();
 <!-- screenshot: three strings rendered with the built-in Spleen 16x32, Zap Light 8x16 (PSF1) and Terminus 12x24 (PSF2) -->
 ![Drawing text](images/graphics-text.png)
 
+### TrueType fonts
+
+PSF fonts are bitmaps: one size, one cell, no curves. For real typography the `TrueTypeFont` class loads a `.ttf` file and rasterizes it at any pixel size, with anti-aliased edges, per-glyph widths and pair kerning. The parser and rasterizer are pure managed code (see the [Credits](../../credits.md) page), so a malformed font file throws an exception instead of corrupting memory.
+
+`TrueTypeFont` derives from `Font`, so it goes wherever a bitmap font goes — passed to the plain `DrawString` overload it draws at its `SizePx` (set in the constructor, 16 by default). The dedicated overload takes the size explicitly, and each (character, size) pair is rasterized once and cached, so drawing the same text again is cheap:
+
+```csharp
+Canvas canvas = Canvas.GetFullScreen();
+
+canvas.Clear(Color.MidnightBlue);
+
+/* Load a TrueType font from the mounted disk */
+TrueTypeFont dejavu = new TrueTypeFont("/mnt/font.ttf");
+
+canvas.DrawString("Hello from a TrueType font!", dejavu, 44, Color.White, 60, 60);
+canvas.DrawString("Anti-aliased, kerned and scalable to any size.", dejavu, 24, Color.Gold, 60, 130);
+
+/* One font file, any size */
+int y = 200;
+foreach (int size in new[] { 14, 20, 28, 40 })
+{
+    canvas.DrawString("Cosmos at " + size + "px — AV To Wa", dejavu, size, Color.DeepSkyBlue, 60, y);
+    y += dejavu.GetLineHeight(size) + 10;
+}
+
+canvas.Display();
+```
+
+<!-- screenshot: DejaVu Sans rendered from a .ttf on disk at 44, 24, 14, 20, 28 and 40 pixels, anti-aliased over the background -->
+![Drawing TrueType text](images/graphics-ttf.png)
+
+The `(x, y)` you pass is the top-left of the text line, like the PSF overload. For layout, `MeasureString(text, size)` returns the width a string will occupy, `GetLineHeight(size)` the distance between the tops of two lines, and `GetLineMetrics(size, out ascent, out descent, out lineGap)` the underlying baseline metrics. Kerning comes from the font's legacy `kern` table; fonts that only ship GPOS kerning still render, just without pair adjustments.
+
 ## Drawing images
 
 Images are represented by the `Bitmap` class. You can build one in code from raw pixel data — each pixel is four bytes in **B, G, R, A** order:
