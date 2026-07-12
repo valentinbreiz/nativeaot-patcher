@@ -25,7 +25,7 @@ public class Kernel : Sys.Kernel
 {
     /// <summary>Exact TR.Run cell count — the harness synthesizes failures
     /// for missing tests, so a mid-suite hang can't report ALL TESTS PASSED.</summary>
-    private const ushort ExpectedTestCount = 36;
+    private const ushort ExpectedTestCount = 37;
 
     private const string DriverName = "fat-file-test";
     private const string MountPoint = "/mnt";
@@ -52,6 +52,26 @@ public class Kernel : Sys.Kernel
 
         MemoryBlockDevice disk = FileTestVolume.Create("MEMFILE16");
         FatFilesystemType driver = new(disk);
+
+        // ---------- before any mount ----------
+
+        TR.Run("Test_NoMount_Graceful", () =>
+        {
+            // With nothing mounted, System.IO must degrade cleanly: the
+            // virtual root exists and enumerates empty, everything else is
+            // reported missing, and writes fail with an exception instead of
+            // faulting the kernel.
+            Assert.True(Directory.Exists("/"), "virtual root should exist with no mounts");
+            Assert.Equal(0, Directory.GetDirectories("/").Length);
+            Assert.False(File.Exists("/nofs/file.txt"));
+            Assert.False(Directory.Exists("/nofs"));
+            Assert.True(ReadMissingThrowsFileNotFound("/nofs/file.txt"),
+                "read with no mount should raise FileNotFoundException");
+            Assert.True(WriteInMissingDirectoryThrows("/nofs/file.txt"),
+                "write with no mount should raise DirectoryNotFoundException");
+            Assert.True(WriteThrowsIOException("/direct.txt"),
+                "write into the virtual root should raise IOException");
+        });
 
         // ---------- mount ----------
 
@@ -491,6 +511,35 @@ public class Kernel : Sys.Kernel
     // Expected-exception probes live in their own methods with a single
     // try/catch each (multiple EH regions per method have misbehaved on
     // arm64; see the Storage suite).
+
+    private static bool ReadMissingThrowsFileNotFound(string path)
+    {
+        try
+        {
+            File.ReadAllText(path);
+            return false;
+        }
+        catch (Exception e)
+        {
+            return e is FileNotFoundException;
+        }
+    }
+
+    /// <summary>Creating a file in the virtual root: the parent "directory" exists but
+    /// nothing is mounted there, so the plug reports EROFS and the BCL turns
+    /// it into a plain IOException ("read-only file system").</summary>
+    private static bool WriteThrowsIOException(string path)
+    {
+        try
+        {
+            File.WriteAllText(path, "x");
+            return false;
+        }
+        catch (Exception e)
+        {
+            return e is IOException && e is not FileNotFoundException && e is not DirectoryNotFoundException;
+        }
+    }
 
     private static bool OpenMissingThrowsFileNotFound(string path)
     {
