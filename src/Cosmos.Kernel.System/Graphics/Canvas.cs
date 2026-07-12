@@ -977,6 +977,12 @@ public unsafe class Canvas
     /// <param name="y">The origin Y coordinate.</param>
     public virtual void DrawString(string str, Font font, Color color, int x, int y)
     {
+        if (font is TrueTypeFont trueType)
+        {
+            DrawString(str, trueType, trueType.SizePx, color, x, y);
+            return;
+        }
+
         var len = str.Length;
         var width = font.Width;
 
@@ -988,12 +994,97 @@ public unsafe class Canvas
     }
 
     /// <summary>
+    /// Draws a string using the given TrueType font, with per-glyph advances,
+    /// kerning and anti-aliased edges blended onto the existing pixels.
+    /// </summary>
+    /// <param name="str">The string to draw.</param>
+    /// <param name="font">The TrueType font to use.</param>
+    /// <param name="sizePx">The text size in pixels.</param>
+    /// <param name="color">The color to write the string with.</param>
+    /// <param name="x">The origin X coordinate (left edge of the text).</param>
+    /// <param name="y">The origin Y coordinate (top of the text line).</param>
+    public virtual void DrawString(string str, TrueTypeFont font, int sizePx, Color color, int x, int y)
+    {
+        int ascent = font.GetAscent(sizePx);
+        int penX = x;
+        char previous = '\0';
+
+        for (int i = 0; i < str.Length; i++)
+        {
+            char c = str[i];
+            TrueTypeGlyph? glyph = font.GetGlyph(c, sizePx);
+            if (glyph == null)
+            {
+                continue;
+            }
+
+            if (previous != '\0')
+            {
+                penX += font.GetKerning(previous, c, sizePx);
+            }
+
+            DrawGlyph(glyph, color, penX + glyph.OffsetX, y + ascent + glyph.OffsetY);
+            penX += glyph.Advance;
+            previous = c;
+        }
+    }
+
+    /// <summary>
+    /// Blends a rasterized TrueType glyph onto the canvas, tinting its
+    /// coverage with the given color.
+    /// </summary>
+    /// <param name="glyph">The rasterized glyph to draw.</param>
+    /// <param name="color">The color to tint the glyph with.</param>
+    /// <param name="x">The X coordinate of the left edge of the glyph bitmap.</param>
+    /// <param name="y">The Y coordinate of the top edge of the glyph bitmap.</param>
+    private void DrawGlyph(TrueTypeGlyph glyph, Color color, int x, int y)
+    {
+        byte[]? coverage = glyph.Coverage;
+        if (coverage == null)
+        {
+            return;
+        }
+
+        for (int gy = 0; gy < glyph.Height; gy++)
+        {
+            int py = y + gy;
+            if (py < 0 || py >= Mode.Height)
+            {
+                continue;
+            }
+
+            for (int gx = 0; gx < glyph.Width; gx++)
+            {
+                int px = x + gx;
+                if (px < 0 || px >= Mode.Width)
+                {
+                    continue;
+                }
+
+                byte alpha = (byte)(coverage[(gy * glyph.Width) + gx] * color.A / 255);
+                if (alpha == 0)
+                {
+                    continue;
+                }
+
+                DrawPoint(Color.FromArgb(alpha, color.R, color.G, color.B), px, py);
+            }
+        }
+    }
+
+    /// <summary>
     /// Draws a single character using the given bitmap font.
     /// </summary>
     /// <param name="c">The character to draw.</param>
     /// <inheritdoc cref="DrawString(string, Font, Color, int, int)"/>
     public virtual void DrawChar(char c, Font font, Color color, int x, int y)
     {
+        if (font is TrueTypeFont trueType)
+        {
+            DrawString(c.ToString(), trueType, trueType.SizePx, color, x, y);
+            return;
+        }
+
         var height = font.Height;
         var width = font.Width;
         var data = font.Data;
