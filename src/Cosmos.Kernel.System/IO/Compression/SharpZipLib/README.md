@@ -1,8 +1,8 @@
 # Vendored: SharpZipLib inflater
 
 The DEFLATE/zlib decompression classes of
-[SharpZipLib](https://github.com/icsharpcode/SharpZipLib) (MIT), unmodified
-except for `SharpZipBaseException.cs`, which is a minimal local replacement
+[SharpZipLib](https://github.com/icsharpcode/SharpZipLib) (MIT), whitespace-reformatted to the repository style (dotnet format) but
+otherwise unmodified except for `SharpZipBaseException.cs`, which is a minimal local replacement
 for the original exception hierarchy (the inflater only ever constructs it
 with a message).
 

@@ -1,5 +1,5 @@
-# Vendored BigGustave code keeps its upstream style so it stays diffable
-# against the original sources; do not enforce the repository style here.
+# Vendored BigGustave code is exempt from brace-style enforcement to keep
+# the diff against upstream small; whitespace follows the repository style.
 [*.cs]
 csharp_prefer_braces = true:silent
 dotnet_diagnostic.IDE0011.severity = none

@@ -78,11 +78,11 @@
                     switch (colorType)
                     {
                         case ColorType.None:
-                            {
-                                byte second = data[pixelStartIndex + 1];
-                                var value = ToSingleByte(first, second);
-                                return new Pixel(value, value, value, 255, true);
-                            }
+                        {
+                            byte second = data[pixelStartIndex + 1];
+                            var value = ToSingleByte(first, second);
+                            return new Pixel(value, value, value, 255, true);
+                        }
                         default:
                             return new Pixel(first, first, first, data[pixelStartIndex + 1], true);
                     }
@@ -94,22 +94,22 @@
                     switch (colorType)
                     {
                         case ColorType.None | ColorType.AlphaChannelUsed:
-                            {
-                                var second = data[pixelStartIndex + 1];
-                                var firstAlpha = data[pixelStartIndex + 2];
-                                var secondAlpha = data[pixelStartIndex + 3];
-                                var gray = ToSingleByte(first, second);
-                                var alpha = ToSingleByte(firstAlpha, secondAlpha);
-                                return new Pixel(gray, gray, gray, alpha, true);
-                            }
+                        {
+                            var second = data[pixelStartIndex + 1];
+                            var firstAlpha = data[pixelStartIndex + 2];
+                            var secondAlpha = data[pixelStartIndex + 3];
+                            var gray = ToSingleByte(first, second);
+                            var alpha = ToSingleByte(firstAlpha, secondAlpha);
+                            return new Pixel(gray, gray, gray, alpha, true);
+                        }
                         case ColorType.ColorUsed | ColorType.AlphaChannelUsed:
-                            {
-                                var red = first;
-                                var green = data[pixelStartIndex + 1];
-                                var blue = data[pixelStartIndex + 2];
-                                var alpha = data[pixelStartIndex + 3];
-                                return new Pixel(red, green, blue, alpha, false);
-                            }
+                        {
+                            var red = first;
+                            var green = data[pixelStartIndex + 1];
+                            var blue = data[pixelStartIndex + 2];
+                            var alpha = data[pixelStartIndex + 3];
+                            return new Pixel(red, green, blue, alpha, false);
+                        }
                         default:
                             return new Pixel(first, data[pixelStartIndex + 1], data[pixelStartIndex + 2], data[pixelStartIndex + 3], false);
                     }
