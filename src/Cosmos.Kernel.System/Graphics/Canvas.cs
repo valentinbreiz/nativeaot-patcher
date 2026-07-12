@@ -490,13 +490,16 @@ public unsafe class Canvas
 
         if (dy == 0) // The line is horizontal
         {
-            DrawHorizontalLine(color, dx, x1, y1);
+            // DrawHorizontalLine only walks in the positive direction; start
+            // from the leftmost point so right-to-left lines are not dropped.
+            DrawHorizontalLine(color, Math.Abs(dx), Math.Min(x1, x2), y1);
             return;
         }
 
         if (dx == 0) // The line is vertical
         {
-            DrawVerticalLine(color, dy, x1, y1);
+            // Same as above: start from the topmost point.
+            DrawVerticalLine(color, Math.Abs(dy), x1, Math.Min(y1, y2));
             return;
         }
 
