@@ -4310,6 +4310,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.yml\" sourcestartlinenumber=\"1\">Represents a TrueType font. Unlike the fixed-cell bitmap fonts, glyphs have\nindividual widths and pair kerning, and the font can be rasterized at any\npixel size. <xref href=\"Cosmos.Kernel.System.Graphics.Fonts.Font.Data\" data-throw-if-not-resolved=\"false\"></xref> holds the raw bytes of the .ttf file;\n<xref href=\"Cosmos.Kernel.System.Graphics.Fonts.Font.Width\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Cosmos.Kernel.System.Graphics.Fonts.Font.Height\" data-throw-if-not-resolved=\"false\"></xref> are zero because a\nTrueType font has no fixed character cell. Rasterized glyphs are cached per\n(character, size) as grayscale coverage, so the same font instance can draw\nin any color without re-rasterizing.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping.yml",
       "output": {
         ".html": {
@@ -6226,6 +6240,16 @@
       "output": {
         "resource": {
           "relative_path": "articles/user/images/graphics-text.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/graphics-ttf.png",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/graphics-ttf.png"
         }
       },
       "version": ""

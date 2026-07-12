@@ -108,6 +108,17 @@ Classes
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default.html">PCScreenFont.Default</a></dt>
       <dd></dd>
     </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html">TrueTypeFont</a></dt>
+      <dd><p>Represents a TrueType font. Unlike the fixed-cell bitmap fonts, glyphs have
+individual widths and pair kerning, and the font can be rasterized at any
+pixel size. <a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html#Cosmos_Kernel_System_Graphics_Fonts_Font_Data">Data</a> holds the raw bytes of the .ttf file;
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html#Cosmos_Kernel_System_Graphics_Fonts_Font_Width">Width</a> and <a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html#Cosmos_Kernel_System_Graphics_Fonts_Font_Height">Height</a> are zero because a
+TrueType font has no fixed character cell. Rasterized glyphs are cached per
+(character, size) as grayscale coverage, so the same font instance can draw
+in any color without re-rasterizing.</p>
+</dd>
+    </dl>
     <h3 id="structs">
 Structs
 </h3>

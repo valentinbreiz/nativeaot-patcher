@@ -23232,6 +23232,15 @@ references:
   fullName.vb: Cosmos.Kernel.System.Graphics.Canvas.DrawString(String, Cosmos.Kernel.System.Graphics.Fonts.Font, System.Drawing.Color, Integer, Integer)
   nameWithType: Canvas.DrawString(string, Font, Color, int, int)
   nameWithType.vb: Canvas.DrawString(String, Font, Color, Integer, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Canvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont,System.Int32,System.Drawing.Color,System.Int32,System.Int32)
+  name: DrawString(string, TrueTypeFont, int, Color, int, int)
+  href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_System_Int32_System_Drawing_Color_System_Int32_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Canvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont,System.Int32,System.Drawing.Color,System.Int32,System.Int32)
+  name.vb: DrawString(String, TrueTypeFont, Integer, Color, Integer, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Canvas.DrawString(string, Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont, int, System.Drawing.Color, int, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Canvas.DrawString(String, Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont, Integer, System.Drawing.Color, Integer, Integer)
+  nameWithType: Canvas.DrawString(string, TrueTypeFont, int, Color, int, int)
+  nameWithType.vb: Canvas.DrawString(String, TrueTypeFont, Integer, Color, Integer, Integer)
 - uid: Cosmos.Kernel.System.Graphics.Canvas.DrawString*
   name: DrawString
   href: api/Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawString_
@@ -23729,6 +23738,158 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.LoadFont
   nameWithType: PCScreenFont.LoadFont
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont
+  name: TrueTypeFont
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html
+  commentId: T:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont
+  nameWithType: TrueTypeFont
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.Byte[],System.Int32)
+  name: TrueTypeFont(byte[], int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont__ctor_System_Byte___System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.Byte[],System.Int32)
+  name.vb: New(Byte(), Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(byte[], int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.New(Byte(), Integer)
+  nameWithType: TrueTypeFont.TrueTypeFont(byte[], int)
+  nameWithType.vb: TrueTypeFont.New(Byte(), Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.IO.Stream,System.Int32)
+  name: TrueTypeFont(Stream, int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont__ctor_System_IO_Stream_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.IO.Stream,System.Int32)
+  name.vb: New(Stream, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(System.IO.Stream, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.New(System.IO.Stream, Integer)
+  nameWithType: TrueTypeFont.TrueTypeFont(Stream, int)
+  nameWithType.vb: TrueTypeFont.New(Stream, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.String,System.Int32)
+  name: TrueTypeFont(string, int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont__ctor_System_String_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor(System.String,System.Int32)
+  name.vb: New(String, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(string, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.New(String, Integer)
+  nameWithType: TrueTypeFont.TrueTypeFont(string, int)
+  nameWithType.vb: TrueTypeFont.New(String, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor*
+  name: TrueTypeFont
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.New
+  nameWithType: TrueTypeFont.TrueTypeFont
+  nameWithType.vb: TrueTypeFont.New
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(System.Int32)
+  name: GetAscent(int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetAscent_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(System.Int32)
+  name.vb: GetAscent(Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(Integer)
+  nameWithType: TrueTypeFont.GetAscent(int)
+  nameWithType.vb: TrueTypeFont.GetAscent(Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent*
+  name: GetAscent
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetAscent_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent
+  nameWithType: TrueTypeFont.GetAscent
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(System.Char,System.Char,System.Int32)
+  name: GetKerning(char, char, int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetKerning_System_Char_System_Char_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(System.Char,System.Char,System.Int32)
+  name.vb: GetKerning(Char, Char, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(char, char, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(Char, Char, Integer)
+  nameWithType: TrueTypeFont.GetKerning(char, char, int)
+  nameWithType.vb: TrueTypeFont.GetKerning(Char, Char, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning*
+  name: GetKerning
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetKerning_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning
+  nameWithType: TrueTypeFont.GetKerning
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight(System.Int32)
+  name: GetLineHeight(int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetLineHeight_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight(System.Int32)
+  name.vb: GetLineHeight(Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight(int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight(Integer)
+  nameWithType: TrueTypeFont.GetLineHeight(int)
+  nameWithType.vb: TrueTypeFont.GetLineHeight(Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight*
+  name: GetLineHeight
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetLineHeight_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight
+  nameWithType: TrueTypeFont.GetLineHeight
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(System.Int32,System.Int32@,System.Int32@,System.Int32@)
+  name: GetLineMetrics(int, out int, out int, out int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetLineMetrics_System_Int32_System_Int32__System_Int32__System_Int32__
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(System.Int32,System.Int32@,System.Int32@,System.Int32@)
+  name.vb: GetLineMetrics(Integer, Integer, Integer, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(int, out int, out int, out int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(Integer, Integer, Integer, Integer)
+  nameWithType: TrueTypeFont.GetLineMetrics(int, out int, out int, out int)
+  nameWithType.vb: TrueTypeFont.GetLineMetrics(Integer, Integer, Integer, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics*
+  name: GetLineMetrics
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetLineMetrics_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics
+  nameWithType: TrueTypeFont.GetLineMetrics
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph(System.Char)
+  name: HasGlyph(char)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_HasGlyph_System_Char_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph(System.Char)
+  name.vb: HasGlyph(Char)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph(char)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph(Char)
+  nameWithType: TrueTypeFont.HasGlyph(char)
+  nameWithType.vb: TrueTypeFont.HasGlyph(Char)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph*
+  name: HasGlyph
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_HasGlyph_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph
+  nameWithType: TrueTypeFont.HasGlyph
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(System.String,System.Int32)
+  name: MeasureString(string, int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_MeasureString_System_String_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(System.String,System.Int32)
+  name.vb: MeasureString(String, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(string, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(String, Integer)
+  nameWithType: TrueTypeFont.MeasureString(string, int)
+  nameWithType.vb: TrueTypeFont.MeasureString(String, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString*
+  name: MeasureString
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_MeasureString_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString
+  nameWithType: TrueTypeFont.MeasureString
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx
+  name: SizePx
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_SizePx
+  commentId: P:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx
+  nameWithType: TrueTypeFont.SizePx
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx*
+  name: SizePx
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_SizePx_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx
+  nameWithType: TrueTypeFont.SizePx
 - uid: Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping
   name: UnicodeMapping
   href: api/Cosmos.Kernel.System.Graphics.Fonts.UnicodeMapping.html
