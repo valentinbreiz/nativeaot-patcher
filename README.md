@@ -47,6 +47,8 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - UEFI GOP framebuffer graphics
 - Keyboard and Mouse input
 - Network stack (no HTTPS *yet*)
+- Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
+- FAT12/16/32 filesystem on a Unix-style VFS (mount, superblocks, inodes)
 - Timer / Clock
 
 ## Documentation
