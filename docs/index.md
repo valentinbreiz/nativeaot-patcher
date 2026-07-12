@@ -16,6 +16,7 @@ The documentation is split in two parts, depending on what you want to do with g
 Everything you need to create, build and run your own Cosmos kernel:
 
  - [Installation Guide](articles/user/install.md) — set up the toolchain and create your first kernel from VS Code.
+ - [Kernel Startup](articles/user/startup.md) — the boot chain and the `BeforeRun`/`Run`/`AfterRun` lifecycle.
  - [File System](articles/user/filesystem.md) — mount a disk and use the standard .NET `System.IO` API (`File`, `Directory`, streams).
  - [Network](articles/user/network.md) — DHCP, UDP and TCP through the standard .NET `System.Net.Sockets` API, plus DNS.
  - [Graphics](articles/user/graphics.md) — draw shapes, text and images on the screen with the Canvas API.
