@@ -129,7 +129,7 @@ RhpThrowEx:
     mov     x1, sp
 
     // Initialize ExInfo fields
-    str     xzr, [x1, #OFFSETOF__ExInfo__m_exception]      // exception = null
+    str     x19, [x1, #OFFSETOF__ExInfo__m_exception]      // exception object — RhpRethrow reads it back
     mov     w2, #1
     strb    w2, [x1, #OFFSETOF__ExInfo__m_passNumber]      // passNumber = 1
     mov     w2, #0xFFFFFFFF

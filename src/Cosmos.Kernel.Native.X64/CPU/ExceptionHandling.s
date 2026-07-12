@@ -113,7 +113,7 @@ RhpThrowEx:
 
     // Initialize ExInfo fields
     xor     rdx, rdx
-    mov     [rsi + OFFSETOF__ExInfo__m_exception], rdx                       // exception = null (set by managed code)
+    mov     [rsi + OFFSETOF__ExInfo__m_exception], rbx                       // exception object — RhpRethrow reads it back
     mov     byte ptr [rsi + OFFSETOF__ExInfo__m_passNumber], 1               // passNumber = 1
     mov     dword ptr [rsi + OFFSETOF__ExInfo__m_idxCurClause], 0xFFFFFFFF   // idxCurClause = -1
     mov     byte ptr [rsi + OFFSETOF__ExInfo__m_kind], ExKind_Throw          // kind = Throw
